@@ -3,34 +3,38 @@ import {MatPaginator, MatSort} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
 import {startWith, switchMap} from "rxjs/operators";
 import {ValidatorService, TableElement} from "angular4-material-table";
-import {AppTableDataSource} from "../../app/material/material.table";
-import {TripValidatorService} from "./validator/validators";
-import {TripService, TripFilter} from "../../services/trip-service";
+import {AppTableDataSource} from "../../../app/material/material.table";
+import {VesselValidatorService} from "../validator/validators";
+import {VesselService, VesselFilter} from "../../../services/vessel-service";
 import {SelectionModel} from "@angular/cdk/collections";
-import {TripModal} from "../trip/modal/modal-trip";
-import {Trip, Referential, VesselFeatures} from "../../services/model";
+import {VesselModal} from "../modal/modal-vessel";
+import {VesselFeatures, Referential} from "../../../services/model";
 import {Subscription} from "rxjs";
-import { ModalController } from "ionic-angular";
+import { ModalController, Platform } from "ionic-angular";
 import { Router, ActivatedRoute } from "@angular/router";
 
 @Component({
-  selector: 'page-trips',
-  templateUrl: 'trips.html',
+  selector: 'page-vessels',
+  templateUrl: 'vessels.html',
   providers: [
-    {provide: ValidatorService, useClass: TripValidatorService }
+    {provide: ValidatorService, useClass: VesselValidatorService }
   ],
 })
-export class TripsPage implements OnInit, OnDestroy {
+export class VesselsPage implements OnInit, OnDestroy {
 
   any: any;
+  inlineEdition: boolean = false;
   subscriptions: Subscription[] = [];
-  displayedColumns = ['select', 'id', 'vessel',
-    'departureLocation', 'departureDateTime',
-    'returnDateTime',  //'returnLocation',
+  displayedColumns = ['select', 
+    'id', 'exteriorMarking',
+    'name',
+    'basePortLocation',
     'comments'];
-  dataSource:AppTableDataSource<Trip, TripFilter>;
+  dataSource:AppTableDataSource<VesselFeatures, VesselFilter>;
   resultsLength = 0;
   loading = true;
+  focusFirstColumn = false;
+  error: string;
   showFilter = false;
   dirty = false;
   isRateLimitReached = false;
@@ -38,32 +42,29 @@ export class TripsPage implements OnInit, OnDestroy {
     new Referential({id: 1, label: 'XBR', name: 'Brest'}),
     new Referential({id: 2, label: 'XBL', name: 'Boulogne'})
   ];
-  vessels: VesselFeatures[] = [
-    new VesselFeatures().fromObject({vesselId: 1, exteriorMarking: 'FRA000851751', name: 'Vessel1'}),
-    new VesselFeatures().fromObject({vesselId: 2, exteriorMarking: 'BEL000152147', name: 'Belgium Oscar'})
-  ];
-  selection = new SelectionModel<TableElement<Trip>>(true, []);
-  selectedRow: TableElement<Trip> = undefined;
+  selection = new SelectionModel<TableElement<VesselFeatures>>(true, []);
+  selectedRow: TableElement<VesselFeatures> = undefined;
   onRefresh: EventEmitter<any> = new EventEmitter<any>();
-  filter: TripFilter = {
-    startDate: null,
-    endDate: null
+  filter: VesselFilter = {
+    date: null,
+    searchText: null
   };
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
   @Output()
-  listChange = new EventEmitter<Trip[]>();
+  listChange = new EventEmitter<VesselFeatures[]>();
 
   constructor(
-              private tripValidatorService: TripValidatorService,
-              private tripService: TripService,
+              private vesselValidatorService: VesselValidatorService,
+              private vesselService: VesselService,
               private modalCtrl: ModalController,
               private route: ActivatedRoute,
-              private router: Router
+              private router: Router,
+              private platform: Platform
   ) {
-    this.dataSource = new AppTableDataSource<Trip, TripFilter>(Trip, this.tripService, this.tripValidatorService);
+    this.dataSource = new AppTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, this.vesselService, this.vesselValidatorService);
   };
 
   ngOnInit() {
@@ -95,10 +96,10 @@ export class TripsPage implements OnInit, OnDestroy {
         if (data) {
           this.isRateLimitReached = data.length < this.paginator.pageSize;
           this.resultsLength = this.paginator.pageIndex * this.paginator.pageSize + data.length;
-          console.debug('[trips] Loaded ' + data.length + ' trips: ', data);
+          console.debug('[vessels] Loaded ' + data.length + ' vessels: ', data);
         }
         else {
-          console.debug('[trips] Loaded NO trips');
+          console.debug('[vessels] Loaded NO vessels');
           this.isRateLimitReached = true;
           this.resultsLength = 0;
         }
@@ -115,8 +116,7 @@ export class TripsPage implements OnInit, OnDestroy {
     this.subscriptions = [];
   }
 
-  confirmAndAddRow(row: TableElement<Trip>) {
-    console.debug("Trying to confirmAndAddRow", row);
+  confirmAndAddRow(row: TableElement<VesselFeatures>) {
     // create
     var valid = false;
     if (row.id<0) {
@@ -143,11 +143,21 @@ export class TripsPage implements OnInit, OnDestroy {
   }
 
   addRow() {
+    // Use modal if not expert mode, or if small screen
+    if (this.platform.is('mobile') || !this.inlineEdition) {
+      return this.openVesselModal();
+    }
+
     // Add new row
+    this.focusFirstColumn = true;
     this.dataSource.createNew();
+    var subscription = this.dataSource.connect().first().subscribe(rows => {
+      console.log("TODO: select new row");
+      //this.selectedRow = rows[3];
+    });
     this.dirty = true;
     this.resultsLength++;
-    this.selectedRow = null;
+    //this.selectedRow = null;
   }
 
   editRow(row) {
@@ -157,40 +167,38 @@ export class TripsPage implements OnInit, OnDestroy {
     }
   }
 
-  createTrip() {
-    var trip = new Trip();
-    return trip;
+  createVessel() {
+    var vessel = new VesselFeatures();
+    return vessel;
   }
 
-  onDataChanged(data: Trip[]) {
+  onDataChanged(data: VesselFeatures[]) {
+    this.error = undefined;
     data.forEach(t => {
       if (!t.id && !t.dirty) {
         t.dirty = true;
       }
     });
-    if (this.dirty) {
-      console.debug("[trips] trips changed:");
-    }
   }
 
   save() {
+    this.error = undefined;
     if (this.selectedRow && this.selectedRow.editing) {
       var confirm = this.selectedRow.confirmEditCreate();
       if (!confirm) return;
     }
-    console.log("[trips] Saving...");
-    this.dataSource.save().subscribe(res => {
-      this.dirty = false;
-    });    
+    console.log("[vessels] Saving...");
+    this.dataSource.save()
+      .then(res => {
+        if (res) this.dirty = false;
+      })
+      .catch(err => {
+        this.error = err && err.message || err;
+      });
   }
 
   displayReferentialFn(ref?: Referential): string | undefined {
     return ref && ref.label ? (ref.label + ' - ' + ref.name) : undefined;
-  }
-
-
-  displayVesselFn(ref?: VesselFeatures | any): string | undefined {
-    return ref ? (ref.exteriorMarking || ref.name) : undefined;
   }
 
   /** Whether the number of selected elements matches the total number of rows. */
@@ -212,11 +220,13 @@ export class TripsPage implements OnInit, OnDestroy {
   deleteSelection() {
     if (this.loading) return;
     this.selection.selected.forEach(row => {
-      row.delete();
-      this.selection.deselect(row);
-      this.resultsLength--;
+      if (row.currentData && row.currentData.id >= 0) {
+       row.delete();
+        this.selection.deselect(row);
+        this.resultsLength--;
+      }
     });
-    this.selection.clear();
+    //this.selection.clear();
     this.selectedRow = null;
   }
 
@@ -238,21 +248,26 @@ export class TripsPage implements OnInit, OnDestroy {
 
   onOpenRowDetail(event, row) {
     if (!row.currentData.id || row.editing) return;
-    if (this.dirty) {
-      this.onEditRow(event, row);
-      return;
+
+    // Open the detail page (if not editing)
+    if (!this.dirty && !this.inlineEdition) {
+      return this.router.navigate([row.currentData.id], { 
+        relativeTo: this.route
+      });
     }
 
-    this.router.navigate([row.currentData.id], { 
-      relativeTo: this.route
-    });
+    this.onEditRow(event, row);    
   }
 
-  openTripModal() {
+  openVesselModal(): Promise<any> {
     if (this.loading) return;
 
-    let modal = this.modalCtrl.create(TripModal);
-    modal.present();
+    let modal = this.modalCtrl.create(VesselModal);
+    modal.onDidDismiss(res => {
+      // if new vessel added, refresh the table
+      if (res) this.onRefresh.emit();
+    });
+    return modal.present();
   }
 
   toggleFilter() {

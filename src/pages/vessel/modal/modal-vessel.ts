@@ -1,22 +1,22 @@
 import {Component, ViewChild} from '@angular/core';
-import {Trip} from "../../../services/model";
+import {VesselFeatures} from "../../../services/model";
 import { ViewController } from "ionic-angular";
-import { TripForm } from '../form/form-trip';
-import { TripService } from '../../../services/trip-service';
+import { VesselForm } from '../form/form-vessel';
+import { VesselService } from '../../../services/vessel-service';
 
 
 @Component({
-  selector: 'modal-trip',
-  templateUrl: './modal-trip.html'
+  selector: 'modal-vessel',
+  templateUrl: './modal-vessel.html'
 })
-export class TripModal {
+export class VesselModal {
 
   loading: boolean = false;
 
-  @ViewChild('form') private form: TripForm;
+  @ViewChild('form') private form: VesselForm;
 
   constructor(
-    private tripService: TripService,
+    private vesselService: VesselService,
     private viewCtrl: ViewController) {
   }
 
@@ -26,10 +26,10 @@ export class TripModal {
     if (this.form.form.disabled) return;
     this.form.disable();
 
-    let data = new Trip();
+    let data = new VesselFeatures();
     data.fromObject(json);
 
-    return this.tripService.save(data)
+    return this.vesselService.save(data)
       .then((res) => this.viewCtrl.dismiss(res))
       .catch(err => {
         this.form.error = err && err.message || err;

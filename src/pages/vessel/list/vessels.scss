@@ -1,4 +1,8 @@
-page-trips {
+page-vessels {
+
+  .toolbar-spacer {
+    flex: 1 1 auto;
+  }
 
   .mat-table {
     .mat-column-select {
@@ -18,10 +22,6 @@ page-trips {
       max-width: 100px;
     }
 
-    /*input.mat-input-element {
-      max-width: 60px;
-    }*/
-
     .mat-input-element:disabled {
       color: inherit;
     }
@@ -31,11 +31,6 @@ page-trips {
       word-wrap: break-word;
       width: auto !important;
       max-width: 150px;
-    }
-
-    .mat-cell, .mat-header-cell {
-      //overflow: hidden;
-      //word-wrap: break-word;
     }
 
     .mat-header-row,

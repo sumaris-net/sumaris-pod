@@ -1,12 +1,10 @@
 {
   "APP_NAME": "SUMARiS",
-  "FILTER": {
-    "DATE_PATTERN": "YYYY-MM-DD"
-  },
   "COMMON": {
     "BTN_CANCEL": "Annuler",
     "BTN_ADD": "Ajouter",
     "BTN_EDIT": "Modifier",
+    "BTN_DONE": "Terminer",
     "BTN_DELETE": "Supprimer",
     "BTN_VALIDATE": "Valider",
     "BTN_SAVE": "Sauvegarder",
@@ -17,7 +15,21 @@
     "BTN_NEXT": "Suivant",
     "BTN_BACK": "Retour",
     "BTN_SEND": "Envoyer",
+    "BTN_TABLE_EDIT": "Editer dans le tableau",
     "CREATED_ON": "Créé le ",
+
+    "DATE_PATTERN": "DD/MM/YYYY",
+    "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "DATE_FILE_PATTERN": "YYYY-MM-DD",
+    "DATE_SHORT_PATTERN": "DD/MM/YY",
+    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_PLACEHOLDER": "jj/mm/aaaa",
+
+    "HOUR": "heure",
+    "MINUTE": "minute",
+    "HOUR_PLACEHOLDER": "hh",
+    "MINUTE_PLACEHOLDER": "mm",
+
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur"
   },
@@ -26,6 +38,7 @@
     "TRIPS": "Marée",
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Utilisateurs",
+    "VESSELS": "Navires",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "BTN_ACCOUNT": "Compte",
     "BTN_LOGOUT": "Quitter"
@@ -122,7 +135,37 @@
     },
     "EDIT": {
       "TITLE": "Modifier la marée"
+    },
+    "ERROR": {
+      "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
+      "SAVE_TRIP_ERROR": "Erreur lors de la sauvegarde de la marée.",
+      "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées."
     }
+  },
+  "VESSEL": {
+    "TITLE": "Navire",
+    "NAME": "Nom",
+    "EXTERIOR_MARKING": "Code d'immatriculation",
+    "BASE_PORT_LOCATION": "Port d'attache",
+    "COUNTRY": "Pavillon",
+    "COMMENTS": "Commentaires",
+    "TAG_GENERAL": "Informations générales",
+    "NEW": {
+      "TITLE": "Nouveau navire"
+    },
+    "LIST": {
+      "TITLE": "Navires"
+    },
+    "ERROR": {
+      "LOAD_VESSEL_ERROR": "Erreur de chargement des navires.",
+      "SAVE_VESSEL_ERROR": "Erreur lors de la sauvegarde du navire.",
+      "SAVE_VESSELS_ERROR": "Erreur lors de la sauvegarde des navires."
+    }
+  },
+  "REFERENTIAL": {
+    "ERROR": {
+      "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels."
+    }    
   },
   "ERROR": {
     "FIELD_REQUIRED": "Champ obligatoire.",

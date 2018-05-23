@@ -14,7 +14,7 @@ export class AccountPage implements OnDestroy {
 
   isLogin: boolean;
   subscriptions: Subscription[] = [];
-  changesSubscriptions: Subscription[] = [];
+  changesSubscription: Subscription;
   account: Account;
   email: any = {
     confirmed: false,
@@ -80,7 +80,6 @@ export class AccountPage implements OnDestroy {
   }
 
   onLogout() {
-    //console.debug('[home] Logout');
     this.isLogin = false;
     this.email.confirmed = false;
     this.email.notConfirmed = false;
@@ -88,17 +87,19 @@ export class AccountPage implements OnDestroy {
     this.email.error = undefined;
     this.form.reset();
     this.form.controls.email.enable();
+
+    this.stopListenChanges();
   }
 
   startListenChanges() {
-    this.changesSubscriptions.forEach(s => s.unsubscribe());
-    this.changesSubscriptions = [];
-    this.changesSubscriptions.push(this.accountService.listenChanges());
+    if (this.changesSubscription) return; // already started
+    this.changesSubscription = this.accountService.listenChanges();
   }
 
   stopListenChanges() {
-    this.changesSubscriptions.forEach(s => s.unsubscribe());
-    this.changesSubscriptions = [];
+    if (!this.changesSubscription) return;
+    this.changesSubscription.unsubscribe();
+    this.changesSubscription = undefined;
   }
 
   setValue(data: any) {

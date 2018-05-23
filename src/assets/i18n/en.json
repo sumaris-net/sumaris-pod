@@ -1,12 +1,10 @@
 {
   "APP_NAME": "SUMARiS",
-  "FILTER": {
-    "DATE_PATTERN": "YYYY-MM-DD"
-  },
   "COMMON": {
     "BTN_CANCEL": "Cancel",
     "BTN_ADD": "Add",
     "BTN_EDIT": "Edit",
+    "BTN_DONE": "Done",
     "BTN_DELETE": "Delete",
     "BTN_VALIDATE": "Validate",
     "BTN_SAVE": "Save",
@@ -18,6 +16,19 @@
     "BTN_BACK": "Back",
     "BTN_SEND": "Send",
     "CREATED_ON": "Created on",
+
+    "DATE_PATTERN": "MM/DD/YYYY",
+    "DATE_TIME_PATTERN": "MM/DD/YYYY HH:mm",
+    "DATE_FILE_PATTERN": "YYYY-MM-DD",
+    "DATE_SHORT_PATTERN": "DD/MM/YY",
+    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_PLACEHOLDER": "dd/mm/yyyy",
+
+    "HOUR_SYMBOL": "h",
+    "MINUTE_SYMBOL": "min",
+    "HOUR_PLACEHOLDER": "hh",
+    "MINUTE_PLACEHOLDER": "mm",
+
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder"
   },
@@ -41,7 +52,6 @@
   "AUTH": {
     "TITLE": "Authentication",
     "BTN_LOGIN": "Log In",
-    "BTN_LOGOUT": "Log Out",
     "BTN_REGISTER": "Sign up",
     "NO_ACCOUNT_QUESTION": "Don't have a account?"
   },

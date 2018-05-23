@@ -1,31 +1,30 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
-import { TripService } from '../../services/trip-service';
-import { TripForm } from './form/form-trip';
-import { Trip } from '../../services/model';
+import { VesselService } from '../../services/vessel-service';
+import { VesselForm } from './form/form-vessel';
+import { VesselFeatures } from '../../services/model';
 import { FormGroup } from '@angular/forms';
 
 @Component({
-  selector: 'page-trip',
-  templateUrl: './trip.html'
+  selector: 'page-vessel',
+  templateUrl: './vessel.html'
 })
-export class TripPage implements OnInit{
+export class VesselPage implements OnInit{
 
   loading: boolean = true;
-  data: Trip;
+  data: VesselFeatures;
 
-  @ViewChild('form') private form: TripForm;
+  @ViewChild('form') private form: VesselForm;
 
   constructor(
     private route: ActivatedRoute, 
-    private tripService: TripService
-    //private router: Router
+    private vesselService: VesselService
   ) {
   }
 
   ngOnInit() {
     // Make sure template has a form
-    if (!this.form) throw "[TripPage] no form for value setting";
+    if (!this.form) throw "[VesselPage] no form for value setting";
 
     this.route.params.subscribe(res => {
         this.load(parseInt(res["id"]));
@@ -33,14 +32,14 @@ export class TripPage implements OnInit{
   }
 
   load(id: number) {
-    this.tripService.load(id)
-      .then(trip => {
-        this.updateView(trip);
+    this.vesselService.load(id)
+      .then(vessel => {
+        this.updateView(vessel);
         this.loading = false;
       });
   }
 
-  updateView(data: Trip|null) {
+  updateView(data: VesselFeatures|null) {
     this.form.setValue(data);
     this.data = data;
   }
@@ -48,10 +47,10 @@ export class TripPage implements OnInit{
   save(event, json): Promise<any> {
     if (this.loading) return;
 
-    // Update Trip from JSON
+    // Update Vessel from JSON
     this.data.fromObject(json);
 
-    return this.tripService.save(this.data)
+    return this.vesselService.save(this.data)
       .then((data) => {
         this.updateView(data);
         this.form.markAsPristine();

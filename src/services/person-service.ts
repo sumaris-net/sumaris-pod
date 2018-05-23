@@ -4,7 +4,9 @@ import { Apollo } from "apollo-angular";
 import { ApolloQueryResult } from 'apollo-client';
 import { Observable } from 'rxjs/Observable';
 import { Person } from './model';
-import { DataService } from "./data-service";
+import { DataService, BaseDataService } from "./data-service";
+import { ErrorCodes } from "./errors";
+import {map} from "rxjs/operators";
 
 // Load persons query
 const PersonsQuery = gql`
@@ -36,11 +38,12 @@ export declare class PersonsVariables extends PersonFilter{
 
 
 @Injectable()
-export class PersonService implements DataService<Person, PersonFilter> {
+export class PersonService extends BaseDataService implements DataService<Person, PersonFilter> {
 
   constructor(
-    private apollo: Apollo
+    protected apollo: Apollo
   ) {
+    super(apollo);
   }
 
   /**
@@ -68,29 +71,33 @@ export class PersonService implements DataService<Person, PersonFilter> {
       sortDirection: sortDirection || 'asc'
     };
     console.debug("[person-service] Loading persons, using filter: ", variables);
-    this.apollo.getClient().cache.reset();
-    return this.apollo.query<ApolloQueryResult<PersonsQueryResult>, PersonsVariables>({
+    return this.watchQuery<{persons: Person[]}>({
       query: PersonsQuery,
-      variables: variables
+      variables: variables,
+      error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"}
     })
-    //.take(1)
-    .map(
-      //map(
-        ({data}) => (data && data['persons'] || []).map(t => {
-          const res = new Person();
-          res.fromObject(t);
-          return res;
-        }));
-      //));
+    .pipe(
+      map(data => (data && data.persons || []).map(t => {
+        const res = new Person();
+        res.fromObject(t);
+        return res;
+      }))
+    );
   }
 
   /**
    * Saving many persons
    * @param data 
    */
-  saveAll(data: Person[]): Observable<Person[]> {
+  saveAll(data: Person[]): Promise<Person[]> {
     console.info("[person-service] Saving persons: ", data);
     console.warn('Not impklemented yet !');
-    return Observable.empty();
+    return Promise.resolve(data);
+  }
+
+  deleteAll(data: Person[]):Promise<any>{
+    console.info("[person-service] Deleting persons: ", data);
+    console.warn('Not impklemented yet !');
+    return Promise.resolve();
   }
 }

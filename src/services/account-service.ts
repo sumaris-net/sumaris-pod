@@ -121,6 +121,7 @@ export class AccountService extends BaseDataService {
     account: null
   };
 
+  private subscriptionSeq: number = 0;
 
   public onLogin: Subject<Account> = new Subject<Account>();
   public onLogout: Subject<any> = new Subject<any>();
@@ -272,7 +273,7 @@ export class AccountService extends BaseDataService {
         return this.saveLocally();
       })
       .then(() => {
-        console.debug("[wallet] Sucessfully login");
+        console.debug("[account] Sucessfully reload account");
         this.onLogin.next(this.data.account);
         return this.data.account;
       });
@@ -344,14 +345,14 @@ export class AccountService extends BaseDataService {
   public saveLocally(): Promise<void> {
     if (!this.data.pubkey) return Promise.reject("User not logged");
 
-    console.debug("[account] Saving account in local storage...");
+    console.debug("[account] Saving account {"+this.data.pubkey.substring(0,6)+"} in local storage...");
 
     return new Promise((resolve) => {
       window.localStorage.setItem(PUBKEY_STORAGE_KEY, this.data.pubkey);
 
       let copy = this.data.account.asObject();
       window.localStorage.setItem(ACCOUNT_STORAGE_KEY,  JSON.stringify(copy));
-      console.debug("[account] Account saved in local storage");
+      //console.debug("[account] Account saved in local storage");
       resolve();
     });
   }
@@ -365,8 +366,12 @@ export class AccountService extends BaseDataService {
     if (!this.data.pubkey) return Promise.reject("User not logged");
     if (this.data.pubkey != account.pubkey) return Promise.reject("Not user account");
 
+    console.debug("[account] Saving account {"+account.pubkey.substring(0,6)+"} remotely...");
+    let now = new Date
+
     return this.saveAccount(account, this.data.keypair)
       .then(updatedAccount => {
+        console.debug("[account] Account remotely saved in " + (new Date().getTime()-now.getTime()) + "ms");
 
         // Default values
         account.avatar = account.avatar || "../assets/img/person.png";
@@ -374,6 +379,7 @@ export class AccountService extends BaseDataService {
 
         this.data.account = account;
         this.data.loaded = true;
+
 
         return this.saveLocally();
       })
@@ -404,7 +410,7 @@ export class AccountService extends BaseDataService {
    */
   public loadAccount(pubkey: string): Promise<Account|undefined> {
 
-    console.debug("[account-service] Loading account {"+pubkey.substring(0,6)+"}");
+    console.debug("[account-service] Loading account {"+pubkey.substring(0,6)+"}...");
     var now = new Date();
 
     return this.query<{account: any}>({
@@ -412,7 +418,7 @@ export class AccountService extends BaseDataService {
       variables: {
         pubkey: pubkey
       },
-      error: {code: ErrorCodes.UNKNOWN_NETWORK_ERROR, message: "ERROR.UNKNOWN_NETWORK_ERROR"}
+      error: {code: ErrorCodes.LOAD_ACCOUNT_ERROR, message: "ERROR.LOAD_ACCOUNT_ERROR"}
     })
     .then(res => {
       if (res && res.account) {
@@ -437,9 +443,6 @@ export class AccountService extends BaseDataService {
     const json = account.asObject();
     json.pubkey = json.pubkey || base58.encode(keyPair.publicKey);
 
-    console.debug("[account-service] Saving account {"+json.pubkey.substring(0,6)+"}...");
-    let now = new Date
-
     return this.mutate<{saveAccount: any}>({
       mutation: SaveAccountMutation, 
       variables : {
@@ -458,8 +461,6 @@ export class AccountService extends BaseDataService {
       account.updateDate = data.updateDate;
       account.settings.id = data.settings && data.settings.id;
       account.settings.updateDate = data.settings && data.settings.updateDate;
-
-      console.debug("[account-service] Account {"+json.pubkey.substring(0,6)+"} saved in " + (new Date().getTime()-now.getTime()) + "ms", account);
 
       return account;
     });
@@ -542,7 +543,9 @@ export class AccountService extends BaseDataService {
 
     const self = this;
 
-    return this.apollo.subscribe({
+    console.debug('[account] [WS] Listening changes on {/subscriptions/websocket}...');
+
+    const subscription = this.apollo.subscribe({
       query: gql`
         subscription updateAccount($pubkey: String, $interval: Int){
           updateAccount(pubkey: $pubkey, interval: $interval) {
@@ -559,15 +562,22 @@ export class AccountService extends BaseDataService {
         if (data && data.updateAccount) {
           const updateDate = data.updateAccount.updateDate;
           if (self.data.account && self.data.account.updateDate !== updateDate) {
-            console.debug("[account] [WS] Account updated at {" + updateDate + "}", data.updateAccount);
+            console.debug("[account] [WS] Detected update on {" + updateDate + "}");
             self.refresh();
           }
         }
       },
       error(err) {
         console.log("[account] [WS] Received error:", err);
+      },
+      complete() {
+        console.debug('[account] [WS] Completed');
       }
     });
+    // Add log when closing WS
+    subscription.add(() => console.debug('[account] [WS] Stop to listen changes'));
+
+    return subscription;
   }
 
   /* -- Protected methods -- */

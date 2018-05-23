@@ -26,23 +26,39 @@ import {TripService} from "../services/trip-service";
 import {PersonService} from "../services/person-service";
 import {CryptoService} from "../services/crypto-service";
 import {VesselService} from "../services/vessel-service";
+import {ReferentialService} from "../services/referential-service";
 import {MyApp} from "./app.component";
 import {HomePage} from "../pages/home/home";
 import {RegisterConfirmPage} from "../pages/register/confirm/confirm";
 import {AccountPage} from "../pages/account/account";
 import {UsersPage} from "../pages/users/users";
-import {TripPage} from "../pages/trip/trip";
-import {TripForm} from "../pages/trip/form/form-trip";
-import {TripModal} from "../pages/trip/modal/modal-trip";
-import {TripsPage} from "../pages/trips/trips";
-import {TripValidatorService} from "../pages/trips/validator/validators";
-import {AutofocusDirective} from "../directives/autofocus/autofocus.directive";
-import {MAT_DATE_FORMATS, DateAdapter} from "@angular/material";
+import {AutofocusDirective} from "../directives/autofocus.directive";
+import {DateFormatPipe} from "../pipes/date-format.pipe";
+import {HighlightPipe} from "../pipes/highlight.pipe";
+import {MAT_DATE_FORMATS, MAT_DATE_LOCALE, DateAdapter} from "@angular/material";
+import {MAT_MOMENT_DATE_FORMATS, MomentDateAdapter} from '@angular/material-moment-adapter';
 import {RegisterForm} from "../pages/register/form/form-register";
 import {RegisterModal} from "../pages/register/modal/modal-register";
 import { PersonValidatorService } from "../pages/users/validator/validators";
 import { Account } from "../services/model";
+import { MatDateTime } from "./material/material.datetime";
+import {DATE_ISO_PATTERN} from './constants';
 
+import * as moment from "moment/moment";
+
+// Page Trip
+import {TripPage} from "../pages/trip/trip";
+import {TripForm} from "../pages/trip/form/form-trip";
+import {TripModal} from "../pages/trip/modal/modal-trip";
+import {TripsPage} from "../pages/trip/list/trips";
+import {TripValidatorService} from "../pages/trip/validator/validators";
+
+// Page Vessel
+import { VesselForm } from "../pages/vessel/form/form-vessel";
+import { VesselPage } from "../pages/vessel/vessel";
+import { VesselsPage } from "../pages/vessel/list/vessels";
+import { VesselModal } from "../pages/vessel/modal/modal-vessel";
+import { VesselValidatorService } from "../pages/vessel/validator/validators";
 
 const conf = require("../lib/conf.js")
 
@@ -70,8 +86,12 @@ export function createTranslateLoader(http: HttpClient) {
     MyApp,
     ToolbarComponent,
     HomePage,
+    // Pipes
+    DateFormatPipe,
+    HighlightPipe,
     // Directives
     AutofocusDirective,
+    MatDateTime,
     // Auth & Register
     AuthForm,
     AuthModal,
@@ -85,7 +105,12 @@ export function createTranslateLoader(http: HttpClient) {
     TripForm,
     TripPage,
     TripsPage,
-    TripModal
+    TripModal,
+    // Vessel
+    VesselForm,
+    VesselPage,
+    VesselsPage,
+    VesselModal
   ],
   imports: [
     BrowserModule,
@@ -105,9 +130,10 @@ export function createTranslateLoader(http: HttpClient) {
   ],
   bootstrap: [IonicApp],
   entryComponents: [
-    TripModal,
     AuthModal,
-    RegisterModal
+    RegisterModal,
+    TripModal,
+    VesselModal
   ],
   providers: [
     StatusBar,
@@ -116,27 +142,36 @@ export function createTranslateLoader(http: HttpClient) {
     AuthGuard,
     {provide: APP_BASE_HREF, useValue: '/'},
     {provide: ErrorHandler, useClass: IonicErrorHandler},
+    {provide: MAT_DATE_LOCALE, useValue: 'en'},
+    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: {
-        parse: {
-          dateInput: 'DD/MM/YYYYTHH:MM:SSZ'
-        },
-        display: {
-          dateInput: 'DD/MM/YYYY HH:MM',
-          monthYearLabel: undefined,
-          dateA11yLabel: '',
-          monthYearA11yLabel: ''
-        }
+      parse: {
+        dateInput: DATE_ISO_PATTERN,
+      },
+      display: {
+        dateInput: 'L',
+        monthYearLabel: 'MMM YYYY',
+        dateA11yLabel: 'LL',
+        monthYearA11yLabel: 'MMMM YYYY',
+      }
     }},
+
+    DateFormatPipe,
+    HighlightPipe,
     // Common services
     CryptoService,
     AccountService,
     // Users services
     PersonService,
     PersonValidatorService,
-    // Data services
+    // Referential
+    ReferentialService,
+    // Data: trip services
     TripValidatorService,
     TripService,
-    VesselService
+    // Data: vessel services
+    VesselService,
+    VesselValidatorService
   ]
 })
 export class AppModule {
@@ -144,7 +179,7 @@ export class AppModule {
   constructor(
     private translate: TranslateService,
     accountService: AccountService,
-    adapter: DateAdapter<any>
+    dateAdapter: DateAdapter<any>
   ) {
     console.info("[app] Creating app module...");
 
@@ -167,7 +202,20 @@ export class AppModule {
     translate.onLangChange.subscribe(event => {
       if (event && event.lang) {
         console.debug('[app] Use locale {' +  event.lang + '}');
-        adapter.setLocale(event.lang);
+
+        // Config date adapter
+        dateAdapter.setLocale(event.lang);
+
+        // config moment lib
+        try {
+          var momentLocale: string = event.lang.substr(0,2);
+          moment.locale(momentLocale);
+        }
+        catch(err) {
+          moment.locale('en');
+          console.warn('[app] Unknown local for moment lib. Using default [en]');
+        }
+        
       }
     });
 

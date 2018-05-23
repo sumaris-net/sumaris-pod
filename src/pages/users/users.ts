@@ -153,10 +153,11 @@ export class UsersPage implements OnInit, OnDestroy {
       var confirm = this.selectedRow.confirmEditCreate();
       if (!confirm) return;
     }
-    console.log("[users] Saving...");
-    this.dataSource.save().subscribe(res => {
-      this.dirty = false;
-    });    
+    console.debug("[users] Saving...");
+    this.dataSource.save()
+      .then(res => {
+        this.dirty = false;
+      });
   }
 
   displayReferentialFn(ref?: Referential): string | undefined {

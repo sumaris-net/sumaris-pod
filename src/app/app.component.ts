@@ -29,7 +29,8 @@ export class MyApp {
     {title: 'MENU.HOME', path: '/', icon: 'home'},
     {title: 'MENU.TRIPS', path: '/trips', icon: 'pin'},
     {title: 'MENU.ADMINISTRATION_DIVIDER'},
-    {title: 'MENU.USERS', path: '/users', icon: 'people'}
+    {title: 'MENU.USERS', path: '/users', icon: 'people'},
+    {title: 'MENU.VESSELS', path: '/vessels', icon: 'boat'}
   ];
 
   appVersion: String = conf.version;

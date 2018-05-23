@@ -2,11 +2,13 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable, Subject} from "rxjs";
-import {Trip} from "./model";
+import {Trip, Person} from "./model";
 import {DataService, BaseDataService} from "./data-service";
 import {map} from "rxjs/operators";
 import { Moment } from "moment";
 import { DocumentNode } from "graphql";
+import { ErrorCodes } from "./errors";
+import { AccountService } from "./account-service";
 
 export declare class TripFilter {
   startDate: Date|Moment;
@@ -42,6 +44,16 @@ const LoadAllQuery: DocumentNode = gql`
         label
         name
       }
+      recorderPerson {
+        id
+        firstName
+        lastName
+        department {
+          id
+          label
+          name
+        }
+      }
       vesselFeatures {
         vesselId,
         name,
@@ -74,6 +86,16 @@ const LoadQuery: DocumentNode = gql`
         label
         name
       }
+      recorderPerson {
+        id
+        firstName
+        lastName
+        department {
+          id
+          label
+          name
+        }
+      }
       vesselFeatures {
         vesselId
         name
@@ -90,12 +112,18 @@ const SaveTrips: DocumentNode = gql`
     }
   }
 `;
+const DeleteTrips: DocumentNode = gql`
+  mutation deleteTrips($ids:[Int]){
+    deleteTrips(ids: $ids)
+  }
+`;
 
 @Injectable()
 export class TripService extends BaseDataService implements DataService<Trip, TripFilter>{
 
   constructor(
-    protected apollo: Apollo
+    protected apollo: Apollo,
+    protected accountService: AccountService
   ) {
     super(apollo);
   }
@@ -121,18 +149,21 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       sortBy: sortBy || 'departureDateTime',
       sortDirection: sortDirection || 'asc'
     };
-    console.debug("[trip-service] Getting trips using options:", variables);
-    return this.apollo.query<{trips: Trip[]}, TripsVariables>({
+    console.debug("[trip-service] Loading trips... using options:", variables);
+    return this.watchQuery<{trips: Trip[]}, TripsVariables>({
       query: LoadAllQuery,
-      variables: variables
+      variables: variables,
+      error: {code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR"}
     })
     .pipe(
-      map(({data}) => (data && data.trips || []).map(t => {
+      map((data) => {
+        console.debug("[trip-service] Loaded {"+ (data && data.trips && data.trips.length || 0) +"} trips");
+        return (data && data.trips || []).map(t => {
           const res = new Trip();
-          console.log(t);
           res.fromObject(t);
           return res;
-        })));
+        });
+      }));
   }
 
   load(id: number): Promise<Trip|null> {
@@ -159,39 +190,114 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
    * Save many trips
    * @param data 
    */
-  saveAll(data: Trip[]): Observable<Trip[]> {
+  saveAll(trips: Trip[]): Promise<Trip[]> {
+    if (!trips) return Promise.resolve(trips);
 
-    console.debug("[trip-service] Saving trips: ", data);
+    // Fill default properties (as recorder department and person)
+    trips.forEach(t => this.fillDefaultProperties(t));
 
-    let tripsToSave = data && data
-      .map(t => {
-        const copy:any = t.asObject();
-        copy.departureDateTime = copy.departureDateTime || copy.returnDateTime;
-        copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
-        //copy.departureLocation.id = copy.departureLocation.id || copy.returnLocation.id;
-        //copy.returnLocation.id = copy.returnLocation.id || copy.departureLocation.id;
-        copy.recorderDepartment.id = copy.recorderDepartment.id || 1; // FIXME make
-        copy.vesselId = copy.vesselId || copy.vessel && copy.vessel.id;
-        delete copy.vessel;
-        return copy;
-      });
+    let json = trips.map(t => this.asObject(t));
+    console.debug("[trip-service] Saving trips: ", json);
 
-    let subject = new Subject<Trip[]>();
-
-    let subscription = this.apollo.mutate({
+    return this.mutate<{saveTrips: any}>({
         mutation: SaveTrips,
         variables: {
-          trips: tripsToSave
-        }
+          trips: json
+        },
+        error: {code: ErrorCodes.SAVE_TRIPS_ERROR, message: "TRIP.ERROR.SAVE_TRIPS_ERROR"}
       })
-      .subscribe(({data}) => {
-        data && data['saveTrips'] && tripsToSave.forEach(t => {
-          const res = data.saveTrips.find(res => res.id == t.id);
-          t.updateDate = res && res.updateDate || t.updateDate;
-        });
-        subject.next(tripsToSave);
-        subscription.unsubscribe();
+      .then(data => (data && data.saveTrips && trips || Trip[0]).map(t => {
+        const res = data.saveTrips.find(res => res.id == t.id);
+        t.updateDate = res && res.updateDate || t.updateDate;
+        return t;
+      }) );
+  }
+
+  /**
+   * Save a trip
+   * @param data 
+   */
+  save(trip: Trip): Promise<Trip> {
+
+    // Prepare to save
+    this.fillDefaultProperties(trip);
+
+    // Transform into json
+    const json = this.asObject(trip);
+
+    console.debug("[trip-service] Saving trip: ", json);
+
+    return this.mutate<{saveTrips: any}>({
+        mutation: SaveTrips,
+        variables: {
+          trips: [json]
+        },
+        error: {code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR"}
+      })
+      .then(data => {
+        var res = data && data.saveTrips && data.saveTrips[0];
+        trip.updateDate = res && res.updateDate || trip.updateDate;
+        return trip;
       });
-    return subject.asObservable();
+  }
+
+  /**
+   * Save many trips
+   * @param data 
+   */
+  deleteAll(trips: Trip[]): Promise<any> {
+
+    let ids = trips && trips
+      .map(t => t.id)
+      .filter(id => (id > 0));
+
+    console.debug("[trip-service] Deleting trips... ids:", ids);
+
+    return this.mutate<any>({
+        mutation: DeleteTrips,
+        variables: {
+          ids: ids
+        }
+      });
+  }
+
+  /* -- protected methods -- */
+
+  protected asObject(trip: Trip): any {
+    const copy:any = trip.asObject();
+
+    // Fill return date using departure date
+    copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
+
+    // Fill return location using departure lcoation
+    if (!copy.returnLocation || !copy.returnLocation.id) {
+      copy.returnLocation  = {id: copy.departureLocation && copy.departureLocation.id};
+    }
+
+    // Clean vesselfeatures object, before saving
+    copy.vesselFeatures = {vesselId: trip.vesselFeatures && trip.vesselFeatures.vesselId}
+    copy.recorderPerson = {id: trip.recorderPerson && trip.recorderPerson.id}
+
+    return copy;
+  }
+
+  protected fillDefaultProperties(trip: Trip): void {
+
+    // If new trip
+    if (!trip.id || trip.id < 0) {
+
+      const person: Person = this.accountService.account;
+
+      // Recorder department
+      if (person && !trip.recorderDepartment.id && person.department) {
+        trip.recorderDepartment.id = person.department.id;
+      }
+
+      // Recorder person
+      if (person && !trip.recorderPerson.id) {
+        trip.recorderPerson.id = person.id;
+      }
+      
+    }
   }
 }

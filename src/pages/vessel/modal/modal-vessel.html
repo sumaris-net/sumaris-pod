@@ -7,7 +7,7 @@
         </ion-buttons>
 
       <ion-title>
-        {{(!!data?.id ? 'TRIP.EDIT.TITLE' : 'TRIP.NEW.TITLE') |translate}}
+        {{(!!data?.id ? 'VESSEL.EDIT.TITLE' : 'VESSEL.NEW.TITLE') |translate}}
       </ion-title>      
 
       <ion-buttons end>
@@ -22,10 +22,10 @@
   
   <ion-content padding>
       <mat-error>{{error}}</mat-error>
-      <form-trip #form
+      <form-vessel #form
         (onSubmit)="onSave($event)" 
         (onCancel)="cancel()" >
-      </form-trip>
+      </form-vessel>
   </ion-content>
 <mat-dialog-content>
 

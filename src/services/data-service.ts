@@ -4,7 +4,7 @@ import { GraphQLError, DocumentNode } from "graphql";
 import { ApolloQueryResult } from "apollo-client";
 import { R } from "apollo-angular/types";
 import { ErrorCodes, ServiceError } from "./errors";
-
+import {map} from "rxjs/operators";
 
 export declare interface DataService<T, F> {
 
@@ -16,7 +16,9 @@ export declare interface DataService<T, F> {
     filter?: F
   ): Observable<T[]>;
 
-  saveAll(data: T[]): Observable<T[]>;
+  saveAll(data: T[]): Promise<T[]>;
+
+  deleteAll(data: T[]): Promise<any>;
 }
 
 
@@ -54,6 +56,33 @@ export class BaseDataService {
           resolve(data as T);
         });
     });
+  }
+
+  protected watchQuery<T, V = R>(opts: {
+    query: DocumentNode, 
+    variables: V, 
+    error?: ServiceError
+  }): Observable<T> {
+    this.apollo.getClient().cache.reset();
+    return this.apollo.watchQuery<T, V>({
+        query: opts.query,
+        variables: opts.variables
+      })
+      .valueChanges
+      .map(({data, errors}) => {
+        if (errors) {
+          if (errors[0].message == "ERROR.UNKNOWN_NETWORK_ERROR") {
+            throw {
+              code: ErrorCodes.UNKNOWN_NETWORK_ERROR,
+              message: "ERROR.UNKNOWN_NETWORK_ERROR"
+            };
+          }
+          console.error("[data] " + errors[0].message);
+          throw opts.error ? opts.error : errors[0].message;
+        }
+        return data;
+      })      
+      ;
   }
 
   protected mutate<T, V = R>(opts: {mutation: DocumentNode, variables: V, error?: ServiceError}): Promise<T> {
@@ -103,5 +132,16 @@ export class BaseDataService {
       };
     }
     return Observable.of(result);
+  }
+
+  private onApolloError2<T>(err: any): Observable<T> {
+    let result: T;
+    if (err && err.networkError) {
+      console.error("[base-service] " + err.networkError.message);
+      throw new GraphQLError("ERROR.UNKNOWN_NETWORK_ERROR");
+    }
+    else {
+      throw err as GraphQLError;
+    }
   }
 }

@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormGroup, Validators, FormBuilder} from "@angular/forms";
-import {Trip} from "../../../services/model";
+import {VesselFeatures} from "../../../services/model";
 
 @Injectable()
-export class TripValidatorService implements ValidatorService {
+export class VesselValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder)
   {
@@ -14,14 +14,15 @@ export class TripValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?:Trip): FormGroup {
+  getFormGroup(data?:VesselFeatures): FormGroup {
     return this.formBuilder.group({
       'id': [''],
-      'vesselFeatures': ['', Validators.required],      
-      'departureDateTime': ['', Validators.required],
-      'departureLocation': ['', Validators.required],
-      'returnDateTime': [''],
-      'returnLocation': [''],
+      'updateDate': [''],
+      'creationDate': [''],
+      'name': ['', Validators.required],      
+      'exteriorMarking': ['', Validators.required],
+      'startDate': ['', Validators.required],
+      'basePortLocation': ['', Validators.required],
       'comments': ['', Validators.maxLength(2000)]
     });
   }

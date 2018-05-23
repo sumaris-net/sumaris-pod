@@ -7,7 +7,7 @@ import {
 } from "@angular/material";
 import {CdkTableModule} from "@angular/cdk/table";
 import {MatDatepickerModule} from '@angular/material/datepicker';
-import {MatMomentDateModule} from '@angular/material-moment-adapter'
+import {MatMomentDateModule} from '@angular/material-moment-adapter';
 
 const modules = [
   MatTableModule,
@@ -41,4 +41,3 @@ const modules = [
 })
 export class AppMaterialModule {
 }
-

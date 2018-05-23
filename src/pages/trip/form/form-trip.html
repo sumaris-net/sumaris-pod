@@ -2,6 +2,9 @@
       [formGroup]="form"
       (ngSubmit)="doSubmit($event, form.value)">
 
+
+  <p ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></p>
+
   <ion-grid>
 
     <!-- VESSEL -->
@@ -13,13 +16,13 @@
                         [placeholder]="'TRIP.VESSEL'|translate"
                         [matAutocomplete]="autoVessel"
                         formControlName="vesselFeatures">
-                  <mat-error *ngIf="form.controls.vesselFeatures?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+                  <mat-error *ngIf="form.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
              </mat-form-field>
-             <mat-autocomplete #autoVessel="matAutocomplete" [displayWith]="displayVesselFn">
-                <mat-option *ngFor="let vessel of vessels" [value]="vessel">
+             <mat-autocomplete autoActiveFirstOption #autoVessel="matAutocomplete" [displayWith]="displayVesselFn">
+                <mat-option *ngFor="let vessel of vessels | async" [value]="vessel">
                   <ion-row>
-                      <ion-col col-2>{{vessel.exteriorMarking}}</ion-col>
-                      <ion-col>{{vessel.name}}</ion-col>
+                      <ion-col col-2 [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
+                      <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
                   </ion-row>
                 </mat-option>
               </mat-autocomplete>
@@ -28,7 +31,7 @@
 
     <!-- DEPARTURE -->
     <ion-row>
-      <ion-col col-1>
+      <ion-col col-1 *ngIf="!mobile" class="hidden-xs">
         <p><span ion-text translate>TRIP.DEPARTURE</span></p>
       </ion-col>
       <ion-col>
@@ -38,7 +41,7 @@
                       [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
                       [matAutocomplete]="autoDepartureLocation"
                       formControlName="departureLocation">
-                <mat-error *ngIf="form.controls.departureLocation.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+                <mat-error *ngIf="form.controls['departureLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
            </mat-form-field>
            <mat-autocomplete #autoDepartureLocation="matAutocomplete" [displayWith]="displayReferentialFn">
               <mat-option *ngFor="let location of locations" [value]="location">
@@ -47,19 +50,12 @@
             </mat-autocomplete>
       </ion-col>
       <ion-col>
-          <mat-form-field>
-              <ion-icon margin-right name="time" matPrefix></ion-icon>
-              <input matInput
-                    [placeholder]="'TRIP.DEPARTURE_DATE_TIME'|translate"
-                    [matDatepicker]="departureDatepicker"
-                    formControlName="departureDateTime">
-              <mat-datepicker-toggle matSuffix [for]="departureDatepicker">
-                  <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
-              </mat-datepicker-toggle>
-              <mat-datepicker #departureDatepicker></mat-datepicker>
-              <mat-error *ngIf="form.controls.departureDateTime.hasError('required') && form.controls.departureDateTime.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
-            </mat-form-field>
-      </ion-col>     
+        <mat-date-time             
+            [placeholder]="'TRIP.DEPARTURE_DATE_TIME'|translate"            
+            formControlName="departureDateTime"
+            displayTime="true">
+        </mat-date-time>
+      </ion-col>
     </ion-row>
 
     <!-- RETURN -->
@@ -74,7 +70,7 @@
                       [placeholder]="'TRIP.RETURN_LOCATION'|translate"
                       [matAutocomplete]="autoReturnLocation"
                       formControlName="returnLocation">
-                <mat-error *ngIf="form.controls.returnLocation.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+                <mat-error *ngIf="form.controls['returnLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
            </mat-form-field>
            <mat-autocomplete #autoReturnLocation="matAutocomplete" [displayWith]="displayReferentialFn">
               <mat-option *ngFor="let location of locations" [value]="location">
@@ -82,32 +78,27 @@
               </mat-option>
             </mat-autocomplete>
       </ion-col>
-
       <ion-col>
-          <mat-form-field>
-            <ion-icon margin-right name="time" matPrefix></ion-icon>
-            <input matInput
-                    [placeholder]="'TRIP.RETURN_DATE_TIME'|translate"
-                    [matDatepicker]="returnDatepicker"
-                    formControlName="returnDateTime">
-            <mat-datepicker-toggle matSuffix [for]="returnDatepicker">
-                <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
-            </mat-datepicker-toggle>
-            <mat-datepicker #returnDatepicker></mat-datepicker>
-          </mat-form-field>
+        <mat-date-time             
+            [placeholder]="'TRIP.RETURN_DATE_TIME'|translate"            
+            formControlName="returnDateTime">
+        </mat-date-time>
       </ion-col>
     </ion-row>
 
     <!-- Comments -->
     <ion-row>
         <ion-col col-12>
-            <mat-form-field>                
-                <textarea matInput
-                        rows="4"
+            <mat-form-field appearance="outline">                
+                <textarea matInput #comments
+                        matTextareaAutosize="true"
+                        matAutosizeMinRows="4"
+                        maxlength="2000"
                         [placeholder]="'TRIP.COMMENTS'|translate"
                         formControlName="comments">
                 </textarea>
-                <mat-error *ngIf="form.controls.comments?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+                <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+                <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
              </mat-form-field>
         </ion-col>
     </ion-row>

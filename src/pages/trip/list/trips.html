@@ -3,8 +3,7 @@
 
 <ion-content class="no-padding-xs">
 
-  <mat-toolbar class="pull-right">
-
+  <mat-toolbar>
     <button mat-icon-button
             *ngIf="!selection.hasValue()"
             [title]="'COMMON.BTN_ADD'|translate"
@@ -28,6 +27,15 @@
             [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection()">
       <mat-icon>delete</mat-icon>
+    </button>
+    <span class="toolbar-spacer"></span>
+    <button mat-raised-button small raised
+            class="hidden-xs hidden-sm"
+            [color]="inlineEdition ? 'primary' : ''"
+            [disabled]="dirty"
+            [title]="'COMMON.BTN_TABLE_EDIT'|translate"
+            (click)="inlineEdition=!inlineEdition">
+      <span translate>COMMON.BTN_TABLE_EDIT</span>
     </button>
   </mat-toolbar>
 
@@ -64,6 +72,9 @@
       <button mat-raised-button color="primary" (click)="onRefresh.emit(true)">{{'COMMON.BTN_SEARCH'|translate}}</button>
     </mat-action-row>
   </mat-expansion-panel>
+
+  <!-- error -->
+  <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
   <mat-table #table padding-left
              [dataSource]="dataSource" class="trips-table "
@@ -105,15 +116,18 @@
                       [formControl]="row.validator.controls['vesselFeatures']"
                       [placeholder]="'TRIP.VESSEL'|translate"
                       [matAutocomplete]="autoVessel"
-                      [appAutofocus]="row.editing"
+                      [appAutofocus]="row.id &lt; 0 && row.editing"
                       [readonly]="!row.editing"
                       [ngModel]="row.currentData.vesselFeatures">
               <mat-error *ngIf="row.validator.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
            </mat-form-field>
-           <mat-autocomplete #autoVessel="matAutocomplete" [displayWith]="displayVesselFn">
-              <mat-option *ngFor="let vessel of vessels" [value]="vessel">
-                  {{vessel.exteriorMarking}} - {{vessel.name}}
-              </mat-option>
+           <mat-autocomplete autoActiveFirstOption #autoVessel="matAutocomplete" [displayWith]="displayVesselFn">
+              <!--mat-option *ngFor="let vessel of vessels | async" [value]="vessel">
+                <ion-row>
+                    <ion-col col-2 [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
+                    <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
+                </ion-row>
+              </mat-option-->
             </mat-autocomplete>
         </mat-cell>
       </ng-container>
@@ -149,19 +163,14 @@
           <span translate>TRIP.DEPARTURE_DATE_TIME</span>
         </mat-header-cell>
         <mat-cell class="mat-cell-date-time" *matCellDef="let row" >
-          <mat-form-field floatPlaceholder="never">
-            <input matInput
-                   [matDatepicker]="departureDatepicker"
-                   [formControl]="row.validator.controls['departureDateTime']"
-                   [readonly]="!row.editing"
-                   [ngModel]="row.currentData.departureDateTime">
-            <mat-datepicker-toggle matSuffix [for]="departureDatepicker">
-              <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
-            </mat-datepicker-toggle>
-            <mat-datepicker #departureDatepicker></mat-datepicker>
-            <mat-error *ngIf="row.validator.controls['departureDateTime'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-  
+
+          <mat-date-time floatPlaceholder="never"
+            [formControl]="row.validator.controls['departureDateTime']"
+            [ngModel]="row.currentData.departureDateTime"
+            [readonly]="!row.editing"
+            required
+            >
+          </mat-date-time>  
         </mat-cell>
   
       </ng-container>
@@ -255,6 +264,6 @@
   </ion-fab>-->
 
   <ion-fab right bottom>
-    <button ion-fab color="light" (click)="openTripModal()"><ion-icon name="md-add"></ion-icon></button>
+    <button ion-fab color="light" (click)="addRow()"><ion-icon name="md-add"></ion-icon></button>
   </ion-fab>
 </ion-content>

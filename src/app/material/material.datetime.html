@@ -1,0 +1,66 @@
+<mat-form-field *ngIf="readonly" [floatPlaceholder]="floatPlaceholder">
+    <input matInput 
+        hidden
+        type="text"
+        readonly="true"
+        [formControl]="formControl">
+    <span>{{formControl.value|dateFormat: {time: true} }}</span>
+</mat-form-field>
+
+<ion-row no-padding *ngIf="!readonly" [formGroup]="form">
+    <ion-col no-padding [class.day]="!mobile">
+        <mat-form-field [floatPlaceholder]="floatPlaceholder">
+            
+            
+            <!-- mobile screen -->
+            <ion-icon *ngIf="mobile && !readonly" name="calendar" matPrefix></ion-icon>
+            <mat-label *ngIf="mobile && !readonly && form.controls['day'].value">{{placeholder}}</mat-label>
+            <input matInput *ngIf="mobile" type="text" [formControl]="formControl" hidden> 
+            <ion-datetime matInput *ngIf="mobile" 
+                [displayFormat]="datePattern"
+                [placeholder]="placeholder"
+                formControlName="day"
+                [doneText]="'COMMON.BTN_DONE'|translate"
+                [cancelText]="'COMMON.BTN_CANCEL'|translate">
+            </ion-datetime>
+
+            <!-- NOT mobile screen -->
+            <mat-label *ngIf="!mobile && !readonly">{{placeholder}}</mat-label>
+            <mat-datepicker-toggle *ngIf="!mobile" matPrefix [for]="departureDatepicker"></mat-datepicker-toggle>
+            <input matInput *ngIf="!mobile"
+                [matDatepicker]="departureDatepicker"
+                [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
+                (blur)="markAsTouched()"
+                formControlName="day"
+                (click)="touchUi && departureDatepicker.open() && $event.preventDefault()">                
+            <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #departureDatepicker></mat-datepicker>
+            <mat-error *ngIf="form.controls['day'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+    </ion-col>
+
+    <ion-col no-padding  *ngIf="!mobile" class="hour">        
+        <mat-form-field [floatPlaceholder]="floatPlaceholder">
+            <mat-label *ngIf="placeholder" translate>COMMON.HOUR</mat-label>
+
+            <input matInput type="number"
+                min="0" max="23"
+                [placeholder]="'COMMON.HOUR_PLACEHOLDER'|translate"
+                formControlName="hour"
+                (blur)="markAsTouched()">
+            <span matSuffix>:</span>
+        </mat-form-field>
+    </ion-col>     
+    <ion-col no-padding *ngIf="!mobile"class="minute">
+        <mat-form-field [floatPlaceholder]="floatPlaceholder">
+            <mat-label *ngIf="placeholder" translate>COMMON.MINUTE</mat-label>
+            <input matInput type="number" 
+                min="0" max="59"        
+                [readonly]="readonly"                
+                [placeholder]="'COMMON.MINUTE_PLACEHOLDER'|translate"
+                formControlName="minute"
+                (blur)="markAsTouched()">
+        </mat-form-field>
+       
+    </ion-col>    
+                
+</ion-row>

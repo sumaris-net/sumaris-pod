@@ -1,0 +1,41 @@
+mat-date-time {
+
+    mat-form-field {
+
+        .datetime-md {
+            padding: 0 !important;
+        }           
+    }    
+
+    ion-col.day {
+        min-width: 95px;
+        max-width: 150px;
+    }
+    
+    ion-col.hour {
+        min-width: 35px;
+        max-width: 45px;
+
+        span, 
+        input[type=number] {
+            text-align: end;  
+        }
+    }
+
+    ion-col.minute {
+        min-width: 35px;
+        max-width: 45px;
+
+        span, 
+        input[type=number] {
+            text-align: start;    
+            padding-left: 10px;    
+        }
+    }
+
+    mat-form-field.mat-form-field-disabled {
+        ion-col.day {
+            min-width: 100px;
+        }
+    }
+}

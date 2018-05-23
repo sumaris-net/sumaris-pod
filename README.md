@@ -1,6 +1,8 @@
-# SUMARiS app
-An Ionic 4 + Angular 5 App, with login features
+# SUMARiS App
 
+SUMARiS is a shared database for management of skate stocks.
+
+Technologies: SUMARiS App is an Ionic 4 + Angular 5 App.
 
 ## Compile from source
 
@@ -16,23 +18,23 @@ cd sumaris-app
 yarn
 ```
 
-5. Start the server (with GraphQL API)
-```
-cd ionic4-starter-app/server
-node index
-```
+5. Start the server (with GraphQL API). See project SUMARiS Pod.
 
-A GraphQL editor should be accessible at [localhost:7777/graphql](http://localhost:7777/graphql)
+A GraphQL editor should be accessible at [localhost:8080](http://localhost:8080/graphql)
 
 6. Start app
 ```
-cd ionic4-starter-app
+cd sumaris-app
 ionic serve -l
 ```
 
 The application should be accessible at [localhost:8100](http://localhost:8100)
 
-7. Build a release
+7. Check environment configuration
+
+Edit the file `src/lib/conf.js`
+
+8. Build a release
 ```
 npm run build --prod --release
 ```

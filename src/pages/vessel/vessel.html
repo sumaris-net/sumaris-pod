@@ -1,15 +1,15 @@
 
-<app-toolbar [title]="'TRIP.TITLE'|translate" color="primary" (onValidate)="save($event, form.value)"></app-toolbar>
+<app-toolbar [title]="'VESSEL.TITLE'|translate" color="primary" (onValidate)="save($event, form.value)"></app-toolbar>
 
 <ion-content>
 
     <mat-tab-group>      
 
         <!-- TAB: general --> 
-        <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
+        <mat-tab label="{{'VESSEL.TAB_GENERAL'|translate}}">
             <ng-template mat-tab-label>
                 <ion-icon name="information-circle"></ion-icon>
-                <span>{{'TRIP.TAB_GENERAL'|translate}}</span>
+                <span>{{'VESSEL.TAB_GENERAL'|translate}}</span>
             </ng-template>
 
             <ion-grid responsive responsive-sm>
@@ -46,19 +46,11 @@
                 </ion-row>    
             </ion-grid>
             
-            <form-trip (onSubmit)="save($event, form.value)" padding #form>
-            </form-trip>
+            <form-vessel (onSubmit)="save($event, form.value)" padding #form>
+            </form-vessel>
            
         </mat-tab>
 
-
-         <!-- TAB: operations --> 
-        <mat-tab label="{{'TRIP.TAB_OPERATIONS'|translate}}">
-            <ng-template mat-tab-label>
-                <ion-icon name="locate"></ion-icon>
-                <span>{{'TRIP.TAB_OPERATIONS'|translate}}</span>
-            </ng-template>
-        </mat-tab>
     </mat-tab-group>
 
 </ion-content>
