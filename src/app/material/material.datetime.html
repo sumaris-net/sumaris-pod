@@ -1,47 +1,50 @@
 <mat-form-field *ngIf="readonly" [floatPlaceholder]="floatPlaceholder">
-    <input matInput 
+    <input matInput
         hidden
         type="text"
         readonly="true"
         [formControl]="formControl">
-    <span>{{formControl.value|dateFormat: {time: true} }}</span>
+    <span>{{formControl.value|dateFormat: {time: displayTime} }}</span>
 </mat-form-field>
 
 <ion-row no-padding *ngIf="!readonly" [formGroup]="form">
-    <ion-col no-padding [class.day]="!mobile">
+    <ion-col no-padding [class.day]="!mobile && displayTime">
         <mat-form-field [floatPlaceholder]="floatPlaceholder">
-            
             
             <!-- mobile screen -->
             <ion-icon *ngIf="mobile && !readonly" name="calendar" matPrefix></ion-icon>
             <mat-label *ngIf="mobile && !readonly && form.controls['day'].value">{{placeholder}}</mat-label>
             <input matInput *ngIf="mobile" type="text" [formControl]="formControl" hidden> 
             <ion-datetime matInput *ngIf="mobile" 
+                formControlName="day"
                 [displayFormat]="datePattern"
                 [placeholder]="placeholder"
-                formControlName="day"
                 [doneText]="'COMMON.BTN_DONE'|translate"
                 [cancelText]="'COMMON.BTN_CANCEL'|translate">
             </ion-datetime>
 
             <!-- NOT mobile screen -->
             <mat-label *ngIf="!mobile && !readonly">{{placeholder}}</mat-label>
-            <mat-datepicker-toggle *ngIf="!mobile" matPrefix [for]="departureDatepicker"></mat-datepicker-toggle>
-            <input matInput *ngIf="!mobile"
-                [matDatepicker]="departureDatepicker"
+            <input matInput *ngIf="!mobile" 
+                #dateInput
+                formControlName="day"
+                [matDatepicker]="datePicker"
                 [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
                 (blur)="markAsTouched()"
-                formControlName="day"
-                (click)="touchUi && departureDatepicker.open() && $event.preventDefault()">                
-            <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #departureDatepicker></mat-datepicker>
+                (keydown)="$event.key != 'ArrowDown' || datePicker.open()"                
+                (click)="touchUi && datePicker.open() && $event.preventDefault()">               
+            <mat-datepicker-toggle *ngIf="!mobile" matSuffix [for]="datePicker">
+                <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
+            </mat-datepicker-toggle>
+            <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #datePicker></mat-datepicker>
             <mat-error *ngIf="form.controls['day'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
     </ion-col>
 
-    <ion-col no-padding  *ngIf="!mobile" class="hour">        
+    <!-- hour -->
+    <ion-col no-padding *ngIf="!mobile && displayTime" class="hour" >
         <mat-form-field [floatPlaceholder]="floatPlaceholder">
             <mat-label *ngIf="placeholder" translate>COMMON.HOUR</mat-label>
-
             <input matInput type="number"
                 min="0" max="23"
                 [placeholder]="'COMMON.HOUR_PLACEHOLDER'|translate"
@@ -50,7 +53,9 @@
             <span matSuffix>:</span>
         </mat-form-field>
     </ion-col>     
-    <ion-col no-padding *ngIf="!mobile"class="minute">
+
+    <!-- time -->
+    <ion-col no-padding *ngIf="!mobile && displayTime" class="minute">
         <mat-form-field [floatPlaceholder]="floatPlaceholder">
             <mat-label *ngIf="placeholder" translate>COMMON.MINUTE</mat-label>
             <input matInput type="number" 
@@ -59,8 +64,7 @@
                 [placeholder]="'COMMON.MINUTE_PLACEHOLDER'|translate"
                 formControlName="minute"
                 (blur)="markAsTouched()">
-        </mat-form-field>
-       
+        </mat-form-field>       
     </ion-col>    
                 
 </ion-row>

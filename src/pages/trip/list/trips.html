@@ -37,6 +37,12 @@
             (click)="inlineEdition=!inlineEdition">
       <span translate>COMMON.BTN_TABLE_EDIT</span>
     </button>
+
+    <button mat-icon-button
+            [title]="'COMMON.DISPLAYED_COLUMNS'|translate"
+            (click)="openSelectColumnsModal($event)" >
+      <mat-icon>more_vert</mat-icon>
+    </button>
   </mat-toolbar>
 
   <!-- search -->
@@ -168,8 +174,7 @@
             [formControl]="row.validator.controls['departureDateTime']"
             [ngModel]="row.currentData.departureDateTime"
             [readonly]="!row.editing"
-            required
-            >
+            required>
           </mat-date-time>  
         </mat-cell>
   
@@ -181,17 +186,12 @@
         <span translate>TRIP.RETURN_DATE_TIME</span>
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row" >
-        <mat-form-field floatPlaceholder="never">
-          <input matInput [matDatepicker]="returnDatepicker"
-                 [formControl]="row.validator.controls['returnDateTime']"
-                 [readonly]="!row.editing"
-                 [ngModel]="row.currentData.returnDateTime">
-          <mat-datepicker-toggle matSuffix [for]="returnDatepicker">
-            <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
-          </mat-datepicker-toggle>
-          <mat-datepicker #returnDatepicker></mat-datepicker>
-          <mat-error *ngIf="row.validator.controls['returnDateTime'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
+          <mat-date-time floatPlaceholder="never"
+          [formControl]="row.validator.controls['returnDateTime']"
+          [ngModel]="row.currentData.returnDateTime"
+          [readonly]="!row.editing"
+          required>
+        </mat-date-time> 
       </mat-cell>
     </ng-container>
 

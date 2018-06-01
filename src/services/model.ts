@@ -80,11 +80,14 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
   vesselId: number;
   vesselTypeId: number;
   name: string;
+  startDate: Date | Moment;
+  endDate: Date | Moment;
   exteriorMarking: string;
   basePortLocation: Referential;  
   creationDate: Date | Moment;
   recorderDepartment: Referential;
   recorderPerson: Person;
+  comments: string;
 
   constructor() {
     super();
@@ -110,6 +113,8 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
   asObject(): any {
     const target:any = super.asObject();
     target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject() || undefined;
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
     target.creationDate = toDateISOString(this.creationDate);
     target.updateDate = toDateISOString(this.updateDate);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject() || undefined;
@@ -122,8 +127,11 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
     super.fromObject(source);
     this.exteriorMarking = source.exteriorMarking;
     this.name = source.name;
+    this.comments = source.comments;
     this.vesselId = source.vesselId;
     this.vesselTypeId = source.vesselTypeId;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
     this.creationDate = fromDateISOString(source.creationDate);
     this.updateDate = fromDateISOString(source.updateDate);
     source.basePortLocation && this.basePortLocation.fromObject(source.basePortLocation);
@@ -259,7 +267,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
 
 
 export class UserSettings extends Entity<UserSettings> implements Cloneable<UserSettings> {
-  locale: string;
+  locale: string;  
 
   clone(): UserSettings {
     const res = Object.assign(new UserSettings(), this);

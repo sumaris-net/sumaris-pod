@@ -406,6 +406,10 @@ mat-cell .avatar {
   display: inline-block;
 }
 
+mat-row.error {
+  border: solid 1px red;
+}
+
 // --------------------------------------------------
 // Forms
 // --------------------------------------------------

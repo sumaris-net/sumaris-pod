@@ -14,6 +14,11 @@ import {Subscription} from "rxjs";
 import { ModalController, Platform } from "ionic-angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService } from '../../../services/vessel-service';
+import { AccountService } from '../../../services/account-service';
+import { TableSelectColumnsComponent } from '../../../components/table/table-select-columns';
+import { Location } from '@angular/common';
+import { ViewController } from "ionic-angular";
+import { PopoverController } from 'ionic-angular';
 
 @Component({
   selector: 'page-trips',
@@ -27,12 +32,13 @@ export class TripsPage implements OnInit, OnDestroy {
   any: any;
   inlineEdition: boolean = false;
   subscriptions: Subscription[] = [];
-  displayedColumns = ['select', 'id', 
+  columns = ['select', 'id', 
     'vessel',
     'departureLocation',
     'departureDateTime',
     'returnDateTime', 
     'comments'];
+  displayedColumns;
   dataSource:AppTableDataSource<Trip, TripFilter>;
   resultsLength = 0;
   loading = true;
@@ -67,15 +73,19 @@ export class TripsPage implements OnInit, OnDestroy {
               private tripValidatorService: TripValidatorService,
               private tripService: TripService,
               private vesselService: VesselService,
+              private accountService: AccountService,
               private modalCtrl: ModalController,
               private route: ActivatedRoute,
               private router: Router,
-              private platform: Platform
+              private platform: Platform,
+              private location: Location
   ) {
+    // get columns from user account    
     this.dataSource = new AppTableDataSource<Trip, TripFilter>(Trip, this.tripService, this.tripValidatorService);
   };
 
   ngOnInit() {
+    this.displayedColumns = this.getDisplayColumns();
 
     /*this.vessels = this.form.controls['vesselFeatures']
     .valueChanges
@@ -174,7 +184,7 @@ export class TripsPage implements OnInit, OnDestroy {
     this.dataSource.createNew();
     var subscription = this.dataSource.connect().first().subscribe(rows => {
       console.log(rows);
-      this.selectedRow = rows[3];
+      this.selectedRow = rows[3]; // TODO: to remove 
     });
     this.dirty = true;
     this.resultsLength++;
@@ -202,20 +212,20 @@ export class TripsPage implements OnInit, OnDestroy {
     });
   }
 
-  save() {
+  async save() {
     this.error = undefined;
     if (this.selectedRow && this.selectedRow.editing) {
       var confirm = this.selectedRow.confirmEditCreate();
       if (!confirm) return;
     }
     console.log("[trips] Saving...");
-    this.dataSource.save()
-      .then(res => {
-        if (res) this.dirty = false;
-      })
-      .catch(err => {
-        this.error = err && err.message || err;
-      });
+    try {
+      const res = await this.dataSource.save();
+      if (res) this.dirty = false;
+    }
+    catch(err) {
+      this.error = err && err.message || err;
+    };
   }
 
   displayReferentialFn(ref?: Referential): string | undefined {
@@ -296,8 +306,39 @@ export class TripsPage implements OnInit, OnDestroy {
     return modal.present();
   }
 
-  toggleFilter() {
-    this.showFilter = !this.showFilter;
+  private getDisplayColumns(): string[] {
+    const fixedColumns = this.columns.slice(0,2);
+    var userColumns = this.accountService.getDisplayColumns(this.location.path(true));
+    return userColumns && fixedColumns.concat(userColumns) || this.columns;
   }
+
+  private openSelectColumnsModal(event:any): Promise<any> {
+    const fixedColumns = this.columns.slice(0,2);
+    var hiddenColumns = this.columns.slice(fixedColumns.length)
+      .filter(name => this.displayedColumns.indexOf(name) == -1);
+    let columns = this.displayedColumns.slice(fixedColumns.length)
+      .concat(hiddenColumns)
+      .map((name, index) => {
+        return {
+          name,
+          label: 'TRIP.' + name.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase(),
+          visible: this.displayedColumns.indexOf(name) != -1
+        }
+      });
+
+    let modal = this.modalCtrl.create(TableSelectColumnsComponent, columns);
+
+    // On dismiss
+    modal.onDidDismiss(res => {
+      // Apply columns
+      var userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+      this.displayedColumns = fixedColumns.concat(userColumns);
+
+      // Update user settings
+      this.accountService.saveDisplayColumns(this.location.path(true), userColumns);
+    });
+    return modal.present();
+  }
+
 }
 

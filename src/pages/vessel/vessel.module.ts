@@ -1,5 +1,5 @@
 
-import {NgModule} from "@angular/core";
+/*import {NgModule} from "@angular/core";
 
 import {VesselPage} from "./vessel";
 import {VesselForm} from "./form/form-vessel";
@@ -29,4 +29,4 @@ import {VesselValidatorService} from "./validator/validators";
 })
 export class VesselModule {
 
-}
+}*/

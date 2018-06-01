@@ -190,27 +190,28 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
    * Save many trips
    * @param data 
    */
-  saveAll(trips: Trip[]): Promise<Trip[]> {
-    if (!trips) return Promise.resolve(trips);
+  async saveAll(trips: Trip[]): Promise<Trip[]> {
+    if (!trips) return trips;
 
     // Fill default properties (as recorder department and person)
     trips.forEach(t => this.fillDefaultProperties(t));
 
-    let json = trips.map(t => this.asObject(t));
+    const json = trips.map(t => this.asObject(t));
     console.debug("[trip-service] Saving trips: ", json);
 
-    return this.mutate<{saveTrips: any}>({
+    const res = await this.mutate<{saveTrips: any}>({
         mutation: SaveTrips,
         variables: {
           trips: json
         },
         error: {code: ErrorCodes.SAVE_TRIPS_ERROR, message: "TRIP.ERROR.SAVE_TRIPS_ERROR"}
-      })
-      .then(data => (data && data.saveTrips && trips || Trip[0]).map(t => {
-        const res = data.saveTrips.find(res => res.id == t.id);
-        t.updateDate = res && res.updateDate || t.updateDate;
+      });
+    return (res && res.saveTrips && trips || [])
+      .map(t => {
+        const data = res.saveTrips.find(res => res.id == t.id);
+        t.updateDate = data && data.updateDate || t.updateDate;
         return t;
-      }) );
+      });
   }
 
   /**

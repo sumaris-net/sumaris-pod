@@ -31,7 +31,9 @@
     "MINUTE_PLACEHOLDER": "mm",
 
     "UPDATED_ON": "Mise à jour le",
-    "RECORDER": "Saisisseur"
+    "RECORDER": "Saisisseur",
+
+    "DISPLAYED_COLUMNS": "Colonnes visibles"
   },
   "MENU": {
     "HOME": "Accueil",
@@ -144,12 +146,14 @@
   },
   "VESSEL": {
     "TITLE": "Navire",
+    "VESSEL_ID": "Code interne",
     "NAME": "Nom",
     "EXTERIOR_MARKING": "Code d'immatriculation",
     "BASE_PORT_LOCATION": "Port d'attache",
     "COUNTRY": "Pavillon",
     "COMMENTS": "Commentaires",
-    "TAG_GENERAL": "Informations générales",
+    "START_DATE": "Début validité",
+    "TAB_GENERAL": "Informations générales",
     "NEW": {
       "TITLE": "Nouveau navire"
     },
@@ -165,7 +169,7 @@
   "REFERENTIAL": {
     "ERROR": {
       "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels."
-    }    
+    }
   },
   "ERROR": {
     "FIELD_REQUIRED": "Champ obligatoire.",

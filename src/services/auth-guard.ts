@@ -12,8 +12,11 @@ export class AuthGuard implements CanActivate
   constructor(private accountService: AccountService,
               private modalCtrl: ModalController) {}
 
-  canActivate(  next: ActivatedRouteSnapshot,state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean
-  {
+  canActivate(  
+    next: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<boolean> | Promise<boolean> | boolean {
+    
     if (!this.accountService.isLogin()) {
       console.debug("[auth-gard] Need authentication for page /"+next.url.join('/'));
       return new Promise<boolean>((resolve) => {

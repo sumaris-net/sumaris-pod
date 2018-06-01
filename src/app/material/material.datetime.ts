@@ -1,8 +1,9 @@
-import {Component, Optional, Input, Inject, Output, EventEmitter,OnInit,Directive, forwardRef, InjectionToken} from '@angular/core';
+import {Component, Optional, Input, Inject, Output, EventEmitter,OnInit,Directive, forwardRef, InjectionToken, ViewChild} from '@angular/core';
+
 import { DateFormatPipe } from '../../pipes/date-format.pipe';
 import { Platform } from 'ionic-angular';
 import {MatFormFieldControl, MatFormFieldBase, DateAdapter} from '@angular/material'
-import {FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor, FormControlName} from "@angular/forms";
+import {FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor} from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 import {Moment} from 'moment/moment';
 import * as moment from 'moment/moment';
@@ -36,7 +37,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor{
 
     @Input() formControlName: string;
 
-    @Input() displayTime: boolean = true
+    @Input() displayTime: boolean = true;
 
     @Input() placeholder: string;
 
@@ -55,7 +56,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor{
     ) {
       this.touchUi = !platform.is('core');
       this.mobile = this.touchUi && platform.is('mobile');
-      
     }
 
     ngOnInit() {
@@ -73,7 +73,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor{
             (this.datePattern = patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
         this.form.valueChanges.subscribe((value) => this.onFormChange(value));
     }
-
+  
     writeValue(obj: any) : void{
         if (this.writing) return;
 

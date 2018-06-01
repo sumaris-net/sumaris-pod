@@ -78,7 +78,7 @@
 
   <mat-table #table padding-left
              [dataSource]="dataSource" class="trips-table "
-             matSort matSortActive="departureDateTime" matSortDirection="asc" matSortDisableClear
+             matSort matSortActive="exteriorMarking" matSortDirection="asc" matSortDisableClear
              [trackBy]="id">
 
     <ng-container matColumnDef="select">
@@ -102,10 +102,29 @@
         <span *ngIf="!loading">#</span>
         <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
       </mat-header-cell>
-      <mat-cell  class="hidden-xs hidden-sm" *matCellDef="let row">{{ row.currentData.id }}</mat-cell>
+      <mat-cell  class="hidden-xs hidden-sm" *matCellDef="let row">
+        {{ row.currentData.vesselId }}
+        <mat-icon *ngIf="row.validator.hasErrors">search</mat-icon>
+      </mat-cell>
     </ng-container>
 
-     <!-- Eexterior marking column -->
+    <!-- Start date column -->
+    <ng-container matColumnDef="startDate">
+        <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
+            <span translate>VESSEL.START_DATE</span>
+        </mat-header-cell>
+        <mat-cell class="mat-cell-date-time" *matCellDef="let row" >
+          <mat-date-time floatPlaceholder="never"
+            [formControl]="row.validator.controls['startDate']"
+            [ngModel]="row.currentData.startDate"
+            [readonly]="!row.editing"
+            [displayTime]="false"
+            required>
+          </mat-date-time>  
+        </mat-cell>
+      </ng-container>
+
+     <!-- Exterior marking column -->
      <ng-container matColumnDef="exteriorMarking">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
           <span translate>VESSEL.EXTERIOR_MARKING</span>
@@ -133,7 +152,6 @@
               <input matInput
                       [formControl]="row.validator.controls['name']"
                       [placeholder]="'VESSEL.NAME'|translate"
-                      [appAutofocus]="row.id &lt; 0 && row.editing"
                       [readonly]="!row.editing"
                       [ngModel]="row.currentData.name">
               <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -152,7 +170,8 @@
                  [formControl]="row.validator.controls['basePortLocation']"
                  [matAutocomplete]="autoLocation"
                  [readonly]="!row.editing"
-                 [ngModel]="row.currentData.basePortLocation">
+                 [ngModel]="row.currentData.basePortLocation"
+                 required>
           <mat-error *ngIf="row.validator.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
         </mat-form-field>
@@ -223,7 +242,7 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;"
+    <mat-row *matRowDef="let row; columns: displayedColumns;"             
              (click)="onOpenRowDetail($event, row)"
              (onblur)="confirmAndAddRow(row)"
              ></mat-row>

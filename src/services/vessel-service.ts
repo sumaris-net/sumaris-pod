@@ -19,6 +19,8 @@ const LoadAllQuery: DocumentNode = gql`
   query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
     vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       id
+      startDate
+      endDate
       name
       exteriorMarking
       administrativePower
@@ -33,13 +35,20 @@ const LoadAllQuery: DocumentNode = gql`
         label
         name
       }
+      recorderDepartment {
+        id
+        label
+        name
+      }
     }
   }
 `;
 const LoadQuery: DocumentNode = gql`
-  query Vessel($id: Int) {
-    vessels(filter: {vesselId: $id}) {
+  query Vessel($vesselId: Int, $vesselFeaturesId: Int) {
+    vessels(filter: {vesselId: $vesselId, vesselFeaturesId: $vesselFeaturesId}) {
       id
+      startDate
+      endDate
       name
       exteriorMarking
       administrativePower
@@ -134,58 +143,77 @@ export class VesselService extends BaseDataService implements DataService<Vessel
     );
   }
 
-  load(id: number): Promise<VesselFeatures|null> {
+  async load(id: number): Promise<VesselFeatures|null> {
     console.debug("[vessel-service] Loading vessel " + id);
 
-    return this.query<{vessels: any}>({
+    const data = await this.query<{vessels: any}>({
       query: LoadQuery,
       variables: {
-        id: id
+        vesselId: id,
+        vesselFeaturesId: null
       }
-    })
-    .then(data => {
-      if (data && data.vessels) {
-        const res = new VesselFeatures();
-        res.fromObject(data.vessels[0]);
-        return res;
-      }
-      return null;
     });
+
+    if (data && data.vessels) {
+      const res = new VesselFeatures();
+      res.fromObject(data.vessels[0]);
+      return res;
+    }
+    return null;
+  }
+
+  async loadByVesselFeaturesId(id: number): Promise<VesselFeatures|null> {
+    console.debug("[vessel-service] Loading vessel by features " + id);
+
+    const data = await this.query<{vessels: any}>({
+      query: LoadQuery,
+      variables: {
+        vesselId: null,
+        vesselFeaturesId: id
+      }
+    });
+
+    if (data && data.vessels) {
+      const res = new VesselFeatures();
+      res.fromObject(data.vessels[0]);
+      return res;
+    }
+    return null;
   }
 
   /**
    * Save many vessels
    * @param data 
    */
-  saveAll(vessels: VesselFeatures[]): Promise<VesselFeatures[]> {
+  async saveAll(vessels: VesselFeatures[]): Promise<VesselFeatures[]> {
 
-    if (!vessels) return Promise.resolve(vessels);
+    if (!vessels) return vessels;
 
     // Fill default properties (as recorder department and person)
     vessels.forEach(t => this.fillDefaultProperties(t));
 
-    let json = vessels.map(t => this.asObject(t));
+    const json = vessels.map(t => this.asObject(t));
     console.debug("[vessel-service] Saving vessels: ", json);
 
-    return this.mutate<{saveVessels: any}>({
+    const res = await this.mutate<{saveVessels: any}>({
         mutation: SaveVessels,
         variables: {
           vessels: json
         },
         error: {code: ErrorCodes.SAVE_VESSELS_ERROR, message: "VESSEL.ERROR.SAVE_VESSELS_ERROR"}
-      })
-      .then(data => (data && data.saveVessels && vessels || Trip[0]).map(t => {
-        const res = data.saveVessels.find(res => res.id == t.id);
-        t.updateDate = res && res.updateDate || t.updateDate;
-        return t;
-      }) );
+      });
+    return (res && res.saveVessels && vessels || []).map(t => {
+      const data = res.saveVessels.find(res => res.id == t.id);
+      t.updateDate = data && data.updateDate || t.updateDate;
+      return t;
+    });
   }
 
   /**
    * Save a trip
    * @param data 
    */
-  save(vessel: VesselFeatures): Promise<VesselFeatures> {
+  async save(vessel: VesselFeatures): Promise<VesselFeatures> {
 
     // Prepare to save
     this.fillDefaultProperties(vessel);
@@ -195,18 +223,16 @@ export class VesselService extends BaseDataService implements DataService<Vessel
 
     console.debug("[vessel-service] Saving vessel: ", json);
 
-    return this.mutate<{saveVessels: any}>({
+    const res = await this.mutate<{saveVessels: any}>({
         mutation: SaveVessels,
         variables: {
           vessels: [json]
         },
         error: {code: ErrorCodes.SAVE_VESSEL_ERROR, message: "VESSEL.ERROR.SAVE_VESSEL_ERROR"}
-      })
-      .then(data => {
-        var res = data && data.saveVessels && data.saveVessels[0];
-        vessel.updateDate = res && res.updateDate || vessel.updateDate;
-        return vessel;
       });
+    const data = res && res.saveVessels && res.saveVessels[0];
+    vessel.updateDate = data && data.updateDate || vessel.updateDate;
+    return vessel;
   }
 
   deleteAll(vessels: VesselFeatures[]): Promise<any> {

@@ -15,6 +15,7 @@
     "BTN_NEXT": "Next",
     "BTN_BACK": "Back",
     "BTN_SEND": "Send",
+    "BTN_TABLE_EDIT": "Edit in table",
     "CREATED_ON": "Created on",
 
     "DATE_PATTERN": "MM/DD/YYYY",
@@ -24,19 +25,22 @@
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_PLACEHOLDER": "dd/mm/yyyy",
 
-    "HOUR_SYMBOL": "h",
-    "MINUTE_SYMBOL": "min",
+    "HOUR": "h",
+    "MINUTE": "min",
     "HOUR_PLACEHOLDER": "hh",
     "MINUTE_PLACEHOLDER": "mm",
 
     "UPDATED_ON": "Last modification on",
-    "RECORDER": "Recorder"
+    "RECORDER": "Recorder",
+
+    "DISPLAYED_COLUMNS": "Displayed columns"
   },
   "MENU": {
     "HOME": "Home",
     "TRIPS": "Trips",
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Users",
+    "VESSELS": "Vessels",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "BTN_ACCOUNT": "Account",
     "BTN_LOGOUT": "Log out"
@@ -133,6 +137,38 @@
     },
     "EDIT": {
       "TITLE": "Edit fishing trip"
+    },
+    "ERROR": {
+      "LOAD_TRIPS_ERROR": "Error while loading trips.",
+      "SAVE_TRIP_ERROR": "Error while saving the trip.",
+      "SAVE_TRIPS_ERROR": "Error while saving trips."
+    }
+  },
+  "VESSEL": {
+    "TITLE": "Vessel",
+    "VESSEL_ID": "Internal code",
+    "NAME": "Name",
+    "EXTERIOR_MARKING": "Exterior marking",
+    "BASE_PORT_LOCATION": "base harbour",
+    "COUNTRY": "Country",
+    "COMMENTS": "Comments",
+    "START_DATE": "Validity start date",
+    "TAB_GENERAL": "General  informations",
+    "NEW": {
+      "TITLE": "New vessel"
+    },
+    "LIST": {
+      "TITLE": "Vessels"
+    },
+    "ERROR": {
+      "LOAD_VESSEL_ERROR": "Error while loading vessels.",
+      "SAVE_VESSEL_ERROR": "Error while saving the vessel.",
+      "SAVE_VESSELS_ERROR": "Error while saving vessels."
+    }
+  },
+  "REFERENTIAL": {
+    "ERROR": {
+      "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels."
     }
   },
   "ERROR": {

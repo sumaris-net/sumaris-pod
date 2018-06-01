@@ -16,6 +16,9 @@ export declare interface AccountHolder{
   keypair: KeyPair;
   pubkey: string;
   account: Account;
+  localSettings: {
+    pages?: any
+  };
   // TODO : use this ?
   mainProfile: String;
 };
@@ -29,6 +32,7 @@ export interface RegisterData extends AuthData{
 const PUBKEY_STORAGE_KEY="pubkey"
 const SECKEY_STORAGE_KEY="seckey"
 const ACCOUNT_STORAGE_KEY="account"
+const SETTINGS_STORAGE_KEY="settings"
 
 /* ------------------------------------
  * GraphQL queries
@@ -118,7 +122,8 @@ export class AccountService extends BaseDataService {
     keypair: null,
     pubkey: null,
     mainProfile: null,
-    account: null
+    account: null,
+    localSettings: null
   };
 
   private subscriptionSeq: number = 0;
@@ -136,12 +141,13 @@ export class AccountService extends BaseDataService {
     private cryptoService: CryptoService
   ) {
     super(apollo);
+
     this.resetData();
+
+    // Restoring local settings
     this.restoreLocally()
       .then((account) => {
-        if (account) {
-          this.onLogin.next(this.data.account);
-        }
+        if (account) this.onLogin.next(this.data.account);
       });
   }
 
@@ -151,6 +157,7 @@ export class AccountService extends BaseDataService {
     this.data.pubkey = null;
     this.data.mainProfile = null;
     this.data.account = new Account();
+    this.data.localSettings = null;
   }
 
   public isLogin():boolean {
@@ -311,32 +318,34 @@ export class AccountService extends BaseDataService {
       });
   }
 
-  public restoreLocally() : Promise<Account>{
-    let pubkey = window.localStorage.getItem(PUBKEY_STORAGE_KEY);
+  public async restoreLocally() : Promise<Account>{
 
+    // Restore local settings
+    let settingsStr = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    this.data.localSettings = settingsStr && JSON.parse(settingsStr) || {};
+    
+    let pubkey = window.localStorage.getItem(PUBKEY_STORAGE_KEY);
     if (!pubkey) return Promise.resolve(undefined);
 
     console.debug("[account] Restoring account {"+pubkey.substr(0,6)+"}'...");
-    return new Promise((resolve) => {
-      this.data.pubkey = pubkey;
+    this.data.pubkey = pubkey;
 
-      // Get account from local storage
-      let accountStr   = window.localStorage.getItem(ACCOUNT_STORAGE_KEY);
-      if (!accountStr) return resolve(undefined);
+    // Get account from local storage
+    let accountStr   = window.localStorage.getItem(ACCOUNT_STORAGE_KEY);
+    if (!accountStr) return undefined;
 
-      let accountObj:any = JSON.parse(accountStr);
-      if (!accountObj) return resolve(undefined);
+    let accountObj:any = JSON.parse(accountStr);
+    if (!accountObj) return undefined;
 
-      let account = new Account();
-      account.fromObject(accountObj);
-      if (account.pubkey != pubkey) return resolve(undefined);
+    let account = new Account();
+    account.fromObject(accountObj);
+    if (account.pubkey != pubkey) return undefined;
 
-      this.data.account = account;
-      this.data.mainProfile = this.getMainProfile(account.profiles);
-      this.data.loaded = true;
-      resolve(account);
-    });
-    
+    this.data.account = account;
+    this.data.mainProfile = this.getMainProfile(account.profiles);
+    this.data.loaded = true;
+
+    return account;    
   }
 
   /** 
@@ -580,6 +589,24 @@ export class AccountService extends BaseDataService {
     return subscription;
   }
 
+  public getDisplayColumns(pageId: string): string[] {
+    const key = pageId.replace(/[/]/g, '__');
+    return this.data.localSettings && this.data.localSettings.pages 
+      && this.data.localSettings.pages[key] && this.data.localSettings.pages[key].displayColumns;
+  }
+
+  public async saveDisplayColumns(pageId: string, displayColumns: string[]) {
+    const key = pageId.replace(/[/]/g, '__');
+
+    this.data.localSettings = this.data.localSettings || {};
+    this.data.localSettings.pages = this.data.localSettings.pages || {}
+    this.data.localSettings.pages[key] = this.data.localSettings.pages[key] || {};
+    this.data.localSettings.pages[key].displayColumns = displayColumns;
+
+    // Update local settings
+    await this.storeLocalSettings();
+  }
+
   /* -- Protected methods -- */
 
   private getMainProfile(profiles?: Referential[]): String {
@@ -591,4 +618,17 @@ export class AccountService extends BaseDataService {
     return profiles[0].label;
   }
 
+  private storeLocalSettings(): Promise<any> {
+    console.debug("[account] Store local settings", this.data.localSettings);
+    return new Promise((resolve) => {
+      if (!this.data.localSettings) {
+        window.localStorage.removeItem(SETTINGS_STORAGE_KEY);
+      }
+      else {
+        const settingsStr = JSON.stringify(this.data.localSettings);
+        window.localStorage.setItem(SETTINGS_STORAGE_KEY, settingsStr);
+      }
+      resolve();
+    });
+  }
 }

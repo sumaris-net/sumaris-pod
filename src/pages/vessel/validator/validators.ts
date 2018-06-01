@@ -19,9 +19,9 @@ export class VesselValidatorService implements ValidatorService {
       'id': [''],
       'updateDate': [''],
       'creationDate': [''],
+      'startDate': ['', Validators.required],
       'name': ['', Validators.required],      
       'exteriorMarking': ['', Validators.required],
-      'startDate': ['', Validators.required],
       'basePortLocation': ['', Validators.required],
       'comments': ['', Validators.maxLength(2000)]
     });

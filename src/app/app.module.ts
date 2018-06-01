@@ -28,6 +28,7 @@ import {CryptoService} from "../services/crypto-service";
 import {VesselService} from "../services/vessel-service";
 import {ReferentialService} from "../services/referential-service";
 import {MyApp} from "./app.component";
+import {TableSelectColumnsComponent} from "../components/table/table-select-columns";
 import {HomePage} from "../pages/home/home";
 import {RegisterConfirmPage} from "../pages/register/confirm/confirm";
 import {AccountPage} from "../pages/account/account";
@@ -85,6 +86,7 @@ export function createTranslateLoader(http: HttpClient) {
   declarations: [
     MyApp,
     ToolbarComponent,
+    TableSelectColumnsComponent,
     HomePage,
     // Pipes
     DateFormatPipe,
@@ -99,6 +101,8 @@ export function createTranslateLoader(http: HttpClient) {
     RegisterModal,
     RegisterConfirmPage,
     AccountPage,
+    // Components
+
     // Users
     UsersPage,
     // Data
@@ -133,7 +137,8 @@ export function createTranslateLoader(http: HttpClient) {
     AuthModal,
     RegisterModal,
     TripModal,
-    VesselModal
+    VesselModal,
+    TableSelectColumnsComponent
   ],
   providers: [
     StatusBar,

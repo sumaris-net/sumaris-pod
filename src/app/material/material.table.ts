@@ -3,6 +3,8 @@ import {Observable, Subject} from "rxjs";
 import {DataService} from "../../services/data-service";
 import {EventEmitter} from "@angular/core";
 import { Trip, Entity } from "../../services/model";
+import {FormGroup, AbstractControl} from "@angular/forms";
+import {TableElement} from "angular4-material-table";
 
 export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
 
@@ -41,40 +43,42 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       ;
   }
 
-  save(): Promise<any> {
+  async save(): Promise<boolean> {
 
+    console.debug("[material.table] Saving rows...");
     this.onLoading.emit(true);
 
-    return new Promise((resolve, reject) => {
-      let subscription = this.connect().first().subscribe(rows => {
-        if (subscription) {
-          subscription.unsubscribe();
+    // Get row's currentData
+    const rows = await this.getRows();
+    const data: T[] = rows      
+      .map(r => {
+        if (r.editing && !r.confirmEditCreate()) {
+          this.logRowErrors(r);
+          return undefined;
         }
-        const data: T[] = rows
-          // Get row's currentData
-          .map(r => (!r.editing || r.confirmEditCreate()) ? r.currentData as T : undefined)
-          // Keep new or dirty rows
-          .filter(t => (t && (t.id === undefined || t.dirty)));
-
-          // Nothing to save
-        if (!data.length) {
-          this.onLoading.emit(false);
-          return resolve(false); 
-        }
-        
-        this.dataService.saveAll(data)
-          .then(savedData => {
-            this.onLoading.emit(false);
-            console.log("[material.table] Saved data received after data service:", savedData);
-            this.updateDatasource(savedData, {emitEvent: false});
-            resolve(true);
-          })
-          .catch(err => {
-            this.onLoading.emit(false);
-            reject(err);
-          });
+        return r.currentData as T;
       });
-    });
+    // Keep new or dirty rows
+    const dataToSave = data.filter(t => (t && (t.id === undefined || t.dirty)));
+
+    // Nothing to save
+    if (!dataToSave.length) {
+      console.debug("[material.table] No row to save");
+      this.onLoading.emit(false);
+      return false; 
+    }
+    
+    try {
+      var savedData = await this.dataService.saveAll(dataToSave);
+      this.onLoading.emit(false);
+      console.debug("[material.table] Saved data received after data service:", savedData);
+      this.updateDatasource(data, {emitEvent: false});
+      return true;
+    } 
+    catch(error) {
+      this.onLoading.emit(false);
+      throw error;
+    }
   }
 
   public handleError(error: any, message: string): Observable<T[]> {
@@ -102,5 +106,36 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
         console.error(err);
         this.onLoading.emit(false);
       });
+  }
+
+  /* -- private method -- */
+
+  protected getRows(): Promise<TableElement<T>[]> {
+    return new Promise<TableElement<T>[]>((resolve, reject) => {
+      var subscription = this.connect().first().subscribe(rows => {
+        resolve(rows);
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+      });
+    });
+  }
+
+  private logRowErrors(row: TableElement<T>): void {
+
+    if (!row.validator.hasError) return;
+
+    var errorsMessage = "";
+    Object.getOwnPropertyNames(row.validator.controls)
+      .forEach(key => {
+        var control = row.validator.controls[key];
+        if (control.invalid) {
+          errorsMessage += "'"+key+"' (" + Object.getOwnPropertyNames(control.errors) + "),";
+        }
+      });
+
+    if (errorsMessage.length) {
+      console.debug("[material.table] Row (id=" + row.id + ") has errors: " + errorsMessage.slice(0, -1));
+    }
   }
 }

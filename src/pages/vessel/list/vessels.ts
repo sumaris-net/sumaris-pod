@@ -26,7 +26,9 @@ export class VesselsPage implements OnInit, OnDestroy {
   inlineEdition: boolean = false;
   subscriptions: Subscription[] = [];
   displayedColumns = ['select', 
-    'id', 'exteriorMarking',
+    'id', 
+    'exteriorMarking',
+    'startDate',
     'name',
     'basePortLocation',
     'comments'];
@@ -151,18 +153,12 @@ export class VesselsPage implements OnInit, OnDestroy {
     // Add new row
     this.focusFirstColumn = true;
     this.dataSource.createNew();
-    var subscription = this.dataSource.connect().first().subscribe(rows => {
-      console.log("TODO: select new row");
-      //this.selectedRow = rows[3];
-    });
     this.dirty = true;
     this.resultsLength++;
-    //this.selectedRow = null;
   }
 
   editRow(row) {
     if (!row.editing) {
-      console.log(row);
       row.startEdit();
     }
   }
@@ -181,20 +177,19 @@ export class VesselsPage implements OnInit, OnDestroy {
     });
   }
 
-  save() {
+  async save() {
     this.error = undefined;
     if (this.selectedRow && this.selectedRow.editing) {
-      var confirm = this.selectedRow.confirmEditCreate();
-      if (!confirm) return;
+      this.selectedRow.confirmEditCreate();
     }
-    console.log("[vessels] Saving...");
-    this.dataSource.save()
-      .then(res => {
-        if (res) this.dirty = false;
-      })
-      .catch(err => {
-        this.error = err && err.message || err;
-      });
+    
+    try {
+      const done = await this.dataSource.save();
+      if (done) this.dirty = false;
+    }
+    catch(err) {
+      this.error = err && err.message || err;
+    };
   }
 
   displayReferentialFn(ref?: Referential): string | undefined {
@@ -251,7 +246,7 @@ export class VesselsPage implements OnInit, OnDestroy {
 
     // Open the detail page (if not editing)
     if (!this.dirty && !this.inlineEdition) {
-      return this.router.navigate([row.currentData.id], { 
+      return this.router.navigate([row.currentData.vesselId], { 
         relativeTo: this.route
       });
     }

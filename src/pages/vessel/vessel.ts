@@ -31,12 +31,10 @@ export class VesselPage implements OnInit{
     });
   }
 
-  load(id: number) {
-    this.vesselService.load(id)
-      .then(vessel => {
-        this.updateView(vessel);
-        this.loading = false;
-      });
+  async load(id: number) {
+    const vessel = await this.vesselService.load(id);
+    this.updateView(vessel);
+    this.loading = false;
   }
 
   updateView(data: VesselFeatures|null) {

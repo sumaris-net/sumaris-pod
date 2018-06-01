@@ -17,6 +17,14 @@
                   <mat-error *ngIf="form.controls['exteriorMarking'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
              </mat-form-field>
         </ion-col>
+        <ion-col>
+            <mat-date-time
+                [placeholder]="'VESSEL.START_DATE'|translate"            
+                formControlName="startDate"
+                [displayTime]="false"
+                required>
+            </mat-date-time>
+        </ion-col>
       </ion-row>
 
     <!-- Name -->
