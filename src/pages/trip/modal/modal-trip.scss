@@ -1,4 +1,11 @@
 modal-trip {
-
-    
+  ion-toolbar.toolbar-buttons {
+    .toolbar-content {
+      text-align: right;
+    }
+    .toolbar-background {
+      border: 0;
+      background: inherit !important;
+    }
+  }
 }

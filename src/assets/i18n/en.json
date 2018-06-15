@@ -41,6 +41,7 @@
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Users",
     "VESSELS": "Vessels",
+    "REFERENTIALS": "Referentials",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "BTN_ACCOUNT": "Account",
     "BTN_LOGOUT": "Log out"
@@ -95,6 +96,7 @@
   },
   "USER": {
     "TITLE": "User",
+    "AVATAR": "Avatar",
     "EMAIL": "Email",
     "PASSWORD": "Password",
     "FIRST_NAME": "First name",
@@ -112,14 +114,6 @@
       "SEARCH": "Search"
     }
   },
-  "TRIPS": {
-    "TITLE": "Fishing trips",
-    "FILTER": {
-      "TITLE": "Search options:",
-      "START_DATE": "Start date",
-      "END_DATE": "End date"
-    }
-  },
   "TRIP": {
     "TITLE": "Fishing trip",
     "VESSEL": "Vessel",
@@ -131,6 +125,7 @@
     "RETURN_LOCATION": "Return harbour",
     "COMMENTS": "Comments",
     "TAB_GENERAL": "General informations",
+    "TAB_PHYSICAL_GEAR": "Gears",
     "TAB_OPERATIONS": "Operations",
     "NEW": {
       "TITLE": "New fishing trip"
@@ -138,17 +133,51 @@
     "EDIT": {
       "TITLE": "Edit fishing trip"
     },
+    "LIST": {
+      "TITLE": "Fishing trips",
+      "FILTER": {
+        "START_DATE": "Start period",
+        "END_DATE": "End period",
+        "LOCATION": "Port (departure or return)"
+      }
+    },
     "ERROR": {
       "LOAD_TRIPS_ERROR": "Error while loading trips.",
       "SAVE_TRIP_ERROR": "Error while saving the trip.",
       "SAVE_TRIPS_ERROR": "Error while saving trips."
     }
   },
+  "SALE": {
+    "TITLE": "Sale",
+    "SALE_FIELD": "Sale :",
+    "DATE_TIME": "Date/Time",
+    "START": "Start sale:",
+    "START_DATE": "Start date",
+    "START_DATE_TIME": "Start date/time ",
+    "END": "End of sale:",
+    "END_DATE": "End date",
+    "END_DATE_TIME": "End date/time",
+    "SALE_LOCATION": "Sale location",
+    "SALE_TYPE": "Sale type",
+    "COMMENTS": "Comments",
+    "NEW": {
+      "TITLE": "New sale"
+    },
+    "EDIT": {
+      "TITLE": "Edit the sale"
+    },
+    "ERROR": {
+      "LOAD_ERROR": "Error while loading the sale.",
+      "LOAD_ALL_ERROR": "Error while loading sales.",
+      "SAVE_ERROR": "Error while saving the sale.",
+      "SAVE_ALL_ERROR": "Error while saving sales."
+    }
+  },
   "VESSEL": {
     "TITLE": "Vessel",
     "VESSEL_ID": "Internal code",
     "NAME": "Name",
-    "EXTERIOR_MARKING": "Exterior marking",
+    "EXTERIOR_MARKING": "Registration No",
     "BASE_PORT_LOCATION": "base harbour",
     "COUNTRY": "Country",
     "COMMENTS": "Comments",
@@ -158,7 +187,11 @@
       "TITLE": "New vessel"
     },
     "LIST": {
-      "TITLE": "Vessels"
+      "TITLE": "Vessels",
+      "FILTER": {
+        "DATE": "Validity date",
+        "SEARCH_TEXT": "Search: code, name"
+      }
     },
     "ERROR": {
       "LOAD_VESSEL_ERROR": "Error while loading vessels.",
@@ -167,8 +200,28 @@
     }
   },
   "REFERENTIAL": {
+    "LABEL": "Code",
+    "NAME": "Name",
+    "COMMENTS": "Comments",
     "ERROR": {
-      "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels."
+      "LOAD_REFERENTIALS_ERROR": "Error while loading referentials.",
+      "LOAD_REFERENTIAL_ENTITIES_ERROR": "Error while loading referential types."
+    },
+    "LIST": {
+      "TITLE": "Referentials",
+      "FILTER": {
+        "ENTITY": "Kind",
+        "SEARCH_TEXT": "Search: code, name"
+      }
+    },
+    "ENTITY": {
+      "SALE_TYPE": "Sale type",
+      "LOCATION": "Location",
+      "LOCATION_LEVEL": "Location levels",
+      "GEAR": "Gears",
+      "GEAR_LEVEL": "Gear levels",
+      "PARAMETER": "Parameters",
+      "USER_PROFILE": "User profiles"
     }
   },
   "ERROR": {

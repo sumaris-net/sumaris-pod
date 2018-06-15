@@ -37,3 +37,5 @@ UserInterfaceState.xcuserstate
 yarn.lock
 .directory
 server/db.sqlite
+package-lock.json
+package-lock.json

@@ -1,4 +1,4 @@
-page-users {
+page-referentials {
   .toolbar-spacer {
     flex: 1 1 auto;
   }
@@ -14,27 +14,27 @@ page-users {
       max-width: 60px;
     }
     .mat-column-actionsColumn {
-      max-width: 100px;
+      max-width: 80px;
     }
+    /*input.mat-input-element {
+      max-width: 60px;
+    }*/
     .mat-input-element:disabled {
       color: inherit;
     }
     .mat-form-field-infix {
-      word-wrap: break-word;
-      width: auto !important; //max-width: 150px;
-    }
-    .mat-form-field-infix input {
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .mat-form-field {
-      width: 100%;
+      word-wrap: break-word;
+      width: auto !important;
+      max-width: 150px;
     }
     .mat-header-row,
     .mat-row {
       max-height: 44px;
       padding: 0 0px;
+    }
+    .mat-cell-date-time input {
+      max-width: 120px;
     }
     .mat-form-field-disabled .mat-form-field-underline {
       background: none;
@@ -47,24 +47,6 @@ page-users {
     }
     .highlight {
       background: #42A948;
-      /* green */
-    }
-    .mat-cell .avatar {
-      height: 40px;
-      width: 40px;
-      margin: 2px 0px 0px 0px;
-      -webkit-background-size: cover;
-      -moz-background-size: cover;
-      -o-background-size: cover;
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
-    }
-    .mat-column-avatar {
-      max-width: 50px;
-    }
-    .mat-column-select {
-      max-width: 30px;
     }
   }
 }

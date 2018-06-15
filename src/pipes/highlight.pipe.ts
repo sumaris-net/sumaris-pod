@@ -6,10 +6,9 @@ import { Pipe, Injectable, PipeTransform } from '@angular/core';
 @Injectable()
 export class HighlightPipe implements PipeTransform {
 
-    transform(value: string, args?: any) : string | Promise<string> {
+    transform(value: string | any, args?: any): string | Promise<string> {
         args = args || {};
-        if (!value || typeof value == "object") return value;
-        if (args && args.search) {
+        if (value && args && args.search && typeof args.search === 'string') {
             const regexp = new RegExp(args.search, 'gi');
             return value.replace(regexp, '<b>$&</b>');
         }

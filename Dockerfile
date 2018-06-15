@@ -7,7 +7,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     NPM_VERSION=5.6.0 \
     IONIC_VERSION=3.20.0 \
     CORDOVA_VERSION=7.0.0 \
-    GRADLE_VERSION=4.5.1
+    GRADLE_VERSION=4.5.1 \
+    NDk_VERSION=r17
 
 # Install basics
 RUN apt-get update &&  \
@@ -18,16 +19,7 @@ RUN apt-get update &&  \
     npm install -g npm@"$NPM_VERSION" && \
     npm install -g cordova@"$CORDOVA_VERSION" ionic@"$IONIC_VERSION" && \
     npm cache clear --force && \
-    gem install sass    
-
-# Install source code
-RUN git config --global user.email "benoit.lavenier@e-is.pro" && \
-    git config --global user.name "Benoit Lavenier" && \
-    git clone https://github.com/E-IS/sumaris-app.git && \
-    cd sumaris-app && \
-    npm install
-#ANDROID
-#JAVA
+    gem install sass
 
 # install python-software-properties (so you can do add-apt-repository)
 RUN apt-get update && apt-get install -y -q python-software-properties software-properties-common  && \
@@ -51,6 +43,12 @@ RUN cd /opt && \
     rm -f android-sdk.tgz && \
     chown -R root. /opt
 
+RUN cd /opt/ && \
+  wget --output-document=android-ndk.zip --quiet  https://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux-x86_64.zip && \
+  unzip android-ndk.zip && \
+  rm android-ndk.zip && \
+  chown -R root. /opt
+
 # Install Gradle
 RUN wget https://services.gradle.org/distributions/gradle-"$GRADLE_VERSION"-bin.zip && \
     mkdir /opt/gradle && \
@@ -67,9 +65,19 @@ RUN chmod u+x /opt/tools/*.sh
 RUN ["/opt/tools/android-accept-licenses.sh", "android update sdk --all --no-ui --filter platform-tools,tools,build-tools-26.0.0,android-26,build-tools-25.0.0,android-25,extra-android-support,extra-android-m2repository,extra-google-m2repository"]
 RUN unzip ${ANDROID_HOME}/temp/*.zip -d ${ANDROID_HOME}
 
-# Test First Build so that it will be faster later
-#RUN cd sumaris-app && \
-#   ionic cordova build android --prod --no-interactive --release
+# Install source code
+#RUN git config --global user.email "user.name@domain.com" && \
+#    git config --global user.name "User Name" && \
+RUN git clone https://github.com/E-IS/sumaris-app.git && \
+    cd sumaris-app && \
+    npm install
+
+# Restore cordova platforms
+RUN cd sumaris-app && \
+     ionic state restore
+
+# TODO: Test First Build so that it will be faster later
+##  ionic cordova build android --prod --no-interactive --release
 
 WORKDIR sumaris-app
 EXPOSE 8100 35729

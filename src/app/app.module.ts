@@ -1,58 +1,64 @@
 
 import "./vendor";
 
-import {APP_BASE_HREF} from "@angular/common";
-import {BrowserModule} from "@angular/platform-browser";
-import {ErrorHandler, NgModule} from "@angular/core";
-import {IonicApp, IonicErrorHandler, IonicModule} from "ionic-angular";
-import {SplashScreen} from "@ionic-native/splash-screen";
-import {StatusBar} from "@ionic-native/status-bar";
-import {Keyboard} from "@ionic-native/keyboard";
-import {HttpClient, HttpClientModule} from "@angular/common/http";
-import {TranslateModule, TranslateService, TranslateLoader} from "@ngx-translate/core";
-import {TranslateHttpLoader} from "@ngx-translate/http-loader";
-import {ToolbarComponent} from "./toolbar/toolbar";
-import {ReactiveFormsModule} from "@angular/forms";
+import { APP_BASE_HREF } from "@angular/common";
+import { BrowserModule } from "@angular/platform-browser";
+import { ErrorHandler, NgModule } from "@angular/core";
+import { IonicApp, IonicErrorHandler, IonicModule } from "ionic-angular";
+import { SplashScreen } from "@ionic-native/splash-screen";
+import { StatusBar } from "@ionic-native/status-bar";
+import { Keyboard } from "@ionic-native/keyboard";
+import { HttpClient, HttpClientModule } from "@angular/common/http";
+import { TranslateModule, TranslateService, TranslateLoader } from "@ngx-translate/core";
+import { TranslateHttpLoader } from "@ngx-translate/http-loader";
+import { ToolbarComponent } from "./toolbar/toolbar";
+import { ReactiveFormsModule } from "@angular/forms";
 
-import {AppRoutingModule} from './app-routing.module';
-import {AppMaterialModule} from "./material/material.module";
-import {AppGraphQLModule} from "./graphql/graphql.module";
+import { AppRoutingModule } from './app-routing.module';
+import { AppMaterialModule } from "./material/material.module";
+import { AppGraphQLModule } from "./graphql/graphql.module";
 
-import {AuthGuard} from "../services/auth-guard";
-import {AuthForm} from "../pages/auth/form/form-auth";
-import {AuthModal} from "../pages/auth/modal/modal-auth";
-import {AccountService} from "../services/account-service";
-import {TripService} from "../services/trip-service";
-import {PersonService} from "../services/person-service";
-import {CryptoService} from "../services/crypto-service";
-import {VesselService} from "../services/vessel-service";
-import {ReferentialService} from "../services/referential-service";
-import {MyApp} from "./app.component";
-import {TableSelectColumnsComponent} from "../components/table/table-select-columns";
-import {HomePage} from "../pages/home/home";
-import {RegisterConfirmPage} from "../pages/register/confirm/confirm";
-import {AccountPage} from "../pages/account/account";
-import {UsersPage} from "../pages/users/users";
-import {AutofocusDirective} from "../directives/autofocus.directive";
-import {DateFormatPipe} from "../pipes/date-format.pipe";
-import {HighlightPipe} from "../pipes/highlight.pipe";
-import {MAT_DATE_FORMATS, MAT_DATE_LOCALE, DateAdapter} from "@angular/material";
-import {MAT_MOMENT_DATE_FORMATS, MomentDateAdapter} from '@angular/material-moment-adapter';
-import {RegisterForm} from "../pages/register/form/form-register";
-import {RegisterModal} from "../pages/register/modal/modal-register";
+import { AuthGuard } from "../services/auth-guard";
+import { AuthForm } from "../pages/auth/form/form-auth";
+import { AuthModal } from "../pages/auth/modal/modal-auth";
+import { AccountService } from "../services/account-service";
+import { TripService } from "../services/trip-service";
+import { PersonService } from "../services/person-service";
+import { CryptoService } from "../services/crypto-service";
+import { VesselService } from "../services/vessel-service";
+import { ReferentialService } from "../services/referential-service";
+import { MyApp } from "./app.component";
+import { TableSelectColumnsComponent } from "../components/table/table-select-columns";
+import { HomePage } from "../pages/home/home";
+import { RegisterConfirmPage } from "../pages/register/confirm/confirm";
+import { AccountPage } from "../pages/account/account";
+import { UsersPage } from "../pages/users/users";
+import { AutofocusDirective } from "../directives/autofocus.directive";
+import { AutoFillDateDirective } from "../directives/autofilldate.directive";
+import { DateFormatPipe } from "../pipes/date-format.pipe";
+import { HighlightPipe } from "../pipes/highlight.pipe";
+import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, DateAdapter } from "@angular/material";
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import { RegisterForm } from "../pages/register/form/form-register";
+import { RegisterModal } from "../pages/register/modal/modal-register";
 import { PersonValidatorService } from "../pages/users/validator/validators";
 import { Account } from "../services/model";
 import { MatDateTime } from "./material/material.datetime";
-import {DATE_ISO_PATTERN} from './constants';
+import { DATE_ISO_PATTERN } from './constants';
+import { IonicStorageModule } from '@ionic/storage';
 
 import * as moment from "moment/moment";
 
 // Page Trip
-import {TripPage} from "../pages/trip/trip";
-import {TripForm} from "../pages/trip/form/form-trip";
-import {TripModal} from "../pages/trip/modal/modal-trip";
-import {TripsPage} from "../pages/trip/list/trips";
-import {TripValidatorService} from "../pages/trip/validator/validators";
+import { TripPage } from "../pages/trip/trip";
+import { TripForm } from "../pages/trip/form/form-trip";
+import { TripModal } from "../pages/trip/modal/modal-trip";
+import { TripsPage } from "../pages/trip/list/trips";
+import { TripValidatorService } from "../pages/trip/validator/validators";
+
+// Sale
+import { SaleForm } from "../pages/sale/form/form-sale";
+import { SaleValidatorService } from "../pages/sale/validator/validators";
 
 // Page Vessel
 import { VesselForm } from "../pages/vessel/form/form-vessel";
@@ -60,6 +66,11 @@ import { VesselPage } from "../pages/vessel/vessel";
 import { VesselsPage } from "../pages/vessel/list/vessels";
 import { VesselModal } from "../pages/vessel/modal/modal-vessel";
 import { VesselValidatorService } from "../pages/vessel/validator/validators";
+
+// Page Referential
+import { ReferentialsPage } from "../pages/referential/list/referentials";
+import { ReferentialValidatorService } from "../pages/referential/validator/validators";
+
 
 const conf = require("../lib/conf.js")
 
@@ -93,6 +104,7 @@ export function createTranslateLoader(http: HttpClient) {
     HighlightPipe,
     // Directives
     AutofocusDirective,
+    AutoFillDateDirective,
     MatDateTime,
     // Auth & Register
     AuthForm,
@@ -105,22 +117,27 @@ export function createTranslateLoader(http: HttpClient) {
 
     // Users
     UsersPage,
-    // Data
+    // Data: trip
     TripForm,
     TripPage,
     TripsPage,
     TripModal,
+    // Data: sale
+    SaleForm,
     // Vessel
     VesselForm,
     VesselPage,
     VesselsPage,
-    VesselModal
+    VesselModal,
+    // Referentials
+    ReferentialsPage
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
     ReactiveFormsModule,
     IonicModule.forRoot(MyApp),
+    IonicStorageModule.forRoot(),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -145,21 +162,23 @@ export function createTranslateLoader(http: HttpClient) {
     SplashScreen,
     Keyboard,
     AuthGuard,
-    {provide: APP_BASE_HREF, useValue: '/'},
-    {provide: ErrorHandler, useClass: IonicErrorHandler},
-    {provide: MAT_DATE_LOCALE, useValue: 'en'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: {
-      parse: {
-        dateInput: DATE_ISO_PATTERN,
-      },
-      display: {
-        dateInput: 'L',
-        monthYearLabel: 'MMM YYYY',
-        dateA11yLabel: 'LL',
-        monthYearA11yLabel: 'MMMM YYYY',
+    { provide: APP_BASE_HREF, useValue: '/' },
+    { provide: ErrorHandler, useClass: IonicErrorHandler },
+    { provide: MAT_DATE_LOCALE, useValue: 'en' },
+    { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE] },
+    {
+      provide: MAT_DATE_FORMATS, useValue: {
+        parse: {
+          dateInput: DATE_ISO_PATTERN,
+        },
+        display: {
+          dateInput: 'L',
+          monthYearLabel: 'MMM YYYY',
+          dateA11yLabel: 'LL',
+          monthYearA11yLabel: 'MMMM YYYY',
+        }
       }
-    }},
+    },
 
     DateFormatPipe,
     HighlightPipe,
@@ -171,9 +190,11 @@ export function createTranslateLoader(http: HttpClient) {
     PersonValidatorService,
     // Referential
     ReferentialService,
+    ReferentialValidatorService,
     // Data: trip services
     TripValidatorService,
     TripService,
+    SaleValidatorService,
     // Data: vessel services
     VesselService,
     VesselValidatorService
@@ -206,21 +227,21 @@ export class AppModule {
     // When locale changes, apply to date adapter
     translate.onLangChange.subscribe(event => {
       if (event && event.lang) {
-        console.debug('[app] Use locale {' +  event.lang + '}');
+        console.debug('[app] Use locale {' + event.lang + '}');
 
         // Config date adapter
         dateAdapter.setLocale(event.lang);
 
         // config moment lib
         try {
-          var momentLocale: string = event.lang.substr(0,2);
+          var momentLocale: string = event.lang.substr(0, 2);
           moment.locale(momentLocale);
         }
-        catch(err) {
+        catch (err) {
           moment.locale('en');
           console.warn('[app] Unknown local for moment lib. Using default [en]');
         }
-        
+
       }
     });
 

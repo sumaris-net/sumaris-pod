@@ -1,31 +1,72 @@
 <ion-header>
-    <ion-toolbar>
-      <ion-buttons left start>
-          <button ion-button class="visible-xs visible-sm" (click)="cancel()">
-            {{'COMMON.BTN_CANCEL'|translate}}
-          </button>
-        </ion-buttons>
+  <ion-toolbar>
+    <ion-buttons left start>
+      <button ion-button class="visible-xs visible-sm" (click)="cancel()">
+        {{'COMMON.BTN_CANCEL'|translate}}
+      </button>
+    </ion-buttons>
 
-      <ion-title>
-        {{(!!data?.id ? 'TRIP.EDIT.TITLE' : 'TRIP.NEW.TITLE') |translate}}
-      </ion-title>      
+    <ion-title>
+      {{(!!data?.id ? 'TRIP.EDIT.TITLE' : 'TRIP.NEW.TITLE') |translate}}
+    </ion-title>
 
-      <ion-buttons end>
-          <ion-spinner *ngIf="loading"></ion-spinner>
-    
-          <button ion-button icon-only class="visible-xs visible-sm" (click)="onSave($event)" *ngIf="!loading">
-            <ion-icon name="checkmark"></ion-icon>
-          </button>      
-        </ion-buttons>
-    </ion-toolbar>
-  </ion-header>
-  
-  <ion-content padding>
-      <mat-error>{{error}}</mat-error>
-      <form-trip #form
-        (onSubmit)="onSave($event)" 
-        (onCancel)="cancel()" >
+    <ion-buttons end>
+      <ion-spinner *ngIf="loading"></ion-spinner>
+
+      <button ion-button icon-only class="visible-xs visible-sm" (click)="save($event, form.value)" *ngIf="!loading">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+  <mat-error>{{error|translate}}</mat-error>
+
+  <mat-horizontal-stepper linear #stepper="matHorizontalStepper">
+
+    <!-- Step 1: Trip -->
+    <mat-step [stepControl]="tripForm.form">
+      <ng-template matStepLabel>{{'TRIP.TITLE'|translate}}</ng-template>
+
+      <form-trip #tripForm (onSubmit)="slideNext()" (onCancel)="cancel()">
       </form-trip>
-  </ion-content>
-<mat-dialog-content>
 
+      <!-- buttons -->
+      <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm">
+        <button mat-button (click)="cancel()" type="button">
+          {{'COMMON.BTN_CANCEL'|translate}}
+        </button>
+
+        <!--  [disabled]="!form.valid" -->
+        <button mat-raised-button color="primary" matStepperNext>
+          <span translate>COMMON.BTN_NEXT</span>
+        </button>
+      </ion-toolbar>
+    </mat-step>
+
+    <!-- Step 2: Sale -->
+    <mat-step [stepControl]="saleForm.form">
+      <ng-template matStepLabel>{{'SALE.TITLE'|translate}}</ng-template>
+      <form-sale #saleForm (onSubmit)="save($event)" (onCancel)="cancel()" [showVessel]="false" [showEndDateTime]="false" [showComment]="false">
+      </form-sale>
+
+      <!-- buttons -->
+      <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm">
+        <button mat-button icon-left matStepperPrevious *ngIf="!saving">
+          <ion-icon name="arrow-back"></ion-icon>
+          <span translate>COMMON.BTN_BACK</span>
+        </button>
+
+        <!--  [disabled]="!form.valid" -->
+        <button mat-raised-button color="primary" (click)="save($event)" *ngIf="!saving">
+          <span translate>COMMON.BTN_SAVE</span>
+        </button>
+
+        <ion-spinner *ngIf="saving"></ion-spinner>
+      </ion-toolbar>
+
+    </mat-step>
+
+  </mat-horizontal-stepper>
+</ion-content>

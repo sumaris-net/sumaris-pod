@@ -25,20 +25,21 @@ export class MyApp {
 
   private isLogin: boolean;
   private account: Account;
-  private appMenuItems: Array<MenuItem> =  [
-    {title: 'MENU.HOME', path: '/', icon: 'home'},
-    {title: 'MENU.TRIPS', path: '/trips', icon: 'pin'},
-    {title: 'MENU.ADMINISTRATION_DIVIDER'},
-    {title: 'MENU.USERS', path: '/users', icon: 'people'},
-    {title: 'MENU.VESSELS', path: '/vessels', icon: 'boat'}
+  private appMenuItems: Array<MenuItem> = [
+    { title: 'MENU.HOME', path: '/', icon: 'home' },
+    { title: 'MENU.TRIPS', path: '/trips', icon: 'pin' },
+    { title: 'MENU.ADMINISTRATION_DIVIDER' },
+    { title: 'MENU.USERS', path: '/users', icon: 'people' },
+    { title: 'MENU.VESSELS', path: '/vessels', icon: 'boat' },
+    { title: 'MENU.REFERENTIALS', path: '/referentials', icon: 'list' }
   ];
 
   appVersion: String = conf.version;
 
   constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, keyboard: Keyboard,
-              private accountService: AccountService,
-              private router: Router,
-              public menu: MenuController) {
+    private accountService: AccountService,
+    private router: Router,
+    public menu: MenuController) {
 
 
     platform.ready().then(() => {
@@ -55,7 +56,7 @@ export class MyApp {
       this.isLogin = accountService.isLogin();
       if (this.isLogin) {
         this.onLogin(this.accountService.account);
-      }      
+      }
 
       // subscriptions
       this.accountService.onLogin.subscribe(account => this.onLogin(account));

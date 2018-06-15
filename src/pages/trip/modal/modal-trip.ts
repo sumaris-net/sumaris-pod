@@ -1,43 +1,57 @@
-import {Component, ViewChild} from '@angular/core';
-import {Trip} from "../../../services/model";
+import { Component, ViewChild, OnInit } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
+import { Trip, Sale } from "../../../services/model";
 import { ViewController } from "ionic-angular";
 import { TripForm } from '../form/form-trip';
 import { TripService } from '../../../services/trip-service';
+import { SaleForm } from '../../sale/form/form-sale';
+import { MatHorizontalStepper } from "@angular/material";
+import { TripPage } from "../trip";
 
 
 @Component({
   selector: 'modal-trip',
   templateUrl: './modal-trip.html'
 })
-export class TripModal {
+export class TripModal extends TripPage {
 
-  loading: boolean = false;
-
-  @ViewChild('form') private form: TripForm;
+  @ViewChild('stepper') private stepper: MatHorizontalStepper;
 
   constructor(
-    private tripService: TripService,
-    private viewCtrl: ViewController) {
+    protected route: ActivatedRoute,
+    protected tripService: TripService,
+    protected viewCtrl: ViewController) {
+    super(route, tripService);
   }
 
-  onSave(json: any): Promise<any> {
+  async save(event: any): Promise<any> {
 
-    // Avoid multiple call    
-    if (this.form.form.disabled) return;
-    this.form.disable();
-
-    let data = new Trip();
-    data.fromObject(json);
-
-    return this.tripService.save(data)
-      .then((res) => this.viewCtrl.dismiss(res))
-      .catch(err => {
-        this.form.error = err && err.message || err;
-        this.form.enable();
-      });
+    try {
+      let res = await super.save(event);
+      this.viewCtrl.dismiss(res);
+    }
+    catch (err) {
+      // nothing to do
+    }
   }
 
-  cancel() {
-    this.viewCtrl.dismiss();
+  async cancel() {
+    await this.viewCtrl.dismiss();
+  }
+
+  public isEnd(): boolean {
+    return this.stepper.selectedIndex == 2;
+  }
+
+  public isBeginning(): boolean {
+    return this.stepper.selectedIndex == 0;
+  }
+
+  public slidePrev() {
+    return this.stepper.previous();
+  }
+
+  public slideNext() {
+    return this.stepper.next();
   }
 }

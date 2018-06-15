@@ -1,13 +1,14 @@
-import {TableDataSource, ValidatorService} from "angular4-material-table";
-import {Observable, Subject} from "rxjs";
-import {DataService} from "../../services/data-service";
-import {EventEmitter} from "@angular/core";
+import { TableDataSource, ValidatorService } from "angular4-material-table";
+import { Observable, Subject } from "rxjs";
+import { DataService } from "../../services/data-service";
+import { EventEmitter } from "@angular/core";
 import { Trip, Entity } from "../../services/model";
-import {FormGroup, AbstractControl} from "@angular/forms";
-import {TableElement} from "angular4-material-table";
+import { FormGroup, AbstractControl } from "@angular/forms";
+import { TableElement } from "angular4-material-table";
 
 export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
 
+  public serviceOptions: any;
   public onLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
   /**
    * Creates a new TableDataSource instance, that can be used as datasource of `@angular/cdk` data-table.
@@ -18,28 +19,30 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
    * @param config Additional configuration for table.
    */
   constructor(dataType: new () => T,
-              private dataService: DataService<T, F>,
-              validatorService?: ValidatorService,
-              config?: {
-                prependNewElements: boolean;
-              }) {
+    private dataService: DataService<T, F>,
+    validatorService?: ValidatorService,
+    config?: {
+      prependNewElements: boolean;
+      serviceOptions?: any
+    }) {
     super([], dataType, validatorService, config);
+    this.serviceOptions = config && config.serviceOptions;
   };
 
   load(offset: number,
-       size: number,
-       sortBy?: string,
-       sortDirection?: string,
-       filter?: F): Observable<T[]> {
+    size: number,
+    sortBy?: string,
+    sortDirection?: string,
+    filter?: F): Observable<T[]> {
 
     this.onLoading.emit(true);
-    return this.dataService.loadAll(offset, size, sortBy, sortDirection, filter)
+    return this.dataService.loadAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
       .map(rows => {
         this.onLoading.emit(false);
         this.updateDatasource(rows);
         return rows
       },
-      err => this.handleError(err, 'Unable to load rows'))
+        err => this.handleError(err, 'Unable to load rows'))
       ;
   }
 
@@ -50,7 +53,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     // Get row's currentData
     const rows = await this.getRows();
-    const data: T[] = rows      
+    const data: T[] = rows
       .map(r => {
         if (r.editing && !r.confirmEditCreate()) {
           this.logRowErrors(r);
@@ -65,17 +68,17 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     if (!dataToSave.length) {
       console.debug("[material.table] No row to save");
       this.onLoading.emit(false);
-      return false; 
+      return false;
     }
-    
+
     try {
-      var savedData = await this.dataService.saveAll(dataToSave);
+      var savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
       this.onLoading.emit(false);
       console.debug("[material.table] Saved data received after data service:", savedData);
-      this.updateDatasource(data, {emitEvent: false});
+      this.updateDatasource(data, { emitEvent: false });
       return true;
-    } 
-    catch(error) {
+    }
+    catch (error) {
       this.onLoading.emit(false);
       throw error;
     }
@@ -97,7 +100,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     var row = this.getRow(id);
     this.onLoading.emit(true);
 
-    this.dataService.deleteAll([row.currentData])
+    this.dataService.deleteAll([row.currentData], this.serviceOptions)
       .then(() => {
         super.delete(id);
         this.onLoading.emit(false);
@@ -130,7 +133,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       .forEach(key => {
         var control = row.validator.controls[key];
         if (control.invalid) {
-          errorsMessage += "'"+key+"' (" + Object.getOwnPropertyNames(control.errors) + "),";
+          errorsMessage += "'" + key + "' (" + Object.getOwnPropertyNames(control.errors) + "),";
         }
       });
 

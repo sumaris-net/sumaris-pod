@@ -1,16 +1,16 @@
-import {Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy} from "@angular/core";
-import {MatPaginator, MatSort} from "@angular/material";
-import {merge} from "rxjs/observable/merge";
-import {Observable} from 'rxjs';
-import {startWith, switchMap, mergeMap} from "rxjs/operators";
-import {ValidatorService, TableElement} from "angular4-material-table";
-import {AppTableDataSource} from "../../../app/material/material.table";
-import {TripValidatorService} from "../validator/validators";
-import {TripService, TripFilter} from "../../../services/trip-service";
-import {SelectionModel} from "@angular/cdk/collections";
-import {TripModal} from "../modal/modal-trip";
-import {Trip, Referential, VesselFeatures} from "../../../services/model";
-import {Subscription} from "rxjs";
+import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
+import { MatPaginator, MatSort } from "@angular/material";
+import { merge } from "rxjs/observable/merge";
+import { Observable } from 'rxjs';
+import { startWith, switchMap, mergeMap } from "rxjs/operators";
+import { ValidatorService, TableElement } from "angular4-material-table";
+import { AppTableDataSource } from "../../../app/material/material.table";
+import { TripValidatorService } from "../validator/validators";
+import { TripService, TripFilter } from "../../../services/trip-service";
+import { SelectionModel } from "@angular/cdk/collections";
+import { TripModal } from "../modal/modal-trip";
+import { Trip, Referential, VesselFeatures, LocationLevelIds } from "../../../services/model";
+import { Subscription } from "rxjs";
 import { ModalController, Platform } from "ionic-angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService } from '../../../services/vessel-service';
@@ -19,283 +19,96 @@ import { TableSelectColumnsComponent } from '../../../components/table/table-sel
 import { Location } from '@angular/common';
 import { ViewController } from "ionic-angular";
 import { PopoverController } from 'ionic-angular';
+import { AppTable } from "../../../app/table/table";
+import { FormGroup, Validators, FormBuilder } from "@angular/forms";
+import { ReferentialService } from "../../../services/referential-service";
+import { MatButtonToggleGroup } from "@angular/material";
 
 @Component({
   selector: 'page-trips',
   templateUrl: 'trips.html',
   providers: [
-    {provide: ValidatorService, useClass: TripValidatorService }
+    { provide: ValidatorService, useClass: TripValidatorService }
   ],
 })
-export class TripsPage implements OnInit, OnDestroy {
+export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
-  any: any;
-  inlineEdition: boolean = false;
-  subscriptions: Subscription[] = [];
-  columns = ['select', 'id', 
-    'vessel',
-    'departureLocation',
-    'departureDateTime',
-    'returnDateTime', 
-    'comments'];
-  displayedColumns;
-  dataSource:AppTableDataSource<Trip, TripFilter>;
-  resultsLength = 0;
-  loading = true;
-  focusFirstColumn = false;
-  error: string;
-  showFilter = false;
-  dirty = false;
-  isRateLimitReached = false;
-  locations: Referential[] = [
-    new Referential({id: 1, label: 'XBR', name: 'Brest'}),
-    new Referential({id: 2, label: 'XBL', name: 'Boulogne'})
-  ];
-  vessels: VesselFeatures[] = [
-    new VesselFeatures().fromObject({vesselId: 1, exteriorMarking: 'FRA000851751', name: 'Vessel1'}),
-    new VesselFeatures().fromObject({vesselId: 2, exteriorMarking: 'BEL000152147', name: 'Belgium Oscar'})
-  ];
-  selection = new SelectionModel<TableElement<Trip>>(true, []);
-  selectedRow: TableElement<Trip> = undefined;
-  onRefresh: EventEmitter<any> = new EventEmitter<any>();
-  filter: TripFilter = {
-    startDate: null,
-    endDate: null
-  };
+  filterForm: FormGroup;
+  vessels: Observable<VesselFeatures[]>;
+  locations: Observable<Referential[]>;
 
-  @ViewChild(MatPaginator) paginator: MatPaginator;
-  @ViewChild(MatSort) sort: MatSort;
-
-  @Output()
-  listChange = new EventEmitter<Trip[]>();
+  @ViewChild(MatButtonToggleGroup) clickModeGroup: MatButtonToggleGroup;
 
   constructor(
-              private tripValidatorService: TripValidatorService,
-              private tripService: TripService,
-              private vesselService: VesselService,
-              private accountService: AccountService,
-              private modalCtrl: ModalController,
-              private route: ActivatedRoute,
-              private router: Router,
-              private platform: Platform,
-              private location: Location
+    protected route: ActivatedRoute,
+    protected router: Router,
+    protected platform: Platform,
+    protected location: Location,
+    protected modalCtrl: ModalController,
+    protected accountService: AccountService,
+    protected tripValidatorService: TripValidatorService,
+    protected tripService: TripService,
+    protected vesselService: VesselService,
+    protected referentialService: ReferentialService,
+    private formBuilder: FormBuilder
   ) {
-    // get columns from user account    
-    this.dataSource = new AppTableDataSource<Trip, TripFilter>(Trip, this.tripService, this.tripValidatorService);
+    super(route, router, platform, location, modalCtrl, accountService, tripValidatorService,
+      new AppTableDataSource<Trip, TripFilter>(Trip, tripService, tripValidatorService),
+      ['select', 'id',
+        'vessel',
+        'departureLocation',
+        'departureDateTime',
+        'returnDateTime',
+        'comments'],
+      {} // filter
+    );
+    this.i18nColumnPrefix = 'TRIP.';
+    this.filterForm = formBuilder.group({
+      'startDate': [null],
+      'endDate': [null],
+      'location': [null]
+    });
   };
 
   ngOnInit() {
-    this.displayedColumns = this.getDisplayColumns();
+    super.ngOnInit();
 
-    /*this.vessels = this.form.controls['vesselFeatures']
-    .valueChanges
-    .pipe(
-      mergeMap(value => {
-        if (!value) return Observable.empty();
-        if (typeof value == "object") return Observable.of([value]);
-        return this.vesselService.loadAll(0,50, undefined, undefined,
-          {searchText: value as string}
-        );
-      }));*/
+    this.clickModeGroup.valueChange.subscribe((value) => {
+      this.inlineEdition = (value === "edit");
+    });
 
-    // If the user changes the sort order, reset back to the first page.
-    this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
-
-    merge(
-      this.sort.sortChange,
-      this.paginator.page,
-      this.onRefresh
-    )
+    // Combo: sale locations
+    this.locations = this.filterForm.controls.location
+      .valueChanges
       .pipe(
-        startWith({}),
-        switchMap((any:any) => {
-          this.dirty = false;
-          this.selection.clear();
-          this.selectedRow = null;
-          return this.dataSource.load(
-            this.paginator.pageIndex * this.paginator.pageSize,
-            this.paginator.pageSize || 10,
-            this.sort.active,
-            this.sort.direction,
-            this.filter
-          );
-        })
-      )
-      .subscribe(data => {
-        if (data) {
-          this.isRateLimitReached = data.length < this.paginator.pageSize;
-          this.resultsLength = this.paginator.pageIndex * this.paginator.pageSize + data.length;
-          console.debug('[trips] Loaded ' + data.length + ' trips: ', data);
-        }
-        else {
-          console.debug('[trips] Loaded NO trips');
-          this.isRateLimitReached = true;
-          this.resultsLength = 0;
-        }
-      });
+        mergeMap(value => {
+          if (!value) return Observable.empty();
+          if (typeof value != "string" || value.length < 2) return Observable.of([]);
+          return this.referentialService.loadAll(0, 10, undefined, undefined,
+            {
+              levelId: LocationLevelIds.PORT,
+              searchText: value as string
+            },
+            { entityName: 'Location' });
+        }));
 
-    // Subscriptions:
-    this.subscriptions.push(this.dataSource.onLoading.subscribe(loading => this.loading = loading));
-    this.subscriptions.push(this.dataSource.datasourceSubject.subscribe(data => this.listChange.emit(data)));
-    this.subscriptions.push(this.listChange.subscribe(event => this.onDataChanged(event)));
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.forEach(s => s.unsubscribe());
-    this.subscriptions = [];
-  }
-
-  confirmAndAddRow(row: TableElement<Trip>) {
-    console.debug("Trying to confirmAndAddRow", row);
-    // create
-    var valid = false;
-    if (row.id<0) {
-      valid = this.dataSource.confirmCreate(row);
-    }
-    // update
-    else {
-      valid = this.dataSource.confirmEdit(row);
-    }
-    if (!valid) {
-      console.log("Could NOT confirm row", row);
-      return false;
-    }
-
-    // Add new row
-    this.dataSource.createNew();
-    this.resultsLength++;
-    return true;
-  }
-
-  cancelOrDelete(row) {
-    // create
-    this.resultsLength--;
-    row.cancelOrDelete();
-  }
-
-  addRow() {
-    // Use modal if not expert mode, or if small screen
-    if (this.platform.is('mobile') || !this.inlineEdition) {
-      return this.openTripModal();
-    }
-
-    // Add new row
-    this.focusFirstColumn = true;
-    this.dataSource.createNew();
-    var subscription = this.dataSource.connect().first().subscribe(rows => {
-      console.log(rows);
-      this.selectedRow = rows[3]; // TODO: to remove 
+    // Update filter when changes
+    this.filterForm.valueChanges.subscribe(() => {
+      const filter = this.filterForm.value;
+      this.filter = {
+        startDate: filter.startDate,
+        endDate: filter.endDate,
+        locationId: filter.location && typeof filter.location == "object" && filter.location.id || undefined
+      };
     });
-    this.dirty = true;
-    this.resultsLength++;
-    //this.selectedRow = null;
-  }
 
-  editRow(row) {
-    if (!row.editing) {
-      console.log(row);
-      row.startEdit();
-    }
-  }
-
-  createTrip() {
-    var trip = new Trip();
-    return trip;
-  }
-
-  onDataChanged(data: Trip[]) {
-    this.error = undefined;
-    data.forEach(t => {
-      if (!t.id && !t.dirty) {
-        t.dirty = true;
-      }
+    this.onRefresh.subscribe(() => {
+      this.filterForm.markAsUntouched();
+      this.filterForm.markAsPristine();
     });
   }
 
-  async save() {
-    this.error = undefined;
-    if (this.selectedRow && this.selectedRow.editing) {
-      var confirm = this.selectedRow.confirmEditCreate();
-      if (!confirm) return;
-    }
-    console.log("[trips] Saving...");
-    try {
-      const res = await this.dataSource.save();
-      if (res) this.dirty = false;
-    }
-    catch(err) {
-      this.error = err && err.message || err;
-    };
-  }
-
-  displayReferentialFn(ref?: Referential): string | undefined {
-    return ref && ref.label ? (ref.label + ' - ' + ref.name) : undefined;
-  }
-
-
-  displayVesselFn(ref?: VesselFeatures | any): string | undefined {
-    return ref ? (ref.exteriorMarking || ref.name) : undefined;
-  }
-
-  /** Whether the number of selected elements matches the total number of rows. */
-  isAllSelected() {
-    const numSelected = this.selection.selected.length;
-    return numSelected == this.resultsLength;
-  }
-
-  /** Selects all rows if they are not all selected; otherwise clear selection. */
-  masterToggle () {
-    if (this.loading) return;
-    this.isAllSelected() ?
-      this.selection.clear() :
-      this.dataSource.connect().subscribe(rows =>
-        rows.forEach(row => this.selection.select(row))
-      );
-  }
-
-  deleteSelection() {
-    if (this.loading) return;
-    this.selection.selected.forEach(row => {
-      if (row.currentData && row.currentData.id >= 0) {
-       row.delete();
-        this.selection.deselect(row);
-        this.resultsLength--;
-      }
-    });
-    //this.selection.clear();
-    this.selectedRow = null;
-  }
-
-  onEditRow(event, row) {
-    if (this.selectedRow && this.selectedRow === row) return;
-    if (this.selectedRow && this.selectedRow !== row && this.selectedRow.editing) {
-      var confirm = this.selectedRow.confirmEditCreate();
-      if (!confirm) {
-        return;
-      }
-    }
-    if (!row.editing && !this.loading) {
-      row.startEdit();
-      row.currentData.dirty = true;
-    }
-    this.selectedRow = row;
-    this.dirty = true;
-  }
-
-  onOpenRowDetail(event, row) {
-    if (!row.currentData.id || row.editing) return;
-
-    // Open the detail page (if not editing)
-    if (!this.dirty && !this.inlineEdition) {
-      return this.router.navigate([row.currentData.id], { 
-        relativeTo: this.route
-      });
-    }
-
-    this.onEditRow(event, row);    
-  }
-
-  openTripModal(): Promise<any> {
+  addRowModal(): Promise<any> {
     if (this.loading) return;
 
     let modal = this.modalCtrl.create(TripModal);
@@ -306,39 +119,6 @@ export class TripsPage implements OnInit, OnDestroy {
     return modal.present();
   }
 
-  private getDisplayColumns(): string[] {
-    const fixedColumns = this.columns.slice(0,2);
-    var userColumns = this.accountService.getDisplayColumns(this.location.path(true));
-    return userColumns && fixedColumns.concat(userColumns) || this.columns;
-  }
-
-  private openSelectColumnsModal(event:any): Promise<any> {
-    const fixedColumns = this.columns.slice(0,2);
-    var hiddenColumns = this.columns.slice(fixedColumns.length)
-      .filter(name => this.displayedColumns.indexOf(name) == -1);
-    let columns = this.displayedColumns.slice(fixedColumns.length)
-      .concat(hiddenColumns)
-      .map((name, index) => {
-        return {
-          name,
-          label: 'TRIP.' + name.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase(),
-          visible: this.displayedColumns.indexOf(name) != -1
-        }
-      });
-
-    let modal = this.modalCtrl.create(TableSelectColumnsComponent, columns);
-
-    // On dismiss
-    modal.onDidDismiss(res => {
-      // Apply columns
-      var userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
-      this.displayedColumns = fixedColumns.concat(userColumns);
-
-      // Update user settings
-      this.accountService.saveDisplayColumns(this.location.path(true), userColumns);
-    });
-    return modal.present();
-  }
 
 }
 

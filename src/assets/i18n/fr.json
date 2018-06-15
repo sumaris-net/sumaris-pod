@@ -37,10 +37,11 @@
   },
   "MENU": {
     "HOME": "Accueil",
-    "TRIPS": "Marée",
+    "TRIPS": "Marées",
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
+    "REFERENTIALS": "Listes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "BTN_ACCOUNT": "Compte",
     "BTN_LOGOUT": "Quitter"
@@ -95,6 +96,7 @@
   },
   "USER": {
     "TITLE": "Utilisateur",
+    "AVATAR": "Avatar",
     "EMAIL": "Email",
     "PASSWORD": "Mot de passe",
     "FIRST_NAME": "Prénom",
@@ -103,21 +105,12 @@
       "PROFILE_ADMIN": "Administrateur",
       "PROFILE_OBSERVER": "Observateur",
       "PROFILE_USER": "Utilisateur"
-    }
-  },
-  "USERS": {
-    "TITLE": "Utilisateurs",
-    "FILTER": {
-      "TITLE": "Options de recherche :",
-      "SEARCH": "Recherche"
-    }
-  },
-  "TRIPS": {
-    "TITLE": "Marées",
-    "FILTER": {
-      "TITLE": "Options de recherche :",
-      "START_DATE": "Date de début",
-      "END_DATE": "Date de fin"
+    },
+    "LIST": {
+      "TITLE": "Utilisateurs",
+      "FILTER": {
+        "SEARCH": "Recherche : nom, prénom..."
+      }
     }
   },
   "TRIP": {
@@ -131,6 +124,7 @@
     "RETURN_LOCATION": "Port de retour",
     "COMMENTS": "Commentaires",
     "TAB_GENERAL": "Informations générales",
+    "TAB_PHYSICAL_GEAR": "Engins embarqués",
     "TAB_OPERATIONS": "Opérations",
     "NEW": {
       "TITLE": "Nouvelle marée"
@@ -138,17 +132,51 @@
     "EDIT": {
       "TITLE": "Modifier la marée"
     },
+    "LIST": {
+      "TITLE": "Marées",
+      "FILTER": {
+        "START_DATE": "Début de période",
+        "END_DATE": "Fin de période",
+        "LOCATION": "Port (départ ou arrivé)"
+      }
+    },
     "ERROR": {
       "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
       "SAVE_TRIP_ERROR": "Erreur lors de la sauvegarde de la marée.",
       "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées."
     }
   },
+  "SALE": {
+    "TITLE": "Vente",
+    "SALE_FIELD": "Vente :",
+    "DATE_TIME": "Date/heure",
+    "START": "Début de la vente :",
+    "START_DATE": "Date début",
+    "START_DATE_TIME": "Date/heure de début",
+    "END": "Fin de la vente :",
+    "END_DATE": "Date fin",
+    "END_DATE_TIME": "Date/heure de fin",
+    "SALE_LOCATION": "Lieu de vente",
+    "SALE_TYPE": "Type de vente",
+    "COMMENTS": "Commentaires",
+    "NEW": {
+      "TITLE": "Nouvelle vente"
+    },
+    "EDIT": {
+      "TITLE": "Modifier la vente"
+    },
+    "ERROR": {
+      "LOAD_ERROR": "Erreur de chargement de la vente.",
+      "LOAD_ALL_ERROR": "Erreur de chargement des ventes.",
+      "SAVE_ERROR": "Erreur lors de la sauvegarde de la vente.",
+      "SAVE_ALL_ERROR": "Erreur lors de la sauvegarde des ventes."
+    }
+  },
   "VESSEL": {
     "TITLE": "Navire",
     "VESSEL_ID": "Code interne",
     "NAME": "Nom",
-    "EXTERIOR_MARKING": "Code d'immatriculation",
+    "EXTERIOR_MARKING": "Immatriculation",
     "BASE_PORT_LOCATION": "Port d'attache",
     "COUNTRY": "Pavillon",
     "COMMENTS": "Commentaires",
@@ -158,7 +186,11 @@
       "TITLE": "Nouveau navire"
     },
     "LIST": {
-      "TITLE": "Navires"
+      "TITLE": "Navires",
+      "FILTER": {
+        "DATE": "Date de validité",
+        "SEARCH_TEXT": "Recherche : code, nom"
+      }
     },
     "ERROR": {
       "LOAD_VESSEL_ERROR": "Erreur de chargement des navires.",
@@ -167,8 +199,38 @@
     }
   },
   "REFERENTIAL": {
+    "STATUS": "Etat",
+    "STATUS_ENABLE": "Actif",
+    "STATUS_DISABLE": "Inactif",
+    "STATUS_TEMPORARY": "Temporaire",
+    "STATUS_DELETED": "Supression en cours",
+    "LABEL": "Code",
+    "NAME": "Libellé",
+    "LEVEL": "Niveau",
+    "COMMENTS": "Commentaires",
     "ERROR": {
-      "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels."
+      "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde du référentiel.",
+      "SAVE_REFERENTIALS_ERROR": "Erreur de sauvegarde des référentiels.",
+      "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels.",
+      "LOAD_REFERENTIAL_ENTITIES_ERROR": "Erreur de chargement des types de référentiel.",
+      "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression des référentiels",
+      "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux"
+    },
+    "LIST": {
+      "TITLE": "Listes",
+      "FILTER": {
+        "ENTITY": "Type de liste",
+        "SEARCH_TEXT": "Recherche : code, libellé"
+      }
+    },
+    "ENTITY": {
+      "SALE_TYPE": "Types de vente",
+      "LOCATION": "Lieux",
+      "LOCATION_LEVEL": "Niveau de lieux",
+      "GEAR": "Engins",
+      "GEAR_LEVEL": "Niveaux d'engin",
+      "PARAMETER": "Paramètres",
+      "USER_PROFILE": "Profiles utilisateur"
     }
   },
   "ERROR": {

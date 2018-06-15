@@ -1,5 +1,5 @@
-import {Component, EventEmitter, Output, ViewChild, OnInit} from "@angular/core";
-import {FormBuilder, FormGroup, Validators, FormControl, AbstractControl, ValidationErrors, ValidatorFn, AsyncValidatorFn} from "@angular/forms";
+import { Component, EventEmitter, Output, ViewChild, OnInit } from "@angular/core";
+import { FormBuilder, FormGroup, Validators, FormControl, AbstractControl, ValidationErrors, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
 import { RegisterData, AccountService } from "../../../services/account-service";
 import { Account } from "../../../services/model";
 import { MatHorizontalStepper } from "@angular/material";
@@ -11,7 +11,7 @@ import { Observable, Subscription } from "rxjs";
   templateUrl: 'form-register.html'
 })
 export class RegisterForm implements OnInit {
-  
+
   form: FormGroup;
   forms: FormGroup[];
   subscriptions: Subscription[] = [];
@@ -47,7 +47,7 @@ export class RegisterForm implements OnInit {
       emailStep: this.forms[0],
       passwordStep: this.forms[1],
       detailsStep: this.forms[2]
-    });   
+    });
   }
 
   ngOnInit() {
@@ -68,7 +68,7 @@ export class RegisterForm implements OnInit {
     });*/
   }
 
-  public get value():RegisterData {
+  public get value(): RegisterData {
     let result: RegisterData = {
       username: this.form.value.emailStep.email,
       password: this.form.value.passwordStep.password,
@@ -79,29 +79,28 @@ export class RegisterForm implements OnInit {
     return result;
   }
 
-  public get valid():boolean {
+  public get valid(): boolean {
     return this.form.valid;
   }
 
-  public isEnd():boolean {
+  public isEnd(): boolean {
     return this.stepper.selectedIndex == 2;
   }
 
-  public isBeginning():boolean {
-    return this.stepper.selectedIndex == 0; 
+  public isBeginning(): boolean {
+    return this.stepper.selectedIndex == 0;
   }
 
   public slidePrev() {
-    return this.stepper.previous(); 
+    return this.stepper.previous();
   }
 
   public slideNext() {
-    console.log(this.form.controls);
-    return this.stepper.next(); 
-  }  
+    return this.stepper.next();
+  }
 
   equalsValidator(otherControlName: string): ValidatorFn {
-    return function(c: AbstractControl): ValidationErrors | null  {
+    return function (c: AbstractControl): ValidationErrors | null {
       if (c.parent && c.value != c.parent.value[otherControlName]) {
         return {
           "equals": true
@@ -112,14 +111,14 @@ export class RegisterForm implements OnInit {
   }
 
   emailAvailability(accountService: AccountService): AsyncValidatorFn {
-    return function(control: AbstractControl): Observable<ValidationErrors | null> {
+    return function (control: AbstractControl): Observable<ValidationErrors | null> {
 
-      return Observable.timer(500).switchMap(()=>{
+      return Observable.timer(500).switchMap(() => {
         return accountService.checkEmailAvailable(control.value)
-          .then(res =>null)
+          .then(res => null)
           .catch(err => {
             console.error(err);
-            return {availability: true};
+            return { availability: true };
           });
       });
     }
@@ -129,7 +128,7 @@ export class RegisterForm implements OnInit {
     this.onCancel.emit();
   }
 
-  doSubmit(event:any) {
+  doSubmit(event: any) {
     if (this.form.invalid) return;
     this.onSubmit.emit(this.value);
   }

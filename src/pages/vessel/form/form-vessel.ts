@@ -1,13 +1,13 @@
-import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { VesselValidatorService } from "../validator/validators";
 import { FormGroup } from "@angular/forms";
-import { VesselFeatures, Referential } from "../../../services/model";
+import { VesselFeatures, Referential, LocationLevelIds } from "../../../services/model";
 import { Platform } from 'ionic-angular';
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN } from '../../../app/constants';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
-import { mergeMap, startWith } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { VesselService } from '../../../services/vessel-service';
 import { ReferentialService } from '../../../services/referential-service';
 
@@ -32,8 +32,8 @@ export class VesselForm implements OnInit {
   }
 
   public disable(opts?: {
-      onlySelf?: boolean;
-      emitEvent?: boolean;
+    onlySelf?: boolean;
+    emitEvent?: boolean;
   }): void {
     this.form.disable(opts);
   }
@@ -44,10 +44,10 @@ export class VesselForm implements OnInit {
   }): void {
     this.form.enable(opts);
   }
-  
+
   @Output()
-  onCancel:EventEmitter<any> = new EventEmitter<any>();
-  
+  onCancel: EventEmitter<any> = new EventEmitter<any>();
+
   @Output()
   onSubmit: EventEmitter<any> = new EventEmitter<any>();
 
@@ -58,11 +58,11 @@ export class VesselForm implements OnInit {
     private referentialService: ReferentialService,
     private vesselService: VesselService) {
 
-      this.touchUi = !platform.is('core');
-      this.mobile = platform.is('mobile');
-      if (this.touchUi) {
-       console.debug("[vessel] Enabling touch UI");
-      }
+    this.touchUi = !platform.is('core');
+    this.mobile = platform.is('mobile');
+    if (this.touchUi) {
+      console.debug("[vessel] Enabling touch UI");
+    }
   }
 
   ngOnInit() {
@@ -73,11 +73,12 @@ export class VesselForm implements OnInit {
         mergeMap(value => {
           if (!value) return Observable.empty();
           if (typeof value == "object") return Observable.of([value]);
-          return this.referentialService.loadAll(0,50, undefined, undefined,
+          return this.referentialService.loadAll(0, 50, undefined, undefined,
             {
-              entityName: 'Location'/*searchText: value as string*/,
-              levelId: 2 /* Port */
-            }
+              levelId: LocationLevelIds.PORT,
+              searchText: value as string
+            },
+            { entityName: 'Location' }
           );
         }));
   }
@@ -86,8 +87,8 @@ export class VesselForm implements OnInit {
     this.onCancel.emit();
   }
 
-  doSubmit(event:any, data: any) {
-    if (this.form.invalid) return;    
+  doSubmit(event: any, data: any) {
+    if (this.form.invalid) return;
     this.onSubmit.emit(data);
   }
 

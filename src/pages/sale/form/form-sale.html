@@ -1,0 +1,152 @@
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+
+
+  <p ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></p>
+
+  <ion-grid no-padding>
+
+    <!-- VESSEL -->
+    <ion-row *ngIf="showVessel">
+      <ion-col col-12>
+        <mat-form-field>
+          <ion-icon margin-right name="boat" matPrefix></ion-icon>
+          <input matInput [placeholder]="'SALE.VESSEL'|translate" [matAutocomplete]="autoVessel" formControlName="vesselFeatures">
+          <mat-error *ngIf="form.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+
+        <!-- Vessel combo -->
+        <mat-autocomplete autoActiveFirstOption #autoVessel="matAutocomplete" [displayWith]="displayVessel">
+
+          <ion-row padding>
+            <ion-col col-2 translate>VESSEL.EXTERIOR_MARKING</ion-col>
+            <ion-col translate>VESSEL.NAME</ion-col>
+            <ion-col translate>VESSEL.BASE_PORT_LOCATION</ion-col>
+          </ion-row>
+
+          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel">
+            <ion-row>
+              <ion-col col-2 [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
+              <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
+              <ion-col>{{vessel.basePortLocation.label}} - {{vessel.basePortLocation.name}}</ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+    </ion-row>
+
+    <!-- Sale type -->
+    <ion-row>
+      <ion-col col-1 *ngIf="!mobile" class="hidden-xs">
+        <p>
+          <span ion-text translate>SALE.SALE_FIELD</span>
+        </p>
+      </ion-col>
+      <ion-col col-11>
+        <mat-form-field>
+          <ion-icon margin-right name="pin" matPrefix></ion-icon>
+          <input matInput [placeholder]="'SALE.SALE_TYPE'|translate" [matAutocomplete]="autoSaleType" formControlName="saleType">
+          <mat-error *ngIf="form.controls['saleType'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+
+        <!-- Sale type combo -->
+        <mat-autocomplete autoActiveFirstOption #autoSaleType="matAutocomplete" [displayWith]="displayEntity">
+          <mat-option *ngFor="let saleType of saleTypes | async" [value]="saleType" [innerHTML]="saleType.name | highlight: {search: form.controls['saleType'].value }">
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+    </ion-row>
+
+    <!-- LOCATION + Date time -->
+    <ion-row *ngIf="!showEndDateTime">
+      <ion-col col-1 *ngIf="!mobile" class="hidden-xs">
+        &nbsp;
+      </ion-col>
+      <ion-col>
+        <mat-form-field>
+          <ion-icon margin-right name="pin" matPrefix></ion-icon>
+          <input matInput [placeholder]="'SALE.SALE_LOCATION'|translate" [matAutocomplete]="autoSaleLocation" formControlName="saleLocation">
+          <mat-error *ngIf="form.controls['saleLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+
+        <!-- Location combo -->
+        <mat-autocomplete autoActiveFirstOption #autoSaleLocation="matAutocomplete" [displayWith]="displayReferential">
+          <ion-row padding>
+            <ion-col col-2 translate>REFERENTIAL.LABEL</ion-col>
+            <ion-col translate>REFERENTIAL.NAME</ion-col>
+          </ion-row>
+
+          <mat-option *ngFor="let location of locations | async" [value]="location">
+            <ion-row>
+              <ion-col col-2 [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
+              <ion-col [innerHTML]="location.name | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+      <ion-col>
+        <mat-date-time [placeholder]="'SALE.DATE_TIME'|translate" formControlName="startDateTime" displayTime="true">
+        </mat-date-time>
+      </ion-col>
+    </ion-row>
+
+    <!-- LOCATION -->
+    <ion-row *ngIf="showEndDateTime">
+      <ion-col col-12>
+        <mat-form-field>
+          <ion-icon margin-right name="pin" matPrefix></ion-icon>
+          <input matInput [placeholder]="'SALE.SALE_LOCATION'|translate" [matAutocomplete]="autoSaleLocation" formControlName="saleLocation">
+          <mat-error *ngIf="form.controls['saleLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+
+        <!-- Location combo -->
+        <mat-autocomplete autoActiveFirstOption #autoSaleLocation="matAutocomplete" [displayWith]="displayReferential">
+          <ion-row padding>
+            <ion-col col-2 translate>REFERENTIAL.LABEL</ion-col>
+            <ion-col translate>REFERENTIAL.NAME</ion-col>
+          </ion-row>
+
+          <mat-option *ngFor="let location of locations | async" [value]="location">
+            <ion-row>
+              <ion-col col-2 [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
+              <ion-col [innerHTML]="location.name | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+    </ion-row>
+
+    <!-- Date time (start+end) -->
+    <ion-row *ngIf="showEndDateTime">
+      <ion-col col-2 *ngIf="!mobile" class="hidden-xs">
+        <p ion-text translate>SALE.START</p>
+      </ion-col>
+      <ion-col *ngIf="showEndDateTime">
+        <mat-date-time [placeholder]="'SALE.START_DATE'|translate" formControlName="startDateTime" displayTime="true">
+        </mat-date-time>
+      </ion-col>
+
+      <ion-col col-2 *ngIf="!mobile" class="hidden-xs">
+        <p ion-text translate>SALE.END</p>
+      </ion-col>
+
+      <ion-col *ngIf="showEndDateTime">
+        <mat-date-time [placeholder]="'SALE.END_DATE'|translate" formControlName="endDateTime" displayTime="true">
+        </mat-date-time>
+      </ion-col>
+    </ion-row>
+
+    <!-- Comments -->
+    <ion-row *ngIf="showComment">
+      <ion-col col-12>
+        <mat-form-field appearance="outline">
+          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'SALE.COMMENTS'|translate"
+            formControlName="comments">
+          </textarea>
+          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</form>

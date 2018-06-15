@@ -1,10 +1,10 @@
-import {Observable, Subscription} from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { Apollo } from "apollo-angular";
 import { GraphQLError, DocumentNode } from "graphql";
 import { ApolloQueryResult } from "apollo-client";
 import { R } from "apollo-angular/types";
 import { ErrorCodes, ServiceError } from "./errors";
-import {map} from "rxjs/operators";
+import { map } from "rxjs/operators";
 
 export declare interface DataService<T, F> {
 
@@ -13,12 +13,13 @@ export declare interface DataService<T, F> {
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: F
+    filter?: F,
+    options?: any
   ): Observable<T[]>;
 
-  saveAll(data: T[]): Promise<T[]>;
+  saveAll(data: T[], options?: any): Promise<T[]>;
 
-  deleteAll(data: T[]): Promise<any>;
+  deleteAll(data: T[], options?: any): Promise<any>;
 }
 
 
@@ -27,18 +28,18 @@ export class BaseDataService {
   constructor(
     protected apollo: Apollo
   ) {
-    
+
   }
 
-  protected query<T, V = R>(opts: {query: DocumentNode, variables: V, error?: ServiceError}): Promise<T> {
+  protected query<T, V = R>(opts: { query: DocumentNode, variables: V, error?: ServiceError }): Promise<T> {
     this.apollo.getClient().cache.reset();
     return new Promise<T>((resolve, reject) => {
       const subscription: Subscription = this.apollo.query<ApolloQueryResult<T>, V>({
         query: opts.query,
         variables: opts.variables
       })
-      .catch(this.onApolloError)      
-      .subscribe(({data, errors}) => {  
+        .catch(this.onApolloError)
+        .subscribe(({ data, errors }) => {
           subscription.unsubscribe();
 
           if (errors) {
@@ -59,17 +60,17 @@ export class BaseDataService {
   }
 
   protected watchQuery<T, V = R>(opts: {
-    query: DocumentNode, 
-    variables: V, 
+    query: DocumentNode,
+    variables: V,
     error?: ServiceError
   }): Observable<T> {
     this.apollo.getClient().cache.reset();
     return this.apollo.watchQuery<T, V>({
-        query: opts.query,
-        variables: opts.variables
-      })
+      query: opts.query,
+      variables: opts.variables
+    })
       .valueChanges
-      .map(({data, errors}) => {
+      .map(({ data, errors }) => {
         if (errors) {
           if (errors[0].message == "ERROR.UNKNOWN_NETWORK_ERROR") {
             throw {
@@ -81,32 +82,32 @@ export class BaseDataService {
           throw opts.error ? opts.error : errors[0].message;
         }
         return data;
-      })      
+      })
       ;
   }
 
-  protected mutate<T, V = R>(opts: {mutation: DocumentNode, variables: V, error?: ServiceError}): Promise<T> {
+  protected mutate<T, V = R>(opts: { mutation: DocumentNode, variables: V, error?: ServiceError }): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       let subscription = this.apollo.mutate<ApolloQueryResult<T>, V>({
         mutation: opts.mutation,
         variables: opts.variables
       })
-      .catch(this.onApolloError)
-      .subscribe(({data, errors}) => {
-        if (errors) {
-          if (errors[0].message == "ERROR.UNKNOWN_NETWORK_ERROR") {
-            reject(errors[0]);
+        .catch(this.onApolloError)
+        .subscribe(({ data, errors }) => {
+          if (errors) {
+            if (errors[0].message == "ERROR.UNKNOWN_NETWORK_ERROR") {
+              reject(errors[0]);
+            }
+            else {
+              console.error("[base-service] " + errors[0].message);
+              reject(opts.error ? opts.error : errors[0].message);
+            }
           }
           else {
-            console.error("[base-service] " + errors[0].message);
-            reject(opts.error ? opts.error : errors[0].message);
+            resolve(data as T);
           }
-        }
-        else {
-          resolve(data as T);
-        }
-        subscription.unsubscribe();
-      });
+          subscription.unsubscribe();
+        });
     });
   }
 
@@ -116,7 +117,7 @@ export class BaseDataService {
       console.error("[base-service] " + err.networkError.message);
       result = {
         data: null,
-        errors: [new GraphQLError("ERROR.UNKNOWN_NETWORK_ERROR")],        
+        errors: [new GraphQLError("ERROR.UNKNOWN_NETWORK_ERROR")],
         loading: false,
         networkStatus: err.networkStatus,
         stale: err.stale
@@ -125,7 +126,7 @@ export class BaseDataService {
     else {
       result = {
         data: null,
-        errors: [err as GraphQLError],        
+        errors: [err as GraphQLError],
         loading: false,
         networkStatus: err.networkStatus,
         stale: err.stale
