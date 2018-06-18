@@ -20,15 +20,10 @@
 
     <span class="toolbar-spacer"></span>
 
-    <mat-button-toggle-group #clickMode="matButtonToggleGroup">
-      <mat-button-toggle value="edit">
-        <mat-icon>edit</mat-icon>
-      </mat-button-toggle>
-      <mat-button-toggle value="open" [disabled]="true">
-        <mat-icon>subdirectory_arrow_right</mat-icon>
-      </mat-button-toggle>
-    </mat-button-toggle-group>
-
+    <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
+      [disabled]="true" [checked]="true" #inlineEditionBtn>
+      <mat-icon>edit</mat-icon>
+    </mat-button-toggle>
 
     <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
       <mat-icon>more_vert</mat-icon>

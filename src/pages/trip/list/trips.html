@@ -19,15 +19,11 @@
 
     <span class="toolbar-spacer"></span>
 
-    <mat-button-toggle-group #clickMode="matButtonToggleGroup">
-      <mat-button-toggle value="edit">
-        <mat-icon>edit</mat-icon>
-      </mat-button-toggle>
-      <mat-button-toggle value="open">
-        <mat-icon>pageview</mat-icon>
-      </mat-button-toggle>
-    </mat-button-toggle-group>
 
+    <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
+      [disabled]="dirty" #inlineEditionBtn>
+      <mat-icon>edit</mat-icon>
+    </mat-button-toggle>
 
     <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
       <mat-icon>more_vert</mat-icon>
@@ -158,7 +154,6 @@
       </mat-cell>
     </ng-container>
 
-
     <!-- departure date time  -->
     <ng-container matColumnDef="departureDateTime">
       <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
@@ -185,7 +180,7 @@
       </mat-cell>
     </ng-container>
 
-    <!-- Edit buttons -->
+    <!-- Comments column -->
     <ng-container matColumnDef="comments">
       <mat-header-cell *matHeaderCellDef>
         <span translate>TRIP.COMMENTS</span>
@@ -200,9 +195,20 @@
       </mat-cell>
     </ng-container>
 
+    <!-- Actions buttons column -->
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef>
+        <span></span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
+          <mat-icon>undo</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
     <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="onOpenRowDetail($event, row)" (onblur)="confirmAndAddRow($event,row)"></mat-row>
-    <!-- (dblclick)="onEditRow(row)"-->
   </mat-table>
 
 

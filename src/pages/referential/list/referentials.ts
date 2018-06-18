@@ -18,7 +18,6 @@ import { TableSelectColumnsComponent } from '../../../components/table/table-sel
 import { AppTable } from '../../../app/table/table';
 import { Location } from '@angular/common';
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { MatButtonToggleGroup } from "@angular/material";
 import { TranslateService } from "@ngx-translate/core";
 
 const DEFAULT_ENTITY_NAME = "Location";
@@ -53,8 +52,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }
   ];
   statusById; any;
-
-  @ViewChild(MatButtonToggleGroup) clickModeGroup: MatButtonToggleGroup;
 
   constructor(
     protected route: ActivatedRoute,
@@ -120,12 +117,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   ngOnInit() {
 
     super.ngOnInit();
-
-    // Froce edition mode to 'edit'
-    this.clickModeGroup.value = 'edit';
-    this.clickModeGroup.valueChange.subscribe((value) => {
-      this.inlineEdition = (value === "edit");
-    });
 
     // Combo entities
     this.entities = this.referentialService.loadEntitieNames()

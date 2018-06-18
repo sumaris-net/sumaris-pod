@@ -3,7 +3,6 @@ import { AppTableDataSource } from "../../app/material/material.table";
 import { Person } from "../../services/model";
 import { PersonService, PersonFilter } from "../../services/person-service";
 import { PersonValidatorService } from "./validator/validators";
-import { MatButtonToggleGroup } from "@angular/material";
 import { AppTable } from "../../app/table/table";
 import { ModalController, Platform } from "ionic-angular";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -18,7 +17,6 @@ import { FormGroup, FormBuilder } from "@angular/forms";
 export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit {
 
   filterForm: FormGroup;
-  @ViewChild(MatButtonToggleGroup) clickModeGroup: MatButtonToggleGroup;
 
   constructor(
     protected route: ActivatedRoute,
@@ -45,7 +43,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
         searchText: null
       }
     );
-    this.inlineEdition = true;
+    this.inlineEdition = true; // Froce inline edition
     this.i18nColumnPrefix = 'USER.';
     this.filterForm = formBuilder.group({
       'searchText': [null]
@@ -54,11 +52,6 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.clickModeGroup.value = 'edit';
-    this.clickModeGroup.valueChange.subscribe((value) => {
-      this.inlineEdition = (value === "edit");
-    });
 
     // Update filter when changes
     this.filterForm.valueChanges.subscribe(() => {

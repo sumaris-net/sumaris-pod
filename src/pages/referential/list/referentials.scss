@@ -10,15 +10,9 @@ page-referentials {
     .mat-column-id {
       max-width: 60px;
     }
-    .mat-column-progress {
+    .mat-column-actions {
       max-width: 60px;
     }
-    .mat-column-actionsColumn {
-      max-width: 80px;
-    }
-    /*input.mat-input-element {
-      max-width: 60px;
-    }*/
     .mat-input-element:disabled {
       color: inherit;
     }
@@ -47,6 +41,12 @@ page-referentials {
     }
     .highlight {
       background: #42A948;
+    }
+    .mat-select-disabled .mat-select-value {
+      color: inherit;
+    }
+    .mat-select-disabled .mat-select-arrow {
+      color: transparent !important;
     }
   }
 }

@@ -27,14 +27,10 @@
 
 
       <span class="toolbar-spacer"></span>
-      <mat-button-toggle-group #clickMode="matButtonToggleGroup" class="hidden-xs hidden-sm">
-        <mat-button-toggle value="edit">
-          <mat-icon>edit</mat-icon>
-        </mat-button-toggle>
-        <mat-button-toggle value="open" [disabled]="true">
-          <mat-icon>open_in_browser</mat-icon>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+      <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
+        [disabled]="true" [checked]="true" #inlineEditionBtn>
+        <mat-icon>edit</mat-icon>
+      </mat-button-toggle>
 
       <button mat-icon-button [title]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
         <mat-icon>more_vert</mat-icon>
@@ -94,7 +90,7 @@
           <mat-select [formControl]="row.validator.controls['statusId']" [(ngModel)]="row.currentData.statusId">
             <mat-select-trigger>
               <ion-icon *ngIf="row.currentData.statusId &gt;=0" [name]="statusById[row.currentData.statusId].icon"></ion-icon>
-              <span *ngIf="row.editing && row.currentData.statusId &gt;=0">{{statusById[row.currentData.statusId].label | translate}}</span>
+              <span *ngIf="row.currentData.statusId &gt;=0">{{statusById[row.currentData.statusId].label | translate}}</span>
             </mat-select-trigger>
             <mat-option *ngFor="let status of statusList" [value]="status.id">
               <ion-icon [name]="status.icon"></ion-icon>
@@ -163,20 +159,14 @@
       </mat-cell>
     </ng-container>
 
-    <!-- Edit buttons -->
+    <!-- Actions buttons column -->
     <ng-container matColumnDef="actions">
       <mat-header-cell *matHeaderCellDef>
         <span></span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <!--button mat-icon-button small color="light" *ngIf="row.editing" (click)="validRow(row)">
-          <mat-icon>checkmark</mat-icon>
-        </button>
-        <button mat-icon-button small color="light" *ngIf="!row.editing" (click)="onOpenRowDetail($event, row)">
-          <mat-icon>edit</mat-icon>
-        </button-->
-        <button mat-icon-button small color="light" *ngIf="row.editing" (click)="cancelOrDelete($event, row)">
-          <mat-icon>close</mat-icon>
+        <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
+          <mat-icon>undo</mat-icon>
         </button>
       </mat-cell>
     </ng-container>

@@ -16,7 +16,6 @@ import { AccountService } from "../../../services/account-service";
 import { Location } from '@angular/common';
 import { Observable } from 'rxjs';
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { MatButtonToggleGroup } from "@angular/material";
 
 @Component({
   selector: 'page-vessels',
@@ -29,8 +28,6 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
 
   filterForm: FormGroup;
   locations: Observable<Referential[]>;
-
-  @ViewChild(MatButtonToggleGroup) clickModeGroup: MatButtonToggleGroup;
 
   constructor(
     protected route: ActivatedRoute,
@@ -51,7 +48,9 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
         'startDate',
         'name',
         'basePortLocation',
-        'comments'],
+        'comments',
+        'actions'
+      ],
       {
         date: null,
         searchText: null
@@ -67,10 +66,6 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
   ngOnInit() {
 
     super.ngOnInit();
-
-    this.clickModeGroup.valueChange.subscribe((value) => {
-      this.inlineEdition = (value === "edit");
-    });
 
     // TODO fill locations
 

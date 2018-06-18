@@ -15,7 +15,9 @@
     "BTN_NEXT": "Suivant",
     "BTN_BACK": "Retour",
     "BTN_SEND": "Envoyer",
+    "BTN_UNDO": "Annuler les modifications",
     "BTN_TABLE_EDIT": "Editer dans le tableau",
+    "BTN_TABLE_OPEN": "Editer dans un formulaire",
     "CREATED_ON": "Créé le ",
 
     "DATE_PATTERN": "DD/MM/YYYY",
@@ -122,6 +124,7 @@
     "RETURN": "Retour :",
     "RETURN_DATE_TIME": "Date de retour",
     "RETURN_LOCATION": "Port de retour",
+    "ACTIONS": "Actions sur la ligne",
     "COMMENTS": "Commentaires",
     "TAB_GENERAL": "Informations générales",
     "TAB_PHYSICAL_GEAR": "Engins embarqués",
@@ -180,6 +183,7 @@
     "BASE_PORT_LOCATION": "Port d'attache",
     "COUNTRY": "Pavillon",
     "COMMENTS": "Commentaires",
+    "ACTIONS": "Actions sur la ligne",
     "START_DATE": "Début validité",
     "TAB_GENERAL": "Informations générales",
     "NEW": {
@@ -208,6 +212,7 @@
     "NAME": "Libellé",
     "LEVEL": "Niveau",
     "COMMENTS": "Commentaires",
+    "ACTIONS": "Actions sur la ligne",
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde du référentiel.",
       "SAVE_REFERENTIALS_ERROR": "Erreur de sauvegarde des référentiels.",

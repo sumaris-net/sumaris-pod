@@ -22,7 +22,7 @@ import { PopoverController } from 'ionic-angular';
 import { AppTable } from "../../../app/table/table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { ReferentialService } from "../../../services/referential-service";
-import { MatButtonToggleGroup } from "@angular/material";
+import { MatButtonToggle } from "@angular/material";
 
 @Component({
   selector: 'page-trips',
@@ -36,8 +36,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   filterForm: FormGroup;
   vessels: Observable<VesselFeatures[]>;
   locations: Observable<Referential[]>;
-
-  @ViewChild(MatButtonToggleGroup) clickModeGroup: MatButtonToggleGroup;
 
   constructor(
     protected route: ActivatedRoute,
@@ -59,7 +57,8 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         'departureLocation',
         'departureDateTime',
         'returnDateTime',
-        'comments'],
+        'comments',
+        'actions'],
       {} // filter
     );
     this.i18nColumnPrefix = 'TRIP.';
@@ -72,10 +71,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.clickModeGroup.valueChange.subscribe((value) => {
-      this.inlineEdition = (value === "edit");
-    });
 
     // Combo: sale locations
     this.locations = this.filterForm.controls.location

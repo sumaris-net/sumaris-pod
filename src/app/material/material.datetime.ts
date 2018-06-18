@@ -32,6 +32,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     displayPattern: string;
     dayPattern: string;
     date: Moment;
+    locale: string;
 
     @Input() disabled: boolean = false
 
@@ -60,6 +61,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     ) {
         this.touchUi = !platform.is('core');
         this.mobile = this.touchUi && platform.is('mobile');
+        this.locale = translate.currentLang.substr(0, 2);
     }
 
     ngOnInit() {
@@ -89,6 +91,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.date = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
         if (this.date) {
             this.writing = true;
+            console.log(this.date);
 
             this.form.setValue({
                 day: this.date.clone().startOf('day').format(this.dayPattern),
@@ -127,17 +130,27 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.writing = true;
 
         let date = json.day && this.dateAdapter.parse(json.day, this.dayPattern);
-        date = date && date.utc(true) || date; // avoid to have TZ offset
-        date = date && date.hour(json.hour || 0).minute(json.minute || 0);
+        // If time
+        if (this.displayTime) {
+            date = date && date
+                // set as time as locale time
+                .locale(this.locale)
+                .hour(json.hour || 0)
+                .minute(json.minute || 0)
+                .seconds(0).millisecond(0)
+                // then change in UTC, to avoid TZ offset in final string
+                .utc();
+        }
+        else {
+            date = date && date.utc(true).hour(0).minute(0).seconds(0).millisecond(0);
+        }
 
         // update date picker
-        this.date = this.dateAdapter.parse(date.clone(), DATE_ISO_PATTERN);
-        //this.form.controls.date.setValue(date, { emitEvent: false });
+        this.date = date && this.dateAdapter.parse(date.clone(), DATE_ISO_PATTERN);
 
         // Get the model value
         const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
 
-        console.log("onFormChange - Date changed: " + dateStr);
         this.formControl.setValue(dateStr);
         this.writing = false;
 
@@ -149,8 +162,20 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.writing = true;
 
         date = date && typeof date === 'string' && this.dateAdapter.parse(date, DATE_ISO_PATTERN) || date;
-        date = date && date.utc(true) || date; // avoid to have TZ offset
-        date = date && date.hour(this.form.controls.hour.value || 0).minute(this.form.controls.minute.value || 0);
+        if (this.displayTime) {
+            date = date && date && date
+                // set as time as locale time
+                .locale(this.locale)
+                .hour(this.form.controls.hour.value || 0)
+                .minute(this.form.controls.minute.value || 0)
+                .seconds(0).millisecond(0)
+                // then change in UTC, to avoid TZ offset in final string
+                .utc();
+        }
+        else {
+            // avoid to have TZ offset
+            date = date && date.utc(true).hour(0).minute(0).seconds(0).millisecond(0);
+        }
 
         // update day value
         this.form.controls.day.setValue(date && date.clone().startOf('day').format(this.dayPattern), { emitEvent: false });

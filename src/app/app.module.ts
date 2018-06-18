@@ -227,17 +227,19 @@ export class AppModule {
     // When locale changes, apply to date adapter
     translate.onLangChange.subscribe(event => {
       if (event && event.lang) {
-        console.debug('[app] Use locale {' + event.lang + '}');
 
         // Config date adapter
         dateAdapter.setLocale(event.lang);
 
         // config moment lib
         try {
-          var momentLocale: string = event.lang.substr(0, 2);
+          const momentLocale: string = event.lang.substr(0, 2);
           moment.locale(momentLocale);
+          console.debug('[app] Use locale {' + event.lang + '}');
         }
+        // If error, fallback to en
         catch (err) {
+          dateAdapter.setLocale('en');
           moment.locale('en');
           console.warn('[app] Unknown local for moment lib. Using default [en]');
         }

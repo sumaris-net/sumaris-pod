@@ -19,15 +19,10 @@
 
     <span class="toolbar-spacer"></span>
 
-    <mat-button-toggle-group #clickMode="matButtonToggleGroup">
-      <mat-button-toggle value="edit">
-        <mat-icon>edit</mat-icon>
-      </mat-button-toggle>
-      <mat-button-toggle value="open">
-        <mat-icon>pageview</mat-icon>
-      </mat-button-toggle>
-    </mat-button-toggle-group>
-
+    <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
+      [disabled]="dirty" [checked]="true" #inlineEditionBtn>
+      <mat-icon>edit</mat-icon>
+    </mat-button-toggle>
 
     <button mat-icon-button [title]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
       <mat-icon>more_vert</mat-icon>
@@ -141,46 +136,10 @@
       </mat-cell>
     </ng-container>
 
-
-    <!-- departure date time  -->
-    <ng-container matColumnDef="departureDateTime">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>TRIP.DEPARTURE_DATE_TIME</span>
-      </mat-header-cell>
-      <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-
-        <mat-date-time floatPlaceholder="never" [formControl]="row.validator.controls['departureDateTime']" [(ngModel)]="row.currentData.departureDateTime"
-          [readonly]="!row.editing" required>
-        </mat-date-time>
-      </mat-cell>
-
-    </ng-container>
-
-    <!-- return date time -->
-    <ng-container matColumnDef="returnDateTime">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>TRIP.RETURN_DATE_TIME</span>
-      </mat-header-cell>
-      <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-        <mat-form-field floatPlaceholder="never">
-          <input matInput [matDatepicker]="returnDatepicker" [formControl]="row.validator.controls['returnDateTime']" [readonly]="!row.editing"
-            [(ngModel)]="row.currentData.returnDateTime">
-          <mat-datepicker-toggle matSuffix [for]="returnDatepicker">
-            <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
-          </mat-datepicker-toggle>
-          <mat-datepicker #returnDatepicker></mat-datepicker>
-          <mat-error *ngIf="row.validator.controls['returnDateTime'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-      </mat-cell>
-    </ng-container>
-
-    <!-- Edit buttons -->
+    <!-- Comments column -->
     <ng-container matColumnDef="comments">
       <mat-header-cell *matHeaderCellDef>
-        <span translate>TRIP.COMMENTS</span>
-        <span>
-
-        </span>
+        <span translate>VESSEL.COMMENTS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <mat-form-field floatPlaceholder="never">
@@ -189,16 +148,23 @@
       </mat-cell>
     </ng-container>
 
+    <!-- Actions buttons column -->
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef>
+        <span></span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
+          <mat-icon>undo</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
     <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="onOpenRowDetail($event, row)" (onblur)="confirmAndAddRow($event, row)"></mat-row>
-    <!-- (dblclick)="onEditRow(row)"-->
   </mat-table>
 
-
-
   <!-- Bottom buttons -->
-
-
   <ion-row no-padding>
 
     <ion-col col-6 padding>

@@ -1,7 +1,5 @@
 // http://ionicframework.com/docs/theming/
-
 // Include all of Ionic
-
 // App Global Sass
 // --------------------------------------------------
 // Put style rules here that you want to apply globally. These
@@ -19,7 +17,7 @@ body {
   user-select: text !important;
 }
 
-router-outlet + * {
+router-outlet+* {
   width: 100%;
 }
 
@@ -33,7 +31,6 @@ body {
   -o-background-size: cover;
   background-size: cover;
 }
-
 
 ion-menu .scroll-content {
   overflow: hidden;
@@ -55,19 +52,17 @@ p {
 // --------------------------------------------------
 // Responsive: Utility classes
 // --------------------------------------------------
-$screen-xxs-max:                  400px;
-$screen-xs:                       401px;
-$screen-xs-max:                   767px;
-$screen-sm:                       768px;
-$screen-sm-max:                   991px;
-$screen-md:                       992px;
-$screen-md-max:                   1199px;
-$screen-lg:                       1200px;
-
+$screen-xxs-max: 400px;
+$screen-xs: 401px;
+$screen-xs-max: 767px;
+$screen-sm: 768px;
+$screen-sm-max: 991px;
+$screen-md: 992px;
+$screen-md-max: 1199px;
+$screen-lg: 1200px;
 //$grid-breakpoints: (
 //  xs: 0
 //)
-
 // IE10 on Windows Phone 8
 // IE10 on WP8 doesn't report CSS pixels, but actual device pixels. In
 // other words, say on a Lumia, you'll get 768px as the device width,
@@ -81,7 +76,7 @@ $screen-lg:                       1200px;
 // >>Autre doc http://getbootstrap.com/css/#responsive-utilities-classes
 //
 @media screen and (max-width: $screen-xxs-max) {
-  @-ms-viewport{
+  @-ms-viewport {
     width: 320px;
   }
 }
@@ -95,61 +90,71 @@ $screen-lg:                       1200px;
   .padding-top-xs {
     padding-top: 10px;
   }
-
 }
+
 @media screen and (min-width: $screen-sm) {
   .hidden-xs {
     display: inherit;
     visibility: visible;
   }
 }
+
 @media screen and (max-width: $screen-xs-max) {
   .visible-xs {
     display: inherit !important;
     visibility: visible !important;
   }
 }
+
 @media screen and (min-width: $screen-sm) {
   .visible-xs {
     display: none !important;
     visibility: hidden !important;
   }
 }
+
 @media screen and (max-width: $screen-xs-max) {
   .padding-xs {
     padding: 15px !important;
   }
 }
+
 @media screen and (min-width: $screen-sm) {
   .padding-xs {
     padding: inherit;
   }
 }
+
 @media screen and (max-width: $screen-xs-max) {
   .no-padding-xs .scroll-content,
   .no-padding-xs {
     padding: 0px !important;
   }
 }
+
 @media screen and (min-width: $screen-sm) {
   .no-padding-xs .scroll-content,
   .no-padding-xs {
     padding: inherit;
   }
 }
+
 @media screen and (max-width: $screen-xs-max) {
   .no-margin-xs {
     margin: 0px !important;
   }
 }
+
 @media screen and (min-width: $screen-sm) {
   .no-margin-xs {
     margin: inherit;
   }
 }
+
 // Small devices: Tablets (≥768px)
-@media screen and (max-width: $screen-sm-max) and (min-width: $screen-sm){
-  .hidden-sm, .row-header.hidden-sm {
+@media screen and (max-width: $screen-sm-max) and (min-width: $screen-sm) {
+  .hidden-sm,
+  .row-header.hidden-sm {
     display: none !important;
     visibility: hidden !important;
   }
@@ -164,6 +169,7 @@ $screen-lg:                       1200px;
     display: none !important;
   }
 }
+
 @media screen and (min-width: $screen-md) {
   .hidden-sm {
     display: inherit;
@@ -182,12 +188,14 @@ $screen-lg:                       1200px;
     }
   }
 }
+
 @media screen and (max-width: $screen-xs-max) {
   .hidden-sm {
     display: inherit;
     visibility: visible;
   }
 }
+
 @media screen and (max-width: $screen-sm-max) {
   .visible-sm {
     display: inherit !important;
@@ -197,28 +205,31 @@ $screen-lg:                       1200px;
     display: block !important;
   }
 }
+
 @media screen and (min-width: $screen-md) {
   .visible-sm {
     display: none;
     visibility: hidden;
   }
 }
+
 @media screen and (max-width: $screen-xs-max) {
   .visible-sm {
     display: none;
     visibility: hidden;
   }
 }
+
 @media screen and (max-width: $screen-sm-max) {
   body {
     cursor: url('http://ionicframework.com/img/finger.png'), auto;
   }
 }
+
 @media screen and (min-width: $screen-md) {
   body {
     cursor: inherit;
   }
-
 }
 
 // Medium devices: Desktops (≥992px)
@@ -238,37 +249,41 @@ $screen-lg:                       1200px;
     display: none !important;
   }
 }
+
 @media screen and (min-width: $screen-lg) {
   .hidden-md {
     display: inherit;
     visibility: visible;
   }
 }
+
 @media screen and (max-width: $screen-sm-max) {
   .hidden-md {
     display: inherit;
     visibility: visible;
   }
 }
+
 @media screen and (min-width: $screen-md) and (max-width: $screen-md-max) {
   .visible-md {
     display: inherit !important;
     visibility: visible !important;
   }
 }
+
 @media screen and (min-width: $screen-lg) {
   .visible-md {
     display: none;
     visibility: hidden;
   }
 }
+
 @media screen and (max-width: $screen-sm-max) {
   .visible-md {
     display: none;
     visibility: hidden;
   }
 }
-
 
 // Large devices: Desktops (≥1200px)
 @media screen and (min-width: $screen-lg) {
@@ -291,12 +306,14 @@ $screen-lg:                       1200px;
     display: none !important;
   }
 }
+
 @media screen and (max-width: $screen-md-max) {
   .hidden-lg {
     display: inherit;
     visibility: visible;
   }
 }
+
 @media screen and (max-width: $screen-md-max) {
   .visible-lg {
     display: none;
@@ -309,6 +326,7 @@ $screen-lg:                       1200px;
     padding: inherit;
   }
 }
+
 @media screen and (max-width: $screen-xs-max) {
   .no-margin-xs {
     margin: 0px !important;
@@ -316,7 +334,10 @@ $screen-lg:                       1200px;
 }
 
 @media screen and (min-width: $screen-md) {
-  html, body, .scroll, .disable-user-behavior {
+  html,
+  body,
+  .scroll,
+  .disable-user-behavior {
     -webkit-user-selectuser-select: auto !important;
     -moz-user-select: auto !important;
     -ms-user-select: auto !important;
@@ -324,36 +345,30 @@ $screen-lg:                       1200px;
   }
 }
 
-
 // --------------------------------------------------
 // Global style responsive
 // --------------------------------------------------
-
 @media (min-width: $screen-sm) {
-
   .header-main {
     margin-left: 270px;
   }
-
   .bar-button-menutoggle-md {
     display: none !important
   }
-
   ion-modal .header-main {
     margin-left: 0 !important;
   }
 }
 
-
 // --------------------------------------------------
 // Left menu
 // --------------------------------------------------
-
-ion-menu .no-profile-header .scroll-content{
+ion-menu .no-profile-header .scroll-content {
   margin-top: 79px !important;
 }
-ion-menu .has-profile-header .scroll-content{
-  margin-top:188px !important;
+
+ion-menu .has-profile-header .scroll-content {
+  margin-top: 188px !important;
 }
 
 ion-menu .user-avatar {
@@ -365,14 +380,15 @@ ion-menu .user-avatar {
   background-repeat: no-repeat;
   background-position: center;
   border: solid 1px color($colors, light);
-  overflow: hidden!important;
-  font-size: 80px!important;
+  overflow: hidden !important;
+  font-size: 80px !important;
   line-height: 80px;
-  height: 80px!important;
-  width: 80px!important;
+  height: 80px !important;
+  width: 80px !important;
   border-radius: 50%;
   display: inline-block;
 }
+
 ion-menu .user-avatar.primary {
   background-color: color($colors, primary);
 }
@@ -396,12 +412,11 @@ ion-menu {
 // --------------------------------------------------
 // table
 // --------------------------------------------------
-
 mat-cell .avatar {
   color: #d9d9d9;
   background-color: #f8f8f8;
   border: solid 1px #d9d9d9;
-  overflow: hidden!important;
+  overflow: hidden !important;
   border-radius: 50%;
   display: inline-block;
 }
@@ -415,32 +430,31 @@ mat-row.error {
 // --------------------------------------------------
 form {
   color: rgba(0, 0, 0, 0.87);
-
   .mat-form-field-disabled,
   .mat-input-element:disabled {
     color: rgba(0, 0, 0, 0.55) !important;
   }
 }
+
 mat-form-field {
   mat-error {
-    text-align: right;    
+    text-align: right;
   }
 }
 
 form mat-form-field {
   font-size: 16px !important;
 }
+
 mat-form-field .mat-paginator-page-size-select {
   font-size: 14px !important;
 }
 
 // --- mat-stepper component
-
 mat-horizontal-stepper {
   .mat-horizontal-stepper-header-container {
     padding: 0;
   }
-
   .mat-horizontal-content-container {
     padding: 0;
   }
@@ -450,7 +464,6 @@ mat-horizontal-stepper {
 @media screen and (max-width: $screen-xs-max) {
   mat-horizontal-stepper {
     .mat-horizontal-stepper-header-container {
-  
       .mat-horizontal-stepper-header {
         padding-left: 5px;
       }
@@ -458,7 +471,6 @@ mat-horizontal-stepper {
         display: none;
       }
     }
-  
     .mat-horizontal-content-container {
       padding: 0;
     }
@@ -467,21 +479,21 @@ mat-horizontal-stepper {
 
 @media screen and (min-width: $screen-md) and (max-width: $screen-md-max) {
   ion-modal .modal-wrapper {
-      left: calc(50% - (768px/2));
-      top: calc(50% - (600px/2));
-      position: absolute;
-      width: 768px;
-      height: 600px;
+    left: calc(50% - (768px/2));
+    top: calc(50% - (600px/2));
+    position: absolute;
+    width: 768px;
+    height: 600px;
   }
 }
 
 @media screen and (min-width: $screen-lg) {
   ion-modal .modal-wrapper {
-      left: calc(50% - (1000px/2));
-      top: calc(50% - (600px/2));
-      position: absolute;
-      width: 1000px;
-      height: 600px;
+    left: calc(50% - (1000px/2));
+    top: calc(50% - (600px/2));
+    position: absolute;
+    width: 1000px;
+    height: 600px;
   }
 }
 
@@ -492,13 +504,17 @@ mat-option:has(ion-row) {
 mat-option ion-row {
   padding: 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-
   ion-col.col {
     padding: 0;
     padding-left: 16px;
   }
-
   ion-col.col:first-child {
     padding: 0;
   }
+}
+
+mat-button-toggle.mat-button-toggle-checked,
+mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
+  background-color: color($colors, light);
+  color: white;
 }
