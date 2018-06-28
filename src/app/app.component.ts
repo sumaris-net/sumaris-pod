@@ -1,50 +1,35 @@
-import { Component, ViewChild } from '@angular/core';
-import { Platform, MenuController } from "ionic-angular";
-
+import { Component } from '@angular/core';
+import { Platform } from "ionic-angular";
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { Keyboard } from '@ionic-native/keyboard';
+import { MenuItem } from './core/menu/menu.component';
 
-
-import { Router } from "@angular/router";
-import { Account } from "../services/model";
-import { AccountService } from "../services/account-service";
-
-const conf = require('../lib/conf.js')
-
-export interface MenuItem {
-  title: string;
-  path?: string;
-  icon?: string;
-}
 
 @Component({
-  templateUrl: 'app.component.html'
+  selector: 'app-root',
+  templateUrl: './app.component.html'
 })
-export class MyApp {
+export class AppComponent {
 
-  private isLogin: boolean;
-  private account: Account;
-  private appMenuItems: Array<MenuItem> = [
+  menuItems: Array<MenuItem> = [
     { title: 'MENU.HOME', path: '/', icon: 'home' },
     { title: 'MENU.TRIPS', path: '/trips', icon: 'pin' },
     { title: 'MENU.ADMINISTRATION_DIVIDER' },
-    { title: 'MENU.USERS', path: '/users', icon: 'people' },
-    { title: 'MENU.VESSELS', path: '/vessels', icon: 'boat' },
-    { title: 'MENU.REFERENTIALS', path: '/referentials', icon: 'list' }
+    { title: 'MENU.USERS', path: '/admin/users', icon: 'people' },
+    { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat' },
+    { title: 'MENU.REFERENTIALS', path: '/referential/list', icon: 'list' }
   ];
 
-  appVersion: String = conf.version;
-
-  constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, keyboard: Keyboard,
-    private accountService: AccountService,
-    private router: Router,
-    public menu: MenuController) {
-
+  constructor(
+    private platform: Platform,
+    private statusBar: StatusBar,
+    private splashScreen: SplashScreen,
+    private keyboard: Keyboard) {
 
     platform.ready().then(() => {
-      // Okay, so the platform is ready and our plugins are available.
-      // Here you can do any higher level native things you might need.
+      console.info("[app] Setting cordova plugins...");
+
       statusBar.styleDefault();
       splashScreen.hide();
 
@@ -52,44 +37,21 @@ export class MyApp {
 
       //*** Control Keyboard
       keyboard.disableScroll(true);
-
-      this.isLogin = accountService.isLogin();
-      if (this.isLogin) {
-        this.onLogin(this.accountService.account);
-      }
-
-      // subscriptions
-      this.accountService.onLogin.subscribe(account => this.onLogin(account));
-      this.accountService.onLogout.subscribe(() => this.onLogout());
-
     });
+
   }
 
-  onLogin(account: Account) {
-    //console.log('[app] Logged account: ', account);
-    this.account = account;
-    this.isLogin = true;
-  }
-
-  onLogout() {
-    console.log("[app] logout");
-    this.isLogin = false;
-    this.account = null;
-    this.router.navigate(['']);
-  }
-
-  logout(): void {
-    this.account = null;
-    this.accountService.logout();
-  }
-
-  openPage(page): void {
-    // close the menu when clicking a link from the menu
-    this.menu.close();
-
-    // Reset the content nav to have just this page
-    // we wouldn't want the back button to show in this scenario
-    this.router.navigate([page.path], page.params)
+  public onActivate(event) {
+    // Make sure to scroll on top before changing state
+    // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
+    let scrollToTop = window.setInterval(() => {
+      let pos = window.pageYOffset;
+      if (pos > 0) {
+        window.scrollTo(0, pos - 20); // how far to scroll on each step
+      } else {
+        window.clearInterval(scrollToTop);
+      }
+    }, 16);
   }
 
 }

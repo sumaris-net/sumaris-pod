@@ -3,7 +3,9 @@
   "COMMON": {
     "BTN_CANCEL": "Annuler",
     "BTN_ADD": "Ajouter",
+    "BTN_APPLY": "Appliquer",
     "BTN_EDIT": "Modifier",
+    "BTN_CLOSE": "Fermer",
     "BTN_DONE": "Terminer",
     "BTN_DELETE": "Supprimer",
     "BTN_VALIDATE": "Valider",
@@ -27,6 +29,8 @@
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
 
+    "METADATA": "Métadonnées :",
+
     "HOUR": "heure",
     "MINUTE": "minute",
     "HOUR_PLACEHOLDER": "hh",
@@ -47,6 +51,14 @@
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "BTN_ACCOUNT": "Compte",
     "BTN_LOGOUT": "Quitter"
+  },
+  "ABOUT": {
+    "TITLE": "À propos",
+    "VERSION": "<b>v{{version}}</b>",
+    "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
+    "BTN_REPORT_ISSUE": "Remonter un problème",
+    "SOURCE_CODE": "Code source :",
+    "DEVELOPED_BY": "Développé par :"
   },
   "HOME": {
     "WELCOME": "Bienvenue sur le portail SUMARiS !",
@@ -126,8 +138,8 @@
     "RETURN_LOCATION": "Port de retour",
     "ACTIONS": "Actions sur la ligne",
     "COMMENTS": "Commentaires",
-    "TAB_GENERAL": "Informations générales",
-    "TAB_PHYSICAL_GEAR": "Engins embarqués",
+    "TAB_GENERAL": "Détails",
+    "TAB_PHYSICAL_GEAR": "Engins",
     "TAB_OPERATIONS": "Opérations",
     "NEW": {
       "TITLE": "Nouvelle marée"
@@ -140,13 +152,23 @@
       "FILTER": {
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
-        "LOCATION": "Port (départ ou arrivé)"
+        "LOCATION": "Port (departure or return)"
       }
     },
     "ERROR": {
       "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
       "SAVE_TRIP_ERROR": "Erreur lors de la sauvegarde de la marée.",
       "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées."
+    },
+    "OPERATION": {
+      "START_DATE_TIME": "Début d'opération",
+      "END_DATE_TIME": "Fin de l'opération",
+      "FISHING_START_DATE_TIME": "Début de pêche",
+      "FISHING_END_DATE_TIME": "Fin de pêche",
+      "COMMENTS": "Commentaires",
+      "ACTIONS": "Actions sur la ligne",
+      "START_POSITION": "GPS Position début",
+      "END_POSITION": "GPS Position de fin"
     }
   },
   "SALE": {
@@ -185,7 +207,7 @@
     "COMMENTS": "Commentaires",
     "ACTIONS": "Actions sur la ligne",
     "START_DATE": "Début validité",
-    "TAB_GENERAL": "Informations générales",
+    "TAB_GENERAL": "Détails",
     "NEW": {
       "TITLE": "Nouveau navire"
     },
@@ -247,6 +269,8 @@
     "FIELD_MIN": "Valeur minimale : {{min}}",
     "FIELD_MAX": "Valeur maximale : {{max}}",
     "FIELD_NOT_VALID_EMAIL": "Addresse email non valide",
+    "FIELD_NOT_VALID_DATE": "Date non valide",
+    "FIELD_NOT_VALID_DATE_TIME": "Date/heure non valide",
     "SPACE_NOT_ALLOW": "Espaces ou caractères spéciaux non autorisés",
     "SCRYPT_ERROR": "Erreur de clefs d'ouverture du compte",
     "UNKNOWN_ACCOUNT_EMAIL": "Aucun compte ne correspond à cet email.",
@@ -256,6 +280,7 @@
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Erreur d'envoi de l'email de confirmation du compte.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
-    "CONFIRM_ACCOUNT_EMAIL_FAILED": "Erreur lors de la confirmation de l'email. Ce compte a peut-être déjà été confirmé ?"
+    "CONFIRM_ACCOUNT_EMAIL_FAILED": "Erreur lors de la confirmation de l'email. Ce compte a peut-être déjà été confirmé ?",
+    "TABLE_INVALID_ROW_ERROR": "Une ligne n'est pas valide"
   }
 }

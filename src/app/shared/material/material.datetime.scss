@@ -1,0 +1,56 @@
+mat-date-time {
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  mat-form-field {
+    .datetime-md {
+      padding: 0 !important;
+    }
+  }
+  ion-col.day {
+    min-width: 95px;
+    max-width: 150px;
+  }
+  ion-col.hour {
+    min-width: 40px;
+    max-width: 40px;
+    mat-form-field {
+      width: 100%;
+      span,
+      input[type=number] {
+        text-align: end;
+      }
+    }
+  }
+  ion-col.minute {
+    min-width: 40px;
+    max-width: 40px;
+    mat-form-field {
+      width: 100%;
+      span,
+      input[type=number] {
+        text-align: start;
+        padding-left: 10px;
+      }
+    }
+  }
+  mat-form-field.mat-form-field-disabled {
+    ion-col.day {
+      min-width: 100px;
+    }
+  }
+  .minute .mat-form-field-label,
+  .hour .mat-form-field-label {
+    max-width: 30px;
+  }
+  .minute mat-form-field.mat-form-field-should-float .mat-form-field-placeholder,
+  .hour mat-form-field.mat-form-field-should-float .mat-form-field-placeholder {
+    max-width: inherit;
+  }
+  mat-error {
+    text-align: right;
+    width: 100%
+  }
+}

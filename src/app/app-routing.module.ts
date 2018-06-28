@@ -1,19 +1,30 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { AuthGuard } from "../services/auth-guard";
-import { HomePage } from "../pages/home/home";
-import { TripPage } from "../pages/trip/trip";
-import { TripsPage } from "../pages/trip/list/trips";
-import { UsersPage } from '../pages/users/users';
-import { RegisterConfirmPage } from '../pages/register/confirm/confirm';
-import { AccountPage } from '../pages/account/account';
-import { VesselsPage } from '../pages/vessel/list/vessels';
-import { VesselPage } from '../pages/vessel/vessel';
-import { ReferentialsPage } from '../pages/referential/list/referentials';
+import { CoreRoutes } from './core/core-routing.module';
+import { ReferentialRoutes } from './referential/referential-routing.module';
+import { AdminRoutes } from './admin/admin-routing.module';
+import { TripRoutes } from './trip/trip-routing.module';
+import { HomePage } from './core/home/home';
+import { RegisterConfirmPage } from './core/register/confirm/confirm';
+import { AccountPage } from './core/account/account';
+import { AuthGuardService } from './core/core.module';
+import { UsersPage } from './admin/users/list/users';
+import { VesselsPage } from './referential/vessel/list/vessels';
+import { VesselPage } from './referential/vessel/page/page-vessel';
+import { ReferentialsPage } from './referential/list/referentials';
+import { TripsPage } from './trip/list/trips';
+import { TripPage } from './trip/page/page-trip';
 
+const routes2: Routes =
+  CoreRoutes
+    .concat(AdminRoutes)
+    .concat(ReferentialRoutes)
+    .concat(TripRoutes);
 
+//console.log(routes);
 
 const routes: Routes = [
+  // Core path
   {
     path: '',
     component: HomePage
@@ -22,69 +33,62 @@ const routes: Routes = [
     path: 'home/:action',
     component: HomePage
   },
-
-  // Register
   {
     path: 'confirm/:email/:code',
     component: RegisterConfirmPage
   },
-
-  // Account
   {
     path: 'account',
     component: AccountPage,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuardService]
   },
 
+  // Admin
+  {
+    path: 'admin/users',
+    component: UsersPage,
+    canActivate: [AuthGuardService]
+  },
 
-  // --- Data ---
+  // Referential pâth
+  {
+    path: 'referential',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: 'vessels',
+        children: [
+          { path: '', component: VesselsPage },
+          { path: ':id', component: VesselPage }
+        ]
+      },
+      {
+        path: 'list',
+        children: [
+          { path: '', component: ReferentialsPage },
+          { path: ':entityName', component: ReferentialsPage }
+        ]
+      }
+    ]
+  },
 
-  // Trips
+  // Trip path
   {
     path: 'trips',
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuardService],
     children: [
       { path: '', component: TripsPage },
-      { path: ':id', component: TripPage }
-    ]
-  },
-
-  // --- Administration ---
-
-  // Users
-  {
-    path: 'users',
-    component: UsersPage,
-    canActivate: [AuthGuard]
-  },
-
-  // Vessels
-  {
-    path: 'vessels',
-    canActivate: [AuthGuard],
-    children: [
-      { path: '', component: VesselsPage },
-      { path: ':id', component: VesselPage }
-    ]
-  },
-
-  // Entities
-  {
-    path: 'referentials',
-    canActivate: [AuthGuard],
-    children: [
-      { path: '', component: ReferentialsPage },
-      { path: ':entityName', component: ReferentialsPage }
+      {
+        path: ':id', component: TripPage
+      }
     ]
   },
 
   {
     path: "**",
     redirectTo: '/'
-  }
+  },
 ];
-
-
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]

@@ -1,0 +1,31 @@
+<ng-container *ngIf="data && data.id">
+  <ion-card class="card-matedata" [@fadeInAnimation]>
+    <ion-card-header class="visible-xs visible-sm" translate>
+      COMMON.METADATA
+    </ion-card-header>
+
+    <ion-item>
+      <ion-avatar item-start>
+        <img src="{{ (data.recorderPerson?.avatar || data.recorderDepartment?.logo ) || './assets/img/person.png' }}">
+      </ion-avatar>
+      <h2>
+        <span translate>COMMON.RECORDER</span>
+      </h2>
+      <p>{{data.recorderPerson?.firstName}} {{data.recorderPerson?.lastName}}</p>
+      <p>{{data.recorderDepartment?.name}}</p>
+    </ion-item>
+
+    <ion-card-content>
+      <p>
+        <ion-icon name="calendar"></ion-icon>
+        <span translate>COMMON.CREATED_ON</span>
+        <b *ngIf="data">{{ data.creationDate | dateFormat: {pattern: 'L LT'} }}</b>
+      </p>
+      <p *ngIf="data && data.updateDate && data.updateDate != data.creationDate">
+        <ion-icon name="time"></ion-icon>
+        <span translate>COMMON.UPDATED_ON</span>
+        {{ data.updateDate | dateFormat: {pattern: 'L LTS'} }}
+      </p>
+    </ion-card-content>
+  </ion-card>
+</ng-container>

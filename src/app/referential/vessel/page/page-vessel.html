@@ -1,0 +1,29 @@
+<app-toolbar [title]="'VESSEL.TITLE'|translate" color="primary" (onValidate)="save($event, form.value)">
+</app-toolbar>
+
+<ion-content>
+  <mat-tab-group [disableRipple]="true" [dynamicHeight]="true">
+
+    <!-- TAB: general -->
+    <mat-tab label="{{'VESSEL.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <ion-icon name="information-circle"></ion-icon>
+        <span>{{'VESSEL.TAB_GENERAL'|translate}}</span>
+      </ng-template>
+
+      <ion-row no-padding>
+        <ion-col no-padding>
+          <div padding>
+            <form-vessel (onSubmit)="save($event, form.value)" padding #form>
+            </form-vessel>
+          </div>
+        </ion-col>
+        <ion-col col-12 col-sm-9 col-md-6 col-lg-4 col-xl-3>
+          <form-metadata [data]="data"></form-metadata>
+        </ion-col>
+      </ion-row>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</ion-content>

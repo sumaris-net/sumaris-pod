@@ -1,0 +1,81 @@
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+
+
+  <p ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></p>
+
+  <ion-grid>
+
+    <!-- Exterior marking -->
+    <ion-row>
+      <ion-col>
+        <mat-form-field>
+          <input matInput [placeholder]="'VESSEL.EXTERIOR_MARKING'|translate" formControlName="exteriorMarking">
+          <mat-error *ngIf="form.controls['exteriorMarking'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+      <ion-col>
+        <mat-date-time [placeholder]="'VESSEL.START_DATE'|translate" formControlName="startDate" [displayTime]="false">
+        </mat-date-time>
+      </ion-col>
+    </ion-row>
+
+    <!-- Name -->
+    <ion-row>
+      <ion-col>
+        <mat-form-field>
+          <input matInput [placeholder]="'VESSEL.NAME'|translate" formControlName="name">
+          <mat-error *ngIf="form.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+
+    <!-- Base port location -->
+    <ion-row>
+      <ion-col col-12 class="hidden-xs">
+        <mat-form-field>
+          <ion-icon margin-right name="pin" matPrefix></ion-icon>
+          <input matInput [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate" [matAutocomplete]="autoLocation" formControlName="basePortLocation">
+          <mat-error *ngIf="form.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+        <mat-autocomplete autoActiveFirstOption #autoLocation="matAutocomplete" [displayWith]="referentialToString">
+          <ion-row padding>
+            <ion-col col-2 translate>REFERENTIAL.LABEL</ion-col>
+            <ion-col translate>REFERENTIAL.NAME</ion-col>
+          </ion-row>
+
+          <mat-option *ngFor="let location of locations | async" [value]="location">
+            <ion-row>
+              <ion-col col-2 [innerHTML]="location.label | highlight: {search: form.controls['basePortLocation'].value }"></ion-col>
+              <ion-col [innerHTML]="location.name | highlight: {search: form.controls['basePortLocation'].value }"></ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+    </ion-row>
+
+    <!-- Comments -->
+    <ion-row>
+      <ion-col col-12>
+        <mat-form-field appearance="outline">
+          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'VESSEL.COMMENTS'|translate"
+            formControlName="comments">
+          </textarea>
+          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+
+  <ion-row class="hidden-xs hidden-sm padding bar" style="text-align: right;" *ngIf="!loading && form.dirty">
+
+    <button mat-button (click)="onCancel.emit()" type="button">
+      {{'COMMON.BTN_CANCEL'|translate}}
+    </button>
+
+    <button mat-raised-button color="primary" type="submit">
+      {{'COMMON.BTN_SAVE'|translate}}
+    </button>
+  </ion-row>
+</form>

@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons left start>
+      <button ion-button class="visible-xs visible-sm" (click)="cancel()">
+        {{'COMMON.BTN_CANCEL'|translate}}
+      </button>
+    </ion-buttons>
+
+    <ion-title>
+      {{'COMMON.DISPLAYED_COLUMNS'|translate}}
+    </ion-title>
+
+    <ion-buttons right end>
+      <button ion-button icon-only class="visible-xs visible-sm" (click)="close($event)">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content>
+  <ion-list class="popover-page" reorder="true" (ionItemReorder)="reorderItems($event)">
+    <ion-item *ngFor="let column of columns">
+      <ion-label>{{column.label|translate}}</ion-label>
+      <ion-toggle [checked]="column.visible" (ionChange)="column.visible=!column.visible"></ion-toggle>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+
+<ion-footer padding class="hidden-xs hidden-sm">
+  <ion-buttons right end>
+    <button mat-button (click)="cancel()">
+      {{'COMMON.BTN_CANCEL'|translate}}
+    </button>
+
+    <button mat-raised-button color="primary" (click)="close($event)">
+      {{'COMMON.BTN_APPLY'|translate}}
+    </button>
+  </ion-buttons>
+</ion-footer>

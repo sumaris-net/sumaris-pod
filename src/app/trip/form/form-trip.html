@@ -1,0 +1,130 @@
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+
+
+  <p ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></p>
+
+  <ion-grid no-padding>
+
+    <!-- VESSEL -->
+    <ion-row no-padding>
+      <ion-col col-11>
+        <mat-form-field>
+          <ion-icon margin-right name="boat" matPrefix></ion-icon>
+          <input matInput [placeholder]="'TRIP.VESSEL'|translate" [matAutocomplete]="autoVessel" formControlName="vesselFeatures">
+          <mat-error *ngIf="form.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+
+        <!-- Vessel combo -->
+        <mat-autocomplete autoActiveFirstOption #autoVessel="matAutocomplete" [displayWith]="vesselFeaturesToString">
+
+          <ion-row padding-left>
+            <ion-col col-2 translate>VESSEL.EXTERIOR_MARKING</ion-col>
+            <ion-col translate>VESSEL.NAME</ion-col>
+            <ion-col translate>VESSEL.BASE_PORT_LOCATION</ion-col>
+          </ion-row>
+
+          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel">
+            <ion-row>
+              <ion-col col-2 [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
+              <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
+              <ion-col>{{vessel.basePortLocation.label}} - {{vessel.basePortLocation.name}}</ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+      <ion-col col-1>
+        <button mat-icon-button [title]="'COMMON.BTN_ADD'|translate" (click)="addVesselModal()" type="button">
+          <mat-icon>add</mat-icon>
+        </button>
+      </ion-col>
+    </ion-row>
+
+    <!-- DEPARTURE -->
+    <ion-row>
+      <ion-col col-1 *ngIf="!mobile" class="hidden-xs">
+        <p>
+          <span ion-text translate>TRIP.DEPARTURE</span>
+        </p>
+      </ion-col>
+      <ion-col>
+        <mat-form-field>
+          <ion-icon margin-right name="pin" matPrefix></ion-icon>
+          <input matInput [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate" [matAutocomplete]="autoDepartureLocation" formControlName="departureLocation">
+          <mat-error *ngIf="form.controls['departureLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+
+        <!-- Location combo -->
+        <mat-autocomplete autoActiveFirstOption #autoDepartureLocation="matAutocomplete" [displayWith]="referentialToString">
+          <ion-row padding>
+            <ion-col col-2 translate>REFERENTIAL.LABEL</ion-col>
+            <ion-col translate>REFERENTIAL.NAME</ion-col>
+          </ion-row>
+
+          <mat-option *ngFor="let location of locations | async" [value]="location">
+            <ion-row>
+              <ion-col col-2 [innerHTML]="location.label | highlight: {search: form.controls['departureLocation'].value }"></ion-col>
+              <ion-col [innerHTML]="location.name | highlight: {search: form.controls['departureLocation'].value }"></ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+      <ion-col>
+        <mat-date-time [placeholder]="'TRIP.DEPARTURE_DATE_TIME'|translate" formControlName="departureDateTime" displayTime="true">
+        </mat-date-time>
+      </ion-col>
+    </ion-row>
+
+    <!-- RETURN -->
+    <ion-row>
+      <ion-col col-1 class="hidden-xs">
+        <p>
+          <span ion-text translate>TRIP.RETURN</span>
+        </p>
+      </ion-col>
+      <ion-col>
+        <mat-form-field>
+          <ion-icon margin-right name="pin" matPrefix></ion-icon>
+          <input matInput [placeholder]="'TRIP.RETURN_LOCATION'|translate" [matAutocomplete]="autoReturnLocation" formControlName="returnLocation">
+          <mat-error *ngIf="form.controls['returnLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+
+        <!-- Location combo -->
+        <mat-autocomplete autoActiveFirstOption #autoReturnLocation="matAutocomplete" [displayWith]="referentialToString">
+          <ion-row padding>
+            <ion-col col-2 translate>REFERENTIAL.LABEL</ion-col>
+            <ion-col translate>REFERENTIAL.NAME</ion-col>
+          </ion-row>
+
+          <mat-option *ngFor="let location of locations | async" [value]="location">
+            <ion-row>
+              <ion-col col-2 [innerHTML]="location.label | highlight: {search: form.controls['returnLocation'].value }"></ion-col>
+              <ion-col [innerHTML]="location.name | highlight: {search: form.controls['returnLocation'].value }"></ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+      <ion-col>
+        <mat-date-time [placeholder]="'TRIP.RETURN_DATE_TIME'|translate" formControlName="returnDateTime">
+        </mat-date-time>
+      </ion-col>
+    </ion-row>
+
+    <ng-content></ng-content>
+
+    <!-- Comments -->
+    <ion-row *ngIf="showComment">
+      <ion-col col-12>
+        <mat-form-field appearance="outline">
+          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'TRIP.COMMENTS'|translate"
+            formControlName="comments">
+          </textarea>
+          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+
+
+</form>

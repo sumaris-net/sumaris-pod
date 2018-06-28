@@ -9,13 +9,13 @@ Technologies: SUMARiS App is an Ionic 4 + Angular 5 App.
 1. Install Node.js v8+
 3. Install global dependencies: 
 ```
-npm install -g ionic cordova
+npm install -g ionic@^3.20.0 cordova@^8.0.0 @angular/cli@^1.7.4
 ```
 3. Clone the repo: `git clone ...`
 4. Install project dependencies
 ```
 cd sumaris-app
-yarn
+npm install
 ```
 
 5. Start the server (with GraphQL API). See project SUMARiS Pod.
@@ -32,7 +32,7 @@ The application should be accessible at [localhost:8100](http://localhost:8100)
 
 7. Check environment configuration
 
-Edit the file `src/lib/conf.js`
+Edit the file `src/environment/environment.ts`
 
 8. Build a release
 ```

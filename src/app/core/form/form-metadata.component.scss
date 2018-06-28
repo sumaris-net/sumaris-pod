@@ -1,0 +1,11 @@
+form-metadata {
+  ion-card.card-matedata {
+    min-height: 90px; //
+    ion-avatar {
+      img {
+        border: solid 1px rgba(0, 0, 0, 0.2);
+        background-color: color($colors, light) !important;
+      }
+    }
+  }
+}
