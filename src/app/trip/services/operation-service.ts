@@ -1,19 +1,19 @@
 import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
-import { Observable, Subject } from "rxjs";
+import { Observable, Subject } from "rxjs-compat";
 import { Person, Operation } from "./model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
-import { DocumentNode } from "graphql";
+
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
 
 export declare class OperationFilter {
   tripId?: number;
 }
-const LoadAllQuery: DocumentNode = gql`
+const LoadAllQuery: any = gql`
   query Operations($filter: OperationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       id
@@ -41,7 +41,7 @@ const LoadAllQuery: DocumentNode = gql`
   }
 `;
 
-const SaveOperations: DocumentNode = gql`
+const SaveOperations: any = gql`
   mutation SaveOperations($operations:[OperationVOInput]){
     saveOperations(operations: $operations){
       id
@@ -56,7 +56,7 @@ const SaveOperations: DocumentNode = gql`
     }
   }
 `;
-const DeleteOperations: DocumentNode = gql`
+const DeleteOperations: any = gql`
   mutation deleteOperations($ids:[Int]){
     deleteOperations(ids: $ids)
   }

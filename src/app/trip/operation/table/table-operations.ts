@@ -8,12 +8,11 @@ import { AppTableDataSource, AppTable, TableSelectColumnsComponent, AccountServi
 import { OperationValidatorService } from "../validator/validators";
 import { SelectionModel } from "@angular/cdk/collections";
 import { Referential, Operation, Trip } from "../../services/model";
-import { Subscription } from "rxjs";
-import { ModalController, Platform } from "ionic-angular";
+import { Subscription } from "rxjs-compat";
+import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
-import { ViewController } from "ionic-angular";
-import { PopoverController } from 'ionic-angular';
+import { PopoverController } from '@ionic/angular';
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { ReferentialService } from "../../../referential/referential.module";
 import { MatButtonToggle } from "@angular/material";

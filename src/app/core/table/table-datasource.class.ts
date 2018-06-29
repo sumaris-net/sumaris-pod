@@ -1,5 +1,5 @@
 import { TableDataSource, ValidatorService } from "angular4-material-table";
-import { Observable, Subject } from "rxjs";
+import { Observable, Subject } from "rxjs-compat";
 import { DataService } from "../services/data-service.class";
 import { EventEmitter } from "@angular/core";
 import { Entity } from "../services/model";

@@ -1,23 +1,21 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { MatPaginator, MatSort, MatTable } from "@angular/material";
 import { merge } from "rxjs/observable/merge";
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs-compat';
 import { startWith, switchMap, mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource } from "./table-datasource.class";
 import { SelectionModel } from "@angular/cdk/collections";
 import { Entity, Referential, joinProperties } from "../services/model";
-import { Subscription } from "rxjs";
-import { ModalController, Platform } from "ionic-angular";
+import { Subscription } from "rxjs-compat";
+import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from '../services/account.service';
 import { TableSelectColumnsComponent } from './table-select-columns.component';
 import { Location } from '@angular/common';
-import { ViewController } from "ionic-angular";
-import { PopoverController } from 'ionic-angular';
+import { PopoverController } from '@ionic/angular';
 import { map } from "rxjs/operators";
 import { ErrorCodes } from "../services/errors";
-import { entityToString, referentialToString } from "../../trip/services/model";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 
@@ -56,7 +54,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         protected modalCtrl: ModalController,
         protected accountService: AccountService,
         protected validatorService: ValidatorService,
-        protected dataSource: AppTableDataSource<T, F>,
+        public dataSource: AppTableDataSource<T, F>,
         protected columns: string[],
         protected filter: F
     ) {
@@ -281,7 +279,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         return userColumns && fixedColumns.concat(userColumns) || this.columns;
     }
 
-    public openSelectColumnsModal(event: any): Promise<any> {
+    public async openSelectColumnsModal(event: any): Promise<any> {
         const fixedColumns = this.columns.slice(0, 2);
         var hiddenColumns = this.columns.slice(fixedColumns.length)
             .filter(name => this.displayedColumns.indexOf(name) == -1);
@@ -295,7 +293,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 }
             });
 
-        let modal = this.modalCtrl.create(TableSelectColumnsComponent, columns);
+        const modal = await this.modalCtrl.create({ component: TableSelectColumnsComponent, componentProps: { columns: columns } });
 
         // On dismiss
         modal.onDidDismiss(res => {
@@ -310,8 +308,5 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         });
         return modal.present();
     }
-
-    public displayEntity = entityToString;
-    public displayReferential = referentialToString;
 }
 

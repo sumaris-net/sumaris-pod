@@ -1,6 +1,6 @@
 import { Component, OnInit } from "@angular/core";
-import { NavParams } from 'ionic-angular';
-import { ViewController } from "ionic-angular";
+import { NavParams } from '@ionic/angular';
+import { ModalController } from "@ionic/angular";
 
 @Component({
     selector: 'table-select-columns',
@@ -12,11 +12,11 @@ export class TableSelectColumnsComponent implements OnInit {
 
     constructor(
         private navParams: NavParams,
-        private viewCtrl: ViewController) {
+        private viewCtrl: ModalController) {
     }
 
     ngOnInit() {
-        this.columns = this.navParams.data;
+        this.columns = this.navParams.data && this.navParams.data.columns || [];
     }
 
     reorderItems(indexes) {

@@ -7,7 +7,7 @@ import { Trip, Sale } from '../services/model';
 import { FormGroup } from '@angular/forms';
 import { SaleForm } from '../sale/form/form-sale';
 import { OperationTable } from '../operation/table/table-operations';
-import { Observable } from "rxjs";
+import { Observable } from "rxjs-compat";
 import { slideInOutAnimation } from '../../shared/material/material.module';
 
 @Component({
@@ -24,20 +24,20 @@ export class TripPage implements OnInit {
 
   selectedTabIndex: number = 0; // TODO
 
-  protected error: string;
-  protected loading: boolean = true;
-  protected saving: boolean = false;
-  protected data: Trip;
+  error: string;
+  loading: boolean = true;
+  saving: boolean = false;
+  data: Trip;
 
   public get dirty(): boolean {
     return this.tripForm.dirty || this.saleForm.dirty || this.operationTable.dirty;
   }
 
-  @ViewChild('tripForm') protected tripForm: TripForm;
+  @ViewChild('tripForm') tripForm: TripForm;
 
-  @ViewChild('saleForm') protected saleForm: SaleForm;
+  @ViewChild('saleForm') saleForm: SaleForm;
 
-  @ViewChild('operationTable') protected operationTable: OperationTable;
+  @ViewChild('operationTable') operationTable: OperationTable;
 
   constructor(
     protected route: ActivatedRoute,

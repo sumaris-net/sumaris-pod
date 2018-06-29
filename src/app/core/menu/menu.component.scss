@@ -16,8 +16,7 @@ app-menu {
     -o-background-size: cover;
     background-size: cover;
     background-repeat: no-repeat;
-    background-position: center;
-    border: solid 1px color($colors, light);
+    background-position: center; //border: solid 1px color($colors, light);
     overflow: hidden !important;
     font-size: 80px !important;
     line-height: 80px;
@@ -27,7 +26,7 @@ app-menu {
     display: inline-block;
   }
   .user-avatar.primary {
-    background-color: color($colors, primary);
+    //background-color: color($colors, primary);
   }
   .align-right {
     text-align: right;
@@ -42,7 +41,7 @@ app-menu {
     text-overflow: ellipsis;
   }
   .item.selected {
-    background-color: color($colors, light100);
+    //background-color: color($colors, light100);
   }
   ion-footer {
     ion-toolbar {

@@ -2,7 +2,7 @@ import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { SaleValidatorService } from "../validator/validators";
 import { FormGroup } from "@angular/forms";
 import { Sale, Referential, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString } from "../../services/model";
-import { Platform } from 'ionic-angular';
+import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { AppForm } from '../../../core/core.module';
 import { DateAdapter } from "@angular/material";

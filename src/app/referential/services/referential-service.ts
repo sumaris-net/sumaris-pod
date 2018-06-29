@@ -1,11 +1,11 @@
 import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
-import { Observable } from "rxjs";
+import { Observable } from "rxjs-compat";
 import { map } from "rxjs/operators";
 import { Referential, StatusIds } from "./model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { Apollo } from "apollo-angular";
-import { DocumentNode } from "graphql";
+
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
 
@@ -15,7 +15,7 @@ export declare class ReferentialFilter {
   levelId?: number;
   searchText?: string;
 }
-const LoadAllLightQuery: DocumentNode = gql`
+const LoadAllLightQuery: any = gql`
   query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       id
@@ -26,7 +26,7 @@ const LoadAllLightQuery: DocumentNode = gql`
     }
   }
 `;
-const LoadAllQuery: DocumentNode = gql`
+const LoadAllQuery: any = gql`
   query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       id
@@ -40,13 +40,13 @@ const LoadAllQuery: DocumentNode = gql`
     }
   }
 `;
-const LoadReferentialEntities: DocumentNode = gql`
+const LoadReferentialEntities: any = gql`
   query ReferentialEntities{
     referentialEntities
   }
 `;
 
-const LoadReferentialLevels: DocumentNode = gql`
+const LoadReferentialLevels: any = gql`
   query ReferentialLevels($entityName: String) {
     referentialLevels(entityName: $entityName){
       id
@@ -57,7 +57,7 @@ const LoadReferentialLevels: DocumentNode = gql`
   }
 `;
 
-const SaveReferentials: DocumentNode = gql`
+const SaveReferentials: any = gql`
   mutation SaveReferentials($entityName: String, $referentials:[ReferentialVOInput]){
     saveReferentials(entityName: $entityName, referentials: $referentials){
       id
@@ -68,7 +68,7 @@ const SaveReferentials: DocumentNode = gql`
   }
 `;
 
-const DeleteReferentials: DocumentNode = gql`
+const DeleteReferentials: any = gql`
   mutation deleteReferentials($entityName: String, $ids:[Int]){
     deleteReferentials(entityName: $entityName, ids: $ids)
   }
@@ -219,7 +219,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
 
 
   protected loadFromQueries(
-    query: DocumentNode,
+    query: any,
     offset: number,
     size: number,
     sortBy?: string,

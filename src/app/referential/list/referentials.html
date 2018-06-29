@@ -5,11 +5,14 @@
 
   <mat-toolbar>
     <mat-toolbar-row>
-      <mat-form-field>
-        <mat-select [(ngModel)]="dataSource.serviceOptions.entityName" (ngModelChange)="onEntityNameChange($event)">
+      <form [formGroup]="entityNameForm" novalidate (ngSubmit)="onEntityNameChange(dataSource.serviceOptions.entityName)">
+        <ion-select>
+          <ion-select-option *ngFor="let entity of entities | async" [value]="entity.name">{{ entity.label | translate }}</ion-select-option>
+        </ion-select>
+        <!-- <mat-select formControlName="entityName" (ngModelChange)="onEntityNameChange($event)">
           <mat-option *ngFor="let entity of entities | async" [value]="entity.name">{{ entity.label | translate }}</mat-option>
-        </mat-select>
-      </mat-form-field>
+        </mat-select> -->
+      </form>
 
       <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
         <mat-icon>add</mat-icon>
@@ -58,7 +61,7 @@
   <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
   <mat-table #table padding-left [dataSource]="dataSource" class="trips-table" matSort matSortActive="label" matSortDirection="asc"
-    matSortDisableClear [trackBy]="id">
+    matSortDisableClear trackBy="id">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -86,7 +89,7 @@
         <span translate>REFERENTIAL.STATUS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <mat-select [formControl]="row.validator.controls['statusId']" [(ngModel)]="row.currentData.statusId">
             <mat-select-trigger>
               <ion-icon *ngIf="row.currentData.statusId &gt;=0" [name]="statusById[row.currentData.statusId].icon"></ion-icon>
@@ -109,7 +112,7 @@
         <span translate>REFERENTIAL.LABEL</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['label']" [placeholder]="'REFERENTIAL.LABEL'|translate" [appAutofocus]="row.id &lt; 0 && row.editing"
             [readonly]="!row.editing" [(ngModel)]="row.currentData.label">
           <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -123,7 +126,7 @@
         <span translate>REFERENTIAL.NAME</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['name']" [readonly]="!row.editing" [(ngModel)]="row.currentData.name">
           <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
@@ -137,7 +140,7 @@
         <span translate>REFERENTIAL.LEVEL</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <mat-select [formControl]="row.validator.controls['levelId']" [(ngModel)]="row.currentData.levelId">
             <mat-option *ngFor="let level of levels | async" [value]="level.id">{{ level.name }}</mat-option>
           </mat-select>
@@ -152,7 +155,7 @@
         <span translate>REFERENTIAL.COMMENTS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['comments']" [readonly]="!row.editing" [(ngModel)]="row.currentData.comments">
         </mat-form-field>
       </mat-cell>

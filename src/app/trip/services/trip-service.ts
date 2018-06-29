@@ -1,12 +1,12 @@
 import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
-import { Observable, Subject } from "rxjs";
+import { Observable, Subject } from "rxjs-compat";
 import { Trip, Person } from "./model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
-import { DocumentNode } from "graphql";
+
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
 
@@ -15,7 +15,7 @@ export declare class TripFilter {
   endDate?: Date | Moment;
   locationId?: number
 }
-const LoadAllQuery: DocumentNode = gql`
+const LoadAllQuery: any = gql`
   query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TripFilterVOInput){
     trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       id
@@ -57,7 +57,7 @@ const LoadAllQuery: DocumentNode = gql`
     }
   }
 `;
-const LoadQuery: DocumentNode = gql`
+const LoadQuery: any = gql`
   query Trip($id: Int) {
     trip(id: $id) {
       id
@@ -118,7 +118,7 @@ const LoadQuery: DocumentNode = gql`
     }
   }
 `;
-const SaveTrips: DocumentNode = gql`
+const SaveTrips: any = gql`
   mutation saveTrips($trips:[TripVOInput]){
     saveTrips(trips: $trips){
       id
@@ -164,7 +164,7 @@ const SaveTrips: DocumentNode = gql`
     }
   }
 `;
-const DeleteTrips: DocumentNode = gql`
+const DeleteTrips: any = gql`
   mutation deleteTrips($ids:[Int]){
     deleteTrips(ids: $ids)
   }

@@ -92,8 +92,7 @@
               {{localeMap[locale]}}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="form.controls.settings.controls.locale.hasError('required') && form.controls.settings.controls.locale.dirty"
-            translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="settingsForm.controls.locale.hasError('required') && settingsForm.controls.locale.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-tab>
     </mat-tab-group>

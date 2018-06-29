@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators, FormControl, AbstractControl, Valid
 import { RegisterData, AccountService } from "../../services/account.service";
 import { Account } from "../../services/model";
 import { MatHorizontalStepper } from "@angular/material";
-import { Observable, Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs-compat";
 
 
 @Component({
@@ -16,6 +16,7 @@ export class RegisterForm implements OnInit {
   forms: FormGroup[];
   subscriptions: Subscription[] = [];
   error: string;
+  sending: boolean = false;
 
   @ViewChild('stepper') private stepper: MatHorizontalStepper;
 
@@ -130,6 +131,7 @@ export class RegisterForm implements OnInit {
 
   doSubmit(event: any) {
     if (this.form.invalid) return;
+    this.sending = true;
     this.onSubmit.emit(this.value);
   }
 

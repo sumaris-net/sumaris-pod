@@ -1,10 +1,10 @@
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { FormGroup } from "@angular/forms";
-import { Platform } from 'ionic-angular';
+import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN } from '../constants';
 import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs-compat';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 

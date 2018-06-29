@@ -43,7 +43,7 @@
   </mat-expansion-panel>
 
   <mat-table #table padding-left [dataSource]="dataSource" matSort matSortActive="lastName" matSortDirection="asc" matSortDisableClear
-    [trackBy]="id">
+    trackBy="id">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -79,7 +79,7 @@
         <span translate>USER.LAST_NAME</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['lastName']" [readonly]="!row.editing" [appAutofocus]="row.editing"
             [(ngModel)]="row.currentData.lastName">
           <mat-error *ngIf="row.validator.controls['lastName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -95,7 +95,7 @@
         <span translate>USER.FIRST_NAME</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['firstName']" [readonly]="!row.editing" [(ngModel)]="row.currentData.firstName">
           <mat-error *ngIf="row.validator.controls['firstName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
@@ -108,7 +108,7 @@
         <span translate>USER.EMAIL</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['email']" [readonly]="!row.editing" [(ngModel)]="row.currentData.email">
           <mat-error *ngIf="row.validator.controls['email'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="row.validator.controls['email'].hasError('email')">

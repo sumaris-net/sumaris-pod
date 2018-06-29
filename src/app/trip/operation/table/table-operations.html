@@ -25,7 +25,7 @@
 <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
 <mat-table #table [dataSource]="dataSource" class="table-operations" matSort matSortActive="startDateTime" matSortDirection="asc"
-  matSortDisableClear [trackBy]="id">
+  matSortDisableClear trackBy="id">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -53,7 +53,7 @@
       <span translate>TRIP.OPERATION.START_DATE_TIME</span>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      <mat-date-time floatPlaceholder="never" [formControl]="row.validator.controls['startDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
+      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
         [(ngModel)]="row.currentData.startDateTime" [readonly]="!row.editing" required>
       </mat-date-time>
     </mat-cell>
@@ -66,12 +66,12 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <div [formGroup]="row.validator.controls['startPosition']">
-        <mat-form-field floatPlaceholder="never">
-          <input matInput floatPlaceholder="never" formControlName="latitude" [readonly]="!row.editing" required>
+        <mat-form-field floatLabel="never">
+          <input matInput formControlName="latitude" [readonly]="!row.editing" required>
         </mat-form-field>
         <br/>
-        <mat-form-field floatPlaceholder="never">
-          <input matInput floatPlaceholder="never" formControlName="longitude" [readonly]="!row.editing" required>
+        <mat-form-field floatLabel="never">
+          <input matInput formControlName="longitude" [readonly]="!row.editing" required>
         </mat-form-field>
       </div>
     </mat-cell>
@@ -83,19 +83,19 @@
       <span translate>TRIP.OPERATION.END_DATE_TIME</span>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      <mat-date-time floatPlaceholder="never" [formControl]="row.validator.controls['endDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
+      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['endDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
         [(ngModel)]="row.currentData.endDateTime" [readonly]="!row.editing" required>
       </mat-date-time>
     </mat-cell>
   </ng-container>
 
-  <!-- End position 
+  <!-- End position
   <ng-container matColumnDef="startDateTime">
     <mat-header-cell *matHeaderCellDef >
       <span translate>TRIP.OPERATION.END_POSITION</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-date-time floatPlaceholder="never" [formControl]="row.validator.controls['endPosition']" [(ngModel)]="row.currentData.endPosition"
+      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['endPosition']" [(ngModel)]="row.currentData.endPosition"
         [readonly]="!row.editing" required>
       </mat-date-time>
     </mat-cell>
@@ -107,7 +107,7 @@
       <span translate>TRIP.COMMENTS</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-form-field floatPlaceholder="never">
+      <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls['comments']" [readonly]="!row.editing" [(ngModel)]="row.currentData.comments">
       </mat-form-field>
     </mat-cell>
@@ -138,7 +138,7 @@
   </ion-col>
 </ion-row>
 
-<!-- Bottom buttons 
+<!-- Bottom buttons
 <ion-row no-padding>
   <ion-col col-6 padding>
     <ion-buttons left start *ngIf="!loading">

@@ -13,6 +13,12 @@
 // To declare rules for a specific mode, create a child rule
 // for the .md, .ios, or .wp mode classes. The mode class is
 // automatically applied to the <body> element in the app.
+body,
+html {
+  padding: 0;
+  margin: 0;
+}
+
 body {
   user-select: text !important;
 }
@@ -403,7 +409,7 @@ mat-table {
     background-color: whitesmoke;
   }
   .mat-row-error {
-    border-bottom-color: color($colors, danger);
+    //border-bottom-color: color($colors, danger);
     border-bottom-width: 2px; //background-color: color($colors, light100);
   }
   mat-cell .avatar {
@@ -481,6 +487,6 @@ mat-option ion-row {
 
 mat-button-toggle.mat-button-toggle-checked,
 mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
-  background-color: color($colors, light);
+  //background-color: color($colors, light);
   color: white;
 }

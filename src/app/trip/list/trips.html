@@ -1,8 +1,8 @@
 <app-toolbar [title]="'TRIP.LIST.TITLE'|translate" color="primary">
 </app-toolbar>
 
-
-<ion-content class="no-padding-xs" @fadeInAnimation>
+<!-- @fadeInAnimation -->
+<ion-content class="no-padding-xs">
 
   <mat-toolbar>
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
@@ -109,7 +109,7 @@
         <span translate>TRIP.VESSEL</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['vesselFeatures']" [placeholder]="'TRIP.VESSEL'|translate" [matAutocomplete]="autoVessel"
             [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [(ngModel)]="row.currentData.vesselFeatures">
           <mat-error *ngIf="row.validator.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -140,7 +140,7 @@
         <span translate>TRIP.DEPARTURE_LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['departureLocation']" [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
             [matAutocomplete]="autoDepartureLocation" [readonly]="!row.editing" [(ngModel)]="row.currentData.departureLocation">
           <mat-error *ngIf="row.validator.controls['departureLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -187,7 +187,7 @@
         <span translate>TRIP.COMMENTS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['comments']" [readonly]="!row.editing" [(ngModel)]="row.currentData.comments">
         </mat-form-field>
       </mat-cell>

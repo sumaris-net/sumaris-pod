@@ -1,8 +1,8 @@
 <ion-split-pane>
 
-  <ion-menu [content]="content">
+  <ion-menu content="content">
     <ion-header>
-      <ion-toolbar class="user-profile" color="">
+      <ion-toolbar class="user-profile">
         <ion-grid>
           <ion-row>
             <ion-col col-4 [hidden]="!account" class="fade in">
@@ -22,16 +22,16 @@
 
           <ion-row no-padding class="other-data" [hidden]="!isLogin" class="fade in">
             <ion-col no-padding>
-              <button ion-button icon-left small full color="light" menuClose [routerLink]="['/account']">
-                <ion-icon name="contact"></ion-icon>
+              <ion-button small expand="full" color="light" menuClose [routerLink]="['/account']">
+                <ion-icon name="contact" slot="start"></ion-icon>
                 <span translate>MENU.BTN_ACCOUNT</span>
-              </button>
+              </ion-button>
             </ion-col>
             <ion-col no-padding padding-left>
-              <button ion-button icon-left small full color="light" menuClose (click)="logout()">
-                <ion-icon name="log-out"></ion-icon>
+              <ion-button small expand="full" color="light" menuClose (click)="logout()">
+                <ion-icon name="log-out" slot="start"></ion-icon>
                 <span translate>MENU.BTN_LOGOUT</span>
-              </button>
+              </ion-button>
             </ion-col>
           </ion-row>
 
@@ -44,11 +44,11 @@
 
       <ion-list class="user-list">
         <ng-container *ngFor="let item of items">
-          <button ion-item menuClose class="text-1x" [routerLink]="item.path" routerLinkActive="selected" [routerLinkActiveOptions]="{exact: (item.path == '/')}"
+          <ion-item menuClose class="text-1x" [routerLink]="item.path" routerDirection="root" routerLinkActive="selected" [routerLinkActiveOptions]="{exact: (item.path == '/')}"
             *ngIf="item.path">
             <ion-icon item-left [name]="item.icon" color="primary"></ion-icon>
             <span ion-text color="primary">{{item.title|translate}}</span>
-          </button>
+          </ion-item>
           <ion-item-divider color="stable" style="background-color: whitesmoke;" *ngIf="!item.path">
             {{item.title|translate}}
           </ion-item-divider>
@@ -67,5 +67,11 @@
     </ion-footer>
   </ion-menu>
 
-  <ng-content></ng-content>
+
+  <div no-padding main #content>
+    <ng-content></ng-content>
+  </div>
+
+
+
 </ion-split-pane>

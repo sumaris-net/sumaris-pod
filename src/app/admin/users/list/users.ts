@@ -3,13 +3,11 @@ import { AppTable, AppTableDataSource } from "../../../core/core.module";
 import { Person } from "../../../core/services/model";
 import { PersonService, PersonFilter } from "../../services/person-service";
 import { PersonValidatorService } from "../validator/validators";
-import { ModalController, Platform } from "ionic-angular";
+import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from "../../../core/services/account.service";
 import { Location } from '@angular/common';
 import { FormGroup, FormBuilder } from "@angular/forms";
-
-import { IonicPage } from 'ionic-angular';
 
 @Component({
   selector: 'page-users',

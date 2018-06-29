@@ -1,7 +1,7 @@
 import { Component, Optional, Input, EventEmitter, OnInit, forwardRef, ViewChild } from '@angular/core';
 import { DateFormatPipe } from '../pipes/date-format.pipe';
-import { Platform } from 'ionic-angular';
-import { MatFormFieldControl, DateAdapter, MatDatepicker } from '@angular/material'
+import { Platform } from '@ionic/angular';
+import { MatFormFieldControl, DateAdapter, MatDatepicker, MatFormField } from '@angular/material';
 import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor, ValidationErrors } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 import { Moment } from 'moment/moment';
@@ -45,7 +45,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     @Input() placeholder: string;
 
-    @Input() floatPlaceholder: string;
+    @Input() floatLabel: string;
 
     @Input() readonly: boolean = false;
 
@@ -207,13 +207,21 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     }
 
     public onKeyDown(event: KeyboardEvent) {
-        if (event.key == 'ArrowDown') {
-            this.datePicker.open();
-            event.preventDefault();
-            return;
+        if (event.key === 'ArrowDown') {
+            return this.openDatePicker(event);
+        }
+    }
+
+    public openDatePickerIfTouchUi(event: UIEvent) {
+        if (!this.touchUi) {
+            this.openDatePicker(event);
         }
     }
 
 
+    public openDatePicker(event: UIEvent) {
+        this.datePicker.open();
+        event.preventDefault();
+    }
 }
 

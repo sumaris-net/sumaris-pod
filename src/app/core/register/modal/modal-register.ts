@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { ViewController } from 'ionic-angular';
+import { ModalController } from '@ionic/angular';
 import { AccountService } from "../../services/account.service";
 import { RegisterForm } from '../form/form-register';
 
@@ -14,7 +14,7 @@ export class RegisterModal {
   @ViewChild('form') private form: RegisterForm;
 
   constructor(private accountService: AccountService,
-    public viewCtrl: ViewController) {
+    public viewCtrl: ModalController) {
   }
 
   cancel() {

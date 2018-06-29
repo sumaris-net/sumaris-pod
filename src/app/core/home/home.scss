@@ -1,89 +1,67 @@
+@import 'variables2';
 page-home {
-
   .light-bg {
-    background-color: rgba(255,255,255,.7);
+    background-color: rgba(255, 255, 255, .7);
   }
-
   .center {
     text-align: center;
   }
-
   .padding.center {
     display: inline-block;
     padding: 15px;
   }
-
   .main-content {
     @extend .center;
     @extend .padding;
     @extend .light-bg;
-
     min-width: 240px;
     z-index: 99;
-
     button {
       width: 100%;
-      margin-top:16px;
+      margin-top: 16px;
     }
   }
-
   .bottom-banner {
     @extend .center;
     @extend .padding;
     @extend .light-bg;
-
     min-width: 240px;
-
     z-index: -99;
-
     img.logo {
       max-height: 50px;
       margin-left: 8px;
     }
-  }
-
-  // Extra small device: Phones (<767px)
+  } // Extra small device: Phones (<767px)
   @media screen and (max-width: $screen-xs-max) {
     ion-content {
       // Avoid boittom-banner to override main-content
       min-height: 539px;
     }
-
     .bottom-banner {
-
       img.logo {
         max-height: 30px;
       }
     }
-  }
-
-
-  // Small devices: Tablets (≥768px)
-  @media screen and (max-width: $screen-sm-max) and (min-width: $screen-sm){
+  } // Small devices: Tablets (≥768px)
+  @media screen and (max-width: $screen-sm-max) and (min-width: $screen-sm) {
     ion-content {
       // Avoid boittom-banner to override main-content
       min-height: 555px;
     }
-
     .bottom-banner {
       img.logo {
         max-height: 40px;
       }
     }
-  }
-
-   // Desktop or wide screen
-   @media screen and (min-width: $screen-md) {
-
+  } // Desktop or wide screen
+  @media screen and (min-width: $screen-md) {
     ion-content {
       // Avoid boittom-banner to override main-content
       min-height: 606px;
     }
-
     .main-content {
       padding-bottom: 0px;
     }
-
     .bottom-banner {
       position: absolute;
       bottom: 16px;

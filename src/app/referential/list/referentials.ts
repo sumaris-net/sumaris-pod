@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { merge } from "rxjs/observable/merge";
 import { map } from "rxjs/operators";
-import { Observable } from 'rxjs';
+import { Subscription, Observable } from 'rxjs-compat';
 import { startWith, switchMap, mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, TableSelectColumnsComponent } from "../../core/core.module";
@@ -9,8 +9,7 @@ import { ReferentialValidatorService } from "../validator/validators";
 import { ReferentialService, ReferentialFilter } from "../services/referential-service";
 import { SelectionModel } from "@angular/cdk/collections";
 import { Referential, StatusIds } from "../services/model";
-import { Subscription } from "rxjs";
-import { ModalController, Platform } from "ionic-angular";
+import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService } from '../services/vessel-service';
 import { AccountService } from '../../core/services/account.service';
@@ -29,6 +28,7 @@ const DEFAULT_ENTITY_NAME = "Location";
 })
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
+  entityNameForm: FormGroup;
   filterForm: FormGroup;
   entities: Observable<{ name: string, label: string }[]>;
   levels: Observable<Referential[]>;
@@ -89,6 +89,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.inlineEdition = true; // always inline edition
     this.i18nColumnPrefix = 'REFERENTIAL.';
 
+    this.entityNameForm = formBuilder.group({
+      'entityName': ['']
+    });
     this.filterForm = formBuilder.group({
       'searchText': ['']
     });

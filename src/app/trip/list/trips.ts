@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { MatPaginator, MatSort } from "@angular/material";
 import { merge } from "rxjs/observable/merge";
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs-compat';
 import { startWith, switchMap, mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTable, AppTableDataSource, AccountService, TableSelectColumnsComponent } from "../../core/core.module";
@@ -10,13 +10,12 @@ import { TripService, TripFilter } from "../services/trip-service";
 import { SelectionModel } from "@angular/cdk/collections";
 import { TripModal } from "../modal/modal-trip";
 import { Trip, Referential, VesselFeatures, LocationLevelIds } from "../services/model";
-import { Subscription } from "rxjs";
-import { ModalController, Platform } from "ionic-angular";
+import { Subscription } from "rxjs-compat";
+import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService, ReferentialService } from '../../referential/referential.module';
 import { Location } from '@angular/common';
-import { ViewController, IonicPage } from "ionic-angular";
-import { PopoverController } from 'ionic-angular';
+import { PopoverController } from '@ionic/angular';
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { MatButtonToggle } from "@angular/material";
 import { fadeInAnimation, slideInOutAnimation } from "../../shared/material/material.module";
@@ -30,10 +29,10 @@ import { AppComponent } from "../../app.component";
   templateUrl: 'trips.html',
   providers: [
     { provide: ValidatorService, useClass: TripValidatorService }
-  ],
+  ]/*,
 
   // make fade in animation available to this component
-  animations: [fadeInAnimation, slideInOutAnimation]//,
+  animations: [fadeInAnimation, slideInOutAnimation]//,*/
 
   // attach the fade in animation to the host (root) element of this component
   //host: { '[@fadeInAnimation]': '' }
@@ -112,10 +111,10 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   }
 
   // Not USED - remane in onAddRowDetail() if need)
-  onAddRowDetailUsingModal(): Promise<any> {
-    if (this.loading) return;
+  async onAddRowDetailUsingModal(): Promise<any> {
+    if (this.loading) return Promise.resolve();
 
-    let modal = this.modalCtrl.create(TripModal);
+    const modal = await this.modalCtrl.create({ component: TripModal });
     // if new trip added, refresh the table
     modal.onDidDismiss(res => res && this.onRefresh.emit());
     return modal.present();

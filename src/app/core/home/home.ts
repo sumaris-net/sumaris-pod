@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { DatePipe } from "@angular/common";
 import { ActivatedRoute } from '@angular/router';
-import { ModalController } from 'ionic-angular';
+import { ModalController } from '@ionic/angular';
 import { RegisterModal } from '../register/modal/modal-register';
 import { Subscription } from 'rxjs';
 import { AccountService } from '../services/account.service';
@@ -10,15 +10,27 @@ import { Account } from '../services/model';
 // import fade in animation
 import { fadeInAnimation } from '../../shared/material/material.animations';
 
+export function getRandomImage() {
+
+  var imageCount = 7;
+  const kind = 'ray';
+
+  if (imageCount == 0) return getRandomImage();
+  var imageIndex = Math.floor(Math.random() * imageCount) + 1;
+  return './assets/img/bg/' + kind + '-' + imageIndex + '.jpg';
+};
+
 @Component({
   moduleId: module.id.toString(),
   selector: 'page-home',
   templateUrl: 'home.html',
+  styleUrls: ['./home.scss']
+  /*,
   // make fade in animation available to this component
   animations: [fadeInAnimation],
 
   // attach the fade in animation to the host (root) element of this component
-  host: { '[@fadeInAnimation]': '' }
+  host: { '[@fadeInAnimation]': '' }*/
 })
 export class HomePage implements OnDestroy {
 
@@ -32,7 +44,7 @@ export class HomePage implements OnDestroy {
     public activatedRoute: ActivatedRoute,
     public modalCtrl: ModalController
   ) {
-    this.bgImage = this.getRandomImage();
+    this.bgImage = getRandomImage();
     this.isLogin = accountService.isLogin();
     if (this.isLogin) {
       this.onLogin(this.accountService.account);
@@ -62,19 +74,11 @@ export class HomePage implements OnDestroy {
     this.displayName = "";
   }
 
-  getRandomImage() {
 
-    var imageCount = 7;
-    const kind = 'ray';
 
-    if (imageCount == 0) return this.getRandomImage();
-    var imageIndex = Math.floor(Math.random() * imageCount) + 1;
-    return './assets/img/bg/' + kind + '-' + imageIndex + '.jpg';
-  }
-
-  register() {
-    let modal = this.modalCtrl.create(RegisterModal);
-    modal.present();
+  async register() {
+    const modal = await this.modalCtrl.create({ component: RegisterModal });
+    return modal.present();
   }
 
   logout(event: any) {

@@ -50,7 +50,7 @@
   <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
   <mat-table #table padding-left [dataSource]="dataSource" class="trips-table " matSort matSortActive="exteriorMarking" matSortDirection="asc"
-    matSortDisableClear [trackBy]="id">
+    matSortDisableClear trackBy="id">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -93,7 +93,7 @@
         <span translate>VESSEL.EXTERIOR_MARKING</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field>
           <input matInput [formControl]="row.validator.controls['exteriorMarking']" [placeholder]="'VESSEL.EXTERIOR_MARKING'|translate"
             [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [(ngModel)]="row.currentData.exteriorMarking">
           <mat-error *ngIf="row.validator.controls['exteriorMarking'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -107,7 +107,7 @@
         <span translate>VESSEL.NAME</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field>
           <input matInput [formControl]="row.validator.controls['name']" [placeholder]="'VESSEL.NAME'|translate" [readonly]="!row.editing"
             [(ngModel)]="row.currentData.name">
           <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -121,7 +121,7 @@
         <span translate>VESSEL.BASE_PORT_LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field>
           <input matInput [formControl]="row.validator.controls['basePortLocation']" [matAutocomplete]="autoLocation" [readonly]="!row.editing"
             [(ngModel)]="row.currentData.basePortLocation" required>
           <mat-error *ngIf="row.validator.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -142,7 +142,7 @@
         <span translate>VESSEL.COMMENTS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-form-field floatPlaceholder="never">
+        <mat-form-field>
           <input matInput [formControl]="row.validator.controls['comments']" [readonly]="!row.editing" [(ngModel)]="row.currentData.comments">
         </mat-form-field>
       </mat-cell>

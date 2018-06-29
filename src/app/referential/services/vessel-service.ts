@@ -1,12 +1,12 @@
 import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
-import { Observable } from "rxjs";
+import { Observable } from "rxjs-compat";
 import { VesselFeatures, Person, toDateISOString } from "./model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
-import { DocumentNode } from "graphql";
+
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
 
@@ -15,7 +15,7 @@ export declare class VesselFilter {
   vesselId?: number;
   searchText?: string
 }
-const LoadAllQuery: DocumentNode = gql`
+const LoadAllQuery: any = gql`
   query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
     vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       id
@@ -43,7 +43,7 @@ const LoadAllQuery: DocumentNode = gql`
     }
   }
 `;
-const LoadQuery: DocumentNode = gql`
+const LoadQuery: any = gql`
   query Vessel($vesselId: Int, $vesselFeaturesId: Int) {
     vessels(filter: {vesselId: $vesselId, vesselFeaturesId: $vesselFeaturesId}) {
       id
@@ -82,7 +82,7 @@ const LoadQuery: DocumentNode = gql`
   }
 `;
 
-const SaveVessels: DocumentNode = gql`
+const SaveVessels: any = gql`
   mutation saveVessels($vessels:[VesselFeaturesVOInput]){
     saveVessels(vessels: $vessels){
       id
@@ -121,7 +121,7 @@ const SaveVessels: DocumentNode = gql`
   }
 `;
 
-const DeleteVessels: DocumentNode = gql`
+const DeleteVessels: any = gql`
   mutation deleteVessels($ids:[Int]){
     deleteVessels(ids: $ids)
   }

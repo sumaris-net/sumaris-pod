@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { AccountService } from '../../services/account.service';
 import { Location } from '@angular/common';
+import { getRandomImage } from '../../home/home';
 
 @Component({
   selector: 'page-registrer-confirm',
@@ -15,12 +16,15 @@ export class RegisterConfirmPage implements OnDestroy {
   loading: boolean = true;
   error: String;
   email: String;
+  bgImage: String;
 
   constructor(
     private accountService: AccountService,
     private activatedRoute: ActivatedRoute,
     private location: Location) {
+
     this.isLogin = accountService.isLogin();
+    this.bgImage = getRandomImage();
 
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.isLogin = true));

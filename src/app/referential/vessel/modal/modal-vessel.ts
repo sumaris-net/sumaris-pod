@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { VesselFeatures } from "../../services/model";
-import { ViewController } from "ionic-angular";
+import { ModalController } from "@ionic/angular";
 import { VesselForm } from '../form/form-vessel';
 import { VesselService } from '../../services/vessel-service';
 
@@ -17,7 +17,7 @@ export class VesselModal {
 
   constructor(
     private vesselService: VesselService,
-    private viewCtrl: ViewController) {
+    private viewCtrl: ModalController) {
   }
 
   onSave(json: any): Promise<any> {

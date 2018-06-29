@@ -15,13 +15,12 @@
 
       <button ion-button icon-only class="visible-xs visible-sm" (click)="doSubmit()" *ngIf="!loading">
         <ion-icon name="checkmark"></ion-icon>
-      </button>      
+      </button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content padding>
-  <form-auth (onSubmit)="doSubmit(data)"
-             (onCancel)="cancel()" #form>
-  </form-auth>  
+  <form-auth (onSubmit)="doSubmit()" (onCancel)="cancel()" #form>
+  </form-auth>
 </ion-content>

@@ -9,7 +9,7 @@ import { ApolloLink } from 'apollo-link';
 import { getOperationAST } from 'graphql';
 import { WebSocketLink } from 'apollo-link-ws';
 import { Storage } from '@ionic/storage';
-
+import { Hermes } from 'apollo-cache-hermes';
 import { environment } from '../../../environments/environment';
 
 /* Hack on Websocket, to avoid the use of protocol */
@@ -75,20 +75,24 @@ export class AppGraphQLModule {
       webSocketImpl: AppWebSocket
     });
 
+    const imCache = new InMemoryCache({
+      dataIdFromObject: dataIdFromObject
+    });
+    // const heCache = new Hermes({
+    //   entityIdForNode: dataIdFromObject
+    // });
 
     // create Apollo
     apollo.create({
-      link: ApolloLink.split(
+      link: http/*ApolloLink.split(
         operation => {
           const operationAST = getOperationAST(operation.query, operation.operationName);
           return !!operationAST && operationAST.operation === 'subscription';
         },
         ws,
         http,
-      ),
-      cache: new InMemoryCache({
-        dataIdFromObject: dataIdFromObject
-      })
+      )*/,
+      cache: imCache
     });
   }
 }

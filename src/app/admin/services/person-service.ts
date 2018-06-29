@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { ApolloQueryResult } from 'apollo-client';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs-compat';
 import { Person } from './model';
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { ErrorCodes } from "./errors";

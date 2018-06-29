@@ -16,7 +16,7 @@ import { TripService } from './services/trip-service';
 import { OperationService } from './services/operation-service';
 import { OperationValidatorService } from './operation/validator/validators';
 import { TripModal } from './modal/modal-trip';
-import { IonicModule } from 'ionic-angular';
+import { IonicModule } from '@ionic/angular';
 
 @NgModule({
     imports: [

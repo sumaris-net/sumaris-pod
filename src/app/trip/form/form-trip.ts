@@ -2,10 +2,10 @@ import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { TripValidatorService } from "../validator/validators";
 import { FormGroup } from "@angular/forms";
 import { Trip, Referential, VesselFeatures, LocationLevelIds, vesselFeaturesToString } from "../services/model";
-import { ModalController, Platform } from "ionic-angular";
+import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs-compat';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../../core/core.module';
@@ -68,8 +68,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
           }));
   }
 
-  public addVesselModal(): Promise<any> {
-    let modal = this.modalCtrl.create(VesselModal);
+  public async  addVesselModal(): Promise<any> {
+    const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss(res => {
       // if new vessel added, use it
       if (res) {

@@ -1,5 +1,4 @@
 import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
-import { Navbar, NavController } from 'ionic-angular';
 
 @Component({
   selector: 'app-toolbar',
@@ -19,10 +18,11 @@ export class ToolbarComponent implements OnInit {
   @Input()
   hasValidate: boolean = true;
 
+  @Input()
+  hasSearch: boolean = true;
+
   @Output()
   onValidate: EventEmitter<any> = new EventEmitter<any>();
-
-  @ViewChild('navbar') public navBar: NavController;
 
   constructor(
   ) {
@@ -35,18 +35,10 @@ export class ToolbarComponent implements OnInit {
   ngOnInit() {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
 
-    //console.log(this.navBar);
-    /*this.navBar.backButtonClick = (e:UIEvent)=>{
-     console.log("Back clicked !");
-     //this.navBar.conpop();
-     history.back();
-    }*/
-
-    //this.navBar.hideBackButton = false;
   }
 
-
-  public push(page: any, params?: any) {
-    this.navBar.push(page, params);
+  enableSearchBar() {
+    console.log('TODO: add toolbar');
   }
+
 }

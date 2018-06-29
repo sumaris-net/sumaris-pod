@@ -11,7 +11,7 @@
     </ion-title>
 
     <ion-buttons right end>
-      <button ion-button icon-only class="visible-xs visible-sm" (click)="close($event)">
+      <button ion-button icon-only class="visible-xs visible-sm" (click)="close()">
         <ion-icon name="checkmark"></ion-icon>
       </button>
     </ion-buttons>
@@ -35,7 +35,7 @@
       {{'COMMON.BTN_CANCEL'|translate}}
     </button>
 
-    <button mat-raised-button color="primary" (click)="close($event)">
+    <button mat-raised-button color="primary" (click)="close()">
       {{'COMMON.BTN_APPLY'|translate}}
     </button>
   </ion-buttons>

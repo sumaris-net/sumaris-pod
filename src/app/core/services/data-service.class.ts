@@ -1,6 +1,5 @@
-import { Observable, Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs-compat";
 import { Apollo } from "apollo-angular";
-import { GraphQLError, DocumentNode } from "graphql";
 import { ApolloQueryResult } from "apollo-client";
 import { R } from "apollo-angular/types";
 import { ErrorCodes, ServiceError } from "./errors";
@@ -33,7 +32,7 @@ export class BaseDataService {
   }
 
   protected query<T, V = R>(opts: {
-    query: DocumentNode,
+    query: any,
     variables: V,
     error?: ServiceError
   }): Promise<T> {
@@ -65,7 +64,7 @@ export class BaseDataService {
   }
 
   protected watchQuery<T, V = R>(opts: {
-    query: DocumentNode,
+    query: any,
     variables: V,
     error?: ServiceError
   }): Observable<T> {
@@ -93,7 +92,7 @@ export class BaseDataService {
       ;
   }
 
-  protected mutate<T, V = R>(opts: { mutation: DocumentNode, variables: V, error?: ServiceError }): Promise<T> {
+  protected mutate<T, V = R>(opts: { mutation: any, variables: V, error?: ServiceError }): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       let subscription = this.apollo.mutate<ApolloQueryResult<T>, V>({
         mutation: opts.mutation,
@@ -119,7 +118,7 @@ export class BaseDataService {
   }
 
   protected addToQueryCache<V = R>(opts: {
-    query: DocumentNode,
+    query: any,
     variables: V
   }, propertyName: string, newValue: any) {
     const values = this.apollo.getClient().readQuery(opts);
@@ -137,7 +136,7 @@ export class BaseDataService {
   }
 
   protected removeToQueryCacheById<V = R>(opts: {
-    query: DocumentNode,
+    query: any,
     variables: V
   }, propertyName: string, idToRemove: number) {
 
@@ -160,7 +159,7 @@ export class BaseDataService {
   }
 
   protected removeToQueryCacheByIds<V = R>(opts: {
-    query: DocumentNode,
+    query: any,
     variables: V
   }, propertyName: string, idsToRemove: number[]) {
 
@@ -188,7 +187,7 @@ export class BaseDataService {
       console.error("[base-service] " + err.networkError.message);
       result = {
         data: null,
-        errors: [new GraphQLError("ERROR.UNKNOWN_NETWORK_ERROR")],
+        //errors: [new GraphQLError("ERROR.UNKNOWN_NETWORK_ERROR")],
         loading: false,
         networkStatus: err.networkStatus,
         stale: err.stale
@@ -197,7 +196,7 @@ export class BaseDataService {
     else {
       result = {
         data: null,
-        errors: [err as GraphQLError],
+        //errors: [err as GraphQLError],
         loading: false,
         networkStatus: err.networkStatus,
         stale: err.stale
@@ -210,10 +209,12 @@ export class BaseDataService {
     let result: T;
     if (err && err.networkError) {
       console.error("[base-service] " + err.networkError.message);
-      throw new GraphQLError("ERROR.UNKNOWN_NETWORK_ERROR");
+      //throw new GraphQLError("ERROR.UNKNOWN_NETWORK_ERROR");
+      throw new Error("ERROR.UNKNOWN_NETWORK_ERROR");
     }
     else {
-      throw err as GraphQLError;
+      //throw err as GraphQLError;
+      throw err;
     }
   }
 }

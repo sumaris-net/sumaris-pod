@@ -1,7 +1,7 @@
 import { Component, ViewChild, OnInit } from "@angular/core";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Trip, Sale } from "../services/model";
-import { ViewController } from "ionic-angular";
+import { ModalController } from "@ionic/angular";
 import { TripForm } from '../form/form-trip';
 import { TripService } from '../services/trip-service';
 import { SaleForm } from '../sale/form/form-sale';
@@ -21,7 +21,7 @@ export class TripModal extends TripPage {
     protected route: ActivatedRoute,
     protected router: Router,
     protected tripService: TripService,
-    protected viewCtrl: ViewController) {
+    protected viewCtrl: ModalController) {
     super(route, router, tripService);
   }
 

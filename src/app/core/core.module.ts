@@ -19,10 +19,7 @@ import { AppTable } from './table/table.class';
 import { AppTableDataSource } from './table/table-datasource.class';
 import { TableSelectColumnsComponent } from './table/table-select-columns.component';
 import { MenuComponent } from './menu/menu.component';
-import { IonicApp, IonicErrorHandler, IonicModule } from "ionic-angular";
-import { HttpClient, HttpClientModule } from "@angular/common/http";
-import { TranslateModule, TranslateService, TranslateLoader } from "@ngx-translate/core";
-import { TranslateHttpLoader } from "@ngx-translate/http-loader";
+import { IonicModule } from "@ionic/angular";
 import { ReactiveFormsModule } from "@angular/forms";
 import { IonicStorageModule } from '@ionic/storage';
 import { HomePage } from './home/home';
@@ -35,27 +32,34 @@ import * as moment from "moment/moment";
 import { BrowserModule } from "@angular/platform-browser";
 import { environment } from '../../environments/environment';
 
+// import ngx-translate and the http loader
+import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Http } from "@angular/http";
+
 export { environment, AppForm, AppTable, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent }
 
-export function createTranslateLoader(http: HttpClient) {
+
+export function HttpLoaderFactory(http: HttpClient) {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
 @NgModule({
     imports: [
         CommonModule,
+        //CoreRoutingModule,
         BrowserModule,
         RouterModule,
-        //CoreRoutingModule,
+        HttpClientModule,
         AppGraphQLModule,
         SharedModule,
-        HttpClientModule,
         ReactiveFormsModule,
         IonicStorageModule.forRoot(),
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,
-                useFactory: (createTranslateLoader),
+                useFactory: HttpLoaderFactory,
                 deps: [HttpClient]
             }
         })
