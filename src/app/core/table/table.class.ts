@@ -308,5 +308,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         });
         return modal.present();
     }
+
+    public trackByFn(index: number, row: TableElement<T>) {
+        return row.id;
+    }
 }
 

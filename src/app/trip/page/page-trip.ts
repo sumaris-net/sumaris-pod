@@ -8,17 +8,10 @@ import { FormGroup } from '@angular/forms';
 import { SaleForm } from '../sale/form/form-sale';
 import { OperationTable } from '../operation/table/table-operations';
 import { Observable } from "rxjs-compat";
-import { slideInOutAnimation } from '../../shared/material/material.module';
 
 @Component({
   selector: 'page-trip',
-  templateUrl: './page-trip.html',
-
-  // make fade in animation available to this component
-  animations: [slideInOutAnimation],
-
-  // attach the fade in animation to the host (root) element of this component
-  host: { '[@slideInOutAnimation]': '' }
+  templateUrl: './page-trip.html'
 })
 export class TripPage implements OnInit {
 

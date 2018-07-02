@@ -25,12 +25,6 @@ export function getRandomImage() {
   selector: 'page-home',
   templateUrl: 'home.html',
   styleUrls: ['./home.scss']
-  /*,
-  // make fade in animation available to this component
-  animations: [fadeInAnimation],
-
-  // attach the fade in animation to the host (root) element of this component
-  host: { '[@fadeInAnimation]': '' }*/
 })
 export class HomePage implements OnDestroy {
 

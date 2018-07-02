@@ -22,6 +22,7 @@ import { IonicModule } from '@ionic/angular';
     imports: [
         CommonModule,
         CoreModule
+        //,TripRoutingModule
     ],
 
     declarations: [

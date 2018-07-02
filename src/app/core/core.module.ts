@@ -29,7 +29,6 @@ import { AppGraphQLModule } from './graphql/graphql.module';
 import { DateAdapter } from "@angular/material";
 import * as moment from "moment/moment";
 
-import { BrowserModule } from "@angular/platform-browser";
 import { environment } from '../../environments/environment';
 
 // import ngx-translate and the http loader
@@ -49,7 +48,6 @@ export function HttpLoaderFactory(http: HttpClient) {
     imports: [
         CommonModule,
         //CoreRoutingModule,
-        BrowserModule,
         RouterModule,
         HttpClientModule,
         AppGraphQLModule,
@@ -83,7 +81,6 @@ export function HttpLoaderFactory(http: HttpClient) {
     ],
     exports: [
         CommonModule,
-        BrowserModule,
         SharedModule,
         RouterModule,
         AppGraphQLModule,

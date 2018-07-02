@@ -5,30 +5,33 @@
 <ion-content class="no-padding-xs">
 
   <mat-toolbar>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
-      <mat-icon>add</mat-icon>
-    </button>
-    <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
-      <mat-icon>refresh</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
-      <mat-icon>search</mat-icon>
-    </button>
-    <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
-      <mat-icon>delete</mat-icon>
-    </button>
+    <ion-buttons slot="start">
+      <ion-button icon-only *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+        <ion-icon name="add"></ion-icon>
+      </ion-button>
+      <ion-button icon-only *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+        <ion-icon name="refresh"></ion-icon>
+      </ion-button>
+      <ion-button icon-only *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
+        <ion-icon name="search"></ion-icon>
+      </ion-button>
+      <ion-button icon-only *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
+        <ion-icon name="delete"></ion-icon>
+      </ion-button>
+    </ion-buttons>
 
     <span class="toolbar-spacer"></span>
 
+    <ion-buttons slot="end">
+      <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
+        [disabled]="dirty" #inlineEditionBtn>
+        <ion-icon name="edit"></ion-icon>
+      </mat-button-toggle>
 
-    <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
-      [disabled]="dirty" #inlineEditionBtn>
-      <mat-icon>edit</mat-icon>
-    </mat-button-toggle>
-
-    <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
-      <mat-icon>more_vert</mat-icon>
-    </button>
+      <ion-button icon-only [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+        <ion-icon name="more_vert"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </mat-toolbar>
 
   <!-- search -->
@@ -81,7 +84,7 @@
   <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
   <mat-table #table padding-left [dataSource]="dataSource" class="trips-table " matSort matSortActive="departureDateTime" matSortDirection="asc"
-    matSortDisableClear [trackBy]="id">
+    matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>

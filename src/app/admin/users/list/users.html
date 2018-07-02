@@ -43,7 +43,7 @@
   </mat-expansion-panel>
 
   <mat-table #table padding-left [dataSource]="dataSource" matSort matSortActive="lastName" matSortDirection="asc" matSortDisableClear
-    trackBy="id">
+    [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>

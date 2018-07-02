@@ -61,7 +61,7 @@
   <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
   <mat-table #table padding-left [dataSource]="dataSource" class="trips-table" matSort matSortActive="label" matSortDirection="asc"
-    matSortDisableClear trackBy="id">
+    matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>

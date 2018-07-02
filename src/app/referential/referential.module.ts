@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BrowserModule } from '@angular/platform-browser';
 import { CoreModule } from '../core/core.module';
 import { IonicModule } from '@ionic/angular';
 import { ReferentialRoutingModule } from './referential-routing.module';
@@ -22,7 +21,6 @@ export { VesselModal, VesselService, ReferentialService }
 @NgModule({
     imports: [
         CommonModule,
-        BrowserModule,
         CoreModule,
         IonicModule
         //ReferentialRoutingModule

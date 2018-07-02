@@ -2,35 +2,31 @@
 
 <ion-content padding class="bg-image-cover center" [ngStyle]="{'background-image': 'url('+bgImage+')'}">
 
+
   <p class="hidden-xs">&nbsp;</p>
 
-  <div class="main-content">
+  <ion-card>
+    <ion-card-header>
+      <h4 translate>HOME.WELCOME</h4>
+    </ion-card-header>
+    <ion-card-content>
+      <p ion-text [innerHTML]="'HOME.DESCRIPTION'|translate"></p>
 
-    <h4 translate>HOME.WELCOME</h4>
+      <p>
+        <img id="logo" src="./assets/img/logo.png" [title]="'APP_NAME'|translate" />
+      </p>
+    </ion-card-content>
 
-    <p ion-text [innerHTML]="'HOME.DESCRIPTION'|translate"></p>
-
-    <br/>
-
-    <img id="logo" src="./assets/img/logo.png" [title]="'APP_NAME'|translate" />
-
-    <br/>
-    <br/>
-    <div>
-      <!-- <button mat-raised-button icon-left  [color]="isLogin?'primary':'light'" [routerLink]="['/trips']">
-        <mat-icon>search</mat-icon>
-        <span translate>HOME.BTN_TRIPS</span>
-      </button> -->
-
-      <button mat-raised-button icon-left color="primary" [routerLink]="['/account']" *ngIf="!isLogin">
-        <ion-icon name="log-in"></ion-icon>
+    <ion-footer>
+      <ion-button size="full" color="primary" [routerLink]="['/account']" *ngIf="!isLogin">
+        <ion-icon name="log-in" slot="start"></ion-icon>
         <span translate>AUTH.BTN_LOGIN</span>
-      </button>
+      </ion-button>
 
-      <button mat-raised-button icon-left color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
-        <ion-icon name="contact"></ion-icon>
+      <ion-button size="full" color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
+        <ion-icon name="contact" slot="start"></ion-icon>
         <span translate>HOME.BTN_MY_ACCOUNT</span>
-      </button>
+      </ion-button>
 
       <p *ngIf="!isLogin">
         <span translate>AUTH.NO_ACCOUNT_QUESTION</span>
@@ -46,8 +42,8 @@
           <span translate>HOME.BTN_DISCONNECT</span>
         </a>
       </p>
-    </div>
-  </div>
+    </ion-footer>
+  </ion-card>
 
   <p class="hidden-xs">&nbsp;</p>
 

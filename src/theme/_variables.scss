@@ -1,65 +1,59 @@
-// Ionic Variables and Theming. For more info, please see:
-// http://ionicframework.com/docs/theming/
-// Font path is used to include ionicons,
-// roboto, and noto sans fonts
-$font-path: "dist/fonts";
-//$ionicons-font-path: "~node_modules/@ionic/angular";
-//$roboto-font-path: "~node_modules/roboto-fontface/fonts";
-//$font-full-path: "~node_modules/roboto-fontface/fonts";
-//$font-path: "~node_modules/roboto-fontface/fonts/roboto";
-// The app direction is used to include
-// rtl styles in your app. For more info, please see:
-// http://ionicframework.com/docs/theming/rtl-support/
+//$font-path: 'dist/fonts';
 $app-direction: ltr !default;
-@import "ionic.globals";
+@import '~@ionic/angular/dist/themes/ionic.globals';
 // Shared Variables
 // --------------------------------------------------
-// To customize the look and feel of this app, you can override
-// the Sass variables found in Ionic's source scss files.
-// To view all the possible Ionic variables, see:
-// http://ionicframework.com/docs/theming/overriding-ionic-variables/
 $text-color: #000;
 $background-color: #fff;
-// Named Color Variables
 // --------------------------------------------------
-// Named colors makes it easy to reuse colors on various components.
-// It's highly recommended to change the default colors
-// to match your app's branding. Ionic uses a Sass map of
-// colors so you can add, rename and remove colors as needed.
-// The "primary" color is the only required color in the map.
-//TODO: primary: #144391, secondary: #5b5ef4, danger: #f53d3d, light: #75C4FD, dark: #0039a2,
-$colors: ( primary: #3880ff, secondary: #0cd1e8, tertiary: #7044ff, success: #10dc60, warning: #ffce00, danger: #f04141, light: #f4f5f8, medium: #989aa2, dark: #222428,
-/* User defined colors */
-
-balanced: #0e909e, primary100: #718dbc, secondary100: #9c9df8, danger100: #f98989, light100: #abdbfe, dark100: #6487c7, balanced100: #6dbcc4, primary900: #0e2e63, secondary900: #3e40a7, danger900: #a82a2a, light900: #5086ad, dark900: #00276f, balanced900: #0a636c);
-// Ionicons
+// Responsive: Utility classes
 // --------------------------------------------------
-// The premium icon font for Ionic. For more info, please see:
-// http://ionicframework.com/docs/ionicons/
-@import "ionicons";
-// Fonts
+$screen-xxs-max: 400px;
+$screen-xs: 401px;
+$screen-xs-max: 767px;
+$screen-sm: 768px;
+$screen-sm-max: 991px;
+$screen-md: 992px;
+$screen-md-max: 1199px;
+$screen-lg: 1200px;
 // --------------------------------------------------
-//@import "./node_modules/roboto-fontface/css/roboto/sass/roboto-fontface";
-// App iOS Variables
+// theme Colors
 // --------------------------------------------------
-// iOS only Sass variables can go here
-// App Material Design Variables
+$primary: #144391;
+$secondary: #0cd1e8;
+$tertiary: #5b5ef4;
+$success: #10dc60;
+$warning: #ffce00;
+$danger: #f53d3d;
+$light: #75C4FD;
+$medium: #989aa2;
+$dark: #0039a2;
 // --------------------------------------------------
-// Material Design only Sass variables can go here
-// App Windows Variables
+// User defined Colors
 // --------------------------------------------------
-// Windows only Sass variables can go here
-// App Theme
+$balanced: #0e909e;
+$primary100: #718dbc;
+$secondary100: #9c9df8;
+$danger100: #f98989;
+$light100: #abdbfe;
+$dark100: #6487c7;
+$balanced100: #6dbcc4;
+$primary900: #0e2e63;
+$secondary900: #3e40a7;
+$danger900: #a82a2a;
+$light900: #5086ad;
+$dark900: #00276f;
+$balanced900: #0a636c;
+$colors: ( balanced: ( base: $balanced, contrast: #fff, shade: get-color-shade($balanced), tint: get-color-tint($balanced)), primary100: ( base: $primary100, contrast: #fff, shade: get-color-shade($primary100), tint: get-color-tint($primary100)), light100: ( base: $light100));
 // --------------------------------------------------
-// Ionic apps can have different themes applied, which can
-// then be future customized. This import comes last
-// so that the above variables are used and Ionic's
-// default are overridden.
-@import "ionic.theme.default";
-//@import "noto-sans";
-// Material lib (data grid, ...)
+// Import default theme
 // --------------------------------------------------
-@import './node_modules/@angular/material/theming';
+//@import '~@ionic/core/node_modules/ionicons/dist/scss/ionicons';
+@import '~@ionic/angular/dist/themes/ionic.theme.default.md';
+// --------------------------------------------------
+// Import material theme
+// --------------------------------------------------
+@import '~@angular/material/theming';
 // Plus imports for other components in your app.
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
@@ -78,14 +72,3 @@ $candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
 @include angular-material-theme($candy-app-theme);
-// --------------------------------------------------
-// Responsive: Utility classes
-// --------------------------------------------------
-$screen-xxs-max: 400px;
-$screen-xs: 401px;
-$screen-xs-max: 767px;
-$screen-sm: 768px;
-$screen-sm-max: 991px;
-$screen-md: 992px;
-$screen-md-max: 1199px;
-$screen-lg: 1200px;

@@ -1,3 +1,4 @@
+@import 'variables';
 // http://ionicframework.com/docs/theming/
 // Include all of Ionic
 // App Global Sass
@@ -55,17 +56,6 @@ p {
   display: none !important;
 }
 
-// --------------------------------------------------
-// Responsive: Utility classes
-// --------------------------------------------------
-$screen-xxs-max: 400px;
-$screen-xs: 401px;
-$screen-xs-max: 767px;
-$screen-sm: 768px;
-$screen-sm-max: 991px;
-$screen-md: 992px;
-$screen-md-max: 1199px;
-$screen-lg: 1200px;
 //$grid-breakpoints: (
 //  xs: 0
 //)
@@ -405,12 +395,13 @@ mat-table {
     cursor: pointer !important;
   }
   .mat-row-disabled:hover {
-    //background-color: color($colors, light100);
+    background-color: color($colors, light100);
     background-color: whitesmoke;
   }
   .mat-row-error {
-    //border-bottom-color: color($colors, danger);
-    border-bottom-width: 2px; //background-color: color($colors, light100);
+    border-bottom-color: color($colors, danger);
+    border-bottom-width: 2px;
+    background-color: color($colors, light100);
   }
   mat-cell .avatar {
     color: #d9d9d9;
@@ -487,6 +478,6 @@ mat-option ion-row {
 
 mat-button-toggle.mat-button-toggle-checked,
 mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
-  //background-color: color($colors, light);
+  background-color: color($colors, light);
   color: white;
 }

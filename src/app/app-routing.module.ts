@@ -15,20 +15,19 @@ import { ReferentialsPage } from './referential/list/referentials';
 import { TripsPage } from './trip/list/trips';
 import { TripPage } from './trip/page/page-trip';
 
-const routes2: Routes =
-  CoreRoutes
-    .concat(AdminRoutes)
-    .concat(ReferentialRoutes)
-    .concat(TripRoutes);
+import { environment } from '../environments/environment';
+
+const routeOptions = {
+  enableTracing: !environment.production,
+  useHash: false
+};
 
 //console.log(routes);
 
 const routes: Routes = [
   // Core path
-  {
-    path: '',
-    component: HomePage
-  },
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+
   {
     path: 'home/:action',
     component: HomePage
@@ -84,13 +83,23 @@ const routes: Routes = [
     ]
   },
 
+  // Trip path
+  // {
+  //   path: 'test',
+  //   loadChildren: './trip/trip.module#TripModule'
+  // },
+
   {
     path: "**",
     redirectTo: '/'
   },
 ];
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  imports: [
+    RouterModule.forRoot(routes, routeOptions)
+  ],
+  exports: [
+    RouterModule
+  ]
 })
 export class AppRoutingModule { }

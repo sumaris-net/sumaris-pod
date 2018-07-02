@@ -1,3 +1,4 @@
+@import 'variables';
 app-menu {
   ion-content .fixed-content,
   ion-content .scroll-content {
@@ -26,7 +27,7 @@ app-menu {
     display: inline-block;
   }
   .user-avatar.primary {
-    //background-color: color($colors, primary);
+    background-color: color($colors, primary/base);
   }
   .align-right {
     text-align: right;

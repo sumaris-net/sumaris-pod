@@ -18,6 +18,7 @@ import { CoreModule } from "./core/core.module";
 import { AdminModule } from "./admin/admin.module";
 import { ReferentialModule } from "./referential/referential.module";
 import { TripModule } from "./trip/trip.module";
+import { environment } from "../environments/environment.prod";
 
 
 @NgModule({
@@ -37,7 +38,7 @@ import { TripModule } from "./trip/trip.module";
     //StatusBar,
     //SplashScreen,
     //Keyboard,
-    { provide: APP_BASE_HREF, useValue: '/' },
+    { provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/') },
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: MAT_DATE_LOCALE, useValue: 'en' },
     { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE] },

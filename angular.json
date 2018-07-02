@@ -10,7 +10,7 @@
       "prefix": "app",
       "schematics": {
         "@schematics/angular:component": {
-          "styleext": "sass"
+          "styleext": "scss"
         }
       },
       "architect": {
@@ -25,21 +25,31 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
+              "src/svg",
               {
                 "glob": "**/*.svg",
-                "input": "../../dist/ionic/svg",
+                "input": "node_modules/@ionic/angular/dist/ionic/svg",
                 "output": "./svg"
+              },
+              {
+                "glob": "**/*.*",
+                "input": "node_modules/@ionic/core/node_modules/ionicons/dist/fonts",
+                "output": "./assets/fonts"
+              },
+              {
+                "glob": "**/*.*",
+                "input": "node_modules/roboto-fontface/fonts/roboto",
+                "output": "./"
               }
             ],
             "styles": [
-              "src/styles.sass"
+              "src/styles.scss"
             ],
             "scripts": [],
             "stylePreprocessorOptions": {
               "includePaths": [
                 "node_modules/@ionic/angular/dist/themes",
-                "node_modules/ionicons/dist/scss",
-                "node_modules/roboto-fontface/css/roboto/sass",
+                "node_modules/@ionic/core/node_modules/ionicons/dist/scss",
                 "src/theme"
               ]
             }
@@ -87,7 +97,7 @@
             "tsConfig": "src/tsconfig.spec.json",
             "karmaConfig": "src/karma.conf.js",
             "styles": [
-              "src/styles.sass"
+              "src/styles.scss"
             ],
             "scripts": [],
             "assets": [

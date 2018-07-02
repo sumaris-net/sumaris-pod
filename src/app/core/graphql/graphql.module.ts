@@ -59,9 +59,9 @@ export class AppGraphQLModule {
     //const authorization = token ? `Bearer ${token}` : null;
     //const headers = new HttpHeaders().append('Authorization', authorization);
 
-    const http = httpLink.create({ uri: environment.baseUrl + '/graphql' });
+    const http = httpLink.create({ uri: environment.remoteBaseUrl + '/graphql' });
 
-    const wsUrl = String.prototype.replace.call(environment.baseUrl, "http", "ws");
+    const wsUrl = String.prototype.replace.call(environment.remoteBaseUrl, "http", "ws");
     const ws = new WebSocketLink({
       uri: wsUrl + '/subscriptions/websocket',
       options: {

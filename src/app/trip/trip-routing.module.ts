@@ -10,17 +10,18 @@ const routes: Routes = [
     path: '',
     redirectTo: 'list',
     pathMatch: 'full'
-  },
-  {
-    path: 'list',
-    canActivate: [AuthGuardService],
-    children: [
-      { path: '', component: TripsPage },
-      {
-        path: ':id', component: TripPage
-      }
-    ]
   }
+  // ,
+  // {
+  //   path: 'list',
+  //   canActivate: [AuthGuardService],
+  //   children: [
+  //     { path: '', component: TripsPage },
+  //     {
+  //       path: ':id', component: TripPage
+  //     }
+  //   ]
+  // }
 ];
 
 export { routes as TripRoutes };

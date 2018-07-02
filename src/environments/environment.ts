@@ -6,7 +6,8 @@ const pkg = require('../../package.json')
 
 export const environment = {
     production: false,
-    baseUrl: "http://localhost:8080",
+    baseUrl: '/',
+    remoteBaseUrl: "http://localhost:8080",
     defaultLocale: 'en',
     version: pkg.version,
 
