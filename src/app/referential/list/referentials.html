@@ -1,20 +1,19 @@
 <app-toolbar [title]="'REFERENTIAL.LIST.TITLE'|translate" color="primary">
 </app-toolbar>
 
-<ion-content class="no-padding-xs">
+<ion-content no-padding>
 
   <mat-toolbar>
     <mat-toolbar-row>
       <form [formGroup]="entityNameForm" novalidate (ngSubmit)="onEntityNameChange(dataSource.serviceOptions.entityName)">
-        <ion-select>
-          <ion-select-option *ngFor="let entity of entities | async" [value]="entity.name">{{ entity.label | translate }}</ion-select-option>
-        </ion-select>
-        <!-- <mat-select formControlName="entityName" (ngModelChange)="onEntityNameChange($event)">
-          <mat-option *ngFor="let entity of entities | async" [value]="entity.name">{{ entity.label | translate }}</mat-option>
-        </mat-select> -->
+        <mat-form-field>
+          <mat-select formControlName="entityName" (ngModelChange)="onEntityNameChange($event)">
+            <mat-option *ngFor="let entity of entities | async" [value]="entity.id">{{ entity.label | translate }}</mat-option>
+          </mat-select>
+        </mat-form-field>
       </form>
 
-      <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+      <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()" class="hidden-xs hidden-sm">
         <mat-icon>add</mat-icon>
       </button>
       <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
@@ -23,17 +22,17 @@
       <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
         <mat-icon>search</mat-icon>
       </button>
-      <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
+      <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
+        class="hidden-xs hidden-sm">
         <mat-icon>delete</mat-icon>
       </button>
 
-
-
-      <span class="toolbar-spacer"></span>
       <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
-        [disabled]="true" [checked]="true" #inlineEditionBtn>
+        class="hidden-xs hidden-sm" [disabled]="true" [checked]="true" #inlineEditionBtn>
         <mat-icon>edit</mat-icon>
       </mat-button-toggle>
+
+      <span class="toolbar-spacer"></span>
 
       <button mat-icon-button [title]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
         <mat-icon>more_vert</mat-icon>
@@ -44,7 +43,7 @@
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel color="primary">
-    <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" padding>
+    <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" padding class="no-padding-xs">
 
       <!-- search text -->
       <mat-form-field>
@@ -60,8 +59,8 @@
   <!-- error -->
   <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
-  <mat-table #table padding-left [dataSource]="dataSource" class="trips-table" matSort matSortActive="label" matSortDirection="asc"
-    matSortDisableClear [trackBy]="trackByFn">
+  <mat-table #table [dataSource]="dataSource" class="trips-table" matSort matSortActive="label" matSortDirection="asc" matSortDisableClear
+    [trackBy]="getId">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -142,7 +141,7 @@
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
           <mat-select [formControl]="row.validator.controls['levelId']" [(ngModel)]="row.currentData.levelId">
-            <mat-option *ngFor="let level of levels | async" [value]="level.id">{{ level.name }}</mat-option>
+            <mat-option *ngFor="let level of levels | async" [value]="level.id">{{ level.label }} - {{ level.name }}</mat-option>
           </mat-select>
           <mat-error *ngIf="row.validator.controls['levelId'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
@@ -151,10 +150,10 @@
 
     <!-- Comment column -->
     <ng-container matColumnDef="comments">
-      <mat-header-cell *matHeaderCellDef>
+      <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
         <span translate>REFERENTIAL.COMMENTS</span>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
+      <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['comments']" [readonly]="!row.editing" [(ngModel)]="row.currentData.comments">
         </mat-form-field>
@@ -205,23 +204,11 @@
     </ion-col>
   </ion-row>
 
-  <!--<ion-list *ngIf="loading">
-    <ion-item *ngFor="let row of dataSource.currentData">
-      &lt;!&ndash;<ion-skeleton-text width="40px"></ion-skeleton-text>&ndash;&gt;
-      <h1>Fake</h1>
-    </ion-item>
-  </ion-list>-->
 
-  <!--<ion-fab right bottom class="visible-xs visible-sm">
-    <button ion-fab color="light"><ion-icon name="arrow-dropleft"></ion-icon></button>
-    <ion-fab-list side="left">
-      <button ion-fab color="accent" (click)="openTripDialog()"><ion-icon name="md-add"></ion-icon></button>
-    </ion-fab-list>
-  </ion-fab>-->
-
-  <ion-fab right bottom>
-    <button ion-fab color="light" (click)="addRow()">
-      <ion-icon name="md-add"></ion-icon>
-    </button>
-  </ion-fab>
 </ion-content>
+
+<ion-fab vertical="bottom" horizontal="end">
+  <ion-fab-button color="secondary" (click)="addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

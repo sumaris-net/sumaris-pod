@@ -100,7 +100,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 if (data) {
                     this.isRateLimitReached = data.length < this.paginator.pageSize;
                     this.resultsLength = this.paginator.pageIndex * this.paginator.pageSize + data.length;
-                    console.debug('[table] Loaded ' + data.length + ' rows: ', data);
+                    console.debug('[table] Loaded ' + data.length + ' rows');
                 }
                 else {
                     console.debug('[table] Loaded NO rows');
@@ -160,7 +160,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     addRow() {
         // Use modal if not expert mode, or if small screen
         if (this.platform.is('mobile') || !this.inlineEdition) {
-            return this.onAddRowDetail();
+            this.onAddRowDetail();
+            return;
         }
 
         // Add new row
@@ -233,12 +234,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.selectedRow = null;
     }
 
-    public onEditRow(event: MouseEvent, row: TableElement<T>) {
+    public onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
         if (this.selectedRow && this.selectedRow === row || event.defaultPrevented) return;
         if (this.selectedRow && this.selectedRow !== row && this.selectedRow.editing) {
             var confirm = this.selectedRow.confirmEditCreate();
             if (!confirm) {
-                return;
+                return false;
             }
         }
         if (!row.editing && !this.loading) {
@@ -247,18 +248,19 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         }
         this.selectedRow = row;
         this.dirty = true;
+        return true;
     }
 
-    public async onRowClick(event: MouseEvent, row: TableElement<T>): Promise<boolean> {
-        if (!row.currentData.id || row.editing || event.defaultPrevented) return;
+    public onRowClick(event: MouseEvent, row: TableElement<T>): boolean {
+        if (!row.currentData.id || row.editing || event.defaultPrevented) return false;
 
         // Open the detail page (if not editing)
         if (!this.dirty && !this.inlineEdition) {
-            return this.onOpenRowDetail(row.currentData.id);
+            this.onOpenRowDetail(row.currentData.id);
+            return true;
         }
 
-        this.onEditRow(event, row);
-        return false;
+        return this.onEditRow(event, row);
     }
 
     public onOpenRowDetail(id: number): Promise<boolean> {

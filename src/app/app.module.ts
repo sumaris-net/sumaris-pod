@@ -3,13 +3,11 @@ import "./vendor";
 
 import { APP_BASE_HREF } from "@angular/common";
 import { BrowserModule } from "@angular/platform-browser";
-import { ErrorHandler, NgModule } from "@angular/core";
+import { NgModule } from "@angular/core";
 import { IonicModule } from "@ionic/angular";
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, DateAdapter } from "@angular/material";
 import { DATE_ISO_PATTERN } from "./core/constants";
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
-import { Routes, RouterModule } from '@angular/router';
-
 
 // App modules
 import { AppComponent } from "./app.component";
@@ -27,11 +25,13 @@ import { environment } from "../environments/environment.prod";
   ],
   imports: [
     AppRoutingModule,
+    BrowserModule,
+    IonicModule.forRoot(),
+    // functional modules
     CoreModule,
     AdminModule,
     ReferentialModule,
-    TripModule,
-    IonicModule.forRoot()
+    TripModule
   ],
   bootstrap: [AppComponent],
   providers: [

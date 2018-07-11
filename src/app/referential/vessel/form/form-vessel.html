@@ -13,7 +13,7 @@
           <mat-error *ngIf="form.controls['exteriorMarking'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
-      <ion-col>
+      <ion-col size="auto">
         <mat-date-time [placeholder]="'VESSEL.START_DATE'|translate" formControlName="startDate" [displayTime]="false">
         </mat-date-time>
       </ion-col>
@@ -31,7 +31,7 @@
 
     <!-- Base port location -->
     <ion-row>
-      <ion-col col-12 class="hidden-xs">
+      <ion-col hidden-xs>
         <mat-form-field>
           <ion-icon margin-right name="pin" matPrefix></ion-icon>
           <input matInput [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate" [matAutocomplete]="autoLocation" formControlName="basePortLocation">
@@ -39,13 +39,13 @@
         </mat-form-field>
         <mat-autocomplete autoActiveFirstOption #autoLocation="matAutocomplete" [displayWith]="referentialToString">
           <ion-row padding>
-            <ion-col col-2 translate>REFERENTIAL.LABEL</ion-col>
+            <ion-col size="2" translate>REFERENTIAL.LABEL</ion-col>
             <ion-col translate>REFERENTIAL.NAME</ion-col>
           </ion-row>
 
           <mat-option *ngFor="let location of locations | async" [value]="location">
             <ion-row>
-              <ion-col col-2 [innerHTML]="location.label | highlight: {search: form.controls['basePortLocation'].value }"></ion-col>
+              <ion-col size="2" [innerHTML]="location.label | highlight: {search: form.controls['basePortLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['basePortLocation'].value }"></ion-col>
             </ion-row>
           </mat-option>
@@ -55,7 +55,7 @@
 
     <!-- Comments -->
     <ion-row>
-      <ion-col col-12>
+      <ion-col>
         <mat-form-field appearance="outline">
           <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'VESSEL.COMMENTS'|translate"
             formControlName="comments">

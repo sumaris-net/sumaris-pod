@@ -10,10 +10,13 @@ import { DateFormatPipe } from './pipes/date-format.pipe';
 import { HighlightPipe } from './pipes/highlight.pipe';
 import { ToolbarComponent } from './toolbar/toolbar';
 import { MatDateTime } from './material/material.datetime';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 @NgModule({
     imports: [
         CommonModule,
         MaterialModule,
+        BrowserAnimationsModule,
         ReactiveFormsModule,
         IonicModule,
         TranslateModule.forChild()
@@ -27,6 +30,7 @@ import { MatDateTime } from './material/material.datetime';
     ],
     exports: [
         MaterialModule,
+        BrowserAnimationsModule,
         ReactiveFormsModule,
         IonicModule,
         AutofocusDirective,

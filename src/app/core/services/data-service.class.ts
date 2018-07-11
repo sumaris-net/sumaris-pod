@@ -25,6 +25,10 @@ export declare interface DataService<T, F> {
 
 export class BaseDataService {
 
+  protected _lastVariables: any = {
+    loadAll: undefined
+  };
+
   constructor(
     protected apollo: Apollo
   ) {

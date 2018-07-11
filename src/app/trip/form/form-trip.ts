@@ -14,7 +14,8 @@ import { referentialToString } from '../../referential/services/model';
 
 @Component({
   selector: 'form-trip',
-  templateUrl: './form-trip.html'
+  templateUrl: './form-trip.html',
+  styleUrls: ['./form-trip.scss']
 })
 export class TripForm extends AppForm<Trip> implements OnInit {
 

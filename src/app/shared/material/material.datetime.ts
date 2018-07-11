@@ -13,6 +13,7 @@ import { SharedValidators } from '../validator/validators';
 @Component({
     selector: 'mat-date-time',
     templateUrl: 'material.datetime.html',
+    styleUrls: ['./material.datetime.scss'],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

@@ -1,8 +1,10 @@
 import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
+import { ProgressBarService } from '../../core/services/progress-bar.service';
 
 @Component({
   selector: 'app-toolbar',
-  templateUrl: 'toolbar.html'
+  templateUrl: 'toolbar.html',
+  styleUrls: ['./toolbar.scss'],
 })
 export class ToolbarComponent implements OnInit {
 
@@ -10,21 +12,24 @@ export class ToolbarComponent implements OnInit {
   title: string = '';
 
   @Input()
-  color: string = '';
+  color: string = 'primary';
 
   @Input()
   class: string = '';
 
   @Input()
-  hasValidate: boolean = true;
+  hasValidate: boolean = false;
 
   @Input()
-  hasSearch: boolean = true;
+  hasSearch: boolean = false;
 
   @Output()
   onValidate: EventEmitter<any> = new EventEmitter<any>();
 
+  progressBarMode: string;
+
   constructor(
+    private progressBarService: ProgressBarService
   ) {
   }
 
@@ -34,7 +39,9 @@ export class ToolbarComponent implements OnInit {
 
   ngOnInit() {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
-
+    this.progressBarService.updateProgressBar$.subscribe((mode: string) => {
+      this.progressBarMode = mode;
+    });
   }
 
   enableSearchBar() {

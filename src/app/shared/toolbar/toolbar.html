@@ -1,12 +1,13 @@
-<ion-header class="header-main {{class}}">
+<ion-header [class]="class">
   <ion-toolbar [color]="color">
 
     <ion-buttons slot="start">
-      <ion-back-button></ion-back-button>
+      <ion-back-button icon="arrow-back">
+      </ion-back-button>
 
       <ion-menu-toggle>
-        <ion-button icon-only>
-          <ion-icon name="menu"></ion-icon>
+        <ion-button>
+          <ion-icon slot="icon-only" name="menu"></ion-icon>
         </ion-button>
       </ion-menu-toggle>
     </ion-buttons>
@@ -17,12 +18,14 @@
 
       <ng-content></ng-content>
 
-      <ion-button icon-only (click)="enableSearchBar()" *ngIf="hasSearch">
-        <ion-icon name="search"></ion-icon>
+      <ion-button (click)="enableSearchBar()" *ngIf="hasSearch">
+        <ion-icon slot="icon-only" name="search"></ion-icon>
       </ion-button>
-      <ion-button icon-only (click)="onValidate.emit($event)" class="visible-xs visible-sm" *ngIf="hasValidate">
-        <ion-icon name="checkmark"></ion-icon>
+      <ion-button (click)="onValidate.emit($event)" class="visible-xs visible-sm" *ngIf="hasValidate">
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+  <mat-progress-bar [color]="'primary'" [mode]="progressBarMode">
+  </mat-progress-bar>
 </ion-header>

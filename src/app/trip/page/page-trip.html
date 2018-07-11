@@ -1,21 +1,21 @@
-<app-toolbar [title]="'TRIP.TITLE'|translate" color="primary" (onValidate)="save($event)">
+<app-toolbar [title]="'TRIP.TITLE'|translate" color="primary" [hasValidate]="dirty && !loading" (onValidate)="save($event)">
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
 
-  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [disableRipple]="true" [dynamicHeight]="true">
+  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [disableRipple]="true" dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
-        <ion-icon name="information-circle"></ion-icon>
-        <span>{{'TRIP.TAB_GENERAL'|translate}}</span>
+        <ion-icon slot="start" name="information-circle"></ion-icon>
+        <ion-label translate>TRIP.TAB_GENERAL</ion-label>
       </ng-template>
 
-      <ion-row no-padding>
-        <ion-col no-padding>
-          <div padding>
+      <ion-grid no-padding>
+        <ion-row no-padding>
+          <ion-col padding>
             <!-- trip -->
             <form-trip (onSubmit)="save($event)" #tripForm>
 
@@ -24,33 +24,19 @@
               </form-sale>
 
             </form-trip>
-
-            <!-- buttons -->
-            <ion-row class="hidden-xs hidden-sm padding bar" style="text-align: right;" *ngIf="!loading && (tripForm.dirty || saleForm.dirty)">
-
-
-              <button mat-button (click)="cancel()" type="button">
-                {{'COMMON.BTN_CANCEL'|translate}}
-              </button>
-
-              <button mat-raised-button color="primary" (click)="save($event)">
-                {{'COMMON.BTN_SAVE'|translate}}
-              </button>
-            </ion-row>
-          </div>
-        </ion-col>
-        <ion-col col-12 col-sm-9 col-md-6 col-lg-4 col-xl-3 no-padding>
-          <form-metadata [data]="data"></form-metadata>
-        </ion-col>
-      </ion-row>
-
+          </ion-col>
+          <ion-col no-padding size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3">
+            <form-metadata [data]="data"></form-metadata>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </mat-tab>
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <ion-icon name="settings"></ion-icon>
-        <span>{{'TRIP.TAB_PHYSICAL_GEAR'|translate}}</span>
+        <ion-label translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
       </ng-template>
 
 
@@ -60,7 +46,7 @@
     <mat-tab label="{{'TRIP.TAB_OPERATIONS'|translate}}">
       <ng-template mat-tab-label>
         <ion-icon name="locate"></ion-icon>
-        <span>{{'TRIP.TAB_OPERATIONS'|translate}}</span>
+        <ion-label translate>TRIP.TAB_OPERATIONS</ion-label>
       </ng-template>
 
       <div no-padding>
@@ -72,17 +58,6 @@
         <!-- buttons -->
         <ion-row>
 
-          <ion-col class="hidden-xs hidden-sm padding bar" style="text-align: right;" *ngIf="!loading && dirty">
-
-            <button mat-button (click)="cancel()" type="button">
-              {{'COMMON.BTN_CANCEL'|translate}}
-            </button>
-
-            <button mat-raised-button color="primary" (click)="save($event)">
-              {{'COMMON.BTN_SAVE'|translate}}
-            </button>
-          </ion-col>
-
           <ion-col *ngIf="error" padding>
             <mat-icon>warn</mat-icon>
             <mat-error>{{error|translate}}</mat-error>
@@ -93,3 +68,18 @@
   </mat-tab-group>
 
 </ion-content>
+
+<ion-footer hidden-xs hidden-sm *ngIf="!loading && dirty">
+  <ion-toolbar padding>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="cancel()" type="button">
+        {{'COMMON.BTN_CANCEL'|translate}}
+      </ion-button>
+
+      <ion-button fill="solid" size="large" (click)="save($event)" color="danger">
+        {{'COMMON.BTN_SAVE'|translate}}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -6,6 +6,7 @@ import { RegisterModal } from '../register/modal/modal-register';
 import { Subscription } from 'rxjs';
 import { AccountService } from '../services/account.service';
 import { Account } from '../services/model';
+import { TranslateService } from '@ngx-translate/core';
 
 // import fade in animation
 import { fadeInAnimation } from '../../shared/material/material.animations';
@@ -36,7 +37,8 @@ export class HomePage implements OnDestroy {
   constructor(
     public accountService: AccountService,
     public activatedRoute: ActivatedRoute,
-    public modalCtrl: ModalController
+    public modalCtrl: ModalController,
+    private translate: TranslateService
   ) {
     this.bgImage = getRandomImage();
     this.isLogin = accountService.isLogin();
@@ -68,8 +70,6 @@ export class HomePage implements OnDestroy {
     this.displayName = "";
   }
 
-
-
   async register() {
     const modal = await this.modalCtrl.create({ component: RegisterModal });
     return modal.present();
@@ -79,4 +79,7 @@ export class HomePage implements OnDestroy {
     this.accountService.logout();
   }
 
+  changeLanguage(locale: string) {
+    this.translate.use(locale);
+  }
 }

@@ -19,43 +19,49 @@
 
     <!-- Version info -->
     <ion-item>
-      <ion-icon name="none" item-start color="dark"></ion-icon>
-      <h2 ion-text>
+      <ion-icon slot="start" name="none" item-start color="dark"></ion-icon>
+      <ion-label>
+        <h2 ion-text>
 
-        {{'APP_NAME'|translate}}
-        <span [innerHTML]="'ABOUT.VERSION'| translate: {version: appVersion}"></span>
-      </h2>
+          {{'APP_NAME'|translate}}
+          <span [innerHTML]="'ABOUT.VERSION'| translate: {version: appVersion}"></span>
+        </h2>
+      </ion-label>
     </ion-item>
 
     <!-- Report issue -->
     <ion-item>
-      <ion-icon name="bug" item-start color="dark"></ion-icon>
-      <p ion-text>
-        {{'ABOUT.REPORT_ISSUE'|translate}}
-      </p>
-      <p ion-text>
-        <a color="primary" href="https://github.com/E-IS/sumaris-app/issues" target="_system">{{'ABOUT.BTN_REPORT_ISSUE'|translate}}</a>
-      </p>
+      <ion-icon slot="start" name="bug" color="dark"></ion-icon>
+      <ion-label>
+        <p ion-text>
+          {{'ABOUT.REPORT_ISSUE'|translate}}
+        </p>
+        <p ion-text>
+          <a color="primary" href="https://github.com/E-IS/sumaris-app/issues" target="_system">{{'ABOUT.BTN_REPORT_ISSUE'|translate}}</a>
+        </p>
+      </ion-label>
     </ion-item>
 
     <!-- Source code -->
     <ion-item>
-      <ion-icon name="code" item-start color="dark"></ion-icon>
-      <p ion-text>
-        {{'ABOUT.SOURCE_CODE'|translate}}
-      </p>
-      <p ion-text>
-        <a color="primary" href="https://github.com/E-IS/sumaris-app" target="_system">https://github.com/E-IS/sumaris-app</a>
-      </p>
+      <ion-icon slot="start" name="code" color="dark"></ion-icon>
+      <ion-label>
+        <p ion-text>
+          {{'ABOUT.SOURCE_CODE'|translate}}
+        </p>
+        <p ion-text>
+          <a color="primary" href="https://github.com/E-IS/sumaris-app" target="_system">https://github.com/E-IS/sumaris-app</a>
+        </p>
+      </ion-label>
     </ion-item>
   </ion-list>
 
-
-
 </ion-content>
 
-<ion-footer padding class="hidden-xs hidden-sm">
-  <ion-buttons right end>
-    <button mat-raised-button color="primary" (click)="cancel()">{{'COMMON.BTN_CLOSE'|translate}}</button>
-  </ion-buttons>
+<ion-footer class="hidden-xs hidden-sm">
+  <ion-toolbar>
+    <ion-buttons slot="end">
+      <button mat-raised-button color="primary" (click)="cancel()">{{'COMMON.BTN_CLOSE'|translate}}</button>
+    </ion-buttons>
+  </ion-toolbar>
 </ion-footer>

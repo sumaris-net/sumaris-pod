@@ -6,7 +6,8 @@ import { Apollo, ApolloModule } from 'apollo-angular';
 import { HttpLink, HttpLinkModule } from 'apollo-angular-link-http';
 import { InMemoryCache, defaultDataIdFromObject } from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
-import { getOperationAST } from 'graphql';
+//import { getOperationAST } from 'graphql';
+import { DocumentNode } from 'graphql';
 import { WebSocketLink } from 'apollo-link-ws';
 import { Storage } from '@ionic/storage';
 import { Hermes } from 'apollo-cache-hermes';
@@ -33,6 +34,13 @@ export const dataIdFromObject = function (object: Object): string {
     default: return defaultDataIdFromObject(object);
   }
 };
+
+export const getOperationAST = function (query: DocumentNode, operationName: String): {
+  operation: String
+} {
+  console.log(query);
+  return { operation: "mutation" };
+}
 
 WebSocket
 @NgModule({
@@ -70,7 +78,6 @@ export class AppGraphQLModule {
         connectionParams: {
           authToken: localStorage.getItem(GC_AUTH_TOKEN),
         }*/
-        ,
       },
       webSocketImpl: AppWebSocket
     });
@@ -84,15 +91,16 @@ export class AppGraphQLModule {
 
     // create Apollo
     apollo.create({
-      link: http/*ApolloLink.split(
+      link: ApolloLink.split(
         operation => {
           const operationAST = getOperationAST(operation.query, operation.operationName);
           return !!operationAST && operationAST.operation === 'subscription';
         },
         ws,
         http,
-      )*/,
+      ),
       cache: imCache
     });
   }
 }
+

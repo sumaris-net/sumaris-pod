@@ -8,7 +8,8 @@ import { FormGroup, FormBuilder, Validators, AbstractControl } from '@angular/fo
 
 @Component({
   selector: 'page-account',
-  templateUrl: 'account.html'
+  templateUrl: 'account.html',
+  styleUrls: ['./account.scss']
 })
 export class AccountPage implements OnDestroy {
 

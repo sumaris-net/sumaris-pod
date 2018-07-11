@@ -253,11 +253,21 @@
     "ENTITY": {
       "SALE_TYPE": "Types de vente",
       "LOCATION": "Lieux",
-      "LOCATION_LEVEL": "Niveau de lieux",
+      "LOCATION_LEVEL": "Niveaux de lieux",
       "GEAR": "Engins",
       "GEAR_LEVEL": "Niveaux d'engin",
       "PARAMETER": "Paramètres",
-      "USER_PROFILE": "Profiles utilisateur"
+      "USER_PROFILE": "Profiles utilisateur",
+      "VESSEL_TYPE": "Types de navire",
+      "PMFM": "Types de mesure",
+      "MATRIX": "Supports de mesure",
+      "FRACTION": "Fractions du support",
+      "QUALITATIVE_VALUE": "Valeurs qualitatives",
+      "TAXON_GROUP_TYPE": "Types de groupe d'espèce",
+      "TAXON_GROUP": "Groupes d'espèce",
+      "PROGRAM": "Programme de collecte",
+      "STRATEGY": "Stratégie de collecte",
+      "ACQUISITION_LEVEL": "Niveau d'acquisition"
     }
   },
   "ERROR": {

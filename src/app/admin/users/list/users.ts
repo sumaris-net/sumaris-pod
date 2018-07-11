@@ -11,7 +11,8 @@ import { FormGroup, FormBuilder } from "@angular/forms";
 
 @Component({
   selector: 'page-users',
-  templateUrl: 'users.html'
+  templateUrl: 'users.html',
+  styleUrls: ['./users.scss']
 })
 export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit {
 

@@ -1,72 +1,101 @@
-@import 'variables';
-page-home {
-  .light-bg {
-    background-color: rgba(255, 255, 255, .7);
+@import 'mixins';
+$card-background: rgba(255, 255, 255, .7) !default;
+h1,
+h2,
+h3,
+h4,
+h5 {
+  white-space: normal;
+}
+
+.center {
+  text-align: center;
+  display: inline-block;
+}
+
+ion-content {
+  @extend .center;
+  --ion-background-color: transparent;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  display: inline-block;
+  padding: 15px;
+}
+
+ion-card {
+  @extend [padding];
+  @extend .center;
+  background-color: $card-background;
+  min-width: 240px;
+  max-width: 400px;
+  z-index: 99;
+  button {
+    margin-top: 16px;
   }
-  .center {
-    text-align: center;
-  }
-  .padding.center {
-    display: inline-block;
-    padding: 15px;
-  }
-  .main-content {
+  img {
     @extend .center;
-    @extend .padding;
-    @extend .light-bg;
-    min-width: 240px;
-    z-index: 99;
-    button {
-      width: 100%;
-      margin-top: 16px;
+    max-width: 250px;
+  }
+}
+
+ion-text {
+  @extend .center;
+}
+
+.bottom-banner {
+  @extend .center;
+  @extend [padding];
+  background-color: $card-background;
+  min-width: 240px;
+  z-index: -99;
+  img.logo {
+    max-height: 50px;
+    margin-left: 8px;
+  }
+} // Extra small device: Phones (<767px)
+@media screen and (max-width: $screen-xs-max) {
+  ion-content {
+    // Avoid boittom-banner to override main-content
+    min-height: 539px;
+    ion-card {
+      min-width: 120px;
+      max-width: 260px;
+      button {
+        margin-top: 8px;
+      }
     }
   }
   .bottom-banner {
-    @extend .center;
-    @extend .padding;
-    @extend .light-bg;
-    min-width: 240px;
-    z-index: -99;
     img.logo {
-      max-height: 50px;
-      margin-left: 8px;
+      max-height: 30px;
     }
-  } // Extra small device: Phones (<767px)
-  @media screen and (max-width: $screen-xs-max) {
-    ion-content {
-      // Avoid boittom-banner to override main-content
-      min-height: 539px;
+  }
+} // Small devices: Tablets (≥768px)
+@media screen and (max-width: $screen-sm-max) and (min-width: $screen-sm) {
+  ion-content {
+    // Avoid boittom-banner to override main-content
+    min-height: 555px;
+  }
+  .bottom-banner {
+    img.logo {
+      max-height: 40px;
     }
-    .bottom-banner {
-      img.logo {
-        max-height: 30px;
-      }
-    }
-  } // Small devices: Tablets (≥768px)
-  @media screen and (max-width: $screen-sm-max) and (min-width: $screen-sm) {
-    ion-content {
-      // Avoid boittom-banner to override main-content
-      min-height: 555px;
-    }
-    .bottom-banner {
-      img.logo {
-        max-height: 40px;
-      }
-    }
-  } // Desktop or wide screen
-  @media screen and (min-width: $screen-md) {
-    ion-content {
-      // Avoid boittom-banner to override main-content
-      min-height: 606px;
-    }
-    .main-content {
-      padding-bottom: 0px;
-    }
-    .bottom-banner {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-    }
+  }
+} // Desktop or wide screen
+@media screen and (min-width: $screen-md) {
+  ion-content {
+    // Avoid boittom-banner to override main-content
+    min-height: 606px;
+  }
+  .main-content {
+    padding-bottom: 0px;
+  }
+  .bottom-banner {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
   }
 }

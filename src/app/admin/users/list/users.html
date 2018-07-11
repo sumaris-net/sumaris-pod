@@ -1,34 +1,44 @@
 <app-toolbar [title]="'USER.LIST.TITLE'|translate" color="primary">
 </app-toolbar>
 
-<ion-content class="no-padding-xs">
+<ion-content no-padding>
 
-  <mat-toolbar class="pull-right">
+  <mat-toolbar no-padding>
 
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
-    <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+    <button mat-icon-button color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
       <mat-icon>search</mat-icon>
     </button>
-    <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
+    <button mat-icon-button color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
       <mat-icon>delete</mat-icon>
     </button>
 
-    <span class="toolbar-spacer"></span>
-
     <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
-      [disabled]="true" [checked]="true" #inlineEditionBtn>
+      [disabled]="true" #inlineEditionBtn>
       <mat-icon>edit</mat-icon>
     </mat-button-toggle>
+
+    <div class="toolbar-spacer"></div>
 
     <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
       <mat-icon>more_vert</mat-icon>
     </button>
   </mat-toolbar>
+
+  <!-- <ion-toolbar>
+
+    <ion-buttons slot="start">
+      <ion-button color="dark" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+        <ion-icon slot="icon-only" name="add" round></ion-icon>
+      </ion-button>
+
+    </ion-buttons>
+  </ion-toolbar> -->
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel color="primary">
@@ -42,8 +52,7 @@
     </form>
   </mat-expansion-panel>
 
-  <mat-table #table padding-left [dataSource]="dataSource" matSort matSortActive="lastName" matSortDirection="asc" matSortDisableClear
-    [trackBy]="trackByFn">
+  <mat-table #table [dataSource]="dataSource" matSort matSortActive="lastName" matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -119,7 +128,7 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid" [class.mat-row-disabled]="!row.editing"
+    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="submitted && row.validator.invalid" [class.mat-row-disabled]="!row.editing"
       (click)="onRowClick($event, row)" (onblur)="confirmAndAddRow($event, row)"></mat-row>
   </mat-table>
 

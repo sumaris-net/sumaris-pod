@@ -98,6 +98,19 @@ const LoadQuery: any = gql`
         name
         exteriorMarking
       }
+      measurements {
+        id
+        numericalValue
+        qualitativeValue {
+          id
+          label
+          name
+        }
+        pmfmId,
+        pmfm {
+          id
+        }
+      }
       sale {
         id
         startDateTime
@@ -108,11 +121,13 @@ const LoadQuery: any = gql`
           id
           label
           name
+          entityName
         }
         saleLocation {
           id
           label
-          name          
+          name
+          entityName
         }
       }
     }
@@ -198,9 +213,7 @@ subscription changedTrips {
 @Injectable()
 export class TripService extends BaseDataService implements DataService<Trip, TripFilter>{
 
-  private _lastVariables = {
-    loadAll: undefined
-  };
+
 
   constructor(
     protected apollo: Apollo,
@@ -307,9 +320,11 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       .map(t => {
         const data = res.saveTrips.find(res => res.id == t.id);
         t.updateDate = data && data.updateDate || t.updateDate;
+        t.dirty = false;
         if (t.sale) {
           t.sale.id = data.sale && data.sale.id;
           t.sale.updateDate = data.sale && data.sale.updateDate;
+          t.dirty = false;
         }
         return t;
       });
@@ -326,10 +341,9 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     // Transform into json
     const json = this.asObject(entity);
+    const isNew = !json.id;
 
     console.debug("[trip-service] Saving trip: ", json);
-
-    const isNew = !json.id;
 
     return this.mutate<{ saveTrips: any }>({
       mutation: SaveTrips,
@@ -348,7 +362,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         }
 
         // Update the cache
-        if (isNew) {
+        if (isNew && this._lastVariables.loadAll) {
           const list = this.addToQueryCache({
             query: LoadAllQuery,
             variables: this._lastVariables.loadAll

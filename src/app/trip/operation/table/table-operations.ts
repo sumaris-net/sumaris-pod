@@ -22,6 +22,7 @@ import { PositionValidatorService } from "../../position/validator/validators";
 @Component({
   selector: 'table-operations',
   templateUrl: 'table-operations.html',
+  styleUrls: ['table-operations.scss'],
   providers: [
     { provide: ValidatorService, useClass: OperationValidatorService },
     { provide: ValidatorService, useClass: PositionValidatorService }

@@ -13,7 +13,8 @@ import { merge } from "rxjs/observable/merge";
 
 @Component({
   selector: 'form-sale',
-  templateUrl: './form-sale.html'
+  templateUrl: './form-sale.html',
+  styleUrls: ['./form-sale.scss']
 })
 export class SaleForm extends AppForm<Sale> implements OnInit {
 

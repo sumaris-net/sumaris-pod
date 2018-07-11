@@ -1,29 +1,48 @@
-<app-toolbar color="primary" class="visible-xs"></app-toolbar>
+<app-toolbar>
+  <ion-button mat-icon-button [matMenuTriggerFor]="matmenu">
+    <mat-icon>public</mat-icon>
+  </ion-button>
+  <mat-menu #matmenu="matMenu">
+    <button mat-menu-item (click)="changeLanguage('en')">
+      <mat-icon>flag</mat-icon>
+      <span>
+        English
+      </span>
+    </button>
+    <button mat-menu-item (click)="changeLanguage('fr')">
+      <mat-icon>flag</mat-icon>
+      <span>
+        Français
+      </span>
+    </button>
+  </mat-menu>
+</app-toolbar>
 
-<ion-content padding class="bg-image-cover center" [ngStyle]="{'background-image': 'url('+bgImage+')'}">
+<ion-content padding [ngStyle]="{'background-image': 'url('+bgImage+')'}" class="no-padding-xs">
 
 
   <p class="hidden-xs">&nbsp;</p>
 
   <ion-card>
     <ion-card-header>
-      <h4 translate>HOME.WELCOME</h4>
+      <h1 translate>HOME.WELCOME</h1>
     </ion-card-header>
-    <ion-card-content>
-      <p ion-text [innerHTML]="'HOME.DESCRIPTION'|translate"></p>
 
-      <p>
-        <img id="logo" src="./assets/img/logo.png" [title]="'APP_NAME'|translate" />
-      </p>
+    <ion-card-content>
+      <ion-text color="primary">
+        <img class="logo" src="./assets/img/logo.png" [title]="'APP_NAME'|translate" />
+        <br/>
+        <span [innerHTML]="'HOME.DESCRIPTION'|translate"></span>
+      </ion-text>
     </ion-card-content>
 
     <ion-footer>
-      <ion-button size="full" color="primary" [routerLink]="['/account']" *ngIf="!isLogin">
+      <ion-button expand="full" color="primary" [routerLink]="['/account']" *ngIf="!isLogin">
         <ion-icon name="log-in" slot="start"></ion-icon>
         <span translate>AUTH.BTN_LOGIN</span>
       </ion-button>
 
-      <ion-button size="full" color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
+      <ion-button expand="full" color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
         <ion-icon name="contact" slot="start"></ion-icon>
         <span translate>HOME.BTN_MY_ACCOUNT</span>
       </ion-button>

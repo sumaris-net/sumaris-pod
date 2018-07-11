@@ -1,21 +1,21 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons left start>
-      <button ion-button class="visible-xs visible-sm" (click)="cancel()">
+    <ion-buttons slot="start">
+      <ion-button class="visible-xs visible-sm" (click)="cancel()">
         {{'COMMON.BTN_CANCEL'|translate}}
-      </button>
+      </ion-button>
     </ion-buttons>
 
     <ion-title>
       {{'AUTH.TITLE'|translate}}
     </ion-title>
 
-    <ion-buttons end>
+    <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <button ion-button icon-only class="visible-xs visible-sm" (click)="doSubmit()" *ngIf="!loading">
+      <ion-button icon-only class="visible-xs visible-sm" (click)="doSubmit()" *ngIf="!loading">
         <ion-icon name="checkmark"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

@@ -1,4 +1,4 @@
-<mat-toolbar color="accent">
+<mat-toolbar>
   <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
@@ -9,12 +9,12 @@
     <mat-icon>delete</mat-icon>
   </button>
 
-  <span class="toolbar-spacer"></span>
-
   <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
     [disabled]="dirty" #inlineEditionBtn>
     <mat-icon>edit</mat-icon>
   </mat-button-toggle>
+
+  <span class="toolbar-spacer"></span>
 
   <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
     <mat-icon>more_vert</mat-icon>
@@ -25,7 +25,7 @@
 <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
 <mat-table #table [dataSource]="dataSource" class="table-operations" matSort matSortActive="startDateTime" matSortDirection="asc"
-  matSortDisableClear trackBy="id">
+  matSortDisableClear [trackBy]="getId">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -104,12 +104,10 @@
   <!-- Comments column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>TRIP.COMMENTS</span>
+
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['comments']" [readonly]="!row.editing" [(ngModel)]="row.currentData.comments">
-      </mat-form-field>
+      <ion-icon color="primary" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
     </mat-cell>
   </ng-container>
 

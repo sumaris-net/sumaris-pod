@@ -1,9 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CoreModule } from '../core/core.module';
-import { TripRoutingModule } from './trip-routing.module';
-import { RouterModule } from '@angular/router';
-import { SharedModule } from '../shared/shared.module';
 import { TripsPage } from './list/trips';
 import { TripPage } from './page/page-trip';
 import { SaleForm } from './sale/form/form-sale';
@@ -22,7 +19,6 @@ import { IonicModule } from '@ionic/angular';
     imports: [
         CommonModule,
         CoreModule
-        //,TripRoutingModule
     ],
 
     declarations: [
@@ -57,7 +53,4 @@ import { IonicModule } from '@ionic/angular';
     ]
 })
 export class TripModule {
-    constructor() {
-        console.info("[trip] Starting module...");
-    }
 }

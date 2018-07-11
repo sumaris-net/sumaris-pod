@@ -4,7 +4,7 @@ import {
   MatPaginatorModule, MatTableModule, MatSortModule, MatFormFieldModule, MatInputModule,
   MatAutocompleteModule, MatCheckboxModule, MatExpansionModule, MatToolbarModule, MatDialogModule, MatIconModule,
   MatButtonModule, MatMenuModule, MatSelectModule, MatCardModule, MatTabsModule, MatListModule, MatStepperModule,
-  MatButtonToggleModule, MatProgressSpinnerModule
+  MatButtonToggleModule, MatProgressSpinnerModule, MatProgressBarModule
 } from "@angular/material";
 import { CdkTableModule } from "@angular/cdk/table";
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -37,7 +37,8 @@ const modules = [
   MatListModule,
   MatStepperModule,
   MatButtonToggleModule,
-  MatProgressSpinnerModule
+  MatProgressSpinnerModule,
+  MatProgressBarModule
 ];
 
 @NgModule({

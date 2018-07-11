@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute, Params } from "@angular/router";
+import { Router, ActivatedRoute, Params, NavigationEnd } from "@angular/router";
 import { MatTabChangeEvent } from "@angular/material";
 import { TripService } from '../services/trip-service';
 import { TripForm } from '../form/form-trip';
@@ -11,12 +11,14 @@ import { Observable } from "rxjs-compat";
 
 @Component({
   selector: 'page-trip',
-  templateUrl: './page-trip.html'
+  templateUrl: './page-trip.html',
+  styleUrls: ['./page-trip.scss']
 })
 export class TripPage implements OnInit {
 
   selectedTabIndex: number = 0; // TODO
 
+  id: any;
   error: string;
   loading: boolean = true;
   saving: boolean = false;
@@ -37,8 +39,6 @@ export class TripPage implements OnInit {
     protected router: Router,
     protected tripService: TripService
   ) {
-
-
   }
 
   public get valid(): boolean {
@@ -69,6 +69,7 @@ export class TripPage implements OnInit {
         this.load(parseInt(id));
       }
     });
+
   }
 
   async load(id?: number) {

@@ -40,9 +40,16 @@ const LoadAllQuery: any = gql`
     }
   }
 `;
-const LoadReferentialEntities: any = gql`
-  query ReferentialEntities{
-    referentialEntities
+export declare class ReferentialType {
+  id: string
+  level?: string
+};
+const LoadReferentialTypes: any = gql`
+  query ReferentialTypes{
+    referentialTypes {
+       id
+       level
+    }
   }
 `;
 
@@ -93,7 +100,30 @@ export class ReferentialService extends BaseDataService implements DataService<R
 
     let query = options && options.full ? LoadAllQuery : LoadAllLightQuery;
 
-    return this.loadFromQueries(query, offset, size, sortBy, sortDirection, filter, options);
+    if (!options || !options.entityName) {
+      console.error("[referential-service] Missing options.entityName");
+      throw { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" };
+    }
+
+    const variables: any = {
+      entityName: options.entityName,
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: filter
+    };
+    this._lastVariables.loadAll = variables;
+
+    console.debug("[referential-service] Getting data from options:", variables);
+    return this.watchQuery<{ referentials: any[] }>({
+      query: query,
+      variables: variables,
+      error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" }
+    })
+      .pipe(
+        map((data) => (data && data.referentials || []).map(Referential.fromObject))
+      );
   }
 
   async saveAll(entities: Referential[], options?: any): Promise<Referential[]> {
@@ -138,6 +168,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
 
     // Transform into json
     const json = entity.asObject();
+    const isNew = !json.id;
 
     console.debug("[referential-service] Saving referential: ", json);
 
@@ -153,6 +184,15 @@ export class ReferentialService extends BaseDataService implements DataService<R
         var res = data && data.saveReferentials && data.saveReferentials[0];
         entity.id = res && res.id || entity.id;
         entity.updateDate = res && res.updateDate || entity.updateDate;
+
+        // Update the cache
+        if (isNew && this._lastVariables.loadAll) {
+          const list = this.addToQueryCache({
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'trips', res);
+        }
+
         return entity;
       });
   }
@@ -184,17 +224,17 @@ export class ReferentialService extends BaseDataService implements DataService<R
   }
 
   /**
-   * Load entity names
+   * Load referential types
    */
-  loadEntitieNames(): Observable<string[]> {
-    console.debug("[referential-service] Getting referential entities");
-    return this.watchQuery<{ referentialEntities: string[] }>({
-      query: LoadReferentialEntities,
+  loadTypes(): Observable<ReferentialType[]> {
+    console.debug("[referential-service] Getting referential types");
+    return this.watchQuery<{ referentialTypes: ReferentialType[] }>({
+      query: LoadReferentialTypes,
       variables: null,
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ENTITIES_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ENTITIES_ERROR" }
     })
       .pipe(
-        map((data) => (data && data.referentialEntities || []))
+        map((data) => (data && data.referentialTypes || []))
       );
   }
 
@@ -217,39 +257,6 @@ export class ReferentialService extends BaseDataService implements DataService<R
 
   /* -- protected methods -- */
 
-
-  protected loadFromQueries(
-    query: any,
-    offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: ReferentialFilter,
-    options?: any): Observable<Referential[]> {
-
-    if (!options || !options.entityName) {
-      console.error("[referential-service] Missing options.entityName");
-      throw { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" };
-    }
-
-    const variables: any = {
-      entityName: options.entityName,
-      offset: offset || 0,
-      size: size || 100,
-      sortBy: sortBy || 'label',
-      sortDirection: sortDirection || 'asc',
-      filter: filter
-    };
-    console.debug("[referential-service] Getting data from options:", variables);
-    return this.watchQuery<{ referentials: any[] }>({
-      query: query,
-      variables: variables,
-      error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" }
-    })
-      .pipe(
-        map((data) => (data && data.referentials || []).map(Referential.fromObject))
-      );
-  }
 
   protected fillDefaultProperties(entity: Referential) {
 

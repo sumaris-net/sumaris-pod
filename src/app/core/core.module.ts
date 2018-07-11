@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CoreRoutingModule } from './core-routing.module';
 import { RouterModule } from '@angular/router';
 
 import { AccountService } from './services/account.service';
@@ -19,7 +18,6 @@ import { AppTable } from './table/table.class';
 import { AppTableDataSource } from './table/table-datasource.class';
 import { TableSelectColumnsComponent } from './table/table-select-columns.component';
 import { MenuComponent } from './menu/menu.component';
-import { IonicModule } from "@ionic/angular";
 import { ReactiveFormsModule } from "@angular/forms";
 import { IonicStorageModule } from '@ionic/storage';
 import { HomePage } from './home/home';
@@ -29,13 +27,15 @@ import { AppGraphQLModule } from './graphql/graphql.module';
 import { DateAdapter } from "@angular/material";
 import * as moment from "moment/moment";
 
+import { ProgressBarService } from './services/progress-bar.service';
+import { ProgressInterceptor } from '../shared/interceptors/progess.interceptor';
+
 import { environment } from '../../environments/environment';
 
 // import ngx-translate and the http loader
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Http } from "@angular/http";
+import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 
 export { environment, AppForm, AppTable, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent }
 
@@ -47,7 +47,6 @@ export function HttpLoaderFactory(http: HttpClient) {
 @NgModule({
     imports: [
         CommonModule,
-        //CoreRoutingModule,
         RouterModule,
         HttpClientModule,
         AppGraphQLModule,
@@ -104,7 +103,9 @@ export function HttpLoaderFactory(http: HttpClient) {
     providers: [
         AccountService,
         AuthGuardService,
-        CryptoService
+        CryptoService,
+        ProgressBarService,
+        { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService] }
     ]
 })
 export class CoreModule {

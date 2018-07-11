@@ -29,13 +29,8 @@ import { AppComponent } from "../../app.component";
   templateUrl: 'trips.html',
   providers: [
     { provide: ValidatorService, useClass: TripValidatorService }
-  ]/*,
-
-  // make fade in animation available to this component
-  animations: [fadeInAnimation, slideInOutAnimation]//,*/
-
-  // attach the fade in animation to the host (root) element of this component
-  //host: { '[@fadeInAnimation]': '' }
+  ],
+  styleUrls: ['./trips.scss']
 })
 export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
@@ -108,6 +103,14 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.filterForm.markAsUntouched();
       this.filterForm.markAsPristine();
     });
+  }
+
+  public onOpenRowDetail(id: number): Promise<boolean> {
+    return this.router.navigateByUrl('/trips/' + id);
+  }
+
+  public onAddRowDetail(): Promise<boolean> {
+    return this.router.navigateByUrl('/trips/new');
   }
 
   // Not USED - remane in onAddRowDetail() if need)

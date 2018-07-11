@@ -15,7 +15,8 @@ import { ReferentialService } from '../../services/referential-service';
 
 @Component({
   selector: 'form-vessel',
-  templateUrl: './form-vessel.html'
+  templateUrl: './form-vessel.html',
+  styleUrls: ['./form-vessel.scss']
 })
 export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
 

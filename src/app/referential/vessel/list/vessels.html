@@ -1,28 +1,28 @@
 <app-toolbar [title]="'VESSEL.LIST.TITLE'|translate" color="primary">
 </app-toolbar>
 
-<ion-content class="no-padding-xs">
+<ion-content no-padding>
 
   <mat-toolbar>
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
-    <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+    <button mat-icon-button color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
       <mat-icon>search</mat-icon>
     </button>
-    <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
+    <button mat-icon-button color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
       <mat-icon>delete</mat-icon>
     </button>
-
-    <span class="toolbar-spacer"></span>
 
     <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
       [disabled]="dirty" #inlineEditionBtn>
       <mat-icon>edit</mat-icon>
     </mat-button-toggle>
+
+    <span class="toolbar-spacer"></span>
 
     <button mat-icon-button [title]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
       <mat-icon>more_vert</mat-icon>
@@ -49,8 +49,8 @@
   <!-- error -->
   <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
-  <mat-table #table padding-left [dataSource]="dataSource" class="trips-table " matSort matSortActive="exteriorMarking" matSortDirection="asc"
-    matSortDisableClear trackBy="id">
+  <mat-table #table [dataSource]="dataSource" class="trips-table " matSort matSortActive="exteriorMarking" matSortDirection="asc"
+    matSortDisableClear [trackBy]="getId">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -81,7 +81,7 @@
         <span translate>VESSEL.START_DATE</span>
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-        <mat-date-time floatPlaceholder="never" [formControl]="row.validator.controls['startDate']" [(ngModel)]="row.currentData.startDate"
+        <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDate']" [(ngModel)]="row.currentData.startDate"
           [readonly]="!row.editing" [displayTime]="false" required>
         </mat-date-time>
       </mat-cell>
@@ -93,7 +93,7 @@
         <span translate>VESSEL.EXTERIOR_MARKING</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-        <mat-form-field>
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['exteriorMarking']" [placeholder]="'VESSEL.EXTERIOR_MARKING'|translate"
             [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [(ngModel)]="row.currentData.exteriorMarking">
           <mat-error *ngIf="row.validator.controls['exteriorMarking'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -107,7 +107,7 @@
         <span translate>VESSEL.NAME</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-        <mat-form-field>
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['name']" [placeholder]="'VESSEL.NAME'|translate" [readonly]="!row.editing"
             [(ngModel)]="row.currentData.name">
           <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -121,14 +121,14 @@
         <span translate>VESSEL.BASE_PORT_LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field>
+        <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['basePortLocation']" [matAutocomplete]="autoLocation" [readonly]="!row.editing"
             [(ngModel)]="row.currentData.basePortLocation" required>
           <mat-error *ngIf="row.validator.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
         </mat-form-field>
 
-        <mat-autocomplete #autoLocation="matAutocomplete" [displayWith]="displayReferential">
+        <mat-autocomplete #autoLocation="matAutocomplete" [displayWith]="referentialToString">
           <mat-option *ngFor="let location of locations | async" [value]="location">
             {{ location.label }} - {{ location.name }}
           </mat-option>
@@ -139,12 +139,9 @@
     <!-- Comments column -->
     <ng-container matColumnDef="comments">
       <mat-header-cell *matHeaderCellDef>
-        <span translate>VESSEL.COMMENTS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-form-field>
-          <input matInput [formControl]="row.validator.controls['comments']" [readonly]="!row.editing" [(ngModel)]="row.currentData.comments">
-        </mat-form-field>
+        <ion-icon color="primary" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
       </mat-cell>
     </ng-container>
 
@@ -187,23 +184,12 @@
     </ion-col>
   </ion-row>
 
-  <!--<ion-list *ngIf="loading">
-    <ion-item *ngFor="let row of dataSource.currentData">
-      &lt;!&ndash;<ion-skeleton-text width="40px"></ion-skeleton-text>&ndash;&gt;
-      <h1>Fake</h1>
-    </ion-item>
-  </ion-list>-->
 
-  <!--<ion-fab right bottom class="visible-xs visible-sm">
-    <button ion-fab color="light"><ion-icon name="arrow-dropleft"></ion-icon></button>
-    <ion-fab-list side="left">
-      <button ion-fab color="accent" (click)="openTripDialog()"><ion-icon name="md-add"></ion-icon></button>
-    </ion-fab-list>
-  </ion-fab>-->
-
-  <ion-fab right bottom>
-    <button ion-fab color="light" (click)="addRow()">
-      <ion-icon name="md-add"></ion-icon>
-    </button>
-  </ion-fab>
 </ion-content>
+
+<!-- Add Button  -->
+<ion-fab vertical="bottom" horizontal="end" class="visible-xs visible-sm">
+  <ion-fab-button color="light" (click)="addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

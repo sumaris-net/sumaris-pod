@@ -2,6 +2,7 @@ import { Component, ViewChild, Input } from '@angular/core';
 import { Platform, MenuController, ModalController, Menu } from "@ionic/angular";
 
 import { Router } from "@angular/router";
+import { Content } from "@ionic/angular";
 import { Account } from "../services/model";
 import { AccountService } from "../services/account.service";
 import { AboutModal } from '../about/modal-about';
@@ -40,6 +41,8 @@ export class MenuComponent {
   @Input()
   items: Array<MenuItem>;
 
+  @ViewChild(Content) ionContent: Content;
+
   constructor(
     protected accountService: AccountService,
     protected router: Router,
@@ -55,7 +58,7 @@ export class MenuComponent {
     // subscriptions
     this.accountService.onLogin.subscribe(account => this.onLogin(account));
     this.accountService.onLogout.subscribe(() => this.onLogout());
-    //this.toto.
+
   }
 
   onLogin(account: Account) {
@@ -74,16 +77,7 @@ export class MenuComponent {
   logout(): void {
     this.account = null;
     this.accountService.logout();
-  }
-
-  openPage(item): void {
-    console.log(item);
-    // close the menu when clicking a link from the menu
-    this.menu.close();
-
-    if (item.path) {
-      this.router.navigate([item.path], item.params)
-    }
+    console.log(this.ionContent);
   }
 
   async openAboutModal(event) {

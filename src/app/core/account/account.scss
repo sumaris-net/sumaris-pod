@@ -1,24 +1,15 @@
-page-account {
+@import 'mixins';
+mat-tab-group .mat-tab-body-content {
+  @extend [padding];
+}
 
-    mat-tab-group .mat-tab-body-content {
-        @extend [padding];
-    }
+mat-tab-group .mat-tab-body-content {
+  display: grid;
+}
 
-    mat-tab-group .mat-tab-body-content {
-        //min-height: 300px;
-        //min-width: 250px;
-        //max-width: 500px;
-        display: grid;
-    }
-
-    form {
-        //display: grid;
-        //min-width: 150px;
-        //max-width: 500px;
-        width: 100%;
-
-        mat-form-field {
-            width: 100%;
-        }
-    }
+form {
+  width: 100%;
+  mat-form-field {
+    width: 100%;
+  }
 }

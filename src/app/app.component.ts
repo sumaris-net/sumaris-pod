@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { Platform } from "@ionic/angular";
 import { MenuItem } from './core/menu/menu.component';
 import { HomePage } from './core/home/home';

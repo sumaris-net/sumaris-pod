@@ -1,9 +1,5 @@
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { CoreRoutes } from './core/core-routing.module';
-import { ReferentialRoutes } from './referential/referential-routing.module';
-import { AdminRoutes } from './admin/admin-routing.module';
-import { TripRoutes } from './trip/trip-routing.module';
+import { Routes, RouterModule, ExtraOptions } from '@angular/router';
 import { HomePage } from './core/home/home';
 import { RegisterConfirmPage } from './core/register/confirm/confirm';
 import { AccountPage } from './core/account/account';
@@ -17,16 +13,17 @@ import { TripPage } from './trip/page/page-trip';
 
 import { environment } from '../environments/environment';
 
-const routeOptions = {
-  enableTracing: !environment.production,
+const routeOptions: ExtraOptions = {
+  enableTracing: false, //!environment.production,
   useHash: false
 };
 
-//console.log(routes);
-
 const routes: Routes = [
   // Core path
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  {
+    path: '',
+    component: HomePage
+  },
 
   {
     path: 'home/:action',
@@ -64,7 +61,11 @@ const routes: Routes = [
       {
         path: 'list',
         children: [
-          { path: '', component: ReferentialsPage },
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: '/referential/list/Location'
+          },
           { path: ':entityName', component: ReferentialsPage }
         ]
       }
@@ -76,18 +77,18 @@ const routes: Routes = [
     path: 'trips',
     canActivate: [AuthGuardService],
     children: [
-      { path: '', component: TripsPage },
       {
-        path: ':id', component: TripPage
+        path: '',
+        pathMatch: 'full',
+        component: TripsPage
+      },
+      {
+        path: ':id',
+        component: TripPage,
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange'
       }
     ]
   },
-
-  // Trip path
-  // {
-  //   path: 'test',
-  //   loadChildren: './trip/trip.module#TripModule'
-  // },
 
   {
     path: "**",
