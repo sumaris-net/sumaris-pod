@@ -7,6 +7,15 @@ export const LocationLevelIds = {
   PORT: 2
 }
 
+export const GearLevelIds = {
+  FAO: 1
+}
+
+export const TaxonGroupIds = {
+  FAO: 2,
+  METIER: 3
+}
+
 export { Referential, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department };
 
 export function entityToString(obj: Entity<any> | any, properties?: String[]): string | undefined {

@@ -21,8 +21,28 @@
 </ion-header>
 
 <ion-content>
-  <div padding>
-    <form-auth (onSubmit)="doSubmit()" (onCancel)="cancel()" #form>
-    </form-auth>
-  </div>
+  <form-auth (onSubmit)="doSubmit()" (onCancel)="cancel()" #form>
+  </form-auth>
 </ion-content>
+
+
+<ion-footer hidden-xs hidden-sm>
+  <!-- buttons -->
+  <ion-toolbar>
+
+    <ion-row>
+      <ion-col></ion-col>
+      <ion-col size="auto">
+        <ion-button fill="clear" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button (click)="doSubmit()" fill="solid" color="secondary" [disabled]="loading || form.invalid">
+          <span translate>AUTH.BTN_LOGIN</span>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+
+  </ion-toolbar>
+</ion-footer>

@@ -25,7 +25,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     private _subscriptions: Subscription[] = [];
 
     inlineEdition: boolean = false;
-    displayedColumns;
+    displayedColumns: string[];
     resultsLength = 0;
     loading = true;
     focusFirstColumn = false;
@@ -282,6 +282,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     public getDisplayColumns(): string[] {
         const fixedColumns = this.columns.slice(0, 2);
         var userColumns = this.accountService.getPageSettings(this.location.path(true), SETTINGS_DISPLAY_COLUMNS);
+        if (!userColumns) {
+            return this.columns;
+        }
         userColumns = (userColumns || []).filter(c => c !== 'actions');
         return userColumns && fixedColumns.concat(userColumns).concat(['actions']) || this.columns;
     }

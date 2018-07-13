@@ -12,9 +12,11 @@ import { TripsPage } from './trip/list/trips';
 import { TripPage } from './trip/page/page-trip';
 
 import { environment } from '../environments/environment';
+import { OperationPage } from './trip/operation/page/page-operation';
 
 const routeOptions: ExtraOptions = {
-  enableTracing: false, //!environment.production,
+  enableTracing: false,
+  //enableTracing: !environment.production,
   useHash: false
 };
 
@@ -83,8 +85,21 @@ const routes: Routes = [
         component: TripsPage
       },
       {
-        path: ':id',
+        path: ':tripId',
+        pathMatch: 'full',
         component: TripPage,
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange'
+      }
+    ]
+  },
+
+  {
+    path: 'operations',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: ':opeId',
+        component: OperationPage,
         runGuardsAndResolvers: 'paramsOrQueryParamsChange'
       }
     ]

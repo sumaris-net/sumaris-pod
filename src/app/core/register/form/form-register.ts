@@ -129,7 +129,7 @@ export class RegisterForm implements OnInit {
     this.onCancel.emit();
   }
 
-  doSubmit(event: any) {
+  doSubmit(event?: any) {
     if (this.form.invalid) return;
     this.sending = true;
     this.onSubmit.emit(this.value);

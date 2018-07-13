@@ -24,6 +24,10 @@ export class AuthForm implements OnInit {
     return this.form.valid;
   }
 
+  public get invalid(): boolean {
+    return this.form.invalid;
+  }
+
   @Output()
   onCancel: EventEmitter<any> = new EventEmitter<any>();
 

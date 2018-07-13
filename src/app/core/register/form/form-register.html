@@ -3,7 +3,7 @@
   <!-- Step 1: Username -->
   <mat-step [stepControl]="forms[0]" *ngIf="forms[0].controls; let controls">
 
-    <form [formGroup]="forms[0]">
+    <form [formGroup]="forms[0]" padding>
       <ng-template matStepLabel>{{'REGISTER.STEP_EMAIL'|translate}}</ng-template>
 
       <!-- Email -->
@@ -27,17 +27,6 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- buttons -->
-      <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm">
-        <button mat-button (click)="onCancel.emit()" type="button">
-          {{'COMMON.BTN_CANCEL'|translate}}
-        </button>
-
-        <!--  [disabled]="!form.valid" -->
-        <button mat-raised-button color="primary" matStepperNext>
-          <span translate>COMMON.BTN_NEXT</span>
-        </button>
-      </ion-toolbar>
     </form>
   </mat-step>
 
@@ -45,7 +34,7 @@
   <!-- Step 2: Password -->
   <mat-step [stepControl]="forms[1]">
 
-    <form [formGroup]="forms[1]">
+    <form [formGroup]="forms[1]" padding>
 
       <ng-template matStepLabel>{{'REGISTER.STEP_PASSWORD'|translate}}</ng-template>
 
@@ -69,19 +58,6 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- buttons -->
-      <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm">
-        <button mat-button icon-left matStepperPrevious>
-          <ion-icon name="arrow-back"></ion-icon>
-          <span translate>COMMON.BTN_BACK</span>
-        </button>
-
-        <!--  [disabled]="!form.valid" -->
-        <button mat-raised-button color="primary" matStepperNext>
-          <span translate>COMMON.BTN_NEXT</span>
-        </button>
-      </ion-toolbar>
-
     </form>
   </mat-step>
 
@@ -89,7 +65,7 @@
   <!-- Step 3: user details -->
   <mat-step [stepControl]="forms[2]">
 
-    <form [formGroup]="forms[2]" (ngSubmit)="doSubmit($event)">
+    <form [formGroup]="forms[2]" (ngSubmit)="doSubmit($event)" padding>
 
       <ng-template matStepLabel>{{'REGISTER.STEP_USER_DETAILS'|translate}}</ng-template>
 
@@ -115,20 +91,7 @@
 
       <p ion-text color="danger" *ngIf="error && !sending">{{error|translate}}</p>
 
-      <!-- buttons -->
-      <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm">
-        <button mat-button icon-left matStepperPrevious *ngIf="!sending">
-          <ion-icon name="arrow-back"></ion-icon>
-          <span translate>COMMON.BTN_BACK</span>
-        </button>
 
-
-        <button mat-raised-button color="primary" matStepperNext *ngIf="!sending">
-          <span translate>COMMON.BTN_SEND</span>
-        </button>
-
-        <ion-spinner *ngIf="sending"></ion-spinner>
-      </ion-toolbar>
     </form>
   </mat-step>
 </mat-horizontal-stepper>

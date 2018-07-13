@@ -28,11 +28,13 @@ const LoadAllQuery: any = gql`
         id
         label
         name
+        entityName
       }
       returnLocation {
         id
         label
         name
+        entityName
       }
       recorderDepartment {
         id
@@ -70,11 +72,13 @@ const LoadQuery: any = gql`
         id
         label
         name
+        entityName
       }
       returnLocation {
         id
         label
         name
+        entityName
       }
       recorderDepartment {
         id
@@ -97,6 +101,23 @@ const LoadQuery: any = gql`
         vesselId
         name
         exteriorMarking
+      }
+      gears {
+        id
+        updateDate
+        comments
+        gear {
+          id
+          label
+          name
+          entityName
+        }
+        recorderDepartment {
+          id
+          label
+          name
+          logo
+        }
       }
       measurements {
         id
@@ -146,11 +167,13 @@ const SaveTrips: any = gql`
         id
         label
         name
+        entityName
       }
       returnLocation {
         id
         label
         name
+        entityName
       }
       recorderDepartment {
         id
@@ -271,14 +294,15 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         }));
   }
 
-  load(id: number): Promise<Trip | null> | Observable<Trip | null> {
+  load(id: number): Observable<Trip | null> {
     console.debug("[trip-service] Loading trip {" + id + "}...");
 
     return this.watchQuery<{ trip: Trip }>({
       query: LoadQuery,
       variables: {
         id: id
-      }
+      },
+      error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" }
     })
       .map(data => {
         if (data && data.trip) {
@@ -287,13 +311,6 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         }
         return null;
       });
-    /* .then(data => {
-      if (data && data.trip) {
-        console.debug("[trip-service] Loaded trip {" + id + "}");
-        return Trip.fromObject(data.trip);
-      }
-      return null;
-    }); */
   }
 
   /**

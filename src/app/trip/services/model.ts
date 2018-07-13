@@ -2,7 +2,7 @@ import {
   Referential, Department, Person,
   toDateISOString, fromDateISOString,
   vesselFeaturesToString, entityToString, referentialToString,
-  StatusIds, Cloneable, Entity, LocationLevelIds, VesselFeatures
+  StatusIds, Cloneable, Entity, LocationLevelIds, VesselFeatures, GearLevelIds, TaxonGroupIds
 } from "../../referential/services/model";
 import { Moment } from "moment/moment";
 
@@ -10,7 +10,7 @@ export {
   Referential, Person, Department,
   toDateISOString, fromDateISOString,
   vesselFeaturesToString, entityToString, referentialToString,
-  StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds
+  StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds
 };
 
 /* -- DATA -- */
@@ -96,6 +96,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
   departureLocation: Referential;
   returnLocation: Referential;
   sale: Sale;
+  gears: PhysicalGear[];
 
   constructor() {
     super();
@@ -120,6 +121,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     target.departureLocation = this.departureLocation && this.departureLocation.asObject() || undefined;
     target.returnLocation = this.returnLocation && this.returnLocation.asObject() || undefined;
     target.sale = this.sale && this.sale.asObject() || undefined;
+    target.gears = this.gears.map(p => p && p.asObject()) || undefined;
     return target;
   }
 
@@ -133,6 +135,8 @@ export class Trip extends DataRootVesselEntity<Trip> {
       this.sale = new Sale();
       this.sale.fromObject(source.sale);
     };
+
+    this.gears = source.gears && source.gears.map(PhysicalGear.fromObject) || undefined;
     return this;
   }
 
@@ -148,6 +152,79 @@ export class Trip extends DataRootVesselEntity<Trip> {
   }
 }
 
+
+export class PhysicalGear extends DataEntity<PhysicalGear> {
+
+  static fromObject(source: any): PhysicalGear {
+    const res = new PhysicalGear();
+    res.fromObject(source);
+    return res;
+  }
+
+  gear: Referential;
+  comments: string;
+  measurements: Measurement[];
+
+  constructor() {
+    super();
+    this.gear = new Referential();
+  }
+
+  clone(): PhysicalGear {
+    const target = new PhysicalGear();
+    target.fromObject(this.asObject());
+    return target;
+  }
+
+  copy(target: PhysicalGear) {
+    target.fromObject(this);
+  }
+
+  asObject(): any {
+    const target = super.asObject();
+    target.gear = this.gear && this.gear.asObject() || undefined;
+    return target;
+  }
+
+  fromObject(source: any): PhysicalGear {
+    super.fromObject(source);
+    this.comments = source.comments;
+    source.gear && this.gear.fromObject(source.gear);
+    return this;
+  }
+}
+
+export class Measurement extends DataEntity<Measurement> {
+  pmfm: Referential;
+  //measurements: Referential;
+
+  constructor() {
+    super();
+    this.pmfm = new Referential();
+  }
+
+  clone(): Measurement {
+    const target = new Measurement();
+    target.fromObject(this.asObject());
+    return target;
+  }
+
+  copy(target: Measurement) {
+    target.fromObject(this);
+  }
+
+  asObject(): any {
+    const target = super.asObject();
+    target.pmfm = this.pmfm && this.pmfm.asObject() || undefined;
+    return target;
+  }
+
+  fromObject(source: any): Measurement {
+    super.fromObject(source);
+    source.pmfm && this.pmfm.fromObject(source.gear);
+    return this;
+  }
+}
 
 export class Sale extends DataRootVesselEntity<Sale> {
   startDateTime: Moment;
@@ -190,7 +267,6 @@ export class Sale extends DataRootVesselEntity<Sale> {
   }
 }
 
-
 export class Operation extends DataEntity<Operation> {
 
   static fromObject(source: any): Operation {
@@ -210,11 +286,13 @@ export class Operation extends DataEntity<Operation> {
   startPosition: VesselPosition;
   endPosition: VesselPosition;
 
+  metier: Referential;
   physicalGearId: number;
   tripId: number;
 
   constructor() {
     super();
+    this.metier = new Referential();
     this.startPosition = new VesselPosition();
     this.endPosition = new VesselPosition();
   }
@@ -231,6 +309,7 @@ export class Operation extends DataEntity<Operation> {
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
+    target.metier = this.metier && this.metier.asObject() || undefined;
     target.positions = [this.startPosition, this.endPosition].map(p => p && p.asObject()) || undefined;
     delete target.startPosition;
     delete target.endPosition;
@@ -248,8 +327,9 @@ export class Operation extends DataEntity<Operation> {
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
+    source.metier && this.metier.fromObject(source.metier);
     this.positions = source.positions && source.positions.map(VesselPosition.fromObject) || undefined;
-    if (this.positions.length == 2) {
+    if (this.positions && this.positions.length == 2) {
       this.startPosition = this.positions[0];
       this.endPosition = this.positions[1];
     }

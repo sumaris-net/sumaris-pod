@@ -55,6 +55,37 @@
     <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">{{ row.currentData.id }}</mat-cell>
   </ng-container>
 
+  <!-- metier -->
+  <ng-container matColumnDef="metier">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>TRIP.OPERATION.METIER</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls['metier']" [placeholder]="'TRIP.OPERATION.METIER'|translate" [readonly]="!row.editing"
+          [(ngModel)]="row.currentData.metier">
+        <mat-error *ngIf="row.validator.controls['metier'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+      </mat-form-field>
+
+      <mat-autocomplete #autoMetier="matAutocomplete" [displayWith]="referentialToString">
+        <ion-row class="mat-autocomplete-header">
+          <ion-col col-2>
+            <ion-text translate>REFERENTIAL.LABEL</ion-text>
+          </ion-col>
+          <ion-col>
+            <ion-text translate>REFERENTIAL.NAME</ion-text>
+          </ion-col>
+        </ion-row>
+        <mat-option *ngFor="let item of metiers | async" [value]="item">
+          <ion-row>
+            <ion-col col-2 [innerHTML]="item.label | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
+            <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
+          </ion-row>
+        </mat-option>
+      </mat-autocomplete>
+    </mat-cell>
+  </ng-container>
+
   <!-- start date time  -->
   <ng-container matColumnDef="startDateTime">
     <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">

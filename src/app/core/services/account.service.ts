@@ -209,7 +209,7 @@ export class AccountService extends BaseDataService {
         data.account.pubkey = base58.encode(keypair.publicKey);
 
         // Default values
-        data.account.settings.locale = data.account.settings.locale || this.translate.currentLang;
+        data.account.settings.locale = data.account.settings.locale || this.translate.currentLang || this.translate.defaultLang;
 
         // TODO: add department to register form
         data.account.department.id = data.account.department.id || 1;

@@ -22,15 +22,15 @@ export class RegisterModal {
     this.viewCtrl.dismiss();
   }
 
-  doSubmit(event: any) {
+  doSubmit(event?: any) {
     if (!this.form.valid || !this.form.isEnd()) return;
 
     this.sending = true;
     let data = this.form.value;
+
     this.accountService.register(data)
       .then(() => {
         console.debug('[register] account registered. Closing modal...');
-        this.sending = true;
         return this.viewCtrl.dismiss();
       })
       .catch(err => {

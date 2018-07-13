@@ -37,27 +37,34 @@
                 </mat-error>
               </mat-form-field>
 
-              <p ion-text padding-bottom *ngIf="email.notConfirmed">
-                <ion-icon name="alert" color="danger"></ion-icon>
-                <span ion-text color="danger" [innerHTML]="'ACCOUNT.EMAIL_NOT_CONFIRMED_LABEL'|translate"></span>
-                <br/>
-                <br/>
-                <ion-row no-padding style="height: 51px;">
-                  <ion-col col-8 style="text-align: right;">
-                    <span [innerHTML]="'ACCOUNT.EMAIL_NOT_RECEIVED_QUESTION'|translate"></span>
+              <ion-grid *ngIf="email.notConfirmed" no-padding padding-bottom>
+                <ion-row>
+                  <ion-col color="danger">
+                    <ion-icon slot="start" color="danger" name="alert" color="danger"></ion-icon>
+                    <ion-text [innerHTML]="'ACCOUNT.EMAIL_NOT_CONFIRMED_LABEL'|translate"></ion-text>
                   </ion-col>
-                  <ion-col>
-                    <button mat-raised-button full color="primary" type="button" [disabled]="email.sending" (click)="sendConfirmationEmail($event)">
+                </ion-row>
+
+                <ion-row style="height: 51px;">
+                  <ion-col style="text-align: right;">
+                    <ion-text>
+                      <small [innerHTML]="'ACCOUNT.EMAIL_NOT_RECEIVED_QUESTION'|translate"></small>
+                    </ion-text>
+                  </ion-col>
+                  <ion-col size="auto">
+                    <ion-button fill="solid" color="secondary" *ngIf="!email.sending" (click)="sendConfirmationEmail($event)">
                       {{'ACCOUNT.BTN_RESEND'|translate}}
-                    </button>
-                  </ion-col>
-                  <ion-col col-1>
+                    </ion-button>
                     <ion-spinner no-padding *ngIf="email.sending"></ion-spinner>
                   </ion-col>
                 </ion-row>
 
-                <span *ngIf="email.error && !email.sending" [innerHTML]="email.error|translate"></span>
-              </p>
+                <ion-row *ngIf="email.error && !email.sending">
+                  <ion-col>
+                    <span *ngIf="email.error && !email.sending" [innerHTML]="email.error|translate"></span>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
 
               <!-- Last name -->
               <mat-form-field>

@@ -31,6 +31,9 @@ import { PositionValidatorService } from "../../position/validator/validators";
 })
 export class OperationTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
+
+  metiers: Observable<Referential[]>;
+
   @Input() latLongPattern: string;
 
   @Input() tripId: number;
@@ -49,6 +52,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     super(route, router, platform, location, modalCtrl, accountService, operationValidatorService,
       new AppTableDataSource<Operation, OperationFilter>(Operation, operationService, operationValidatorService),
       ['select', 'id',
+        'metier',
         'startDateTime',
         'startPosition',
         'endDateTime',
@@ -60,6 +64,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.i18nColumnPrefix = 'TRIP.OPERATION.';
     this.autoLoad = false;
     this.latLongPattern = accountService.account.settings.latLongFormat || 'DDMM';
+    //this.inlineEdition = true; // TODO: remove this line !
   };
 
 
@@ -67,11 +72,21 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
 
     super.ngOnInit();
 
-    this.filter.tripId = this.tripId;
-    this.dataSource.serviceOptions.tripId = this.tripId;
-    if (this.filter.tripId) {
-      this.onRefresh.emit();
-    }
+    this.tripId && this.setTripId(this.tripId);
+
+    // Combo: métiers
+    this.metiers = Observable.empty() // TODO: change this to get user input
+      .pipe(
+        mergeMap(value => {
+          if (!value) return Observable.empty();
+          if (typeof value != "string" || value.length < 2) return Observable.of([]);
+          return this.referentialService.loadAll(0, 10, undefined, undefined,
+            {
+              searchText: value as string
+            },
+            { entityName: 'Metier' });
+        }));
+
   }
 
   setTrip(data: Trip) {
@@ -79,6 +94,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   }
 
   setTripId(tripId: number) {
+    this.tripId = tripId;
     this.filter.tripId = tripId;
     this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
     this.dataSource.serviceOptions.tripId = tripId;
@@ -89,6 +105,14 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
 
   markAsPristine() {
     this.dirty = false;
+  }
+
+  public onOpenRowDetail(id: number): Promise<boolean> {
+    return this.router.navigateByUrl('/operations/' + id);
+  }
+
+  public onAddRowDetail(): Promise<boolean> {
+    return this.router.navigateByUrl('/operations/new');
   }
 }
 

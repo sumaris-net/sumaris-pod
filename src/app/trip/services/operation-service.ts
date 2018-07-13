@@ -27,6 +27,12 @@ const LoadAllQuery: any = gql`
       comments
       hasCatch
       updateDate
+      metier {
+        id
+        label
+        name
+        entityName
+      }
       recorderDepartment {
         id
         label
@@ -47,7 +53,46 @@ const LoadAllQuery: any = gql`
     }
   }
 `;
-
+const LoadQuery: any = gql`
+  query Operation($id: Int) {
+    operation(id: $id) {
+      id
+      startDateTime
+      endDateTime
+      fishingStartDateTime
+      fishingEndDateTime
+      rankOrderOnPeriod
+      physicalGearId
+      tripId
+      comments
+      hasCatch
+      updateDate
+      metier {
+        id
+        label
+        name
+        entityName
+      }
+      recorderDepartment {
+        id
+        label
+        name
+      }
+      positions {
+        id
+        dateTime
+        latitude
+        longitude
+        updateDate
+        recorderDepartment {
+          id
+          label
+          name
+        }
+      }
+    }  
+  }
+`;
 const SaveOperations: any = gql`
   mutation saveOperations($operations:[OperationVOInput]){
     saveOperations(operations: $operations){
@@ -136,6 +181,25 @@ export class OperationService extends BaseDataService implements DataService<Ope
             return res;
           });
         }));
+  }
+
+  load(id: number): Observable<Operation | null> {
+    console.debug("[operation-service] Loading operation {" + id + "}...");
+
+    return this.watchQuery<{ operation: Operation }>({
+      query: LoadQuery,
+      variables: {
+        id: id
+      },
+      error: { code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR" }
+    })
+      .map(data => {
+        if (data && data.operation) {
+          console.debug("[operation-service] Loaded operation {" + id + "}");
+          return Operation.fromObject(data.operation);
+        }
+        return null;
+      });
   }
 
   /**

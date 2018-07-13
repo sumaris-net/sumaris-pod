@@ -8,6 +8,7 @@ import { FormGroup } from '@angular/forms';
 import { SaleForm } from '../sale/form/form-sale';
 import { OperationTable } from '../operation/table/table-operations';
 import { Observable } from "rxjs-compat";
+import { PhysicalGearForm } from '../physicalGear/form/form-physical-gear';
 
 @Component({
   selector: 'page-trip',
@@ -25,12 +26,14 @@ export class TripPage implements OnInit {
   data: Trip;
 
   public get dirty(): boolean {
-    return this.tripForm.dirty || this.saleForm.dirty || this.operationTable.dirty;
+    return this.tripForm.dirty || this.saleForm.dirty || this.gearForm.dirty || this.operationTable.dirty;
   }
 
   @ViewChild('tripForm') tripForm: TripForm;
 
   @ViewChild('saleForm') saleForm: SaleForm;
+
+  @ViewChild('gearForm') gearForm: PhysicalGearForm;
 
   @ViewChild('operationTable') operationTable: OperationTable;
 
@@ -41,6 +44,7 @@ export class TripPage implements OnInit {
   ) {
   }
 
+
   public get valid(): boolean {
     return this.tripForm.form.valid && (this.saleForm.form.valid || this.saleForm.empty);
   }
@@ -49,8 +53,7 @@ export class TripPage implements OnInit {
     // Make sure template has a form
     if (!this.tripForm || !this.saleForm) throw "[TripPage] no form for value setting";
 
-    this.tripForm.disable();
-    this.saleForm.disable();
+    this.disable();
 
     // Listen route parameters
     this.route.queryParams.subscribe(res => {
@@ -61,7 +64,7 @@ export class TripPage implements OnInit {
     });
 
     this.route.params.subscribe(res => {
-      const id = res && res["id"];
+      const id = res && res["tripId"];
       if (!id || id === "new") {
         this.load();
       }
@@ -81,8 +84,7 @@ export class TripPage implements OnInit {
         obs2.subscribe(data => {
           this.data = data;
           this.updateView(this.data, true);
-          this.tripForm.enable();
-          this.saleForm.enable();
+          this.enable();
           this.loading = false;
         });
       }
@@ -90,8 +92,7 @@ export class TripPage implements OnInit {
     else {
       this.data = new Trip();
       this.updateView(this.data, true);
-      this.tripForm.enable();
-      this.saleForm.enable();
+      this.enable();
       this.loading = false;
     }
   }
@@ -100,6 +101,7 @@ export class TripPage implements OnInit {
     this.data = data;
     this.tripForm.setValue(data);
     this.saleForm.setValue(data && data.sale);
+    this.gearForm.setValue(data && data.gears && data.gears[0]);
     if (updateOperations) {
       this.operationTable && this.operationTable.setTrip(data);
     }
@@ -117,17 +119,13 @@ export class TripPage implements OnInit {
     this.data.fromObject(json);
 
     const tripDirty = this.tripForm.dirty || this.saleForm.dirty;
-    this.tripForm.disable();
-    this.saleForm.disable();
-    //this.operationTable.disable()
+    this.disable();
 
     try {
       // Save trip form (with sale) 
       const updatedData = tripDirty ? await this.tripService.save(this.data) : this.data;
-      this.tripForm.markAsPristine();
-      this.tripForm.markAsUntouched();
-      this.saleForm.markAsPristine();
-      this.saleForm.markAsUntouched();
+      this.markAsPristine();
+      this.markAsUntouched();
 
       // Save operations
       const isOperationSaved = !this.operationTable || await this.operationTable.save();
@@ -140,13 +138,35 @@ export class TripPage implements OnInit {
     catch (err) {
       console.error(err);
       this.error = err && err.message || err;
-      //return Promise.reject(err);
     }
     finally {
-      this.tripForm.enable();
-      this.saleForm.enable();
+      this.enable();
       this.saving = false;
     }
+  }
+
+  public disable() {
+    this.tripForm.disable();
+    this.saleForm.disable();
+    this.gearForm.disable();
+  }
+
+  public enable() {
+    this.tripForm.enable();
+    this.saleForm.enable();
+    this.gearForm.enable();
+  }
+
+  public markAsPristine() {
+    this.tripForm.markAsPristine();
+    this.saleForm.markAsPristine();
+    this.gearForm.markAsPristine();
+  }
+
+  public markAsUntouched() {
+    this.tripForm.markAsUntouched();
+    this.saleForm.markAsUntouched();
+    this.gearForm.markAsUntouched();
   }
 
   async cancel() {

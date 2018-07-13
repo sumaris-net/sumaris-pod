@@ -55,7 +55,7 @@ function formatToDDMMSS(value: number, isLatitude: boolean, maxDecimals: number,
     }
 
     const output = degrees + '° ' + minutes + '\' ' + seconds + '" ' + direction;
-    console.debug("formatToDDMMSS: " + value + " -> " + output);
+    //console.debug("formatToDDMMSS: " + value + " -> " + output);
     return output;
 }
 
@@ -88,7 +88,7 @@ function formatToDDMM(value: number, isLatitude: boolean, maxDecimals: number, p
     }
 
     const output = degrees + '° ' + minutes + '\' ' + direction;
-    console.debug("formatToDDMM: " + (negative ? '-' : '') + value + " -> " + output);
+    //console.debug("formatToDDMM: " + (negative ? '-' : '') + value + " -> " + output);
     return output;
 }
 
@@ -114,7 +114,7 @@ function parseLatitudeOrLongitude(input: string, pattern: string, maxDecimals?: 
         dd = dd * -1;
     }
     dd = roundFloat(dd, maxDecimals);
-    console.debug("parseLatitudeOrLongitude " + input + " -> " + dd);
+    //console.debug("parseLatitudeOrLongitude " + input + " -> " + dd);
     return dd;
 }
 

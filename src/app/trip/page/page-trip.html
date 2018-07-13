@@ -40,14 +40,28 @@
       </ion-grid>
     </mat-tab>
 
-    <!-- TAB: general -->
-    <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
+    <!-- TAB: Gear -->
+    <mat-tab label="{{'TRIP.TAB_PHYSICAL_GEAR'|translate}}">
       <ng-template mat-tab-label>
         <ion-icon name="settings"></ion-icon>
         <ion-label translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
       </ng-template>
 
+      <ion-grid no-padding>
 
+        <ion-row no-padding>
+          <ion-col padding>
+
+            <!-- physical gear -->
+            <form-physical-gear (onSubmit)="save($event)" #gearForm>
+            </form-physical-gear>
+          </ion-col>
+
+          <ion-col no-padding size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3">
+
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </mat-tab>
 
     <!-- TAB: operations -->
