@@ -67,15 +67,4 @@
     </ion-row>
   </ion-grid>
 
-
-  <ion-row class="hidden-xs hidden-sm padding bar" style="text-align: right;" *ngIf="!loading && form.dirty">
-
-    <button mat-button (click)="onCancel.emit()" type="button">
-      {{'COMMON.BTN_CANCEL'|translate}}
-    </button>
-
-    <button mat-raised-button color="primary" type="submit">
-      {{'COMMON.BTN_SAVE'|translate}}
-    </button>
-  </ion-row>
 </form>

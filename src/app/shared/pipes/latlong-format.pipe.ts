@@ -110,7 +110,7 @@ function parseLatitudeOrLongitude(input: string, pattern: string, maxDecimals?: 
 
     var dd = degrees + minutes / 60 + seconds / (60 * 60);
 
-    if (direction && (direction === "S" || direction === "W") {
+    if (direction && (direction === "S" || direction === "W")) {
         dd = dd * -1;
     }
     dd = roundFloat(dd, maxDecimals);

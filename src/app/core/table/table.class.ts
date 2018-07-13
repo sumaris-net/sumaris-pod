@@ -191,7 +191,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.error = undefined;
         if (this.selectedRow && this.selectedRow.editing) {
             var confirm = this.selectedRow.confirmEditCreate();
-            if (!confirm) return Promise.reject({ code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' });
+            if (!confirm) throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
         }
         console.log("[table] Saving...");
         try {
@@ -201,8 +201,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         }
         catch (err) {
             this.error = err && err.message || err;
-            return Promise.reject(err);
+            throw err;
         };
+    }
+
+    cancel() {
+        this.onRefresh.emit();
     }
 
     /** Whether the number of selected elements matches the total number of rows. */

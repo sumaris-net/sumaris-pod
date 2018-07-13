@@ -119,6 +119,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
       filter: filter
     };
 
+    this._lastVariables.loadAll = variables;
+
     console.debug("[operation-service] Loading operations... using options:", variables);
     return this.watchQuery<{ operations: Operation[] }>({
       query: LoadAllQuery,
@@ -143,7 +145,6 @@ export class OperationService extends BaseDataService implements DataService<Ope
   async saveAll(entities: Operation[], options?: any): Promise<Operation[]> {
     if (!entities) return entities;
 
-
     if (!options || !options.tripId) {
       console.error("[operation-service] Missing options.tripId");
       throw { code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR" };
@@ -165,28 +166,56 @@ export class OperationService extends BaseDataService implements DataService<Ope
       error: { code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR" }
     });
 
-    return (res && res.saveOperations && entities || [])
-      .map(t => {
-        const data = res.saveOperations.find(res => t.equals(res));
-
-        // Update (id+updateDate)
-        t.updateDate = data && data.updateDate || t.updateDate;
-        t.dirty = !data;
-
-        // Update positions (id+updateDate)
-        if (data.positions && data.positions.length > 0) {
-          t.positions.forEach(p => {
-            let savedPos = data.positions.find(res => p.equals(res));
-            p.id = savedPos && savedPos.id;
-            p.updateDate = savedPos && savedPos.updateDate;
-          });
-        }
-
-        console.log("TODO: update vesselPosition updateDate ?");
-        return t;
+    // Copy id and update date
+    (res && res.saveOperations && entities || [])
+      .forEach(entity => {
+        const savedOperation = res.saveOperations.find(res => entity.equals(res));
+        this.copyIdAndUpdateDate(savedOperation, entity);
       });
+
+    return entities;
   }
 
+  /**
+     * Save an operation
+     * @param data 
+     */
+  async save(entity: Operation): Promise<Operation> {
+
+
+    // Fill default properties (as recorder department and person)
+    this.fillDefaultProperties(entity, {});
+
+    // Transform into json
+    const json = entity.asObject();
+    const isNew = !entity.id;
+
+    console.debug("[operation-service] Saving operation: ", json);
+
+    const res = await this.mutate<{ saveOperations: Operation[] }>({
+      mutation: SaveOperations,
+      variables: {
+        operations: [json]
+      },
+      error: { code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR" }
+    });
+
+    const savedOperation = res && res.saveOperations && res.saveOperations[0];
+    if (savedOperation) {
+      // Copy id and update Date
+      this.copyIdAndUpdateDate(savedOperation, entity);
+
+      // Update the cache
+      if (isNew && this._lastVariables.loadAll) {
+        const list = this.addToQueryCache({
+          query: LoadAllQuery,
+          variables: this._lastVariables.loadAll
+        }, 'operations', savedOperation);
+      }
+    }
+
+    return entity;
+  }
 
   /**
    * Save many operations
@@ -223,7 +252,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
     entity.positions = [entity.startPosition, entity.endPosition];
 
     // Fill trip ID
-    if (!entity.tripId) {
+    if (!entity.tripId && options) {
       entity.tripId = options.tripId;
     }
 
@@ -243,6 +272,28 @@ export class OperationService extends BaseDataService implements DataService<Ope
       // Recorder department
       if (person && person.department) {
         entity.recorderDepartment.id = person.department.id;
+      }
+    }
+  }
+
+  copyIdAndUpdateDate(source: Operation | undefined, target: Operation) {
+    if (source) {
+
+      // Update (id and updateDate)
+      target.id = source.id || target.id;
+      target.updateDate = source.updateDate || target.updateDate;
+      target.dirty = false;
+
+      // Update positions (id and updateDate)
+      if (source.positions && source.positions.length > 0) {
+        target.positions.forEach(targetPos => {
+          let savedPos = source.positions.find(srcPos => targetPos.equals(srcPos));
+          if (savedPos) {
+            targetPos.id = savedPos.id || targetPos.id;
+            targetPos.updateDate = savedPos.updateDate || targetPos.updateDate;
+            targetPos.dirty = false;
+          }
+        });
       }
     }
   }

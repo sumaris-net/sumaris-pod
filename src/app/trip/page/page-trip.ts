@@ -153,6 +153,7 @@ export class TripPage implements OnInit {
     // reload
     this.loading = true;
     await this.load(this.data.id);
+
   }
 
   onTabChange(event: MatTabChangeEvent) {

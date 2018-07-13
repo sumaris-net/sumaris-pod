@@ -25,3 +25,7 @@
   </mat-tab-group>
 
 </ion-content>
+
+<ion-footer hidden-xs hidden-sm>
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event, form.value) " [disabled]="!form.dirty || loading "></form-buttons-bar>
+</ion-footer>

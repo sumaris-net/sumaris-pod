@@ -35,10 +35,10 @@ const MASKS = {
 export class MatLatLong implements OnInit, ControlValueAccessor {
     protected writing: boolean = false;
     protected touchUi: boolean = false;
-    protected mobile: boolean = false;
     private _onChange = (_: any) => { };
     private _onTouched = () => { };
 
+    mobile: boolean;
     requiredError: boolean = false;
     textFormControl: FormControl;
     mask: (string | RegExp)[];

@@ -233,12 +233,13 @@ export class VesselService extends BaseDataService implements DataService<Vessel
       },
       error: { code: ErrorCodes.SAVE_VESSELS_ERROR, message: "VESSEL.ERROR.SAVE_VESSELS_ERROR" }
     });
-    return (res && res.saveVessels && vessels || []).map(t => {
-      const data = res.saveVessels.find(res => res.id == t.id);
-      t.updateDate = data && data.updateDate || t.updateDate;
-      t.vesselId = data && data.vesselId || t.vesselId;
-      return t;
-    });
+    return (res && res.saveVessels && vessels || [])
+      .map(t => {
+        const data = res.saveVessels.find(res => res.id == t.id);
+        t.updateDate = data && data.updateDate || t.updateDate;
+        t.vesselId = data && data.vesselId || t.vesselId;
+        return t;
+      });
   }
 
   /**

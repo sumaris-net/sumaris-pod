@@ -33,7 +33,7 @@
 </ion-item>
 
 <mat-table #table [dataSource]="dataSource" class="table-operations" matSort matSortActive="startDateTime" matSortDirection="asc"
-  matSortDisableClear [trackBy]="getId">
+  matSortDisableClear [trackBy]="trackBy">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>

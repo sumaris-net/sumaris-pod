@@ -38,7 +38,7 @@ export class HomePage implements OnDestroy {
     public accountService: AccountService,
     public activatedRoute: ActivatedRoute,
     public modalCtrl: ModalController,
-    private translate: TranslateService
+    public translate: TranslateService
   ) {
     this.bgImage = getRandomImage();
     this.isLogin = accountService.isLogin();

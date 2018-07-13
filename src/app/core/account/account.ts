@@ -174,7 +174,7 @@ export class AccountPage implements OnDestroy {
     }
   }
 
-  cancel(event: any) {
+  cancel() {
     this.setValue(this.account);
     this.form.markAsPristine();
   }

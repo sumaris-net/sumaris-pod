@@ -317,61 +317,51 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       },
       error: { code: ErrorCodes.SAVE_TRIPS_ERROR, message: "TRIP.ERROR.SAVE_TRIPS_ERROR" }
     });
-    return (res && res.saveTrips && entities || [])
-      .map(t => {
-        const data = res.saveTrips.find(res => res.id == t.id);
-        t.updateDate = data && data.updateDate || t.updateDate;
-        t.dirty = false;
-        if (t.sale) {
-          t.sale.id = data.sale && data.sale.id;
-          t.sale.updateDate = data.sale && data.sale.updateDate;
-          t.dirty = false;
-        }
-        return t;
+    (res && res.saveTrips && entities || [])
+      .forEach(entity => {
+        const savedTrip = res.saveTrips.find(res => entity.equals(res));
+        this.copyIdAndUpdateDate(savedTrip, entity);
       });
+    return entities;
   }
 
   /**
    * Save a trip
    * @param data 
    */
-  save(entity: Trip): Promise<Trip> {
+  async save(entity: Trip): Promise<Trip> {
 
     // Prepare to save
     this.fillDefaultProperties(entity);
 
     // Transform into json
     const json = this.asObject(entity);
-    const isNew = !json.id;
+    const isNew = !entity.id;
 
     console.debug("[trip-service] Saving trip: ", json);
 
-    return this.mutate<{ saveTrips: any }>({
+    const res = await this.mutate<{ saveTrips: any }>({
       mutation: SaveTrips,
       variables: {
         trips: [json]
       },
       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" }
     })
-      .then(data => {
-        var res = data && data.saveTrips && data.saveTrips[0];
-        entity.id = res && res.id || entity.id;
-        entity.updateDate = res && res.updateDate || entity.updateDate;
-        if (entity.sale) {
-          entity.sale.id = res.sale && res.sale.id;
-          entity.sale.updateDate = res.sale && res.sale.updateDate;
-        }
 
-        // Update the cache
-        if (isNew && this._lastVariables.loadAll) {
-          const list = this.addToQueryCache({
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'trips', res);
-        }
+    var savedTrip = res && res.saveTrips && res.saveTrips[0];
+    if (savedTrip) {
+      this.copyIdAndUpdateDate(savedTrip, entity);
 
-        return entity;
-      });
+      // Update the cache
+      if (isNew && this._lastVariables.loadAll) {
+        const list = this.addToQueryCache({
+          query: LoadAllQuery,
+          variables: this._lastVariables.loadAll
+        }, 'trips', savedTrip);
+      }
+    }
+
+    return entity;
   }
 
   /**
@@ -438,7 +428,23 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       if (person && person.id) {
         entity.recorderPerson.id = person.id;
       }
+    }
+  }
 
+  copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {
+    if (source) {
+
+      // Update (id and updateDate)
+      target.id = source.id || target.id;
+      target.updateDate = source.updateDate || target.updateDate;
+      target.dirty = false;
+
+      // Update sale
+      if (target.sale && source.sale) {
+        target.sale.id = source.sale.id || target.sale.id;
+        target.sale.updateDate = source.sale.updateDate || target.sale.updateDate;
+        target.sale.dirty = false;
+      }
     }
   }
 }

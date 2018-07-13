@@ -1,4 +1,4 @@
-<app-toolbar [title]="'VESSEL.LIST.TITLE'|translate" color="primary">
+<app-toolbar [title]="'VESSEL.LIST.TITLE'|translate" color="primary" (onValidate)="save() " [hasValidate]="dirty && !loading">
 </app-toolbar>
 
 <ion-content no-padding>
@@ -50,7 +50,7 @@
   <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
   <mat-table #table [dataSource]="dataSource" class="trips-table " matSort matSortActive="exteriorMarking" matSortDirection="asc"
-    matSortDisableClear [trackBy]="getId">
+    matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -165,20 +165,9 @@
   <!-- Bottom buttons -->
   <ion-row no-padding>
 
-    <ion-col col-6 padding>
-      <ion-buttons left start *ngIf="!loading">
-        <button mat-raised-button *ngIf="dirty" (click)="onRefresh.emit()">
-          <ion-icon name="md-close"></ion-icon>
-          <span translate>COMMON.BTN_CANCEL</span>
-        </button>
-        <button mat-raised-button color="primary" *ngIf="dirty" (click)="save()">
-          <ion-icon name="md-checkmark"></ion-icon>
-          <span translate>COMMON.BTN_SAVE</span>
-        </button>
-      </ion-buttons>
-    </ion-col>
+    <ion-col></ion-col>
 
-    <ion-col no-padding col-6>
+    <ion-col no-padding size="auto">
       <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]">
       </mat-paginator>
     </ion-col>
@@ -186,6 +175,10 @@
 
 
 </ion-content>
+
+<ion-footer hidden-xs hidden-sm>
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save() " [disabled]="!dirty || loading "></form-buttons-bar>
+</ion-footer>
 
 <!-- Add Button  -->
 <ion-fab vertical="bottom" horizontal="end" class="visible-xs visible-sm">

@@ -24,6 +24,11 @@
       <mat-icon>edit</mat-icon>
     </mat-button-toggle>
 
+    <ion-item *ngIf="error" hidden-xs hidden-sm>
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
     <div class="toolbar-spacer"></div>
 
     <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
@@ -78,10 +83,13 @@
   </mat-expansion-panel>
 
   <!-- error -->
-  <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
+  <ion-item *ngIf="error" visible-xs visible-sm>
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
 
   <mat-table #table [dataSource]="dataSource" matSort matSortActive="departureDateTime" matSortDirection="asc" matSortDisableClear
-    [trackBy]="getId">
+    [trackBy]="trackBy">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -220,24 +228,17 @@
 
 
   <ion-row no-padding>
-
-
-    <ion-col col-6 padding>
-
-    </ion-col>
-
-    <!-- paginator -->
-    <ion-col no-padding col-6>
+    <ion-col></ion-col>
+    <ion-col no-padding size="auto">
       <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]">
       </mat-paginator>
     </ion-col>
   </ion-row>
 
-
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm *ngIf="inlineEdition">
-  <form-buttons-bar (onCancel)="onRefresh.emit()" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
 </ion-footer>
 
 <!-- Add Button  -->

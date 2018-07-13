@@ -135,6 +135,17 @@ export class Trip extends DataRootVesselEntity<Trip> {
     };
     return this;
   }
+
+  equals(other: Trip): boolean {
+    return super.equals(other)
+      || (
+        // Same vessel
+        (this.vesselFeatures && other.vesselFeatures && this.vesselFeatures.vesselId === other.vesselFeatures.vesselId)
+        // Same departure date (or, if not set, same return date)
+        && ((this.departureDateTime === other.departureDateTime)
+          || (!this.departureDateTime && !other.departureDateTime && this.returnDateTime === other.returnDateTime))
+      );
+  }
 }
 
 

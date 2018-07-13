@@ -75,11 +75,9 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       // if new vessel added, use it
       if (res) {
         if (res instanceof VesselFeatures) {
-          console.log(res);
           let json = this.form.value;
           json.vesselFeatures = res;
           this.form.setValue(json);
-          //this.form.controls.vesselFeatures.setValue((res as VesselFeatures).asObject());
         }
       }
     });
