@@ -1,10 +1,11 @@
 import { Observable, Subscription } from "rxjs-compat";
 import { Apollo } from "apollo-angular";
-import { ApolloQueryResult } from "apollo-client";
+import { ApolloQueryResult, ApolloError } from "apollo-client";
 import { R } from "apollo-angular/types";
 import { ErrorCodes, ServiceError } from "./errors";
 import { map } from "rxjs/operators";
-import { Entity } from "./model";
+import { Entity, Person, Referential } from "./model";
+import { AccountService } from "../core.module";
 
 export declare interface DataService<T, F> {
 
@@ -198,13 +199,16 @@ export class BaseDataService {
       };
     }
     else {
-      result = {
-        data: null,
-        //errors: [err as GraphQLError],
-        loading: false,
-        networkStatus: err.networkStatus,
-        stale: err.stale
-      };
+      if (err instanceof ApolloError) {
+        //let err2 = err as ApolloError;
+        result = {
+          data: null,
+          errors: err.graphQLErrors,
+          loading: false,
+          networkStatus: null,
+          stale: null
+        };
+      }
     }
     return Observable.of(result);
   }

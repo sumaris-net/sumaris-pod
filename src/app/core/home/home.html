@@ -1,34 +1,44 @@
-<app-toolbar>
+<app-toolbar visible-xs visible-sm>
   <ion-button mat-icon-button [matMenuTriggerFor]="matmenu">
-    <mat-icon>public</mat-icon>
+    <mat-icon slot="icon-only">public</mat-icon>
   </ion-button>
-  <mat-menu #matmenu="matMenu">
-    <button mat-menu-item (click)="changeLanguage('en')">
-      <mat-icon>flag</mat-icon>
-      <span>
-        English
-      </span>
-    </button>
-    <button mat-menu-item (click)="changeLanguage('fr')">
-      <mat-icon>flag</mat-icon>
-      <span>
-        Français
-      </span>
-    </button>
-  </mat-menu>
 </app-toolbar>
+
+<!-- change locale menu -->
+<mat-menu #matmenu="matMenu">
+  <button mat-menu-item (click)="changeLanguage('en')">
+    <mat-icon>flag</mat-icon>
+    <span>
+      English
+    </span>
+  </button>
+  <button mat-menu-item (click)="changeLanguage('fr')">
+    <mat-icon>flag</mat-icon>
+    <span>
+      Français
+    </span>
+  </button>
+</mat-menu>
 
 <ion-content padding [ngStyle]="{'background-image': 'url('+bgImage+')'}" class="no-padding-xs">
 
+  <div hidden-xs hidden-sm>
+    <!-- change locale button -->
+    <ion-item>
+      <ion-button color="light" slot="end" fill="solid" [matMenuTriggerFor]="matmenu" expand="full">
+        <mat-icon slot="start">public</mat-icon>
+        <ion-label>&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
+      </ion-button>
+    </ion-item>
+  </div>
 
   <p class="hidden-xs">&nbsp;</p>
 
-  <ion-card>
-    <ion-card-header>
-      <h1 translate>HOME.WELCOME</h1>
-    </ion-card-header>
 
+  <ion-card>
     <ion-card-content>
+
+      <h1 translate>HOME.WELCOME</h1>
       <ion-text color="primary">
         <img class="logo" src="./assets/img/logo.png" [title]="'APP_NAME'|translate" />
         <br/>

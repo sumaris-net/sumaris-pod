@@ -300,13 +300,14 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
    * Save many trips
    * @param data 
    */
-  async saveAll(entities: Trip[]): Promise<Trip[]> {
+  async saveAll(entities: Trip[], options?: any): Promise<Trip[]> {
     if (!entities) return entities;
 
-    // Fill default properties (as recorder department and person)
-    entities.forEach(t => this.fillDefaultProperties(t));
-
-    const json = entities.map(t => this.asObject(t));
+    const json = entities.map(t => {
+      // Fill default properties (as recorder department and person)
+      this.fillDefaultProperties(t)
+      return this.asObject(t);
+    });
     console.debug("[trip-service] Saving trips: ", json);
 
     const res = await this.mutate<{ saveTrips: Trip[] }>({

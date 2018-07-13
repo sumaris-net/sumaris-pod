@@ -224,9 +224,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     deleteSelection() {
         if (this.loading) return;
         this.selection.selected.forEach(row => {
+            row.delete();
+            this.selection.deselect(row);
             if (row.currentData && row.currentData.id >= 0) {
-                row.delete();
-                this.selection.deselect(row);
                 this.resultsLength--;
             }
         });
@@ -278,7 +278,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     public getDisplayColumns(): string[] {
         const fixedColumns = this.columns.slice(0, 2);
         var userColumns = this.accountService.getPageSettings(this.location.path(true), SETTINGS_DISPLAY_COLUMNS);
-        return userColumns && fixedColumns.concat(userColumns) || this.columns;
+        userColumns = (userColumns || []).filter(c => c !== 'actions');
+        return userColumns && fixedColumns.concat(userColumns).concat(['actions']) || this.columns;
     }
 
     public async openSelectColumnsModal(event: any): Promise<any> {
@@ -287,6 +288,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             .filter(name => this.displayedColumns.indexOf(name) == -1);
         let columns = this.displayedColumns.slice(fixedColumns.length)
             .concat(hiddenColumns)
+            .filter(name => name != "actions")
             .map((name, index) => {
                 return {
                     name,
@@ -303,7 +305,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
             // Apply columns
             var userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
-            this.displayedColumns = fixedColumns.concat(userColumns);
+            this.displayedColumns = fixedColumns.concat(userColumns).concat(['actions']);
 
             // Update user settings
             this.accountService.savePageSetting(this.location.path(true), userColumns, SETTINGS_DISPLAY_COLUMNS);

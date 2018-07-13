@@ -14,22 +14,41 @@ export {
 };
 
 /* -- DATA -- */
-export abstract class DataRootEntity<T> extends Entity<T> {
-  comments: string;
-  creationDate: Moment;
+export abstract class DataEntity<T> extends Entity<T> {
   recorderDepartment: Department;
-  recorderPerson: Person;
 
   constructor() {
     super();
     this.recorderDepartment = new Department();
+  }
+
+  asObject(): any {
+    const target = super.asObject();
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject() || undefined;
+    return target;
+  }
+
+  fromObject(source: any): DataEntity<T> {
+    super.fromObject(source);
+    source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
+    return this;
+  }
+
+}
+
+export abstract class DataRootEntity<T> extends DataEntity<T> {
+  comments: string;
+  creationDate: Moment;
+  recorderPerson: Person;
+
+  constructor() {
+    super();
     this.recorderPerson = new Person();
   }
 
   asObject(): any {
     const target = super.asObject();
     target.creationDate = toDateISOString(this.creationDate);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject() || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject() || undefined;
     return target;
   }
@@ -38,7 +57,6 @@ export abstract class DataRootEntity<T> extends Entity<T> {
     super.fromObject(source);
     this.comments = source.comments;
     this.creationDate = fromDateISOString(source.creationDate);
-    source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
     source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
     return this;
   }
@@ -162,7 +180,7 @@ export class Sale extends DataRootVesselEntity<Sale> {
 }
 
 
-export class Operation extends Entity<Operation> {
+export class Operation extends DataEntity<Operation> {
 
   static fromObject(source: any): Operation {
     const res = new Operation();
@@ -178,9 +196,16 @@ export class Operation extends Entity<Operation> {
   rankOrderOnPeriod: number;
   hasCatch: boolean;
   positions: VesselPosition[];
+  startPosition: VesselPosition;
+  endPosition: VesselPosition;
+
+  physicalGearId: number;
+  tripId: number;
 
   constructor() {
     super();
+    this.startPosition = new VesselPosition();
+    this.endPosition = new VesselPosition();
   }
 
   clone(): Operation {
@@ -195,7 +220,9 @@ export class Operation extends Entity<Operation> {
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
-    target.positions = this.positions && this.positions.map(p => p.asObject()) || undefined;
+    target.positions = [this.startPosition, this.endPosition].map(p => p && p.asObject()) || undefined;
+    delete target.startPosition;
+    delete target.endPosition;
     return target;
   }
 
@@ -203,16 +230,32 @@ export class Operation extends Entity<Operation> {
     super.fromObject(source);
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
+    this.tripId = source.tripId;
+    this.physicalGearId = source.physicalGearId;
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
+    this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     this.positions = source.positions && source.positions.map(VesselPosition.fromObject) || undefined;
+    if (this.positions.length == 2) {
+      this.startPosition = this.positions[0];
+      this.endPosition = this.positions[1];
+    }
+    delete this.positions;
     return this;
+  }
+
+  equals(other: Operation): boolean {
+    return super.equals(other)
+      || ((this.startDateTime === other.startDateTime
+        || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
+        && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
+      );
   }
 }
 
-export class VesselPosition extends Entity<Operation> {
+export class VesselPosition extends DataEntity<Operation> {
 
   static fromObject(source: any): VesselPosition {
     const res = new VesselPosition();
@@ -221,11 +264,12 @@ export class VesselPosition extends Entity<Operation> {
   }
 
   dateTime: Moment;
-  recorderDepartment: Referential;
+  latitude: number;
+  longitude: number;
+  operationId: number;
 
   constructor() {
     super();
-    this.recorderDepartment = new Referential();
   }
 
   clone(): Operation {
@@ -237,14 +281,21 @@ export class VesselPosition extends Entity<Operation> {
   asObject(): any {
     const target = super.asObject();
     target.dateTime = toDateISOString(this.dateTime);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject() || undefined;
     return target;
   }
 
   fromObject(source: any): VesselPosition {
     super.fromObject(source);
+    this.latitude = source.latitude;
+    this.longitude = source.longitude;
+    this.operationId = source.operationId;
     this.dateTime = fromDateISOString(source.dateTime);
-    source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
     return this;
+  }
+
+  equals(other: VesselPosition): boolean {
+    return super.equals(other)
+      || (this.dateTime === other.dateTime
+        && (!this.operationId && !other.operationId || this.operationId === other.operationId));
   }
 }

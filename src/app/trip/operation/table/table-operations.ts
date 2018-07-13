@@ -19,6 +19,7 @@ import { MatButtonToggle } from "@angular/material";
 import { OperationService, OperationFilter } from "../../services/operation-service";
 import { PositionValidatorService } from "../../position/validator/validators";
 
+
 @Component({
   selector: 'table-operations',
   templateUrl: 'table-operations.html',
@@ -29,6 +30,8 @@ import { PositionValidatorService } from "../../position/validator/validators";
   ],
 })
 export class OperationTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
+
+  @Input() latLongPattern: string;
 
   @Input() tripId: number;
 
@@ -49,29 +52,37 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
         'startDateTime',
         'startPosition',
         'endDateTime',
-        //'endPosition',
+        'endPosition',
         'comments',
         'actions'],
       {} // filter
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.';
-    this.inlineEdition = true; // force inline edition
     this.autoLoad = false;
+    this.latLongPattern = accountService.account.settings.latLongFormat || 'DDMM';
   };
+
 
   ngOnInit() {
 
     super.ngOnInit();
 
     this.filter.tripId = this.tripId;
+    this.dataSource.serviceOptions.tripId = this.tripId;
     if (this.filter.tripId) {
       this.onRefresh.emit();
     }
   }
 
-  setValue(data: Trip) {
-    this.filter.tripId = data.id;
-    if (this.filter.tripId) {
+  setTrip(data: Trip) {
+    this.setTripId(data.id);
+  }
+
+  setTripId(tripId: number) {
+    this.filter.tripId = tripId;
+    this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
+    this.dataSource.serviceOptions.tripId = tripId;
+    if (tripId) {
       this.onRefresh.emit();
     }
   }

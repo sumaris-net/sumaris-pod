@@ -13,14 +13,16 @@
     <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button icon-only class="visible-xs visible-sm" (click)="doSubmit()" *ngIf="!loading">
-        <ion-icon name="checkmark"></ion-icon>
+      <ion-button visible-xs visible-sm (click)="doSubmit()" *ngIf="!loading">
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content padding>
-  <form-auth (onSubmit)="doSubmit()" (onCancel)="cancel()" #form>
-  </form-auth>
+<ion-content>
+  <div padding>
+    <form-auth (onSubmit)="doSubmit()" (onCancel)="cancel()" #form>
+    </form-auth>
+  </div>
 </ion-content>

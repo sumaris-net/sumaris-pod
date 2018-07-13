@@ -80,7 +80,7 @@ export class TripPage implements OnInit {
         const obs2 = obs as Observable<Trip | null>;
         obs2.subscribe(data => {
           this.data = data;
-          this.updateView(this.data);
+          this.updateView(this.data, true);
           this.tripForm.enable();
           this.saleForm.enable();
           this.loading = false;
@@ -89,45 +89,52 @@ export class TripPage implements OnInit {
     }
     else {
       this.data = new Trip();
-      this.updateView(this.data);
+      this.updateView(this.data, true);
       this.tripForm.enable();
       this.saleForm.enable();
       this.loading = false;
     }
   }
 
-  updateView(data: Trip | null) {
+  updateView(data: Trip | null, updateOperations?: boolean) {
     this.data = data;
     this.tripForm.setValue(data);
     this.saleForm.setValue(data && data.sale);
-    this.operationTable && this.operationTable.setValue(data);
+    if (updateOperations) {
+      this.operationTable && this.operationTable.setTrip(data);
+    }
   }
 
   async save(event): Promise<any> {
     if (this.loading || this.saving || !this.valid) return;
     this.saving = true;
 
-    console.log("Saving...");
+    console.log("[page-trip] Saving...");
 
     // Update Trip from JSON
     let json = this.tripForm.value;
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     this.data.fromObject(json);
 
+    const tripDirty = this.tripForm.dirty || this.saleForm.dirty;
     this.tripForm.disable();
     this.saleForm.disable();
     //this.operationTable.disable()
 
     try {
-      const updatedData = this.tripForm.dirty || this.saleForm.dirty ? await this.tripService.save(this.data) : this.data;
-      const isOperationSaved = !this.operationTable || await this.operationTable.save();
-
-      this.updateView(updatedData);
+      // Save trip form (with sale) 
+      const updatedData = tripDirty ? await this.tripService.save(this.data) : this.data;
       this.tripForm.markAsPristine();
       this.tripForm.markAsUntouched();
       this.saleForm.markAsPristine();
       this.saleForm.markAsUntouched();
+
+      // Save operations
+      const isOperationSaved = !this.operationTable || await this.operationTable.save();
       isOperationSaved && this.operationTable && this.operationTable.markAsPristine();
+
+      // Update the view (e.g metadata)
+      this.updateView(updatedData, false);
       return updatedData;
     }
     catch (err) {

@@ -31,6 +31,7 @@ export class AccountPage implements OnDestroy {
     'en': 'English'
   };
   locales: String[] = [];
+  latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
   saving: boolean = false;
 
 
@@ -44,7 +45,8 @@ export class AccountPage implements OnDestroy {
       firstName: ['', Validators.compose([Validators.required, Validators.minLength(2)])],
       lastName: ['', Validators.compose([Validators.required, Validators.minLength(2)])],
       settings: formBuilder.group({
-        locale: ['', Validators.required]
+        locale: ['', Validators.required],
+        latLongFormat: ['', Validators.required]
       })
     });
     this.settingsForm = this.form.controls.settings as FormGroup;
@@ -159,11 +161,12 @@ export class AccountPage implements OnDestroy {
     json.settings = Object.assign(this.account.settings.asObject(), settings);
     newAccount.fromObject(json);
 
-    console.log("[account] Updating account...", newAccount);
+    console.log("[account] Saving account...", newAccount);
     try {
       await this.accountService.saveRemotely(newAccount)
     }
     catch (err) {
+      console.error(err);
       this.error = err && err.message || err;
     }
     finally {

@@ -14,6 +14,7 @@ import { AccountPage } from "./account/account";
 import { SharedModule } from '../shared/shared.module';
 import { AppForm } from './form/form.class';
 import { FormMetadataComponent } from './form/form-metadata.component';
+import { FormButtonsBarComponent } from './form/form-buttons-bar.component';
 import { AppTable } from './table/table.class';
 import { AppTableDataSource } from './table/table-datasource.class';
 import { TableSelectColumnsComponent } from './table/table-select-columns.component';
@@ -37,7 +38,7 @@ import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-transla
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 
-export { environment, AppForm, AppTable, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent }
+export { environment, AppForm, AppTable, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent, FormButtonsBarComponent }
 
 
 export function HttpLoaderFactory(http: HttpClient) {
@@ -76,7 +77,8 @@ export function HttpLoaderFactory(http: HttpClient) {
         // Components
         TableSelectColumnsComponent,
         AboutModal,
-        FormMetadataComponent
+        FormMetadataComponent,
+        FormButtonsBarComponent
     ],
     exports: [
         CommonModule,
@@ -88,6 +90,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         AuthModal,
         TableSelectColumnsComponent,
         FormMetadataComponent,
+        FormButtonsBarComponent,
         MenuComponent,
         ReactiveFormsModule,
         TranslateModule,
@@ -98,6 +101,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         AuthModal,
         TableSelectColumnsComponent,
         FormMetadataComponent,
+        FormButtonsBarComponent,
         AboutModal
     ],
     providers: [

@@ -60,7 +60,8 @@ ion-text {
     // Avoid boittom-banner to override main-content
     min-height: 539px;
     ion-card {
-      min-width: 120px;
+      min-width: 160px;
+      width: auto;
       max-width: 260px;
       button {
         margin-top: 8px;

@@ -41,8 +41,6 @@ export class MenuComponent {
   @Input()
   items: Array<MenuItem>;
 
-  @ViewChild(Content) ionContent: Content;
-
   constructor(
     protected accountService: AccountService,
     protected router: Router,
@@ -77,7 +75,6 @@ export class MenuComponent {
   logout(): void {
     this.account = null;
     this.accountService.logout();
-    console.log(this.ionContent);
   }
 
   async openAboutModal(event) {

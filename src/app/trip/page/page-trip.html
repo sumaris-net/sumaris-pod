@@ -11,9 +11,17 @@
       <ng-template mat-tab-label>
         <ion-icon slot="start" name="information-circle"></ion-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="(tripForm.invalid ) && dirty"></ion-icon>
       </ng-template>
 
+      <!-- error -->
+      <ion-item *ngIf="tripForm.error" visible-xs visible-sm>
+        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-label color="danger" [innerHTML]="tripForm.error|translate"></ion-label>
+      </ion-item>
+
       <ion-grid no-padding>
+
         <ion-row no-padding>
           <ion-col padding>
             <!-- trip -->
@@ -45,41 +53,20 @@
     <!-- TAB: operations -->
     <mat-tab label="{{'TRIP.TAB_OPERATIONS'|translate}}">
       <ng-template mat-tab-label>
-        <ion-icon name="locate"></ion-icon>
+        <ion-icon matPrefix slot="start" name="locate"></ion-icon>
         <ion-label translate>TRIP.TAB_OPERATIONS</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="this.operationTable.error"></ion-icon>
       </ng-template>
 
       <div no-padding>
-
         <table-operations #operationTable>
-
         </table-operations>
-
-        <!-- buttons -->
-        <ion-row>
-
-          <ion-col *ngIf="error" padding>
-            <mat-icon>warn</mat-icon>
-            <mat-error>{{error|translate}}</mat-error>
-          </ion-col>
-        </ion-row>
       </div>
     </mat-tab>
   </mat-tab-group>
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm *ngIf="!loading && dirty">
-  <ion-toolbar padding>
-
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="cancel()" type="button">
-        {{'COMMON.BTN_CANCEL'|translate}}
-      </ion-button>
-
-      <ion-button fill="solid" size="large" (click)="save($event)" color="danger">
-        {{'COMMON.BTN_SAVE'|translate}}
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+<ion-footer hidden-xs hidden-sm>
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading "></form-buttons-bar>
 </ion-footer>

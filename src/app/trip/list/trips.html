@@ -1,4 +1,4 @@
-<app-toolbar [title]="'TRIP.LIST.TITLE'|translate" color="primary">
+<app-toolbar [title]="'TRIP.LIST.TITLE'|translate" color="primary" (onValidate)="save()" [hasValidate]="!loading && dirty">
 </app-toolbar>
 
 <!-- @fadeInAnimation -->
@@ -105,10 +105,10 @@
 
     <!-- Vessel Column -->
     <ng-container matColumnDef="vessel">
-      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>TRIP.VESSEL</span>
       </mat-header-cell>
-      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+      <mat-cell *matCellDef="let row">
         <mat-form-field floatLabel="never" [title]="vesselFeaturesToString(row.currentData.vesselFeatures)">
           <input matInput [formControl]="row.validator.controls['vesselFeatures']" [placeholder]="'TRIP.VESSEL'|translate" [matAutocomplete]="autoVessel"
             [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [(ngModel)]="row.currentData.vesselFeatures">
@@ -195,7 +195,6 @@
     <!-- Comments column -->
     <ng-container matColumnDef="comments">
       <mat-header-cell *matHeaderCellDef>
-
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-icon color="primary" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
@@ -204,10 +203,9 @@
 
     <!-- Actions buttons column -->
     <ng-container matColumnDef="actions">
-      <mat-header-cell *matHeaderCellDef>
-        <span></span>
+      <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
       </mat-header-cell>
-      <mat-cell *matCellDef="let row">
+      <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
         <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
           <mat-icon>undo</mat-icon>
         </button>
@@ -238,18 +236,8 @@
 
 </ion-content>
 
-<ion-footer *ngIf="!loading && dirty">
-  <ion-toolbar>
-    <ion-buttons slot="end">
-      <button mat-raised-button (click)="onRefresh.emit()">
-        <span translate>COMMON.BTN_CANCEL</span>
-      </button>
-      &nbsp;
-      <button mat-raised-button color="primary" (click)="save()">
-        <span translate>COMMON.BTN_SAVE</span>
-      </button>
-    </ion-buttons>
-  </ion-toolbar>
+<ion-footer hidden-xs hidden-sm *ngIf="inlineEdition">
+  <form-buttons-bar (onCancel)="onRefresh.emit()" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
 </ion-footer>
 
 <!-- Add Button  -->

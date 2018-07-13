@@ -63,6 +63,10 @@ export abstract class Entity<T> implements Cloneable<T> {
     this.dirty = source.dirty;
     return this;
   }
+
+  equals(other: Entity<T>): boolean {
+    return other && this.id === other.id;
+  }
 }
 
 export class Referential extends Entity<Referential>  {
@@ -124,6 +128,11 @@ export class Referential extends Entity<Referential>  {
     this.entityName = source.entityName;
     return this;
   }
+
+  equals(other: Referential): boolean {
+    return super.equals(other) && this.entityName === other.entityName;
+  }
+
 }
 
 
@@ -209,6 +218,10 @@ export class Department extends Referential implements Cloneable<Department>{
 
 export class UserSettings extends Entity<UserSettings> implements Cloneable<UserSettings> {
   locale: string;
+  latLongFormat: string;
+
+  content: string;
+  nonce: string;
 
   clone(): UserSettings {
     const res = Object.assign(new UserSettings(), this);
@@ -225,6 +238,9 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
   fromObject(source: any): UserSettings {
     super.fromObject(source);
     this.locale = source.locale;
+    this.latLongFormat = source.latLongFormat;
+    this.content = source.content;
+    this.nonce = source.nonce;
     return this;
   }
 }

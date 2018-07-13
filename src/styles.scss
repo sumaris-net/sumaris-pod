@@ -245,7 +245,7 @@ mat-option ion-row {
 // --------------------------------------------------
 mat-table {
   .mat-header-cell {
-    padding-left: 8px;
+    //padding-left: 8px;
   }
   .mat-header-row,
   .mat-row {
@@ -253,6 +253,11 @@ mat-table {
     max-height: 52px;
     padding: 0 !important;
     z-index: 999;
+    mat-cell:last-child,
+    mat-footer-cell:last-child,
+    mat-header-cell:last-child {
+      padding-right: 8px;
+    }
     .mat-form-field-disabled,
     .mat-input-element:disabled,
     .mat-form-field-disabled * {
@@ -285,7 +290,7 @@ mat-table {
       padding-left: 0px;
     }
     .mat-column-actions {
-      max-width: 60px;
+      max-width: 40px;
       padding-left: 0px;
     }
     .mat-cell-date-time {
@@ -302,8 +307,7 @@ mat-table {
       }
       .mat-form-field-infix {
         width: auto !important;
-        white-space: nowrap;
-        padding-left: 8px;
+        white-space: nowrap; //padding-left: 8px;
         overflow: hidden;
       }
       .mat-form-field-infix input {

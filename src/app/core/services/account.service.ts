@@ -52,6 +52,9 @@ const AccountQuery: any = gql`
       settings {
         id
         locale
+        latLongFormat
+        content
+        nonce
         updateDate
       }
       department {
@@ -80,7 +83,7 @@ export declare type IsEmailExistsVariables = {
 
 // Save (create or update) account mutation
 const SaveAccountMutation: any = gql`
-  mutation saveAccount($account:AccountVOInput){
+  mutation SaveAccount($account:AccountVOInput){
     saveAccount(account: $account){
       id
       firstName
@@ -93,6 +96,9 @@ const SaveAccountMutation: any = gql`
       settings {
         id
         locale
+        latLongFormat
+        content
+        nonce
         updateDate
       }
       department {

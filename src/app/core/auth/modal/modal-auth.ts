@@ -28,7 +28,6 @@ export class AuthModal {
 
     return this.accountService.login(this.form.value)
       .then((account) => {
-        console.log("Will close auth modal");
         this.viewCtrl.dismiss(account);
       })
       .catch(err => {

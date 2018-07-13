@@ -5,6 +5,7 @@ import { EventEmitter } from "@angular/core";
 import { Entity } from "../services/model";
 import { FormGroup, AbstractControl } from "@angular/forms";
 import { TableElement } from "angular4-material-table";
+import { ErrorCodes } from "../services/errors";
 
 export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
 
@@ -57,7 +58,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       .map(r => {
         if (r.editing && !r.confirmEditCreate()) {
           this.logRowErrors(r);
-          return undefined;
+          this.onLoading.emit(false);
+          throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
         }
         return r.currentData as T;
       });
@@ -133,12 +135,12 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       .forEach(key => {
         var control = row.validator.controls[key];
         if (control.invalid) {
-          errorsMessage += "'" + key + "' (" + Object.getOwnPropertyNames(control.errors) + "),";
+          errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unkown error') + "),";
         }
       });
 
     if (errorsMessage.length) {
-      console.debug("[material.table] Row (id=" + row.id + ") has errors: " + errorsMessage.slice(0, -1));
+      console.error("[material.table] Row (id=" + row.id + ") has errors: " + errorsMessage.slice(0, -1));
     }
   }
 }

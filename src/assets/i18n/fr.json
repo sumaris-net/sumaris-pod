@@ -29,6 +29,10 @@
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
 
+    "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
+    "DDMM_PLACEHOLDER": "DD° MM.MMMMMM' N|S",
+    "DD_PLACEHOLDER": "+DD.DDDDDD°",
+
     "METADATA": "Métadonnées :",
 
     "HOUR": "heure",
@@ -105,7 +109,8 @@
     "SETTINGS": {
       "TITLE": "Préférences",
       "DESCRIPTION": "Voici les réglages possibles pour l'usage de l'application :",
-      "LOCALE": "Langue"
+      "LOCALE": "Langue",
+      "LAT_LONG_FORMAT": "Format latitude/longitude"
     }
   },
   "USER": {
@@ -167,8 +172,13 @@
       "FISHING_END_DATE_TIME": "Fin de pêche",
       "COMMENTS": "Commentaires",
       "ACTIONS": "Actions sur la ligne",
-      "START_POSITION": "GPS Position début",
-      "END_POSITION": "GPS Position de fin"
+      "START_POSITION": "Position début",
+      "END_POSITION": "Position de fin",
+      "ERROR": {
+        "LOAD_OPERATIONS_ERROR": "Erreur de chargement des operations.",
+        "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de la operation.",
+        "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des operations."
+      }
     }
   },
   "SALE": {
@@ -278,9 +288,11 @@
     "FIELD_TOO_LONG_WITH_LENGTH": "Valeur trop longue ({{maxLength}} caractères max)",
     "FIELD_MIN": "Valeur minimale : {{min}}",
     "FIELD_MAX": "Valeur maximale : {{max}}",
-    "FIELD_NOT_VALID_EMAIL": "Addresse email non valide",
-    "FIELD_NOT_VALID_DATE": "Date non valide",
-    "FIELD_NOT_VALID_DATE_TIME": "Date/heure non valide",
+    "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
+    "FIELD_NOT_VALID_DATE": "Date invalide",
+    "FIELD_NOT_VALID_DATE_TIME": "Date/heure invalide",
+    "FIELD_NOT_VALID_LATITUDE": "Latitude invalide",
+    "FIELD_NOT_VALID_LONGITUDE": "Longitude invalide",
     "SPACE_NOT_ALLOW": "Espaces ou caractères spéciaux non autorisés",
     "SCRYPT_ERROR": "Erreur de clefs d'ouverture du compte",
     "UNKNOWN_ACCOUNT_EMAIL": "Aucun compte ne correspond à cet email.",
@@ -291,6 +303,6 @@
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Erreur d'envoi de l'email de confirmation du compte.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Erreur lors de la confirmation de l'email. Ce compte a peut-être déjà été confirmé ?",
-    "TABLE_INVALID_ROW_ERROR": "Une ligne n'est pas valide"
+    "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur"
   }
 }

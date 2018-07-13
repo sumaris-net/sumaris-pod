@@ -58,10 +58,13 @@
 
 </ion-content>
 
-<ion-footer class="hidden-xs hidden-sm">
+<ion-footer hidden-xs hidden-sm>
   <ion-toolbar>
-    <ion-buttons slot="end">
-      <button mat-raised-button color="primary" (click)="cancel()">{{'COMMON.BTN_CLOSE'|translate}}</button>
-    </ion-buttons>
+    <ion-row no-padding nowrap>
+      <ion-col></ion-col>
+      <ion-col size="auto">
+        <ion-button fill="solid" color="secondary" (click)="cancel()">{{'COMMON.BTN_CLOSE'|translate}}</ion-button>
+      </ion-col>
+    </ion-row>
   </ion-toolbar>
 </ion-footer>
