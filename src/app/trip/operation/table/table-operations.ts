@@ -75,7 +75,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.tripId && this.setTripId(this.tripId);
 
     // Combo: métiers
-    this.metiers = Observable.empty() // TODO: change this to get user input
+    this.metiers = Observable.of("") // TODO: change this to get user input
       .pipe(
         mergeMap(value => {
           if (!value) return Observable.empty();

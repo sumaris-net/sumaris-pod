@@ -86,7 +86,6 @@ const routes: Routes = [
       },
       {
         path: ':tripId',
-        pathMatch: 'full',
         component: TripPage,
         runGuardsAndResolvers: 'paramsOrQueryParamsChange'
       }
