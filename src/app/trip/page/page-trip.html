@@ -9,7 +9,9 @@
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
-        <ion-icon slot="start" name="information-circle"></ion-icon>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
+        </mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert" color="danger" *ngIf="(tripForm.invalid ) && dirty"></ion-icon>
       </ng-template>
@@ -33,7 +35,7 @@
 
             </form-trip>
           </ion-col>
-          <ion-col no-padding size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3">
+          <ion-col no-padding size="12" size-xl="auto">
             <form-metadata [data]="data"></form-metadata>
           </ion-col>
         </ion-row>
@@ -43,7 +45,9 @@
     <!-- TAB: Gear -->
     <mat-tab label="{{'TRIP.TAB_PHYSICAL_GEAR'|translate}}">
       <ng-template mat-tab-label>
-        <ion-icon name="settings"></ion-icon>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="settings"></ion-icon>
+        </mat-icon>
         <ion-label translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
       </ng-template>
 
@@ -67,7 +71,9 @@
     <!-- TAB: operations -->
     <mat-tab label="{{'TRIP.TAB_OPERATIONS'|translate}}">
       <ng-template mat-tab-label>
-        <ion-icon matPrefix slot="start" name="locate"></ion-icon>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="locate"></ion-icon>
+        </mat-icon>
         <ion-label translate>TRIP.TAB_OPERATIONS</ion-label>
         <ion-icon slot="end" name="alert" color="danger" *ngIf="this.operationTable.error"></ion-icon>
       </ng-template>

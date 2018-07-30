@@ -38,7 +38,7 @@
           <mat-error *ngIf="form.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
         <mat-autocomplete autoActiveFirstOption #autoLocation="matAutocomplete" [displayWith]="referentialToString">
-          <ion-row padding>
+          <ion-row class="mat-autocomplete-header">
             <ion-col size="2" translate>REFERENTIAL.LABEL</ion-col>
             <ion-col translate>REFERENTIAL.NAME</ion-col>
           </ion-row>

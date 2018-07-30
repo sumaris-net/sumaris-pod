@@ -7,7 +7,7 @@ import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, TableSelectColumnsComponent, AccountService } from "../../../core/core.module";
 import { OperationValidatorService } from "../validator/validators";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Referential, Operation, Trip } from "../../services/model";
+import { Referential, Operation, Trip, referentialToString } from "../../services/model";
 import { Subscription } from "rxjs-compat";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -61,7 +61,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
         'actions'],
       {} // filter
     );
-    this.i18nColumnPrefix = 'TRIP.OPERATION.';
+    this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false;
     this.latLongPattern = accountService.account.settings.latLongFormat || 'DDMM';
     //this.inlineEdition = true; // TODO: remove this line !
@@ -114,5 +114,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   public onAddRowDetail(): Promise<boolean> {
     return this.router.navigateByUrl('/operations/new');
   }
+
+  referentialToString = referentialToString;
 }
 

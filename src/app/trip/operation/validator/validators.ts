@@ -13,20 +13,14 @@ export class OperationValidatorService implements ValidatorService {
   }
 
   getRowValidator(): FormGroup {
-    return this.formBuilder.group(this.getMininumFields());
+    return this.getFormGroup();
   }
 
   getFormGroup(data?: Operation): FormGroup {
-    const fields: { [key: string]: any } = Object.assign(
-      this.getMininumFields(),
-      {
-        physicalGear: ['', Validators.required]
-      });
-
-    return this.formBuilder.group(fields);
+    return this.formBuilder.group(this.getFields());
   }
 
-  getMininumFields(): { [key: string]: any } {
+  getFields(): { [key: string]: any } {
     return {
       id: [''],
       updateDate: [''],
@@ -35,7 +29,8 @@ export class OperationValidatorService implements ValidatorService {
       comments: ['', Validators.maxLength(2000)],
       startPosition: this.positionValidator.getFormGroup(),
       endPosition: this.positionValidator.getFormGroup(),
-      metier: ['', Validators.required]
+      metier: ['', Validators.required],
+      physicalGear: ['', Validators.required]
     };
   }
 }

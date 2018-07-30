@@ -6,6 +6,7 @@ import { Person, Operation, Referential, DataEntity, VesselPosition } from "./mo
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
+import { TripService } from "./trip-service";
 
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
@@ -63,6 +64,14 @@ const LoadQuery: any = gql`
       fishingEndDateTime
       rankOrderOnPeriod
       physicalGearId
+      physicalGear {
+        id
+        gear {
+          id
+          label
+          name
+        }
+      }
       tripId
       comments
       hasCatch
@@ -133,12 +142,16 @@ const DeleteOperations: any = gql`
   }
 `;
 
+const sortByStartDateFn = (n1: Operation, n2: Operation) => { return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? -1 : 1); };
+const sortByRankrOrderFn = (n1: Operation, n2: Operation) => { return n1.rankOrderOnPeriod - n2.rankOrderOnPeriod; };
+
 @Injectable()
 export class OperationService extends BaseDataService implements DataService<Operation, OperationFilter>{
 
   constructor(
     protected apollo: Apollo,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    protected tripService: TripService
   ) {
     super(apollo);
   }
@@ -175,11 +188,19 @@ export class OperationService extends BaseDataService implements DataService<Ope
       .pipe(
         map((data) => {
           console.debug("[operation-service] Loaded {" + (data && data.operations && data.operations.length || 0) + "} operations");
-          return (data && data.operations || []).map(t => {
+          const res = (data && data.operations || []).map(t => {
             const res = new Operation();
             res.fromObject(t);
             return res;
           });
+
+          // Compute rankOrderOnPeriod, by tripId
+          if (filter && filter.tripId) {
+            let rankOrderOnPeriod = 1;
+            res.sort(sortByStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
+          }
+
+          return res;
         }));
   }
 
@@ -213,6 +234,10 @@ export class OperationService extends BaseDataService implements DataService<Ope
       console.error("[operation-service] Missing options.tripId");
       throw { code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR" };
     }
+
+    // Compute rankOrderOnPeriod
+    let rankOrderOnPeriod = 1;
+    entities.sort(sortByStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
 
     const json = entities.map(t => {
       // Fill default properties (as recorder department and person)
@@ -305,30 +330,21 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
   protected fillDefaultProperties(entity: Operation, options?: any) {
 
-    // Recorder department
+    // Fill Recorder department
     this.fillRecorderPartment(entity);
-
-    // Fill positions
     this.fillRecorderPartment(entity.startPosition)
-    entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
     this.fillRecorderPartment(entity.endPosition)
+
+    entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
     entity.endPosition.dateTime = entity.fishingEndDateTime || entity.endDateTime;
-    entity.positions = [entity.startPosition, entity.endPosition];
 
     // Fill trip ID
     if (!entity.tripId && options) {
       entity.tripId = options.tripId;
     }
-
-    // Fill physical gear
-    if (!entity.physicalGearId) {
-      console.log("TODO: FAKE physical gear ID");
-      entity.physicalGearId = 1;
-    }
   }
 
   fillRecorderPartment(entity: DataEntity<Operation | VesselPosition>) {
-    console.log("fillRecorderPartment: ", entity);
     if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
 
       const person: Person = this.accountService.account;
@@ -350,7 +366,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
       // Update positions (id and updateDate)
       if (source.positions && source.positions.length > 0) {
-        target.positions.forEach(targetPos => {
+        [target.startPosition, target.endPosition].forEach(targetPos => {
           let savedPos = source.positions.find(srcPos => targetPos.equals(srcPos));
           if (savedPos) {
             targetPos.id = savedPos.id || targetPos.id;

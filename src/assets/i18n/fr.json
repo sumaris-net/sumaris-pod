@@ -35,8 +35,9 @@
 
     "METADATA": "Métadonnées :",
 
-    "HOUR": "heure",
-    "MINUTE": "minute",
+    "DATE": "Date",
+    "HOUR": "Heure",
+    "MINUTE": "Minute",
     "HOUR_PLACEHOLDER": "hh",
     "MINUTE_PLACEHOLDER": "mm",
 
@@ -168,20 +169,31 @@
     },
     "PHYSICAL_GEAR": {
       "GEAR": "Engin",
-      "COMMENTS": "Commentaires"
+      "COMMENTS": "Commentaires",
+      "RANK_ORDER": "#"
     },
     "OPERATION": {
-      "TITLE": "Opération",
-      "PHYSICAL_GEAR": "Engin de la marée",
-      "METIER": "Métier",
-      "START_DATE_TIME": "Début d'opération",
-      "END_DATE_TIME": "Fin de l'opération",
-      "FISHING_START_DATE_TIME": "Début de pêche",
-      "FISHING_END_DATE_TIME": "Fin de pêche",
       "COMMENTS": "Commentaires",
-      "ACTIONS": "Actions sur la ligne",
-      "START_POSITION": "Position début",
-      "END_POSITION": "Position de fin",
+      "EDIT": {
+        "TITLE": "Opération",
+        "TAB_GENERAL": "Détails",
+        "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
+        "START": "Début pêche :",
+        "END": "Fin pêche :",
+        "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude"
+      },
+      "LIST": {
+        "PHYSICAL_GEAR": "Engin utilisé",
+        "METIER": "Métier",
+        "START_DATE_TIME": "Début d'opération",
+        "END_DATE_TIME": "Fin de l'opération",
+        "FISHING_START_DATE_TIME": "Début de pêche",
+        "FISHING_END_DATE_TIME": "Fin de pêche",
+        "START_POSITION": "Position début",
+        "END_POSITION": "Position de fin"
+      },
       "ERROR": {
         "LOAD_OPERATION_ERROR": "Erreur de chargement de l'operation.",
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des operations.",
@@ -286,7 +298,8 @@
       "TAXON_GROUP": "Groupes d'espèce",
       "PROGRAM": "Programme de collecte",
       "STRATEGY": "Stratégie de collecte",
-      "ACQUISITION_LEVEL": "Niveau d'acquisition"
+      "ACQUISITION_LEVEL": "Niveau d'acquisition",
+      "METIER": "Métier"
     }
   },
   "ERROR": {

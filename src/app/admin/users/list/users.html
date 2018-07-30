@@ -121,7 +121,7 @@
           <input matInput [formControl]="row.validator.controls['email']" [readonly]="!row.editing" [(ngModel)]="row.currentData.email">
           <mat-error *ngIf="row.validator.controls['email'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="row.validator.controls['email'].hasError('email')">
-            <span>{{'ERROR.FIELD_NOT_VALID_EMAIL' | translate }}</span>
+            <span translate>ERROR.FIELD_NOT_VALID_EMAIL</span>
           </mat-error>
         </mat-form-field>
       </mat-cell>

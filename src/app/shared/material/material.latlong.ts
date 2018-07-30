@@ -1,4 +1,4 @@
-import { Component, Optional, Input, EventEmitter, OnInit, forwardRef, ViewChild } from '@angular/core';
+import { Component, Optional, Input, Output, EventEmitter, OnInit, forwardRef, ViewChild } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { MatFormFieldControl, MatFormField } from '@angular/material';
 import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor, ValidationErrors } from "@angular/forms";
@@ -21,7 +21,7 @@ const MASKS = {
 };
 
 @Component({
-    selector: 'mat-latlon',
+    selector: 'mat-latlong',
     templateUrl: 'material.latlong.html',
     styleUrls: ['./material.latlong.scss'],
     providers: [
@@ -66,6 +66,9 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     @Input() readonly: boolean = false;
 
     @Input() required: boolean = false;
+
+    @Output()
+    onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
     constructor(
         platform: Platform,
@@ -181,6 +184,11 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
         if (this.textFormControl.touched) {
             this._onTouched();
         }
+    }
+
+    public _onBlur(event: FocusEvent) {
+        this.markAsTouched();
+        this.onBlur.emit(event);
     }
 }
 

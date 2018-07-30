@@ -104,6 +104,7 @@ const LoadQuery: any = gql`
       }
       gears {
         id
+        rankOrder
         updateDate
         comments
         gear {
@@ -446,6 +447,15 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         entity.recorderPerson.id = person.id;
       }
     }
+
+    // Physical gears : compute rankOrder
+    let maxRankOrder = 0;
+    (entity.gears || []).forEach(g => {
+      if (g.rankOrder && g.rankOrder > maxRankOrder) maxRankOrder = g.rankOrder;
+    });
+    (entity.gears || []).forEach(g => {
+      g.rankOrder = g.rankOrder || maxRankOrder++;
+    });
   }
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {

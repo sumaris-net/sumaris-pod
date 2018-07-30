@@ -164,6 +164,7 @@ export class PhysicalGear extends DataEntity<PhysicalGear> {
   gear: Referential;
   comments: string;
   measurements: Measurement[];
+  rankOrder: number;
 
   constructor() {
     super();
@@ -188,6 +189,7 @@ export class PhysicalGear extends DataEntity<PhysicalGear> {
 
   fromObject(source: any): PhysicalGear {
     super.fromObject(source);
+    this.rankOrder = source.rankOrder;
     this.comments = source.comments;
     source.gear && this.gear.fromObject(source.gear);
     return this;
@@ -287,7 +289,7 @@ export class Operation extends DataEntity<Operation> {
   endPosition: VesselPosition;
 
   metier: Referential;
-  physicalGearId: number;
+  physicalGear: PhysicalGear;
   tripId: number;
 
   constructor() {
@@ -295,6 +297,7 @@ export class Operation extends DataEntity<Operation> {
     this.metier = new Referential();
     this.startPosition = new VesselPosition();
     this.endPosition = new VesselPosition();
+    this.physicalGear = new PhysicalGear();
   }
 
   clone(): Operation {
@@ -310,9 +313,16 @@ export class Operation extends DataEntity<Operation> {
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
     target.metier = this.metier && this.metier.asObject() || undefined;
+
+    // Create an array of position, instead of start/end
     target.positions = [this.startPosition, this.endPosition].map(p => p && p.asObject()) || undefined;
     delete target.startPosition;
     delete target.endPosition;
+
+    // Physical gear: keep id
+    target.physicalGearId = this.physicalGear && this.physicalGear.id;
+    delete target.physicalGear;
+
     return target;
   }
 
@@ -321,7 +331,8 @@ export class Operation extends DataEntity<Operation> {
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
     this.tripId = source.tripId;
-    this.physicalGearId = source.physicalGearId;
+    this.physicalGear = source.physicalGear && PhysicalGear.fromObject(source.physicalGear) || new PhysicalGear();
+    this.physicalGear.id = this.physicalGear.id || source.physicalGearId;
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);

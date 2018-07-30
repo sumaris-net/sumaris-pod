@@ -38,7 +38,12 @@ export const dataIdFromObject = function (object: Object): string {
 export const getOperationAST = function (query: DocumentNode, operationName: String): {
   operation: String
 } {
-  console.log(query);
+  if (query && query.definitions && query.definitions[0]) {
+    const def: any = query.definitions[0];
+    console.debug("[graphql] getOperationAST return operation: " + def.operation);
+    if (def.operation) return { operation: def.operation };
+  }
+  console.log("missing getOperationAST for object: ", query)
   return { operation: "mutation" };
 }
 

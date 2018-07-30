@@ -74,6 +74,13 @@ export class OperationPage implements OnInit {
       console.debug("[page-operation] Loading operation...");
       this.operationService.load(id)
         .subscribe(data => {
+          if (!data || !data.tripId) {
+            console.error("Unable to load operation with id:" + id);
+            this.error = "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR";
+            this.loading = false;
+            return;
+          }
+
           this.tripService.load(data.tripId)
             .subscribe(trip => {
               this.updateView(data, trip);
@@ -108,7 +115,6 @@ export class OperationPage implements OnInit {
     let json = this.opeForm.value;
     this.data.fromObject(json);
     this.data.tripId = this.trip.id;
-    this.data.physicalGearId = json.physicalGear && json.physicalGear.id;
 
     const formDirty = this.opeForm.dirty;
     this.disable();

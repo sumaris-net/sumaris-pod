@@ -23,6 +23,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     metiers: Observable<Referential[]>;
     physicalGears: Observable<PhysicalGear[]>;
 
+    onFocusPhysicalGear: EventEmitter<any> = new EventEmitter<any>();
+    onFocusMetier: EventEmitter<any> = new EventEmitter<any>();
+
     @Input() showComment: boolean = true;
 
     constructor(
@@ -38,40 +41,47 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     ngOnInit() {
         // Combo: physicalGears
-        this.physicalGears = this.form.controls['physicalGear']
-            .valueChanges
-            .pipe(
-                mergeMap(value => {
-                    if (!value) return Observable.empty();
-                    if (typeof value == "object") return Observable.of([value]);
-                    // Skip if too short value
-                    if (typeof value != "string" || value.length < 2) return Observable.of([]);
-                    // Skip if no trip (or no physical gears)
-                    console.log("Searching on gear ", this.trip);
-                    if (!this.trip || !this.trip.gears || !this.trip.gears.length) return Observable.of([]);
-                    const ucValue = value.toUpperCase();
-                    return Observable.of((this.trip.gears || [])
-                        .filter(g => !!g.gear &&
-                            (g.gear.label && g.gear.label.toUpperCase().indexOf(ucValue) != -1)
-                            || (g.gear.name && g.gear.name.toUpperCase().indexOf(ucValue) != -1)
-                        )/*
+        this.physicalGears =
+            merge(
+                this.form.controls['physicalGear'].valueChanges,
+                this.onFocusPhysicalGear
+            )
+                .pipe(
+                    mergeMap(value => {
+                        // Skip if no trip (or no physical gears)
+                        if (!this.trip || !this.trip.gears || !this.trip.gears.length) return Observable.empty();
+                        // Display the selected object
+                        if (value && typeof value == "object") return Observable.of([value]);
+                        // Display all trip gears
+                        if (!value || typeof value != "string" || value.length < 2) return Observable.of(this.trip.gears || []);
+
+                        console.log("Searching on gear ", this.trip);
+                        const ucValue = value.toUpperCase();
+                        return Observable.of((this.trip.gears || [])
+                            .filter(g => !!g.gear &&
+                                (g.gear.label && g.gear.label.toUpperCase().indexOf(ucValue) != -1)
+                                || (g.gear.name && g.gear.name.toUpperCase().indexOf(ucValue) != -1)
+                            )/*
                         .map(g => {
                             const gear = g.gear.clone();
                             ref.id = g.id;
                             return ref;
                         })*/);
-                }));
+                    }));
 
         // Combo: metiers
-        this.metiers = this.form.controls['metier']
-            .valueChanges
+        this.metiers = merge(
+            this.form.controls['metier'].valueChanges,
+            this.onFocusMetier
+        )
             .pipe(
                 mergeMap(value => {
-                    if (!value) return Observable.empty();
+                    //if (!value) return Observable.empty();
+                    console.log("Getting métier list...");
                     if (typeof value == "object") return Observable.of([value]);
-                    if (typeof value != "string" || value.length < 2) return Observable.of([]);
+                    //if (typeof value != "string" || value.length < 2) return Observable.of([]);
                     const physicalGear = this.form.controls['physicalGear'].value;
-                    console.log("reduce metier by physicalGear gear: " + physicalGear && physicalGear.gear && physicalGear.gear.id);
+                    console.log("Reducing metiers by physicalGear gear: " + physicalGear && physicalGear.gear && physicalGear.gear.id);
                     return this.referentialService.loadAll(0, 10, undefined, undefined,
                         {
                             levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null,
@@ -83,11 +93,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     setTrip(trip: Trip) {
         this.trip = trip;
+
+        // Use trip physical gear Object (if possible)
+        let physicalGear = this.form.controls["physicalGear"].value;
+        if (physicalGear && physicalGear.id) {
+            physicalGear = (this.trip.gears || [physicalGear])
+                .find(g => g.id == physicalGear.id)
+            if (physicalGear) {
+                this.form.controls["physicalGear"].setValue(physicalGear);
+            }
+        }
     }
 
 
     physicalGearToString(physicalGear: PhysicalGear) {
-        return physicalGear && referentialToString(physicalGear.gear) || "";
+        return physicalGear && ("#" + physicalGear.rankOrder + " - " + referentialToString(physicalGear.gear)) || undefined
     }
 
     referentialToString = referentialToString;

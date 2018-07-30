@@ -5,8 +5,8 @@
 
   <mat-label *ngIf="!mobile && !readonly && placeholder">{{placeholder}}</mat-label>
   <input *ngIf="!readonly" matInput type="text" [textMask]="{mask: mask, keepCharPositions: true, maxDecimals: maxDecimals, placeholderChar: placeholderChar}"
-    [formControl]="textFormControl" autocomplete="off" [placeholder]=" 'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()"
-    [required]="required">
+    [formControl]="textFormControl" autocomplete="off" [placeholder]="('COMMON.' + latLongPattern + '_PLACEHOLDER')|translate"
+    (blur)="_onBlur($event)" [required]="required">
 
 
 </mat-form-field>

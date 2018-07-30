@@ -9,24 +9,34 @@
         <img src="{{ (data.recorderPerson?.avatar || data.recorderDepartment?.logo ) || './assets/img/person.png' }}">
       </ion-avatar>
       <ion-label>
-        <h2>
-          <span translate>COMMON.RECORDER</span>
-        </h2>
-        <p>{{data.recorderPerson?.firstName}} {{data.recorderPerson?.lastName}}</p>
-        <p>{{data.recorderDepartment?.name}}</p>
+        <ion-text color="primary">
+          <h2>
+            <span translate>COMMON.RECORDER</span>
+          </h2>
+        </ion-text>
+        <ion-text color="dark">
+          <p>{{data.recorderPerson?.firstName}} {{data.recorderPerson?.lastName}}</p>
+          <p>{{data.recorderDepartment?.name}}</p>
+        </ion-text>
       </ion-label>
     </ion-item>
 
     <ion-card-content>
-      <ion-text>
+      <!-- creation date -->
+      <ion-text color="primary" *ngIf="data && data.creationDate">
         <ion-icon name="calendar"></ion-icon>&nbsp;
         <span translate>COMMON.CREATED_ON</span>
-        <b *ngIf="data"> {{ data.creationDate | dateFormat: {pattern: 'L LT'} }}</b>
-        <br/>
-        <span *ngIf="data && data.updateDate && data.updateDate != data.creationDate">
-          <ion-icon name="time"></ion-icon>&nbsp;
-          <span translate>COMMON.UPDATED_ON</span>&nbsp;{{ data.updateDate | dateFormat: {pattern: 'L LTS'} }}
+        <span>
+          <b>{{ data.creationDate | dateFormat: {pattern: 'L LT'} }}</b>
         </span>
+        <br/>
+      </ion-text>
+
+      <!-- update date -->
+      <ion-text color="primary" *ngIf="data && data.updateDate && data.updateDate != data.creationDate">
+        <ion-icon name="time"></ion-icon>&nbsp;
+        <span translate>COMMON.UPDATED_ON</span>
+        <span>&nbsp;{{ data.updateDate | dateFormat: {pattern: 'L LTS'} }}</span>
       </ion-text>
     </ion-card-content>
   </ion-card>
