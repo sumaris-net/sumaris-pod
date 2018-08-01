@@ -30,6 +30,7 @@ export const dataIdFromObject = function (object: Object): string {
   switch (object['__typename']) {
     // For generic type 'ReferentialVO', add entityName in the cache key (to distinguish by entity)
     case 'ReferentialVO': return object['entityName'] + ':' + object['id'];
+    case 'MeasurementVO': return object['entityName'] + ':' + object['id'];
     // Fallback to default cache key
     default: return defaultDataIdFromObject(object);
   }
@@ -38,13 +39,14 @@ export const dataIdFromObject = function (object: Object): string {
 export const getOperationAST = function (query: DocumentNode, operationName: String): {
   operation: String
 } {
-  if (query && query.definitions && query.definitions[0]) {
+  if (query && query.definitions && query.definitions.length == 1) {
     const def: any = query.definitions[0];
-    console.debug("[graphql] getOperationAST return operation: " + def.operation);
-    if (def.operation) return { operation: def.operation };
+    if (def.operation) {
+      //console.debug("[graphql] getOperationAST return operation: " + def.operation);
+      return { operation: def.operation };
+    }
   }
-  console.log("missing getOperationAST for object: ", query)
-  return { operation: "mutation" };
+  return undefined;
 }
 
 WebSocket

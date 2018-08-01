@@ -42,7 +42,7 @@
 
     <!-- Sale type -->
     <ion-row>
-      <ion-col size="2" hidden-xs hidden-sm>
+      <ion-col size="12" size-lg="2">
         <ion-label translate>SALE.SALE_FIELD</ion-label>
       </ion-col>
       <ion-col>
@@ -58,18 +58,11 @@
           </mat-option>
         </mat-autocomplete>
       </ion-col>
-      <ion-col size="1" hidden-xs hidden-sm>
-        <ion-label>&nbsp;</ion-label>
-      </ion-col>
-
     </ion-row>
 
     <!-- LOCATION + Date time -->
     <ion-row *ngIf="!showEndDateTime">
-      <ion-col size="2" hidden-xs hidden-sm>
-        <ion-label>&nbsp;</ion-label>
-      </ion-col>
-      <ion-col>
+      <ion-col offset="0" offset-lg="2">
         <mat-form-field>
           <ion-icon margin-right name="pin" matPrefix></ion-icon>
           <input matInput [placeholder]="'SALE.SALE_LOCATION'|translate" [matAutocomplete]="autoSaleLocation" formControlName="saleLocation">
@@ -95,12 +88,9 @@
           </mat-option>
         </mat-autocomplete>
       </ion-col>
-      <ion-col size="auto">
+      <ion-col size="12" size-lg="auto">
         <mat-date-time [placeholder]="'SALE.DATE_TIME'|translate" formControlName="startDateTime" displayTime="true">
         </mat-date-time>
-      </ion-col>
-      <ion-col size="1" hidden-xs hidden-sm>
-        <ion-label>&nbsp;</ion-label>
       </ion-col>
     </ion-row>
 
@@ -136,7 +126,7 @@
 
     <!-- Date time (start+end) -->
     <ion-row *ngIf="showEndDateTime">
-      <ion-col size="2" hidden-xs hidden-sm>
+      <ion-col size="12" size-lg="2">
         <p ion-text translate>SALE.START</p>
       </ion-col>
       <ion-col *ngIf="showEndDateTime">
@@ -144,7 +134,7 @@
         </mat-date-time>
       </ion-col>
 
-      <ion-col size="2" hidden-xs hidden-sm>
+      <ion-col size="12" size-lg="2">
         <p ion-text translate>SALE.END</p>
       </ion-col>
 

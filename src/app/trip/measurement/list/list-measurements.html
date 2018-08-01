@@ -1,0 +1,43 @@
+<!-- <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner> -->
+
+<form [formGroup]="form" *ngIf="!loading">
+
+  <ng-container *ngFor="let pmfm of pmfms | async" [ngSwitch]="pmfm.type">
+
+    <!-- integer -->
+    <mat-form-field *ngSwitchCase="'integer'">
+      <input matInput autocomplete="off" type="number" min="0" [max]="pmfm.maxValue" [placeholder]="pmfm.name + (pmfm.unit ? (' (' + pmfm.unit + ')') : '') "
+        [formControlName]="''+pmfm.id">
+      <mat-error *ngIf="form.controls[''+pmfm.id]?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    </mat-form-field>
+
+    <!-- double -->
+    <mat-form-field *ngSwitchCase="'double'">
+      <input matInput autocomplete="off" type="number" [min]="pmfm.minValue" [max]="pmfm.maxValue" [placeholder]="pmfm.name + (pmfm.unit ? (' (' + pmfm.unit + ')') : '') "
+        [step]="computeNumberInputStep(pmfm)" [formControlName]="''+pmfm.id">
+      <mat-error *ngIf="form.controls[''+pmfm.id]?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    </mat-form-field>
+
+    <!-- boolean -->
+    <ng-container *ngSwitchCase="'boolean'">
+      <mat-boolean-field [formControlName]="''+pmfm.id" [placeholder]="pmfm.name" [required]="pmfm.isMandatory"></mat-boolean-field>
+    </ng-container>
+
+    <!-- boolean -->
+    <ng-container *ngSwitchCase="'date'">
+      <mat-date-time [formControlName]="''+pmfm.id" [placeholder]="pmfm.name"></mat-date-time>
+    </ng-container>
+
+    <!-- qualitative value -->
+    <ng-container *ngSwitchCase="'qualitative_value'">
+      <mat-qv-field [formControlName]="''+pmfm.id" [pmfm]="pmfm"></mat-qv-field>
+    </ng-container>
+
+    <!-- other -->
+    <ng-container *ngSwitchDefault>
+      <div>{{pmfm.type}} :</div>
+      <!-- <input matInput [placeholder]="pmfm.name" [formControlName]="pmfm.id"> -->
+    </ng-container>
+
+  </ng-container>
+</form>

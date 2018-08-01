@@ -41,6 +41,9 @@
     "HOUR_PLACEHOLDER": "hh",
     "MINUTE_PLACEHOLDER": "mm",
 
+    "YES": "Oui",
+    "NO": "Non",
+
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
 
@@ -151,7 +154,8 @@
       "TITLE": "Nouvelle marée"
     },
     "EDIT": {
-      "TITLE": "Modifier la marée"
+      "TITLE": "Modifier la marée",
+      "OTHER_FEATURES": "Autres caractéristiques :"
     },
     "LIST": {
       "TITLE": "Marées",
@@ -182,7 +186,8 @@
         "END": "Fin pêche :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
         "LATITUDE": "Latitude",
-        "LONGITUDE": "Longitude"
+        "LONGITUDE": "Longitude",
+        "OTHER_FEATURES": "Autres caractéristiques :"
       },
       "LIST": {
         "PHYSICAL_GEAR": "Engin utilisé",
@@ -192,7 +197,8 @@
         "FISHING_START_DATE_TIME": "Début de pêche",
         "FISHING_END_DATE_TIME": "Fin de pêche",
         "START_POSITION": "Position début",
-        "END_POSITION": "Position de fin"
+        "END_POSITION": "Position de fin",
+        "COMMENTS": "Commentaires"
       },
       "ERROR": {
         "LOAD_OPERATION_ERROR": "Erreur de chargement de l'operation.",
@@ -272,7 +278,8 @@
       "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels.",
       "LOAD_REFERENTIAL_ENTITIES_ERROR": "Erreur de chargement des types de référentiel.",
       "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression des référentiels",
-      "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux"
+      "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
+      "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme"
     },
     "LIST": {
       "TITLE": "Listes",

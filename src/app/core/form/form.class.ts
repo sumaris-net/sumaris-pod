@@ -20,6 +20,10 @@ export abstract class AppForm<T> implements OnInit {
   public get value(): any {
     return this.form.value;
   }
+  public set value(data: any) {
+    this.setValue(data);
+  }
+
   public get dirty(): boolean {
     return this.form.dirty;
   }

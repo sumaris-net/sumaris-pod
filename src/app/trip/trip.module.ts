@@ -7,11 +7,15 @@ import { TripForm } from './form/form-trip';
 import { SaleForm } from './sale/form/form-sale';
 import { OperationForm } from './operation/form/form-operation';
 import { OperationPage } from './operation/page/page-operation';
+import { MeasurementList } from './measurement/list/list-measurements';
+import { MeasurementsValidatorService } from './measurement/validator/validators';
+import { MatQualitativeValueField } from './measurement/form/material.qv-field';
 
 import { PhysicalGearForm } from './physicalGear/form/form-physical-gear';
 import { TripValidatorService } from './validator/validators';
 import { SaleValidatorService } from './sale/validator/validators';
 import { PositionValidatorService } from './position/validator/validators';
+
 import { OperationTable } from './operation/table/table-operations';
 import { TripService } from './services/trip-service';
 import { OperationService } from './services/operation-service';
@@ -35,7 +39,9 @@ import { PhysicalGearValidatorService } from './physicalGear/validator/validator
         PhysicalGearForm,
         OperationForm,
         OperationPage,
-        OperationTable
+        OperationTable,
+        MeasurementList,
+        MatQualitativeValueField
     ],
     exports: [
         TripsPage,
@@ -46,14 +52,18 @@ import { PhysicalGearValidatorService } from './physicalGear/validator/validator
         PhysicalGearForm,
         OperationForm,
         OperationPage,
-        OperationTable
+        OperationTable,
+        MeasurementList,
+        MatQualitativeValueField
     ],
     entryComponents: [
         TripsPage,
         TripPage,
         TripModal,
         OperationTable,
-        OperationPage
+        OperationPage,
+        MeasurementList,
+        MatQualitativeValueField
     ],
     providers: [
         TripService,
@@ -62,7 +72,8 @@ import { PhysicalGearValidatorService } from './physicalGear/validator/validator
         PhysicalGearValidatorService,
         OperationService,
         OperationValidatorService,
-        PositionValidatorService
+        PositionValidatorService,
+        MeasurementsValidatorService
     ]
 })
 export class TripModule {

@@ -37,6 +37,7 @@ $dark: #000;
 // --------------------------------------------------
 // User defined Colors
 // --------------------------------------------------
+$transparent: transparent;
 $balanced: #0e909e;
 $primary100: #718dbc;
 $secondary100: #9c9df8;
@@ -105,7 +106,10 @@ dark: ( base: $dark, contrast: #fff, shade: get-color-shade($dark), tint: get-co
 dark100: ( base: $dark100, contrast: #fff, shade: get-color-shade($dark100), tint: get-color-tint($dark100)),
 /* dark100 */
 
-dark900: ( base: $dark900, contrast: #fff, shade: get-color-shade($dark900), tint: get-color-tint($dark900)));
+dark900: ( base: $dark900, contrast: #fff, shade: get-color-shade($dark900), tint: get-color-tint($dark900)),
+/* transparent */
+
+transparent: ( base: $transparent, contrast: $dark, shade: $transparent, tint: $transparent));
 // --------------------------------------------------
 // Import material theme
 // --------------------------------------------------

@@ -97,7 +97,7 @@ const routes: Routes = [
     canActivate: [AuthGuardService],
     children: [
       {
-        path: ':opeId',
+        path: ':tripId/:opeId',
         component: OperationPage,
         runGuardsAndResolvers: 'paramsOrQueryParamsChange'
       }

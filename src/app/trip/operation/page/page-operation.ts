@@ -7,6 +7,7 @@ import { Operation, Trip } from '../../services/model';
 import { FormGroup } from '@angular/forms';
 import { Observable } from "rxjs-compat";
 import { TripService } from '../../services/trip-service';
+import { MeasurementList } from '../../measurement/list/list-measurements';
 
 @Component({
   selector: 'page-operation',
@@ -24,14 +25,17 @@ export class OperationPage implements OnInit {
   saving: boolean = false;
 
   public get dirty(): boolean {
-    return this.opeForm.dirty;
+    return this.opeForm.dirty || this.measurementList.dirty;
   }
 
   public get valid(): boolean {
-    return this.opeForm.form.valid;
+    return this.opeForm.form.valid && this.measurementList.form.valid;
   }
 
   @ViewChild('opeForm') opeForm: OperationForm;
+
+  @ViewChild('measurementList') measurementList: MeasurementList;
+
 
   constructor(
     protected route: ActivatedRoute,
@@ -57,19 +61,22 @@ export class OperationPage implements OnInit {
     });
 
     this.route.params.subscribe(res => {
+      const tripId = res && res["tripId"];
       const id = res && res["opeId"];
       if (!id || id === "new") {
-        this.load();
+        this.load(tripId);
       }
       else {
-        this.load(parseInt(id));
+        this.load(tripId, parseInt(id));
       }
     });
 
   }
 
-  async load(id?: number) {
+  async load(tripId: number, id?: number) {
     this.error = null;
+
+    // Existing operation
     if (id) {
       console.debug("[page-operation] Loading operation...");
       this.operationService.load(id)
@@ -89,20 +96,30 @@ export class OperationPage implements OnInit {
             });
         });
     }
+
+    // New operation
     else {
-      this.updateView(new Operation(), new Trip());
-      this.enable();
-      this.loading = false;
+      this.tripService.load(tripId)
+        .subscribe(trip => {
+          this.updateView(new Operation(), trip);
+          this.enable();
+          this.loading = false;
+        });
     }
   }
 
   updateView(data: Operation | null, trip?: Trip) {
     this.data = data;
-    this.opeForm.setValue(data);
+    this.opeForm.value = data;
     if (trip) {
       this.trip = trip;
       this.opeForm.setTrip(trip);
     }
+
+    this.measurementList.value = data.measurements || [];
+
+    this.markAsPristine();
+    this.markAsUntouched();
   }
 
   async save(event): Promise<any> {
@@ -117,16 +134,19 @@ export class OperationPage implements OnInit {
     this.data.tripId = this.trip.id;
 
     const formDirty = this.opeForm.dirty;
+    const measurementsDirty = this.measurementList.dirty;
+
+    if (measurementsDirty) {
+      this.data.measurements = this.measurementList.value;
+    }
+
     this.disable();
 
     try {
       // Save trip form (with sale) 
-      const updatedData = formDirty ? await this.operationService.save(this.data) : this.data;
+      const updatedData = formDirty || measurementsDirty ? await this.operationService.save(this.data) : this.data;
       this.markAsPristine();
       this.markAsUntouched();
-
-      // Save measurments
-      // TODO
 
       // Update the view (e.g metadata)
       this.updateView(updatedData);
@@ -144,24 +164,28 @@ export class OperationPage implements OnInit {
 
   public disable() {
     this.opeForm.disable();
+    this.measurementList.disable();
   }
 
   public enable() {
     this.opeForm.enable();
+    this.measurementList.enable();
   }
 
   public markAsPristine() {
     this.opeForm.markAsPristine();
+    this.measurementList.markAsPristine();
   }
 
   public markAsUntouched() {
     this.opeForm.markAsUntouched();
+    this.measurementList.markAsUntouched();
   }
 
   async cancel() {
     // reload
     this.loading = true;
-    await this.load(this.data.id);
+    await this.load(this.trip.id, this.data.id);
   }
 
   onTabChange(event: MatTabChangeEvent) {

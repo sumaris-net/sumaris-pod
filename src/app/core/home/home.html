@@ -22,16 +22,19 @@
 
 <ion-content padding [ngStyle]="{'background-image': 'url('+bgImage+')'}" class="no-padding-xs">
 
-  <div hidden-xs hidden-sm style="padding: 8px; text-align: right;">
-    <!-- change locale button -->
-    <ion-button color="light" slot="end" fill="solid" [matMenuTriggerFor]="matmenu">
-      <mat-icon slot="start">public</mat-icon>
-      <ion-label>&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
-    </ion-button>
+  <div hidden-xs hidden-sm>
+    <ion-toolbar color="transparent">
+      <ion-buttons slot="end">
+        <!-- change locale button -->
+        <ion-button color="light" fill="solid" [matMenuTriggerFor]="matmenu">
+          <mat-icon slot="start">public</mat-icon>
+          <ion-label>&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
   </div>
 
   <p class="hidden-xs">&nbsp;</p>
-
 
   <ion-card>
     <ion-card-content>

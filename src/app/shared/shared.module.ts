@@ -12,6 +12,7 @@ import { HighlightPipe } from './pipes/highlight.pipe';
 import { ToolbarComponent } from './toolbar/toolbar';
 import { MatDateTime } from './material/material.datetime';
 import { MatLatLong } from './material/material.latlong';
+import { MatBooleanField } from './material/material.boolean';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TextMaskModule } from 'angular2-text-mask';
 
@@ -32,7 +33,8 @@ import { TextMaskModule } from 'angular2-text-mask';
         LatLongFormatPipe,
         HighlightPipe,
         MatDateTime,
-        MatLatLong
+        MatLatLong,
+        MatBooleanField
     ],
     exports: [
         MaterialModule,
@@ -44,10 +46,11 @@ import { TextMaskModule } from 'angular2-text-mask';
         DateFormatPipe,
         LatLongFormatPipe,
         HighlightPipe,
+        TextMaskModule,
+        TranslateModule,
         MatDateTime,
         MatLatLong,
-        TextMaskModule,
-        TranslateModule
+        MatBooleanField
     ],
     providers: [
         DateFormatPipe,

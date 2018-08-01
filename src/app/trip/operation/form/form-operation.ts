@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, Input, EventEmitter, Output, ViewChild } from '@angular/core';
 import { OperationValidatorService } from "../validator/validators";
 import { FormGroup } from "@angular/forms";
 import { Operation, Referential, GearLevelIds, TaxonGroupIds, Trip, PhysicalGear } from "../../services/model";
@@ -6,7 +6,7 @@ import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs-compat';
-import { mergeMap, startWith } from 'rxjs/operators';
+import { debounceTime, switchMap, startWith } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../../../core/core.module';
 import { VesselModal, ReferentialService, VesselService } from "../../../referential/referential.module";
@@ -18,6 +18,8 @@ import { referentialToString } from '../../../referential/services/model';
     styleUrls: ['./form-operation.scss']
 })
 export class OperationForm extends AppForm<Operation> implements OnInit {
+
+    labelColSize = 3;
 
     trip: Trip;
     metiers: Observable<Referential[]>;
@@ -43,11 +45,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         // Combo: physicalGears
         this.physicalGears =
             merge(
-                this.form.controls['physicalGear'].valueChanges,
+                this.form.get('physicalGear').valueChanges.pipe(debounceTime(300)),
                 this.onFocusPhysicalGear
             )
                 .pipe(
-                    mergeMap(value => {
+                    switchMap(value => {
                         // Skip if no trip (or no physical gears)
                         if (!this.trip || !this.trip.gears || !this.trip.gears.length) return Observable.empty();
                         // Display the selected object
@@ -71,17 +73,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
         // Combo: metiers
         this.metiers = merge(
-            this.form.controls['metier'].valueChanges,
+            this.form.get('metier').valueChanges.pipe(debounceTime(300)),
             this.onFocusMetier
         )
             .pipe(
-                mergeMap(value => {
-                    //if (!value) return Observable.empty();
-                    console.log("Getting métier list...");
+                switchMap(value => {
                     if (typeof value == "object") return Observable.of([value]);
-                    //if (typeof value != "string" || value.length < 2) return Observable.of([]);
-                    const physicalGear = this.form.controls['physicalGear'].value;
-                    console.log("Reducing metiers by physicalGear gear: " + physicalGear && physicalGear.gear && physicalGear.gear.id);
+                    const physicalGear = this.form.get('physicalGear').value;
                     return this.referentialService.loadAll(0, 10, undefined, undefined,
                         {
                             levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null,
@@ -95,7 +93,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         this.trip = trip;
 
         // Use trip physical gear Object (if possible)
-        let physicalGear = this.form.controls["physicalGear"].value;
+        let physicalGear = this.form.get("physicalGear").value;
         if (physicalGear && physicalGear.id) {
             physicalGear = (this.trip.gears || [physicalGear])
                 .find(g => g.id == physicalGear.id)
@@ -107,7 +105,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
 
     physicalGearToString(physicalGear: PhysicalGear) {
-        return physicalGear && ("#" + physicalGear.rankOrder + " - " + referentialToString(physicalGear.gear)) || undefined
+        return physicalGear && physicalGear.id ? ("#" + physicalGear.rankOrder + " - " + referentialToString(physicalGear.gear)) : undefined;
     }
 
     referentialToString = referentialToString;

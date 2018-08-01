@@ -15,10 +15,8 @@
 
   <!-- NOT mobile screen -->
   <mat-label *ngIf="!mobile && !readonly && placeholder">{{placeholder}}</mat-label>
-  <input matInput *ngIf="!mobile" formControlName="day" autocomplete='off' [placeholder]=" 'COMMON.DATE_PLACEHOLDER'|translate"
+  <input matInput *ngIf="!mobile" formControlName="day" autocomplete="off" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
     (blur)="markAsTouched()" (keydown)="onKeyDown($event)" (click)="openDatePickerIfTouchUi($event)" [required]="required">
-  <!-- <input matInput type="text" *ngIf="!mobile" [(ngModel)]="date" (ngModelChange)="onDatePickerChange($event)" [matDatepicker]="datePicker"
-    hidden> -->
   <mat-datepicker-toggle *ngIf="!mobile" matSuffix [for]="datePicker">
     <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
   </mat-datepicker-toggle>
@@ -38,22 +36,21 @@
         <!-- mobile screen -->
         <ion-icon *ngIf="mobile && !readonly" name="calendar" matPrefix></ion-icon>
         <mat-label *ngIf="mobile && !readonly && form.controls[ 'day'].value">{{placeholder}}</mat-label>
-        <input matInput *ngIf="mobile" type="text" [formControl]="formControl" hidden>
+        <input matInput *ngIf="mobile" type="text" [formControl]="formControl" hidden [matDatepicker]="datePicker">
         <ion-datetime matInput *ngIf="mobile" formControlName="day" [displayFormat]="displayPattern" [placeholder]="placeholder"
           [doneText]=" 'COMMON.BTN_DONE'|translate" [cancelText]=" 'COMMON.BTN_CANCEL'|translate">
         </ion-datetime>
 
         <!-- NOT mobile screen -->
         <mat-label *ngIf="!mobile && !readonly">{{placeholder}}</mat-label>
-        <input matInput type="text" *ngIf="!mobile" formControlName="day" autocomplete='off' [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-          (blur)="markAsTouched()" (keydown)="onKeyDown($event)" (click)="openDatePickerIfTouchUi($event)">
+        <input matInput autocomplete="off" type="text" [textMask]="{mask: mask, keepCharPositions: true, placeholderChar: '0'}" *ngIf="!mobile"
+          formControlName="day" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()" (keydown)="onKeyDown($event)"
+          (click)="openDatePickerIfTouchUi($event)">
 
         <mat-datepicker-toggle *ngIf="!mobile" matSuffix [for]="datePicker">
           <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
         </mat-datepicker-toggle>
         <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #datePicker></mat-datepicker>
-        <!-- <input matInput type="text" *ngIf="!mobile" [(ngModel)]="date" (ngModelChange)="onDatePickerChange($event)" [matDatepicker]="datePicker"
-          hidden> -->
       </mat-form-field>
 
 

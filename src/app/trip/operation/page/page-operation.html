@@ -28,6 +28,17 @@
             <!-- form -->
             <form-operation (onSubmit)="save($event)" #opeForm>
 
+              <!-- Other features -->
+              <ion-row ng-if="data">
+                <ion-col size="12" size-lg="2">
+                  <ion-label>
+                    <ion-text translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-text>
+                  </ion-label>
+                </ion-col>
+                <ion-col no-padding>
+                  <list-measurements acquisitionLevel="OPERATION" #measurementList></list-measurements>
+                </ion-col>
+              </ion-row>
             </form-operation>
           </ion-col>
           <ion-col no-padding size="12" size-xl="auto">

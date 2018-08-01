@@ -105,6 +105,8 @@ export class TripPage implements OnInit {
     if (updateOperations) {
       this.operationTable && this.operationTable.setTrip(data);
     }
+    this.markAsPristine();
+    this.markAsUntouched();
   }
 
   async save(event): Promise<any> {

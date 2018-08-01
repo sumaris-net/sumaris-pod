@@ -2,7 +2,8 @@ import {
   Referential, Department, Person,
   toDateISOString, fromDateISOString,
   vesselFeaturesToString, entityToString, referentialToString,
-  StatusIds, Cloneable, Entity, LocationLevelIds, VesselFeatures, GearLevelIds, TaxonGroupIds
+  StatusIds, Cloneable, Entity, LocationLevelIds, VesselFeatures, GearLevelIds, TaxonGroupIds,
+  PmfmStrategy
 } from "../../referential/services/model";
 import { Moment } from "moment/moment";
 
@@ -10,7 +11,8 @@ export {
   Referential, Person, Department,
   toDateISOString, fromDateISOString,
   vesselFeaturesToString, entityToString, referentialToString,
-  StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds
+  StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds,
+  PmfmStrategy
 };
 
 /* -- DATA -- */
@@ -197,12 +199,21 @@ export class PhysicalGear extends DataEntity<PhysicalGear> {
 }
 
 export class Measurement extends DataEntity<Measurement> {
-  pmfm: Referential;
-  //measurements: Referential;
+  pmfmId: number;
+  alphanumericalValue: string;
+  numericalValue: number;
+  qualitativeValue: Referential;
+  digitCount: number;
+  rankOrder: number;
+
+  static fromObject(source: any): Measurement {
+    const res = new Measurement();
+    res.fromObject(source);
+    return res;
+  }
 
   constructor() {
     super();
-    this.pmfm = new Referential();
   }
 
   clone(): Measurement {
@@ -217,13 +228,18 @@ export class Measurement extends DataEntity<Measurement> {
 
   asObject(): any {
     const target = super.asObject();
-    target.pmfm = this.pmfm && this.pmfm.asObject() || undefined;
+    target.qualitativeValue = this.qualitativeValue && this.qualitativeValue.id && { id: this.qualitativeValue.id };
     return target;
   }
 
   fromObject(source: any): Measurement {
     super.fromObject(source);
-    source.pmfm && this.pmfm.fromObject(source.gear);
+    this.pmfmId = source.pmfmId;
+    this.alphanumericalValue = source.alphanumericalValue;
+    this.numericalValue = source.numericalValue;
+    this.digitCount = source.digitCount;
+    this.qualitativeValue = source.qualitativeValue && Referential.fromObject(source.qualitativeValue);
+
     return this;
   }
 }
@@ -292,6 +308,8 @@ export class Operation extends DataEntity<Operation> {
   physicalGear: PhysicalGear;
   tripId: number;
 
+  measurements: Measurement[];
+
   constructor() {
     super();
     this.metier = new Referential();
@@ -323,6 +341,9 @@ export class Operation extends DataEntity<Operation> {
     target.physicalGearId = this.physicalGear && this.physicalGear.id;
     delete target.physicalGear;
 
+    // Measurements
+    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
+
     return target;
   }
 
@@ -345,6 +366,7 @@ export class Operation extends DataEntity<Operation> {
       this.endPosition = this.positions[1];
     }
     delete this.positions;
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || undefined;
     return this;
   }
 

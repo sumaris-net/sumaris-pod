@@ -58,7 +58,7 @@
   <!-- metier -->
   <ng-container matColumnDef="metier">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.OPERATION.METIER</ion-label>
+      <ion-label translate>TRIP.OPERATION.LIST.METIER</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <span [title]="row.currentData.metier && (row.currentData.metier.label + ' - ' + row.currentData.metier.name)">
@@ -92,7 +92,7 @@
   <!-- start date time  -->
   <ng-container matColumnDef="startDateTime">
     <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <ion-label translate>TRIP.OPERATION.START_DATE_TIME</ion-label>
+      <ion-label translate>TRIP.OPERATION.LIST.START_DATE_TIME</ion-label>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
       <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
@@ -104,7 +104,7 @@
   <!-- start position -->
   <ng-container matColumnDef="startPosition">
     <mat-header-cell *matHeaderCellDef>
-      <ion-label translate>TRIP.OPERATION.START_POSITION</ion-label>
+      <ion-label translate>TRIP.OPERATION.LIST.START_POSITION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <div [formGroup]="row.validator.controls['startPosition']">
@@ -123,7 +123,7 @@
   <!-- end date time -->
   <ng-container matColumnDef="endDateTime">
     <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <ion-label translate>TRIP.OPERATION.END_DATE_TIME</ion-label>
+      <ion-label translate>TRIP.OPERATION.LIST.END_DATE_TIME</ion-label>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
       <mat-date-time floatLabel="never" [formControl]="row.validator.controls['endDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
@@ -135,7 +135,7 @@
   <!-- End position -->
   <ng-container matColumnDef="endPosition">
     <mat-header-cell *matHeaderCellDef>
-      <ion-label translate>TRIP.OPERATION.END_POSITION</ion-label>
+      <ion-label translate>TRIP.OPERATION.LIST.END_POSITION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <form [formGroup]="row.validator.controls['endPosition']">

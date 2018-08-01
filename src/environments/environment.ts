@@ -2,14 +2,16 @@
 // `ng build ---prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+import { Environment } from "./environment.class";
 const pkg = require('../../package.json')
 
-export const environment = {
+export const environment: Environment = {
     production: false,
     baseUrl: '/',
     remoteBaseUrl: "http://localhost:8080",
-    defaultLocale: 'en',
+    defaultLocale: "en",
     version: pkg.version,
+    defaultProgram: "SUMARiS",
 
     // debugging
     mock: true
@@ -21,4 +23,4 @@ export const environment = {
  * import the following file, but please comment it out in production mode
  * because it will have performance impact when throw error
  */
-//import 'zone.js/dist/zone-error';
+import 'zone.js/dist/zone-error';

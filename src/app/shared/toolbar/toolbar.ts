@@ -40,12 +40,12 @@ export class ToolbarComponent implements OnInit {
   ngOnInit() {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
     this.progressBarService.updateProgressBar$.subscribe((mode: string) => {
-      this.progressBarMode = mode;
+      //this.progressBarMode = mode;
     });
   }
 
   enableSearchBar() {
-    console.log('TODO: add toolbar');
+    console.log('TODO: add search toolbar');
   }
 
 }

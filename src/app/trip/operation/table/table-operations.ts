@@ -108,11 +108,11 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   }
 
   public onOpenRowDetail(id: number): Promise<boolean> {
-    return this.router.navigateByUrl('/operations/' + id);
+    return this.router.navigateByUrl('/operations/' + this.tripId + '/' + id);
   }
 
   public onAddRowDetail(): Promise<boolean> {
-    return this.router.navigateByUrl('/operations/new');
+    return this.router.navigateByUrl('/operations/' + this.tripId + '/new');
   }
 
   referentialToString = referentialToString;

@@ -92,3 +92,64 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
     return this;
   }
 }
+
+
+export class PmfmStrategy extends Entity<PmfmStrategy>  {
+  label: string;
+  name: string;
+  unit: string;
+  type: string;
+  minValue: number;
+  maxValue: number;
+  maximumNumberDecimals: number;
+  defaultValue: number;
+  acquisitionNumber: number;
+  isMandatory: boolean;
+  rankOrder: number;
+
+  acquisitionLevel: string;
+  gears: string[];
+  qualitativeValues: Referential[];
+
+  constructor() {
+    super();
+  }
+
+  clone(): PmfmStrategy {
+    const target = new PmfmStrategy();
+    this.copy(target);
+    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.clone()) || undefined;
+    return target;
+  }
+
+  copy(target: PmfmStrategy): PmfmStrategy {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(): any {
+    const target: any = super.asObject();
+    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject()) || undefined;
+    return target;
+  }
+
+  fromObject(source: any): PmfmStrategy {
+    super.fromObject(source);
+
+    this.label = source.label;
+    this.name = source.name;
+    this.unit = source.unit;
+    this.type = source.type;
+    this.minValue = source.minValue;
+    this.maxValue = source.maxValue;
+    this.maximumNumberDecimals = source.maximumNumberDecimals;
+    this.defaultValue = source.defaultValue;
+    this.acquisitionNumber = source.acquisitionNumber;
+    this.isMandatory = source.isMandatory;
+    this.rankOrder = source.rankOrder;
+    this.acquisitionLevel = source.acquisitionLevel;
+    this.gears = source.gears || [];
+    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(json => Referential.fromObject(json)) || [];
+    return this;
+  }
+}

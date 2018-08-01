@@ -4,3 +4,8 @@ mat-form-field {
     padding: 0 !important;
   }
 }
+
+ion-col>ion-label {
+  word-wrap: break-word;
+  white-space: normal;
+}

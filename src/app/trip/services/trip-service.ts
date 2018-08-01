@@ -122,15 +122,19 @@ const LoadQuery: any = gql`
       }
       measurements {
         id
+        pmfmId
+        alphanumericalValue
         numericalValue
         qualitativeValue {
           id
+        }
+        digitCount
+        creationDate
+        updateDate
+        recorderDepartment {
+          id
           label
           name
-        }
-        pmfmId,
-        pmfm {
-          id
         }
       }
       sale {

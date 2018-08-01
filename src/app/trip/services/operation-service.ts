@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable, Subject } from "rxjs-compat";
-import { Person, Operation, Referential, DataEntity, VesselPosition } from "./model";
+import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement } from "./model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
@@ -64,14 +64,6 @@ const LoadQuery: any = gql`
       fishingEndDateTime
       rankOrderOnPeriod
       physicalGearId
-      physicalGear {
-        id
-        gear {
-          id
-          label
-          name
-        }
-      }
       tripId
       comments
       hasCatch
@@ -99,6 +91,24 @@ const LoadQuery: any = gql`
           name
         }
       }
+      measurements {
+        id
+        pmfmId
+        alphanumericalValue
+        numericalValue
+        qualitativeValue {
+          id
+        }
+        digitCount
+        rankOrder
+        creationDate
+        updateDate
+        recorderDepartment {
+          id
+          label
+          name
+        }
+      }
     }  
   }
 `;
@@ -110,7 +120,7 @@ const SaveOperations: any = gql`
       endDateTime
       fishingStartDateTime
       fishingEndDateTime
-      rankOrderOnPeriod
+      rankOrderOnPeriod      
       physicalGearId
       tripId
       comments
@@ -126,6 +136,24 @@ const SaveOperations: any = gql`
         dateTime
         latitude
         longitude
+        updateDate
+        recorderDepartment {
+          id
+          label
+          name
+        }
+      }
+      measurements {
+        id
+        pmfmId
+        alphanumericalValue
+        numericalValue
+        qualitativeValue {
+          id
+        }
+        digitCount
+        rankOrder
+        creationDate
         updateDate
         recorderDepartment {
           id
@@ -334,7 +362,9 @@ export class OperationService extends BaseDataService implements DataService<Ope
     this.fillRecorderPartment(entity);
     this.fillRecorderPartment(entity.startPosition)
     this.fillRecorderPartment(entity.endPosition)
+    entity.measurements && entity.measurements.forEach(m => this.fillRecorderPartment(m));
 
+    // Fill position date s
     entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
     entity.endPosition.dateTime = entity.fishingEndDateTime || entity.endDateTime;
 
@@ -344,7 +374,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
     }
   }
 
-  fillRecorderPartment(entity: DataEntity<Operation | VesselPosition>) {
+  fillRecorderPartment(entity: DataEntity<Operation | VesselPosition | Measurement>) {
     if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
 
       const person: Person = this.accountService.account;

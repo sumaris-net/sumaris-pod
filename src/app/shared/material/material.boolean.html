@@ -1,0 +1,21 @@
+<mat-form-field *ngIf="readonly">
+  <input matInput hidden type="text" readonly="true" [formControl]="formControl">
+  <span>{{(formControl.value ? 'COMMON.YES' : 'COMMON.NO') | translate }}</span>
+</mat-form-field>
+
+<mat-form-field *ngIf="!readonly" [floatLabel]="showRadio && (!floatLabel || floatLabel == 'auto') ? 'always': floatLabel">
+  <mat-label *ngIf="!mobile && !readonly && placeholder">
+    {{placeholder}}
+    <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
+  </mat-label>
+  <input matInput [formControl]="formControl" (focus)="_onFocus($event)" [disabled]="disabled" [required]="required" [hidden]="_value!=undefined">
+  <mat-radio-group [formControl]="formControl" (change)="onValueChanged($event)" [hidden]="!showRadio && _value==undefined">
+    <mat-radio-button [value]="true" #yesButton>
+      <span translate>COMMON.YES</span>
+    </mat-radio-button>&nbsp;
+    <mat-radio-button [value]="false">
+      <span translate>COMMON.NO</span>
+    </mat-radio-button>
+  </mat-radio-group>
+  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+</mat-form-field>
