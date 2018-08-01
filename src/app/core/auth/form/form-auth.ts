@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { ModalController } from "ionic-angular";
+import { ModalController } from "@ionic/angular";
 import { RegisterModal } from '../../register/modal/modal-register';
 import { AuthData } from "../../services/account.service";
 
@@ -12,7 +12,7 @@ import { AuthData } from "../../services/account.service";
 })
 export class AuthForm implements OnInit {
 
-  private loading: boolean = false;
+  public loading: boolean = false;
   public form: FormGroup;
   public error: string = null;
 
@@ -22,6 +22,10 @@ export class AuthForm implements OnInit {
 
   public get valid(): boolean {
     return this.form.valid;
+  }
+
+  public get invalid(): boolean {
+    return this.form.invalid;
   }
 
   @Output()
@@ -57,7 +61,7 @@ export class AuthForm implements OnInit {
 
     this.loading = true;
     this.error = null;
-    this.onSubmit.take(1)
+    this.onSubmit
       .subscribe(res => {
         setTimeout(() => {
           this.loading = false;
@@ -72,8 +76,10 @@ export class AuthForm implements OnInit {
 
   register() {
     this.onCancel.emit();
-    setTimeout(() => {
-      let modal = this.modalCtrl.create(RegisterModal);
+    setTimeout(async () => {
+      const modal = await this.modalCtrl.create({
+        component: RegisterModal
+      });
       modal.present();
     });
   }

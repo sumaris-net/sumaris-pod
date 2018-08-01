@@ -29,12 +29,20 @@
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
 
+    "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
+    "DDMM_PLACEHOLDER": "DD° MM.MMMMMM' N|S",
+    "DD_PLACEHOLDER": "+DD.DDDDDD°",
+
     "METADATA": "Métadonnées :",
 
-    "HOUR": "heure",
-    "MINUTE": "minute",
+    "DATE": "Date",
+    "HOUR": "Heure",
+    "MINUTE": "Minute",
     "HOUR_PLACEHOLDER": "hh",
     "MINUTE_PLACEHOLDER": "mm",
+
+    "YES": "Oui",
+    "NO": "Non",
 
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
@@ -105,7 +113,8 @@
     "SETTINGS": {
       "TITLE": "Préférences",
       "DESCRIPTION": "Voici les réglages possibles pour l'usage de l'application :",
-      "LOCALE": "Langue"
+      "LOCALE": "Langue",
+      "LAT_LONG_FORMAT": "Format latitude/longitude"
     }
   },
   "USER": {
@@ -145,7 +154,8 @@
       "TITLE": "Nouvelle marée"
     },
     "EDIT": {
-      "TITLE": "Modifier la marée"
+      "TITLE": "Modifier la marée",
+      "OTHER_FEATURES": "Autres caractéristiques :"
     },
     "LIST": {
       "TITLE": "Marées",
@@ -156,19 +166,46 @@
       }
     },
     "ERROR": {
+      "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",
       "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
       "SAVE_TRIP_ERROR": "Erreur lors de la sauvegarde de la marée.",
       "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées."
     },
-    "OPERATION": {
-      "START_DATE_TIME": "Début d'opération",
-      "END_DATE_TIME": "Fin de l'opération",
-      "FISHING_START_DATE_TIME": "Début de pêche",
-      "FISHING_END_DATE_TIME": "Fin de pêche",
+    "PHYSICAL_GEAR": {
+      "GEAR": "Engin",
       "COMMENTS": "Commentaires",
-      "ACTIONS": "Actions sur la ligne",
-      "START_POSITION": "GPS Position début",
-      "END_POSITION": "GPS Position de fin"
+      "RANK_ORDER": "#"
+    },
+    "OPERATION": {
+      "COMMENTS": "Commentaires",
+      "EDIT": {
+        "TITLE": "Opération",
+        "TAB_GENERAL": "Détails",
+        "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
+        "START": "Début pêche :",
+        "END": "Fin pêche :",
+        "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude",
+        "OTHER_FEATURES": "Autres caractéristiques :"
+      },
+      "LIST": {
+        "PHYSICAL_GEAR": "Engin utilisé",
+        "METIER": "Métier",
+        "START_DATE_TIME": "Début d'opération",
+        "END_DATE_TIME": "Fin de l'opération",
+        "FISHING_START_DATE_TIME": "Début de pêche",
+        "FISHING_END_DATE_TIME": "Fin de pêche",
+        "START_POSITION": "Position début",
+        "END_POSITION": "Position de fin",
+        "COMMENTS": "Commentaires"
+      },
+      "ERROR": {
+        "LOAD_OPERATION_ERROR": "Erreur de chargement de l'operation.",
+        "LOAD_OPERATIONS_ERROR": "Erreur de chargement des operations.",
+        "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de la operation.",
+        "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des operations."
+      }
     }
   },
   "SALE": {
@@ -241,7 +278,8 @@
       "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels.",
       "LOAD_REFERENTIAL_ENTITIES_ERROR": "Erreur de chargement des types de référentiel.",
       "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression des référentiels",
-      "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux"
+      "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
+      "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme"
     },
     "LIST": {
       "TITLE": "Listes",
@@ -253,11 +291,22 @@
     "ENTITY": {
       "SALE_TYPE": "Types de vente",
       "LOCATION": "Lieux",
-      "LOCATION_LEVEL": "Niveau de lieux",
+      "LOCATION_LEVEL": "Niveaux de lieux",
       "GEAR": "Engins",
       "GEAR_LEVEL": "Niveaux d'engin",
       "PARAMETER": "Paramètres",
-      "USER_PROFILE": "Profiles utilisateur"
+      "USER_PROFILE": "Profiles utilisateur",
+      "VESSEL_TYPE": "Types de navire",
+      "PMFM": "Types de mesure",
+      "MATRIX": "Supports de mesure",
+      "FRACTION": "Fractions du support",
+      "QUALITATIVE_VALUE": "Valeurs qualitatives",
+      "TAXON_GROUP_TYPE": "Types de groupe d'espèce",
+      "TAXON_GROUP": "Groupes d'espèce",
+      "PROGRAM": "Programme de collecte",
+      "STRATEGY": "Stratégie de collecte",
+      "ACQUISITION_LEVEL": "Niveau d'acquisition",
+      "METIER": "Métier"
     }
   },
   "ERROR": {
@@ -268,9 +317,11 @@
     "FIELD_TOO_LONG_WITH_LENGTH": "Valeur trop longue ({{maxLength}} caractères max)",
     "FIELD_MIN": "Valeur minimale : {{min}}",
     "FIELD_MAX": "Valeur maximale : {{max}}",
-    "FIELD_NOT_VALID_EMAIL": "Addresse email non valide",
-    "FIELD_NOT_VALID_DATE": "Date non valide",
-    "FIELD_NOT_VALID_DATE_TIME": "Date/heure non valide",
+    "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
+    "FIELD_NOT_VALID_DATE": "Date invalide",
+    "FIELD_NOT_VALID_DATE_TIME": "Date/heure invalide",
+    "FIELD_NOT_VALID_LATITUDE": "Latitude invalide",
+    "FIELD_NOT_VALID_LONGITUDE": "Longitude invalide",
     "SPACE_NOT_ALLOW": "Espaces ou caractères spéciaux non autorisés",
     "SCRYPT_ERROR": "Erreur de clefs d'ouverture du compte",
     "UNKNOWN_ACCOUNT_EMAIL": "Aucun compte ne correspond à cet email.",
@@ -281,6 +332,6 @@
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Erreur d'envoi de l'email de confirmation du compte.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Erreur lors de la confirmation de l'email. Ce compte a peut-être déjà été confirmé ?",
-    "TABLE_INVALID_ROW_ERROR": "Une ligne n'est pas valide"
+    "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur"
   }
 }

@@ -1,17 +1,17 @@
-import { Component } from '@angular/core';
-import { Platform } from "ionic-angular";
-import { StatusBar } from '@ionic-native/status-bar';
-import { SplashScreen } from '@ionic-native/splash-screen';
-import { Keyboard } from '@ionic-native/keyboard';
+import { Component, ViewEncapsulation } from '@angular/core';
+import { Platform } from "@ionic/angular";
 import { MenuItem } from './core/menu/menu.component';
+import { HomePage } from './core/home/home';
 
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html'
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
 
+  root: any = HomePage;
   menuItems: Array<MenuItem> = [
     { title: 'MENU.HOME', path: '/', icon: 'home' },
     { title: 'MENU.TRIPS', path: '/trips', icon: 'pin' },
@@ -22,21 +22,23 @@ export class AppComponent {
   ];
 
   constructor(
-    private platform: Platform,
+    private platform: Platform
+    /* TODO: waiting ionic-native release,
     private statusBar: StatusBar,
     private splashScreen: SplashScreen,
-    private keyboard: Keyboard) {
+    private keyboard: Keyboard*/
+  ) {
 
     platform.ready().then(() => {
       console.info("[app] Setting cordova plugins...");
 
-      statusBar.styleDefault();
+      /*statusBar.styleDefault();
       splashScreen.hide();
 
       statusBar.overlaysWebView(false);
 
       //*** Control Keyboard
-      keyboard.disableScroll(true);
+      keyboard.disableScroll(true);*/
     });
 
   }

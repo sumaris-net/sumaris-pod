@@ -1,4 +1,4 @@
-<app-toolbar [title]="'VESSEL.TITLE'|translate" color="primary" (onValidate)="save($event, form.value)">
+<app-toolbar [title]="'VESSEL.TITLE'|translate" color="primary" [hasValidate]="form.dirty && !loading" (onValidate)="save($event, form.value)">
 </app-toolbar>
 
 <ion-content>
@@ -8,17 +8,15 @@
     <mat-tab label="{{'VESSEL.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <ion-icon name="information-circle"></ion-icon>
-        <span>{{'VESSEL.TAB_GENERAL'|translate}}</span>
+        <ion-label translate>VESSEL.TAB_GENERAL</ion-label>
       </ng-template>
 
       <ion-row no-padding>
-        <ion-col no-padding>
-          <div padding>
-            <form-vessel (onSubmit)="save($event, form.value)" padding #form>
-            </form-vessel>
-          </div>
+        <ion-col padding>
+          <form-vessel (onSubmit)="save($event, form.value)" #form>
+          </form-vessel>
         </ion-col>
-        <ion-col col-12 col-sm-9 col-md-6 col-lg-4 col-xl-3>
+        <ion-col size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3" no-padding>
           <form-metadata [data]="data"></form-metadata>
         </ion-col>
       </ion-row>
@@ -27,3 +25,7 @@
   </mat-tab-group>
 
 </ion-content>
+
+<ion-footer hidden-xs hidden-sm>
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event, form.value) " [disabled]="!form.dirty || loading "></form-buttons-bar>
+</ion-footer>

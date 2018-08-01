@@ -38,3 +38,9 @@ Edit the file `src/environment/environment.ts`
 ```
 npm run build --prod --release
 ```
+
+
+## Developer guide :
+
+- Ionic 4 colors: https://www.joshmorony.com/a-primer-on-css-4-variables-for-ionic-4/
+- Migration to Ionic 4 tips: https://www.joshmorony.com/my-method-for-upgrading-from-ionic-3-to-ionic-4/

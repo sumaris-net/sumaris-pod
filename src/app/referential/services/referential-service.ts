@@ -1,11 +1,11 @@
 import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
-import { Observable } from "rxjs";
+import { Observable } from "rxjs-compat";
 import { map } from "rxjs/operators";
-import { Referential, StatusIds } from "./model";
+import { Referential, StatusIds, PmfmStrategy } from "./model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { Apollo } from "apollo-angular";
-import { DocumentNode } from "graphql";
+
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
 
@@ -15,7 +15,7 @@ export declare class ReferentialFilter {
   levelId?: number;
   searchText?: string;
 }
-const LoadAllLightQuery: DocumentNode = gql`
+const LoadAllLightQuery: any = gql`
   query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       id
@@ -26,7 +26,7 @@ const LoadAllLightQuery: DocumentNode = gql`
     }
   }
 `;
-const LoadAllQuery: DocumentNode = gql`
+const LoadAllQuery: any = gql`
   query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       id
@@ -40,13 +40,20 @@ const LoadAllQuery: DocumentNode = gql`
     }
   }
 `;
-const LoadReferentialEntities: DocumentNode = gql`
-  query ReferentialEntities{
-    referentialEntities
+export declare class ReferentialType {
+  id: string
+  level?: string
+};
+const LoadReferentialTypes: any = gql`
+  query ReferentialTypes{
+    referentialTypes {
+       id
+       level
+    }
   }
 `;
 
-const LoadReferentialLevels: DocumentNode = gql`
+const LoadReferentialLevels: any = gql`
   query ReferentialLevels($entityName: String) {
     referentialLevels(entityName: $entityName){
       id
@@ -57,7 +64,36 @@ const LoadReferentialLevels: DocumentNode = gql`
   }
 `;
 
-const SaveReferentials: DocumentNode = gql`
+const LoadProgramPmfms: any = gql`
+  query LoadProgramPmfms($program: String) {
+    programPmfms(program: $program){
+      id
+      label
+      name
+      unit
+      type
+      minValue
+      maxValue
+      maximumNumberDecimals
+      defaultValue
+      acquisitionNumber
+      isMandatory
+      rankOrder    
+      acquisitionLevel
+      updateDate
+      gears
+      qualitativeValues {
+        id
+        label
+        name
+        statusId
+        entityName
+      }
+    }
+  }
+`;
+
+const SaveReferentials: any = gql`
   mutation SaveReferentials($entityName: String, $referentials:[ReferentialVOInput]){
     saveReferentials(entityName: $entityName, referentials: $referentials){
       id
@@ -68,7 +104,7 @@ const SaveReferentials: DocumentNode = gql`
   }
 `;
 
-const DeleteReferentials: DocumentNode = gql`
+const DeleteReferentials: any = gql`
   mutation deleteReferentials($entityName: String, $ids:[Int]){
     deleteReferentials(entityName: $entityName, ids: $ids)
   }
@@ -93,7 +129,30 @@ export class ReferentialService extends BaseDataService implements DataService<R
 
     let query = options && options.full ? LoadAllQuery : LoadAllLightQuery;
 
-    return this.loadFromQueries(query, offset, size, sortBy, sortDirection, filter, options);
+    if (!options || !options.entityName) {
+      console.error("[referential-service] Missing options.entityName");
+      throw { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" };
+    }
+
+    const variables: any = {
+      entityName: options.entityName,
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: filter
+    };
+    this._lastVariables.loadAll = variables;
+
+    console.debug("[referential-service] Getting data from options:", variables);
+    return this.watchQuery<{ referentials: any[] }>({
+      query: query,
+      variables: variables,
+      error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" }
+    })
+      .pipe(
+        map((data) => (data && data.referentials || []).map(Referential.fromObject))
+      );
   }
 
   async saveAll(entities: Referential[], options?: any): Promise<Referential[]> {
@@ -138,6 +197,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
 
     // Transform into json
     const json = entity.asObject();
+    const isNew = !json.id;
 
     console.debug("[referential-service] Saving referential: ", json);
 
@@ -153,6 +213,15 @@ export class ReferentialService extends BaseDataService implements DataService<R
         var res = data && data.saveReferentials && data.saveReferentials[0];
         entity.id = res && res.id || entity.id;
         entity.updateDate = res && res.updateDate || entity.updateDate;
+
+        // Update the cache
+        if (isNew && this._lastVariables.loadAll) {
+          const list = this.addToQueryCache({
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'trips', res);
+        }
+
         return entity;
       });
   }
@@ -184,17 +253,17 @@ export class ReferentialService extends BaseDataService implements DataService<R
   }
 
   /**
-   * Load entity names
+   * Load referential types
    */
-  loadEntitieNames(): Observable<string[]> {
-    console.debug("[referential-service] Getting referential entities");
-    return this.watchQuery<{ referentialEntities: string[] }>({
-      query: LoadReferentialEntities,
+  loadTypes(): Observable<ReferentialType[]> {
+    console.debug("[referential-service] Getting referential types");
+    return this.watchQuery<{ referentialTypes: ReferentialType[] }>({
+      query: LoadReferentialTypes,
       variables: null,
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ENTITIES_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ENTITIES_ERROR" }
     })
       .pipe(
-        map((data) => (data && data.referentialEntities || []))
+        map((data) => (data && data.referentialTypes || []))
       );
   }
 
@@ -215,41 +284,36 @@ export class ReferentialService extends BaseDataService implements DataService<R
       );
   }
 
-  /* -- protected methods -- */
-
-
-  protected loadFromQueries(
-    query: DocumentNode,
-    offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: ReferentialFilter,
-    options?: any): Observable<Referential[]> {
-
-    if (!options || !options.entityName) {
-      console.error("[referential-service] Missing options.entityName");
-      throw { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" };
-    }
-
-    const variables: any = {
-      entityName: options.entityName,
-      offset: offset || 0,
-      size: size || 100,
-      sortBy: sortBy || 'label',
-      sortDirection: sortDirection || 'asc',
-      filter: filter
-    };
-    console.debug("[referential-service] Getting data from options:", variables);
-    return this.watchQuery<{ referentials: any[] }>({
-      query: query,
-      variables: variables,
-      error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" }
+  /**
+   * Load program pmfms
+   */
+  loadProgramPmfms(program: string, options?: {
+    acquisitionLevel: string,
+    gear?: string
+  }): Observable<PmfmStrategy[]> {
+    console.debug("[referential-service] Getting pmfms for program {" + program + "}");
+    return this.watchQuery<{ programPmfms: PmfmStrategy[] }>({
+      query: LoadProgramPmfms,
+      variables: {
+        program: program
+      },
+      error: { code: ErrorCodes.LOAD_PROGRAM_PMFMS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_PMFMS_ERROR" }
     })
       .pipe(
-        map((data) => (data && data.referentials || []).map(Referential.fromObject))
+        map((data) => (data && data.programPmfms || [])
+          // Filter on acquisition level and gear
+          .filter(p => !options || (
+            (!options.acquisitionLevel || p.acquisitionLevel == options.acquisitionLevel)
+            && (!options.gear || p.gears.findIndex(g => g == options.gear) !== -1)
+          ))
+          // Sort on rank order
+          .sort((p1, p2) => p1.rankOrder - p2.rankOrder)
+        )
       );
   }
+
+  /* -- protected methods -- */
+
 
   protected fillDefaultProperties(entity: Referential) {
 

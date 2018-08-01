@@ -1,24 +1,31 @@
 import { Component, OnDestroy } from '@angular/core';
 import { DatePipe } from "@angular/common";
 import { ActivatedRoute } from '@angular/router';
-import { ModalController } from 'ionic-angular';
+import { ModalController } from '@ionic/angular';
 import { RegisterModal } from '../register/modal/modal-register';
 import { Subscription } from 'rxjs';
 import { AccountService } from '../services/account.service';
 import { Account } from '../services/model';
+import { TranslateService } from '@ngx-translate/core';
 
 // import fade in animation
 import { fadeInAnimation } from '../../shared/material/material.animations';
+
+export function getRandomImage() {
+
+  var imageCount = 7;
+  const kind = 'ray';
+
+  if (imageCount == 0) return getRandomImage();
+  var imageIndex = Math.floor(Math.random() * imageCount) + 1;
+  return './assets/img/bg/' + kind + '-' + imageIndex + '.jpg';
+};
 
 @Component({
   moduleId: module.id.toString(),
   selector: 'page-home',
   templateUrl: 'home.html',
-  // make fade in animation available to this component
-  animations: [fadeInAnimation],
-
-  // attach the fade in animation to the host (root) element of this component
-  host: { '[@fadeInAnimation]': '' }
+  styleUrls: ['./home.scss']
 })
 export class HomePage implements OnDestroy {
 
@@ -30,9 +37,10 @@ export class HomePage implements OnDestroy {
   constructor(
     public accountService: AccountService,
     public activatedRoute: ActivatedRoute,
-    public modalCtrl: ModalController
+    public modalCtrl: ModalController,
+    public translate: TranslateService
   ) {
-    this.bgImage = this.getRandomImage();
+    this.bgImage = getRandomImage();
     this.isLogin = accountService.isLogin();
     if (this.isLogin) {
       this.onLogin(this.accountService.account);
@@ -62,23 +70,16 @@ export class HomePage implements OnDestroy {
     this.displayName = "";
   }
 
-  getRandomImage() {
-
-    var imageCount = 7;
-    const kind = 'ray';
-
-    if (imageCount == 0) return this.getRandomImage();
-    var imageIndex = Math.floor(Math.random() * imageCount) + 1;
-    return './assets/img/bg/' + kind + '-' + imageIndex + '.jpg';
-  }
-
-  register() {
-    let modal = this.modalCtrl.create(RegisterModal);
-    modal.present();
+  async register() {
+    const modal = await this.modalCtrl.create({ component: RegisterModal });
+    return modal.present();
   }
 
   logout(event: any) {
     this.accountService.logout();
   }
 
+  changeLanguage(locale: string) {
+    this.translate.use(locale);
+  }
 }

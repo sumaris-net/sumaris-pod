@@ -3,12 +3,13 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AccountService } from '../services/account.service';
 import { Account, StatusIds } from '../services/model';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, AbstractControl } from '@angular/forms';
 
 
 @Component({
   selector: 'page-account',
-  templateUrl: 'account.html'
+  templateUrl: 'account.html',
+  styleUrls: ['./account.scss']
 })
 export class AccountPage implements OnDestroy {
 
@@ -23,12 +24,15 @@ export class AccountPage implements OnDestroy {
     error: undefined
   }
   error: String;
-  public form: FormGroup;
+  form: FormGroup;
+  settingsForm: FormGroup;
   localeMap = {
     'fr': 'Français',
     'en': 'English'
   };
   locales: String[] = [];
+  latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
+  saving: boolean = false;
 
 
   constructor(
@@ -41,9 +45,11 @@ export class AccountPage implements OnDestroy {
       firstName: ['', Validators.compose([Validators.required, Validators.minLength(2)])],
       lastName: ['', Validators.compose([Validators.required, Validators.minLength(2)])],
       settings: formBuilder.group({
-        locale: ['', Validators.required]
+        locale: ['', Validators.required],
+        latLongFormat: ['', Validators.required]
       })
     });
+    this.settingsForm = this.form.controls.settings as FormGroup;
 
     this.locales;
     for (let locale in this.localeMap) {
@@ -143,9 +149,10 @@ export class AccountPage implements OnDestroy {
       });
   }
 
-  doSave(event: MouseEvent, data: any) {
+  async doSave(event: MouseEvent, data: any) {
     if (this.form.invalid) return;
 
+    this.saving = true;
     let newAccount = this.account.clone();
     let json = newAccount.asObject();
 
@@ -154,12 +161,20 @@ export class AccountPage implements OnDestroy {
     json.settings = Object.assign(this.account.settings.asObject(), settings);
     newAccount.fromObject(json);
 
-    console.log("[account] Updating account...", newAccount);
-    this.accountService.saveRemotely(newAccount)
-      .catch(err => this.error = err && err.message || err);
+    console.log("[account] Saving account...", newAccount);
+    try {
+      await this.accountService.saveRemotely(newAccount)
+    }
+    catch (err) {
+      console.error(err);
+      this.error = err && err.message || err;
+    }
+    finally {
+      this.saving = false;
+    }
   }
 
-  cancel(event: any) {
+  cancel() {
     this.setValue(this.account);
     this.form.markAsPristine();
   }

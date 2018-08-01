@@ -1,9 +1,5 @@
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { CoreRoutes } from './core/core-routing.module';
-import { ReferentialRoutes } from './referential/referential-routing.module';
-import { AdminRoutes } from './admin/admin-routing.module';
-import { TripRoutes } from './trip/trip-routing.module';
+import { Routes, RouterModule, ExtraOptions } from '@angular/router';
 import { HomePage } from './core/home/home';
 import { RegisterConfirmPage } from './core/register/confirm/confirm';
 import { AccountPage } from './core/account/account';
@@ -15,13 +11,14 @@ import { ReferentialsPage } from './referential/list/referentials';
 import { TripsPage } from './trip/list/trips';
 import { TripPage } from './trip/page/page-trip';
 
-const routes2: Routes =
-  CoreRoutes
-    .concat(AdminRoutes)
-    .concat(ReferentialRoutes)
-    .concat(TripRoutes);
+import { environment } from '../environments/environment';
+import { OperationPage } from './trip/operation/page/page-operation';
 
-//console.log(routes);
+const routeOptions: ExtraOptions = {
+  enableTracing: false,
+  //enableTracing: !environment.production,
+  useHash: false
+};
 
 const routes: Routes = [
   // Core path
@@ -29,6 +26,7 @@ const routes: Routes = [
     path: '',
     component: HomePage
   },
+
   {
     path: 'home/:action',
     component: HomePage
@@ -65,7 +63,11 @@ const routes: Routes = [
       {
         path: 'list',
         children: [
-          { path: '', component: ReferentialsPage },
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: '/referential/list/Location'
+          },
           { path: ':entityName', component: ReferentialsPage }
         ]
       }
@@ -77,9 +79,27 @@ const routes: Routes = [
     path: 'trips',
     canActivate: [AuthGuardService],
     children: [
-      { path: '', component: TripsPage },
       {
-        path: ':id', component: TripPage
+        path: '',
+        pathMatch: 'full',
+        component: TripsPage
+      },
+      {
+        path: ':tripId',
+        component: TripPage,
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange'
+      }
+    ]
+  },
+
+  {
+    path: 'operations',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: ':tripId/:opeId',
+        component: OperationPage,
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange'
       }
     ]
   },
@@ -90,7 +110,11 @@ const routes: Routes = [
   },
 ];
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  imports: [
+    RouterModule.forRoot(routes, routeOptions)
+  ],
+  exports: [
+    RouterModule
+  ]
 })
 export class AppRoutingModule { }

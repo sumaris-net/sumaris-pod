@@ -1,12 +1,12 @@
 import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
-import { Observable, Subject } from "rxjs";
+import { Observable, Subject } from "rxjs-compat";
 import { Trip, Person } from "./model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
-import { DocumentNode } from "graphql";
+
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
 
@@ -15,7 +15,7 @@ export declare class TripFilter {
   endDate?: Date | Moment;
   locationId?: number
 }
-const LoadAllQuery: DocumentNode = gql`
+const LoadAllQuery: any = gql`
   query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TripFilterVOInput){
     trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       id
@@ -28,11 +28,13 @@ const LoadAllQuery: DocumentNode = gql`
         id
         label
         name
+        entityName
       }
       returnLocation {
         id
         label
         name
+        entityName
       }
       recorderDepartment {
         id
@@ -57,7 +59,7 @@ const LoadAllQuery: DocumentNode = gql`
     }
   }
 `;
-const LoadQuery: DocumentNode = gql`
+const LoadQuery: any = gql`
   query Trip($id: Int) {
     trip(id: $id) {
       id
@@ -70,11 +72,13 @@ const LoadQuery: DocumentNode = gql`
         id
         label
         name
+        entityName
       }
       returnLocation {
         id
         label
         name
+        entityName
       }
       recorderDepartment {
         id
@@ -98,6 +102,41 @@ const LoadQuery: DocumentNode = gql`
         name
         exteriorMarking
       }
+      gears {
+        id
+        rankOrder
+        updateDate
+        comments
+        gear {
+          id
+          label
+          name
+          entityName
+        }
+        recorderDepartment {
+          id
+          label
+          name
+          logo
+        }
+      }
+      measurements {
+        id
+        pmfmId
+        alphanumericalValue
+        numericalValue
+        qualitativeValue {
+          id
+        }
+        digitCount
+        creationDate
+        updateDate
+        recorderDepartment {
+          id
+          label
+          name
+        }
+      }
       sale {
         id
         startDateTime
@@ -108,17 +147,19 @@ const LoadQuery: DocumentNode = gql`
           id
           label
           name
+          entityName
         }
         saleLocation {
           id
           label
-          name          
+          name
+          entityName
         }
       }
     }
   }
 `;
-const SaveTrips: DocumentNode = gql`
+const SaveTrips: any = gql`
   mutation saveTrips($trips:[TripVOInput]){
     saveTrips(trips: $trips){
       id
@@ -131,11 +172,13 @@ const SaveTrips: DocumentNode = gql`
         id
         label
         name
+        entityName
       }
       returnLocation {
         id
         label
         name
+        entityName
       }
       recorderDepartment {
         id
@@ -164,7 +207,7 @@ const SaveTrips: DocumentNode = gql`
     }
   }
 `;
-const DeleteTrips: DocumentNode = gql`
+const DeleteTrips: any = gql`
   mutation deleteTrips($ids:[Int]){
     deleteTrips(ids: $ids)
   }
@@ -198,9 +241,7 @@ subscription changedTrips {
 @Injectable()
 export class TripService extends BaseDataService implements DataService<Trip, TripFilter>{
 
-  private _lastVariables = {
-    loadAll: undefined
-  };
+
 
   constructor(
     protected apollo: Apollo,
@@ -258,14 +299,15 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         }));
   }
 
-  load(id: number): Promise<Trip | null> | Observable<Trip | null> {
+  load(id: number): Observable<Trip | null> {
     console.debug("[trip-service] Loading trip {" + id + "}...");
 
     return this.watchQuery<{ trip: Trip }>({
       query: LoadQuery,
       variables: {
         id: id
-      }
+      },
+      error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" }
     })
       .map(data => {
         if (data && data.trip) {
@@ -274,26 +316,20 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         }
         return null;
       });
-    /* .then(data => {
-      if (data && data.trip) {
-        console.debug("[trip-service] Loaded trip {" + id + "}");
-        return Trip.fromObject(data.trip);
-      }
-      return null;
-    }); */
   }
 
   /**
    * Save many trips
    * @param data 
    */
-  async saveAll(entities: Trip[]): Promise<Trip[]> {
+  async saveAll(entities: Trip[], options?: any): Promise<Trip[]> {
     if (!entities) return entities;
 
-    // Fill default properties (as recorder department and person)
-    entities.forEach(t => this.fillDefaultProperties(t));
-
-    const json = entities.map(t => this.asObject(t));
+    const json = entities.map(t => {
+      // Fill default properties (as recorder department and person)
+      this.fillDefaultProperties(t)
+      return this.asObject(t);
+    });
     console.debug("[trip-service] Saving trips: ", json);
 
     const res = await this.mutate<{ saveTrips: Trip[] }>({
@@ -303,60 +339,51 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       },
       error: { code: ErrorCodes.SAVE_TRIPS_ERROR, message: "TRIP.ERROR.SAVE_TRIPS_ERROR" }
     });
-    return (res && res.saveTrips && entities || [])
-      .map(t => {
-        const data = res.saveTrips.find(res => res.id == t.id);
-        t.updateDate = data && data.updateDate || t.updateDate;
-        if (t.sale) {
-          t.sale.id = data.sale && data.sale.id;
-          t.sale.updateDate = data.sale && data.sale.updateDate;
-        }
-        return t;
+    (res && res.saveTrips && entities || [])
+      .forEach(entity => {
+        const savedTrip = res.saveTrips.find(res => entity.equals(res));
+        this.copyIdAndUpdateDate(savedTrip, entity);
       });
+    return entities;
   }
 
   /**
    * Save a trip
    * @param data 
    */
-  save(entity: Trip): Promise<Trip> {
+  async save(entity: Trip): Promise<Trip> {
 
     // Prepare to save
     this.fillDefaultProperties(entity);
 
     // Transform into json
     const json = this.asObject(entity);
+    const isNew = !entity.id;
 
     console.debug("[trip-service] Saving trip: ", json);
 
-    const isNew = !json.id;
-
-    return this.mutate<{ saveTrips: any }>({
+    const res = await this.mutate<{ saveTrips: any }>({
       mutation: SaveTrips,
       variables: {
         trips: [json]
       },
       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" }
     })
-      .then(data => {
-        var res = data && data.saveTrips && data.saveTrips[0];
-        entity.id = res && res.id || entity.id;
-        entity.updateDate = res && res.updateDate || entity.updateDate;
-        if (entity.sale) {
-          entity.sale.id = res.sale && res.sale.id;
-          entity.sale.updateDate = res.sale && res.sale.updateDate;
-        }
 
-        // Update the cache
-        if (isNew) {
-          const list = this.addToQueryCache({
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'trips', res);
-        }
+    var savedTrip = res && res.saveTrips && res.saveTrips[0];
+    if (savedTrip) {
+      this.copyIdAndUpdateDate(savedTrip, entity);
 
-        return entity;
-      });
+      // Update the cache
+      if (isNew && this._lastVariables.loadAll) {
+        const list = this.addToQueryCache({
+          query: LoadAllQuery,
+          variables: this._lastVariables.loadAll
+        }, 'trips', savedTrip);
+      }
+    }
+
+    return entity;
   }
 
   /**
@@ -423,7 +450,32 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       if (person && person.id) {
         entity.recorderPerson.id = person.id;
       }
+    }
 
+    // Physical gears : compute rankOrder
+    let maxRankOrder = 0;
+    (entity.gears || []).forEach(g => {
+      if (g.rankOrder && g.rankOrder > maxRankOrder) maxRankOrder = g.rankOrder;
+    });
+    (entity.gears || []).forEach(g => {
+      g.rankOrder = g.rankOrder || maxRankOrder++;
+    });
+  }
+
+  copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {
+    if (source) {
+
+      // Update (id and updateDate)
+      target.id = source.id || target.id;
+      target.updateDate = source.updateDate || target.updateDate;
+      target.dirty = false;
+
+      // Update sale
+      if (target.sale && source.sale) {
+        target.sale.id = source.sale.id || target.sale.id;
+        target.sale.updateDate = source.sale.updateDate || target.sale.updateDate;
+        target.sale.dirty = false;
+      }
     }
   }
 }

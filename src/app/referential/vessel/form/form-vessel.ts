@@ -2,7 +2,7 @@ import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { VesselValidatorService } from "../validator/validators";
 import { FormGroup } from "@angular/forms";
 import { VesselFeatures, Referential, LocationLevelIds, referentialToString } from "../../services/model";
-import { Platform } from 'ionic-angular';
+import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN } from '../../constants';
 import { DateAdapter } from "@angular/material";
@@ -15,7 +15,8 @@ import { ReferentialService } from '../../services/referential-service';
 
 @Component({
   selector: 'form-vessel',
-  templateUrl: './form-vessel.html'
+  templateUrl: './form-vessel.html',
+  styleUrls: ['./form-vessel.scss']
 })
 export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
 

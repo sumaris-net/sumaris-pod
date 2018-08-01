@@ -1,7 +1,7 @@
 import { Component, OnInit } from "@angular/core";
-import { ViewController } from "ionic-angular";
+import { ModalController } from "@ionic/angular";
 
-import { environment } from "../core.module"
+import { environment } from '../../../environments/environment';
 
 
 @Component({
@@ -13,11 +13,15 @@ export class AboutModal {
     appVersion: String = environment.version;
 
     constructor(
-        protected viewCtrl: ViewController
+        protected modalController: ModalController
     ) {
     }
 
     async cancel() {
-        await this.viewCtrl.dismiss();
+        await this.modalController.dismiss();
+    }
+
+    async close() {
+        await this.modalController.dismiss();
     }
 }

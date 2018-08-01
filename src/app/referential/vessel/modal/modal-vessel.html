@@ -1,31 +1,32 @@
 <ion-header>
-    <ion-toolbar>
-      <ion-buttons left start>
-          <button ion-button class="visible-xs visible-sm" (click)="cancel()">
-            {{'COMMON.BTN_CANCEL'|translate}}
-          </button>
-        </ion-buttons>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button visible-xs visible-sm (click)="cancel()">
+        {{'COMMON.BTN_CANCEL'|translate}}
+      </ion-button>
+    </ion-buttons>
 
-      <ion-title>
-        {{(!!data?.id ? 'VESSEL.EDIT.TITLE' : 'VESSEL.NEW.TITLE') |translate}}
-      </ion-title>      
+    <!-- <ion-title>
+      {{(!!data?.id ? 'VESSEL.EDIT.TITLE' : 'VESSEL.NEW.TITLE') |translate}}
+    </ion-title> -->
+    <ion-title translate>VESSEL.NEW.TITLE</ion-title>
 
-      <ion-buttons end>
-          <ion-spinner *ngIf="loading"></ion-spinner>
-    
-          <button ion-button icon-only class="visible-xs visible-sm" (click)="onSave($event)" *ngIf="!loading">
-            <ion-icon name="checkmark"></ion-icon>
-          </button>      
-        </ion-buttons>
-    </ion-toolbar>
-  </ion-header>
-  
-  <ion-content padding>
-      <mat-error>{{error}}</mat-error>
-      <form-vessel #form
-        (onSubmit)="onSave($event)" 
-        (onCancel)="cancel()" >
-      </form-vessel>
-  </ion-content>
-<mat-dialog-content>
+    <ion-buttons slot="end">
+      <ion-spinner *ngIf="loading"></ion-spinner>
 
+      <ion-button visible-xs visible-sm (click)="onSave($event)" *ngIf="!loading">
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+  <form-vessel #form (onSubmit)="onSave($event)" (onCancel)="cancel()">
+  </form-vessel>
+</ion-content>
+
+
+<ion-footer hidden-xs hidden-sm>
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="onSave($event) " [disabled]="!form.dirty || loading "></form-buttons-bar>
+</ion-footer>

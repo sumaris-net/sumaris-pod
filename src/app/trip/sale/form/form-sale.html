@@ -7,7 +7,7 @@
 
     <!-- VESSEL -->
     <ion-row *ngIf="showVessel">
-      <ion-col col-12>
+      <ion-col size="12">
         <mat-form-field>
           <ion-icon margin-right name="boat" matPrefix></ion-icon>
           <input matInput [placeholder]="'SALE.VESSEL'|translate" [matAutocomplete]="autoVessel" formControlName="vesselFeatures">
@@ -17,15 +17,21 @@
         <!-- Vessel combo -->
         <mat-autocomplete autoActiveFirstOption #autoVessel="matAutocomplete" [displayWith]="vesselFeaturesToString">
 
-          <ion-row padding>
-            <ion-col col-2 translate>VESSEL.EXTERIOR_MARKING</ion-col>
-            <ion-col translate>VESSEL.NAME</ion-col>
-            <ion-col translate>VESSEL.BASE_PORT_LOCATION</ion-col>
+          <ion-row class="mat-autocomplete-header">
+            <ion-col size="3">
+              <ion-text translate>VESSEL.EXTERIOR_MARKING</ion-text>
+            </ion-col>
+            <ion-col>
+              <ion-text translate>VESSEL.NAME</ion-text>
+            </ion-col>
+            <ion-col>
+              <ion-text translate>VESSEL.BASE_PORT_LOCATION</ion-text>
+            </ion-col>
           </ion-row>
 
           <mat-option *ngFor="let vessel of vessels | async" [value]="vessel">
             <ion-row>
-              <ion-col col-2 [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
+              <ion-col size="3" [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
               <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
               <ion-col>{{vessel.basePortLocation.label}} - {{vessel.basePortLocation.name}}</ion-col>
             </ion-row>
@@ -36,12 +42,10 @@
 
     <!-- Sale type -->
     <ion-row>
-      <ion-col col-1 *ngIf="!mobile" class="hidden-xs">
-        <p>
-          <span ion-text translate>SALE.SALE_FIELD</span>
-        </p>
+      <ion-col size="12" size-lg="2">
+        <ion-label translate>SALE.SALE_FIELD</ion-label>
       </ion-col>
-      <ion-col col-11>
+      <ion-col>
         <mat-form-field>
           <ion-icon margin-right name="pin" matPrefix></ion-icon>
           <input matInput [placeholder]="'SALE.SALE_TYPE'|translate" [matAutocomplete]="autoSaleType" formControlName="saleType">
@@ -58,10 +62,7 @@
 
     <!-- LOCATION + Date time -->
     <ion-row *ngIf="!showEndDateTime">
-      <ion-col col-1 *ngIf="!mobile" class="hidden-xs">
-        &nbsp;
-      </ion-col>
-      <ion-col>
+      <ion-col offset="0" offset-lg="2">
         <mat-form-field>
           <ion-icon margin-right name="pin" matPrefix></ion-icon>
           <input matInput [placeholder]="'SALE.SALE_LOCATION'|translate" [matAutocomplete]="autoSaleLocation" formControlName="saleLocation">
@@ -70,20 +71,24 @@
 
         <!-- Location combo -->
         <mat-autocomplete autoActiveFirstOption #autoSaleLocation="matAutocomplete" [displayWith]="referentialToString">
-          <ion-row padding>
-            <ion-col col-2 translate>REFERENTIAL.LABEL</ion-col>
-            <ion-col translate>REFERENTIAL.NAME</ion-col>
+          <ion-row class="mat-autocomplete-header">
+            <ion-col size="2">
+              <ion-text translate>REFERENTIAL.LABEL</ion-text>
+            </ion-col>
+            <ion-col>
+              <ion-text translate>REFERENTIAL.NAME</ion-text>
+            </ion-col>
           </ion-row>
 
           <mat-option *ngFor="let location of locations | async" [value]="location">
             <ion-row>
-              <ion-col col-2 [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
+              <ion-col size="2" [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
             </ion-row>
           </mat-option>
         </mat-autocomplete>
       </ion-col>
-      <ion-col>
+      <ion-col size="12" size-lg="auto">
         <mat-date-time [placeholder]="'SALE.DATE_TIME'|translate" formControlName="startDateTime" displayTime="true">
         </mat-date-time>
       </ion-col>
@@ -91,7 +96,7 @@
 
     <!-- LOCATION -->
     <ion-row *ngIf="showEndDateTime">
-      <ion-col col-12>
+      <ion-col size="12">
         <mat-form-field>
           <ion-icon margin-right name="pin" matPrefix></ion-icon>
           <input matInput [placeholder]="'SALE.SALE_LOCATION'|translate" [matAutocomplete]="autoSaleLocation" formControlName="saleLocation">
@@ -100,14 +105,18 @@
 
         <!-- Location combo -->
         <mat-autocomplete autoActiveFirstOption #autoSaleLocation="matAutocomplete" [displayWith]="displayReferential">
-          <ion-row padding>
-            <ion-col col-2 translate>REFERENTIAL.LABEL</ion-col>
-            <ion-col translate>REFERENTIAL.NAME</ion-col>
+          <ion-row class="mat-autocomplete-header">
+            <ion-col size="2">
+              <ion-text translate>REFERENTIAL.LABEL</ion-text>
+            </ion-col>
+            <ion-col>
+              <ion-text translate>REFERENTIAL.NAME</ion-text>
+            </ion-col>
           </ion-row>
 
           <mat-option *ngFor="let location of locations | async" [value]="location">
             <ion-row>
-              <ion-col col-2 [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
+              <ion-col size="2" [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
             </ion-row>
           </mat-option>
@@ -117,7 +126,7 @@
 
     <!-- Date time (start+end) -->
     <ion-row *ngIf="showEndDateTime">
-      <ion-col col-2 *ngIf="!mobile" class="hidden-xs">
+      <ion-col size="12" size-lg="2">
         <p ion-text translate>SALE.START</p>
       </ion-col>
       <ion-col *ngIf="showEndDateTime">
@@ -125,11 +134,11 @@
         </mat-date-time>
       </ion-col>
 
-      <ion-col col-2 *ngIf="!mobile" class="hidden-xs">
+      <ion-col size="12" size-lg="2">
         <p ion-text translate>SALE.END</p>
       </ion-col>
 
-      <ion-col *ngIf="showEndDateTime">
+      <ion-col size="auto" *ngIf="showEndDateTime">
         <mat-date-time [placeholder]="'SALE.END_DATE'|translate" formControlName="endDateTime" displayTime="true">
         </mat-date-time>
       </ion-col>
@@ -137,7 +146,7 @@
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">
-      <ion-col col-12>
+      <ion-col>
         <mat-form-field appearance="outline">
           <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'SALE.COMMENTS'|translate"
             formControlName="comments">

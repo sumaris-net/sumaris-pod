@@ -1,9 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { IonicModule } from "@ionic/angular";
 import { CoreModule } from '../core/core.module';
-import { ReferentialRoutingModule } from './referential-routing.module';
-import { RouterModule } from '@angular/router';
-import { SharedModule } from '../shared/shared.module';
 import { VesselService } from './services/vessel-service';
 import { VesselValidatorService } from './vessel/validator/validators';
 import { ReferentialService } from './services/referential-service';
@@ -21,7 +19,6 @@ export { VesselModal, VesselService, ReferentialService }
     imports: [
         CommonModule,
         CoreModule
-        //ReferentialRoutingModule
     ],
 
     declarations: [
@@ -48,7 +45,4 @@ export { VesselModal, VesselService, ReferentialService }
     ]
 })
 export class ReferentialModule {
-    constructor() {
-        console.info("[referential] Starting module...");
-    }
 }

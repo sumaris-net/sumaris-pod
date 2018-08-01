@@ -6,17 +6,18 @@ import { AppTableDataSource, AppTable } from "../../../core/core.module";
 import { VesselValidatorService } from "../validator/validators";
 import { VesselService, VesselFilter } from "../../services/vessel-service";
 import { VesselModal } from "../modal/modal-vessel";
-import { VesselFeatures, Referential, toDateISOString, fromDateISOString } from "../../services/model";
-import { ModalController, Platform } from "ionic-angular";
+import { VesselFeatures, Referential, toDateISOString, fromDateISOString, referentialToString } from "../../services/model";
+import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from "../../../core/services/account.service";
 import { Location } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs-compat';
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 
 @Component({
   selector: 'page-vessels',
   templateUrl: 'vessels.html',
+  styleUrls: ['./vessels.scss'],
   providers: [
     { provide: ValidatorService, useClass: VesselValidatorService }
   ],
@@ -79,15 +80,18 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
 
   }
 
-  onAddRowDetail(): Promise<any> {
+  async onAddRowDetail(): Promise<any> {
     if (this.loading) return Promise.resolve();
 
-    let modal = this.modalCtrl.create(VesselModal);
+    const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss(res => {
       // if new vessel added, refresh the table
       if (res) this.onRefresh.emit();
     });
     return modal.present();
   }
+
+
+  referentialToString = referentialToString;
 }
 

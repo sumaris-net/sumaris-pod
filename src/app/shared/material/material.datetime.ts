@@ -1,7 +1,7 @@
 import { Component, Optional, Input, EventEmitter, OnInit, forwardRef, ViewChild } from '@angular/core';
 import { DateFormatPipe } from '../pipes/date-format.pipe';
-import { Platform } from 'ionic-angular';
-import { MatFormFieldControl, DateAdapter, MatDatepicker } from '@angular/material'
+import { Platform } from '@ionic/angular';
+import { MatFormFieldControl, DateAdapter, MatDatepicker, MatFormField } from '@angular/material';
 import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor, ValidationErrors } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 import { Moment } from 'moment/moment';
@@ -13,6 +13,7 @@ import { SharedValidators } from '../validator/validators';
 @Component({
     selector: 'mat-date-time',
     templateUrl: 'material.datetime.html',
+    styleUrls: ['./material.datetime.scss'],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
@@ -35,6 +36,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     date: Moment;
     locale: string;
 
+    mask = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
+
     @Input() disabled: boolean = false
 
     @Input() formControl: FormControl;
@@ -45,7 +48,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     @Input() placeholder: string;
 
-    @Input() floatPlaceholder: string;
+    @Input() floatLabel: string;
 
     @Input() readonly: boolean = false;
 
@@ -60,7 +63,9 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         private formBuilder: FormBuilder,
         @Optional() private formGroupDir: FormGroupDirective
     ) {
-        this.touchUi = !platform.is('core');
+        // TODO: uncomment when this issue fixed: https://github.com/ionic-team/ionic/issues/14802
+        // this.touchUi = !platform.is('core');
+        this.touchUi = false;
         this.mobile = this.touchUi && platform.is('mobile');
         this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
     }
@@ -116,7 +121,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.writing = true;
         this.disabled = isDisabled;
         if (isDisabled) {
-            this.formControl.disable();
+            this.formControl.disable(); this.formControl.disable();
             this.form.disable();
         }
         else {
@@ -207,13 +212,22 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     }
 
     public onKeyDown(event: KeyboardEvent) {
-        if (event.key == 'ArrowDown') {
-            this.datePicker.open();
-            event.preventDefault();
-            return;
+        if (event.key === 'ArrowDown') {
+            return this.openDatePicker(event);
         }
     }
 
+    public openDatePickerIfTouchUi(event: UIEvent) {
+        if (!this.touchUi) {
+            this.openDatePicker(event);
+        }
+    }
+
+
+    public openDatePicker(event: UIEvent) {
+        this.datePicker.open();
+        event.preventDefault();
+    }
 
 }
 

@@ -1,10 +1,10 @@
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { FormGroup } from "@angular/forms";
-import { Platform } from 'ionic-angular';
+import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN } from '../constants';
 import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs-compat';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 
@@ -20,8 +20,15 @@ export abstract class AppForm<T> implements OnInit {
   public get value(): any {
     return this.form.value;
   }
-  public get dirty(): any {
+  public set value(data: any) {
+    this.setValue(data);
+  }
+
+  public get dirty(): boolean {
     return this.form.dirty;
+  }
+  public get invalid(): boolean {
+    return this.form.invalid;
   }
 
   public disable(opts?: {

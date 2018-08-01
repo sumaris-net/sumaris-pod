@@ -7,6 +7,7 @@ import { fadeInAnimation } from '../../shared/material/material.animations';
 @Component({
     selector: 'form-metadata',
     templateUrl: './form-metadata.component.html',
+    styleUrls: ['./form-metadata.component.scss'],
     animations: [fadeInAnimation]
 })
 export class FormMetadataComponent {

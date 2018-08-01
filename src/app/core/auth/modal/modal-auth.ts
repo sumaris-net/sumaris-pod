@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { ViewController } from 'ionic-angular';
+import { ModalController } from '@ionic/angular';
 import { AccountService } from "../../services/account.service";
 import { AuthForm } from '../form/form-auth';
 
@@ -15,7 +15,7 @@ export class AuthModal {
   @ViewChild('form') private form: AuthForm;
 
   constructor(private accountService: AccountService,
-    public viewCtrl: ViewController) {
+    public viewCtrl: ModalController) {
   }
 
   cancel() {
@@ -28,7 +28,6 @@ export class AuthModal {
 
     return this.accountService.login(this.form.value)
       .then((account) => {
-        console.log("Will close auth modal");
         this.viewCtrl.dismiss(account);
       })
       .catch(err => {

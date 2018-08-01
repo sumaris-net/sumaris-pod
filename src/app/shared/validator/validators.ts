@@ -12,4 +12,16 @@ export class SharedValidators {
     }
   }
 
+  static latitude(control: FormControl): ValidationErrors | null {
+    const value = control.value;
+    if (value < -90 || value > 90)
+      return { validLatitude: true };
+  }
+
+  static longitude(control: FormControl): ValidationErrors | null {
+    const value = control.value;
+    if (value < -180 || value > 180)
+      return { validLongitude: true };
+  }
+
 }

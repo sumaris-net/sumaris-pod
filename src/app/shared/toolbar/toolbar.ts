@@ -1,9 +1,10 @@
 import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
-import { Navbar, NavController } from 'ionic-angular';
+import { ProgressBarService } from '../../core/services/progress-bar.service';
 
 @Component({
   selector: 'app-toolbar',
-  templateUrl: 'toolbar.html'
+  templateUrl: 'toolbar.html',
+  styleUrls: ['./toolbar.scss'],
 })
 export class ToolbarComponent implements OnInit {
 
@@ -11,20 +12,24 @@ export class ToolbarComponent implements OnInit {
   title: string = '';
 
   @Input()
-  color: string = '';
+  color: string = 'primary';
 
   @Input()
   class: string = '';
 
   @Input()
-  hasValidate: boolean = true;
+  hasValidate: boolean = false;
+
+  @Input()
+  hasSearch: boolean = false;
 
   @Output()
   onValidate: EventEmitter<any> = new EventEmitter<any>();
 
-  @ViewChild('navbar') public navBar: NavController;
+  progressBarMode: string;
 
   constructor(
+    private progressBarService: ProgressBarService
   ) {
   }
 
@@ -34,19 +39,13 @@ export class ToolbarComponent implements OnInit {
 
   ngOnInit() {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
-
-    //console.log(this.navBar);
-    /*this.navBar.backButtonClick = (e:UIEvent)=>{
-     console.log("Back clicked !");
-     //this.navBar.conpop();
-     history.back();
-    }*/
-
-    //this.navBar.hideBackButton = false;
+    this.progressBarService.updateProgressBar$.subscribe((mode: string) => {
+      //this.progressBarMode = mode;
+    });
   }
 
-
-  public push(page: any, params?: any) {
-    this.navBar.push(page, params);
+  enableSearchBar() {
+    console.log('TODO: add search toolbar');
   }
+
 }

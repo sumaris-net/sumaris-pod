@@ -1,19 +1,28 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from './material/material.module';
+import { ReactiveFormsModule } from "@angular/forms";
+import { TranslateModule } from "@ngx-translate/core";
+import { IonicModule } from "@ionic/angular";
+
 import { AutofocusDirective } from './directives/autofocus.directive';
 import { DateFormatPipe } from './pipes/date-format.pipe';
+import { LatLongFormatPipe } from './pipes/latlong-format.pipe';
 import { HighlightPipe } from './pipes/highlight.pipe';
 import { ToolbarComponent } from './toolbar/toolbar';
-import { IonicModule } from "ionic-angular";
 import { MatDateTime } from './material/material.datetime';
-
-import { TranslateModule } from "@ngx-translate/core";
+import { MatLatLong } from './material/material.latlong';
+import { MatBooleanField } from './material/material.boolean';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { TextMaskModule } from 'angular2-text-mask';
 
 @NgModule({
     imports: [
         CommonModule,
         MaterialModule,
+        BrowserAnimationsModule,
+        ReactiveFormsModule,
+        TextMaskModule,
         IonicModule,
         TranslateModule.forChild()
     ],
@@ -21,21 +30,31 @@ import { TranslateModule } from "@ngx-translate/core";
         AutofocusDirective,
         ToolbarComponent,
         DateFormatPipe,
-        HighlightPipe,
-        MatDateTime
-    ],
-    exports: [
-        AutofocusDirective,
-        MaterialModule,
-        ToolbarComponent,
-        IonicModule,
-        DateFormatPipe,
+        LatLongFormatPipe,
         HighlightPipe,
         MatDateTime,
-        TranslateModule
+        MatLatLong,
+        MatBooleanField
+    ],
+    exports: [
+        MaterialModule,
+        BrowserAnimationsModule,
+        ReactiveFormsModule,
+        IonicModule,
+        AutofocusDirective,
+        ToolbarComponent,
+        DateFormatPipe,
+        LatLongFormatPipe,
+        HighlightPipe,
+        TextMaskModule,
+        TranslateModule,
+        MatDateTime,
+        MatLatLong,
+        MatBooleanField
     ],
     providers: [
         DateFormatPipe,
+        LatLongFormatPipe,
         HighlightPipe
     ]
 })

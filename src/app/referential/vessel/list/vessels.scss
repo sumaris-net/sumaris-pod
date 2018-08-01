@@ -1,11 +1,8 @@
-page-vessels {
-  .toolbar-spacer {
-    flex: 1 1 auto;
-  }
   .mat-table {
     .mat-column-select {
       overflow: initial;
-      max-width: 60px;
+      max-width: 50px;
+      padding-left: 16px;
     }
     .mat-column-id {
       max-width: 60px;
@@ -48,4 +45,3 @@ page-vessels {
       /* green */
     }
   }
-}

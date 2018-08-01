@@ -6,10 +6,11 @@ import { Apollo, ApolloModule } from 'apollo-angular';
 import { HttpLink, HttpLinkModule } from 'apollo-angular-link-http';
 import { InMemoryCache, defaultDataIdFromObject } from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
-import { getOperationAST } from 'graphql';
+//import { getOperationAST } from 'graphql';
+import { DocumentNode } from 'graphql';
 import { WebSocketLink } from 'apollo-link-ws';
 import { Storage } from '@ionic/storage';
-
+import { Hermes } from 'apollo-cache-hermes';
 import { environment } from '../../../environments/environment';
 
 /* Hack on Websocket, to avoid the use of protocol */
@@ -29,10 +30,24 @@ export const dataIdFromObject = function (object: Object): string {
   switch (object['__typename']) {
     // For generic type 'ReferentialVO', add entityName in the cache key (to distinguish by entity)
     case 'ReferentialVO': return object['entityName'] + ':' + object['id'];
+    case 'MeasurementVO': return object['entityName'] + ':' + object['id'];
     // Fallback to default cache key
     default: return defaultDataIdFromObject(object);
   }
 };
+
+export const getOperationAST = function (query: DocumentNode, operationName: String): {
+  operation: String
+} {
+  if (query && query.definitions && query.definitions.length == 1) {
+    const def: any = query.definitions[0];
+    if (def.operation) {
+      //console.debug("[graphql] getOperationAST return operation: " + def.operation);
+      return { operation: def.operation };
+    }
+  }
+  return undefined;
+}
 
 WebSocket
 @NgModule({
@@ -59,9 +74,9 @@ export class AppGraphQLModule {
     //const authorization = token ? `Bearer ${token}` : null;
     //const headers = new HttpHeaders().append('Authorization', authorization);
 
-    const http = httpLink.create({ uri: environment.baseUrl + '/graphql' });
+    const http = httpLink.create({ uri: environment.remoteBaseUrl + '/graphql' });
 
-    const wsUrl = String.prototype.replace.call(environment.baseUrl, "http", "ws");
+    const wsUrl = String.prototype.replace.call(environment.remoteBaseUrl, "http", "ws");
     const ws = new WebSocketLink({
       uri: wsUrl + '/subscriptions/websocket',
       options: {
@@ -70,11 +85,16 @@ export class AppGraphQLModule {
         connectionParams: {
           authToken: localStorage.getItem(GC_AUTH_TOKEN),
         }*/
-        ,
       },
       webSocketImpl: AppWebSocket
     });
 
+    const imCache = new InMemoryCache({
+      dataIdFromObject: dataIdFromObject
+    });
+    // const heCache = new Hermes({
+    //   entityIdForNode: dataIdFromObject
+    // });
 
     // create Apollo
     apollo.create({
@@ -86,9 +106,8 @@ export class AppGraphQLModule {
         ws,
         http,
       ),
-      cache: new InMemoryCache({
-        dataIdFromObject: dataIdFromObject
-      })
+      cache: imCache
     });
   }
 }
+

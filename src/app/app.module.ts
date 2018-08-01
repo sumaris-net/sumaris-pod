@@ -3,44 +3,43 @@ import "./vendor";
 
 import { APP_BASE_HREF } from "@angular/common";
 import { BrowserModule } from "@angular/platform-browser";
-import { ErrorHandler, NgModule } from "@angular/core";
-import { SplashScreen } from "@ionic-native/splash-screen";
-import { StatusBar } from "@ionic-native/status-bar";
-import { Keyboard } from "@ionic-native/keyboard";
-import { IonicApp, IonicErrorHandler, IonicModule } from "ionic-angular";
+import { NgModule } from "@angular/core";
+import { IonicModule } from "@ionic/angular";
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, DateAdapter } from "@angular/material";
 import { DATE_ISO_PATTERN } from "./core/constants";
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 
-
+// App modules
 import { AppComponent } from "./app.component";
+import { AppRoutingModule } from "./app-routing.module";
 import { CoreModule } from "./core/core.module";
 import { AdminModule } from "./admin/admin.module";
 import { ReferentialModule } from "./referential/referential.module";
-import { AppRoutingModule } from "./app-routing.module";
 import { TripModule } from "./trip/trip.module";
+import { environment } from "../environments/environment.prod";
 
-import { Routes, RouterModule } from '@angular/router';
+
 @NgModule({
   declarations: [
     AppComponent
   ],
   imports: [
-    BrowserModule,
     AppRoutingModule,
+    BrowserModule,
+    IonicModule.forRoot(),
+    // functional modules
     CoreModule,
     AdminModule,
     ReferentialModule,
-    TripModule,
-    IonicModule.forRoot(AppComponent)
+    TripModule
   ],
-  bootstrap: [IonicApp],
+  bootstrap: [AppComponent],
   providers: [
-    StatusBar,
-    SplashScreen,
-    Keyboard,
-    { provide: APP_BASE_HREF, useValue: '/' },
-    { provide: ErrorHandler, useClass: IonicErrorHandler },
+    //StatusBar,
+    //SplashScreen,
+    //Keyboard,
+    { provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/') },
+    //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: MAT_DATE_LOCALE, useValue: 'en' },
     { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE] },
     {

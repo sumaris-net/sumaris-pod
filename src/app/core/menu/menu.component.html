@@ -1,8 +1,13 @@
 <ion-split-pane>
 
-  <ion-menu [content]="content">
+  <ion-menu content="content">
     <ion-header>
-      <ion-toolbar class="user-profile" color="">
+
+      <mat-toolbar class=" user-profile" [hidden]="isLogin" padding>
+        <img src="./assets/img/logo-menu.png" [title]="'APP_NAME'|translate" />
+      </mat-toolbar>
+
+      <ion-toolbar class="user-profile" [hidden]="!isLogin">
         <ion-grid>
           <ion-row>
             <ion-col col-4 [hidden]="!account" class="fade in">
@@ -14,24 +19,26 @@
             </ion-col>
           </ion-row>
           <ion-row [hidden]="!isLogin" no-padding>
-            <h4 ion-text full class="no-margin  bold text-white username">
-              {{account?.firstName}} {{account?.lastName}}
-            </h4>
-            <span ion-text color="light">{{account?.email}}</span>
+            <ion-text>
+              <h4 full class="no-margin  bold text-white username">
+                {{account?.firstName}} {{account?.lastName}}
+              </h4>
+              <span>{{account?.email}}</span>
+            </ion-text>
           </ion-row>
 
           <ion-row no-padding class="other-data" [hidden]="!isLogin" class="fade in">
             <ion-col no-padding>
-              <button ion-button icon-left small full color="light" menuClose [routerLink]="['/account']">
-                <ion-icon name="contact"></ion-icon>
-                <span translate>MENU.BTN_ACCOUNT</span>
-              </button>
+              <ion-button small expand="full" color="light" menuClose [routerLink]="['/account']">
+                <ion-icon name="contact" slot="start"></ion-icon>
+                <ion-label translate>MENU.BTN_ACCOUNT</ion-label>
+              </ion-button>
             </ion-col>
             <ion-col no-padding padding-left>
-              <button ion-button icon-left small full color="light" menuClose (click)="logout()">
-                <ion-icon name="log-out"></ion-icon>
-                <span translate>MENU.BTN_LOGOUT</span>
-              </button>
+              <ion-button small expand="full" color="light" menuClose (click)="logout()">
+                <ion-icon name="log-out" slot="start"></ion-icon>
+                <ion-label translate>MENU.BTN_LOGOUT</ion-label>
+              </ion-button>
             </ion-col>
           </ion-row>
 
@@ -40,17 +47,19 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content color="dark" [class.has-profile-header]="isLogin" [class.no-profile-header]="!isLogin">
+    <ion-content [class.has-profile-header]="isLogin" [class.no-profile-header]="!isLogin">
 
-      <ion-list class="user-list">
+      <ion-list class="user-list" no-lines>
         <ng-container *ngFor="let item of items">
-          <button ion-item menuClose class="text-1x" [routerLink]="item.path" routerLinkActive="selected" [routerLinkActiveOptions]="{exact: (item.path == '/')}"
-            *ngIf="item.path">
-            <ion-icon item-left [name]="item.icon" color="primary"></ion-icon>
-            <span ion-text color="primary">{{item.title|translate}}</span>
-          </button>
-          <ion-item-divider color="stable" style="background-color: whitesmoke;" *ngIf="!item.path">
-            {{item.title|translate}}
+          <ion-item menuClose tappable class="text-1x" [routerLink]="item.path" routerDirection="root" routerLinkActive="selected"
+            (click)="menu.close()" [routerLinkActiveOptions]="{exact: (item.path == '/')}" *ngIf="item.path">
+            <ion-icon color="primary" slot="start" [name]="item.icon"></ion-icon>
+            <ion-label color="primary">{{item.title|translate}}</ion-label>
+          </ion-item>
+          <ion-item-divider *ngIf="!item.path">
+            <ion-label>
+              {{item.title|translate}}
+            </ion-label>
           </ion-item-divider>
         </ng-container>
       </ion-list>
@@ -67,5 +76,11 @@
     </ion-footer>
   </ion-menu>
 
-  <ng-content></ng-content>
+
+  <div no-padding main #content style="width:100%;">
+    <ng-content></ng-content>
+  </div>
+
+
+
 </ion-split-pane>

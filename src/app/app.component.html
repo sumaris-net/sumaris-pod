@@ -1,5 +1,11 @@
-<app-menu [content]="content" [items]="menuItems">
+<ion-app>
 
-  <router-outlet #content main swipeBackEnabled="true" (activate)="onActivate($event)"></router-outlet>
+  <app-menu [items]="menuItems">
 
-</app-menu>
+    <ion-router-outlet stack></ion-router-outlet>
+
+  </app-menu>
+
+
+
+</ion-app>

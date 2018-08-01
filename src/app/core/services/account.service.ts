@@ -1,11 +1,11 @@
 import { Injectable } from "@angular/core";
 import { KeyPair, CryptoService } from "./crypto.service";
 import { Account, Referential } from "./model";
-import { Subject, Observable, Subscription } from "rxjs";
+import { Subject, Observable, Subscription } from "rxjs-compat";
 import gql from "graphql-tag";
 import { TranslateService } from "@ngx-translate/core";
 import { Apollo } from "apollo-angular";
-import { DocumentNode } from "graphql";
+
 import { BaseDataService } from "./data-service.class";
 import { ErrorCodes } from "./errors";
 
@@ -38,7 +38,7 @@ const SETTINGS_STORAGE_KEY = "settings"
  * GraphQL queries
  * ------------------------------------*/
 // Get account query
-const AccountQuery: DocumentNode = gql`
+const AccountQuery: any = gql`
   query Account($pubkey: String){
     account(pubkey: $pubkey){
       id
@@ -52,6 +52,9 @@ const AccountQuery: DocumentNode = gql`
       settings {
         id
         locale
+        latLongFormat
+        content
+        nonce
         updateDate
       }
       department {
@@ -68,7 +71,7 @@ export declare type AccountResult = {
 }
 
 // Check email query
-const IsEmailExistsQuery: DocumentNode = gql`
+const IsEmailExistsQuery: any = gql`
   query IsEmailExists($email: String, $hash: String){
     isEmailExists(email: $email, hash: $hash)
   }
@@ -79,8 +82,8 @@ export declare type IsEmailExistsVariables = {
 }
 
 // Save (create or update) account mutation
-const SaveAccountMutation: DocumentNode = gql`
-  mutation saveAccount($account:AccountVOInput){
+const SaveAccountMutation: any = gql`
+  mutation SaveAccount($account:AccountVOInput){
     saveAccount(account: $account){
       id
       firstName
@@ -93,6 +96,9 @@ const SaveAccountMutation: DocumentNode = gql`
       settings {
         id
         locale
+        latLongFormat
+        content
+        nonce
         updateDate
       }
       department {
@@ -103,14 +109,14 @@ const SaveAccountMutation: DocumentNode = gql`
 `;
 
 // Sent confirmation email
-const SendConfirmEmailMutation: DocumentNode = gql`
+const SendConfirmEmailMutation: any = gql`
   mutation sendAccountConfirmationEmail($email:String, $locale:String){
     sendAccountConfirmationEmail(email: $email, locale: $locale)
   }
 `;
 
 // Confirm account email
-const ConfirmEmailMutation: DocumentNode = gql`
+const ConfirmEmailMutation: any = gql`
   mutation confirmAccountEmail($email:String, $code:String){
     confirmAccountEmail(email: $email, code: $code)
   }
@@ -118,7 +124,7 @@ const ConfirmEmailMutation: DocumentNode = gql`
 
 
 // Subscription TEST
-const TestSubscription: DocumentNode = gql`
+const TestSubscription: any = gql`
   subscription updateTrip($tripId: Int){
     updateTrip(tripId: $tripId)
   }
@@ -203,7 +209,7 @@ export class AccountService extends BaseDataService {
         data.account.pubkey = base58.encode(keypair.publicKey);
 
         // Default values
-        data.account.settings.locale = data.account.settings.locale || this.translate.currentLang;
+        data.account.settings.locale = data.account.settings.locale || this.translate.currentLang || this.translate.defaultLang;
 
         // TODO: add department to register form
         data.account.department.id = data.account.department.id || 1;

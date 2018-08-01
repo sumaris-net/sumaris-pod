@@ -1,0 +1,139 @@
+@import "functions";
+@import "responsive";
+@import '~@ionic/angular/dist/themes/ionic.globals';
+// --------------------------------------------------
+// Import Ion Icons
+// --------------------------------------------------
+$ionicons-font-path: '~ionicons/dist/fonts';
+@import '~@ionic/angular/dist/components/app/fonts/ionicons';
+// --------------------------------------------------
+// Import Fonts
+// --------------------------------------------------
+$roboto-font-path: '~roboto-fontface/fonts/roboto';
+@import 'roboto';
+// --------------------------------------------------
+// Import default theme
+// --------------------------------------------------
+@import '~@ionic/angular/dist/themes/ionic.theme.default';
+// --------------------------------------------------
+// Shared Variables
+// --------------------------------------------------
+$app-direction: ltr !default;
+$text-color: #000;
+//$text-color: red !important;
+$background-color: #fff;
+// --------------------------------------------------
+// theme Colors
+// --------------------------------------------------
+$primary: #144391;
+$secondary: #0cd1e8;
+$tertiary: #5b5ef4;
+$success: #10dc60;
+$warning: #ffce00;
+$danger: #f53d3d;
+$light: #75C4FD;
+$medium: #989aa2;
+$dark: #000;
+// --------------------------------------------------
+// User defined Colors
+// --------------------------------------------------
+$transparent: transparent;
+$balanced: #0e909e;
+$primary100: #718dbc;
+$secondary100: #9c9df8;
+$danger100: #f98989;
+$light100: #abdbfe;
+$dark100: #6487c7;
+$balanced100: #6dbcc4;
+$primary900: #0e2e63;
+$secondary900: #3e40a7;
+$danger900: #a82a2a;
+$light900: #5086ad;
+$dark900: #00276f;
+$balanced900: #0a636c;
+$lightBorder: rgba(0, 0, 0, .12);
+$colors: (
+/* primary */
+
+primary: ( base: $primary, contrast: #fff, shade: get-color-shade($primary), tint: get-color-tint($primary)),
+/* primary100 */
+
+primary100: ( base: $primary100, contrast: #fff, shade: get-color-shade($primary100), tint: get-color-tint($primary100)),
+/* secondary */
+
+secondary: ( base: $secondary, contrast: #fff, shade: get-color-shade($secondary), tint: get-color-tint($secondary)),
+/* tertiary */
+
+tertiary: ( base: $tertiary, contrast: #fff, shade: get-color-shade($tertiary), tint: get-color-tint($tertiary)),
+/* balanced */
+
+balanced: ( base: $balanced, contrast: #fff, shade: get-color-shade($balanced), tint: get-color-tint($balanced)),
+/* balanced100 */
+
+balanced100: ( base: $balanced100, contrast: #000, shade: get-color-shade($balanced100), tint: get-color-tint($balanced100)),
+/* warning */
+
+success: ( base: $success, contrast: #fff, shade: get-color-shade($success), tint: get-color-tint($success)),
+/* success */
+
+warning: ( base: $warning, contrast: #fff, shade: get-color-shade($warning), tint: get-color-tint($warning)),
+/* danger */
+
+danger: ( base: $danger, contrast: #fff, shade: get-color-shade($danger), tint: get-color-tint($danger)),
+/* danger100 */
+
+danger100: ( base: $danger100, contrast: $dark900, shade: get-color-shade($danger100), tint: get-color-tint($danger100)),
+/* danger900 */
+
+danger900: ( base: $danger900, contrast: $dark900, shade: get-color-shade($danger900), tint: get-color-tint($danger900)),
+/* light */
+
+light: ( base: $light, contrast: #fff, shade: get-color-shade($light), tint: get-color-tint($light)),
+/* light100 */
+
+light100: ( base: $light100, contrast: $dark900, shade: get-color-shade($light100), tint: get-color-tint($light100)),
+/* light900 */
+
+light900: ( base: $light900, contrast: $dark900, shade: get-color-shade($light900), tint: get-color-tint($light900)),
+/* medium */
+
+medium: ( base: $medium, contrast: #fff, shade: get-color-shade($medium), tint: get-color-tint($medium)),
+/* dark */
+
+dark: ( base: $dark, contrast: #fff, shade: get-color-shade($dark), tint: get-color-tint($dark)),
+/* dark100 */
+
+dark100: ( base: $dark100, contrast: #fff, shade: get-color-shade($dark100), tint: get-color-tint($dark100)),
+/* dark100 */
+
+dark900: ( base: $dark900, contrast: #fff, shade: get-color-shade($dark900), tint: get-color-tint($dark900)),
+/* transparent */
+
+transparent: ( base: $transparent, contrast: $dark, shade: $transparent, tint: $transparent));
+// --------------------------------------------------
+// Import material theme
+// --------------------------------------------------
+@import '~@angular/material/theming';
+// Plus imports for other components in your app.
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat-core();
+// Define the palettes for your theme using the Material Design palettes available in palette.scss
+// (imported above). For each palette, you can optionally specify a default, lighter, and darker
+// hue.
+$candy-app-primary: mat-palette($mat-indigo);
+$candy-app-accent: mat-palette($mat-pink, A200, A100, A400);
+// The warn palette is optional (defaults to red).
+$candy-app-warn: mat-palette($mat-red);
+// Create the theme object (a Sass map containing all of the palettes).
+$candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-app-warn);
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+//@include angular-material-theme($candy-app-theme);
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+// --------------------------------------------------
+// Import material icons
+// --------------------------------------------------
+@import '~material-design-icons/iconfont/material-icons.css';

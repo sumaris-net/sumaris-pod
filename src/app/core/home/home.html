@@ -1,36 +1,62 @@
-<app-toolbar color="primary" class="visible-xs"></app-toolbar>
+<app-toolbar visible-xs visible-sm>
+  <ion-button mat-icon-button [matMenuTriggerFor]="matmenu">
+    <mat-icon slot="icon-only">public</mat-icon>
+  </ion-button>
+</app-toolbar>
 
-<ion-content padding class="bg-image-cover center" [ngStyle]="{'background-image': 'url('+bgImage+')'}">
+<!-- change locale menu -->
+<mat-menu #matmenu="matMenu">
+  <button mat-menu-item (click)="changeLanguage('en')">
+    <mat-icon>flag</mat-icon>
+    <span>
+      English
+    </span>
+  </button>
+  <button mat-menu-item (click)="changeLanguage('fr')">
+    <mat-icon>flag</mat-icon>
+    <span>
+      Français
+    </span>
+  </button>
+</mat-menu>
+
+<ion-content padding [ngStyle]="{'background-image': 'url('+bgImage+')'}" class="no-padding-xs">
+
+  <div hidden-xs hidden-sm>
+    <ion-toolbar color="transparent">
+      <ion-buttons slot="end">
+        <!-- change locale button -->
+        <ion-button color="light" fill="solid" [matMenuTriggerFor]="matmenu">
+          <mat-icon slot="start">public</mat-icon>
+          <ion-label>&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </div>
 
   <p class="hidden-xs">&nbsp;</p>
 
-  <div class="main-content">
+  <ion-card>
+    <ion-card-content>
 
-    <h4 translate>HOME.WELCOME</h4>
+      <h1 translate>HOME.WELCOME</h1>
+      <ion-text color="primary">
+        <img class="logo" src="./assets/img/logo.png" [title]="'APP_NAME'|translate" />
+        <br/>
+        <span [innerHTML]="'HOME.DESCRIPTION'|translate"></span>
+      </ion-text>
+    </ion-card-content>
 
-    <p ion-text [innerHTML]="'HOME.DESCRIPTION'|translate"></p>
-
-    <br/>
-
-    <img id="logo" src="./assets/img/logo.png" [title]="'APP_NAME'|translate" />
-
-    <br/>
-    <br/>
-    <div>
-      <!-- <button mat-raised-button icon-left  [color]="isLogin?'primary':'light'" [routerLink]="['/trips']">
-        <mat-icon>search</mat-icon>
-        <span translate>HOME.BTN_TRIPS</span>
-      </button> -->
-
-      <button mat-raised-button icon-left color="primary" [routerLink]="['/account']" *ngIf="!isLogin">
-        <ion-icon name="log-in"></ion-icon>
+    <ion-footer>
+      <ion-button expand="full" color="primary" [routerLink]="['/account']" *ngIf="!isLogin">
+        <ion-icon name="log-in" slot="start"></ion-icon>
         <span translate>AUTH.BTN_LOGIN</span>
-      </button>
+      </ion-button>
 
-      <button mat-raised-button icon-left color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
-        <ion-icon name="contact"></ion-icon>
+      <ion-button expand="full" color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
+        <ion-icon name="contact" slot="start"></ion-icon>
         <span translate>HOME.BTN_MY_ACCOUNT</span>
-      </button>
+      </ion-button>
 
       <p *ngIf="!isLogin">
         <span translate>AUTH.NO_ACCOUNT_QUESTION</span>
@@ -46,8 +72,8 @@
           <span translate>HOME.BTN_DISCONNECT</span>
         </a>
       </p>
-    </div>
-  </div>
+    </ion-footer>
+  </ion-card>
 
   <p class="hidden-xs">&nbsp;</p>
 

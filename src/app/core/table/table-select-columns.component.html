@@ -1,42 +1,44 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons left start>
-      <button ion-button class="visible-xs visible-sm" (click)="cancel()">
+    <ion-buttons slot="start">
+      <ion-button class="visible-xs visible-sm" (click)="cancel()">
         {{'COMMON.BTN_CANCEL'|translate}}
-      </button>
+      </ion-button>
     </ion-buttons>
 
     <ion-title>
       {{'COMMON.DISPLAYED_COLUMNS'|translate}}
     </ion-title>
 
-    <ion-buttons right end>
-      <button ion-button icon-only class="visible-xs visible-sm" (click)="close($event)">
+    <ion-buttons slot="end">
+      <ion-button icon-only class="visible-xs visible-sm" (click)="close()">
         <ion-icon name="checkmark"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 
 <ion-content>
-  <ion-list class="popover-page" reorder="true" (ionItemReorder)="reorderItems($event)">
+  <ion-list reorder="true" (ionItemReorder)="reorderItems($event)">
     <ion-item *ngFor="let column of columns">
       <ion-label>{{column.label|translate}}</ion-label>
-      <ion-toggle [checked]="column.visible" (ionChange)="column.visible=!column.visible"></ion-toggle>
+      <ion-toggle slot="end" [checked]="column.visible" (ionChange)="column.visible=!column.visible"></ion-toggle>
     </ion-item>
   </ion-list>
 </ion-content>
 
 
-<ion-footer padding class="hidden-xs hidden-sm">
-  <ion-buttons right end>
-    <button mat-button (click)="cancel()">
-      {{'COMMON.BTN_CANCEL'|translate}}
-    </button>
+<ion-footer hidden-xs hidden-sm>
+  <ion-toolbar>
 
-    <button mat-raised-button color="primary" (click)="close($event)">
+    <ion-button mat-button fill="clear" (click)="cancel()">
+      {{'COMMON.BTN_CANCEL'|translate}}
+    </ion-button>
+
+    <ion-button mat-raised-button fill="solid" color="secondary" (click)="close()">
       {{'COMMON.BTN_APPLY'|translate}}
-    </button>
-  </ion-buttons>
+    </ion-button>
+
+  </ion-toolbar>
 </ion-footer>

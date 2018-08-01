@@ -2,7 +2,7 @@ import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { SaleValidatorService } from "../validator/validators";
 import { FormGroup } from "@angular/forms";
 import { Sale, Referential, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString } from "../../services/model";
-import { Platform } from 'ionic-angular';
+import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { AppForm } from '../../../core/core.module';
 import { DateAdapter } from "@angular/material";
@@ -13,7 +13,8 @@ import { merge } from "rxjs/observable/merge";
 
 @Component({
   selector: 'form-sale',
-  templateUrl: './form-sale.html'
+  templateUrl: './form-sale.html',
+  styleUrls: ['./form-sale.scss']
 })
 export class SaleForm extends AppForm<Sale> implements OnInit {
 

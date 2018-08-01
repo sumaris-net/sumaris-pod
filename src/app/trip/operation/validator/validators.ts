@@ -17,14 +17,20 @@ export class OperationValidatorService implements ValidatorService {
   }
 
   getFormGroup(data?: Operation): FormGroup {
-    return this.formBuilder.group({
+    return this.formBuilder.group(this.getFields());
+  }
+
+  getFields(): { [key: string]: any } {
+    return {
       id: [''],
       updateDate: [''],
       startDateTime: ['', Validators.required],
       endDateTime: [''],
       comments: ['', Validators.maxLength(2000)],
       startPosition: this.positionValidator.getFormGroup(),
-      endPosition: this.positionValidator.getFormGroup()
-    });
+      endPosition: this.positionValidator.getFormGroup(),
+      metier: ['', Validators.required],
+      physicalGear: ['', Validators.required]
+    };
   }
 }

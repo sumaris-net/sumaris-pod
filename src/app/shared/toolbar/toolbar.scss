@@ -1,3 +1,9 @@
-toolbar {
-
+@import 'mixins';
+:root(app-toolbar) {
+  .progress-bar {
+    display: flex;
+    align-content: center;
+    align-items: center;
+    height: calculateRem(5px);
+  }
 }

@@ -1,16 +1,15 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { merge } from "rxjs/observable/merge";
 import { map } from "rxjs/operators";
-import { Observable } from 'rxjs';
+import { Subscription, Observable } from 'rxjs-compat';
 import { startWith, switchMap, mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, TableSelectColumnsComponent } from "../../core/core.module";
 import { ReferentialValidatorService } from "../validator/validators";
 import { ReferentialService, ReferentialFilter } from "../services/referential-service";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Referential, StatusIds } from "../services/model";
-import { Subscription } from "rxjs";
-import { ModalController, Platform } from "ionic-angular";
+import { Referential, StatusIds, referentialToString } from "../services/model";
+import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService } from '../services/vessel-service';
 import { AccountService } from '../../core/services/account.service';
@@ -23,14 +22,16 @@ const DEFAULT_ENTITY_NAME = "Location";
 @Component({
   selector: 'page-referentials',
   templateUrl: 'referentials.html',
+  styleUrls: ['referentials.scss'],
   providers: [
     { provide: ValidatorService, useClass: ReferentialValidatorService }
   ],
 })
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
+  entityNameForm: FormGroup;
   filterForm: FormGroup;
-  entities: Observable<{ name: string, label: string }[]>;
+  entities: Observable<{ id: string, label: string, level?: string, levelLabel?: string }[]>;
   levels: Observable<Referential[]>;
   statusList: any[] = [
     {
@@ -89,6 +90,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.inlineEdition = true; // always inline edition
     this.i18nColumnPrefix = 'REFERENTIAL.';
 
+    this.entityNameForm = formBuilder.group({
+      'entityName': ['']
+    });
     this.filterForm = formBuilder.group({
       'searchText': ['']
     });
@@ -104,6 +108,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       else {
         this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
         this.dataSource.serviceOptions.entityName = entityName;
+        this.entityNameForm.setValue({ entityName: entityName });
       }
     });
 
@@ -118,13 +123,15 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     super.ngOnInit();
 
     // Combo entities
-    this.entities = this.referentialService.loadEntitieNames()
+    this.entities = this.referentialService.loadTypes()
       .first()
       .pipe(
-        map((names) => names.map(name => {
+        map((types) => types.map(type => {
           return {
-            name: name,
-            label: ('REFERENTIAL.ENTITY.' + name.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase())
+            id: type.id,
+            label: ('REFERENTIAL.ENTITY.' + type.id.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase()),
+            level: type.level,
+            levelLabel: type.level && ('REFERENTIAL.ENTITY.' + type.level.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase())
           };
         }))
       );
@@ -138,13 +145,20 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       this.filterForm.markAsPristine();
     });
 
-    // Load levels
-    this.levels = this.referentialService.loadLevels(this.dataSource.serviceOptions.entityName)
-    // then load list
-    this.onRefresh.emit();
+    // Only if entityName has been select:  load data
+    if (this.dataSource.serviceOptions && this.dataSource.serviceOptions.entityName) {
+      console.info("[referential] Loading " + this.dataSource.serviceOptions.entityName + "...");
+      // Load levels
+      this.levels = this.referentialService.loadLevels(this.dataSource.serviceOptions.entityName)
+      // then load list
+      this.onRefresh.emit();
+    }
   }
 
   onEntityNameChange(entityName: string) {
+    // No change: skip
+    if (this.dataSource.serviceOptions.entityName === entityName) return;
+
     entityName = entityName || this.dataSource.serviceOptions.entityName;
 
     console.info("[referential] Loading " + entityName + "...");
@@ -160,5 +174,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       skipLocationChange: false
     });
   }
+
 }
 

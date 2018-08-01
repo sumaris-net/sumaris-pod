@@ -1,23 +1,21 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { MatPaginator, MatSort, MatTable } from "@angular/material";
 import { merge } from "rxjs/observable/merge";
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs-compat';
 import { startWith, switchMap, mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource } from "./table-datasource.class";
 import { SelectionModel } from "@angular/cdk/collections";
 import { Entity, Referential, joinProperties } from "../services/model";
-import { Subscription } from "rxjs";
-import { ModalController, Platform } from "ionic-angular";
+import { Subscription } from "rxjs-compat";
+import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from '../services/account.service';
 import { TableSelectColumnsComponent } from './table-select-columns.component';
 import { Location } from '@angular/common';
-import { ViewController } from "ionic-angular";
-import { PopoverController } from 'ionic-angular';
+import { PopoverController } from '@ionic/angular';
 import { map } from "rxjs/operators";
 import { ErrorCodes } from "../services/errors";
-import { entityToString, referentialToString } from "../../trip/services/model";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 
@@ -27,7 +25,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     private _subscriptions: Subscription[] = [];
 
     inlineEdition: boolean = false;
-    displayedColumns;
+    displayedColumns: string[];
     resultsLength = 0;
     loading = true;
     focusFirstColumn = false;
@@ -56,7 +54,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         protected modalCtrl: ModalController,
         protected accountService: AccountService,
         protected validatorService: ValidatorService,
-        protected dataSource: AppTableDataSource<T, F>,
+        public dataSource: AppTableDataSource<T, F>,
         protected columns: string[],
         protected filter: F
     ) {
@@ -102,7 +100,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 if (data) {
                     this.isRateLimitReached = data.length < this.paginator.pageSize;
                     this.resultsLength = this.paginator.pageIndex * this.paginator.pageSize + data.length;
-                    console.debug('[table] Loaded ' + data.length + ' rows: ', data);
+                    console.debug('[table] Loaded ' + data.length + ' rows');
                 }
                 else {
                     console.debug('[table] Loaded NO rows');
@@ -162,7 +160,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     addRow() {
         // Use modal if not expert mode, or if small screen
         if (this.platform.is('mobile') || !this.inlineEdition) {
-            return this.onAddRowDetail();
+            this.onAddRowDetail();
+            return;
         }
 
         // Add new row
@@ -192,7 +191,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.error = undefined;
         if (this.selectedRow && this.selectedRow.editing) {
             var confirm = this.selectedRow.confirmEditCreate();
-            if (!confirm) return Promise.reject({ code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' });
+            if (!confirm) throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
         }
         console.log("[table] Saving...");
         try {
@@ -202,8 +201,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         }
         catch (err) {
             this.error = err && err.message || err;
-            return Promise.reject(err);
+            throw err;
         };
+    }
+
+    cancel() {
+        this.onRefresh.emit();
     }
 
     /** Whether the number of selected elements matches the total number of rows. */
@@ -225,9 +228,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     deleteSelection() {
         if (this.loading) return;
         this.selection.selected.forEach(row => {
+            row.delete();
+            this.selection.deselect(row);
             if (row.currentData && row.currentData.id >= 0) {
-                row.delete();
-                this.selection.deselect(row);
                 this.resultsLength--;
             }
         });
@@ -235,12 +238,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.selectedRow = null;
     }
 
-    public onEditRow(event: MouseEvent, row: TableElement<T>) {
+    public onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
         if (this.selectedRow && this.selectedRow === row || event.defaultPrevented) return;
         if (this.selectedRow && this.selectedRow !== row && this.selectedRow.editing) {
             var confirm = this.selectedRow.confirmEditCreate();
             if (!confirm) {
-                return;
+                return false;
             }
         }
         if (!row.editing && !this.loading) {
@@ -249,18 +252,19 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         }
         this.selectedRow = row;
         this.dirty = true;
+        return true;
     }
 
-    public async onRowClick(event: MouseEvent, row: TableElement<T>): Promise<boolean> {
-        if (!row.currentData.id || row.editing || event.defaultPrevented) return;
+    public onRowClick(event: MouseEvent, row: TableElement<T>): boolean {
+        if (!row.currentData.id || row.editing || event.defaultPrevented) return false;
 
         // Open the detail page (if not editing)
         if (!this.dirty && !this.inlineEdition) {
-            return this.onOpenRowDetail(row.currentData.id);
+            this.onOpenRowDetail(row.currentData.id);
+            return true;
         }
 
-        this.onEditRow(event, row);
-        return false;
+        return this.onEditRow(event, row);
     }
 
     public onOpenRowDetail(id: number): Promise<boolean> {
@@ -278,15 +282,20 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     public getDisplayColumns(): string[] {
         const fixedColumns = this.columns.slice(0, 2);
         var userColumns = this.accountService.getPageSettings(this.location.path(true), SETTINGS_DISPLAY_COLUMNS);
-        return userColumns && fixedColumns.concat(userColumns) || this.columns;
+        if (!userColumns) {
+            return this.columns;
+        }
+        userColumns = (userColumns || []).filter(c => c !== 'actions');
+        return userColumns && fixedColumns.concat(userColumns).concat(['actions']) || this.columns;
     }
 
-    public openSelectColumnsModal(event: any): Promise<any> {
+    public async openSelectColumnsModal(event: any): Promise<any> {
         const fixedColumns = this.columns.slice(0, 2);
         var hiddenColumns = this.columns.slice(fixedColumns.length)
             .filter(name => this.displayedColumns.indexOf(name) == -1);
         let columns = this.displayedColumns.slice(fixedColumns.length)
             .concat(hiddenColumns)
+            .filter(name => name != "actions")
             .map((name, index) => {
                 return {
                     name,
@@ -295,7 +304,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 }
             });
 
-        let modal = this.modalCtrl.create(TableSelectColumnsComponent, columns);
+        const modal = await this.modalCtrl.create({ component: TableSelectColumnsComponent, componentProps: { columns: columns } });
 
         // On dismiss
         modal.onDidDismiss(res => {
@@ -303,7 +312,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
             // Apply columns
             var userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
-            this.displayedColumns = fixedColumns.concat(userColumns);
+            this.displayedColumns = fixedColumns.concat(userColumns).concat(['actions']);
 
             // Update user settings
             this.accountService.savePageSetting(this.location.path(true), userColumns, SETTINGS_DISPLAY_COLUMNS);
@@ -311,7 +320,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         return modal.present();
     }
 
-    public displayEntity = entityToString;
-    public displayReferential = referentialToString;
+    public trackByFn(index: number, row: TableElement<T>) {
+        return row.id;
+    }
 }
 

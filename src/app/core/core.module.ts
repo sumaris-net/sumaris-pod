@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CoreRoutingModule } from './core-routing.module';
 import { RouterModule } from '@angular/router';
 
 import { AccountService } from './services/account.service';
@@ -15,14 +14,11 @@ import { AccountPage } from "./account/account";
 import { SharedModule } from '../shared/shared.module';
 import { AppForm } from './form/form.class';
 import { FormMetadataComponent } from './form/form-metadata.component';
+import { FormButtonsBarComponent } from './form/form-buttons-bar.component';
 import { AppTable } from './table/table.class';
 import { AppTableDataSource } from './table/table-datasource.class';
 import { TableSelectColumnsComponent } from './table/table-select-columns.component';
 import { MenuComponent } from './menu/menu.component';
-import { IonicApp, IonicErrorHandler, IonicModule } from "ionic-angular";
-import { HttpClient, HttpClientModule } from "@angular/common/http";
-import { TranslateModule, TranslateService, TranslateLoader } from "@ngx-translate/core";
-import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 import { ReactiveFormsModule } from "@angular/forms";
 import { IonicStorageModule } from '@ionic/storage';
 import { HomePage } from './home/home';
@@ -32,30 +28,36 @@ import { AppGraphQLModule } from './graphql/graphql.module';
 import { DateAdapter } from "@angular/material";
 import * as moment from "moment/moment";
 
-import { BrowserModule } from "@angular/platform-browser";
+import { ProgressBarService } from './services/progress-bar.service';
+import { ProgressInterceptor } from '../shared/interceptors/progess.interceptor';
+
 import { environment } from '../../environments/environment';
 
-export { environment, AppForm, AppTable, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent }
+// import ngx-translate and the http loader
+import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 
-export function createTranslateLoader(http: HttpClient) {
+export { environment, AppForm, AppTable, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent, FormButtonsBarComponent }
+
+
+export function HttpLoaderFactory(http: HttpClient) {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
 @NgModule({
     imports: [
         CommonModule,
-        BrowserModule,
         RouterModule,
-        //CoreRoutingModule,
+        HttpClientModule,
         AppGraphQLModule,
         SharedModule,
-        HttpClientModule,
         ReactiveFormsModule,
         IonicStorageModule.forRoot(),
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,
-                useFactory: (createTranslateLoader),
+                useFactory: HttpLoaderFactory,
                 deps: [HttpClient]
             }
         })
@@ -75,11 +77,11 @@ export function createTranslateLoader(http: HttpClient) {
         // Components
         TableSelectColumnsComponent,
         AboutModal,
-        FormMetadataComponent
+        FormMetadataComponent,
+        FormButtonsBarComponent
     ],
     exports: [
         CommonModule,
-        BrowserModule,
         SharedModule,
         RouterModule,
         AppGraphQLModule,
@@ -88,6 +90,7 @@ export function createTranslateLoader(http: HttpClient) {
         AuthModal,
         TableSelectColumnsComponent,
         FormMetadataComponent,
+        FormButtonsBarComponent,
         MenuComponent,
         ReactiveFormsModule,
         TranslateModule,
@@ -98,12 +101,15 @@ export function createTranslateLoader(http: HttpClient) {
         AuthModal,
         TableSelectColumnsComponent,
         FormMetadataComponent,
+        FormButtonsBarComponent,
         AboutModal
     ],
     providers: [
         AccountService,
         AuthGuardService,
-        CryptoService
+        CryptoService,
+        ProgressBarService,
+        { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService] }
     ]
 })
 export class CoreModule {
