@@ -53,7 +53,7 @@
       </ion-col>
       <ion-col>
         <mat-form-field>
-          <ion-icon margin-right name="pin" matPrefix></ion-icon>
+          <ion-icon matPrefix name="pin"></ion-icon>
           <input matInput [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate" [matAutocomplete]="autoDepartureLocation" formControlName="departureLocation">
           <mat-error *ngIf="form.controls['departureLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
@@ -90,7 +90,7 @@
       </ion-col>
       <ion-col>
         <mat-form-field>
-          <ion-icon margin-right name="pin" matPrefix></ion-icon>
+          <ion-icon matPrefix name="pin"></ion-icon>
           <input matInput [placeholder]="'TRIP.RETURN_LOCATION'|translate" [matAutocomplete]="autoReturnLocation" formControlName="returnLocation">
           <!-- <ion-icon padding-right name="arrow-dropdown" matSuffix (click)="autoReturnLocation.showPanel=!autoReturnLocation.showPanel"></ion-icon> -->
           <mat-error *ngIf="form.controls['returnLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

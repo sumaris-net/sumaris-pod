@@ -126,7 +126,7 @@ export class MeasurementList extends AppForm<Measurement[]> {
                     let value;
                     switch (pmfm.type) {
                         case "qualitative_value":
-                            if (m.qualitativeValue && m.qualitativeValue.id {
+                            if (m.qualitativeValue && m.qualitativeValue.id) {
                                 value = pmfm.qualitativeValues.find(qv => qv.id == m.qualitativeValue.id);
                             }
                             break;
@@ -140,8 +140,11 @@ export class MeasurementList extends AppForm<Measurement[]> {
                         case "boolean":
                             value = m.numericalValue === 1 ? true : false;
                             break;
+                        case "date":
+                            value = m.alphanumericalValue;
+                            break;
                         default:
-                            console.error("TODO: add unknown type conversion: " + pmfm.type);
+                            console.error("[list-measurements] Unknown Pmfm type for conversion into form value: " + pmfm.type);
                             value = null;
                     }
                     formValues[pmfm.id.toString()] = value || null;
@@ -196,7 +199,7 @@ export class MeasurementList extends AppForm<Measurement[]> {
                                 m.numericalValue = value === true ? 1 : 0;
                                 break;
                             default:
-                                console.error("TODO: add unknown type conversion: " + pmfm.type);
+                                console.error("[list-measurements] Unknown Pmfm type, to fill measruement value: " + pmfm.type);
                                 return null;
                         }
                         return m;

@@ -31,7 +31,6 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
     ) {
 
         super(dateAdapter, platform, physicalGearValidatorService.getFormGroup());
-        console.log("Creating gear form");
     }
 
     ngOnInit() {

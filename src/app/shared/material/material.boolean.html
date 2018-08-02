@@ -8,7 +8,7 @@
     {{placeholder}}
     <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
   </mat-label>
-  <input matInput [formControl]="formControl" (focus)="_onFocus($event)" [disabled]="disabled" [required]="required" [hidden]="_value!=undefined">
+  <input matInput [formControl]="formControl" (focus)="_onFocus($event)" [required]="required" [hidden]="_value!=undefined">
   <mat-radio-group [formControl]="formControl" (change)="onValueChanged($event)" [hidden]="!showRadio && _value==undefined">
     <mat-radio-button [value]="true" #yesButton>
       <span translate>COMMON.YES</span>

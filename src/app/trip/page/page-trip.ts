@@ -46,7 +46,7 @@ export class TripPage implements OnInit {
 
 
   public get valid(): boolean {
-    return this.tripForm.form.valid && (this.saleForm.form.valid || this.saleForm.empty);
+    return this.tripForm.form.valid && (this.saleForm.form.valid || this.saleForm.empty) && this.gearForm.form.valid;
   }
 
   ngOnInit() {
@@ -118,9 +118,10 @@ export class TripPage implements OnInit {
     // Update Trip from JSON
     let json = this.tripForm.value;
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
+    json.gears = [this.gearForm.value];
     this.data.fromObject(json);
 
-    const tripDirty = this.tripForm.dirty || this.saleForm.dirty;
+    const tripDirty = this.tripForm.dirty || this.saleForm.dirty || this.gearForm.dirty;
     this.disable();
 
     try {

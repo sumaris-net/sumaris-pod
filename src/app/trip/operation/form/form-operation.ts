@@ -50,25 +50,23 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
             )
                 .pipe(
                     switchMap(value => {
+                        // Display the selected object
+                        if (value && typeof value == "object") {
+                            this.form.controls["metier"].enable();
+                            return Observable.of([value]);
+                        }
+                        this.form.controls["metier"].disable();
                         // Skip if no trip (or no physical gears)
                         if (!this.trip || !this.trip.gears || !this.trip.gears.length) return Observable.empty();
-                        // Display the selected object
-                        if (value && typeof value == "object") return Observable.of([value]);
                         // Display all trip gears
                         if (!value || typeof value != "string" || value.length < 2) return Observable.of(this.trip.gears || []);
 
-                        console.log("Searching on gear ", this.trip);
                         const ucValue = value.toUpperCase();
                         return Observable.of((this.trip.gears || [])
                             .filter(g => !!g.gear &&
                                 (g.gear.label && g.gear.label.toUpperCase().indexOf(ucValue) != -1)
                                 || (g.gear.name && g.gear.name.toUpperCase().indexOf(ucValue) != -1)
-                            )/*
-                        .map(g => {
-                            const gear = g.gear.clone();
-                            ref.id = g.id;
-                            return ref;
-                        })*/);
+                            ));
                     }));
 
         // Combo: metiers

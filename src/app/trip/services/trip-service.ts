@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable, Subject } from "rxjs-compat";
-import { Trip, Person } from "./model";
+import { Trip, Person, PhysicalGear } from "./model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
@@ -106,6 +106,7 @@ const LoadQuery: any = gql`
         id
         rankOrder
         updateDate
+        creationDate
         comments
         gear {
           id
@@ -118,23 +119,6 @@ const LoadQuery: any = gql`
           label
           name
           logo
-        }
-      }
-      measurements {
-        id
-        pmfmId
-        alphanumericalValue
-        numericalValue
-        qualitativeValue {
-          id
-        }
-        digitCount
-        creationDate
-        updateDate
-        recorderDepartment {
-          id
-          label
-          name
         }
       }
       sale {
@@ -200,9 +184,44 @@ const SaveTrips: any = gql`
         name,
         exteriorMarking
       }
+      measurements {
+        id
+        pmfmId
+        alphanumericalValue
+        numericalValue
+        qualitativeValue {
+          id
+        }
+        digitCount
+        creationDate
+        updateDate
+        recorderDepartment {
+          id
+          label
+          name
+        }
+      }
       sale {
         id
+        creationDate
         updateDate
+      }
+      gears {
+        id
+        creationDate
+        updateDate
+        gear {
+          id
+          label
+          name
+          entityName
+        }
+        recorderDepartment {
+          id
+          label
+          name
+          logo
+        }
       }
     }
   }
@@ -468,13 +487,36 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       // Update (id and updateDate)
       target.id = source.id || target.id;
       target.updateDate = source.updateDate || target.updateDate;
+      target.creationDate = source.creationDate || target.creationDate;
       target.dirty = false;
 
       // Update sale
       if (target.sale && source.sale) {
         target.sale.id = source.sale.id || target.sale.id;
         target.sale.updateDate = source.sale.updateDate || target.sale.updateDate;
+        target.sale.creationDate = source.sale.creationDate || target.sale.creationDate;
         target.sale.dirty = false;
+      }
+
+      // Update gears
+      if (target.gears && source.gears) {
+        target.gears.forEach(entity => {
+          const savedGear = source.gears.find(json => entity.equals(json));
+          entity.id = savedGear && savedGear.id || entity.id;
+          entity.updateDate = savedGear && savedGear.updateDate || entity.updateDate;
+          entity.creationDate = savedGear && savedGear.creationDate || entity.creationDate;
+          entity.dirty = false;
+        });
+      }
+
+      // Update measurements
+      if (target.measurements && source.measurements) {
+        target.measurements.forEach(entity => {
+          const savedMeasurement = source.measurements.find(m => entity.equals(m));
+          entity.id = savedMeasurement && savedMeasurement.id || entity.id;
+          entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
+          entity.dirty = false;
+        });
       }
     }
   }

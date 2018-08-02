@@ -43,7 +43,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       .pipe(
         mergeMap(value => {
           if (!value) return Observable.empty();
-          if (typeof value == "object") return Observable.of([]);
+          if (typeof value == "object") return Observable.of([value]);
           return this.vesselService.loadAll(0, 10, undefined, undefined,
             { searchText: value as string }
           );

@@ -45,7 +45,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         .pipe(
           mergeMap(value => {
             if (!value) return Observable.empty();
-            if (typeof value == "object") return Observable.of([]);
+            if (typeof value == "object") return Observable.of([value]);
             return this.vesselService.loadAll(0, 10, undefined, undefined,
               { searchText: value as string }
             );
@@ -74,8 +74,9 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
       .valueChanges
       .pipe(
         mergeMap(value => {
-          if (!value) return Observable.empty();
-          if (typeof value != "string" || value.length < 2) return Observable.of([]);
+          if (typeof value == "object") return Observable.of([value]);
+          //if (!value) return Observable.empty();
+          //if (typeof value != "string" || value.length < 2) return Observable.of([]);
           return this.referentialService.loadAll(0, 10, undefined, undefined,
             { searchText: value as string },
             { entityName: 'SaleType' });

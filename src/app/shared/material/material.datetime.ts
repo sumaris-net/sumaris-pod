@@ -121,7 +121,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.writing = true;
         this.disabled = isDisabled;
         if (isDisabled) {
-            this.formControl.disable(); this.formControl.disable();
+            this.formControl.disable();
             this.form.disable();
         }
         else {

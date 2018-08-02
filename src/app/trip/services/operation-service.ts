@@ -405,6 +405,15 @@ export class OperationService extends BaseDataService implements DataService<Ope
           }
         });
       }
+      // Update measurements
+      if (target.measurements && source.measurements) {
+        target.measurements.forEach(entity => {
+          const savedMeasurement = source.measurements.find(json => entity.equals(json));
+          entity.id = savedMeasurement && savedMeasurement.id || entity.id;
+          entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
+          entity.dirty = false;
+        });
+      }
     }
   }
 }

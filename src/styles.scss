@@ -144,7 +144,7 @@ body {
 // Main Menu
 // --------------------------------------------------
 .split-pane-md.split-pane-visible>.split-pane-side {
-  max-width: 278px !important;
+  max-width: 285px !important;
 }
 
 ion-menu.menu-side-left {
@@ -178,6 +178,11 @@ mat-form-field {
 form mat-form-field {
   width: 100%;
   font-size: 16px !important;
+}
+
+form mat-form-field [matPrefix] {
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 mat-form-field .mat-paginator-page-size-select {

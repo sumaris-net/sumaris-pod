@@ -17,6 +17,7 @@ export class PhysicalGearValidatorService implements ValidatorService {
     return this.formBuilder.group({
       'id': [''],
       'updateDate': [''],
+      'creationDate': [''],
       'gear': ['', Validators.required],
       'comments': ['', Validators.maxLength(2000)]
     });

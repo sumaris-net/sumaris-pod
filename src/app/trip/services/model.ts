@@ -99,6 +99,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
   returnLocation: Referential;
   sale: Sale;
   gears: PhysicalGear[];
+  measurements: Measurement[];
 
   constructor() {
     super();
@@ -123,7 +124,8 @@ export class Trip extends DataRootVesselEntity<Trip> {
     target.departureLocation = this.departureLocation && this.departureLocation.asObject() || undefined;
     target.returnLocation = this.returnLocation && this.returnLocation.asObject() || undefined;
     target.sale = this.sale && this.sale.asObject() || undefined;
-    target.gears = this.gears.map(p => p && p.asObject()) || undefined;
+    target.gears = this.gears && this.gears.map(p => p && p.asObject()) || undefined;
+    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
     return target;
   }
 
@@ -137,8 +139,8 @@ export class Trip extends DataRootVesselEntity<Trip> {
       this.sale = new Sale();
       this.sale.fromObject(source.sale);
     };
-
     this.gears = source.gears && source.gears.map(PhysicalGear.fromObject) || undefined;
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || undefined;
     return this;
   }
 
@@ -155,7 +157,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
 }
 
 
-export class PhysicalGear extends DataEntity<PhysicalGear> {
+export class PhysicalGear extends DataRootEntity<PhysicalGear> {
 
   static fromObject(source: any): PhysicalGear {
     const res = new PhysicalGear();
@@ -186,6 +188,10 @@ export class PhysicalGear extends DataEntity<PhysicalGear> {
   asObject(): any {
     const target = super.asObject();
     target.gear = this.gear && this.gear.asObject() || undefined;
+
+    // Measurements
+    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
+
     return target;
   }
 
@@ -194,7 +200,21 @@ export class PhysicalGear extends DataEntity<PhysicalGear> {
     this.rankOrder = source.rankOrder;
     this.comments = source.comments;
     source.gear && this.gear.fromObject(source.gear);
+
+    // Measurements
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || undefined;
+
     return this;
+  }
+
+  equals(other: PhysicalGear): boolean {
+    return super.equals(other)
+      || (
+        // Same gear
+        (this.gear && other.gear && this.gear.id === other.gear.id)
+        // Same rankOrder
+        && (this.rankOrder === other.rankOrder)
+      );
   }
 }
 
@@ -241,6 +261,14 @@ export class Measurement extends DataEntity<Measurement> {
     this.qualitativeValue = source.qualitativeValue && Referential.fromObject(source.qualitativeValue);
 
     return this;
+  }
+
+  equals(other: Measurement): boolean {
+    return super.equals(other)
+      || (
+        // Same [pmfmId, rankOrder]
+        (this.pmfmId && other.pmfmId && this.rankOrder === other.rankOrder)
+      );
   }
 }
 

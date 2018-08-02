@@ -13,7 +13,7 @@
           <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="(tripForm.invalid ) && dirty"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="tripForm.invalid && tripForm.dirty"></ion-icon>
       </ng-template>
 
       <!-- error -->
@@ -49,6 +49,7 @@
           <ion-icon matPrefix slot="start" name="settings"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="gearForm.invalid && gearForm.dirty"></ion-icon>
       </ng-template>
 
       <ion-grid no-padding>

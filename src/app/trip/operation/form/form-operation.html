@@ -81,18 +81,18 @@
       <ion-col size="12" size-lg="2">
         <ion-label translate>TRIP.OPERATION.EDIT.START</ion-label>
       </ion-col>
-      <ion-col>
+      <ion-col size="12" size-md="" [formGroup]="form.controls['startPosition']">
+        <mat-latlong formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
+          <ion-icon matPrefix name="pin"></ion-icon>
+        </mat-latlong>
+      </ion-col>
+      <ion-col size="12" size-md="" [formGroup]="form.controls['startPosition']">
+        <mat-latlong formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
+        </mat-latlong>
+      </ion-col>
+      <ion-col size="12" size-md="auto">
         <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="startDateTime" [required]="true">
         </mat-date-time>
-      </ion-col>
-      <ion-col size="12" size-md="3" [formGroup]="form.controls['startPosition']">
-        <mat-latlong formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
-        </mat-latlong>
-      </ion-col>
-      <ion-col size="12" size-md="3" [formGroup]="form.controls['startPosition']">
-        <mat-latlong formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
-          placeholderChar="&nbsp;">
-        </mat-latlong>
       </ion-col>
     </ion-row>
 
@@ -101,17 +101,17 @@
       <ion-col size="12" size-lg="2">
         <ion-label translate>TRIP.OPERATION.EDIT.END</ion-label>
       </ion-col>
-      <ion-col>
-        <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="endDateTime">
-        </mat-date-time>
-      </ion-col>
-      <ion-col size="12" size-md="3" [formGroup]="form.controls['endPosition']">
+      <ion-col size="12" size-md="" [formGroup]="form.controls['endPosition']">
         <mat-latlong formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
         </mat-latlong>
       </ion-col>
-      <ion-col size="12" size-md="3" [formGroup]="form.controls['endPosition']">
+      <ion-col size="12" size-md="" [formGroup]="form.controls['endPosition']">
         <mat-latlong formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
         </mat-latlong>
+      </ion-col>
+      <ion-col size="12" size-md="auto">
+        <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="endDateTime">
+        </mat-date-time>
       </ion-col>
     </ion-row>
 

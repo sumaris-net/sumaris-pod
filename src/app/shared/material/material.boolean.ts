@@ -109,6 +109,12 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
 
         this.writing = true;
         this.disabled = isDisabled;
+        if (isDisabled) {
+            this.formControl.disable();
+        }
+        else {
+            this.formControl.enable();
+        }
         this.writing = false;
     }
 
