@@ -81,7 +81,7 @@ export class MatQualitativeValueField implements OnInit, ControlValueAccessor {
                     if (typeof value == "object") return Observable.of([value]);
                     const ucValue = (value as string).toUpperCase();
                     return Observable.of((this.pmfm.qualitativeValues)
-                        .filter((qv) => ((qv.label && qv.label.toUpperCase().startsWith(ucValue)) || (qv.name && qv.name.toUpperCase().startsWith(ucValue)))));
+                        .filter((qv) => ((this.startsWithUpperCase(qv.label, ucValue)) || (this.startsWithUpperCase(qv.name, ucValue)))));
                 })
             )
     }
@@ -135,5 +135,9 @@ export class MatQualitativeValueField implements OnInit, ControlValueAccessor {
     public _onBlur(event: FocusEvent) {
         this.markAsTouched();
         this.onBlur.emit(event);
+    }
+
+    private startsWithUpperCase(input: string, search: string): boolean {
+        return input && input.toUpperCase().substr(0, search.length) === search;
     }
 }
