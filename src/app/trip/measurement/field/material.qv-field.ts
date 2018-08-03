@@ -4,7 +4,7 @@ import { Referential, PmfmStrategy, Measurement } from "../../services/model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs-compat';
+import { Observable } from 'rxjs';
 import { startWith, switchMap, map, mergeMap, debounceTime } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../../../core/core.module';

@@ -22,10 +22,24 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
   locations: Observable<Referential[]>;
   saleTypes: Observable<Referential[]>;
 
+  @Input() required: boolean = true;
   @Input() showVessel: boolean = true;
   @Input() showEndDateTime: boolean = true;
   @Input() showComment: boolean = true;
   @Input() showButtons: boolean = true;
+
+  get empty(): any {
+    let value = this.value;
+    return (!value.saleLocation || !value.saleLocation.id)
+      && (!value.startDateTime)
+      && (!value.endDateTime)
+      && (!value.saleType || !value.saleType.id)
+      && (!value.comments || !value.comments.length);
+  }
+
+  get valid(): any {
+    return this.required ? this.form.valid : (this.form.valid || this.empty);
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -81,15 +95,6 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
             { searchText: value as string },
             { entityName: 'SaleType' });
         }));
-  }
-
-  public get empty(): any {
-    let value = this.value;
-    return (!value.saleLocation || !value.saleLocation.id)
-      && (!value.startDateTime)
-      && (!value.endDateTime)
-      && (!value.saleType || !value.saleType.id)
-      && (!value.comments || !value.comments.length);
   }
 
   entityToString = entityToString;

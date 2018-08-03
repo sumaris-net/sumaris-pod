@@ -5,7 +5,7 @@ import { Operation, Referential, GearLevelIds, TaxonGroupIds, Trip, PhysicalGear
 import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs-compat';
+import { Observable } from 'rxjs';
 import { debounceTime, switchMap, startWith } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../../../core/core.module';

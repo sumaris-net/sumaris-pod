@@ -3,3 +3,8 @@ app-toolbar ion-spinner {
   height: 20px;
   top: 10px;
 }
+
+ion-col>ion-label {
+  word-wrap: break-word;
+  white-space: normal;
+}

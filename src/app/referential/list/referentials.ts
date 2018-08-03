@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { merge } from "rxjs/observable/merge";
 import { map } from "rxjs/operators";
-import { Subscription, Observable } from 'rxjs-compat';
+import { Subscription, Observable } from 'rxjs';
 import { startWith, switchMap, mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, TableSelectColumnsComponent } from "../../core/core.module";

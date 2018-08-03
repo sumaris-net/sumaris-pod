@@ -10,6 +10,8 @@ import { TripService } from "./trip-service";
 
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
+import { Fragments } from "./queries";
+
 
 export declare class OperationFilter {
   tripId?: number;
@@ -29,30 +31,19 @@ const LoadAllQuery: any = gql`
       hasCatch
       updateDate
       metier {
-        id
-        label
-        name
-        entityName
+        ...ReferentialFragment
       }
       recorderDepartment {
-        id
-        label
-        name
+        ...DepartmentFragment
       }
       positions {
-        id
-        dateTime
-        latitude
-        longitude
-        updateDate
-        recorderDepartment {
-          id
-          label
-          name
-        }
+        ...PositionFragment
       }
     }
   }
+  ${Fragments.department}
+  ${Fragments.position}
+  ${Fragments.referential}
 `;
 const LoadQuery: any = gql`
   query Operation($id: Int) {
@@ -69,48 +60,23 @@ const LoadQuery: any = gql`
       hasCatch
       updateDate
       metier {
-        id
-        label
-        name
-        entityName
+        ...ReferentialFragment
       }
       recorderDepartment {
-        id
-        label
-        name
+        ...DepartmentFragment
       }
       positions {
-        id
-        dateTime
-        latitude
-        longitude
-        updateDate
-        recorderDepartment {
-          id
-          label
-          name
-        }
+        ...PositionFragment
       }
       measurements {
-        id
-        pmfmId
-        alphanumericalValue
-        numericalValue
-        qualitativeValue {
-          id
-        }
-        digitCount
-        rankOrder
-        creationDate
-        updateDate
-        recorderDepartment {
-          id
-          label
-          name
-        }
+        ...MeasurementFragment
       }
     }  
   }
+  ${Fragments.department}
+  ${Fragments.position}
+  ${Fragments.measurement}
+  ${Fragments.referential}
 `;
 const SaveOperations: any = gql`
   mutation saveOperations($operations:[OperationVOInput]){
@@ -127,42 +93,22 @@ const SaveOperations: any = gql`
       hasCatch
       updateDate
       recorderDepartment {
-        id
-        label
-        name
+        ...DepartmentFragment
       }
       positions {
-        id
-        dateTime
-        latitude
-        longitude
-        updateDate
-        recorderDepartment {
-          id
-          label
-          name
-        }
-      }
+        ...PositionFragment
+      }    
       measurements {
-        id
-        pmfmId
-        alphanumericalValue
-        numericalValue
-        qualitativeValue {
-          id
-        }
-        digitCount
-        rankOrder
-        creationDate
-        updateDate
-        recorderDepartment {
-          id
-          label
-          name
-        }
+        ...MeasurementFragment
+      }
+      gearMeasurements {
+        ...MeasurementFragment
       }
     }
   }
+  ${Fragments.department}
+  ${Fragments.position}
+  ${Fragments.measurement}
 `;
 const DeleteOperations: any = gql`
   mutation deleteOperations($ids:[Int]){

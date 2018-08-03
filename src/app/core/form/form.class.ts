@@ -4,7 +4,6 @@ import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN } from '../constants';
 import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs-compat';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 
@@ -29,6 +28,13 @@ export abstract class AppForm<T> implements OnInit {
   }
   public get invalid(): boolean {
     return this.form.invalid;
+  }
+  public get valid(): boolean {
+    return this.form.valid;
+  }
+
+  public get empty(): boolean {
+    return !this.form.dirty && !this.form.touched;
   }
 
   public disable(opts?: {
@@ -61,7 +67,7 @@ export abstract class AppForm<T> implements OnInit {
 
     this.mobile = platform.is('mobile');
     this.touchUi = !platform.is('core');
-    this.touchUi && console.debug("[form] Enabling touch UI");
+    //this.touchUi && console.debug("[form] Enabling touch UI");
   }
 
   ngOnInit() {

@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { MatPaginator, MatSort } from "@angular/material";
 import { merge } from "rxjs/observable/merge";
-import { Observable } from 'rxjs-compat';
+import { Subscription, Observable } from 'rxjs';
 import { startWith, switchMap, mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTable, AppTableDataSource, AccountService, TableSelectColumnsComponent } from "../../core/core.module";
@@ -10,7 +10,6 @@ import { TripService, TripFilter } from "../services/trip-service";
 import { SelectionModel } from "@angular/cdk/collections";
 import { TripModal } from "../modal/modal-trip";
 import { Trip, Referential, VesselFeatures, LocationLevelIds } from "../services/model";
-import { Subscription } from "rxjs-compat";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService, ReferentialService } from '../../referential/referential.module';

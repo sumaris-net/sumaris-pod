@@ -1,4 +1,4 @@
-<mat-form-field *ngIf="!readonly">
+<mat-form-field *ngIf="!readonly && formControl">
 
   <input matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl" [matAutocomplete]="autoQualitativeValue"
     (blur)="_onBlur($event)" [required]="pmfm.isMandatory">

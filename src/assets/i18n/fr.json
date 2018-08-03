@@ -201,10 +201,10 @@
         "COMMENTS": "Commentaires"
       },
       "ERROR": {
-        "LOAD_OPERATION_ERROR": "Erreur de chargement de l'operation.",
-        "LOAD_OPERATIONS_ERROR": "Erreur de chargement des operations.",
-        "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de la operation.",
-        "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des operations."
+        "LOAD_OPERATION_ERROR": "Erreur de chargement de l'opération.",
+        "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
+        "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
+        "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations."
       }
     }
   },

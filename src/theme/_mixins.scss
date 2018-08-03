@@ -12,6 +12,14 @@
   padding: 16px;
 }
 
+[padding-left] {
+  padding-left: 16px;
+}
+
+[padding-right] {
+  padding-right: 16px;
+}
+
 @mixin font-size($size) {
   font-size: $size;
   font-size: calculateRem($size);

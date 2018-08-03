@@ -82,16 +82,12 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
         this.showRadio = this.formControl.value != null;
     }
 
-    ngAfterViewInit() {
-
-    }
-
     writeValue(value: any): void {
         if (this.writing) return;
 
         this.writing = true;
         if (value !== this._value) {
-            //console.debug("[mat-boolean-field] Settings value:", value);
+            //console.debug("[mat-boolean-field] Setting value:", value);
             this._value = value;
         }
         this.writing = false;

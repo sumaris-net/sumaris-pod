@@ -103,10 +103,6 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     }
   }
 
-  markAsPristine() {
-    this.dirty = false;
-  }
-
   public onOpenRowDetail(id: number): Promise<boolean> {
     return this.router.navigateByUrl('/operations/' + this.tripId + '/' + id);
   }

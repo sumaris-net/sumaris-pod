@@ -1,4 +1,4 @@
-import { Component, Optional, Input, Output, EventEmitter, OnInit, forwardRef, ViewChild } from '@angular/core';
+import { Component, Optional, Input, Output, EventEmitter, OnInit, forwardRef, ContentChild, ElementRef, AfterContentInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { MatFormFieldControl, MatFormField } from '@angular/material';
 import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor, ValidationErrors } from "@angular/forms";
@@ -43,7 +43,6 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     textFormControl: FormControl;
     mask: (string | RegExp)[];
     value: number;
-
 
     @Input() disabled: boolean = false
 

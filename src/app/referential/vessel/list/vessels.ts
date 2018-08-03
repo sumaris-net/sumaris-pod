@@ -11,7 +11,7 @@ import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from "../../../core/services/account.service";
 import { Location } from '@angular/common';
-import { Observable } from 'rxjs-compat';
+import { Observable } from 'rxjs';
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 
 @Component({

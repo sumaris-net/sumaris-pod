@@ -2,13 +2,14 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable, Subject } from "rxjs-compat";
-import { Trip, Person, PhysicalGear } from "./model";
+import { Trip, Person, PhysicalGear, fillRankOrder } from "./model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
 
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
+import { Fragments } from "./queries";
 
 export declare class TripFilter {
   startDate?: Date | Moment;
@@ -25,31 +26,16 @@ const LoadAllQuery: any = gql`
       updateDate
       comments
       departureLocation {
-        id
-        label
-        name
-        entityName
+        ...LocationFragment
       }
       returnLocation {
-        id
-        label
-        name
-        entityName
+        ...LocationFragment
       }
       recorderDepartment {
-        id
-        label
-        name
+        ...DepartmentFragment
       }
       recorderPerson {
-        id
-        firstName
-        lastName
-        department {
-          id
-          label
-          name
-        }
+        ...PersonFragment
       }
       vesselFeatures {
         vesselId,
@@ -58,6 +44,9 @@ const LoadAllQuery: any = gql`
       }
     }
   }
+  ${Fragments.department}
+  ${Fragments.person}
+  ${Fragments.location}
 `;
 const LoadQuery: any = gql`
   query Trip($id: Int) {
@@ -69,57 +58,21 @@ const LoadQuery: any = gql`
       updateDate
       comments
       departureLocation {
-        id
-        label
-        name
-        entityName
+        ...LocationFragment
       }
       returnLocation {
-        id
-        label
-        name
-        entityName
+        ...LocationFragment
       }
       recorderDepartment {
-        id
-        label
-        name
-        logo
+        ...DepartmentFragment
       }
       recorderPerson {
-        id
-        firstName
-        lastName
-        avatar
-        department {
-          id
-          label
-          name
-        }
+        ...PersonFragment
       }
       vesselFeatures {
         vesselId
         name
         exteriorMarking
-      }
-      gears {
-        id
-        rankOrder
-        updateDate
-        creationDate
-        comments
-        gear {
-          id
-          label
-          name
-          entityName
-        }
-        recorderDepartment {
-          id
-          label
-          name
-          logo
-        }
       }
       sale {
         id
@@ -128,20 +81,38 @@ const LoadQuery: any = gql`
         updateDate
         comments
         saleType {
-          id
-          label
-          name
-          entityName
+          ...ReferentialFragment
         }
         saleLocation {
-          id
-          label
-          name
-          entityName
+          ...LocationFragment
         }
+      }
+      gears {
+        id
+        rankOrder
+        updateDate
+        creationDate
+        comments
+        gear {
+          ...ReferentialFragment
+        }
+        recorderDepartment {
+          ...DepartmentFragment
+        }
+        measurements {
+          ...MeasurementFragment
+        }
+      }
+      measurements {
+        ...MeasurementFragment
       }
     }
   }
+  ${Fragments.department}
+  ${Fragments.person}
+  ${Fragments.measurement}
+  ${Fragments.referential}
+  ${Fragments.location}
 `;
 const SaveTrips: any = gql`
   mutation saveTrips($trips:[TripVOInput]){
@@ -153,78 +124,44 @@ const SaveTrips: any = gql`
       updateDate
       comments
       departureLocation {
-        id
-        label
-        name
-        entityName
+        ...LocationFragment
       }
       returnLocation {
-        id
-        label
-        name
-        entityName
+        ...LocationFragment
       }
       recorderDepartment {
-        id
-        label
-        name
+        ...DepartmentFragment
       }
       recorderPerson {
-        id
-        firstName
-        lastName
-        department {
-          id
-          label
-          name
-        }
+        ...PersonFragment
       }
       vesselFeatures {
         vesselId,
         name,
         exteriorMarking
       }
-      measurements {
-        id
-        pmfmId
-        alphanumericalValue
-        numericalValue
-        qualitativeValue {
-          id
-        }
-        digitCount
-        creationDate
-        updateDate
-        recorderDepartment {
-          id
-          label
-          name
-        }
-      }
       sale {
         id
         creationDate
         updateDate
-      }
+      }     
       gears {
         id
-        creationDate
         updateDate
-        gear {
-          id
-          label
-          name
-          entityName
+        creationDate
+        measurements {
+          ...MeasurementFragment
         }
-        recorderDepartment {
-          id
-          label
-          name
-          logo
-        }
+      }
+      measurements {
+        ...MeasurementFragment
       }
     }
   }
+  ${Fragments.department}
+  ${Fragments.person}
+  ${Fragments.measurement}
+  ${Fragments.location}
 `;
 const DeleteTrips: any = gql`
   mutation deleteTrips($ids:[Int]){
@@ -471,14 +408,11 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       }
     }
 
-    // Physical gears : compute rankOrder
-    let maxRankOrder = 0;
-    (entity.gears || []).forEach(g => {
-      if (g.rankOrder && g.rankOrder > maxRankOrder) maxRankOrder = g.rankOrder;
-    });
-    (entity.gears || []).forEach(g => {
-      g.rankOrder = g.rankOrder || maxRankOrder++;
-    });
+    // Physical gears: compute rankOrder
+    fillRankOrder(entity.gears);
+
+    // Measurement: compute rankOrder
+    fillRankOrder(entity.measurements);
   }
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {
@@ -506,6 +440,16 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
           entity.updateDate = savedGear && savedGear.updateDate || entity.updateDate;
           entity.creationDate = savedGear && savedGear.creationDate || entity.creationDate;
           entity.dirty = false;
+
+          // Update measurements
+          if (entity.measurements && savedGear.measurements) {
+            entity.measurements.forEach(entity => {
+              const savedMeasurement = savedGear.measurements.find(m => entity.equals(m));
+              entity.id = savedMeasurement && savedMeasurement.id || entity.id;
+              entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
+              entity.dirty = false;
+            });
+          }
         });
       }
 

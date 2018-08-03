@@ -15,6 +15,19 @@ export {
   PmfmStrategy
 };
 
+/* -- Helper function -- */
+
+export function fillRankOrder(values: { rankOrder: number }[]) {
+  // Compute rankOrder
+  let maxRankOrder = 0;
+  (values || []).forEach(m => {
+    if (m.rankOrder && m.rankOrder > maxRankOrder) maxRankOrder = m.rankOrder;
+  });
+  (values || []).forEach(m => {
+    m.rankOrder = m.rankOrder || maxRankOrder++;
+  });
+}
+
 /* -- DATA -- */
 export abstract class DataEntity<T> extends Entity<T> {
   recorderDepartment: Department;

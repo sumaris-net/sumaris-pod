@@ -7,9 +7,9 @@ import { TripForm } from './form/form-trip';
 import { SaleForm } from './sale/form/form-sale';
 import { OperationForm } from './operation/form/form-operation';
 import { OperationPage } from './operation/page/page-operation';
-import { MeasurementList } from './measurement/list/list-measurements';
+import { MeasurementsForm } from './measurement/form/form-measurements';
 import { MeasurementsValidatorService } from './measurement/validator/validators';
-import { MatQualitativeValueField } from './measurement/form/material.qv-field';
+import { MatQualitativeValueField } from './measurement/field/material.qv-field';
 
 import { PhysicalGearForm } from './physicalGear/form/form-physical-gear';
 import { TripValidatorService } from './validator/validators';
@@ -40,7 +40,7 @@ import { PhysicalGearValidatorService } from './physicalGear/validator/validator
         OperationForm,
         OperationPage,
         OperationTable,
-        MeasurementList,
+        MeasurementsForm,
         MatQualitativeValueField
     ],
     exports: [
@@ -53,7 +53,7 @@ import { PhysicalGearValidatorService } from './physicalGear/validator/validator
         OperationForm,
         OperationPage,
         OperationTable,
-        MeasurementList,
+        MeasurementsForm,
         MatQualitativeValueField
     ],
     entryComponents: [
@@ -62,7 +62,7 @@ import { PhysicalGearValidatorService } from './physicalGear/validator/validator
         TripModal,
         OperationTable,
         OperationPage,
-        MeasurementList,
+        MeasurementsForm,
         MatQualitativeValueField
     ],
     providers: [

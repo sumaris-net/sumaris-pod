@@ -4,7 +4,7 @@ import { Referential, PmfmStrategy, Measurement } from "../../services/model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
-import { Observable, Subject } from 'rxjs-compat';
+import { Observable, Subject } from 'rxjs';
 import { startWith, switchMap, mergeMap, debounceTime } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { forkJoin } from "rxjs/observable/forkJoin";
@@ -20,11 +20,11 @@ const noop = () => {
 };
 
 @Component({
-    selector: 'list-measurements',
-    templateUrl: './list-measurements.html',
-    styleUrls: ['./list-measurements.scss']
+    selector: 'form-measurements',
+    templateUrl: './form-measurements.html',
+    styleUrls: ['./form-measurements.scss']
 })
-export class MeasurementList extends AppForm<Measurement[]> {
+export class MeasurementsForm extends AppForm<Measurement[]> {
 
     private loading: boolean = true;
     private _onAcquisitionLevelChange: EventEmitter<any> = new EventEmitter<any>();
@@ -85,7 +85,7 @@ export class MeasurementList extends AppForm<Measurement[]> {
         )
             .pipe(
                 startWith({}),
-                switchMap((any: any) => {
+                mergeMap((any: any) => {
                     console.debug("[list-measurements] Getting pmfms for program {" + this.program + "}");
                     return this.referentialService.loadProgramPmfms(
                         this.program,
@@ -99,7 +99,7 @@ export class MeasurementList extends AppForm<Measurement[]> {
         this._onMeasurementsChange
             .pipe(
                 //startWith({}),
-                switchMap(measurements => this.pmfms)
+                mergeMap(measurements => this.pmfms)
             )
             .subscribe(pmfms => {
                 pmfms = pmfms || [];
@@ -147,7 +147,8 @@ export class MeasurementList extends AppForm<Measurement[]> {
                             console.error("[list-measurements] Unknown Pmfm type for conversion into form value: " + pmfm.type);
                             value = null;
                     }
-                    formValues[pmfm.id.toString()] = value || null;
+                    // Set the value (convert undefined into null)
+                    formValues[pmfm.id.toString()] = (value !== undefined ? value : null);
                     return m;
                 });
 
@@ -172,18 +173,20 @@ export class MeasurementList extends AppForm<Measurement[]> {
         this.form.valueChanges
             .pipe(
                 debounceTime(300),
-                switchMap(measurements => this.pmfms)
+                mergeMap(measurements => this.pmfms)
             )
             .subscribe(pmfms => {
-                if (this.loading) return;
+                if (this.loading || !this.form.touched || !pmfms) return;
 
-                const values = this.form.value;
-                return this._measurements
-                    .map(m => {
-                        let value = values[m.pmfmId.toString()];
-                        if (!value) return null;
-                        let pmfm = pmfms.find(pmfm => pmfm.id === m.pmfmId);
-                        if (!pmfm) return null;
+                // Find dirty pmfms
+                pmfms = pmfms.filter(pmfm => this.form.controls['' + pmfm.id].dirty);
+
+                // Update measurements value
+                this._measurements.forEach(m => {
+                    let pmfm = pmfms.find(pmfm => pmfm.id === m.pmfmId);
+                    if (pmfm) {
+                        const value = this.form.controls['' + pmfm.id].value;
+                        if (value === null || value === undefined) return null;
                         switch (pmfm.type) {
                             case "qualitative_value":
                                 m.qualitativeValue = value;
@@ -196,17 +199,14 @@ export class MeasurementList extends AppForm<Measurement[]> {
                                 m.alphanumericalValue = value;
                                 break;
                             case "boolean":
-                                m.numericalValue = value === true ? 1 : 0;
+                                m.numericalValue = (value === true || value === "true") ? 1 : 0;
                                 break;
                             default:
                                 console.error("[list-measurements] Unknown Pmfm type, to fill measruement value: " + pmfm.type);
                                 return null;
                         }
-                        return m;
-                    })
-                    // Skip if null
-                    .filter(m => !!m);
-
+                    }
+                });
             })
     }
 

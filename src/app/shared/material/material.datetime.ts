@@ -161,11 +161,10 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
         // update date picker
         this.date = date && this.dateAdapter.parse(date.clone(), DATE_ISO_PATTERN);
-        //}
 
         // Get the model value
         const dateStr = date && date.isValid() && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
-        console.debug("[mat-date-time] Setting date: ", dateStr);
+        //console.debug("[mat-date-time] Setting date: ", dateStr);
         this.formControl.setValue(dateStr);
         this.writing = false;
 

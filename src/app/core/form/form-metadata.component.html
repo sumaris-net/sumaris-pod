@@ -1,9 +1,5 @@
 <ng-container *ngIf="data && data.id">
   <ion-card [@fadeInAnimation] color="light100">
-    <ion-card-header class="visible-xs visible-sm" translate>
-      COMMON.METADATA
-    </ion-card-header>
-
     <ion-item>
       <ion-avatar slot="start">
         <img src="{{ (data.recorderPerson?.avatar || data.recorderDepartment?.logo ) || './assets/img/person.png' }}">
@@ -21,23 +17,25 @@
       </ion-label>
     </ion-item>
 
-    <ion-card-content>
+    <ion-card-content *ngIf="data">
       <!-- creation date -->
-      <ion-text color="primary" *ngIf="data && data.creationDate">
+      <ion-text color="primary" *ngIf="data.creationDate">
         <ion-icon name="calendar"></ion-icon>&nbsp;
         <span translate>COMMON.CREATED_ON</span>
         <span>
           <b>{{ data.creationDate | dateFormat: {pattern: 'L LT'} }}</b>
         </span>
-        <br/>
       </ion-text>
 
       <!-- update date -->
-      <ion-text color="primary" *ngIf="data && data.updateDate && data.updateDate != data.creationDate">
-        <ion-icon name="time"></ion-icon>&nbsp;
-        <span translate>COMMON.UPDATED_ON</span>
-        <span>&nbsp;{{ data.updateDate | dateFormat: {pattern: 'L LTS'} }}</span>
-      </ion-text>
+      <ng-container *ngIf="data.updateDate && data.updateDate != data.creationDate">
+        <br/>
+        <ion-text color="primary">
+          <ion-icon name="time"></ion-icon>&nbsp;
+          <span translate>COMMON.UPDATED_ON</span>
+          <span>&nbsp;{{ data.updateDate | dateFormat: {pattern: 'L LTS'} }}</span>
+        </ion-text>
+      </ng-container>
     </ion-card-content>
   </ion-card>
 </ng-container>

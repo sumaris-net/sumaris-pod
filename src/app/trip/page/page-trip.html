@@ -27,15 +27,25 @@
         <ion-row no-padding>
           <ion-col padding>
             <!-- trip -->
-            <form-trip (onSubmit)="save($event)" #tripForm>
+            <form-trip (onSubmit)="save($event)" #tripForm subForm>
 
               <!-- sale -->
-              <form-sale [showVessel]="false" [showComment]="false" [showEndDateTime]="false" #saleForm>
+              <form-sale [showVessel]="false" [showComment]="false" [showEndDateTime]="false" [required]="false" #saleForm>
               </form-sale>
+
+              <!-- Measurements -->
+              <ion-row>
+                <ion-col size="12" size-lg="2">
+                  <ion-label translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
+                </ion-col>
+                <ion-col>
+                  <form-measurements acquisitionLevel="TRIP" #measurementsForm></form-measurements>
+                </ion-col>
+              </ion-row>
 
             </form-trip>
           </ion-col>
-          <ion-col no-padding size="12" size-xl="auto">
+          <ion-col no-padding size="12" size-xl="3">
             <form-metadata [data]="data"></form-metadata>
           </ion-col>
         </ion-row>

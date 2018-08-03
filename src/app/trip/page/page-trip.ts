@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, QueryList, ViewChildren } from '@angular/core';
 import { Router, ActivatedRoute, Params, NavigationEnd } from "@angular/router";
 import { MatTabChangeEvent } from "@angular/material";
 import { TripService } from '../services/trip-service';
@@ -9,6 +9,8 @@ import { SaleForm } from '../sale/form/form-sale';
 import { OperationTable } from '../operation/table/table-operations';
 import { Observable } from "rxjs-compat";
 import { PhysicalGearForm } from '../physicalGear/form/form-physical-gear';
+import { MeasurementsForm } from '../measurement/form/form-measurements';
+import { AppForm, AppTable } from '../../core/core.module';
 
 @Component({
   selector: 'page-trip',
@@ -17,17 +19,16 @@ import { PhysicalGearForm } from '../physicalGear/form/form-physical-gear';
 })
 export class TripPage implements OnInit {
 
-  selectedTabIndex: number = 0; // TODO
 
-  id: any;
+  private forms: AppForm<any>[];
+  private tables: AppTable<any, any>[];
+
+  selectedTabIndex: number = 0;
+
   error: string;
   loading: boolean = true;
   saving: boolean = false;
   data: Trip;
-
-  public get dirty(): boolean {
-    return this.tripForm.dirty || this.saleForm.dirty || this.gearForm.dirty || this.operationTable.dirty;
-  }
 
   @ViewChild('tripForm') tripForm: TripForm;
 
@@ -35,7 +36,17 @@ export class TripPage implements OnInit {
 
   @ViewChild('gearForm') gearForm: PhysicalGearForm;
 
+  @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
+
   @ViewChild('operationTable') operationTable: OperationTable;
+
+  public get dirty(): boolean {
+    return this.forms && (!!this.forms.find(form => form.dirty) || !!this.tables.find(table => table.dirty));
+  }
+
+  public get valid(): boolean {
+    return !this.forms || (!this.forms.find(form => !form.valid) && !this.tables.find(table => !table.valid));
+  }
 
   constructor(
     protected route: ActivatedRoute,
@@ -44,14 +55,12 @@ export class TripPage implements OnInit {
   ) {
   }
 
-
-  public get valid(): boolean {
-    return this.tripForm.form.valid && (this.saleForm.form.valid || this.saleForm.empty) && this.gearForm.form.valid;
-  }
-
   ngOnInit() {
     // Make sure template has a form
     if (!this.tripForm || !this.saleForm) throw "[TripPage] no form for value setting";
+
+    this.forms = [this.tripForm, this.saleForm, this.gearForm, this.measurementsForm];
+    this.tables = [this.operationTable];
 
     this.disable();
 
@@ -72,26 +81,21 @@ export class TripPage implements OnInit {
         this.load(parseInt(id));
       }
     });
-
   }
 
   async load(id?: number) {
     this.error = null;
     if (id) {
-      let obs = this.tripService.load(id);
-      if (obs['subscribe']) {
-        const obs2 = obs as Observable<Trip | null>;
-        obs2.subscribe(data => {
-          this.data = data;
-          this.updateView(this.data, true);
+      this.tripService.load(id)
+        .subscribe(data => {
+          this.updateView(data, true);
           this.enable();
           this.loading = false;
         });
-      }
     }
     else {
-      this.data = new Trip();
-      this.updateView(this.data, true);
+      console.debug("[page-trip] Creating new trip...");
+      this.updateView(new Trip(), true);
       this.enable();
       this.loading = false;
     }
@@ -99,12 +103,15 @@ export class TripPage implements OnInit {
 
   updateView(data: Trip | null, updateOperations?: boolean) {
     this.data = data;
-    this.tripForm.setValue(data);
-    this.saleForm.setValue(data && data.sale);
-    this.gearForm.setValue(data && data.gears && data.gears[0]);
+    this.tripForm.value = data;
+    this.saleForm.value = data && data.sale;
+    this.gearForm.value = data && data.gears && data.gears[0];
+    this.measurementsForm.value = data && data.measurements || [];
+
     if (updateOperations) {
       this.operationTable && this.operationTable.setTrip(data);
     }
+
     this.markAsPristine();
     this.markAsUntouched();
   }
@@ -119,16 +126,17 @@ export class TripPage implements OnInit {
     let json = this.tripForm.value;
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     json.gears = [this.gearForm.value];
+    json.measurements = this.measurementsForm.value;
     this.data.fromObject(json);
 
-    const tripDirty = this.tripForm.dirty || this.saleForm.dirty || this.gearForm.dirty;
+    const formDirty = this.dirty;
     this.disable();
 
     try {
       // Save trip form (with sale) 
-      const updatedData = tripDirty ? await this.tripService.save(this.data) : this.data;
-      this.markAsPristine();
-      this.markAsUntouched();
+      const updatedData = formDirty ? await this.tripService.save(this.data) : this.data;
+      formDirty && this.markAsPristine();
+      formDirty && this.markAsUntouched();
 
       // Save operations
       const isOperationSaved = !this.operationTable || await this.operationTable.save();
@@ -149,34 +157,27 @@ export class TripPage implements OnInit {
   }
 
   public disable() {
-    this.tripForm.disable();
-    this.saleForm.disable();
-    this.gearForm.disable();
+    this.forms && this.forms.forEach(form => form.disable());
+    this.tables && this.tables.forEach(table => table.disable());
   }
 
   public enable() {
-    this.tripForm.enable();
-    this.saleForm.enable();
-    this.gearForm.enable();
+    this.forms && this.forms.forEach(form => form.enable());
+    this.tables && this.tables.forEach(table => table.enable());
   }
 
   public markAsPristine() {
-    this.tripForm.markAsPristine();
-    this.saleForm.markAsPristine();
-    this.gearForm.markAsPristine();
+    this.forms && this.forms.forEach(form => form.markAsPristine());
   }
 
   public markAsUntouched() {
-    this.tripForm.markAsUntouched();
-    this.saleForm.markAsUntouched();
-    this.gearForm.markAsUntouched();
+    this.forms && this.forms.forEach(form => form.markAsUntouched());
   }
 
   async cancel() {
     // reload
     this.loading = true;
     await this.load(this.data.id);
-
   }
 
   onTabChange(event: MatTabChangeEvent) {

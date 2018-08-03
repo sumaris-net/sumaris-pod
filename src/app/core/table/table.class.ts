@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { MatPaginator, MatSort, MatTable } from "@angular/material";
 import { merge } from "rxjs/observable/merge";
-import { Observable } from 'rxjs-compat';
+import { Observable } from 'rxjs';
 import { startWith, switchMap, mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource } from "./table-datasource.class";
@@ -23,6 +23,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     private _initialized = false;
     private _subscriptions: Subscription[] = [];
+    private _dirty = false;
 
     inlineEdition: boolean = false;
     displayedColumns: string[];
@@ -31,7 +32,6 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     focusFirstColumn = false;
     error: string;
     showFilter = false;
-    dirty = false;
     isRateLimitReached = false;
     selection = new SelectionModel<TableElement<T>>(true, []);
     selectedRow: TableElement<T> = undefined;
@@ -45,6 +45,29 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     @Output()
     listChange = new EventEmitter<T[]>();
+
+    get dirty(): boolean {
+        return this._dirty;
+    }
+
+    get valid(): boolean {
+        if (this.selectedRow && this.selectedRow.editing) {
+            return this.selectedRow.validator.valid;
+        }
+        return true;
+    }
+
+    disable() {
+        this.table.disabled = true;
+    }
+
+    enable() {
+        this.table.disabled = false;
+    }
+
+    markAsPristine() {
+        this._dirty = false;
+    }
 
     constructor(
         protected route: ActivatedRoute,
@@ -79,7 +102,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 startWith(this.autoLoad ? {} : 'skip'),
                 switchMap(
                     (any: any) => {
-                        this.dirty = false;
+                        this._dirty = false;
                         this.selection.clear();
                         this.selectedRow = null;
                         if (any === 'skip') {
@@ -167,7 +190,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         // Add new row
         this.focusFirstColumn = true;
         this.dataSource.createNew();
-        this.dirty = true;
+        this._dirty = true;
         this.resultsLength++;
     }
 
@@ -196,7 +219,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         console.log("[table] Saving...");
         try {
             const res = await this.dataSource.save();
-            if (res) this.dirty = false;
+            if (res) this._dirty = false;
             return res;
         }
         catch (err) {
@@ -251,7 +274,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             row.currentData.dirty = true;
         }
         this.selectedRow = row;
-        this.dirty = true;
+        this._dirty = true;
         return true;
     }
 
@@ -259,7 +282,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         if (!row.currentData.id || row.editing || event.defaultPrevented) return false;
 
         // Open the detail page (if not editing)
-        if (!this.dirty && !this.inlineEdition) {
+        if (!this._dirty && !this.inlineEdition) {
             this.onOpenRowDetail(row.currentData.id);
             return true;
         }
