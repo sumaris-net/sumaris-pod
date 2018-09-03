@@ -8,40 +8,45 @@ cd "${PROJECT_DIR}"
 PROJECT_DIR=`pwd`
 LOG_PREFIX="--------------"
 
-
 # ------------------------------------
 echo "${LOG_PREFIX} Installing [core-shared] and [test-shared]... ${LOG_PREFIX}"
+# ------------------------------------
 cd "${PROJECT_DIR}/.."
-mvn install -DskipTests -pl sumaris-core-shared,sumaris-test-shared
-echo "${LOG_PREFIX} Installing [core-shared] and [test-shared] [OK] ${LOG_PREFIX}"
-
+mvn install -DskipTests -pl sumaris-core-shared,sumaris-test-shared  --quiet
+if [ $? -ne 0 ]; then
+    exit
+fi
 
 # ------------------------------------
 echo "${LOG_PREFIX} Generating new test DB... (log at: ${PROJECT_DIR}/target/build.log) ${LOG_PREFIX}"
+# ------------------------------------
 cd "${PROJECT_DIR}"
 PROJECT_DIR=`pwd`
 rm -rf target/db
 #mvn -Prun,hsqldb -DskipTests > target/build.log
-mvn -Prun,hsqldb -DskipTests
-echo "${LOG_PREFIX} Generating new test DB [OK] ${LOG_PREFIX}"
-
+mvn -Prun,hsqldb -DskipTests --quiet
+if [ $? -ne 0 ]; then
+    exit
+fi
 
 # ------------------------------------
 echo "${LOG_PREFIX} Stopping DB server...       ${LOG_PREFIX}"
+# ------------------------------------
 cd "${SCRIPT_DIR}"
 ./stopServer.sh
-echo "${LOG_PREFIX} Stopping DB server [OK]     ${LOG_PREFIX}"
 
 
 # ------------------------------------
 echo "${LOG_PREFIX} Cleaning old DB server files... ${LOG_PREFIX}"
+# ------------------------------------
 rm -rf "${PROJECT_DIR}/target/db-server"
 cd "${SCRIPT_DIR}"
-echo "${LOG_PREFIX} Cleaning old DB server files [OK] ${LOG_PREFIX}"
-
 
 # ------------------------------------
 echo "${LOG_PREFIX} Starting DB server...       ${LOG_PREFIX}"
+# ------------------------------------
 nohup ./startServer.sh &
+
+# ------------------------------------
 echo "${LOG_PREFIX} Starting DB server [OK] (log at: ${SCRIPT_DIR}/nohup.out) ${LOG_PREFIX}"
 

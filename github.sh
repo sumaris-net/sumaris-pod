@@ -2,7 +2,6 @@
 
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
-echo "$branch"
 if [[ "$branch" = "master" ]];
 then
   echo ">> This script must be run under a branch (tag)"
@@ -73,15 +72,19 @@ case "$1" in
     upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
     ###  Sending files
-    echo "Uploading files to $upload_url"
+    echo "Uploading files... to $upload_url"
     dirname=`pwd`
 
-    echo "Sending server jar..."
-    curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T $dirname/sumaris-core-server/target/sumaris-core-server-$current.jar $upload_url?name=sumaris-pod-$current.jar
+    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "$dirname/sumaris-core-server/target/sumaris-core-server-$current.jar" "$upload_url?name=sumaris-pod-$current.jar"`
+    browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
+    echo " - $browser_download_url"
+
+    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "$dirname/sumaris-core/target/sumaris-db.zip" "$upload_url?name=sumaris-db-$current.zip"`
+    browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
+    echo " - $browser_download_url"
 
     echo "-----------------------------------------"
     echo "Successfully uploading files to github !"
-    echo " -> Release url: https://github.com/$REPO/releases/tag/sumaris-$current"
 
     ;;
   *)
@@ -95,7 +98,3 @@ case "$1" in
     exit
     ;;
 esac
-
-
-
-

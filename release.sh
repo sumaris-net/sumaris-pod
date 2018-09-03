@@ -25,9 +25,33 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "**********************************"
+echo "* Generating DB..."
+echo "**********************************"
+dirname=`pwd`
+cd $dirname/target/checkout/sumaris-core
+version=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
+
+# Genrate the DB (run InitTest class)
+mvn -Prun,hsqldb -DskipTests
+if [ $? -ne 0 ]; then
+    exit
+fi
+
+# Create ZIP
+cd target
+zip -q -r "sumaris-db-$version.zip" db
+if [ $? -ne 0 ]; then
+    exit
+fi
+
+echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
-cd target/checkout
+cd $dirname/target/checkout
 ./github.sh pre
+if [ $? -ne 0 ]; then
+    exit
+fi
 
+echo "RELEASE finished !"
 
