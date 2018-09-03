@@ -15,8 +15,8 @@
       <!-- Physical gear -->
       <ion-col size="6" size-lg="4">
         <mat-form-field>
-          <input matInput [placeholder]="'TRIP.OPERATION.LIST.PHYSICAL_GEAR'|translate" [matAutocomplete]="autoPhysicalGear" (focus)="onFocusPhysicalGear.emit()"
-            formControlName="physicalGear">
+          <input matInput [placeholder]="'TRIP.OPERATION.LIST.PHYSICAL_GEAR'|translate" [matAutocomplete]="autoPhysicalGear"
+            (focus)="onFocusPhysicalGear.emit()" formControlName="physicalGear">
           <mat-error *ngIf="form.controls['physicalGear']?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
 
@@ -50,8 +50,8 @@
       <!-- Metier -->
       <ion-col size="6">
         <mat-form-field>
-          <input matInput [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate" [matAutocomplete]="autoMetier" formControlName="metier"
-            (focus)="onFocusMetier.emit()">
+          <input matInput [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate" [matAutocomplete]="autoMetier"
+            formControlName="metier" (focus)="onFocusMetier.emit()">
           <mat-error *ngIf="form.controls['metier']?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
 
@@ -85,12 +85,12 @@
         <ion-grid no-padding>
           <ion-row no-padding>
             <ion-col [formGroup]="form.controls['startPosition']">
-              <mat-latlong formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
+              <mat-latlong formControlName="latitude" type="latitude" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
                 <!-- <ion-icon matPrefix name="pin"></ion-icon> -->
               </mat-latlong>
             </ion-col>
             <ion-col [formGroup]="form.controls['startPosition']">
-              <mat-latlong formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
+              <mat-latlong formControlName="longitude" type="longitude" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
               </mat-latlong>
             </ion-col>
             <ion-col size-lg="auto">
@@ -112,12 +112,12 @@
         <ion-grid no-padding>
           <ion-row no-padding>
             <ion-col [formGroup]="form.controls['endPosition']">
-              <mat-latlong formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
+              <mat-latlong formControlName="latitude" type="latitude" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
                 <!-- <ion-icon matPrefix name="pin"></ion-icon> -->
               </mat-latlong>
             </ion-col>
             <ion-col [formGroup]="form.controls['endPosition']">
-              <mat-latlong formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
+              <mat-latlong formControlName="longitude" type="longitude" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
               </mat-latlong>
             </ion-col>
             <ion-col size-lg="auto">
@@ -138,6 +138,9 @@
         <mat-form-field appearance="outline">
           <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'TRIP.OPERATION.LIST.COMMENTS'|translate"
             formControlName="comments">
+
+
+
           </textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
           <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

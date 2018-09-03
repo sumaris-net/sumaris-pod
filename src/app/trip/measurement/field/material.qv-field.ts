@@ -51,6 +51,8 @@ export class MatQualitativeValueField implements OnInit, ControlValueAccessor {
 
     @Input() required: boolean = false;
 
+    @Input() readonly: boolean = false;
+
     @Output()
     onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 

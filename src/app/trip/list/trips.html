@@ -42,7 +42,8 @@
 
       <!-- Start date -->
       <mat-form-field>
-        <input matInput [placeholder]="'TRIP.LIST.FILTER.START_DATE'|translate" [matDatepicker]="filterStartDatepicker" formControlName="startDate">
+        <input matInput [placeholder]="'TRIP.LIST.FILTER.START_DATE'|translate" [matDatepicker]="filterStartDatepicker"
+          formControlName="startDate">
         <mat-datepicker-toggle matSuffix [for]="filterStartDatepicker">
           <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
         </mat-datepicker-toggle>
@@ -51,7 +52,8 @@
 
       <!-- End date -->
       <mat-form-field>
-        <input matInput [placeholder]="'TRIP.LIST.FILTER.END_DATE'|translate" [matDatepicker]="filterEndDatepicker" formControlName="endDate">
+        <input matInput [placeholder]="'TRIP.LIST.FILTER.END_DATE'|translate" [matDatepicker]="filterEndDatepicker"
+          formControlName="endDate">
         <mat-datepicker-toggle matSuffix [for]="filterEndDatepicker">
           <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
         </mat-datepicker-toggle>
@@ -60,7 +62,8 @@
 
       <!-- Location -->
       <mat-form-field style="min-width: 300px;">
-        <input matInput [placeholder]="'TRIP.LIST.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation" formControlName="location">
+        <input matInput [placeholder]="'TRIP.LIST.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation"
+          formControlName="location">
       </mat-form-field>
 
       <!-- Location combo -->
@@ -88,12 +91,13 @@
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <mat-table #table [dataSource]="dataSource" matSort matSortActive="departureDateTime" matSortDirection="asc" matSortDisableClear
-    [trackBy]="trackBy">
+  <mat-table #table [dataSource]="dataSource" matSort matSortActive="departureDateTime" matSortDirection="asc"
+    matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
-        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()" [indeterminate]="selection.hasValue() && !isAllSelected()">
+        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
@@ -118,8 +122,9 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <mat-form-field floatLabel="never" [title]="vesselFeaturesToString(row.currentData.vesselFeatures)">
-          <input matInput [formControl]="row.validator.controls['vesselFeatures']" [placeholder]="'TRIP.VESSEL'|translate" [matAutocomplete]="autoVessel"
-            [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [(ngModel)]="row.currentData.vesselFeatures">
+          <input matInput [formControl]="row.validator.controls['vesselFeatures']" [placeholder]="'TRIP.VESSEL'|translate"
+            [matAutocomplete]="autoVessel" [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing"
+            [(ngModel)]="row.currentData.vesselFeatures">
           <mat-error *ngIf="row.validator.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
 
@@ -221,8 +226,9 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid" [class.mat-row-dirty]="row.currentData.dirty"
-      [class.mat-row-disabled]="!row.editing" (click)="!row.editing ? onRowClick($event, row) : false" (onblur)="row.editing && confirmAndAddRow($event,row)"></mat-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
+      [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="!row.editing ? onRowClick($event, row) : false"
+      (onblur)="row.editing && confirmAndAddRow($event,row)"></mat-row>
   </mat-table>
 
 

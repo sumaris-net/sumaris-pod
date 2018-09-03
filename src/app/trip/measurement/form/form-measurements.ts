@@ -26,7 +26,6 @@ const noop = () => {
 })
 export class MeasurementsForm extends AppForm<Measurement[]> {
 
-    private loading: boolean = true;
     private _onAcquisitionLevelChange: EventEmitter<any> = new EventEmitter<any>();
     private _onGearChange: EventEmitter<any> = new EventEmitter<any>();
     private _onMeasurementsChange: EventEmitter<any> = new EventEmitter<any>();
@@ -34,6 +33,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     private _gear: string;
     private _acquisitionLevel: string;
 
+    loading: boolean = true;
     pmfms: Observable<PmfmStrategy[]>;
 
     @Input() program: string = environment.defaultProgram;

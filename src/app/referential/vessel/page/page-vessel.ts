@@ -70,5 +70,9 @@ export class VesselPage implements OnInit {
       });
   }
 
-
+  async cancel() {
+    // reload
+    this.loading = true;
+    await this.load(this.data.id);
+  }
 }

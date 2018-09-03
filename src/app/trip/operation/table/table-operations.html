@@ -2,10 +2,12 @@
   <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+  <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+    (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()">
+  <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
+    (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
 
@@ -32,12 +34,13 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table #table [dataSource]="dataSource" class="table-operations" matSort matSortActive="startDateTime" matSortDirection="asc"
-  matSortDisableClear [trackBy]="trackBy">
+<mat-table #table [dataSource]="dataSource" class="table-operations" matSort matSortActive="startDateTime"
+  matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()" [indeterminate]="selection.hasValue() && !isAllSelected()">
+      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+        [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
     </mat-header-cell>
     <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
@@ -108,13 +111,13 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <div [formGroup]="row.validator.controls['startPosition']">
-        <mat-latlong floatLabel="never" formControlName="latitude" [(ngModel)]="row.currentData.startPosition.latitude" type="latitude"
-          [latLongPattern]="latLongPattern" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [readonly]="!row.editing"
-          required>
+        <mat-latlong floatLabel="never" formControlName="latitude" [(ngModel)]="row.currentData.startPosition.latitude"
+          type="latitude" [latLongPattern]="latLongPattern" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate"
+          [readonly]="!row.editing" required>
         </mat-latlong>
-        <mat-latlong floatLabel="never" formControlName="longitude" [(ngModel)]="row.currentData.startPosition.longitude" type="longitude"
-          [latLongPattern]="latLongPattern" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [readonly]="!row.editing"
-          required>
+        <mat-latlong floatLabel="never" formControlName="longitude" [(ngModel)]="row.currentData.startPosition.longitude"
+          type="longitude" [latLongPattern]="latLongPattern" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)"
+          [readonly]="!row.editing" required>
         </mat-latlong>
       </div>
     </mat-cell>
@@ -139,13 +142,13 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <form [formGroup]="row.validator.controls['endPosition']">
-        <mat-latlong floatLabel="never" formControlName="latitude" [(ngModel)]="row.currentData.endPosition.latitude" type="latitude"
-          [latLongPattern]="latLongPattern" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [(ngModel)]="row.currentData.endPosition.latitude"
-          [readonly]="!row.editing" required>
+        <mat-latlong floatLabel="never" formControlName="latitude" [(ngModel)]="row.currentData.endPosition.latitude"
+          type="latitude" [latLongPattern]="latLongPattern" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate"
+          [(ngModel)]="row.currentData.endPosition.latitude" [readonly]="!row.editing" required>
         </mat-latlong>
-        <mat-latlong floatLabel="never" formControlName="longitude" [(ngModel)]="row.currentData.endPosition.longitude" type="longitude"
-          [latLongPattern]="latLongPattern" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [(ngModel)]="row.currentData.endPosition.longitude"
-          [readonly]="!row.editing" required>
+        <mat-latlong floatLabel="never" formControlName="longitude" [(ngModel)]="row.currentData.endPosition.longitude"
+          type="longitude" [latLongPattern]="latLongPattern" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)"
+          [(ngModel)]="row.currentData.endPosition.longitude" [readonly]="!row.editing" required>
         </mat-latlong>
       </form>
     </mat-cell>
@@ -172,8 +175,8 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid" [class.mat-row-disabled]="!row.editing"
-    (click)="onRowClick($event, row)" (onblur)="confirmAndAddRow($event,row)"></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
+    [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)" (onblur)="confirmAndAddRow($event,row)"></mat-row>
 </mat-table>
 
 <ion-row no-padding>
