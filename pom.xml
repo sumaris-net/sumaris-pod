@@ -6,7 +6,7 @@
   <version>0.2.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
-  <description>SUMARiS Database</description>
+  <description>SUMARiS :: Maven parent</description>
 
   <url>http://doc.e-is.pro/sumaris/</url>
   <inceptionYear>2018</inceptionYear>
@@ -155,7 +155,7 @@
     <!-- release config -->
     <autoVersionSubmodules>true</autoVersionSubmodules>
     <goals>deploy</goals>
-    <arguments>-DperformFullRelease</arguments>
+    <arguments>-DperformFullRelease -Denv=hsqldb -DskipTests</arguments>
     <preparationGoals>verify</preparationGoals>
 
     <!-- Last JRE version to use -->
@@ -829,6 +829,7 @@
           <version>${releasePluginVersion}</version>
           <configuration>
             <autoVersionSubmodules>true</autoVersionSubmodules>
+            <tagNameFormat>v@{project.version}</tagNameFormat>
           </configuration>
         </plugin>
 
