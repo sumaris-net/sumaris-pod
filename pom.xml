@@ -56,16 +56,14 @@
   </modules>
 
   <scm>
-    <url>https://forge.ifremer.fr/anonscm/git/sumaris/sumaris.git</url>
-    <connection>scm:git:https://forge.ifremer.fr/anonscm/git/sumaris/sumaris.git</connection>
-    <developerConnection>scm:git:https://{account}@scmforge.ifremer.fr/authscm/{account}/git/sumaris/sumaris.git</developerConnection>
-    <tag>sumaris-0.2.0</tag>
+    <url>https://github.com/sumaris-net/sumaris-pod.git</url>
+    <connection>scm:git:https://github.com/sumaris-net/sumaris-pod.git</connection>
   </scm>
 
   <issueManagement>
-    <system>Mantis</system>
+    <system>github</system>
     <url>
-      https://forge.ifremer.fr/mantis/set_project.php?project_id=331
+      https://github.com/sumaris-net/sumaris-pod/issues
     </url>
   </issueManagement>
 
@@ -1415,7 +1413,7 @@
               <escapeHTML>false</escapeHTML>
               <feedType>rss_2.0</feedType>
               <issueLinkTemplatePerSystem>
-                <default>https://forge.ifremer.fr/mantis/view.php?id=%ISSUE%</default>
+                <default>https://github.com/sumaris-net/sumaris-pod/issues/%ISSUE%</default>
               </issueLinkTemplatePerSystem>
             </configuration>
           </plugin>
