@@ -66,7 +66,7 @@ install_from_github() {
     }
   echo "Unarchive to $INSTALL_DIR"
   unzip -o $ARCHIVE_FILE -d $TMP_DIR
-  mv $TMP_DIR/sumaris-app/* $INSTALL_DIR
+  cp -rf $TMP_DIR/sumaris-app/* $INSTALL_DIR
   rm -rf $TMP_DIR
 
   echo
