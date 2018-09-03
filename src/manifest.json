@@ -1,13 +1,16 @@
 {
   "name": "SUMARiS",
   "short_name": "SUMARiS",
-  "start_url": "index.html",
-  "display": "standalone",
+  "manifest_version": 1,
+  "version": "0.2.0",
+  "default_locale": "en",
   "icons": [{
     "src": "assets/img/logo.png",
     "sizes": "183x120",
     "type": "image/png"
   }],
   "background_color": "#4e8ef7",
-  "theme_color": "#4e8ef7"
+  "theme_color": "#4e8ef7",
+  "display": "standalone",
+  "start_url": "index.html"
 }
