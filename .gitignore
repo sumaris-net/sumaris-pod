@@ -10,3 +10,15 @@ buildNumber.properties
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
+
+.idea/
+**/*.iml
+
+/*.log
+.local/
+
+# SUMARiS specific ignore path
+sumaris-core/src/test/db*
+sumaris-core/src/test/scripts/server.log
+sumaris-core/src/test/scripts/nohup.out
+sumaris-core/src/test/scripts/hsqldb-2.4.0.jar
