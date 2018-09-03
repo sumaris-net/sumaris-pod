@@ -1,0 +1,22 @@
+# $Id: sqltool.rc,v 1.22 2007/08/09 03:22:21 unsaved Exp $
+
+# This is a sample RC configuration file used by SqlTool, DatabaseManager,
+# and any other program that uses the org.hsqldb.util.RCData class.
+
+# You can run SqlTool right now by copying this file to your home directory
+# and running
+#    java -jar /path/to/hsqldb.jar mem
+# This will access the first urlid definition below in order to use a
+# personal Memory-Only database.
+# "url" values may, of course, contain JDBC connection properties, delimited
+# with semicolons.
+
+# If you have the least concerns about security, then secure access to
+# your RC file.
+# See the documentation for SqlTool for various ways to use this file.
+
+# A personal Memory-Only (non-persistent) database.
+urlid sumaris
+url jdbc:hsqldb:hsql://localhost/sumaris
+username sa
+password

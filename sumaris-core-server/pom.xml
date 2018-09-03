@@ -1,0 +1,348 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>net.sumaris</groupId>
+    <artifactId>sumaris</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>sumaris-core-server</artifactId>
+  <packaging>jar</packaging>
+  <name>SUMARiS:: Server</name>
+  <description>SUMARiS server</description>
+
+  <properties>
+    <!-- i18n configuration -->
+    <i18n.bundleOutputName>sumaris-core-server-i18n</i18n.bundleOutputName>
+    <i18n.generateCsvFile>true</i18n.generateCsvFile>
+    <i18n.bundleCsvFile>
+      ${project.build.directory}/generated-sources/resources/META-INF/${i18n.bundleOutputName}.csv
+    </i18n.bundleCsvFile>
+    <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
+
+    <!-- bundle configuration -->
+    <bundlePrefix>sumarie-server-${project.version}</bundlePrefix>
+    <bundle.jvmArgs>-server -Xms512m -Xmx1g -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=50
+      -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark
+    </bundle.jvmArgs>
+
+    <!-- Unit test -->
+    <jetty.port>8080</jetty.port>
+    <jetty.reload>manual</jetty.reload>
+    <synchro-server.config>${project.basedir}/src/test/resources/sumaris-server-test.properties</synchro-server.config>
+    <quadrige3.log.file>${project.build.directory}/${bundlePrefix}.log</quadrige3.log.file>
+
+    <!-- Default implementation -->
+    <env>hsqldb</env>
+    <jdbc.url>jdbc:hsqldb:file:data/db/sumaris</jdbc.url>
+    <server.port>8080</server.port>
+    <server.url>http://localhost:${server.port}</server.url>
+    <server.account.register.confirm.url>${server.url}/#/confirm/{email}/{code}</server.account.register.confirm.url>
+
+    <maven.jar.main.class>net.sumaris.server.config.Application</maven.jar.main.class>
+  </properties>
+
+  <dependencies>
+
+    <!-- Project dependencies -->
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <!--<dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context-support</artifactId>
+    </dependency>-->
+
+    <!-- API dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>it.ozimov</groupId>
+      <artifactId>spring-boot-email-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-websocket</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+    </dependency>
+
+    <!-- GraphQL -->
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-java</artifactId>
+      <version>7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-java-tools</artifactId>
+      <version>4.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-java-servlet</artifactId>
+      <version>4.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.leangen.graphql</groupId>
+      <artifactId>spqr</artifactId>
+      <version>0.9.6</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.9.4</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>2.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-core</artifactId>
+      <version>2.3.0</version>
+    </dependency>
+
+
+    <!-- Unit test -->
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-test-shared</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-jcl</artifactId>
+      <version>2.10.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <!-- Turn on filtering by default for application properties -->
+    <resources>
+      <resource>
+        <directory>src/main/filtered-resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>*.config</include>
+          <include>**/*.properties</include>
+          <include>**/*.xml</include>
+          <include>**/*.yml</include>
+          <include>**/*.yaml</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.*</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>target/generated-sources/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.*</include>
+        </includes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>${javaVersion}</source>
+          <target>${javaVersion}</target>
+          <compilerArgument>-parameters</compilerArgument>
+          <testCompilerArgument>-parameters</testCompilerArgument>
+        </configuration>
+      </plugin>
+
+      <!--<plugin>
+        <artifactId>maven-war-plugin</artifactId>
+      </plugin>-->
+
+      <plugin>
+        <groupId>org.nuiton.i18n</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+
+        <executions>
+          <execution>
+            <id>scan-sources</id>
+            <configuration>
+              <entries>
+                <entry>
+                  <specificGoal>parserValidation</specificGoal>
+                  <basedir>${maven.src.dir}/main/java/</basedir>
+                  <includes>
+                    <param>**/**-validation.xml</param>
+                  </includes>
+                </entry>
+              </entries>
+            </configuration>
+            <goals>
+              <goal>parserJava</goal>
+              <goal>parserValidation</goal>
+              <goal>gen</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>make-bundle</id>
+            <goals>
+              <goal>bundle</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <mainClass>${maven.jar.main.class}</mainClass>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <configuration>
+          <delimiters>
+            <delimiter>@</delimiter>
+          </delimiters>
+          <useDefaultDelimiters>false</useDefaultDelimiters>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>hsqldb</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>env</name>
+          <value>hsqldb</value>
+        </property>
+      </activation>
+
+      <properties>
+        <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>org.hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>bundles</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+
+      <properties>
+        <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
+        <server.url>https://www.sumaris.net</server.url>
+        <server.port>8080</server.port>
+        <server.account.register.confirm.url>https://www.sumaris.net/#/confirm/{email}/{code}</server.account.register.confirm.url>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>org.hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>dev</id>
+
+      <properties>
+        <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
+        <server.port>8080</server.port>
+        <server.url>http://localhost:${server.port}</server.url>
+        <server.account.register.confirm.url>http://localhost:8100/#/confirm/{email}/{code}</server.account.register.confirm.url>
+      </properties>
+    </profile>
+  </profiles>
+
+</project>

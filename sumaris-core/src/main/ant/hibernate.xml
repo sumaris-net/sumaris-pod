@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  #%L
+  SIH Allegro ObsDeb :: UI
+  $Id:$
+  $HeadURL:$
+  %%
+  Copyright (C) 2013 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<project name="Hibernate configuration tools" basedir="." default="generate-hibernate-cfg">
+
+
+	<target name="generate-hibernate-cfg">
+		<!-- If not already set, try to compute output files path using ${outputDirectory} -->
+		<if>
+			<available file="${outputDirectory}" type="dir"/>
+			<then>
+				<property name="hibernate.generated.cfg.path" location="${outputDirectory}/hibernate.cfg.xml" />
+				<property name="hibernate.generated.properties.path" location="${outputDirectory}/hibernate.properties" />
+			</then>
+		</if>
+		
+		<!-- Check properties -->
+		<fail unless="java.generated.dir" message="property 'java.generated.dir' must be set (directory with *.hbm.xml files)" />
+		<fail unless="jdbc.driver" message="property 'jdbc.driver' must be set" />
+		<fail unless="jdbc.schema" message="property 'jdbc.schema' must be set" />
+		<fail unless="hibernate.dialect" message="property 'hibernate.dialect' must be set" />
+		<fail unless="hibernate.generated.cfg.path" message="One of this property must be set : 'hibernate.generated.cfg.path' or 'outputDirectory'" />
+		<fail unless="hibernate.generated.properties.path" message="One of this property must be set : 'hibernate.generated.properties.path' or 'outputDirectory'" />
+
+		<!-- Create hibernate.cfg.xml file -->
+		<property name="hibernate.cfg.path" location="${hibernate.generated.cfg.path}" />
+		<echo file="${hibernate.cfg.path}" append="false" encoding="UTF-8"><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<property name="hibernate.bytecode.provider">javassist</property>
+		<property name="hibernate.check_nullability">false</property>
+		<property name="hibernate.connection.driver_class">${jdbc.driver}</property>
+		<property name="hibernate.default_schema">${jdbc.schema}</property>
+		<property name="hibernate.dialect">${hibernate.dialect}</property>
+		<property name="hibernate.search.autoregister_listeners">false</property>
+		<property name="hibernate.show_sql">false</property>
+		<property name="hibernate.cache.use_query_cache">false</property>
+		<property name="hibernate.cache.use_second_level_cache">false</property>
+
+]]></echo>
+				<propertyregex property="src.cleanPath" input="${project.build.sourceDirectory}" regexp="\\" replace="/" override="true" defaultValue="${project.build.sourceDirectory}" />
+				<property name="entities.package.dir" value="${hibernate.entities.package}" />
+				<propertyregex input="${entities.package.dir}" regexp="[.]" replace="/" property="entities.package.dir" override="true" defaultValue="${entities.package.dir}" />
+				<property name="newLine" value="&#10;" />
+
+				<for param="entity.fullPath">
+					<path>
+						<fileset dir="${src.cleanPath}" includes="${entities.package.dir}/**/*.java" />
+					</path>
+					<sequential>
+						<propertyregex property="entity.fullPath" input="@{entity.fullPath}" regexp="\\" replace="/" override="true" defaultValue="@{entity.fullPath}" />
+						<propertyregex property="entity.name" input="${entity.fullPath}" regexp="${src.cleanPath}[\\/](.*).java$" replace="\1" override="true" />
+						<propertyregex property="entity.name" input="${entity.name}" regexp="[\\/]" replace="." override="true" defaultValue="${entity.name}" />
+
+						<echo file="${hibernate.cfg.path}" append="true" encoding="UTF-8"><![CDATA[${newLine}		<mapping class="${entity.name}" />]]></echo>
+					</sequential>
+				</for>
+		
+				<echo file="${hibernate.cfg.path}" append="true" encoding="UTF-8"><![CDATA[${newLine}	</session-factory>${newLine}</hibernate-configuration>]]></echo>
+
+			<!-- Generate the hibernate.properties file -->
+			<propertyregex property="jdbc.cleanUrl" input="${jdbc.url}" regexp="\\" replace="/" override="true" defaultValue="${jdbc.url}" />
+			<property name="hibernate.properties.path" location="${hibernate.generated.properties.path}" />
+			<echo file="${hibernate.properties.path}" append="false" encoding="UTF-8"><![CDATA[connection.url=${jdbc.cleanUrl}
+connection.driver_class=${jdbc.driver}
+connection.username=${jdbc.username}
+connection.password=${jdbc.password}
+]]>
+			</echo>
+		</target>
+
+	</project>

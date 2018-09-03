@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+  logicalFilePath="https://forge.ifremer.fr/plugins/scmgit/cgi-bin/gitweb.cgi?p=sumaris-core/sumaris-core.git;a=blob;f=sumaris-core-server/src/main/resources/fr/ifremer/sumaris/core/db/changelog/db-changelog-master.xml;hb=HEAD">
+  
+  <!--<property id="dbms" value="hsqldb" dbms="hsqldb"/>-->
+  
+  <!-- Processing updates -->
+  <include relativeToChangelogFile="true" file="hsqldb/db-changelog-1.0.0.xml"/>
+
+
+  <!-- Refresh schema objects (functions, procedures, triggers, ...)
+  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-refresh.xml"/>-->
+  
+</databaseChangeLog>

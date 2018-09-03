@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Reef DB
+  $Id:$
+  $HeadURL:$
+  %%
+  Copyright (C) 2014 - 2015 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<project name="${project.name}">
+
+  <skin>
+      <groupId>org.apache.maven.skins</groupId>
+      <artifactId>maven-fluido-skin</artifactId>
+      <version>1.3.0</version>
+  </skin>
+
+  <custom>
+      <fluidoSkin>
+          <topBarEnabled>false</topBarEnabled>
+          <googleSearch/>
+          <sideBarEnabled>true</sideBarEnabled>
+          <searchEnabled>true</searchEnabled>
+          <sourceLineNumbersEnabled>true</sourceLineNumbersEnabled>
+      </fluidoSkin>
+  </custom>
+
+  <bannerLeft>
+      <name>${project.name}</name>
+      <href>./index.html</href>
+  </bannerLeft>
+
+  <bannerRight>
+      <name>${project.name}</name>
+      <src>images/logos/logo_sumaris-banner.png</src>
+      <href>./index.html</href>
+  </bannerRight>
+
+  <publishDate position="right" format="yyyy-MM-dd"/>
+  <version position="none"/>
+
+  <poweredBy>
+    <logo href="http://maven.apache.org" name="Maven"
+          img="./images/logos/maven-feather.png"/>
+
+    <logo href="https://ionicframework.com/" name="Ionic"
+          img="./images/logos/ionic-logo.png"/>
+
+  </poweredBy>
+
+  <body>
+    <head>
+      <!-- favicon -->
+      <link rel="icon" type="image/png" href="https://www.sumaris.net/assets/icon/favicon.ico" sizes="16x16"/>
+    </head>
+
+    <links>
+          <item name="SUMARiS portal" href="https://www.sumaris.net"/>
+          <item name="EIS" href="http://www.e-is.pro"/>
+    </links>
+
+    <breadcrumbs>
+      <item name="${project.name}" href="./index.html"/>
+    </breadcrumbs>
+
+    <menu name="${project.name}" inherit="top">
+        <item name="Home" href="index.html"/>
+        <item name="Releases history" href="changes-report.html"/>
+    </menu>
+
+    <menu name="Technical Documentation" inherit="top">
+      <item name="Client API" href="./client.html"/>
+      <item name="Server API" href="./server.html"/>
+      <item name="Configuration options" href="./config-report.html"/>
+    </menu>
+
+    <menu name="Community" inherit="bottom">
+      <item name="Forge"
+            href="https://forge.ifremer.fr/projects/sumaris"/>
+      <!--<item name="Issue Tracking"
+            href="https://forge.ifremer.fr/mantis/set_project.php?project_id=263"/>-->
+      <item name="Mailing Lists"
+            href="./mail-lists.html"/>
+      <item name="Files"
+            href="https://forge.ifremer.fr/frs/?group_id=331"/>
+    </menu>
+
+    <menu ref="reports" inherit="bottom"/>
+
+  </body>
+</project>

@@ -1,0 +1,122 @@
+package net.sumaris.core.model.data;
+
+/*-
+ * #%L
+ * SUMARiS:: Core
+ * %%
+ * Copyright (C) 2018 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+import lombok.Data;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.metier.Metier;
+import org.hibernate.annotations.Cascade;
+
+import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@Data
+@Entity
+public class Operation implements IDataEntity<Integer> {
+
+    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
+    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
+    public static final String PROPERTY_RANK_ORDER_ON_PERIOD = "rankOrderOnPeriod";
+    public static final String PROPERTY_TRIP = "trip";
+    public static final String PROPERTY_VESSEL_USE_MEASUREMENTS = "vesselUseMeasurements";
+    public static final String PROPERTY_GEAR_USE_MEASUREMENTS = "gearUseMeasurements";
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
+
+    @Column(name = "update_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updateDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recorder_department_fk", nullable = false)
+    private Department recorderDepartment;
+
+    @Column(length = 2000)
+    private String comments;
+
+    @Column(name="control_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date controlDate;
+
+    @Column(name="qualification_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date qualificationDate;
+
+    @Column(name="qualification_comments", length = 2000)
+    private Date qualificationComments;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quality_flag_fk", nullable = false)
+    private QualityFlag qualityFlag;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trip_fk", nullable = false)
+    private Trip trip;
+
+    @Column(name = "start_date_time", nullable = false)
+    private Date startDateTime;
+
+    @Column(name = "end_date_time", nullable = false)
+    private Date endDateTime;
+
+    @Column(name = "fishing_start_date_time")
+    private Date fishingStartDateTime;
+
+    @Column(name = "fishing_end_date_time")
+    private Date fishingEndDateTime;
+
+    @Column(name = "rank_order_on_period")
+    private Integer rankOrderOnPeriod;
+
+    @Column(name = "has_catch")
+    private Boolean hasCatch;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "metier_fk")
+    private Metier metier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "physical_gear_fk", nullable = false)
+    @Cascade(org.hibernate.annotations.CascadeType.REMOVE)
+    private PhysicalGear physicalGear;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPosition.class, mappedBy = "operation")
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<VesselPosition> positions = new ArrayList<>();
+
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = "operation")
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<VesselUseMeasurement> vesselUseMeasurements = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = "operation")
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<GearUseMeasurement> gearUseMeasurements = new ArrayList<>();
+
+}

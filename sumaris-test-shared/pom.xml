@@ -1,0 +1,196 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>net.sumaris</groupId>
+    <artifactId>sumaris</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>sumaris-test-shared</artifactId>
+  <packaging>jar</packaging>
+  <name>SUMARiS:: Test shared</name>
+  <description>SUMARiS Test shared library</description>
+
+  <properties>
+    <!-- i18n configuration -->
+    <i18n.bundleOutputName>sumaris-test-shared-i18n</i18n.bundleOutputName>
+    <i18n.generateCsvFile>true</i18n.generateCsvFile>
+    <i18n.bundleCsvFile>
+      ${project.build.directory}/generated-sources/resources/META-INF/${i18n.bundleOutputName}.csv
+    </i18n.bundleCsvFile>
+    <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
+
+  </properties>
+
+  <dependencies>
+
+    <!-- Project dependencies -->
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-core-shared</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- hibernate -->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-tools</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-search-elasticsearch</artifactId>
+    </dependency>
+
+    <!-- hibernate -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-orm</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <!-- Nuiton-* -->
+    <dependency>
+      <groupId>org.nuiton</groupId>
+      <artifactId>nuiton-config</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuiton.i18n</groupId>
+      <artifactId>nuiton-i18n</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuiton</groupId>
+      <artifactId>nuiton-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+    </dependency>
+
+    <!-- Logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <!-- Unit test -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+    </dependency>
+    <!--<dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+    </dependency>-->
+
+    <dependency>
+      <groupId>org.dbunit</groupId>
+      <artifactId>dbunit</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jmock</groupId>
+      <artifactId>jmock</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jmock</groupId>
+      <artifactId>jmock-junit4</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/filtered-resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>*.config</include>
+          <include>**/*.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.*</include>
+        </includes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.nuiton.i18n</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+
+        <executions>
+          <execution>
+            <id>scan-sources</id>
+            <configuration>
+              <entries>
+                <entry>
+                  <specificGoal>parserValidation</specificGoal>
+                  <basedir>${maven.src.dir}/main/java/</basedir>
+                  <includes>
+                    <param>**/**-validation.xml</param>
+                  </includes>
+                </entry>
+              </entries>
+            </configuration>
+            <goals>
+              <goal>parserJava</goal>
+              <goal>parserValidation</goal>
+              <goal>gen</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>make-bundle</id>
+            <goals>
+              <goal>bundle</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
+    </plugins>
+  </build>
+
+</project>

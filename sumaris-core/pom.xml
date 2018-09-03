@@ -1,0 +1,535 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>net.sumaris</groupId>
+    <artifactId>sumaris</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>sumaris-core</artifactId>
+  <packaging>jar</packaging>
+  <name>SUMARiS:: Core</name>
+  <description>SUMARiS core library</description>
+
+  <properties>
+    <!-- i18n configuration -->
+    <i18n.bundleOutputName>sumaris-core-i18n</i18n.bundleOutputName>
+    <i18n.generateCsvFile>true</i18n.generateCsvFile>
+    <i18n.bundleCsvFile>
+      ${project.build.directory}/generated-sources/resources/META-INF/${i18n.bundleOutputName}.csv
+    </i18n.bundleCsvFile>
+    <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
+
+    <hibernate.generated.cfg.dir>
+      ${project.build.directory}/generated-sources/resources
+    </hibernate.generated.cfg.dir>
+    <hibernate.generated.cfg.path>${hibernate.generated.cfg.dir}/hibernate.cfg.xml</hibernate.generated.cfg.path>
+    <hibernate.generated.properties.path>${hibernate.generated.cfg.dir}/hibernate.properties</hibernate.generated.properties.path>
+
+    <hibernate.entities.package>net.sumaris.core.model</hibernate.entities.package>
+
+    <test>AllTests</test>
+
+    <!-- Default implementation -->
+    <env>hsqldb</env>
+  </properties>
+
+  <dependencies>
+
+    <!-- Project dependencies -->
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-core-shared</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-test-shared</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- hibernate, spring... -->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-validator</artifactId>
+    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>org.hibernate</groupId>-->
+      <!--<artifactId>hibernate-hikaricp</artifactId>-->
+    <!--</dependency>-->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-ehcache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-tools</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-search-orm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-search-elasticsearch</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-orm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.querydsl</groupId>
+      <artifactId>querydsl-jpa</artifactId>
+    </dependency>
+
+    <!-- Nuiton-* -->
+    <dependency>
+      <groupId>org.nuiton</groupId>
+      <artifactId>nuiton-config</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuiton.i18n</groupId>
+      <artifactId>nuiton-i18n</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuiton</groupId>
+      <artifactId>nuiton-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+
+    <!-- Logging-->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <!-- Unit test -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.dbunit</groupId>
+      <artifactId>dbunit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/filtered-resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>*.config</include>
+          <include>**/*.properties</include>
+          <include>**/*.xml</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.*</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>target/generated-sources/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.*</include>
+        </includes>
+      </resource>
+    </resources>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <scripts>
+                <script><![CDATA[
+                      import org.reflections.*;
+                      import org.reflections.util.*;
+
+                        ConfigurationBuilder builder = new ConfigurationBuilder();
+                        builder.addUrls(ClasspathHelper.forPackage("${hibernate.entities.package}"));
+                        new org.reflections.Reflections(builder)
+                            .save("${project.build.outputDirectory}/META-INF/reflections/${project.artifactId}-reflections.xml")
+                    ]]></script>
+              </scripts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+     <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <taskdef resource="net/sf/antcontrib/antlib.xml">
+                  <classpath refid="maven.plugin.classpath" />
+                </taskdef>
+
+
+                <echo level="info">Generate Hibernate files [hibernate.cfg.xml] and [hibernate.properties]</echo>
+                <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="generate-hibernate-cfg" inheritRefs="true" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.nuiton.i18n</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+
+        <executions>
+          <execution>
+            <id>scan-sources</id>
+            <configuration>
+              <entries>
+                <entry>
+                  <specificGoal>parserValidation</specificGoal>
+                  <basedir>${maven.src.dir}/main/java/</basedir>
+                  <includes>
+                    <param>**/**-validation.xml</param>
+                  </includes>
+                </entry>
+              </entries>
+            </configuration>
+            <goals>
+              <goal>parserJava</goal>
+              <goal>parserValidation</goal>
+              <goal>gen</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>make-bundle</id>
+            <goals>
+              <goal>bundle</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>hsqldb</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>env</name>
+          <value>hsqldb</value>
+        </property>
+      </activation>
+
+      <properties>
+        <sumaris.persistence.db.directory>target/db</sumaris.persistence.db.directory>
+        <sumaris.persistence.db.name>sumaris</sumaris.persistence.db.name>
+        <jdbc.url>jdbc:hsqldb:file:${sumaris.persistence.db.directory}/${sumaris.persistence.db.name}</jdbc.url>
+        <jdbc.driver.jar>${settings.localRepository}/org/hsqldb/hsqldb/${hsqldb.version}/hsqldb-${hsqldb.version}.jar</jdbc.driver.jar>
+        <jdbc.username>sa</jdbc.username>
+        <jdbc.password />
+        <jdbc.driver>org.hsqldb.jdbcDriver</jdbc.driver>
+        <jdbc.schema>PUBLIC</jdbc.schema>
+        <hibernate.dialect>org.hibernate.dialect.HSQLDialect</hibernate.dialect>
+        <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>org.hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>oracle</id>
+      <activation>
+        <property>
+          <name>env</name>
+          <value>oracle</value>
+        </property>
+      </activation>
+
+      <properties>
+        <jdbc.url>jdbc:oracle:thin:@192.168.0.6:1521:ORCL</jdbc.url>
+        <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc7/${ojdbc7.version}/ojdbc7-${ojdbc7.version}.jar</jdbc.driver.jar>
+        <jdbc.username>SUMARIS_TU</jdbc.username>
+        <jdbc.password>SUMARIS_TU</jdbc.password>
+        <jdbc.schema>SUMARIS_TU</jdbc.schema>
+        <jdbc.driver>oracle.jdbc.driver.OracleDriver</jdbc.driver>
+        <hibernate.dialect>org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect</hibernate.dialect>
+        <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc7</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>pgsql</id>
+      <activation>
+        <property>
+          <name>env</name>
+          <value>pgsql</value>
+        </property>
+      </activation>
+
+      <properties>
+        <jdbc.url>jdbc:postgresql://localhost:5432/sumaris</jdbc.url>
+        <jdbc.driver.jar>${settings.localRepository}/org/postgresql/postgresql/${pgsql.version}/postgresql-${pgsql.version}.jar</jdbc.driver.jar>
+        <jdbc.username>sumaris</jdbc.username>
+        <jdbc.password>sumaris</jdbc.password>
+        <jdbc.schema>sumaris</jdbc.schema>
+        <jdbc.driver>org.postgresql.Driver</jdbc.driver>
+        <hibernate.dialect>org.hibernate.dialect.PostgreSQL9Dialect</hibernate.dialect>
+        <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- To run some reports at release time -->
+    <profile>
+      <id>reporting</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+
+      <properties>
+        <!-- mandatory for hibernate tools hbm2doc -->
+        <jdbc.reporting.schema>SUMARIS</jdbc.reporting.schema>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <dependencies>
+              <!-- need for hibernate tools -->
+              <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-tools</artifactId>
+                <version>${hibernate-tools.version}</version>
+                <exclusions>
+                  <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                  </exclusion>
+                  <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-entitymanager</artifactId>
+                  </exclusion>
+                </exclusions>
+              </dependency>
+              <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>${hibernate.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-entitymanager</artifactId>
+                <version>${hibernate.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-spatial</artifactId>
+                <version>${hibernate.version}</version>
+                <exclusions>
+                  <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                  </exclusion>
+                </exclusions>
+              </dependency>
+              <dependency>
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>${hsqldb.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${slf4j.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>log4j-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>hbm2doc</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <taskdef name="hibernatetool" classname="org.hibernate.tool.ant.HibernateToolTask">
+                      <classpath refid="maven.plugin.classpath" />
+                    </taskdef>
+
+                    <!-- workaround (when no jdbc schema defined) -->
+                    <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;" replace="hibernate.default_schema&quot;&gt;${jdbc.reporting.schema}&lt;" flags="g" byline="false">
+                      <fileset file="${hibernate.generated.cfg.path}" />
+                    </replaceregexp>
+
+                    <hibernatetool destdir="${project.reporting.outputDirectory}/hibernate">
+                      <classpath>
+                       <!-- <path location="${project.build.sourceDirectory}" />-->
+                        <path location="${project.build.outputDirectory}" />
+                      </classpath>
+                      <configuration configurationfile="${hibernate.generated.cfg.path}" />
+                      <hbm2doc />
+                    </hibernatetool>
+
+                    <!-- restore the hibernate.cfg.xml -->
+                    <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;" replace="hibernate.default_schema&quot;&gt;${jdbc.schema}&lt;" flags="g" byline="false">
+                      <fileset file="${hibernate.generated.cfg.path}" />
+                    </replaceregexp>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>de.juplo</groupId>
+            <artifactId>hibernate-maven-plugin</artifactId>
+            <version>2.0.1.IFR</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>${hsqldb.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>com.oracle</groupId>
+                <artifactId>ojdbc7</artifactId>
+                <version>${ojdbc7.version}</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>queries2doc</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>queries2doc</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <scanTestClasses>false</scanTestClasses>
+              <format>true</format>
+              <force>true</force>
+              <hibernateConfig>${hibernate.generated.cfg.path}</hibernateConfig>
+              <hibernateProperties>${hibernate.generated.cfg.dir}/hibernate.properties</hibernateProperties>
+              <outputFile>${project.reporting.outputDirectory}/hibernate/queries/index.html</outputFile>
+              <outputDirectory>${project.reporting.outputDirectory}/hibernate/queries</outputDirectory>
+              <scanClasses>true</scanClasses>
+              <url>${jdbc.url}</url>
+              <username>${jdbc.username}</username>
+              <password>${jdbc.password}</password>
+              <!-- add queries files-->
+              <mappings>
+                ${project.build.outputDirectory}/queries.hbm.xml
+              </mappings>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>run</id>
+
+      <properties>
+        <maven.jar.main.class>net.sumaris.core.InitTests</maven.jar.main.class>
+        <exec.classpathScope>test</exec.classpathScope>
+      </properties>
+    </profile>
+  </profiles>
+</project>
