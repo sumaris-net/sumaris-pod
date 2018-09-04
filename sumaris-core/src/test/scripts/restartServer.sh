@@ -23,8 +23,8 @@ echo "${LOG_PREFIX} Generating new test DB... (log at: ${PROJECT_DIR}/target/bui
 cd "${PROJECT_DIR}"
 PROJECT_DIR=`pwd`
 rm -rf target/db
-#mvn -Prun,hsqldb -DskipTests > target/build.log
 mvn -Prun,hsqldb -DskipTests --quiet
+#mvn -Prun,hsqldb -DskipTests --quiet | grep -P "(WARN|ERROR|FAILURE)"
 if [ $? -ne 0 ]; then
     exit
 fi

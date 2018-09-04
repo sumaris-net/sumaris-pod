@@ -41,19 +41,20 @@ public class UserSettings implements IUpdateDateEntityBean<Integer, Date> {
     @Column(name = "update_date")
     private Date updateDate;
 
+    @Column(name="issuer", nullable = false, unique = true)
+    private String issuer;
+
     @Column(name="locale", nullable = false, length = 10)
     private String locale;
 
     @Column(name="lat_long_format", length = 6)
     private String latLongFormat;
 
-    @Column(name="nonce", nullable = true)
+    @Column(name="nonce")
     private String nonce;
 
-    @Column(name="content", nullable = true, length = 5000)
+    @Column(name="content", length = 5000)
     private String content;
 
-    @Column(name="issuer", nullable = false, unique = true)
-    private String issuer;
 
 }

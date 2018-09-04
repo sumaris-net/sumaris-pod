@@ -197,11 +197,11 @@ public class AccountServiceImpl implements AccountService {
         account = (AccountVO) personDao.save(account);
 
         // Save settings
-        UserSettingsVO settingsVO = account.getSettings();
-        if (settingsVO != null) {
-            settingsVO.setIssuer(account.getPubkey());
-            settingsVO = userSettingsDao.save(settingsVO);
-            account.setSettings(settingsVO);
+        UserSettingsVO settings = account.getSettings();
+        if (settings != null) {
+            settings.setIssuer(account.getPubkey());
+            settings = userSettingsDao.save(settings);
+            account.setSettings(settings);
         }
 
         return account;
@@ -294,13 +294,22 @@ public class AccountServiceImpl implements AccountService {
         }
 
         // Check settings and settings.locale
-        Preconditions.checkNotNull(account.getSettings(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.settings")));
-        Preconditions.checkNotNull(account.getSettings().getLocale(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.settings.locale")));
+        if (account.getSettings() != null) {
+            checkValid(account.getSettings());
 
-        // Check settings issuer
-        if (account.getSettings().getIssuer() != null) {
-            Preconditions.checkArgument(Objects.equals(account.getPubkey(), account.getSettings().getIssuer()), "Bad value for 'settings.issuer' (Should be equals to 'pubkey')");
+            // Check settings issuer
+            if (account.getSettings().getIssuer() != null) {
+                Preconditions.checkArgument(Objects.equals(account.getPubkey(), account.getSettings().getIssuer()), "Bad value for 'settings.issuer' (Should be equals to 'pubkey')");
+            }
         }
+    }
+
+    protected void checkValid(UserSettingsVO settings) {
+        Preconditions.checkNotNull(settings);
+        // Check settings and settings.locale
+        Preconditions.checkNotNull(settings, I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.settings")));
+        Preconditions.checkNotNull(settings.getLocale(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.settings.locale")));
+        Preconditions.checkNotNull(settings.getLatLongFormat(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.settings.latLongFormat")));
     }
 
     private void sendConfirmationLinkByEmail(String toAddress, Locale locale) {
