@@ -1,6 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
+@import "core";
 
-@import "mixins";
 body,
 html {
   padding: 0;
@@ -13,6 +13,115 @@ body {
 
 * {
   @include font-roboto();
+}
+
+// Ionic Font Family
+// --------------------------------------------------
+html.ios {
+  --ion-default-font: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Roboto", sans-serif;
+}
+
+html.md {
+  --ion-default-font: "Roboto", "Helvetica Neue", sans-serif;
+}
+
+html {
+  --ion-font-family: var(--ion-default-font);
+}
+
+// Ionic Colors
+// --------------------------------------------------
+// Generates the color classes and variables based on the
+// colors map
+@mixin generate-color($color-name) {
+  $value: map-get($colors, $color-name);
+  $base: map-get($value, base);
+  $contrast: map-get($value, contrast);
+  $shade: map-get($value, shade);
+  $tint: map-get($value, tint);
+  --ion-color-base: var(--ion-color-#{$color-name}, #{$base}) !important;
+  --ion-color-base-rgb: var(--ion-color-#{$color-name}-rgb, #{color-to-rgb-list($base)}) !important;
+  --ion-color-contrast: var(--ion-color-#{$color-name}-contrast, #{$contrast}) !important;
+  --ion-color-contrast-rgb: var(--ion-color-#{$color-name}-contrast-rgb, #{color-to-rgb-list($contrast)}) !important;
+  --ion-color-shade: var(--ion-color-#{$color-name}-shade, #{$shade}) !important;
+  --ion-color-tint: var(--ion-color-#{$color-name}-tint, #{$tint}) !important;
+}
+
+@each $color-name,
+$value in $colors {
+  .ion-color-#{$color-name} {
+    @include generate-color($color-name);
+  }
+}
+
+*::selection {
+  background: var(--ion-color-shade, rgba(0, 0, 0, 0.3));
+}
+
+// Page Container Structure
+// --------------------------------------------------
+.ion-page {
+  @include position(0, 0, 0, 0);
+  display: flex;
+  position: absolute;
+  flex-direction: column;
+  justify-content: space-between;
+  contain: layout size style;
+  overflow: hidden;
+  z-index: $z-index-page-container;
+}
+
+ion-route,
+ion-route-redirect,
+ion-router,
+ion-animation-controller,
+ion-nav-controller,
+ion-menu-controller,
+ion-action-sheet-controller,
+ion-alert-controller,
+ion-loading-controller,
+ion-modal-controller,
+ion-picker-controller,
+ion-popover-controller,
+ion-toast-controller,
+.ion-page-hidden,
+[hidden] {
+  /* stylelint-disable-next-line declaration-no-important */
+  display: none !important;
+}
+
+.ion-page-invisible {
+  opacity: 0;
+}
+
+// Ionic Safe Margins
+// --------------------------------------------------
+html.plt-ios.plt-hybrid,
+html.plt-ios.plt-pwa {
+  --ion-statusbar-padding: 20px;
+}
+
+html {
+  --ion-safe-area-top: var(--ion-statusbar-padding);
+}
+
+// TODO: remove once Safari 11.2 dies
+@supports (padding-top: constant(safe-area-inset-top)) {
+  html {
+    --ion-safe-area-top: constant(safe-area-inset-top);
+    --ion-safe-area-bottom: constant(safe-area-inset-bottom);
+    --ion-safe-area-left: constant(safe-area-inset-left);
+    --ion-safe-area-right: constant(safe-area-inset-right);
+  }
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  html {
+    --ion-safe-area-top: env(safe-area-inset-top);
+    --ion-safe-area-bottom: env(safe-area-inset-bottom);
+    --ion-safe-area-left: env(safe-area-inset-left);
+    --ion-safe-area-right: env(safe-area-inset-right);
+  }
 }
 
 @media screen and (max-width: $screen-sm-max) {
@@ -76,6 +185,7 @@ body {
     display: none !important;
     visibility: hidden !important;
   }
+
   .visible-lg {
     display: inherit !important;
     visibility: visible !important;
@@ -109,6 +219,7 @@ body {
 }
 
 @media screen and (min-width: $screen-md) {
+
   html,
   body,
   .scroll,
@@ -134,6 +245,7 @@ body {
     ion-back-button {
       display: inline-block !important;
     }
+
     ion-menu-toggle {
       display: none !important;
     }
@@ -151,6 +263,7 @@ ion-menu.menu-side-left {
   .menu-inner {
     .scroll {
       overflow-y: auto !important;
+
       .scroll-inner {
         min-height: auto !important;
       }
@@ -163,6 +276,7 @@ ion-menu.menu-side-left {
 // --------------------------------------------------
 form {
   color: rgba(0, 0, 0, 0.87);
+
   .mat-form-field-disabled,
   .mat-input-element:disabled {
     color: rgba(0, 0, 0, 0.55) !important;
@@ -193,6 +307,7 @@ mat-form-field .mat-paginator-page-size-select {
   .mat-option-text:not(:has(ion-row)) {
     padding: 0 16px;
   }
+
   ion-row,
   .mat-option-text:has(ion-row) {
     padding: 0;
@@ -205,6 +320,7 @@ mat-option:not(:last-child) {
 
 mat-option ion-row {
   padding: 0 !important;
+
   ion-col:not(:first-child) {
     padding-left: 8px !important;
     white-space: nowrap;
@@ -216,6 +332,7 @@ mat-option ion-row {
 .mat-autocomplete-panel {
   font-family: "Roboto", "sans-serif";
   font-size: 12px;
+
   ion-row.mat-autocomplete-header {
     padding: 0 !important;
     color: rgba(0, 0, 0, .54);
@@ -223,6 +340,7 @@ mat-option ion-row {
     height: 20px;
     line-height: 20px;
     border-bottom: 1px solid $lightBorder;
+
     ion-col {
       padding: 0;
       padding-left: 8px !important;
@@ -231,10 +349,13 @@ mat-option ion-row {
       overflow: hidden;
     }
   }
+
   .mat-option {
     padding: 0;
+
     .mat-option-text:has(ion-row) {
       padding: 0 !important;
+
       ion-col {
         padding-left: 8px !important;
         white-space: nowrap;
@@ -252,78 +373,96 @@ mat-table {
   .mat-header-cell {
     //padding-left: 8px;
   }
+
   .mat-header-row,
   .mat-row {
     border-left: 1px solid transparent;
     max-height: 52px;
     padding: 0 !important;
     z-index: 999;
+
     mat-cell:last-child,
     mat-footer-cell:last-child,
     mat-header-cell:last-child {
       padding-right: 8px;
     }
+
     .mat-form-field-disabled,
     .mat-input-element:disabled,
     .mat-form-field-disabled * {
       pointer-events: inherit;
       color: inherit;
+
       .mat-form-field-underline {
         background: none !important;
         display: none;
       }
+
       .mat-select-arrow-wrapper .mat-select-arrow {
         visibility: hidden;
         width: 0;
         border: 0;
       }
     }
+
     .mat-form-field-underline {
       bottom: 9px !important;
     }
+
     .mat-column-select {
       overflow: initial;
       max-width: 50px;
       padding-left: 14px;
     }
+
     .mat-column-id {
       max-width: 50px;
       padding-left: 0px;
     }
+
     .mat-column-comments {
       max-width: 30px;
       padding-left: 0px;
     }
+
     .mat-column-actions {
       max-width: 40px;
       padding-left: 0px;
     }
+
     .mat-cell-date-time {
       min-width: 175px;
       max-width: 200px;
+
       input {
         max-width: 120px;
       }
     }
+
     mat-form-field {
       width: 100%;
+
       .mat-form-field-wrapper {
         padding-bottom: 10px;
       }
+
       .mat-form-field-infix {
         width: auto !important;
         white-space: nowrap; //padding-left: 8px;
         overflow: hidden;
       }
+
       .mat-form-field-infix input {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+
       .mat-form-field-subscript-wrapper {
         margin-top: 0.05rem !important;
       }
     }
+
     mat-cell .avatar {
       color: #d9d9d9;
       background-color: #f8f8f8;
@@ -335,20 +474,25 @@ mat-table {
       display: inline-block;
     }
   }
+
   .mat-row.mat-row-disabled {
     cursor: pointer !important;
+
     * {
       pointer-events: inherit;
     }
   }
+
   .mat-row.mat-row-disabled:hover {
     background-color: ion-color(light100, base);
   }
+
   .mat-row.mat-row-dirty:before {
     content: "*";
     position: absolute;
     padding-left: 8px;
   }
+
   .mat-row.mat-row-error {
     margin-top: -1px;
     border: 2px dashed ion-color(danger, base);
@@ -359,11 +503,16 @@ mat-table {
   flex: 1 1 auto;
 }
 
+ion-toolbar[translucent] {
+  --background: transparent !important;
+}
+
 // --- mat-stepper component
 mat-horizontal-stepper {
   .mat-horizontal-stepper-header-container {
     padding: 0;
   }
+
   .mat-horizontal-content-container {
     padding: 0;
   }
@@ -376,10 +525,12 @@ mat-horizontal-stepper {
       .mat-horizontal-stepper-header {
         padding-left: 5px;
       }
+
       .mat-stepper-horizontal-line {
         display: none;
       }
     }
+
     .mat-horizontal-content-container {
       padding: 0;
     }
@@ -412,40 +563,4 @@ mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
   color: white;
 }
 
-/**
-* Define CSS theme colors
-*/
-
-//@include css-variables-to-root($colors);
-/*:root {
-  --ion-primary-color: $primary;
-  --ion-text-color: #000;
-  --ion-toolbar-text-color: #000;
-}*/
-
-@mixin generate-color($color-name) {
-  $value: map-get($colors, $color-name);
-  $base: map-get($value, base);
-  $contrast: map-get($value, contrast);
-  $shade: map-get($value, shade);
-  $tint: map-get($value, tint);
-  --ion-color-base: var(--ion-color-#{$color-name},
-  #{$base}) !important;
-  --ion-color-base-rgb: var(--ion-color-#{$color-name}-rgb,
-  #{color-to-rgb-list($base)}) !important;
-  --ion-color-contrast: var(--ion-color-#{$color-name}-contrast,
-  #{$contrast}) !important;
-  --ion-color-contrast-rgb: var(--ion-color-#{$color-name}-contrast-rgb,
-  #{color-to-rgb-list($contrast)}) !important;
-  --ion-color-shade: var(--ion-color-#{$color-name}-shade,
-  #{$shade}) !important;
-  --ion-color-tint: var(--ion-color-#{$color-name}-tint,
-  #{$tint}) !important;
-}
-
-@each $color-name,
-$value in $colors {
-  .ion-color-#{$color-name} {
-    @include generate-color($color-name);
-  }
-}
+//@include css-variables-to-root()

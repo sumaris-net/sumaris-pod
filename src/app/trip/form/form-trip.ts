@@ -71,7 +71,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   public async  addVesselModal(): Promise<any> {
     const modal = await this.modalCtrl.create({ component: VesselModal });
-    modal.onDidDismiss(res => {
+    modal.onDidDismiss().then(res => {
       // if new vessel added, use it
       if (res) {
         if (res instanceof VesselFeatures) {

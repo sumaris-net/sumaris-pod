@@ -84,7 +84,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
     if (this.loading) return Promise.resolve();
 
     const modal = await this.modalCtrl.create({ component: VesselModal });
-    modal.onDidDismiss(res => {
+    modal.onDidDismiss().then(res => {
       // if new vessel added, refresh the table
       if (res) this.onRefresh.emit();
     });

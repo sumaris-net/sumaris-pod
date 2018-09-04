@@ -118,7 +118,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     const modal = await this.modalCtrl.create({ component: TripModal });
     // if new trip added, refresh the table
-    modal.onDidDismiss(res => res && this.onRefresh.emit());
+    modal.onDidDismiss().then(res => res && this.onRefresh.emit());
     return modal.present();
   }
 

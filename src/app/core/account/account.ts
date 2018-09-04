@@ -72,7 +72,7 @@ export class AccountPage implements OnDestroy {
   }
 
   onLogin(account: Account) {
-    //console.debug('[account] Logged account: ', account);
+    console.debug('[account] Logged account: ', account);
     this.isLogin = true;
     this.account = account;
     this.email.confirmed = account && account.email && (account.statusId != StatusIds.TEMPORARY);

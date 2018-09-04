@@ -75,8 +75,8 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
         private formBuilder: FormBuilder,
         @Optional() private formGroupDir: FormGroupDirective
     ) {
-        this.touchUi = !platform.is('core');
         this.mobile = this.touchUi && platform.is('mobile');
+        this.touchUi = !platform.is('desktop');
     }
 
     ngOnInit() {

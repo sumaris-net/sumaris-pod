@@ -66,7 +66,7 @@ export abstract class AppForm<T> implements OnInit {
   ) {
 
     this.mobile = platform.is('mobile');
-    this.touchUi = !platform.is('core');
+    this.touchUi = !platform.is('desktop');
     //this.touchUi && console.debug("[form] Enabling touch UI");
   }
 

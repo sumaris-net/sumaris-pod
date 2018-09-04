@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { KeyPair, CryptoService } from "./crypto.service";
-import { Account, Referential } from "./model";
+import { Account, Referential, UserSettings, fromDateISOString, toDateISOString } from "./model";
 import { Subject, Observable, Subscription } from "rxjs-compat";
 import gql from "graphql-tag";
 import { TranslateService } from "@ngx-translate/core";
@@ -307,18 +307,26 @@ export class AccountService extends BaseDataService {
 
     this.data.loaded = false;
 
+
     return this.loadAccount(this.data.pubkey)
       .then((account) => {
         account = account || new Account();
 
         // Default values
         account.avatar = account.avatar || "../assets/img/person.png";
+        account.settings = account.settings || new UserSettings();
         account.settings.locale = account.settings.locale || this.translate.currentLang;
+        account.settings.latLongFormat = account.settings.latLongFormat || 'DDMM';
 
         // Read main profile
         this.data.mainProfile = this.getMainProfile(account.profiles);
 
-        this.data.account = account;
+        if (this.data.account) {
+          account.copy(this.data.account);
+        }
+        else {
+          this.data.account = account;
+        }
         this.data.loaded = true;
         return this.data.account;
       })
@@ -585,9 +593,9 @@ export class AccountService extends BaseDataService {
     }).subscribe({
       next({ data, errors }) {
         if (data && data.updateAccount) {
-          const updateDate = data.updateAccount.updateDate;
-          if (self.data.account && self.data.account.updateDate !== updateDate) {
-            console.debug("[account] [WS] Detected update on {" + updateDate + "}");
+          const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
+          if (existingUpdateDate !== data.updateAccount.updateDate) {
+            console.debug("[account] [WS] Detected update on {" + data.updateDate + "}");
             self.refresh();
           }
         }

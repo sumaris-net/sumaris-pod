@@ -13,9 +13,10 @@ current=`grep -P "version\": \"\d+.\d+.\d+(\w*)" package.json | grep -oP "\d+.\d
 echo "Current version: $current"
 
 ### Get repo URL
-REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "https://github.com/[^/]+/[^/ ]+"`
-REPO=`echo $REMOTE_URL | sed "s/https:\/\/github.com\///g"`
+REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
+REPO=`echo $REMOTE_URL | sed "s/https:\/\/github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
 REPO_URL=https://api.github.com/repos/$REPO
+
 
 ###  get auth token
 GITHUB_TOKEN=`cat ~/.config/sumaris/.github`

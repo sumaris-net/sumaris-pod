@@ -38,14 +38,15 @@ export class AuthGuardService implements CanActivate {
   login(next?: ActivatedRouteSnapshot): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
       let modal = await this.modalCtrl.create({ component: AuthModal, componentProps: { next: next } });
-      modal.onDidDismiss(() => {
-        if (this.accountService.isLogin()) {
-          resolve(true);
-          return;
-        }
-        console.debug("[auth-gard] Authentication cancelled.");
-        resolve(false);
-      });
+      modal.onDidDismiss()
+        .then(() => {
+          if (this.accountService.isLogin()) {
+            resolve(true);
+            return;
+          }
+          console.debug("[auth-gard] Authentication cancelled.");
+          resolve(false);
+        });
       return modal.present();
     });
   }

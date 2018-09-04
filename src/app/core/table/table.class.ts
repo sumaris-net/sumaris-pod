@@ -330,16 +330,17 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         const modal = await this.modalCtrl.create({ component: TableSelectColumnsComponent, componentProps: { columns: columns } });
 
         // On dismiss
-        modal.onDidDismiss(res => {
-            if (!res) return; // CANCELLED
+        modal.onDidDismiss()
+            .then(res => {
+                if (!res) return; // CANCELLED
 
-            // Apply columns
-            var userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
-            this.displayedColumns = fixedColumns.concat(userColumns).concat(['actions']);
+                // Apply columns
+                var userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+                this.displayedColumns = fixedColumns.concat(userColumns).concat(['actions']);
 
-            // Update user settings
-            this.accountService.savePageSetting(this.location.path(true), userColumns, SETTINGS_DISPLAY_COLUMNS);
-        });
+                // Update user settings
+                this.accountService.savePageSetting(this.location.path(true), userColumns, SETTINGS_DISPLAY_COLUMNS);
+            });
         return modal.present();
     }
 
