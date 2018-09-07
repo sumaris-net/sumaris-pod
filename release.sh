@@ -68,13 +68,13 @@ if [[ $2 =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ ]]; then
 
     # Commit
     git reset HEAD
-    git add package.json config.xml src/manifest.json
+    git add package.json config.xml src/manifest.json install.sh
     git commit -m "v$2"
     git tag "v$2"
     git push
 
     # Pause (if propagation is need between hosted git server and github)
-    #sleep 30s
+    sleep 10s
 
     if [[ "_$3" != "_" ]]; then
         echo "**********************************"

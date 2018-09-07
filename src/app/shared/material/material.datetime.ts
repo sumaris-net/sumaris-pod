@@ -36,8 +36,8 @@ const DateFormats = {
 })
 export class MatDateTime implements OnInit, ControlValueAccessor {
     protected writing: boolean = false;
-    protected touchUi: boolean = false;
-    protected mobile: boolean = false;
+    touchUi: boolean = false;
+    mobile: boolean = false;
     private _onChange = (_: any) => { };
     private _onTouched = () => { };
 
