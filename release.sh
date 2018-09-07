@@ -53,7 +53,7 @@ if [[ $2 =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ ]]; then
     echo "----------------------------------"
     echo "- Compiling sources..."
     echo "----------------------------------"
-    #npm run build.prod
+    npm run build.prod
 
     echo "----------------------------------"
     echo "- Creating artefact..."
