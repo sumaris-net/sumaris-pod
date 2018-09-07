@@ -15,6 +15,7 @@ echo "Current version: $current"
 ### Get repo URL
 REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
 REPO=`echo $REMOTE_URL | sed "s/https:\/\/github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
+REPO='sumaris-net/sumaris-app'
 REPO_URL=https://api.github.com/repos/$REPO
 
 
@@ -58,7 +59,7 @@ case "$1" in
         if [[ "_$result" != "_" ]]; then
             error_message=`echo "$result" | grep -P "\"message\": \"[^\"]+" | grep -oP ": \"[^\"]+\""`
             echo "Delete existing release failed with error$error_message"
-            exit 
+            exit 1
         fi
       else 
         echo "Release not exists yet on github."
@@ -68,7 +69,15 @@ case "$1" in
       echo " - tag: v$current"
       echo " - description: $description"
       result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+      
       upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
+
+      if [[ "_$upload_url" = "_" ]]; then
+        echo "Failed to create new release for repo $REPO.
+        echo "Server response:"
+        echo "$result"
+        exit 1;
+      fi
 
       ###  Sending files
       echo "Uploading files to $upload_url"

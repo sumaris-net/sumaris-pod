@@ -19,7 +19,7 @@ latest_version() {
 }
 
 api_release_url() {
-  echo "https://api.github.com/repos/E-IS/sumaris-app/releases/tags/$(latest_version)"
+  echo "https://api.github.com/repos/sumaris-net/sumaris-app/releases/tags/$(latest_version)"
 }
 
 download() {
