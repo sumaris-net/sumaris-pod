@@ -49,11 +49,13 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @Column(name = "creation_date", nullable = false)
+    @Column(name = "creation_date", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
 
-    @Column(name = "update_date")
+    @Version
+    @Basic(optional = false)
+    @Column(name = "update_date", insertable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 

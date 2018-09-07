@@ -30,6 +30,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -83,4 +84,8 @@ public class ImageAttachment implements IRootDataEntity<Integer> {
     @Lob
     @Column(length=20971520, nullable = false)
     private String content;
+
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

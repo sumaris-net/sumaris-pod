@@ -366,13 +366,17 @@ public abstract class HibernateDaoSupport {
     }
 
     protected void lockForUpdate(IEntityBean<?> entity) {
+       lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
+    }
+
+    protected void lockForUpdate(IEntityBean<?> entity, LockModeType modeType) {
         // Lock entityName
-            try {
-                getEntityManager().lock(entity, LockModeType.PESSIMISTIC_WRITE);
-            } catch (LockTimeoutException e) {
-                throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
-                        getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
-            }
+        try {
+            getEntityManager().lock(entity, modeType);
+        } catch (LockTimeoutException e) {
+            throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
+                    getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
+        }
     }
 
     protected void delete(IEntityBean<?> entity) {

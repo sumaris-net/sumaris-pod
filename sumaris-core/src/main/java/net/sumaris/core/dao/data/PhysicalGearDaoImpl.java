@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.data.PhysicalGear;
+import net.sumaris.core.model.data.PhysicalGearMeasurement;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -46,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -66,6 +68,10 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
 
     @Autowired
     private ReferentialDao referentialDao;
+
+    @Autowired
+    private MeasurementDao measurementDao;
+
 
     @Override
     public List<PhysicalGearVO> getPhysicalGearByTripId(int tripId) {
@@ -106,6 +112,19 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
             sourcesToRemove.values().forEach(this::delete);
         }
 
+        // Save measurements on each gears
+        // NOTE: using the savedGear to be sure to get an id
+        result.forEach(savedGear -> {
+            List<MeasurementVO> measurements = Beans.getList(savedGear.getMeasurements());
+            int rankOrder = 1;
+            for (MeasurementVO m: measurements) {
+                fillDefaultProperties(savedGear, m);
+                m.setRankOrder(rankOrder++);
+            }
+            measurements = measurementDao.savePhysicalGearMeasurementByPhysicalGearId(savedGear.getId(), measurements);
+            savedGear.setMeasurements(measurements);
+        });
+
         return result;
     }
 
@@ -125,11 +144,9 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
             entity = new PhysicalGear();
         }
         else {
-            // Check update date
-            checkUpdateDateForUpdate(source, entity);
-
             // Lock entityName
-            lockForUpdate(entity);
+            // TODO: Use an optimistic lock, as we already lock the parent entity
+            //lockForUpdate(entity, LockModeType.OPTIMISTIC);
         }
 
         // VO -> Entity
@@ -249,4 +266,19 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
                 .collect(Collectors.toList());
     }
 
+    void fillDefaultProperties(PhysicalGearVO parent, MeasurementVO measurement) {
+        if (measurement == null) return;
+
+        // Copy recorder department from the parent
+        if (measurement.getRecorderDepartment() == null || measurement.getRecorderDepartment().getId() == null) {
+            measurement.setRecorderDepartment(parent.getRecorderDepartment());
+        }
+        // Copy recorder person from the parent
+        if (measurement.getRecorderPerson() == null || measurement.getRecorderPerson().getId() == null) {
+            measurement.setRecorderPerson(parent.getRecorderPerson());
+        }
+
+        measurement.setPhysicalGearId(parent.getId());
+        measurement.setEntityName(PhysicalGearMeasurement.class.getSimpleName());
+    }
 }

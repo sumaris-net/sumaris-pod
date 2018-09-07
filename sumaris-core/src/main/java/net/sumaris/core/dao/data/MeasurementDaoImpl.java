@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -233,6 +234,10 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         Preconditions.checkNotNull(entityClass);
         Preconditions.checkNotNull(source);
 
+        boolean isEmpty = StringUtils.isBlank(source.getAlphanumericalValue()) && source.getNumericalValue() == null
+                && (source.getQualitativeValue() == null || source.getQualitativeValue().getId() == null);
+        Preconditions.checkArgument(!isEmpty, "Measurement is empty: no value found.");
+
         EntityManager session = getEntityManager();
 
         IMeasurementEntity entity = null;
@@ -250,11 +255,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
 
         if (!isNew) {
-            // Check update date
-            checkUpdateDateForUpdate(source, entity);
-
             // Lock entityName
-            lockForUpdate(entity);
+            // TODO: Use an optimistic lock, as we already lock the parent entity
+            //lockForUpdate(entity, LockModeType.OPTIMISTIC);
         }
 
         // VO -> Entity

@@ -30,6 +30,7 @@ import net.sumaris.core.model.referential.Status;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -87,5 +88,9 @@ public class Department implements IReferentialEntity {
 
     public String toString() {
         return label;
+    }
+
+    public int hashCode() {
+        return Objects.hash(label);
     }
 }
