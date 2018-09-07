@@ -79,7 +79,7 @@ case "$1" in
     browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
     echo " - $browser_download_url"
 
-    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "$dirname/sumaris-core/target/sumaris-db.zip" "$upload_url?name=sumaris-db-$current.zip"`
+    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "$dirname/sumaris-core/target/sumaris-db-$current.zip" "$upload_url?name=sumaris-db-$current.zip"`
     browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
     echo " - $browser_download_url"
 
