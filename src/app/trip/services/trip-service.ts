@@ -197,8 +197,6 @@ subscription changedTrips {
 @Injectable()
 export class TripService extends BaseDataService implements DataService<Trip, TripFilter>{
 
-
-
   constructor(
     protected apollo: Apollo,
     protected accountService: AccountService
@@ -256,6 +254,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
   }
 
   load(id: number): Observable<Trip | null> {
+    if (!id) throw new Error("id should not be null");
     console.debug("[trip-service] Loading trip {" + id + "}...");
 
     return this.watchQuery<{ trip: Trip }>({
@@ -442,7 +441,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
           entity.dirty = false;
 
           // Update measurements
-          if (entity.measurements && savedGear.measurements) {
+          if (savedGear && entity.measurements && savedGear.measurements) {
             entity.measurements.forEach(entity => {
               const savedMeasurement = savedGear.measurements.find(m => entity.equals(m));
               entity.id = savedMeasurement && savedMeasurement.id || entity.id;

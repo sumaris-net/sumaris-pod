@@ -33,14 +33,10 @@ export class ToolbarComponent implements OnInit {
   ) {
   }
 
-  ionViewDidLoad() {
-    console.debug('[toolbar] page loaded');
-  }
-
   ngOnInit() {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
     this.progressBarService.updateProgressBar$.subscribe((mode: string) => {
-      //this.progressBarMode = mode;
+      this.progressBarMode = mode;
     });
   }
 

@@ -2,6 +2,7 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
+import { switchMap } from 'rxjs/operators';
 import { ModalController } from "@ionic/angular";
 import { AuthModal } from "../auth/modal/modal-auth";
 import { AccountService } from "./account.service";
@@ -19,6 +20,12 @@ export class AuthGuardService implements CanActivate {
     state: RouterStateSnapshot
   ): Observable<boolean> | Promise<boolean> | boolean {
 
+    // If account not started: loop after started
+    if (!this.accountService.isStarted()) {
+      return this.accountService.waitStart()
+        .then(() => this.canActivate(next, state) as Promise<boolean>);
+    }
+
     if (!this.accountService.isLogin()) {
       console.debug("[auth-gard] Need authentication for page /" + next.url.join('/'));
       return this.login(next)
@@ -35,7 +42,7 @@ export class AuthGuardService implements CanActivate {
     }
   }
 
-  login(next?: ActivatedRouteSnapshot): Promise<boolean> {
+  async login(next?: ActivatedRouteSnapshot): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
       let modal = await this.modalCtrl.create({ component: AuthModal, componentProps: { next: next } });
       modal.onDidDismiss()

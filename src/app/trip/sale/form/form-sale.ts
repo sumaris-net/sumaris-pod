@@ -65,6 +65,9 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
             );
           }));
     }
+    else {
+      this.form.controls['vesselFeatures'].clearValidators();
+    }
 
     // Combo: sale locations
     this.locations = this.form.controls['saleLocation']

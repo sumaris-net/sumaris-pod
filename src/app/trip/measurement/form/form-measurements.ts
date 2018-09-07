@@ -5,7 +5,7 @@ import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable, Subject } from 'rxjs';
-import { startWith, switchMap, mergeMap, debounceTime } from 'rxjs/operators';
+import { startWith, switchMap, mergeMap, debounceTime, map } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { forkJoin } from "rxjs/observable/forkJoin";
 import { AppForm } from '../../../core/core.module';
@@ -29,12 +29,17 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     private _onAcquisitionLevelChange: EventEmitter<any> = new EventEmitter<any>();
     private _onGearChange: EventEmitter<any> = new EventEmitter<any>();
     private _onMeasurementsChange: EventEmitter<any> = new EventEmitter<any>();
+    private _onPmfmChange: EventEmitter<any> = new EventEmitter<any>();
     private _measurements: Measurement[];
     private _gear: string;
     private _acquisitionLevel: string;
 
     loading: boolean = true;
     pmfms: Observable<PmfmStrategy[]>;
+    cachedPmfms: PmfmStrategy[];
+
+    @Output()
+    valueChanges: EventEmitter<any> = new EventEmitter<any>();
 
     @Input() program: string = environment.defaultProgram;
 
@@ -60,6 +65,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
 
     public set value(measurements: Measurement[]) {
         this._measurements = measurements;
+        //this.loading = true;
         this._onMeasurementsChange.emit();
     }
 
@@ -85,38 +91,46 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         )
             .pipe(
                 startWith({}),
-                mergeMap((any: any) => {
-                    console.debug("[list-measurements] Getting pmfms for program {" + this.program + "}");
+                switchMap((any: any) => {
+                    console.debug("[measurements-" + this._acquisitionLevel + "] Loading PMFM for program {" + this.program + "}...");
+                    //this.cachedPmfms = undefined;
                     return this.referentialService.loadProgramPmfms(
                         this.program,
                         {
-                            acquisitionLevel: this.acquisitionLevel,
+                            acquisitionLevel: this._acquisitionLevel,
                             gear: this._gear
                         });
                 })
             );
 
-        this._onMeasurementsChange
-            .pipe(
-                //startWith({}),
-                mergeMap(measurements => this.pmfms)
-            )
-            .subscribe(pmfms => {
-                pmfms = pmfms || [];
-                if (pmfms.length === 0) {
-                    console.warn("No PMFM to display. Chek if strategy is correct");
-                }
+        // Store pmfms
+        this.pmfms.subscribe(pmfms => {
+            this.cachedPmfms = pmfms || [];
+            if (!pmfms.length) {
+                console.warn("[measurements-" + this._acquisitionLevel + "] No PMFM for program {" + this.program + "} and gear {" + this._gear + "}. Please check strategies in database.");
+            }
+            this._onPmfmChange.emit();
+        });
+
+        // update form
+        merge(
+            this._onPmfmChange,
+            this._onMeasurementsChange
+        )
+            .subscribe(any => {
+                if (!this.cachedPmfms) return; // Pmfm not yet loaded
 
                 // Update the form group
-                console.debug("[list-measurements] Init form with PMFM: ", pmfms);
-                this.measurementValidatorService.updateFormGroup(this.form, pmfms);
+                //console.debug("[measurements] Init form with PMFM: ", pmfms);
+                this.measurementValidatorService.updateFormGroup(this.form, this.cachedPmfms);
 
-                let measurements = (this._measurements || []).filter(m => !!m.id);
+                // Remove not filled measurements
+                let measurements = (this._measurements || []).filter(m => !m.isEmpty());
                 const formValues: any = {};
 
                 // Init form values from PMFMs
                 let rankOrder = 1;
-                this._measurements = pmfms.map(pmfm => {
+                this._measurements = this.cachedPmfms.map(pmfm => {
                     const mIndex = (measurements || []).findIndex(m => m.pmfmId === pmfm.id);
                     let m = mIndex != -1 ? measurements.splice(mIndex, 1)[0] : new Measurement();
                     m.pmfmId = pmfm.id;
@@ -138,13 +152,13 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
                             value = m.alphanumericalValue;
                             break;
                         case "boolean":
-                            value = m.numericalValue === 1 ? true : false;
+                            value = m.numericalValue === 1 ? true : (m.numericalValue === 0 ? false : null);
                             break;
                         case "date":
                             value = m.alphanumericalValue;
                             break;
                         default:
-                            console.error("[list-measurements] Unknown Pmfm type for conversion into form value: " + pmfm.type);
+                            console.error("[measurements-" + this._acquisitionLevel + "] Unknown Pmfm type for conversion into form value: " + pmfm.type);
                             value = null;
                     }
                     // Set the value (convert undefined into null)
@@ -154,32 +168,35 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
 
                 // TODO: keep additionnal measurements, but need to retrieve corresponding PMFM
                 if (measurements.length) {
-                    console.warn("[list-measurement] Some measurments will be remove (no more in strategy):", measurements);
-                    // 
-                    // measurement.rankOrder = rankOrder++;
+                    console.warn("[measurements-" + this._acquisitionLevel + "] Measurements to remove (not in strategy):", measurements);
                 }
 
-                console.debug("[list-measurement] Updating form with: ", formValues);
+                //console.debug("[measurements-" + this._acquisitionLevel + "]  Updating form with: ", formValues);
 
                 // Appply to form
                 this.form.setValue(formValues);
 
                 this.markAsUntouched();
-                this.form.markAsPristine();
+                this.markAsPristine();
 
+                console.debug("[measurements-" + this._acquisitionLevel + "] Updating form finished !");
                 this.loading = false;
             });
 
-        this.form.valueChanges
-            .pipe(
-                debounceTime(300),
-                mergeMap(measurements => this.pmfms)
-            )
-            .subscribe(pmfms => {
-                if (this.loading || !this.form.touched || !pmfms) return;
+        // update value
+        merge(
+            this._onPmfmChange,
+            this.form.valueChanges
+        )
+            // .pipe(
+            //     debounceTime(300)
+            // )
+            .subscribe(any => {
+                if (this.loading || !this.form.touched || !this.cachedPmfms) return;
 
                 // Find dirty pmfms
-                pmfms = pmfms.filter(pmfm => this.form.controls['' + pmfm.id].dirty);
+                const pmfms = this.cachedPmfms.filter(pmfm => this.form.controls['' + pmfm.id].dirty);
+                if (!pmfms.length) return;
 
                 // Update measurements value
                 this._measurements.forEach(m => {
@@ -202,11 +219,13 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
                                 m.numericalValue = (value === true || value === "true") ? 1 : 0;
                                 break;
                             default:
-                                console.error("[list-measurements] Unknown Pmfm type, to fill measruement value: " + pmfm.type);
+                                console.error("[measurements-" + this._acquisitionLevel + "]  Unknown Pmfm type, to fill measruement value: " + pmfm.type);
                                 return null;
                         }
                     }
                 });
+
+                this.valueChanges.emit(this._measurements);
             })
     }
 

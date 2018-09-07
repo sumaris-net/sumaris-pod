@@ -1,20 +1,23 @@
-<ion-content padding 
-             class="bg-image-cover center"
-             [ngStyle]="{'background-image': 'url('+bgImage+')'}">
+<ion-content padding class="bg-image-cover center" [ngStyle]="{'background-image': 'url('+bgImage+')'}">
 
   <p class="hidden-xs">&nbsp;</p>
 
   <div class="main-content">
 
-    <div >
+    <div>
       <h4 *ngIf="loading">
         <span translate>REGISTER.CONFIRMED.LOADING_TITLE</span>
       </h4>
 
       <p *ngIf="loading">
         <ion-spinner></ion-spinner>
-      </p>      
-      <p ion-text color="danger" *ngIf="error && !loading" [innerHTML]="error|translate"></p>
+      </p>
+
+      <!-- error -->
+      <ion-item *ngIf="error && !loading">
+        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+      </ion-item>
     </div>
 
     <div *ngIf="!loading && !error">
@@ -23,13 +26,13 @@
         <span translate>REGISTER.CONFIRMED.TITLE</span>
       </h4>
 
-      <p ion-text [innerHTML]="'REGISTER.CONFIRMED.SUCCESS_MESSAGE'|translate: {email: email}"></p>    
+      <p ion-text [innerHTML]="'REGISTER.CONFIRMED.SUCCESS_MESSAGE'|translate: {email: email}"></p>
 
-      <p ion-text *ngIf="!isLogin" [innerHTML]="'REGISTER.CONFIRMED.LOGIN_HELP'|translate"></p>    
+      <p ion-text *ngIf="!isLogin" [innerHTML]="'REGISTER.CONFIRMED.LOGIN_HELP'|translate"></p>
 
-      <br/>
+      <br />
       <div>
-        
+
         <button ion-button icon-left full color="primary" [routerLink]="['/trips']" *ngIf="!isLogin && !loading">
           <ion-icon name="log-in"></ion-icon>
           <span translate>AUTH.BTN_LOGIN</span>
@@ -39,7 +42,7 @@
           <ion-icon name="contact"></ion-icon>
           <span translate>HOME.BTN_MY_ACCOUNT</span>
         </button>
-        
+
       </div>
     </div>
   </div>

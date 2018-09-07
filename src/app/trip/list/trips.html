@@ -19,14 +19,14 @@
       class="hidden-xs hidden-sm">
       <mat-icon>delete</mat-icon>
     </button>
-    <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
+    <!-- <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
       class="hidden-xs hidden-sm" [disabled]="dirty" #inlineEditionBtn>
       <mat-icon>edit</mat-icon>
-    </mat-button-toggle>
+    </mat-button-toggle> -->
 
     <ion-item *ngIf="error" hidden-xs hidden-sm>
       <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
     <div class="toolbar-spacer"></div>
@@ -88,7 +88,7 @@
   <!-- error -->
   <ion-item *ngIf="error" visible-xs visible-sm>
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <mat-table #table [dataSource]="dataSource" matSort matSortActive="departureDateTime" matSortDirection="asc"

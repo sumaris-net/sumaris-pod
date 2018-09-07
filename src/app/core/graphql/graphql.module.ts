@@ -70,7 +70,7 @@ export class AppGraphQLModule {
     console.info("[app] Creating apollo module...");
 
     // TODO: auth
-    //const token = localStorage.get(GC_AUTH_TOKEN);
+    //const token = storage.get(GC_AUTH_TOKEN);
     //const authorization = token ? `Bearer ${token}` : null;
     //const headers = new HttpHeaders().append('Authorization', authorization);
 
@@ -83,7 +83,7 @@ export class AppGraphQLModule {
         reconnect: true
         /*,
         connectionParams: {
-          authToken: localStorage.getItem(GC_AUTH_TOKEN),
+          authToken: storage.get(GC_AUTH_TOKEN),
         }*/
       },
       webSocketImpl: AppWebSocket

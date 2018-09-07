@@ -76,13 +76,17 @@ export class BaseDataService {
     //this.apollo.getClient().cache.reset();
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
-      variables: opts.variables
+      variables: opts.variables,
+      fetchPolicy: 'network-only',
+      notifyOnNetworkStatusChange: true
     })
       .valueChanges
+      .catch(error => this.onApolloError<T>(error))
       .pipe(
         map(({ data, errors }) => {
           if (errors) {
-            if (errors[0].message == "ERROR.UNKNOWN_NETWORK_ERROR") {
+            var error = errors[0];
+            if (error.message === "ERROR.UNKNOWN_NETWORK_ERROR") {
               throw {
                 code: ErrorCodes.UNKNOWN_NETWORK_ERROR,
                 message: "ERROR.UNKNOWN_NETWORK_ERROR"
@@ -189,10 +193,11 @@ export class BaseDataService {
   private onApolloError<T>(err: any): Observable<ApolloQueryResult<T>> {
     let result: ApolloQueryResult<T>;
     if (err && err.networkError) {
-      console.error("[base-service] " + err.networkError.message);
+      console.error("[network] " + err.networkError.message);
+      err.message = "ERROR.UNKNOWN_NETWORK_ERROR";
       result = {
         data: null,
-        //errors: [new GraphQLError("ERROR.UNKNOWN_NETWORK_ERROR")],
+        errors: [err],
         loading: false,
         networkStatus: err.networkStatus,
         stale: err.stale
@@ -200,7 +205,6 @@ export class BaseDataService {
     }
     else {
       if (err instanceof ApolloError) {
-        //let err2 = err as ApolloError;
         result = {
           data: null,
           errors: err.graphQLErrors,
@@ -213,16 +217,4 @@ export class BaseDataService {
     return Observable.of(result);
   }
 
-  private onApolloError2<T>(err: any): Observable<T> {
-    let result: T;
-    if (err && err.networkError) {
-      console.error("[base-service] " + err.networkError.message);
-      //throw new GraphQLError("ERROR.UNKNOWN_NETWORK_ERROR");
-      throw new Error("ERROR.UNKNOWN_NETWORK_ERROR");
-    }
-    else {
-      //throw err as GraphQLError;
-      throw err;
-    }
-  }
 }

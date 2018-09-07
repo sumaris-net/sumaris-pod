@@ -172,9 +172,18 @@
       "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées."
     },
     "PHYSICAL_GEAR": {
-      "GEAR": "Engin",
       "COMMENTS": "Commentaires",
-      "RANK_ORDER": "#"
+      "RANK_ORDER": "#",
+      "EDIT": {
+        "TITLE": "Engin #",
+        "GEAR": "Code de l'engin",
+        "FEATURES": "Caractéristiques physiques :"
+      },
+      "LIST": {
+        "SELECT_ROW_HELP": "Sélectionnez une ligne pour l'éditer",
+        "GEAR": "Engin",
+        "COMMENTS": "Commentaires"
+      }
     },
     "OPERATION": {
       "COMMENTS": "Commentaires",
@@ -315,8 +324,10 @@
     "FIELD_TOO_SHORT_WITH_LENGTH": "Valeur trop courte ({{minLength}} caractères min)",
     "FIELD_TOO_LONG": "Valeur trop longue",
     "FIELD_TOO_LONG_WITH_LENGTH": "Valeur trop longue ({{maxLength}} caractères max)",
-    "FIELD_MIN": "Valeur minimale : {{min}}",
-    "FIELD_MAX": "Valeur maximale : {{max}}",
+    "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
+    "FIELD_MAX": "La valeur maximale autorisée est {{max}}",
+    "FIELD_MAXIMUM_DECIMALS": "Le nombre de décimale max est de {{max}}",
+    "FIELD_INVALID": "Valeur non valide",
     "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
     "FIELD_NOT_VALID_DATE_TIME": "Date/heure invalide",
@@ -327,10 +338,10 @@
     "UNKNOWN_ACCOUNT_EMAIL": "Aucun compte ne correspond à cet email.",
     "BAD_PASSWORD": "Mot de passe incorrect.",
     "EMAIL_ALREADY_REGISTERED": "Email déjà enregistrée",
-    "UNKNOWN_NETWORK_ERROR": "Erreur de communication avec le serveur.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
-    "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
-    "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
-    "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Erreur d'envoi de l'email de confirmation du compte.<br/>Si le problème persiste, veuillez contacter votre administrateur.",
+    "UNKNOWN_NETWORK_ERROR": "Erreur de communication avec le serveur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Erreur d'envoi de l'email de confirmation du compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Erreur lors de la confirmation de l'email. Ce compte a peut-être déjà été confirmé ?",
     "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur"
   }

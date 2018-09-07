@@ -11,8 +11,13 @@ import { MeasurementsForm } from './measurement/form/form-measurements';
 import { MeasurementsValidatorService } from './measurement/validator/validators';
 import { MatQualitativeValueField } from './measurement/field/material.qv-field';
 
-import { PhysicalGearForm } from './physicalGear/form/form-physical-gear';
+
 import { TripValidatorService } from './validator/validators';
+
+import { PhysicalGearForm } from './physicalGear/form/form-physical-gear';
+import { PhysicalGearTable } from './physicalGear/table/table-physical-gears';
+import { PhysicalGearValidatorService } from './physicalGear/validator/validators';
+
 import { SaleValidatorService } from './sale/validator/validators';
 import { PositionValidatorService } from './position/validator/validators';
 
@@ -22,7 +27,6 @@ import { OperationService } from './services/operation-service';
 import { OperationValidatorService } from './operation/validator/validators';
 import { TripModal } from './modal/modal-trip';
 import { IonicModule } from '@ionic/angular';
-import { PhysicalGearValidatorService } from './physicalGear/validator/validators';
 
 @NgModule({
     imports: [
@@ -37,6 +41,7 @@ import { PhysicalGearValidatorService } from './physicalGear/validator/validator
         TripModal,
         SaleForm,
         PhysicalGearForm,
+        PhysicalGearTable,
         OperationForm,
         OperationPage,
         OperationTable,
@@ -50,6 +55,7 @@ import { PhysicalGearValidatorService } from './physicalGear/validator/validator
         TripModal,
         SaleForm,
         PhysicalGearForm,
+        PhysicalGearTable,
         OperationForm,
         OperationPage,
         OperationTable,
@@ -60,6 +66,7 @@ import { PhysicalGearValidatorService } from './physicalGear/validator/validator
         TripsPage,
         TripPage,
         TripModal,
+        PhysicalGearTable,
         OperationTable,
         OperationPage,
         MeasurementsForm,

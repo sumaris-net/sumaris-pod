@@ -118,6 +118,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     super();
     this.departureLocation = new Referential();
     this.returnLocation = new Referential();
+    this.measurements = [];
   }
 
   clone(): Trip {
@@ -152,8 +153,8 @@ export class Trip extends DataRootVesselEntity<Trip> {
       this.sale = new Sale();
       this.sale.fromObject(source.sale);
     };
-    this.gears = source.gears && source.gears.map(PhysicalGear.fromObject) || undefined;
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || undefined;
+    this.gears = source.gears && source.gears.filter(g => !!g).map(PhysicalGear.fromObject) || undefined;
+    this.measurements = source.measurements && source.measurements.filter(m => !!m).map(Measurement.fromObject) || undefined;
     return this;
   }
 
@@ -186,6 +187,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
   constructor() {
     super();
     this.gear = new Referential();
+    this.measurements = [];
   }
 
   clone(): PhysicalGear {
@@ -283,6 +285,12 @@ export class Measurement extends DataEntity<Measurement> {
         (this.pmfmId && other.pmfmId && this.rankOrder === other.rankOrder)
       );
   }
+
+  isEmpty(): boolean {
+    return !this.alphanumericalValue
+      && this.numericalValue === undefined
+      && !(this.qualitativeValue && this.qualitativeValue.id)
+  }
 }
 
 export class Sale extends DataRootVesselEntity<Sale> {
@@ -357,6 +365,7 @@ export class Operation extends DataEntity<Operation> {
     this.startPosition = new VesselPosition();
     this.endPosition = new VesselPosition();
     this.physicalGear = new PhysicalGear();
+    this.measurements = [];
   }
 
   clone(): Operation {

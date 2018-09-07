@@ -1,10 +1,11 @@
 import { Injectable } from "@angular/core";
 import { KeyPair, CryptoService } from "./crypto.service";
-import { Account, Referential, UserSettings, fromDateISOString, toDateISOString } from "./model";
-import { Subject, Observable, Subscription } from "rxjs-compat";
+import { Account, Referential, UserSettings, toDateISOString } from "./model";
+import { Subject, Subscription } from "rxjs-compat";
 import gql from "graphql-tag";
 import { TranslateService } from "@ngx-translate/core";
 import { Apollo } from "apollo-angular";
+import { Storage } from '@ionic/storage';
 
 import { BaseDataService } from "./data-service.class";
 import { ErrorCodes } from "./errors";
@@ -142,7 +143,8 @@ export class AccountService extends BaseDataService {
     localSettings: null
   };
 
-  private subscriptionSeq: number = 0;
+  private _startPromise: Promise<any>;
+  private _started: boolean = false;
 
   public onLogin: Subject<Account> = new Subject<Account>();
   public onLogout: Subject<any> = new Subject<any>();
@@ -154,15 +156,17 @@ export class AccountService extends BaseDataService {
   constructor(
     protected apollo: Apollo,
     private translate: TranslateService,
-    private cryptoService: CryptoService
+    private cryptoService: CryptoService,
+    private storage: Storage
   ) {
     super(apollo);
 
     this.resetData();
 
     // Restoring local settings
-    this.restoreLocally()
+    this._startPromise = this.restoreLocally()
       .then((account) => {
+        this._started = true;
         if (account) this.onLogin.next(this.data.account);
       });
   }
@@ -174,6 +178,15 @@ export class AccountService extends BaseDataService {
     this.data.mainProfile = null;
     this.data.account = new Account();
     this.data.localSettings = null;
+  }
+
+  public isStarted(): boolean {
+    return this._started;
+  }
+
+  public waitStart(): Promise<void> {
+    if (this._started) return Promise.resolve();
+    return this._startPromise;
   }
 
   public isLogin(): boolean {
@@ -342,28 +355,28 @@ export class AccountService extends BaseDataService {
       });
   }
 
-  public async restoreLocally(): Promise<Account> {
+  public async restoreLocally(): Promise<Account | undefined> {
 
     // Restore local settings
-    let settingsStr = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    let settingsStr = await this.storage.get(SETTINGS_STORAGE_KEY);
     this.data.localSettings = settingsStr && JSON.parse(settingsStr) || {};
 
-    let pubkey = window.localStorage.getItem(PUBKEY_STORAGE_KEY);
-    if (!pubkey) return Promise.resolve(undefined);
+    let pubkey = await this.storage.get(PUBKEY_STORAGE_KEY);
+    if (!pubkey) return;
 
     console.debug("[account] Restoring account {" + pubkey.substr(0, 6) + "}'...");
     this.data.pubkey = pubkey;
 
     // Get account from local storage
-    let accountStr = window.localStorage.getItem(ACCOUNT_STORAGE_KEY);
-    if (!accountStr) return undefined;
+    let accountStr = await this.storage.get(ACCOUNT_STORAGE_KEY);
+    if (!accountStr) return;
 
     let accountObj: any = JSON.parse(accountStr);
-    if (!accountObj) return undefined;
+    if (!accountObj) return;
 
     let account = new Account();
     account.fromObject(accountObj);
-    if (account.pubkey != pubkey) return undefined;
+    if (account.pubkey != pubkey) return;
 
     this.data.account = account;
     this.data.mainProfile = this.getMainProfile(account.profiles);
@@ -375,19 +388,17 @@ export class AccountService extends BaseDataService {
   /** 
   * Save account into the local storage
   */
-  public saveLocally(): Promise<void> {
+  public async saveLocally(): Promise<void> {
     if (!this.data.pubkey) return Promise.reject("User not logged");
 
     console.debug("[account] Saving account {" + this.data.pubkey.substring(0, 6) + "} in local storage...");
 
-    return new Promise((resolve) => {
-      window.localStorage.setItem(PUBKEY_STORAGE_KEY, this.data.pubkey);
-
-      let copy = this.data.account.asObject();
-      window.localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(copy));
-      //console.debug("[account] Account saved in local storage");
-      resolve();
-    });
+    let copy = this.data.account.asObject();
+    await Promise.all([
+      this.storage.set(PUBKEY_STORAGE_KEY, this.data.pubkey),
+      this.storage.set(ACCOUNT_STORAGE_KEY, JSON.stringify(copy))
+    ]);
+    //console.debug("[account] Account saved in local storage");
   }
 
   /**
@@ -395,46 +406,44 @@ export class AccountService extends BaseDataService {
    * @param account 
    * @param keyPair 
    */
-  public saveRemotely(account: Account): Promise<Account> {
+  public async saveRemotely(account: Account): Promise<Account> {
     if (!this.data.pubkey) return Promise.reject("User not logged");
     if (this.data.pubkey != account.pubkey) return Promise.reject("Not user account");
 
     console.debug("[account] Saving account {" + account.pubkey.substring(0, 6) + "} remotely...");
     let now = new Date
 
-    return this.saveAccount(account, this.data.keypair)
-      .then(updatedAccount => {
-        console.debug("[account] Account remotely saved in " + (new Date().getTime() - now.getTime()) + "ms");
+    const updateAccount = await this.saveAccount(account, this.data.keypair);
+    console.debug("[account] Account remotely saved in " + (new Date().getTime() - now.getTime()) + "ms");
 
-        // Default values
-        account.avatar = account.avatar || "../assets/img/person.png";
-        this.data.mainProfile = this.getMainProfile(account.profiles);
+    // Set default values
+    account.avatar = account.avatar || "../assets/img/person.png";
+    this.data.mainProfile = this.getMainProfile(account.profiles);
 
-        this.data.account = account;
-        this.data.loaded = true;
+    this.data.account = account;
+    this.data.loaded = true;
+    // Save locally (in storage)
+    await this.saveLocally();
 
+    // Send event
+    this.onLogin.next(this.data.account);
 
-        return this.saveLocally();
-      })
-      .then(() => {
-        this.onLogin.next(this.data.account);
-        return this.data.account;
-      });
+    return this.data.account;
   }
 
-  public logout(): Promise<void> {
+  public async logout(): Promise<void> {
     this.resetData();
 
-    window.sessionStorage.removeItem(SECKEY_STORAGE_KEY);
-    window.localStorage.removeItem(PUBKEY_STORAGE_KEY);
-    window.localStorage.removeItem(ACCOUNT_STORAGE_KEY);
+    await Promise.all([
+      this.storage.remove(SECKEY_STORAGE_KEY),
+      this.storage.remove(PUBKEY_STORAGE_KEY),
+      this.storage.remove(ACCOUNT_STORAGE_KEY)
+    ]);
 
     // Clear cache
     this.apollo.getClient().cache.reset();
 
     this.onLogout.next();
-
-    return Promise.resolve();
   }
 
   /**
@@ -649,15 +658,12 @@ export class AccountService extends BaseDataService {
 
   private storeLocalSettings(): Promise<any> {
     console.debug("[account] Store local settings", this.data.localSettings);
-    return new Promise((resolve) => {
-      if (!this.data.localSettings) {
-        window.localStorage.removeItem(SETTINGS_STORAGE_KEY);
-      }
-      else {
-        const settingsStr = JSON.stringify(this.data.localSettings);
-        window.localStorage.setItem(SETTINGS_STORAGE_KEY, settingsStr);
-      }
-      resolve();
-    });
+    if (!this.data.localSettings) {
+      return this.storage.remove(SETTINGS_STORAGE_KEY);
+    }
+    else {
+      const settingsStr = JSON.stringify(this.data.localSettings);
+      return this.storage.set(SETTINGS_STORAGE_KEY, settingsStr);
+    }
   }
 }

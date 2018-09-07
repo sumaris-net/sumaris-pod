@@ -42,8 +42,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
         this.onLoading.emit(false);
         this.updateDatasource(rows);
         return rows
-      },
-        err => this.handleError(err, 'Unable to load rows'))
+      })
+      .catch(err => this.handleError(err, 'Unable to load rows'))
       ;
   }
 
@@ -117,11 +117,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   protected getRows(): Promise<TableElement<T>[]> {
     return new Promise<TableElement<T>[]>((resolve, reject) => {
-      var subscription = this.connect().first().subscribe(rows => {
+      this.connect().first().subscribe(rows => {
         resolve(rows);
-        if (subscription) {
-          subscription.unsubscribe();
-        }
       });
     });
   }

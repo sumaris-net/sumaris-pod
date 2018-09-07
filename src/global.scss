@@ -563,4 +563,19 @@ mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
   color: white;
 }
 
-//@include css-variables-to-root()
+// --------------------------------------------------
+// Pages
+// --------------------------------------------------
+ion-item {
+  ion-label.error {
+    line-height: 16px;
+    line-break: normal;
+    overflow: visible;
+    white-space: normal;
+  }
+}
+
+// --------------------------------------------------
+// Theme colors override // Not need, as ionic theme are already override
+// --------------------------------------------------
+@include css-variables-to-root();

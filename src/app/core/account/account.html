@@ -3,7 +3,11 @@
 
 <ion-content>
 
-  <p padding-left ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></p>
+  <!-- error -->
+  <ion-item *ngIf="error">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
 
   <form [formGroup]="form" novalidate (ngSubmit)="doSave($event, form.value)">
 
@@ -29,8 +33,8 @@
 
               <!-- Email -->
               <mat-form-field>
-                <input matInput [appAutofocus]="true" [autofocusDelay]="500" [placeholder]="'USER.EMAIL'|translate" formControlName="email"
-                  autocomplete="section-red email">
+                <input matInput [appAutofocus]="true" [autofocusDelay]="500" [placeholder]="'USER.EMAIL'|translate"
+                  formControlName="email" autocomplete="section-red email">
                 <mat-error *ngIf="form.controls.email.hasError('required') && form.controls.email.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
                 <mat-error *ngIf="form.controls.email.hasError('email') && form.controls.email.dirty">
                   <span>{{'ERROR.FIELD_NOT_VALID_EMAIL' | translate }}</span>
@@ -70,7 +74,8 @@
               <mat-form-field>
                 <input matInput [placeholder]="'USER.LAST_NAME'|translate" formControlName="lastName" autocomplete="section-blue family-name"
                   required>
-                <mat-error *ngIf="form.controls.lastName.hasError('required') && form.controls.lastName.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
+                <mat-error *ngIf="form.controls.lastName.hasError('required') && form.controls.lastName.dirty"
+                  translate>ERROR.FIELD_REQUIRED</mat-error>
                 <mat-error *ngIf="form.controls.lastName.hasError('minlength') && form.controls.lastName.dirty">
                   <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
                 </mat-error>
@@ -80,7 +85,8 @@
               <mat-form-field>
                 <input matInput [placeholder]="'USER.FIRST_NAME'|translate" formControlName="firstName" autocomplete="section-blue given-name"
                   required>
-                <mat-error *ngIf="form.controls.firstName.hasError('required') && form.controls.firstName.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
+                <mat-error *ngIf="form.controls.firstName.hasError('required') && form.controls.firstName.dirty"
+                  translate>ERROR.FIELD_REQUIRED</mat-error>
                 <mat-error *ngIf="form.controls.firstName.hasError('minlength') && form.controls.firstName.dirty">
                   <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
                 </mat-error>
@@ -119,12 +125,14 @@
                     {{localeMap[locale]}}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="settingsForm.controls.locale.hasError('required') && settingsForm.controls.locale.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
+                <mat-error *ngIf="settingsForm.controls.locale.hasError('required') && settingsForm.controls.locale.dirty"
+                  translate>ERROR.FIELD_REQUIRED</mat-error>
               </mat-form-field>
 
               <!-- lat/long format-->
               <mat-form-field>
-                <mat-select [placeholder]="'ACCOUNT.SETTINGS.LAT_LONG_FORMAT'|translate" formControlName="latLongFormat" required>
+                <mat-select [placeholder]="'ACCOUNT.SETTINGS.LAT_LONG_FORMAT'|translate" formControlName="latLongFormat"
+                  required>
                   <mat-option *ngFor="let latLongFormat of latLongFormats" [value]="latLongFormat">
                     {{'COMMON.'+latLongFormat+'_PLACEHOLDER'|translate}}
                   </mat-option>

@@ -51,7 +51,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   ) {
     super(route, router, platform, location, modalCtrl, accountService, operationValidatorService,
       new AppTableDataSource<Operation, OperationFilter>(Operation, operationService, operationValidatorService),
-      ['select', 'id',
+      ['select',
         'metier',
         'startDateTime',
         'startPosition',

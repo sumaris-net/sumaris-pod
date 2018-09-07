@@ -1,0 +1,20 @@
+@import 'core';
+
+.mat-table {
+  .mat-column-rankOrder {
+    max-width: 100px;
+  }
+
+  .mat-row-selected {
+    background-color: $light100;
+  }
+}
+
+.ion-row.hidden {
+  visibility: hidden;
+  display: none;
+}
+
+ion-card {
+  background-color: $toolbar-background-color;
+}

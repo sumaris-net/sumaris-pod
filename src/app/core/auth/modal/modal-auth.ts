@@ -22,17 +22,18 @@ export class AuthModal {
     this.viewCtrl.dismiss();
   }
 
-  doSubmit(): Promise<any> | void {
+  async doSubmit(): Promise<any> {
     if (!this.form.valid) return;
     this.loading = true;
 
-    return this.accountService.login(this.form.value)
-      .then((account) => {
-        this.viewCtrl.dismiss(account);
-      })
-      .catch(err => {
-        this.loading = false;
-        this.form.error = err && err.message || err;
-      });
+    try {
+      const account = await this.accountService.login(this.form.value);
+      return this.viewCtrl.dismiss(account);
+    }
+    catch (err) {
+      this.loading = false;
+      this.form.error = err && err.message || err;
+      return;
+    };
   }
 }

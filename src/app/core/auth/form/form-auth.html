@@ -1,5 +1,11 @@
 <form [formGroup]="form" novalidate (ngSubmit)="doSubmit($event, form.value)" padding>
 
+  <!-- error -->
+  <ion-item *ngIf="error && !loading">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
   <!-- Username -->
   <mat-form-field>
     <input matInput [appAutofocus]="true" [autofocusDelay]="500" [placeholder]="'USER.EMAIL'|translate" formControlName="username"
@@ -17,12 +23,10 @@
     <mat-error *ngIf="form.controls.password.hasError('required') && form.controls.password.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
   </mat-form-field>
 
-  <p ion-text color="danger" *ngIf="error && !loading" [innerHTML]="error|translate"></p>
-
   <!-- Not register yet ? -->
   <p class="padding" style="text-align: center;">
     <span translate>AUTH.NO_ACCOUNT_QUESTION</span>
-    <br/>
+    <br />
     <a href="#" (click)="register()">
       <span translate>AUTH.BTN_REGISTER</span>
     </a>

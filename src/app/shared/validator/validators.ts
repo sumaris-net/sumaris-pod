@@ -24,4 +24,15 @@ export class SharedValidators {
       return { validLongitude: true };
   }
 
+  static object(control: FormControl): ValidationErrors | null {
+    const value = control.value;
+    if (value && typeof value != 'object')
+      return { object: true };
+  }
+
+  static entity(control: FormControl): ValidationErrors | null {
+    const value = control.value;
+    if (value && typeof value != 'object' && value.id == undefined)
+      return { entity: true };
+  }
 }

@@ -4,7 +4,8 @@
 
 <ion-content>
 
-  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [disableRipple]="true" dynamicHeight>
+  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [disableRipple]="true"
+    dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
@@ -13,13 +14,14 @@
           <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="tripForm.invalid && tripForm.dirty"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid)"></ion-icon>
+
       </ng-template>
 
       <!-- error -->
       <ion-item *ngIf="tripForm.error" visible-xs visible-sm>
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-        <ion-label color="danger" [innerHTML]="tripForm.error|translate"></ion-label>
+        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
       </ion-item>
 
       <ion-grid no-padding>
@@ -30,7 +32,8 @@
             <form-trip (onSubmit)="save($event)" #tripForm subForm>
 
               <!-- sale -->
-              <form-sale [showVessel]="false" [showComment]="false" [showEndDateTime]="false" [required]="false" #saleForm>
+              <form-sale [showVessel]="false" [showComment]="false" [showEndDateTime]="false" [required]="false"
+                #saleForm>
               </form-sale>
 
               <!-- Measurements -->
@@ -59,24 +62,20 @@
           <ion-icon matPrefix slot="start" name="settings"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="gearForm.invalid && gearForm.dirty"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="physicalGearTable.invalid && physicalGearTable.dirty"></ion-icon>
       </ng-template>
 
-      <ion-grid no-padding>
+      <div no-padding>
 
-        <ion-row no-padding>
-          <ion-col padding>
+        <!-- error -->
+        <ion-item *ngIf="physicalGearTable.error" visible-xs visible-sm>
+          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="physicalGearTable.error|translate"></ion-label>
+        </ion-item>
 
-            <!-- physical gear -->
-            <form-physical-gear (onSubmit)="save($event)" #gearForm>
-            </form-physical-gear>
-          </ion-col>
-
-          <ion-col no-padding size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3">
-
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+        <table-physical-gears #physicalGearTable>
+        </table-physical-gears>
+      </div>
     </mat-tab>
 
     <!-- TAB: operations -->
@@ -86,7 +85,7 @@
           <ion-icon matPrefix slot="start" name="locate"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_OPERATIONS</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="this.operationTable.error"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="operationTable.invalid && operationTable.dirty"></ion-icon>
       </ng-template>
 
       <div no-padding>
@@ -99,5 +98,14 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm>
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading "></form-buttons-bar>
+
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading ">
+
+    <!-- error -->
+    <ion-item *ngIf="error">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </form-buttons-bar>
 </ion-footer>

@@ -1,26 +1,38 @@
-import { Component, Optional, Input, EventEmitter, OnInit, forwardRef, ViewChild } from '@angular/core';
+import { Component, Optional, Input, EventEmitter, OnInit, forwardRef, ViewChild, ElementRef } from '@angular/core';
 import { DateFormatPipe } from '../pipes/date-format.pipe';
 import { Platform } from '@ionic/angular';
-import { MatFormFieldControl, DateAdapter, MatDatepicker, MatFormField } from '@angular/material';
+import { MatFormFieldControl, DateAdapter, MatDatepicker, MatDatepickerInputEvent, MatFormField, MatDateFormats } from '@angular/material';
 import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor, ValidationErrors } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 import { Moment } from 'moment/moment';
 import * as moment from 'moment/moment';
-import { DATE_ISO_PATTERN } from '../constants';
+import { DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR } from '../constants';
 import { merge } from "rxjs/observable/merge";
 import { SharedValidators } from '../validator/validators';
+
+export const DEFAULT_VALUE_ACCESSOR: any = {
+    provide: NG_VALUE_ACCESSOR,
+    useExisting: forwardRef(() => MatDateTime),
+    multi: true
+};
+
+const DateFormats = {
+    parse: {
+        dateInput: DATE_ISO_PATTERN,
+    },
+    display: {
+        dateInput: 'L',
+        monthYearLabel: 'MMM YYYY',
+        dateA11yLabel: 'LL',
+        monthYearA11yLabel: 'MMMM YYYY',
+    }
+};
 
 @Component({
     selector: 'mat-date-time',
     templateUrl: 'material.datetime.html',
     styleUrls: ['./material.datetime.scss'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            multi: true,
-            useExisting: forwardRef(() => MatDateTime),
-        }
-    ]
+    providers: [DEFAULT_VALUE_ACCESSOR]
 })
 export class MatDateTime implements OnInit, ControlValueAccessor {
     protected writing: boolean = false;
@@ -38,6 +50,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     mask = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
 
+    timeMask = [/\d/, /\d/];
+
     @Input() disabled: boolean = false
 
     @Input() formControl: FormControl;
@@ -54,7 +68,10 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     @Input() required: boolean = false;
 
-    @ViewChild(MatDatepicker) datePicker: MatDatepicker<Moment>;
+    @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
+
+    @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
+    @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
 
     constructor(
         platform: Platform,
@@ -63,9 +80,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         private formBuilder: FormBuilder,
         @Optional() private formGroupDir: FormGroupDirective
     ) {
-        // TODO: uncomment when this issue fixed: https://github.com/ionic-team/ionic/issues/14802
-        // this.touchUi = !platform.is('core');
-        this.touchUi = false;
+        this.touchUi = !platform.is('desktop');
         this.mobile = this.touchUi && platform.is('mobile');
         this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
     }
@@ -99,10 +114,12 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.date = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
         if (this.date) {
             this.writing = true;
+            const hour = this.date.hour();
+            const minutes = this.date.minutes();
             this.form.setValue({
                 day: this.date.clone().startOf('day').format(this.dayPattern),
-                hour: this.date.hour(),
-                minute: this.date.minutes()
+                hour: hour < 10 ? ('0' + hour) : hour,
+                minute: minutes < 10 ? ('0' + minutes) : minutes,
             }, { emitEvent: false });
             this.writing = false;
         }
@@ -171,11 +188,12 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this._onChange(dateStr);
     }
 
-    private onDatePickerChange(date: any): void {
-        if (this.writing) return; // Skip if call by self
+    private onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
+        if (this.writing || !(event && event.value)) return; // Skip if call by self
         this.writing = true;
 
-        date = date && typeof date === 'string' && this.dateAdapter.parse(date, DATE_ISO_PATTERN) || date;
+        let date = event.value;
+        date = typeof date === 'string' && this.dateAdapter.parse(date, DATE_ISO_PATTERN) || date;
         if (this.displayTime) {
             date = date && date && date
                 // set as time as locale time
@@ -222,9 +240,9 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         }
     }
 
-
     public openDatePicker(event: UIEvent) {
-        this.datePicker.open();
+        this.datePicker1 && this.datePicker1.open();
+        this.datePicker2 && this.datePicker2.open();
         event.preventDefault();
     }
 

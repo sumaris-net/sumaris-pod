@@ -14,6 +14,7 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor, FormBuilder, Validators, FormC
 import { MeasurementsValidatorService } from '../validator/validators';
 
 import { environment } from '../../../../environments/environment';
+import { SharedValidators } from '../../../shared/validator/validators';
 
 const noop = () => {
 };
@@ -67,7 +68,10 @@ export class MatQualitativeValueField implements OnInit, ControlValueAccessor {
 
         this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
 
+
         if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
+
+        this.formControl.setValidators(this.required || this.pmfm.isMandatory ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
         this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm);
 

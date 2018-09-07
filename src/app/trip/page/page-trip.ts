@@ -11,6 +11,7 @@ import { Observable } from "rxjs-compat";
 import { PhysicalGearForm } from '../physicalGear/form/form-physical-gear';
 import { MeasurementsForm } from '../measurement/form/form-measurements';
 import { AppForm, AppTable } from '../../core/core.module';
+import { PhysicalGearTable } from '../physicalGear/table/table-physical-gears';
 
 @Component({
   selector: 'page-trip',
@@ -25,6 +26,7 @@ export class TripPage implements OnInit {
 
   selectedTabIndex: number = 0;
 
+  submitted: boolean = false;
   error: string;
   loading: boolean = true;
   saving: boolean = false;
@@ -34,7 +36,8 @@ export class TripPage implements OnInit {
 
   @ViewChild('saleForm') saleForm: SaleForm;
 
-  @ViewChild('gearForm') gearForm: PhysicalGearForm;
+
+  @ViewChild('physicalGearTable') physicalGearTable: PhysicalGearTable;
 
   @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
 
@@ -59,8 +62,8 @@ export class TripPage implements OnInit {
     // Make sure template has a form
     if (!this.tripForm || !this.saleForm) throw "[TripPage] no form for value setting";
 
-    this.forms = [this.tripForm, this.saleForm, this.gearForm, this.measurementsForm];
-    this.tables = [this.operationTable];
+    this.forms = [this.tripForm, this.saleForm, this.measurementsForm];
+    this.tables = [this.physicalGearTable, this.operationTable];
 
     this.disable();
 
@@ -105,8 +108,9 @@ export class TripPage implements OnInit {
     this.data = data;
     this.tripForm.value = data;
     this.saleForm.value = data && data.sale;
-    this.gearForm.value = data && data.gears && data.gears[0];
     this.measurementsForm.value = data && data.measurements || [];
+
+    this.physicalGearTable.value = data && data.gears || [];
 
     if (updateOperations) {
       this.operationTable && this.operationTable.setTrip(data);
@@ -117,7 +121,19 @@ export class TripPage implements OnInit {
   }
 
   async save(event): Promise<any> {
-    if (this.loading || this.saving || !this.valid) return;
+    if (this.loading || this.saving) return;
+
+    // Copy vessel features, before trying to validate saleForm
+    if (this.tripForm.valid) {
+      this.saleForm.form.controls['vesselFeatures'].setValue(this.tripForm.form.controls['vesselFeatures'].value);
+    }
+
+
+    // Not valid
+    if (!this.valid) {
+      this.submitted = true;
+      return;
+    }
     this.saving = true;
 
     console.log("[page-trip] Saving...");
@@ -125,9 +141,9 @@ export class TripPage implements OnInit {
     // Update Trip from JSON
     let json = this.tripForm.value;
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
-    json.gears = [this.gearForm.value];
-    json.measurements = this.measurementsForm.value;
     this.data.fromObject(json);
+    this.data.gears = this.physicalGearTable.value;
+    this.data.measurements = this.measurementsForm.value;
 
     const formDirty = this.dirty;
     this.disable();
@@ -148,10 +164,12 @@ export class TripPage implements OnInit {
     }
     catch (err) {
       console.error(err);
+      this.submitted = true;
       this.error = err && err.message || err;
     }
     finally {
       this.enable();
+      this.submitted = false;
       this.saving = false;
     }
   }
@@ -167,11 +185,14 @@ export class TripPage implements OnInit {
   }
 
   public markAsPristine() {
+    this.error = null;
     this.forms && this.forms.forEach(form => form.markAsPristine());
+    this.tables && this.tables.forEach(table => table.markAsPristine());
   }
 
   public markAsUntouched() {
     this.forms && this.forms.forEach(form => form.markAsUntouched());
+    this.tables && this.tables.forEach(table => table.markAsUntouched());
   }
 
   async cancel() {

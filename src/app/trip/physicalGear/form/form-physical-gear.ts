@@ -20,6 +20,7 @@ import { MeasurementsForm } from '../../measurement/form/form-measurements';
 })
 export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
+    data: PhysicalGear;
     gears: Observable<Referential[]>;
     measurements: Measurement[];
     gear: string;
@@ -27,6 +28,20 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
     @Input() showComment: boolean = true;
 
     @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
+
+    @Output()
+    valueChanges: EventEmitter<any> = new EventEmitter<any>();
+
+
+    get dirty(): boolean {
+        return this.form.dirty || this.measurementsForm.dirty;
+    }
+    get invalid(): boolean {
+        return this.form.invalid || this.measurementsForm.invalid;
+    }
+    get valid(): boolean {
+        return this.form.valid && this.measurementsForm.valid;
+    }
 
     constructor(
         protected dateAdapter: DateAdapter<Moment>,
@@ -45,6 +60,7 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
             .pipe(
                 mergeMap(value => {
                     if (value && typeof value == "object") {
+                        if (!value.id) return Observable.empty();
                         this.gear = value.label;
                         this.measurementsForm.gear = this.gear;
                         this.measurementsForm.value = this.measurements;
@@ -61,15 +77,71 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
                         },
                         { entityName: 'Gear' });
                 }));
+
+        this.measurementsForm.valueChanges
+            .debounceTime(300)
+            .subscribe(measurements => {
+                var json = this.form.value;
+                json.measurements = (measurements || []).filter(m => !m.isEmpty());
+                this.valueChanges.emit(json);
+            });
+
+        this.form.valueChanges
+            .debounceTime(300)
+            .subscribe(json => {
+                this.data.fromObject(json);
+                this.data.measurements = (this.measurementsForm.value || []).filter(m => !m.isEmpty());
+                this.valueChanges.emit(this.data);
+            });
     }
 
     referentialToString = referentialToString;
 
     set value(data: PhysicalGear) {
 
+        this.data = data;
+
         super.setValue(data);
 
         this.measurements = data && data.measurements || [];
         this.gear = data && data.gear && data.gear.label;
+        this.measurementsForm.value = this.measurements;
+    }
+
+    get value(): PhysicalGear {
+        let json = this.form.value;
+        this.data.gear.fromObject(json.gear);
+        this.data.measurements = this.measurementsForm.value;
+        return this.data;
+    }
+
+    public disable(opts?: {
+        onlySelf?: boolean;
+        emitEvent?: boolean;
+    }): void {
+        super.disable(opts);
+        if (!opts || !opts.onlySelf) {
+            this.measurementsForm.disable(opts);
+        }
+    }
+
+    public enable(opts?: {
+        onlySelf?: boolean;
+        emitEvent?: boolean;
+    }): void {
+        super.enable(opts);
+        if (!opts || !opts.onlySelf) {
+            this.measurementsForm.enable(opts);
+        }
+    }
+
+    public markAsPristine() {
+        super.markAsPristine();
+        this.measurementsForm.markAsPristine();
+    }
+
+    public markAsUntouched() {
+        super.markAsUntouched();
+        this.measurementsForm.markAsUntouched();
     }
 }

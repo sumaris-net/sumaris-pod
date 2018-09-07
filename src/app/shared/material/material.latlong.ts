@@ -5,7 +5,8 @@ import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG
 import { TranslateService } from "@ngx-translate/core";
 import { merge } from "rxjs/observable/merge";
 import { SharedValidators } from '../validator/validators';
-import { formatLatitude, formatLongitude, parseLatitudeOrLongitude, DEFAULT_PLACEHOLDER_CHAR } from '../pipes/latlong-format.pipe';
+import { formatLatitude, formatLongitude, parseLatitudeOrLongitude } from '../pipes/latlong-format.pipe';
+import { DEFAULT_PLACEHOLDER_CHAR } from '../constants';
 
 const MASKS = {
     'latitude': {

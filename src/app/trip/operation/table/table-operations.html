@@ -11,10 +11,10 @@
     <mat-icon>delete</mat-icon>
   </button>
 
-  <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
+  <!-- <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
     [disabled]="dirty" #inlineEditionBtn>
     <mat-icon>edit</mat-icon>
-  </mat-button-toggle>
+  </mat-button-toggle> -->
 
   <ion-item *ngIf="error" hidden-xs hidden-sm>
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
@@ -34,8 +34,8 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table #table [dataSource]="dataSource" class="table-operations" matSort matSortActive="startDateTime"
-  matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
+<mat-table [dataSource]="dataSource" class="table-operations" matSort matSortActive="startDateTime" matSortDirection="asc"
+  matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -47,15 +47,6 @@
       <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
       </mat-checkbox>
     </mat-cell>
-  </ng-container>
-
-  <!-- Id Column -->
-  <ng-container matColumnDef="id">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!loading">#</ion-label>
-      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
-    </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">{{ row.currentData.id }}</mat-cell>
   </ng-container>
 
   <!-- metier -->

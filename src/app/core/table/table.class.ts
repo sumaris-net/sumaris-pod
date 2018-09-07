@@ -18,12 +18,15 @@ import { map } from "rxjs/operators";
 import { ErrorCodes } from "../services/errors";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
+export const DEFAULT_PAGE_SIZE = 20;
+export const RESERVED_START_COLUMNS = ['select', 'id'];
+export const RESERVED_END_COLUMNS = ['actions'];
 
 export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDestroy {
 
     private _initialized = false;
     private _subscriptions: Subscription[] = [];
-    private _dirty = false;
+    protected _dirty = false;
 
     inlineEdition: boolean = false;
     displayedColumns: string[];
@@ -38,6 +41,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     onRefresh: EventEmitter<any> = new EventEmitter<any>();
     i18nColumnPrefix = 'COMMON.';
     autoLoad = true;
+    settingsId;
 
     @ViewChild(MatTable) table: MatSort;
     @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -46,11 +50,11 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     @Output()
     listChange = new EventEmitter<T[]>();
 
-    get dirty(): boolean {
+    public get dirty(): boolean {
         return this._dirty;
     }
 
-    get valid(): boolean {
+    public get valid(): boolean {
         if (this.selectedRow && this.selectedRow.editing) {
             return this.selectedRow.validator.valid;
         }
@@ -66,6 +70,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     markAsPristine() {
+        this._dirty = false;
+    }
+
+    markAsUntouched() {
         this._dirty = false;
     }
 
@@ -87,14 +95,17 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         if (this._initialized) return; // Init only once
         this._initialized = true;
 
+        // Defined unique id for settings
+        this.settingsId = this.generateTableId();
+
         this.displayedColumns = this.getDisplayColumns();
 
         // If the user changes the sort order, reset back to the first page.
-        this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+        this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
         merge(
-            this.sort.sortChange,
-            this.paginator.page,
+            this.sort && this.sort.sortChange || EventEmitter.empty(),
+            this.paginator && this.paginator.page || EventEmitter.empty(),
             this.onRefresh
         )
             .pipe(
@@ -105,41 +116,49 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                         this._dirty = false;
                         this.selection.clear();
                         this.selectedRow = null;
-                        if (any === 'skip') {
-                            console.debug("[table] Skipping first load (autoload=false)");
+                        if (any === 'skip' || !this.dataSource) {
+                            return Observable.of(undefined);
+                        }
+                        if (!this.dataSource) {
+                            console.debug("[table] Skipping data load: no dataSource defined");
                             return Observable.of(undefined);
                         }
                         console.debug("[table] Loading datasource...");
                         return this.dataSource.load(
-                            this.paginator.pageIndex * this.paginator.pageSize,
-                            this.paginator.pageSize || 10,
-                            this.sort.active,
-                            this.sort.direction,
+                            this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
+                            this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
+                            this.sort && this.sort.active,
+                            this.sort && this.sort.direction,
                             this.filter
                         );
                     })
             )
+            .catch(err => {
+                this.error = err && err.message || err;
+                return Observable.empty();
+            })
             .subscribe(data => {
                 if (data) {
-                    this.isRateLimitReached = data.length < this.paginator.pageSize;
-                    this.resultsLength = this.paginator.pageIndex * this.paginator.pageSize + data.length;
+                    this.isRateLimitReached = !this.paginator || (data.length < this.paginator.pageSize);
+                    this.resultsLength = (this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + data.length;
                     console.debug('[table] Loaded ' + data.length + ' rows');
                 }
                 else {
-                    console.debug('[table] Loaded NO rows');
+                    //console.debug('[table] Loaded NO rows');
                     this.isRateLimitReached = true;
                     this.resultsLength = 0;
                 }
             });
 
         // Subscriptions:
-        this._subscriptions.push(this.dataSource.onLoading.subscribe(loading => this.loading = loading));
-        this._subscriptions.push(this.dataSource.datasourceSubject.subscribe(data => this.listChange.emit(data)));
         this._subscriptions.push(this.listChange.subscribe(event => this.onDataChanged(event)));
 
         if (this.autoLoad) {
             //this.onRefresh.emit();
         }
+
+        // Listen datasource events
+        if (this.dataSource) this.listenDatasource(this.dataSource);
     }
 
     ngOnDestroy() {
@@ -147,6 +166,17 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this._subscriptions = [];
     }
 
+    setDatasource(datasource: AppTableDataSource<T, F>) {
+        if (this.dataSource) throw new Error("[table] dataSource already set !");
+        this.dataSource = datasource;
+        this.listenDatasource(datasource);
+    }
+
+    listenDatasource(dataSource: AppTableDataSource<T, F>) {
+        if (!dataSource) throw new Error("[table] dataSource not set !");
+        this._subscriptions.push(dataSource.onLoading.subscribe(loading => this.loading = loading));
+        this._subscriptions.push(dataSource.datasourceSubject.subscribe(data => this.listChange.emit(data)));
+    }
 
     confirmAndAddRow(row: TableElement<T>) {
         // create
@@ -164,8 +194,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         }
 
         // Add new row
-        this.dataSource.createNew();
-        this.resultsLength++;
+        this.createNew();
         return true;
     }
 
@@ -189,6 +218,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
         // Add new row
         this.focusFirstColumn = true;
+        this.createNew();
+    }
+
+    createNew() {
         this.dataSource.createNew();
         this._dirty = true;
         this.resultsLength++;
@@ -196,7 +229,6 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     editRow(row) {
         if (!row.editing) {
-            console.log(row);
             row.startEdit();
         }
     }
@@ -243,7 +275,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         if (this.loading) return;
         this.isAllSelected() ?
             this.selection.clear() :
-            this.dataSource.connect().subscribe(rows =>
+            this.dataSource.connect().first().subscribe(rows =>
                 rows.forEach(row => this.selection.select(row))
             );
     }
@@ -281,16 +313,17 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     public onRowClick(event: MouseEvent, row: TableElement<T>): boolean {
         if (!row.currentData.id || row.editing || event.defaultPrevented) return false;
 
+        event.stopPropagation();
         // Open the detail page (if not editing)
         if (!this._dirty && !this.inlineEdition) {
-            this.onOpenRowDetail(row.currentData.id);
+            this.onOpenRowDetail(row.currentData.id, row);
             return true;
         }
 
         return this.onEditRow(event, row);
     }
 
-    public onOpenRowDetail(id: number): Promise<boolean> {
+    public onOpenRowDetail(id: number, row?: TableElement<T>): Promise<boolean> {
         return this.router.navigate([id], {
             relativeTo: this.route
         });
@@ -303,13 +336,19 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     public getDisplayColumns(): string[] {
-        const fixedColumns = this.columns.slice(0, 2);
-        var userColumns = this.accountService.getPageSettings(this.location.path(true), SETTINGS_DISPLAY_COLUMNS);
-        if (!userColumns) {
-            return this.columns;
-        }
-        userColumns = (userColumns || []).filter(c => c !== 'actions');
-        return userColumns && fixedColumns.concat(userColumns).concat(['actions']) || this.columns;
+        var userColumns = this.accountService.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
+        // No user override: use defaults
+        if (!userColumns) return this.columns;
+
+        // Get fixed start columns
+        const fixedStartColumns = this.columns.filter(value => RESERVED_START_COLUMNS.includes(value));
+
+        // Remove end columns
+        const fixedEndColumns = this.columns.filter(value => RESERVED_END_COLUMNS.includes(value));
+
+        // Remove fixed columns from user columns
+        userColumns = userColumns.filter(value => (!fixedStartColumns.includes(value) && !fixedEndColumns.includes(value)));
+        return fixedStartColumns.concat(userColumns).concat(fixedEndColumns);
     }
 
     public async openSelectColumnsModal(event: any): Promise<any> {
@@ -339,13 +378,17 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 this.displayedColumns = fixedColumns.concat(userColumns).concat(['actions']);
 
                 // Update user settings
-                this.accountService.savePageSetting(this.location.path(true), userColumns, SETTINGS_DISPLAY_COLUMNS);
+                this.accountService.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
             });
         return modal.present();
     }
 
     public trackByFn(index: number, row: TableElement<T>) {
         return row.id;
+    }
+
+    private generateTableId() {
+        return this.location.path(true).replace(/[?].*$/g, '') + "_" + this.constructor.name;
     }
 }
 
