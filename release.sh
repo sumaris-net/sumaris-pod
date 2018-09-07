@@ -32,7 +32,7 @@ cd $dirname/target/checkout/sumaris-core
 version=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
 
 # Genrate the DB (run InitTest class)
-mvn -Prun,hsqldb -DskipTests
+mvn -Prun,hsqldb -DskipTests --quiet
 if [ $? -ne 0 ]; then
     exit
 fi
