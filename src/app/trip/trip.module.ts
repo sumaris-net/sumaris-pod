@@ -15,6 +15,7 @@ import { PhysicalGearForm } from './physicalgear/physicalgear.form';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { OperationTable } from './operation/operations.table';
 import { TripModal } from './trip.modal';
+import { SurvivalTestsTable } from './survivaltest/survivaltests.table';
 
 import { TripService, OperationService } from './services/trip.services';
 
@@ -40,7 +41,8 @@ import { TripValidatorService, SaleValidatorService, PhysicalGearValidatorServic
         MeasurementsForm,
         MeasurementQVFormField,
         MeasurementFormField,
-        CatchForm
+        CatchForm,
+        SurvivalTestsTable
     ],
     exports: [
         TripsPage,
