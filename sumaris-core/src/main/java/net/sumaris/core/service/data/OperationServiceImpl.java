@@ -30,18 +30,15 @@ import net.sumaris.core.dao.data.OperationDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.GearUseMeasurement;
-import net.sumaris.core.model.data.IMeasurementEntity;
-import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.model.data.measure.GearUseMeasurement;
+import net.sumaris.core.model.data.measure.IMeasurementEntity;
+import net.sumaris.core.model.data.measure.VesselUseMeasurement;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.data.VesselPositionVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -162,7 +159,7 @@ public class OperationServiceImpl implements OperationService {
 			measurement.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		measurement.setPhysicalGearId(parent.getId());
+		measurement.setOperationId(parent.getId());
 		measurement.setEntityName(entityClass.getSimpleName());
 	}
 }

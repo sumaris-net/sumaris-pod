@@ -25,13 +25,12 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.measure.PhysicalGearMeasurement;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

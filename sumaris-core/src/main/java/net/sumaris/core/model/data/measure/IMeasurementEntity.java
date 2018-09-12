@@ -1,4 +1,4 @@
-package net.sumaris.core.model.data;
+package net.sumaris.core.model.data.measure;
 
 /*-
  * #%L
@@ -22,6 +22,7 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
+import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
 
@@ -52,10 +53,6 @@ public interface IMeasurementEntity extends IDataEntity<Integer> {
     QualitativeValue getQualitativeValue();
 
     void setQualitativeValue(QualitativeValue qualitativeValue);
-
-    Integer getRankOrder();
-
-    void setRankOrder(Integer rankOrder);
 
     Pmfm getPmfm();
 

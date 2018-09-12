@@ -1,4 +1,4 @@
-package net.sumaris.core.model.data;
+package net.sumaris.core.model.data.measure;
 
 /*-
  * #%L
@@ -24,21 +24,24 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
 @Entity
-@Table(name="physical_gear_measurement")
-public class PhysicalGearMeasurement implements IMeasurementEntity {
+@Table(name="vessel_use_measurement")
+public class VesselUseMeasurement implements IMeasurementEntity {
 
+    public static final String PROPERTY_TRIP = "trip";
+    public static final String PROPERTY_OPERATION = "operation";
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
-    public static final String PROPERTY_PHYSICAL_GEAR = "physicalGear";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -93,8 +96,11 @@ public class PhysicalGearMeasurement implements IMeasurementEntity {
     @JoinColumn(name = "pmfm_fk", nullable = false)
     private Pmfm pmfm;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class)
-    @JoinColumn(name = "physical_gear_fk", nullable = false)
-    private PhysicalGear physicalGear;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
+    @JoinColumn(name = "trip_fk")
+    private Trip trip;
 
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
+    @JoinColumn(name = "operation_fk")
+    private Operation operation;
 }

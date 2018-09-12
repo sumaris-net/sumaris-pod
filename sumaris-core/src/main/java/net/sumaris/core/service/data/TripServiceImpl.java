@@ -24,13 +24,12 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.SaleDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.data.TripDao;
-import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.model.data.measure.VesselUseMeasurement;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.data.SaleVO;

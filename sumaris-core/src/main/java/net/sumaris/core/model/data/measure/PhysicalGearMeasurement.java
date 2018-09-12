@@ -1,4 +1,4 @@
-package net.sumaris.core.model.data;
+package net.sumaris.core.model.data.measure;
 
 /*-
  * #%L
@@ -24,37 +24,30 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.PhysicalGear;
+import net.sumaris.core.model.data.measure.IMeasurementEntity;
+import net.sumaris.core.model.referential.Pmfm;
+import net.sumaris.core.model.referential.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.VesselType;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Entity
-public class Vessel implements IDataEntity<Integer> {
+@Table(name="physical_gear_measurement")
+public class PhysicalGearMeasurement implements IMeasurementEntity {
+
+    public static final String PROPERTY_RANK_ORDER = "rankOrder";
+    public static final String PROPERTY_PHYSICAL_GEAR = "physicalGear";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @Column(name = "creation_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date creationDate;
-
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recorder_person_fk")
-    private Person recorderPerson;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recorder_department_fk", nullable = false)
@@ -71,7 +64,6 @@ public class Vessel implements IDataEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Temporal(TemporalType.DATE)
     @Column(name="qualification_comments", length = 2000)
     private Date qualificationComments;
 
@@ -79,12 +71,31 @@ public class Vessel implements IDataEntity<Integer> {
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = VesselType.class)
-    @JoinColumn(name="vessel_type_fk", nullable = false)
-    private VesselType vesselType;
+    @Column(name = "numerical_value")
+    private Double numericalValue;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselFeatures.class, mappedBy = VesselFeatures.PROPERTY_VESSEL)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<VesselFeatures> vesselFeatures = new ArrayList<>();
+    @Column(name = "alphanumerical_value", length = 40)
+    private String alphanumericalValue;
+
+    @Column(name = "digit_count")
+    private Integer digitCount;
+
+    @Column(name = "precision_value")
+    private Double precisionValue;
+
+    @ManyToOne(fetch = FetchType.EAGER, targetEntity = QualitativeValue.class)
+    @JoinColumn(name = "qualitative_value_fk")
+    private QualitativeValue qualitativeValue;
+
+    @Column(name = "rank_order", nullable = false)
+    private Integer rankOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)
+    @JoinColumn(name = "pmfm_fk", nullable = false)
+    private Pmfm pmfm;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class)
+    @JoinColumn(name = "physical_gear_fk", nullable = false)
+    private PhysicalGear physicalGear;
 
 }

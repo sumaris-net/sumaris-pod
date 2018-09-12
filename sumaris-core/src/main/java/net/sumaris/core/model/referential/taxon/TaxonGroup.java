@@ -77,4 +77,8 @@ public class TaxonGroup implements IItemReferentialEntity {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroupType.class)
     @JoinColumn(name = "taxon_group_type_fk", nullable = false)
     private TaxonGroupType taxonGroupType;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroup.class)
+    @JoinColumn(name = "parent_taxon_group_fk")
+    private TaxonGroup parentTaxonGroup;
 }

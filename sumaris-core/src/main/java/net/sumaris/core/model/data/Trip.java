@@ -25,6 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.measure.VesselUseMeasurement;
 import net.sumaris.core.model.referential.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.hibernate.annotations.Cascade;
@@ -33,7 +34,6 @@ import org.hibernate.annotations.FetchProfile;
 import org.hibernate.annotations.FetchProfiles;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

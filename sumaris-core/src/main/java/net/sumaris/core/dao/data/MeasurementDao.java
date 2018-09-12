@@ -23,9 +23,8 @@ package net.sumaris.core.dao.data;
  */
 
 
-import net.sumaris.core.model.data.IMeasurementEntity;
+import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.PhysicalGearVO;
 
 import java.util.List;
 

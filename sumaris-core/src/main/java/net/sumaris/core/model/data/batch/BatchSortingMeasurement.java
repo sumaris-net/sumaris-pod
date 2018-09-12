@@ -1,4 +1,4 @@
-package net.sumaris.core.model.data;
+package net.sumaris.core.model.data.batch;
 
 /*-
  * #%L
@@ -24,22 +24,22 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.data.batch.Batch;
+import net.sumaris.core.model.data.measure.IMeasurementEntity;
+import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
 @Entity
-@Table(name="vessel_use_measurement")
-public class VesselUseMeasurement implements IMeasurementEntity {
+@Table(name="sorting_measurement_b")
+public class BatchSortingMeasurement implements IMeasurementEntity {
 
-    public static final String PROPERTY_TRIP = "trip";
-    public static final String PROPERTY_OPERATION = "operation";
-    public static final String PROPERTY_RANK_ORDER = "rankOrder";
+    public static final String PROPERTY_BATCH = "batch";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -94,11 +94,7 @@ public class VesselUseMeasurement implements IMeasurementEntity {
     @JoinColumn(name = "pmfm_fk", nullable = false)
     private Pmfm pmfm;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
-    @JoinColumn(name = "trip_fk")
-    private Trip trip;
-
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
-    @JoinColumn(name = "operation_fk")
-    private Operation operation;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Batch.class)
+    @JoinColumn(name = "batch_fk")
+    private Batch batch;
 }
