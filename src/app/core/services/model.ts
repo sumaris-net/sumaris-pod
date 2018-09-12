@@ -14,6 +14,17 @@ export const LocationLevelIds = {
   COUNTRY: 1,
   PORT: 2
 }
+
+
+export const AcquisitionLevelCodes = {
+  TRIP: 'TRIP',
+  PHYSICAL_GEAR: 'PHYSICAL_GEAR',
+  OPERATION: 'OPERATION',
+  CATCH_BATCH: 'CATCH_BATCH',
+  SORTING_BATCH: 'SORTING_BATCH',
+  SAMPLE: 'SAMPLE'
+}
+
 export declare interface Cloneable<T> {
   clone(): T;
 }

@@ -169,6 +169,15 @@
       "ACTIONS": "Actions on row",
       "START_POSITION": "Shooting GPS Position",
       "END_POSITION": "Towing GPS Position"
+    },
+    "CATCH": {
+      "EDIT": {
+        "ON_DECK": "On deck (for trawl):",
+        "SORTING": "Sorting priod:",
+        "START_DATE": "Start date",
+        "END_DATE": "End date",
+        "TOTAL_CATCH": "Total catch:"
+      }
     }
   },
   "SALE": {

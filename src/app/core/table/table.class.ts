@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@
 import { MatPaginator, MatSort, MatTable } from "@angular/material";
 import { merge } from "rxjs/observable/merge";
 import { Observable } from 'rxjs';
-import { startWith, switchMap, mergeMap } from "rxjs/operators";
+import { startWith, mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource } from "./table-datasource.class";
 import { SelectionModel } from "@angular/cdk/collections";
@@ -50,15 +50,19 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     @Output()
     listChange = new EventEmitter<T[]>();
 
-    public get dirty(): boolean {
+    get dirty(): boolean {
         return this._dirty;
     }
 
-    public get valid(): boolean {
+    get valid(): boolean {
         if (this.selectedRow && this.selectedRow.editing) {
             return this.selectedRow.validator.valid;
         }
         return true;
+    }
+
+    get invalid(): boolean {
+        return !this.valid;
     }
 
     disable() {
@@ -109,9 +113,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             this.onRefresh
         )
             .pipe(
-                //map(() => { }),
                 startWith(this.autoLoad ? {} : 'skip'),
-                switchMap(
+                mergeMap(
                     (any: any) => {
                         this._dirty = false;
                         this.selection.clear();

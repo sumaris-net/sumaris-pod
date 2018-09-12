@@ -1,0 +1,10 @@
+<!-- <ion-spinner *ngIf="loading"></ion-spinner> -->
+
+<form [formGroup]="form" *ngIf="!loading">
+
+  <ion-col no-padding [size]="6" *ngFor="let pmfm of pmfms | async">
+
+    <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls[pmfm.id]"></mat-form-field-measurement>
+
+  </ion-col>
+</form>

@@ -1,32 +1,31 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CoreModule } from '../core/core.module';
-import { TripsPage } from './list/trips';
-import { TripPage } from './page/page-trip';
-import { TripForm } from './form/form-trip';
-import { SaleForm } from './sale/form/form-sale';
-import { OperationForm } from './operation/form/form-operation';
-import { OperationPage } from './operation/page/page-operation';
-import { MeasurementsForm } from './measurement/form/form-measurements';
-import { MeasurementsValidatorService } from './measurement/validator/validators';
-import { MatQualitativeValueField } from './measurement/field/material.qv-field';
+import { TripsPage } from './trips.page';
+import { TripPage } from './trip.page';
+import { TripForm } from './trip.form';
+import { SaleForm } from './sale/sale.form';
+import { OperationForm } from './operation/operation.form';
+import { OperationPage } from './operation/operation.page';
+import { MeasurementsForm } from './measurement/measurements.form';
+import { MeasurementQVFormField } from './measurement/measurement-qv.form-field';
+import { MeasurementFormField } from './measurement/measurement.form-field';
+import { CatchForm } from './catch/catch.form';
+import { PhysicalGearForm } from './physicalgear/physicalgear.form';
+import { PhysicalGearTable } from './physicalgear/physicalgears.table';
+import { OperationTable } from './operation/operations.table';
+import { TripModal } from './trip.modal';
 
+import { TripService } from './services/trip.service';
+import { OperationService } from './services/operation.service';
 
-import { TripValidatorService } from './validator/validators';
-
-import { PhysicalGearForm } from './physicalGear/form/form-physical-gear';
-import { PhysicalGearTable } from './physicalGear/table/table-physical-gears';
-import { PhysicalGearValidatorService } from './physicalGear/validator/validators';
-
-import { SaleValidatorService } from './sale/validator/validators';
-import { PositionValidatorService } from './position/validator/validators';
-
-import { OperationTable } from './operation/table/table-operations';
-import { TripService } from './services/trip-service';
-import { OperationService } from './services/operation-service';
-import { OperationValidatorService } from './operation/validator/validators';
-import { TripModal } from './modal/modal-trip';
-import { IonicModule } from '@ionic/angular';
+import { TripValidatorService } from './services/trip.validator';
+import { SaleValidatorService } from './services/sale.validator';
+import { PhysicalGearValidatorService } from './services/physicalgear.validator';
+import { OperationValidatorService } from './services/operation.validator';
+import { PositionValidatorService } from './services/position.validator';
+import { MeasurementsValidatorService } from './services/measurement.validator';
+import { CatchValidatorService } from './services/catch.validator';
 
 @NgModule({
     imports: [
@@ -46,7 +45,9 @@ import { IonicModule } from '@ionic/angular';
         OperationPage,
         OperationTable,
         MeasurementsForm,
-        MatQualitativeValueField
+        MeasurementQVFormField,
+        MeasurementFormField,
+        CatchForm
     ],
     exports: [
         TripsPage,
@@ -60,7 +61,7 @@ import { IonicModule } from '@ionic/angular';
         OperationPage,
         OperationTable,
         MeasurementsForm,
-        MatQualitativeValueField
+        MeasurementQVFormField
     ],
     entryComponents: [
         TripsPage,
@@ -70,7 +71,8 @@ import { IonicModule } from '@ionic/angular';
         OperationTable,
         OperationPage,
         MeasurementsForm,
-        MatQualitativeValueField
+        MeasurementQVFormField,
+        MeasurementFormField
     ],
     providers: [
         TripService,
@@ -80,7 +82,8 @@ import { IonicModule } from '@ionic/angular';
         OperationService,
         OperationValidatorService,
         PositionValidatorService,
-        MeasurementsValidatorService
+        MeasurementsValidatorService,
+        CatchValidatorService
     ]
 })
 export class TripModule {

@@ -1,0 +1,50 @@
+<ng-container [ngSwitch]="pmfm.type">
+
+  <!-- integer -->
+  <mat-form-field *ngSwitchCase="'integer'">
+    <input matInput autocomplete="off" type="number" min="0" [max]="pmfm.maxValue" [placeholder]="placeholder"
+      [formControl]="formControl" [required]="pmfm.isMandatory">
+    <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="formControl.errors?.min">
+      {{'ERROR.FIELD_MIN'| translate:{min: pmfm.minValue} }}</mat-error>
+    <mat-error *ngIf="formControl.errors?.max">
+      {{'ERROR.FIELD_MAX'| translate:{min: pmfm.maxValue} }}</mat-error>
+    <mat-error *ngIf="formControl.errors?.pattern">
+      {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+  </mat-form-field>
+
+  <!-- double -->
+  <mat-form-field *ngSwitchCase="'double'">
+    <input matInput autocomplete="off" type="number" [min]="pmfm.minValue" [max]="pmfm.maxValue" [placeholder]="placeholder"
+      [step]="computeNumberInputStep(pmfm)" [formControl]="formControl" [required]="pmfm.isMandatory">
+    <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="formControl.errors?.min">
+      {{'ERROR.FIELD_MIN'| translate:{min: pmfm.minValue} }}</mat-error>
+    <mat-error *ngIf="formControl.errors?.max">
+      {{'ERROR.FIELD_MAX'| translate:{max: pmfm.maxValue} }}</mat-error>
+    <mat-error *ngIf="formControl.errors?.pattern">
+      {{'ERROR.FIELD_MAXIMAL_DECIMALS'| translate:{max: pmfm.maximumNumberDecimals} }}</mat-error>
+  </mat-form-field>
+
+  <!-- boolean -->
+  <ng-container *ngSwitchCase="'boolean'">
+    <mat-boolean-field [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory"></mat-boolean-field>
+  </ng-container>
+
+  <!-- date -->
+  <ng-container *ngSwitchCase="'date'">
+    <mat-date-time [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory" [displayTime]="pmfm.unit=='Date & Time'"></mat-date-time>
+  </ng-container>
+
+  <!-- qualitative value -->
+  <ng-container *ngSwitchCase="'qualitative_value'">
+    <mat-form-field-measurement-qv [formControl]="formControl" [pmfm]="pmfm" [required]="pmfm.isMandatory"></mat-form-field-measurement-qv>
+  </ng-container>
+
+  <!-- other -->
+  <ng-container *ngSwitchDefault>
+    <div>Unknown PMFM type {{pmfm.type}}! Please report this error.</div>
+    <!-- <input matInput [placeholder]="pmfm.name" [formControl]="formControl"> -->
+  </ng-container>
+
+</ng-container>

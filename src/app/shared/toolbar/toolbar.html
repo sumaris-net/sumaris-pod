@@ -26,6 +26,6 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  <mat-progress-bar [color]="'primary'" [mode]="progressBarMode">
+  <mat-progress-bar [color]="'primary'" [mode]="progressBarMode | async">
   </mat-progress-bar>
 </ion-header>

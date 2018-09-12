@@ -2,7 +2,6 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
-import { switchMap } from 'rxjs/operators';
 import { ModalController } from "@ionic/angular";
 import { AuthModal } from "../auth/modal/modal-auth";
 import { AccountService } from "./account.service";

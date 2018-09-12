@@ -8,11 +8,11 @@ import { UsersPage } from './admin/users/list/users';
 import { VesselsPage } from './referential/vessel/list/vessels';
 import { VesselPage } from './referential/vessel/page/page-vessel';
 import { ReferentialsPage } from './referential/list/referentials';
-import { TripsPage } from './trip/list/trips';
-import { TripPage } from './trip/page/page-trip';
+import { TripsPage } from './trip/trips.page';
+import { TripPage } from './trip/trip.page';
 
 import { environment } from '../environments/environment';
-import { OperationPage } from './trip/operation/page/page-operation';
+import { OperationPage } from './trip/operation/operation.page';
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,

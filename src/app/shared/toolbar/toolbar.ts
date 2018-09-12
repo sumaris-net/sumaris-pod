@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { ProgressBarService } from '../../core/services/progress-bar.service';
+import { Subject, BehaviorSubject } from "rxjs-compat";
 
 @Component({
   selector: 'app-toolbar',
@@ -26,7 +27,7 @@ export class ToolbarComponent implements OnInit {
   @Output()
   onValidate: EventEmitter<any> = new EventEmitter<any>();
 
-  progressBarMode: string;
+  progressBarMode: Subject<string> = new BehaviorSubject('none');
 
   constructor(
     private progressBarService: ProgressBarService
@@ -36,7 +37,9 @@ export class ToolbarComponent implements OnInit {
   ngOnInit() {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
     this.progressBarService.updateProgressBar$.subscribe((mode: string) => {
-      this.progressBarMode = mode;
+      setTimeout(() => {
+        this.progressBarMode.next(mode);
+      });
     });
   }
 

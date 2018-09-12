@@ -79,6 +79,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> {
 
 export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> {
   vesselFeatures: VesselFeatures;
+  // TODO: program: string;
 
   constructor() {
     super();
@@ -94,6 +95,7 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> {
   fromObject(source: any): DataRootVesselEntity<T> {
     super.fromObject(source);
     source.vesselFeatures && this.vesselFeatures.fromObject(source.vesselFeatures);
+    // TODO: source.program && this.program;
     return this;
   }
 }

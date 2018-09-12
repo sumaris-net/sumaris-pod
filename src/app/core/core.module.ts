@@ -13,6 +13,7 @@ import { RegisterConfirmPage } from "./register/confirm/confirm";
 import { AccountPage } from "./account/account";
 import { SharedModule } from '../shared/shared.module';
 import { AppForm } from './form/form.class';
+import { AppTabPage } from './form/page.class';
 import { FormMetadataComponent } from './form/form-metadata.component';
 import { FormButtonsBarComponent } from './form/form-buttons-bar.component';
 import { AppTable } from './table/table.class';
@@ -38,7 +39,7 @@ import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-transla
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 
-export { environment, AppForm, AppTable, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent, FormButtonsBarComponent }
+export { environment, AppForm, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent, FormButtonsBarComponent }
 
 
 export function HttpLoaderFactory(http: HttpClient) {

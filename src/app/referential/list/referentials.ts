@@ -1,20 +1,17 @@
-import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
-import { merge } from "rxjs/observable/merge";
+import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { Subscription, Observable } from 'rxjs';
-import { startWith, switchMap, mergeMap } from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, TableSelectColumnsComponent } from "../../core/core.module";
+import { ValidatorService } from "angular4-material-table";
+import { AppTableDataSource, AppTable } from "../../core/core.module";
 import { ReferentialValidatorService } from "../validator/validators";
 import { ReferentialService, ReferentialFilter } from "../services/referential-service";
-import { SelectionModel } from "@angular/cdk/collections";
-import { Referential, StatusIds, referentialToString } from "../services/model";
+import { Referential, StatusIds } from "../services/model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService } from '../services/vessel-service';
 import { AccountService } from '../../core/services/account.service';
 import { Location } from '@angular/common';
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
+import { FormGroup, FormBuilder } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 
 const DEFAULT_ENTITY_NAME = "Location";

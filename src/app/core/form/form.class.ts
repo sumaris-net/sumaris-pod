@@ -1,11 +1,9 @@
-import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
+import { OnInit, EventEmitter, Output } from '@angular/core';
 import { FormGroup } from "@angular/forms";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN } from '../constants';
 import { DateAdapter } from "@angular/material";
-import { mergeMap, startWith } from 'rxjs/operators';
-import { merge } from "rxjs/observable/merge";
 
 
 export abstract class AppForm<T> implements OnInit {
@@ -87,19 +85,24 @@ export abstract class AppForm<T> implements OnInit {
     if (!data) return;
 
     // Convert object to json
-    let json = this.getValue(this.form, data);
+    let json = this.toJsonFormValue(this.form, data);
     console.debug("[form] Updating form... ", json);
 
     // Appply to form
     this.form.setValue(json);
   }
 
-  protected getValue(form: FormGroup, data: any): Object {
+  /**
+   * Transform an object (e.g. an entity) into a json compatible with the given form
+   * @param form 
+   * @param data 
+   */
+  protected toJsonFormValue(form: FormGroup, data: any): Object {
     let value = {};
     form = form || this.form;
     for (let key in form.controls) {
       if (form.controls[key] instanceof FormGroup) {
-        value[key] = this.getValue(form.controls[key] as FormGroup, data[key]);
+        value[key] = this.toJsonFormValue(form.controls[key] as FormGroup, data[key]);
       }
       else {
         if (data[key] && typeof data[key] == "object" && data[key]._isAMomentObject) {
@@ -114,10 +117,14 @@ export abstract class AppForm<T> implements OnInit {
   }
 
   public markAsPristine() {
-    this.form.markAsPristine();
+    this.form.markAsPristine({ onlySelf: false });
   }
 
   public markAsUntouched() {
     this.form.markAsUntouched();
+  }
+
+  public markAsTouched() {
+    this.form.markAsTouched();
   }
 }

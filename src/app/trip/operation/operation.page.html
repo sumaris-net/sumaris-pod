@@ -1,0 +1,109 @@
+<app-toolbar [title]="('TRIP.OPERATION.EDIT.TITLE'|translate) + (data && data.rankOrderOnPeriod ? (' #' + data?.rankOrderOnPeriod) : '')"
+  color="primary" [hasValidate]="dirty && !loading" (onValidate)="save($event)">
+  <ion-spinner *ngIf="loading"></ion-spinner>
+</app-toolbar>
+
+<ion-content>
+
+  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [disableRipple]="true"
+    dynamicHeight>
+
+    <!-- TAB: general -->
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && invalid"></ion-icon>
+      </ng-template>
+
+      <!-- error -->
+      <ion-item *ngIf="opeForm.error" visible-xs visible-sm>
+        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-label color="danger" [innerHTML]="opeForm.error|translate"></ion-label>
+      </ion-item>
+
+      <ion-grid no-padding>
+
+        <ion-row no-padding>
+          <ion-col padding>
+            <!-- form -->
+            <form-operation (onSubmit)="save($event)" [showError]="false" #opeForm>
+
+              <!-- Other features -->
+              <ion-row ng-if="data">
+                <ion-col size="12" size-md="2" size-lg="3" align-self-end>
+                  <ion-label>
+                    <ion-text translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-text>
+                  </ion-label>
+                </ion-col>
+                <ion-col no-padding>
+                  <form-measurements acquisitionLevel="OPERATION" #measurementsForm></form-measurements>
+                </ion-col>
+              </ion-row>
+            </form-operation>
+          </ion-col>
+          <ion-col no-padding size="12" size-xl="2">
+            <form-metadata [data]="data"></form-metadata>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </mat-tab>
+
+    <!-- TAB: Gear 
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_PHYSICAL_GEAR'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>settings</mat-icon>
+        <ion-label translate>TRIP.OPERATION.EDIT.TAB_PHYSICAL_GEAR</ion-label>
+      </ng-template>
+
+
+    </mat-tab>-->
+
+    <!-- TAB: Catch -->
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_CATCH'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>line_style</mat-icon>
+        <ion-label translate>TRIP.OPERATION.EDIT.TAB_CATCH</ion-label>
+      </ng-template>
+
+      <ion-grid padding>
+        <!-- form -->
+        <form-catch (onSubmit)="save($event)" [showError]="false" #catchForm>
+        </form-catch>
+      </ion-grid>
+    </mat-tab>
+
+    <!-- TAB: Survival  -->
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>timer</mat-icon>
+        <!-- <mat-icon>filter_tilt_shift</mat-icon> -->
+        <ion-label translate>TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST</ion-label>
+      </ng-template>
+
+    </mat-tab>
+
+    <!-- TAB: Survival  -->
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING'|translate}}">
+      <ng-template mat-tab-label>
+        <!-- <mat-icon>adjust</mat-icon> -->
+        <mat-icon>center_focus_strong</mat-icon>
+        <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING</ion-label>
+      </ng-template>
+
+    </mat-tab>
+  </mat-tab-group>
+
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm>
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading ">
+
+    <!-- error -->
+    <ion-item *ngIf="error">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </form-buttons-bar>
+</ion-footer>

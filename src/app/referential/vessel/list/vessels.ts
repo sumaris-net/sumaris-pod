@@ -1,6 +1,4 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
-import { merge } from "rxjs/observable/merge";
-import { startWith, switchMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable } from "../../../core/core.module";
 import { VesselValidatorService } from "../validator/validators";
@@ -12,7 +10,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from "../../../core/services/account.service";
 import { Location } from '@angular/common';
 import { Observable } from 'rxjs';
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
+import { FormGroup, FormBuilder } from "@angular/forms";
 
 @Component({
   selector: 'page-vessels',

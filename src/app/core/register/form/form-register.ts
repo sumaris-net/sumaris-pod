@@ -114,7 +114,7 @@ export class RegisterForm implements OnInit {
   emailAvailability(accountService: AccountService): AsyncValidatorFn {
     return function (control: AbstractControl): Observable<ValidationErrors | null> {
 
-      return Observable.timer(500).switchMap(() => {
+      return Observable.timer(500).mergeMap(() => {
         return accountService.checkEmailAvailable(control.value)
           .then(res => null)
           .catch(err => {

@@ -1,0 +1,25 @@
+<mat-form-field *ngIf="!readonly && formControl">
+
+  <input matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl" [matAutocomplete]="autoQualitativeValue"
+    (blur)="_onBlur($event)" [required]="pmfm.isMandatory">
+  <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
+  <mat-error *ngIf="formControl.errors?.entity" translate>ERROR.FIELD_INVALID</mat-error>
+  <!-- combo -->
+  <mat-autocomplete autoActiveFirstOption #autoQualitativeValue="matAutocomplete" [displayWith]="referentialToString">
+    <ion-row class="mat-autocomplete-header">
+      <ion-col size="2">
+        <ion-text translate>REFERENTIAL.LABEL</ion-text>
+      </ion-col>
+      <ion-col>
+        <ion-text translate>REFERENTIAL.NAME</ion-text>
+      </ion-col>
+    </ion-row>
+
+    <mat-option *ngFor="let item of items | async" [value]="item">
+      <ion-row>
+        <ion-col size="2" [innerHTML]="item.label | highlight: {search: formControl.value }"></ion-col>
+        <ion-col [innerHTML]="item.name | highlight: {search: formControl.value }"></ion-col>
+      </ion-row>
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>

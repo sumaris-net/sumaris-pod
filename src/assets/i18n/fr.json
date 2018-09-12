@@ -191,6 +191,9 @@
         "TITLE": "Opération",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
+        "TAB_CATCH": "Capture",
+        "TAB_SURVIVAL_TEST": "Survival test",
+        "TAB_INDIVIDUAL_MONITORING": "Individual monitoring",
         "START": "Début pêche :",
         "END": "Fin pêche :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
@@ -214,6 +217,16 @@
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations."
+      }
+    },
+    "CATCH": {
+      "EDIT": {
+        "ON_DECK": "Arrivée sur pont :",
+        "SORTING": "Debut/fin de tri :",
+        "START_DATE": "Date début",
+        "END_DATE": "Date fin",
+        "TOTAL_CATCH": "Capture totale :",
+        "LANDING_WEIGHT": "Poids total débarqué (kg)"
       }
     }
   },
@@ -328,6 +341,7 @@
     "FIELD_MAX": "La valeur maximale autorisée est {{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Le nombre de décimale max est de {{max}}",
     "FIELD_INVALID": "Valeur non valide",
+    "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
     "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
     "FIELD_NOT_VALID_DATE_TIME": "Date/heure invalide",
