@@ -6,7 +6,7 @@ import { AppTable, AppTableDataSource, AccountService } from "../core/core.modul
 import { TripValidatorService } from "./services/trip.validator";
 import { TripService, TripFilter } from "./services/trip.service";
 import { TripModal } from "./trip.modal";
-import { Trip, Referential, VesselFeatures, LocationLevelIds } from "./services/model";
+import { Trip, Referential, VesselFeatures, LocationLevelIds } from "./services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService, ReferentialService } from '../referential/referential.module';
