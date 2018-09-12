@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, EventEmitter, Output, forwardRef, Optional } from '@angular/core';
-import { Referential, PmfmStrategy } from "../services/model";
+import { Referential, PmfmStrategy } from "../services/trip.model";
 import { Observable } from 'rxjs';
 import { startWith, mergeMap, debounceTime } from 'rxjs/operators';
 import { referentialToString } from '../../referential/services/model';

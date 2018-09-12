@@ -4,7 +4,7 @@ import { map, debounceTime } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
 import { PhysicalGearValidatorService } from "../services/physicalgear.validator";
-import { referentialToString, PhysicalGear } from "../services/model";
+import { referentialToString, PhysicalGear } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';

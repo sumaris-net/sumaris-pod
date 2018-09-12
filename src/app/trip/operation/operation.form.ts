@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, EventEmitter } from '@angular/core';
 import { OperationValidatorService } from "../services/operation.validator";
-import { Operation, Referential, Trip, PhysicalGear } from "../services/model";
+import { Operation, Referential, Trip, PhysicalGear } from "../services/trip.model";
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";

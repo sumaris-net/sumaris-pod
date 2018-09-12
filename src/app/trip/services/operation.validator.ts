@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { Operation } from "./model";
+import { Operation } from "./trip.model";
 import { PositionValidatorService } from "./position.validator";
 
 @Injectable()

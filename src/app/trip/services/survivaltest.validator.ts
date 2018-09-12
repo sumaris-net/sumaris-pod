@@ -1,10 +1,9 @@
 import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { PhysicalGear } from "./trip.model";
 
 @Injectable()
-export class PhysicalGearValidatorService implements ValidatorService {
+export class SurvivalTestValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder) {
   }
@@ -13,14 +12,10 @@ export class PhysicalGearValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: PhysicalGear): FormGroup {
+  getFormGroup(data?: any): FormGroup {
     return this.formBuilder.group({
       'id': [''],
-      'updateDate': [''],
       'rankOrder': ['', Validators.required],
-      'creationDate': [''],
-      'gear': ['', Validators.required],
-      'comments': ['', Validators.maxLength(2000)]
     });
   }
 }

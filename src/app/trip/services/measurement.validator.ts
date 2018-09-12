@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder, AbstractControl, ValidatorFn } from "@angular/forms";
-import { PmfmStrategy } from "./model";
+import { PmfmStrategy } from "./trip.model";
 import { SharedValidators } from "../../shared/validator/validators";
 
 @Injectable()
@@ -48,7 +48,9 @@ export class MeasurementsValidatorService implements ValidatorService {
     });
 
     // Remove unused controls
-    controlNamesToRemove.forEach(controlName => form.removeControl(controlName));
+    controlNamesToRemove
+      .filter(controlName => controlName !== 'id' && controlName !== 'rankOrder') // Keep 'id' attribut if present
+      .forEach(controlName => form.removeControl(controlName));
   }
 
   public getValidators(pmfm: PmfmStrategy): ValidatorFn | ValidatorFn[] {

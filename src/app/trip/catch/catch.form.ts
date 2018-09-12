@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Operation, PmfmStrategy, Measurement } from "../services/model";
+import { Operation, PmfmStrategy, Measurement } from "../services/trip.model";
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";

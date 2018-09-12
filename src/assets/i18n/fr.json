@@ -228,6 +228,11 @@
         "TOTAL_CATCH": "Capture totale :",
         "LANDING_WEIGHT": "Poids total débarqué (kg)"
       }
+    },
+    "SURVIVAL_TEST": {
+      "TABLE": {
+        "ON_DECK": "Arrivée sur pont :"
+      }
     }
   },
   "SALE": {

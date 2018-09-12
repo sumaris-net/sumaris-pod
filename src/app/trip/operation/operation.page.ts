@@ -2,11 +2,13 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from "@angular/router";
 import { OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
-import { Operation, Trip } from '../services/model';
+import { Operation, Trip } from '../services/trip.model';
 import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form';
 import { AppTabPage } from '../../core/core.module';
 import { CatchForm } from '../catch/catch.form';
+import { SurvivalTestsTable } from '../survivaltest/survivaltests.table';
+
 
 @Component({
   selector: 'page-operation',
@@ -24,6 +26,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('catchForm') catchForm: CatchForm;
 
+  @ViewChild('survivalTestsTable') survivalTestsTable: SurvivalTestsTable;
+
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -35,10 +40,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
 
   ngOnInit() {
-    // Register forms
-    this.registerForm(this.opeForm);
-    this.registerForm(this.measurementsForm);
-    this.registerForm(this.catchForm);
+    // Register sub forms & table
+    this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
+      .registerTables([this.survivalTestsTable]);
 
     // Disable, during load
     this.disable();
@@ -67,7 +71,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   }
 
-  async load(id?: number, opts?: { tripId: number }) {
+  async load(id?: number, options?: { tripId: number }) {
     this.error = null;
 
     // Existing operation
@@ -92,14 +96,17 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     }
 
     // New operation
-    else if (opts && opts.tripId) {
+    else if (options && options.tripId) {
       console.debug("[page-operation] Creating new operation...");
-      this.tripService.load(opts.tripId)
+      this.tripService.load(options.tripId)
         .subscribe(trip => {
           this.updateView(new Operation(), trip);
           this.enable();
           this.loading = false;
         });
+    }
+    else {
+      throw new Error("Missing argument 'id' or 'options.tripId'!");
     }
   }
 
@@ -112,6 +119,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     }
 
     this.measurementsForm.value = data.measurements || [];
+
+    this.survivalTestsTable.value = /*TODO data.survivalTests || */[];
 
     const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label;
     this.catchForm.value = [];

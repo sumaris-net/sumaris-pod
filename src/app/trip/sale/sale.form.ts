@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { SaleValidatorService } from "../services/sale.validator";
-import { Sale, Referential, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString } from "../services/model";
+import { Sale, Referential, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString } from "../services/trip.model";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { AppForm } from '../../core/core.module';

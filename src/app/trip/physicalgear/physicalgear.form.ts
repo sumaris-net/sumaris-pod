@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, EventEmitter, Output, ViewChild } from '@angular/core';
 import { PhysicalGearValidatorService } from "../services/physicalgear.validator";
-import { PhysicalGear, Referential, GearLevelIds, Trip, Measurement } from "../services/model";
+import { PhysicalGear, Referential, GearLevelIds, Trip, Measurement } from "../services/trip.model";
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";

@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { Operation } from "./model";
+import { Operation } from "./trip.model";
 
 @Injectable()
 export class CatchValidatorService implements ValidatorService {
@@ -14,13 +14,9 @@ export class CatchValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Operation): FormGroup {
-    return this.formBuilder.group(this.getFields());
-  }
-
-  getFields(): { [key: string]: any } {
-    return {
+  getFormGroup(data?: any): FormGroup {
+    return this.formBuilder.group({
       id: ['']
-    };
+    });
   }
 }

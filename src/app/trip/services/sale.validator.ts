@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { Sale } from "./model";
+import { Sale } from "./trip.model";
 
 @Injectable()
 export class SaleValidatorService implements ValidatorService {

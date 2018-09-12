@@ -1,26 +1,26 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { Observable } from 'rxjs';
 import { mergeMap } from "rxjs/operators";
-import { ValidatorService } from "angular4-material-table";
-import { AppTable, AppTableDataSource, AccountService } from "../core/core.module";
-import { TripValidatorService } from "./services/trip.validator";
-import { TripService, TripFilter } from "./services/trip.service";
-import { TripModal } from "./trip.modal";
-import { Trip, Referential, VesselFeatures, LocationLevelIds } from "./services/trip.model";
+import { ValidatorService, TableElement } from "angular4-material-table";
+import { AppTable, AppTableDataSource, AccountService } from "../../core/core.module";
+import { TripValidatorService } from "../validator/validators";
+import { TripService, TripFilter } from "../services/trip.service";
+import { TripModal } from "../trip.modal";
+import { Trip, Referential, VesselFeatures, LocationLevelIds } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
-import { VesselService, ReferentialService } from '../referential/referential.module';
+import { VesselService, ReferentialService } from '../../referential/referential.module';
 import { Location } from '@angular/common';
-import { FormGroup, FormBuilder } from "@angular/forms";
-import { vesselFeaturesToString, referentialToString } from "../referential/services/model";
+import { FormGroup, Validators, FormBuilder } from "@angular/forms";
+import { vesselFeaturesToString, referentialToString } from "../../referential/services/model";
 
 @Component({
   selector: 'page-trips',
-  templateUrl: 'trips.page.html',
+  templateUrl: 'trips.html',
   providers: [
     { provide: ValidatorService, useClass: TripValidatorService }
   ],
-  styleUrls: ['./trips.page.scss']
+  styleUrls: ['./trips.scss']
 })
 export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 

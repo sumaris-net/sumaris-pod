@@ -3,11 +3,11 @@ import { Router, ActivatedRoute, Params } from "@angular/router";
 import { MatTabChangeEvent } from "@angular/material";
 import { TripService } from './services/trip.service';
 import { TripForm } from './trip.form';
-import { Trip } from './services/model';
+import { Trip } from './services/trip.model';
 import { SaleForm } from './sale/sale.form';
 import { OperationTable } from './operation/operations.table';
 import { MeasurementsForm } from './measurement/measurements.form';
-import { AppForm, AppTable } from '../core/core.module';
+import { AppForm, AppTable, AppTabPage } from '../core/core.module';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 
 @Component({
@@ -15,24 +15,14 @@ import { PhysicalGearTable } from './physicalgear/physicalgears.table';
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss']
 })
-export class TripPage implements OnInit {
+export class TripPage extends AppTabPage<Trip> implements OnInit {
 
 
-  private forms: AppForm<any>[];
-  private tables: AppTable<any, any>[];
-
-  selectedTabIndex: number = 0;
-
-  submitted: boolean = false;
-  error: string;
-  loading: boolean = true;
   saving: boolean = false;
-  data: Trip;
 
   @ViewChild('tripForm') tripForm: TripForm;
 
   @ViewChild('saleForm') saleForm: SaleForm;
-
 
   @ViewChild('physicalGearTable') physicalGearTable: PhysicalGearTable;
 
@@ -40,37 +30,20 @@ export class TripPage implements OnInit {
 
   @ViewChild('operationTable') operationTable: OperationTable;
 
-  public get dirty(): boolean {
-    return this.forms && (!!this.forms.find(form => form.dirty) || !!this.tables.find(table => table.dirty));
-  }
-
-  public get valid(): boolean {
-    return !this.forms || (!this.forms.find(form => !form.valid) && !this.tables.find(table => !table.valid));
-  }
-
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
     protected tripService: TripService
   ) {
+    super(route, router);
   }
 
   ngOnInit() {
-    // Make sure template has a form
-    if (!this.tripForm || !this.saleForm) throw "[TripPage] no form for value setting";
-
-    this.forms = [this.tripForm, this.saleForm, this.measurementsForm];
-    this.tables = [this.physicalGearTable, this.operationTable];
+    // Register forms & tables
+    this.registerForms([this.tripForm, this.saleForm, this.measurementsForm])
+      .registerTables([this.physicalGearTable, this.operationTable]);
 
     this.disable();
-
-    // Listen route parameters
-    this.route.queryParams.subscribe(res => {
-      const tabIndex = res["tab"];
-      if (tabIndex !== undefined) {
-        this.selectedTabIndex = parseInt(tabIndex);
-      }
-    });
 
     this.route.params.subscribe(res => {
       const id = res && res["tripId"];
@@ -83,7 +56,7 @@ export class TripPage implements OnInit {
     });
   }
 
-  async load(id?: number) {
+  async load(id?: number, options?: any) {
     this.error = null;
     if (id) {
       this.tripService.load(id)
@@ -94,7 +67,6 @@ export class TripPage implements OnInit {
         });
     }
     else {
-      console.debug("[page-trip] Creating new trip...");
       this.updateView(new Trip(), true);
       this.enable();
       this.loading = false;
@@ -124,7 +96,6 @@ export class TripPage implements OnInit {
     if (this.tripForm.valid) {
       this.saleForm.form.controls['vesselFeatures'].setValue(this.tripForm.form.controls['vesselFeatures'].value);
     }
-
 
     // Not valid
     if (!this.valid) {
@@ -171,41 +142,10 @@ export class TripPage implements OnInit {
     }
   }
 
-  public disable() {
-    this.forms && this.forms.forEach(form => form.disable());
-    this.tables && this.tables.forEach(table => table.disable());
-  }
-
-  public enable() {
-    this.forms && this.forms.forEach(form => form.enable());
-    this.tables && this.tables.forEach(table => table.enable());
-  }
-
-  public markAsPristine() {
-    this.error = null;
-    this.forms && this.forms.forEach(form => form.markAsPristine());
-    this.tables && this.tables.forEach(table => table.markAsPristine());
-  }
-
-  public markAsUntouched() {
-    this.forms && this.forms.forEach(form => form.markAsUntouched());
-    this.tables && this.tables.forEach(table => table.markAsUntouched());
-  }
-
   async cancel() {
     // reload
     this.loading = true;
     await this.load(this.data.id);
   }
-
-  onTabChange(event: MatTabChangeEvent) {
-    const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
-    queryParams['tab'] = event.index;
-    this.router.navigate(['.'], {
-      relativeTo: this.route,
-      queryParams: queryParams
-    });
-  }
-
 
 }

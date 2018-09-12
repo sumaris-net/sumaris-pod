@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { TripValidatorService } from "./services/trip.validator";
-import { Trip, Referential, VesselFeatures, LocationLevelIds, vesselFeaturesToString } from "./services/model";
+import { Trip, Referential, VesselFeatures, LocationLevelIds, vesselFeaturesToString } from "./services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";

@@ -46,16 +46,28 @@ export abstract class AppTabPage<T, F = any>{
 
     abstract async save(event): Promise<any>;
 
-    public registerForm(form: AppForm<any>) {
+    public registerForm(form: AppForm<any>): AppTabPage<T, F> {
         if (!form) throw 'Trying to register an invalid form';
         this._forms = this._forms || [];
         this._forms.push(form);
+        return this;
     }
 
-    public registertable(table: AppTable<any, any>) {
+    public registerForms(forms: AppForm<any>[]): AppTabPage<T, F> {
+        forms.forEach(form => this.registerForm(form));
+        return this;
+    }
+
+    public registerTable(table: AppTable<any, any>): AppTabPage<T, F> {
         if (!table) throw 'Trying to register an invalid table';
         this._tables = this._tables || [];
         this._tables.push(table);
+        return this;
+    }
+
+    public registerTables(tables: AppTable<any, any>[]): AppTabPage<T, F> {
+        tables.forEach(table => this.registerTable(table));
+        return this;
     }
 
     public disable() {

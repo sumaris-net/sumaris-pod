@@ -2,14 +2,14 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable, Subject } from "rxjs-compat";
-import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement } from "./model";
+import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement } from "./trip.model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { TripService } from "../services/trip.service";
 
-import { ErrorCodes } from "./errors";
+import { ErrorCodes } from "./trip.errors";
 import { AccountService } from "../../core/services/account.service";
-import { Fragments } from "./queries";
+import { Fragments } from "./trip.queries";
 
 
 export declare class OperationFilter {

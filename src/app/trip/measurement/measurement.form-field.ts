@@ -1,5 +1,5 @@
 import { Component, Optional, OnInit, Input, forwardRef } from '@angular/core';
-import { PmfmStrategy, Measurement } from "../services/model";
+import { PmfmStrategy, Measurement } from "../services/trip.model";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, FormBuilder, Validators, FormControl, FormGroupDirective } from '@angular/forms';
 
 import { MeasurementsValidatorService } from '../services/measurement.validator';

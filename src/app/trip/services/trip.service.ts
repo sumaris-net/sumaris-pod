@@ -2,14 +2,14 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable, Subject } from "rxjs-compat";
-import { Trip, Person, PhysicalGear, fillRankOrder } from "./model";
+import { Trip, Person, PhysicalGear, fillRankOrder } from "./trip.model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
 
-import { ErrorCodes } from "./errors";
+import { ErrorCodes } from "./trip.errors";
 import { AccountService } from "../../core/services/account.service";
-import { Fragments } from "./queries";
+import { Fragments } from "./trip.queries";
 
 export declare class TripFilter {
   startDate?: Date | Moment;
