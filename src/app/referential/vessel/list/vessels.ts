@@ -36,8 +36,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
     protected vesselService: VesselService,
     private formBuilder: FormBuilder
   ) {
-    super(route, router, platform, location, modalCtrl, accountService, vesselValidatorService,
-      new AppTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselService, vesselValidatorService),
+    super(route, router, platform, location, modalCtrl, accountService,
       ['select',
         'id',
         'exteriorMarking',
@@ -47,6 +46,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
         'comments',
         'actions'
       ],
+      new AppTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselService, vesselValidatorService),
       {
         date: null,
         searchText: null

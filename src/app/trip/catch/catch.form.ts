@@ -52,7 +52,7 @@ export class CatchForm extends MeasurementsForm implements OnInit {
                     sorting: pmfms.filter(p => p.label.indexOf('SORTING_') === 0),
                     weight: pmfms.filter(p => p.label.indexOf('_WEIGHT') != -1)
                 };
-                console.log("Result of Pmfm:", this.pmfmMap);
+                //console.debug("[catch-form] Loaded pmfms:", this.pmfmMap);
                 this.loading = false;
             });
     }

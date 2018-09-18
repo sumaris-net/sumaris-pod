@@ -1,9 +1,11 @@
 import { Component, OnInit, Input, EventEmitter, Output, forwardRef, Optional } from '@angular/core';
 import { Referential, PmfmStrategy } from "../services/trip.model";
-import { Observable } from 'rxjs';
-import { startWith, mergeMap, debounceTime } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { startWith, mergeMap, debounceTime, map, distinctUntilChanged, filter } from 'rxjs/operators';
 import { referentialToString } from '../../referential/services/model';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, Validators, FormControl, FormGroupDirective } from '@angular/forms';
+import { MatInput } from '@angular/material';
+
 
 import { SharedValidators } from '../../shared/validator/validators';
 
@@ -22,9 +24,12 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 
     private _onChangeCallback = (_: any) => { };
     private _onTouchedCallback = () => { };
+    private _implicitValue: Referential | any;
 
     items: Observable<Referential[]>;
+    onKeyDown = new Subject<any>();
 
+    displayWithFn: (obj: Referential | any) => string;
 
     @Input() pmfm: PmfmStrategy;
 
@@ -41,6 +46,10 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
     @Input() required: boolean = false;
 
     @Input() readonly: boolean = false;
+
+    @Input() compact: boolean = false;
+
+    @Input() clearable: boolean = false;
 
     @Output()
     onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
@@ -63,31 +72,34 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 
         this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm);
 
-        this.items = this.formControl.valueChanges
-            .pipe(
-                startWith(''),
-                debounceTime(150),
-                mergeMap(value => {
-                    if (!value) {
-                        if (!this.pmfm || !this.pmfm.qualitativeValues) return Observable.empty();
-                        return Observable.of(this.pmfm.qualitativeValues);
-                    }
-                    if (typeof value == "object") return Observable.of([value]);
-                    const ucValue = (value as string).toUpperCase();
-                    return Observable.of((this.pmfm.qualitativeValues)
-                        .filter((qv) => ((this.startsWithUpperCase(qv.label, ucValue)) || (this.startsWithUpperCase(qv.name, ucValue)))));
-                })
-            )
-    }
+        this.displayWithFn = this.compact ? this.referentialToLabel : referentialToString;
 
-    referentialToString = referentialToString;
+        this.clearable = this.compact ? false : this.clearable;
+
+        this.items = this.onKeyDown
+            .distinctUntilChanged()
+            .debounceTime(250)
+            .startWith('')
+            .map(value => {
+                if (!value) {
+                    if (!this.pmfm || !this.pmfm.qualitativeValues) return [];
+                    return this.pmfm.qualitativeValues;
+                }
+                if (typeof value == "object") return [value];
+                const ucValue = (value as string).toUpperCase();
+                const items: Referential[] = (this.pmfm.qualitativeValues)
+                    .filter((qv) => ((this.startsWithUpperCase(qv.label, ucValue)) || (!this.compact && this.startsWithUpperCase(qv.name, ucValue))));
+                // Store implicit value (will use it onBlur if not other value selected)
+                this._implicitValue = (items.length == 1) && items[0] || undefined;
+                return items;
+            });
+    }
 
     get value(): any {
         return this.formControl.value;
     }
 
     writeValue(obj: any): void {
-
         if (obj !== this.formControl.value) {
             this.formControl.setValue(obj);
             this._onChangeCallback(this.value);
@@ -127,11 +139,23 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
     }
 
     public _onBlur(event: FocusEvent) {
+        // When leave component without object, use implicit value if stored
+        if (typeof this.formControl.value != "object" && this._implicitValue) {
+            this.writeValue(this._implicitValue);
+        }
         this.markAsTouched();
         this.onBlur.emit(event);
     }
 
     private startsWithUpperCase(input: string, search: string): boolean {
         return input && input.toUpperCase().substr(0, search.length) === search;
+    }
+
+    referentialToLabel(obj: Referential | any): string {
+        return obj && obj.label || '';
+    }
+
+    clear() {
+        this.formControl.setValue(null);
     }
 }

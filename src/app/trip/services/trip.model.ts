@@ -295,6 +295,81 @@ export class Measurement extends DataEntity<Measurement> {
   }
 }
 
+export class MeasurementUtils {
+
+  static getMeasurementValuesMap(measurements: Measurement[], pmfms: PmfmStrategy[]): any {
+    const res: any = {};
+    pmfms.forEach(pmfm => {
+      const m = (measurements || []).find(m => m.pmfmId === pmfm.id);
+      res[pmfm.id.toString()] = m && MeasurementUtils.getValue(m, pmfm) || null;
+    });
+    return res;
+  }
+
+  static getMeasurements(measurements: Measurement[], pmfms: PmfmStrategy[]): Measurement[] {
+    // Work on a copy, to be able to reduce the array
+    let rankOrder = 1;
+    return (pmfms || []).map(pmfm => {
+      const m = (measurements || []).find(m => m.pmfmId === pmfm.id) || new Measurement();
+      m.pmfmId = pmfm.id; // apply the pmfm (need for new object)
+      m.rankOrder = rankOrder++;
+      return m;
+    });
+  }
+
+  // Update measurement values
+  static updateMeasurementValues(valuesMap: any[], measurements: Measurement[], pmfms: PmfmStrategy[]) {
+    (measurements || []).forEach(m => {
+      let pmfm = (pmfms || []).find(pmfm => pmfm.id === m.pmfmId);
+      if (pmfm) {
+        MeasurementUtils.setValue(valuesMap[pmfm.id.toString()] || null, m, pmfm);
+      }
+    });
+  }
+
+  static getValue(source: Measurement, pmfm: PmfmStrategy): any {
+    switch (pmfm.type) {
+      case "qualitative_value":
+        if (source.qualitativeValue && source.qualitativeValue.id) {
+          return pmfm.qualitativeValues.find(qv => qv.id == source.qualitativeValue.id);
+        }
+        return null;
+      case "integer":
+      case "double":
+        return source.numericalValue;
+      case "string":
+        return source.alphanumericalValue;
+      case "boolean":
+        return source.numericalValue === 1 ? true : (source.numericalValue === 0 ? false : null);
+      case "date":
+        return source.alphanumericalValue;
+      default:
+        throw new Error("Unknown pmfm.type for getting value of measurement: " + pmfm.type);
+    }
+  }
+
+  static setValue(value: any, target: Measurement, pmfm: PmfmStrategy) {
+    if (value === null || value === undefined) return;
+    switch (pmfm.type) {
+      case "qualitative_value":
+        target.qualitativeValue = value;
+        break;
+      case "integer":
+      case "double":
+        target.numericalValue = value;
+        break;
+      case "string":
+        target.alphanumericalValue = value;
+        break;
+      case "boolean":
+        target.numericalValue = (value === true || value === "true") ? 1 : 0;
+        break;
+      default:
+        throw new Error("Unknown pmfm.type, to fill measruement value: " + pmfm.type);
+    }
+  }
+}
+
 export class Sale extends DataRootVesselEntity<Sale> {
   startDateTime: Moment;
   endDateTime: Moment;
@@ -360,6 +435,7 @@ export class Operation extends DataEntity<Operation> {
   tripId: number;
 
   measurements: Measurement[];
+  samples: Sample[];
 
   constructor() {
     super();
@@ -396,6 +472,9 @@ export class Operation extends DataEntity<Operation> {
     // Measurements
     target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
 
+    // Samples
+    target.samples = this.samples && this.samples.map(s => s.asObject()) || undefined;
+
     return target;
   }
 
@@ -419,6 +498,7 @@ export class Operation extends DataEntity<Operation> {
     }
     delete this.positions;
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || undefined;
+    this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
     return this;
   }
 
@@ -473,5 +553,134 @@ export class VesselPosition extends DataEntity<Operation> {
     return super.equals(other)
       || (this.dateTime === other.dateTime
         && (!this.operationId && !other.operationId || this.operationId === other.operationId));
+  }
+}
+
+export class Sample extends DataEntity<Sample> {
+
+  static fromObject(source: any): Sample {
+    const res = new Sample();
+    res.fromObject(source);
+    return res;
+  }
+
+  label: string;
+  rankOrder: number;
+  sampleDate: Moment;
+  individualCount: number;
+  taxonGroup: Referential;
+  comments: string;
+  measurements: Measurement[];
+  matrixId: number;
+  batchId: number;
+  operationId: number;
+
+  constructor() {
+    super();
+    this.taxonGroup = new Referential();
+    this.measurements = [];
+  }
+
+  clone(): Sample {
+    const target = new Sample();
+    target.fromObject(this.asObject());
+    return target;
+  }
+
+  asObject(): any {
+    const target = super.asObject();
+    target.sampleDate = toDateISOString(this.sampleDate);
+    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
+    return target;
+  }
+
+  fromObject(source: any): Sample {
+    super.fromObject(source);
+    this.label = source.label;
+    this.rankOrder = source.rankOrder;
+    this.sampleDate = fromDateISOString(source.sampleDate);
+    this.individualCount = source.individualCount;
+    this.comments = source.comments;
+    this.taxonGroup = source.taxonGroup && Referential.fromObject(source.taxonGroup) || undefined;
+    this.measurements = source.measurements && source.measurements.filter(m => !!m).map(Measurement.fromObject) || undefined;
+    this.matrixId = source.matrixId;
+    this.batchId = source.batchId;
+    this.operationId = source.operationId;
+    return this;
+  }
+
+  equals(other: Sample): boolean {
+    return super.equals(other)
+      || (this.rankOrder === other.rankOrder
+        && (!this.operationId && !other.operationId || this.operationId === other.operationId)
+      );
+  }
+}
+
+export class Batch extends DataEntity<Batch> {
+
+  static fromObject(source: any): Batch {
+    const res = new Batch();
+    res.fromObject(source);
+    return res;
+  }
+
+  rankOrder: number;
+  exhaustiveInventory: boolean;
+  samplingRatio: number;
+  samplingRatioText: string;
+  individualCount: number;
+  comments: string;
+  parentBatch: Batch;
+  children: Batch[];
+  measurements: Measurement[];
+  operationId: number;
+
+  constructor() {
+    super();
+    this.parentBatch = null;
+    this.measurements = [];
+    this.children = [];
+  }
+
+  clone(): Batch {
+    const target = new Batch();
+    target.fromObject(this.asObject());
+    return target;
+  }
+
+  asObject(): any {
+    let parent = this.parentBatch; // avoid parent conversion
+    this.parentBatch = null;
+    const target = super.asObject();
+    this.parentBatch = parent;
+
+    target.children = this.children && this.children.map(c => c.asObject()) || undefined;
+    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
+    return target;
+  }
+
+  fromObject(source: any): Batch {
+    super.fromObject(source);
+    this.rankOrder = source.rankOrder;
+    this.exhaustiveInventory = source.exhaustiveInventory;
+    this.samplingRatio = source.samplingRatio;
+    this.samplingRatioText = source.samplingRatioText;
+    this.individualCount = source.individualCount;
+    this.comments = source.comments;
+    this.operationId = source.operationId;
+    this.children = source.children && source.children.filter(c => !!c).map(Batch.fromObject) || undefined;
+    this.children && this.children.forEach(c => c.parentBatch = this); // link children to self
+    this.measurements = source.measurements && source.measurements.filter(m => !!m).map(Measurement.fromObject) || undefined;
+    return this;
+  }
+
+  equals(other: Batch): boolean {
+    // equals by ID
+    return super.equals(other)
+      // Or by functional attributes
+      || (this.rankOrder === other.rankOrder
+        && (!this.parentBatch && !other.parentBatch || this.parentBatch.equals(other.parentBatch)) // same parent
+        && (!this.operationId && !other.operationId || this.operationId === other.operationId)); // same operation
   }
 }

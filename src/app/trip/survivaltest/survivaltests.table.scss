@@ -1,6 +1,40 @@
+.mat-header-row {
+  ion-label {
+    white-space: normal;
+    text-align: center;
+    word-wrap: break-word;
+  }
+}
+
 .mat-header-row,
 .mat-row {
-  // .mat-column-time {
-  //   max-width: 200px;
-  // }
+  .mat-column-rankOrder {
+    max-width: 25px;
+  }
+
+  .mat-column-pmfm-date {
+    min-width: 150px;
+    max-width: 175px;
+  }
+
+  .mat-column-60 {
+    max-width: 100px;
+  }
+
+  .mat-column-63,
+  .mat-column-64,
+  .mat-column-65,
+  .mat-column-66,
+  .mat-column-67,
+  .mat-column-68,
+  .mat-column-69,
+  .mat-column-70,
+  .mat-column-71 {
+    max-width: 30px;
+  }
+
+  .mat-column-80,
+  .mat-column-81 {
+    max-width: 50px;
+  }
 }

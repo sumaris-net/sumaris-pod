@@ -35,15 +35,14 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
-    protected tripValidatorService: TripValidatorService,
-    protected tripService: TripService,
+    protected validatorService: TripValidatorService,
+    protected dataService: TripService,
     protected vesselService: VesselService,
     protected referentialService: ReferentialService,
     protected formBuilder: FormBuilder
   ) {
 
-    super(route, router, platform, location, modalCtrl, accountService, tripValidatorService,
-      new AppTableDataSource<Trip, TripFilter>(Trip, tripService, tripValidatorService),
+    super(route, router, platform, location, modalCtrl, accountService,
       ['select', 'id',
         'vessel',
         'departureLocation',
@@ -51,7 +50,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         'returnDateTime',
         'comments',
         'actions'],
-      {} // filter
+      new AppTableDataSource<Trip, TripFilter>(Trip, dataService, validatorService)
     );
     this.i18nColumnPrefix = 'TRIP.';
     this.filterForm = formBuilder.group({

@@ -13,7 +13,7 @@
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && invalid"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (opeForm.invalid || measurementsForm.invalid)"></ion-icon>
       </ng-template>
 
       <!-- error -->
@@ -64,6 +64,7 @@
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_CATCH</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && catchForm.invalid"></ion-icon>
       </ng-template>
 
       <ion-grid padding>
@@ -77,21 +78,22 @@
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>timer</mat-icon>
-        <!-- <mat-icon>filter_tilt_shift</mat-icon> -->
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && survivalTestsTable.invalid"></ion-icon>
       </ng-template>
 
       <table-survival-tests #survivalTestsTable></table-survival-tests>
     </mat-tab>
 
-    <!-- TAB: Survival  -->
+    <!-- TAB: Individual monitoring  -->
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING'|translate}}">
       <ng-template mat-tab-label>
-        <!-- <mat-icon>adjust</mat-icon> -->
         <mat-icon>center_focus_strong</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
       </ng-template>
 
+      <table-individual-monitoring #individualMonitoringTable></table-individual-monitoring>
     </mat-tab>
   </mat-tab-group>
 

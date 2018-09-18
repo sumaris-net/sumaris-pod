@@ -4,8 +4,8 @@ import { PhysicalGear, Referential, GearLevelIds, Trip, Measurement } from "../s
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { mergeMap, startWith, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { AppForm } from '../../core/core.module';
 import { ReferentialService } from "../../referential/referential.module";
 import { referentialToString } from '../../referential/services/model';
@@ -18,6 +18,8 @@ import { MeasurementsForm } from '../measurement/measurements.form';
 })
 export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
+    onGearKeyDown = new Subject<any>();
+    loading = true;
     data: PhysicalGear;
     gears: Observable<Referential[]>;
     measurements: Measurement[];
@@ -53,31 +55,35 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
     ngOnInit() {
         // Combo: gears
-        this.gears = this.form.controls['gear']
-            .valueChanges
+        this.gears = this.form.controls['gear'].valueChanges
             .pipe(
-                mergeMap(value => {
-                    if (value && typeof value == "object") {
-                        if (!value.id) return Observable.empty();
-                        this.gear = value.label;
-                        this.measurementsForm.gear = this.gear;
-                        this.measurementsForm.value = this.measurements;
+                distinctUntilChanged(),
+                debounceTime(250),
+                startWith(''),
+                mergeMap((value: any) => {
+                    //if (this.loading) return Observable.empty();
+                    if (value && typeof value == "object" && value.id) {
+                        // apply value
+                        console.log("Applying gear: ", value);
+                        this.measurementsForm.gear = value.label;
+                        //this.measurementsForm.value = this.measurements;
                         return Observable.of([value]);
                     }
 
-                    this.gear = null;
-                    if (!value) return Observable.empty();
-                    if (typeof value != "string" || value.length < 2) return Observable.of([]);
+                    //this.gear = null;
+                    if (!value || !value.length) return Observable.empty();
+                    if (typeof value != "string") return Observable.empty();
                     return this.referentialService.loadAll(0, 10, undefined, undefined,
                         {
                             levelId: GearLevelIds.FAO,
                             searchText: value as string
                         },
                         { entityName: 'Gear' });
-                }));
+                })
+            );
 
         this.measurementsForm.valueChanges
-            .debounceTime(300)
+            //.debounceTime(300)
             .subscribe(measurements => {
                 var json = this.form.value;
                 json.measurements = (measurements || []).filter(m => !m.isEmpty());
@@ -97,13 +103,17 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
     set value(data: PhysicalGear) {
 
-        this.data = data;
+        this.loading = true;
 
+        this.data = data;
         super.setValue(data);
 
         this.measurements = data && data.measurements || [];
-        this.gear = data && data.gear && data.gear.label;
+        //this.gear = data && data.gear && data.gear.label;
+
+        this.measurementsForm.gear = data && data.gear && data.gear.label;
         this.measurementsForm.value = this.measurements;
+        this.loading = false;
     }
 
     get value(): PhysicalGear {

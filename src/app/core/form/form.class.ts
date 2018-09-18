@@ -9,6 +9,8 @@ import { DateAdapter } from "@angular/material";
 export abstract class AppForm<T> implements OnInit {
 
   private _enable: boolean = false;
+  protected debug: boolean = false;
+
   public touchUi: boolean = false;
   public mobile: boolean = false;
 
@@ -33,6 +35,10 @@ export abstract class AppForm<T> implements OnInit {
 
   public get empty(): boolean {
     return !this.form.dirty && !this.form.touched;
+  }
+
+  public get untouched(): boolean {
+    return this.form.untouched;
   }
 
   public disable(opts?: {
@@ -86,7 +92,7 @@ export abstract class AppForm<T> implements OnInit {
 
     // Convert object to json
     let json = this.toJsonFormValue(this.form, data);
-    console.debug("[form] Updating form... ", json);
+    if (this.debug) console.debug("[form] Updating form... ", json);
 
     // Appply to form
     this.form.setValue(json);

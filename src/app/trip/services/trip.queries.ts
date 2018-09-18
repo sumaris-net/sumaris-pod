@@ -1,7 +1,7 @@
 import gql from "graphql-tag";
 
 export const Fragments = {
-    department: gql`
+  department: gql`
       fragment DepartmentFragment on DepartmentVO {
         id
         label
@@ -9,7 +9,7 @@ export const Fragments = {
         logo
       }
     `,
-    person: gql`
+  person: gql`
       fragment PersonFragment on PersonVO {
         id
         firstName
@@ -22,7 +22,7 @@ export const Fragments = {
         }
       }
     `,
-    location: gql`
+  location: gql`
       fragment LocationFragment on LocationVO {
         id
         label
@@ -30,7 +30,7 @@ export const Fragments = {
         entityName
       }
     `,
-    referential: gql`
+  referential: gql`
       fragment ReferentialFragment on ReferentialVO {
         id
         label
@@ -38,7 +38,7 @@ export const Fragments = {
         entityName
       }
     `,
-    position: gql`
+  position: gql`
       fragment PositionFragment on VesselPositionVO {
         id
         dateTime
@@ -53,7 +53,7 @@ export const Fragments = {
         }
       }
     `,
-    measurement: gql`
+  measurement: gql`
       fragment MeasurementFragment on MeasurementVO {
         id
         pmfmId
@@ -61,6 +61,7 @@ export const Fragments = {
         numericalValue
         qualitativeValue {
           id
+          label
         }
         digitCount
         rankOrder
@@ -72,6 +73,7 @@ export const Fragments = {
           label
           name
         }
+        entityName
       }
     `
 };

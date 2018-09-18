@@ -63,14 +63,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     protected translate: TranslateService
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
-      validatorService,
-      new AppTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
-        prependNewElements: false,
-        serviceOptions: {
-          full: true,
-          entityName: null // will be set from route parameters
-        }
-      }),
       // columns
       ['select', 'id',
         'label',
@@ -80,8 +72,13 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         'comments',
         'actions'
       ],
-      // filter
-      {}
+      new AppTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
+        prependNewElements: false,
+        serviceOptions: {
+          full: true,
+          entityName: null // will be set from route parameters
+        }
+      })
     );
     //this.autoLoad = false;
     this.inlineEdition = true; // always inline edition
@@ -91,7 +88,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       'entityName': ['']
     });
     this.filterForm = formBuilder.group({
-      'searchText': ['']
+      'searchText': [null]
     });
 
     this.route.params.subscribe(res => {
@@ -135,7 +132,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // Update filter when changes
     this.filterForm.valueChanges.subscribe(() => {
-      this.filter.searchText = this.filterForm.value.searchText;
+      this.filter = this.filterForm.value;
     });
     this.onRefresh.subscribe(() => {
       this.filterForm.markAsUntouched();

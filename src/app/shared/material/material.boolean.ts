@@ -1,10 +1,8 @@
-import { Component, Optional, Input, Output, EventEmitter, OnInit, forwardRef, ViewChild, ChangeDetectorRef, ElementRef } from '@angular/core';
+import { Component, Optional, Input, Output, EventEmitter, OnInit, forwardRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { MatFormFieldControl, MatFormField, MatRadioButton, MatRadioChange } from '@angular/material';
-import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor, ValidationErrors } from "@angular/forms";
+import { MatRadioButton, MatRadioChange, MatCheckbox, MatCheckboxChange } from '@angular/material';
+import { FormControl, FormBuilder, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
-import { merge } from "rxjs/observable/merge";
-import { formatLatitude, formatLongitude, parseLatitudeOrLongitude, DEFAULT_PLACEHOLDER_CHAR } from '../pipes/latlong-format.pipe';
 
 const noop = () => {
 };
@@ -48,10 +46,14 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
 
     @Input() required: boolean = false;
 
+    @Input() compact: boolean = false;
+
     @Output()
     onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
     @ViewChild('yesButton') yesButton: MatRadioButton;
+
+    @ViewChild('checkboxButton') checkboxButton: MatCheckbox;
 
     //get accessor
     get value(): any {
@@ -79,6 +81,8 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
 
     ngOnInit() {
         this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+        if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-boolean-field>.");
+
         this.showRadio = this.formControl.value != null;
     }
 
@@ -114,12 +118,21 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
         this.writing = false;
     }
 
-    private onValueChanged(event: MatRadioChange): void {
+    private onRadioValueChanged(event: MatRadioChange): void {
         if (this.writing) return; // Skip if call by self
         this.writing = true;
         this._value = event.value;
         this.markAsTouched();
         this.onChangeCallback(event.value);
+        this.writing = false;
+    }
+
+    private onCheckboxValueChanged(event: MatCheckboxChange): void {
+        if (this.writing) return; // Skip if call by self
+        this.writing = true;
+        this._value = event.checked;
+        this.markAsTouched();
+        this.onChangeCallback(event.checked);
         this.writing = false;
     }
 
@@ -143,7 +156,8 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
         event.target.classList.add('hidden');
         this.showRadio = true;
         setTimeout(() => {
-            this.yesButton.focus();
+            this.yesButton && this.yesButton.focus();
+            this.checkboxButton && this.checkboxButton.focus();
         });
     }
 }

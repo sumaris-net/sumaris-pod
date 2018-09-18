@@ -259,6 +259,18 @@ mat-option ion-row {
 mat-table {
   .mat-header-cell {
     //padding-left: 8px;
+
+    ion-label {
+      white-space: normal;
+      text-align: center;
+      word-wrap: break-word;
+    }
+  }
+
+  .mat-header-cell[align-self-center]>ion-label,
+  .mat-row[align-self-center] {
+    text-align: center;
+
   }
 
   .mat-header-row,

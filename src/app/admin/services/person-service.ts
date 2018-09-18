@@ -63,7 +63,7 @@ export class PersonService extends BaseDataService implements DataService<Person
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
-    console.debug("[person-service] Loading persons, using filter: ", variables);
+    //console.debug("[person-service] Loading persons, using filter: ", variables);
     return this.watchQuery<{ persons: Person[] }>({
       query: PersonsQuery,
       variables: variables,

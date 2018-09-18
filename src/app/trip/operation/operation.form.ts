@@ -55,9 +55,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                             this.form.controls["metier"].enable();
                             return Observable.of([value]);
                         }
-                        this.form.controls["metier"].disable();
                         // Skip if no trip (or no physical gears)
-                        if (!this.trip || !this.trip.gears || !this.trip.gears.length) return Observable.empty();
+                        if (!this.trip || !this.trip.gears || !this.trip.gears.length) {
+                            this.form.controls["metier"].disable();
+                            return Observable.empty();
+                        }
                         // Display all trip gears
                         if (!value || typeof value != "string" || value.length < 2) return Observable.of(this.trip.gears || []);
 

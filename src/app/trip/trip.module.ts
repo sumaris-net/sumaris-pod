@@ -16,10 +16,16 @@ import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { OperationTable } from './operation/operations.table';
 import { TripModal } from './trip.modal';
 import { SurvivalTestsTable } from './survivaltest/survivaltests.table';
+import { IndividualMonitoringTable } from './individualmonitoring/individual-monitoring.table';
+
 
 import { TripService, OperationService } from './services/trip.services';
 
-import { TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService, MeasurementsValidatorService, CatchValidatorService, SurvivalTestValidatorService } from './services/trip.validators';
+import {
+    TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService,
+    MeasurementsValidatorService, CatchValidatorService, SurvivalTestValidatorService,
+    IndividualMonitoringService
+} from './services/trip.validators';
 
 @NgModule({
     imports: [
@@ -42,7 +48,8 @@ import { TripValidatorService, SaleValidatorService, PhysicalGearValidatorServic
         MeasurementQVFormField,
         MeasurementFormField,
         CatchForm,
-        SurvivalTestsTable
+        SurvivalTestsTable,
+        IndividualMonitoringTable
     ],
     exports: [
         TripsPage,
@@ -79,7 +86,8 @@ import { TripValidatorService, SaleValidatorService, PhysicalGearValidatorServic
         PositionValidatorService,
         MeasurementsValidatorService,
         CatchValidatorService,
-        SurvivalTestValidatorService
+        SurvivalTestValidatorService,
+        IndividualMonitoringService
     ]
 })
 export class TripModule {

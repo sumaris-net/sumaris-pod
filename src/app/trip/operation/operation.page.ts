@@ -8,6 +8,8 @@ import { MeasurementsForm } from '../measurement/measurements.form';
 import { AppTabPage } from '../../core/core.module';
 import { CatchForm } from '../catch/catch.form';
 import { SurvivalTestsTable } from '../survivaltest/survivaltests.table';
+import { IndividualMonitoringTable } from '../individualmonitoring/individual-monitoring.table';
+import { map, mergeMap } from 'rxjs/operators';
 
 
 @Component({
@@ -28,6 +30,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('survivalTestsTable') survivalTestsTable: SurvivalTestsTable;
 
+  @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringTable;
 
   constructor(
     protected route: ActivatedRoute,
@@ -42,13 +45,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   ngOnInit() {
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
-      .registerTables([this.survivalTestsTable]);
+      .registerTables([this.survivalTestsTable, this.individualMonitoringTable])
+      ;
 
     // Disable, during load
     this.disable();
 
     // Read route
-    this.route.params.subscribe(res => {
+    this.route.params.first().subscribe(res => {
       const tripId = res && res["tripId"];
       const id = res && res["opeId"];
       setTimeout(() => {
@@ -77,30 +81,35 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Existing operation
     if (id) {
       console.debug("[page-operation] Loading operation...");
-      this.operationService.load(id)
-        .subscribe(data => {
-          if (!data || !data.tripId) {
-            console.error("Unable to load operation with id:" + id);
-            this.error = "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR";
-            this.loading = false;
-            return;
-          }
+      this.operationService.load(id).first().subscribe(data => {
+        if (!data || !data.tripId) {
+          console.error("Unable to load operation with id:" + id);
+          this.error = "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR";
+          this.loading = false;
+          return;
+        }
 
-          this.tripService.load(data.tripId)
-            .subscribe(trip => {
-              this.updateView(data, trip);
-              this.enable();
-              this.loading = false;
-            });
+        this.tripService.load(data.tripId).first().subscribe(trip => {
+          this.updateView(data, trip);
+          this.enable();
+          this.loading = false;
         });
+      });
     }
 
     // New operation
     else if (options && options.tripId) {
       console.debug("[page-operation] Creating new operation...");
-      this.tripService.load(options.tripId)
+      this.tripService.load(options.tripId).first()
         .subscribe(trip => {
-          this.updateView(new Operation(), trip);
+
+          const operation = new Operation();
+          // Use the default gear, if only one
+          if (trip.gears.length == 1) {
+            operation.physicalGear = Object.assign({}, trip.gears[0]);
+          }
+
+          this.updateView(operation, trip);
           this.enable();
           this.loading = false;
         });
@@ -118,13 +127,27 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.opeForm.setTrip(trip);
     }
 
-    this.measurementsForm.value = data.measurements || [];
+    // Set measurements
+    this.measurementsForm.value = data && data.measurements || [];
 
-    this.survivalTestsTable.value = /*TODO data.survivalTests || */[];
-
-    const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label;
+    // Set catch bacth
+    //const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label;
+    //this.catchForm.gear = gearLabel;
+    // TODO
+    // this.catchForm.value = data && data.catch && data.catch.measurements || [];
     this.catchForm.value = [];
-    this.catchForm.gear = gearLabel;
+
+    // Set survival tests
+    // TODO
+    //this.survivalTestsTable.value = data && data.survivalTests || [];
+    this.survivalTestsTable.value = data && data.samples || [];
+    //this.survivalTestsTable.value = [{ rankOrder: 1 }];
+
+    // Set indiv monitoring
+    // TODO
+    //this.individualMonitoringTable.value = data && data.individualMonitoring || [];
+    this.individualMonitoringTable.value = [{ rankOrder: 1, comments: 'A comment' }];
+
 
     this.markAsPristine();
     this.markAsUntouched();
@@ -139,6 +162,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
       if (this.opeForm.invalid) this.opeForm.markAsTouched();
       if (this.measurementsForm.invalid) this.measurementsForm.markAsTouched();
+      if (this.catchForm.invalid) this.catchForm.markAsTouched();
 
       this.submitted = true;
       return;
@@ -155,9 +179,16 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.data.tripId = this.trip.id;
     this.data.measurements = this.measurementsForm.value;
 
-    // Catch: TODO
+    // get catch batch
+    // TODO
     //this.data.catch = this.catchForm.value;
     console.log("TODO: get catch", this.catchForm.value);
+
+    // get survival tests
+    // TODO
+
+    // get indiv monitoring
+    // TODO
 
     this.disable();
 

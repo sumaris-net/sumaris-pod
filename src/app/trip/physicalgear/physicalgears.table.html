@@ -84,7 +84,7 @@
           [class.mat-row-disabled]="!isDetailRow(row)" (click)="onRowClick($event, row)"></mat-row>
       </mat-table>
 
-      <ion-text *ngIf="selectedRow">
+      <ion-text *ngIf="selectedRow && _debug">
         <p *ngFor="let meas of detailMeasurements | async">
           {{meas}}
         </p>

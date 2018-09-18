@@ -2,6 +2,7 @@
     [no-padding] {
       --ion-grid-column-padding: 0;
     }
+
     [nowrap] {
       flex-wrap: nowrap;
     }
@@ -20,15 +21,17 @@
   }
 
   ion-col.day {
-    min-width: 95px;
+    min-width: 96px;
     max-width: 135px;
   }
 
   ion-col.hour {
-    min-width: 40px;
+    min-width: 27px;
     max-width: 40px;
+
     mat-form-field {
       width: 100%;
+
       span,
       input[type=number] {
         text-align: end;
@@ -37,10 +40,12 @@
   }
 
   ion-col.minute {
-    min-width: 40px;
+    min-width: 27px;
     max-width: 40px;
+
     mat-form-field {
       width: 100%;
+
       span,
       input[type=number] {
         text-align: start;

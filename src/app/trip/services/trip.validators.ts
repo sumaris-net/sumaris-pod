@@ -7,3 +7,4 @@ export { PositionValidatorService } from './position.validator';
 export { MeasurementsValidatorService } from './measurement.validator';
 export { CatchValidatorService } from './catch.validator';
 export { SurvivalTestValidatorService } from './survivaltest.validator';
+export { IndividualMonitoringService } from './individual-monitoring.validator';

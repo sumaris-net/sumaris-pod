@@ -23,6 +23,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     private _onChangeCallback = (_: any) => { };
     private _onTouchedCallback = () => { };
 
+
     @Input() pmfm: PmfmStrategy;
 
     @Input() disabled: boolean = false
@@ -33,6 +34,11 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
     @Input() placeholder: string;
 
+    @Input() compact: boolean = false;
+
+    @Input() floatLabel: string;
+
+    @Input() ngModel: any;
 
     get value(): any {
         return this.formControl.value;

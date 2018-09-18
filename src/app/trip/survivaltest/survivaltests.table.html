@@ -34,7 +34,27 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" class="table-operations" matSort matSortActive="startDateTime" matSortDirection="asc"
+<!-- First table header
+<mat-table class="table-survival-test">
+  <ng-container matColumnDef="select">
+    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef></mat-header-cell>
+  </ng-container>
+  <ng-container matColumnDef="rankOrder">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+  </ng-container>
+  <ng-container *ngFor="let pmfm of pmfmHeaders | async" matColumnDef="{{pmfm.id}}">
+    <mat-header-cell *matHeaderCellDef class="col-{{pmfm.count}}">
+      <ion-label>{{pmfm.name | translate}}</ion-label>
+    </mat-header-cell>
+  </ng-container>
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+  </ng-container>
+  <mat-header-row *matHeaderRowDef="displayedHeaderColumns"></mat-header-row>
+</mat-table> -->
+
+
+<mat-table [dataSource]="dataSource" class="table-survival-test" matSort matSortActive="rankOrder" matSortDirection="asc"
   matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -58,20 +78,98 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- scoring date time 
-  <ng-container matColumnDef="startDateTime">
-    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <ion-label translate>TRIP.SURVIVAL_TEST.TABLE.SCORING_DATE_TIME</ion-label>
+  <!-- taxon group -->
+  <ng-container matColumnDef="taxonGroup">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label>Taxon group</ion-label>
     </mat-header-cell>
-    <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['scoringDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-        [(ngModel)]="row.currentData.scoringDateTime" [readonly]="!row.editing" required>
-      </mat-date-time>
+    <mat-cell *matCellDef="let row">
+      {{row.currentData?.taxonGroup.label}}
     </mat-cell>
-  </ng-container> -->
+  </ng-container>
 
-  <!-- TODO -->
+  <!-- date Column -->
+  <ng-container matColumnDef="sampleDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label>Date</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
 
+      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['sampleDate']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
+        [(ngModel)]="row.currentData.sampleDate" [readonly]="!row.editing" required></mat-date-time>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Pmfms columns -->
+  <ng-container *ngIf="!started">
+    <ng-container matColumnDef="60">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="61">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="62">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="63">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="64">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="65">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="66">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="67">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="68">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="69">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="70">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="71">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="80">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="81">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+  </ng-container>
+  <ng-container *ngIf="started">
+    <ng-container *ngFor="let pmfm of cachedPmfms" matColumnDef="{{pmfm.id}}">
+      <mat-header-cell *matHeaderCellDef [class.mat-column-pmfm-date]="pmfm.type=='date'">
+        <ion-label>{{getPmfmColumnHeader(pmfm)}}</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [class.mat-column-pmfm-date]="pmfm.type=='date'">
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls[pmfm.id]" [compact]="true"
+          floatLabel="never" [(ngModel)]="row.currentData?.measurements[pmfm.id]"></mat-form-field-measurement>
+      </mat-cell>
+    </ng-container>
+  </ng-container>
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
@@ -97,26 +195,12 @@
   </ion-col>
 </ion-row>
 
-<!-- Bottom buttons
-<ion-row no-padding>
-  <ion-col col-6 padding>
-    <ion-buttons left start *ngIf="!loading">
-      <button mat-raised-button *ngIf="dirty" (click)="onRefresh.emit()">
-        <ion-icon name="md-close"></ion-icon>
-        <span translate>COMMON.BTN_CANCEL</span>
-      </button>
-      <button mat-raised-button color="primary" *ngIf="dirty" (click)="save()">
-        <ion-icon name="md-checkmark"></ion-icon>
-        <span translate>COMMON.BTN_SAVE</span>
-      </button>
-    </ion-buttons>
+<!-- <ion-row>
+  <ion-col *ngFor="let pmfm of pmfms | async">
+    {{pmfm.label}}
   </ion-col>
+</ion-row> -->
 
-  <ion-col no-padding col-6>
-    <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]">
-    </mat-paginator>
-  </ion-col>
-</ion-row>-->
 
 <ion-fab right bottom visible-xs visible-sm>
   <button ion-fab color="light" (click)="addRow()">

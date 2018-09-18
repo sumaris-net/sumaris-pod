@@ -70,6 +70,24 @@ const LoadQuery: any = gql`
       measurements {
         ...MeasurementFragment
       }
+      samples {
+        id
+        label
+        rankOrder
+        sampleDate
+        individualCount
+        comments
+        updateDate
+        matrix {
+          ...ReferentialFragment
+        }
+        taxonGroup {
+          ...ReferentialFragment
+        }
+        measurements {
+          ...MeasurementFragment
+        } 
+      }
     }  
   }
   ${Fragments.department}
@@ -187,13 +205,15 @@ export class OperationService extends BaseDataService implements DataService<Ope
       },
       error: { code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR" }
     })
-      .map(data => {
-        if (data && data.operation) {
-          console.debug("[operation-service] Loaded operation {" + id + "}");
-          return Operation.fromObject(data.operation);
-        }
-        return null;
-      });
+      .pipe(
+        map(data => {
+          if (data && data.operation) {
+            console.debug("[operation-service] Loaded operation {" + id + "}");
+            return Operation.fromObject(data.operation);
+          }
+          return null;
+        })
+      );
   }
 
   /**

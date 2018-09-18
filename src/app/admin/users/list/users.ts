@@ -25,23 +25,17 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
-    protected personService: PersonService,
-    protected personValidatorService: PersonValidatorService,
+    protected validatorService: PersonValidatorService,
+    protected dataService: PersonService,
     formBuilder: FormBuilder
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
-      personValidatorService,
-      new AppTableDataSource<Person, PersonFilter>(Person, personService, personValidatorService),
       ['select',
         'id',
         'avatar',
         'lastName', 'firstName',
         'email'],
-      {
-        email: null,
-        pubkey: null,
-        searchText: null
-      }
+      new AppTableDataSource<Person, PersonFilter>(Person, dataService, validatorService)
     );
     this.inlineEdition = true; // Froce inline edition
     this.i18nColumnPrefix = 'USER.';

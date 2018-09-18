@@ -101,6 +101,8 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
         );
 
         this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+        if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-latlong>.");
+
         this.formControl.setValidators(Validators.compose([
             this.formControl.validator,
             this.type === 'latitude' ? SharedValidators.latitude : SharedValidators.longitude

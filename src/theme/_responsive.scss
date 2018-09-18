@@ -304,6 +304,11 @@ $screen-lg: 1200px;
     text-align: end;
     line-height: 37px;
   }
+
+  form ion-col[align-self-center]>ion-label {
+    text-align: center;
+    line-height: 37px;
+  }
 }
 
 // --------------------------------------------------

@@ -38,12 +38,11 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
-    protected operationValidatorService: OperationValidatorService,
+    protected validatorService: OperationValidatorService,
     protected operationService: OperationService,
     protected referentialService: ReferentialService
   ) {
-    super(route, router, platform, location, modalCtrl, accountService, operationValidatorService,
-      new AppTableDataSource<Operation, OperationFilter>(Operation, operationService, operationValidatorService),
+    super(route, router, platform, location, modalCtrl, accountService,
       ['select',
         'metier',
         'startDateTime',
@@ -52,7 +51,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
         'endPosition',
         'comments',
         'actions'],
-      {} // filter
+      new AppTableDataSource<Operation, OperationFilter>(Operation, operationService, validatorService)
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false;
@@ -88,6 +87,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
 
   setTripId(tripId: number) {
     this.tripId = tripId;
+    this.filter = this.filter || {};
     this.filter.tripId = tripId;
     this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
     this.dataSource.serviceOptions.tripId = tripId;

@@ -61,18 +61,16 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     protected validatorService: PhysicalGearValidatorService,
     protected referentialService: ReferentialService
   ) {
-    super(route, router, platform, location, modalCtrl, accountService, validatorService,
-      null,
+    super(route, router, platform, location, modalCtrl, accountService,
       ['select',
         'rankOrder',
         'gear',
-        'comments'],
-      {} // filter
+        'comments']
     );
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = false;
-
     this.setDatasource(new AppTableDataSource<PhysicalGear, any>(PhysicalGear, this, this.validatorService));
+    this.debug = true;
   };
 
 
@@ -82,28 +80,28 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
     // Listen detail form, to update the table
     this.gearForm.valueChanges
+      .debounceTime(300)
       .subscribe(value => {
         if (!this.selectedRow) return;
+        //console.log("gearForm.valueChanges", value);
         this.selectedRow.currentData.fromObject(value);
         this._dirty = true;
       });
 
-    this.detailMeasurements = this.gearForm
+    this.detailMeasurements = this.debug && Observable.empty() || this.gearForm
       .valueChanges
-      .pipe(
-        debounceTime(300),
-        map(value => {
-          return (value.measurements || [])
-            .map(m => {
-              let res: string = m.id ? ('id=' + m.id) : 'id=..';
-              res += ' | ';
-              res += m.pmfmId;
-              res += ' | ';
-              res += m.numericalValue || m.alphanumericalValue || (m.qualitativeValue && m.qualitativeValue.label) || '';
-              return res;
-            })
-        })
-      );
+      .debounceTime(300)
+      .map(value => {
+        return (value.measurements || [])
+          .map(m => {
+            let res: string = m.id ? ('id=' + m.id) : 'id=..';
+            res += ' | ';
+            res += m.pmfmId;
+            res += ' | ';
+            res += m.numericalValue || m.alphanumericalValue || (m.qualitativeValue && m.qualitativeValue.label) || '';
+            return res;
+          })
+      });
   }
 
 
@@ -171,7 +169,6 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     const row = this.dataSource.getRow(-1);
     this.data.push(row.currentData);
     this.selectedRow = row;
-    this.resultsLength++;
     row.currentData.rankOrder = this.resultsLength;
     this.gearForm.value = row.currentData;
   }

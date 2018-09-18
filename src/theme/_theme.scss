@@ -20,8 +20,13 @@ $candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
-//@include angular-material-theme($candy-app-theme);
-@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+@include angular-material-theme($candy-app-theme);
+
+.mat-autocomplete-panel {
+  min-width: 300px !important;
+}
+
+//@import "~@angular/material/prebuilt-themes/indigo-pink.css";
 // --------------------------------------------------
 // Import material icons
 // --------------------------------------------------

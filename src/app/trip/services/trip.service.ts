@@ -264,13 +264,15 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       },
       error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" }
     })
-      .map(data => {
-        if (data && data.trip) {
-          console.debug("[trip-service] Loaded trip {" + id + "}");
-          return Trip.fromObject(data.trip);
-        }
-        return null;
-      });
+      .pipe(
+        map(data => {
+          if (data && data.trip) {
+            console.debug("[trip-service] Loaded trip {" + id + "}");
+            return Trip.fromObject(data.trip);
+          }
+          return null;
+        })
+      );
   }
 
   /**

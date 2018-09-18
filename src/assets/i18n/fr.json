@@ -220,18 +220,29 @@
       }
     },
     "CATCH": {
-      "EDIT": {
+      "FORM": {
         "ON_DECK": "Arrivée sur pont :",
         "SORTING": "Debut/fin de tri :",
-        "START_DATE": "Date début",
-        "END_DATE": "Date fin",
-        "TOTAL_CATCH": "Capture totale :",
-        "LANDING_WEIGHT": "Poids total débarqué (kg)"
+        "TOTAL_CATCH": "Capture totale :"
       }
+    },
+    "BATCH": {
+      "TABLE": {}
+    },
+    "INDIVIDUAL_LENGTH": {
+      "TABLE": {}
     },
     "SURVIVAL_TEST": {
       "TABLE": {
-        "ON_DECK": "Arrivée sur pont :"
+        "HEADER_GROUP": {
+          "R": "Reflex",
+          "D": "Injuries"
+        }
+      }
+    },
+    "INDIVIDUAL_MONITORING": {
+      "TABLE": {
+        "COMMENTS": "Commentaires"
       }
     }
   },

@@ -95,6 +95,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         });
 
         this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+        if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time>.");
 
         // Add custom 'validDate' validator
         this.formControl.setValidators(Validators.compose([this.formControl.validator, SharedValidators.validDate]));

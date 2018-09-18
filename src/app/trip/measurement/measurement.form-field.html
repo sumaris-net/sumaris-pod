@@ -1,7 +1,7 @@
 <ng-container [ngSwitch]="pmfm.type">
 
   <!-- integer -->
-  <mat-form-field *ngSwitchCase="'integer'">
+  <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
     <input matInput autocomplete="off" type="number" min="0" [max]="pmfm.maxValue" [placeholder]="placeholder"
       [formControl]="formControl" [required]="pmfm.isMandatory">
     <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -14,7 +14,7 @@
   </mat-form-field>
 
   <!-- double -->
-  <mat-form-field *ngSwitchCase="'double'">
+  <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
     <input matInput autocomplete="off" type="number" [min]="pmfm.minValue" [max]="pmfm.maxValue" [placeholder]="placeholder"
       [step]="computeNumberInputStep(pmfm)" [formControl]="formControl" [required]="pmfm.isMandatory">
     <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -28,17 +28,20 @@
 
   <!-- boolean -->
   <ng-container *ngSwitchCase="'boolean'">
-    <mat-boolean-field [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory"></mat-boolean-field>
+    <mat-boolean-field [formControl]="formControl" [placeholder]="placeholder" [floatLabel]="floatLabel" [required]="pmfm.isMandatory"
+      [compact]="compact"></mat-boolean-field>
   </ng-container>
 
   <!-- date -->
   <ng-container *ngSwitchCase="'date'">
-    <mat-date-time [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory" [displayTime]="pmfm.unit=='Date & Time'"></mat-date-time>
+    <mat-date-time [formControl]="formControl" [placeholder]="placeholder" [floatLabel]="floatLabel" [required]="pmfm.isMandatory"
+      [displayTime]="pmfm.unit=='Date & Time'"></mat-date-time>
   </ng-container>
 
   <!-- qualitative value -->
   <ng-container *ngSwitchCase="'qualitative_value'">
-    <mat-form-field-measurement-qv [formControl]="formControl" [pmfm]="pmfm" [required]="pmfm.isMandatory"></mat-form-field-measurement-qv>
+    <mat-form-field-measurement-qv [formControl]="formControl" [pmfm]="pmfm" [floatLabel]="floatLabel" [required]="pmfm.isMandatory"
+      [compact]="compact"></mat-form-field-measurement-qv>
   </ng-container>
 
   <!-- other -->

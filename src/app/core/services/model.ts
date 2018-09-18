@@ -22,7 +22,8 @@ export const AcquisitionLevelCodes = {
   OPERATION: 'OPERATION',
   CATCH_BATCH: 'CATCH_BATCH',
   SORTING_BATCH: 'SORTING_BATCH',
-  SAMPLE: 'SAMPLE'
+  SAMPLE: 'SAMPLE',
+  SURVIVAL_TEST: 'SURVIVAL_TEST',
 }
 
 export declare interface Cloneable<T> {

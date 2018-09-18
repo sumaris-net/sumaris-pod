@@ -27,6 +27,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     private _initialized = false;
     private _subscriptions: Subscription[] = [];
     protected _dirty = false;
+    protected debug = false;
 
     inlineEdition: boolean = false;
     displayedColumns: string[];
@@ -56,6 +57,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     get valid(): boolean {
         if (this.selectedRow && this.selectedRow.editing) {
+            if (this.debug && !this.selectedRow.validator.valid) {
+                this.logRowErrors(this.selectedRow);
+            }
             return this.selectedRow.validator.valid;
         }
         return true;
@@ -66,10 +70,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     disable() {
+        if (!this._initialized || !this.table) return;
         this.table.disabled = true;
     }
 
     enable() {
+        if (!this._initialized || !this.table) return;
         this.table.disabled = false;
     }
 
@@ -88,16 +94,17 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         protected location: Location,
         protected modalCtrl: ModalController,
         protected accountService: AccountService,
-        protected validatorService: ValidatorService,
-        public dataSource: AppTableDataSource<T, F>,
         protected columns: string[],
-        protected filter: F
+        public dataSource?: AppTableDataSource<T, F>,
+        protected filter?: F
     ) {
     };
 
     ngOnInit() {
         if (this._initialized) return; // Init only once
         this._initialized = true;
+
+        if (!this.table) throw new Error("[table] Missing 'table' component in template !");
 
         // Defined unique id for settings
         this.settingsId = this.generateTableId();
@@ -123,10 +130,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                             return Observable.of(undefined);
                         }
                         if (!this.dataSource) {
-                            console.debug("[table] Skipping data load: no dataSource defined");
+                            if (this.debug) console.debug("[table] Skipping data load: no dataSource defined");
                             return Observable.of(undefined);
                         }
-                        console.debug("[table] Loading datasource...");
+                        if (this.debug) console.debug("[table] Calling dataSource.load()...");
                         return this.dataSource.load(
                             this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
                             this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
@@ -144,13 +151,15 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 if (data) {
                     this.isRateLimitReached = !this.paginator || (data.length < this.paginator.pageSize);
                     this.resultsLength = (this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + data.length;
-                    console.debug('[table] Loaded ' + data.length + ' rows');
+                    if (this.debug) console.debug('[table] Loaded ' + data.length + ' rows');
                 }
                 else {
-                    //console.debug('[table] Loaded NO rows');
+                    if (this.debug) console.debug('[table] Loaded NO rows');
                     this.isRateLimitReached = true;
                     this.resultsLength = 0;
                 }
+                this.markAsUntouched();
+                this.markAsPristine();
             });
 
         // Subscriptions:
@@ -202,12 +211,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     cancelOrDelete(event, row) {
-        // cancel
-        if (!row.currentData.id) {
+        // If row neveer saved: this is a delete
+        if (row.id == -1) {
             this.resultsLength--;
         }
         this.selectedRow = null;
-        event.preventDefault();
+        event.stopPropagation();
 
         row.cancelOrDelete();
     }
@@ -251,13 +260,14 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             var confirm = this.selectedRow.confirmEditCreate();
             if (!confirm) throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
         }
-        console.log("[table] Saving...");
+        if (this.debug) console.debug("[table] Calling dataSource.save()...");
         try {
             const res = await this.dataSource.save();
             if (res) this._dirty = false;
             return res;
         }
         catch (err) {
+            if (this.debug) console.debug("[table] dataSource.save() return an error:", err);
             this.error = err && err.message || err;
             throw err;
         };
@@ -288,9 +298,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.selection.selected.forEach(row => {
             row.delete();
             this.selection.deselect(row);
-            if (row.currentData && row.currentData.id >= 0) {
-                this.resultsLength--;
-            }
+            //if (row.currentData && row.currentData.id >= 0) {
+            this.resultsLength--;
+            //}
         });
         this.selection.clear();
         this.selectedRow = null;
@@ -314,11 +324,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     public onRowClick(event: MouseEvent, row: TableElement<T>): boolean {
-        if (!row.currentData.id || row.editing || event.defaultPrevented) return false;
+        if (row.id == -1 || !row.currentData.id || row.editing) return true
+        if (event.defaultPrevented) return false;
 
-        event.stopPropagation();
         // Open the detail page (if not editing)
         if (!this._dirty && !this.inlineEdition) {
+            event.stopPropagation();
             this.onOpenRowDetail(row.currentData.id, row);
             return true;
         }
@@ -392,6 +403,24 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     private generateTableId() {
         return this.location.path(true).replace(/[?].*$/g, '') + "_" + this.constructor.name;
+    }
+
+    private logRowErrors(row: TableElement<T>): void {
+
+        if (row.validator.valid) return;
+
+        var errorsMessage = "";
+        Object.getOwnPropertyNames(row.validator.controls)
+            .forEach(key => {
+                var control = row.validator.controls[key];
+                if (control.invalid) {
+                    errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unkown error') + "),";
+                }
+            });
+
+        if (errorsMessage.length) {
+            console.error("[table] Row (id=" + row.id + ") has errors: " + errorsMessage.slice(0, -1));
+        }
     }
 }
 

@@ -144,7 +144,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
     };
     this._lastVariables.loadAll = variables;
 
-    console.debug("[referential-service] Getting data from options:", variables);
+    //console.debug("[referential-service] Getting data from options:", variables);
     return this.watchQuery<{ referentials: any[] }>({
       query: query,
       variables: variables,
@@ -256,7 +256,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
    * Load referential types
    */
   loadTypes(): Observable<ReferentialType[]> {
-    console.debug("[referential-service] Getting referential types");
+    //console.debug("[referential-service] Getting referential types");
     return this.watchQuery<{ referentialTypes: ReferentialType[] }>({
       query: LoadReferentialTypes,
       variables: null,
@@ -271,7 +271,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
    * Load entity levels
    */
   loadLevels(entityName: string): Observable<Referential[]> {
-    console.debug("[referential-service] Getting referential levels");
+    //console.debug("[referential-service] Getting referential levels");
     return this.watchQuery<{ referentialLevels: Referential[] }>({
       query: LoadReferentialLevels,
       variables: {
@@ -291,7 +291,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
     acquisitionLevel: string,
     gear?: string
   }): Observable<PmfmStrategy[]> {
-    console.debug("[referential-service] Getting pmfms for program {" + program + "}");
+    //console.debug("[referential-service] Getting pmfms for program {" + program + "}");
     return this.watchQuery<{ programPmfms: PmfmStrategy[] }>({
       query: LoadProgramPmfms,
       variables: {
@@ -304,12 +304,14 @@ export class ReferentialService extends BaseDataService implements DataService<R
           // Filter on acquisition level and gear
           .filter(p => !options || (
             (!options.acquisitionLevel || p.acquisitionLevel == options.acquisitionLevel)
-            && (!options.gear || p.gears.findIndex(g => g == options.gear) !== -1)
+            && (!options.gear || p.gears && p.gears.findIndex(g => g == options.gear) !== -1)
           ))
           // Sort on rank order
           .sort((p1, p2) => p1.rankOrder - p2.rankOrder)
         )
       );
+
+    // TODO: translate name/label using translate service
   }
 
   /* -- protected methods -- */
