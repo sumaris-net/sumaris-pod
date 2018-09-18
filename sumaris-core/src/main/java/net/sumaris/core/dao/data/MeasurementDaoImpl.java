@@ -33,6 +33,7 @@ import net.sumaris.core.model.data.measure.GearUseMeasurement;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.model.data.measure.PhysicalGearMeasurement;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
+import net.sumaris.core.model.data.sample.SampleMeasurement;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -86,7 +87,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> getPhysicalGearMeasurement(int physicalGearId) {
+    public List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId) {
         return getMeasurementsByParentId(PhysicalGearMeasurement.class,
                 PhysicalGearMeasurement.PROPERTY_PHYSICAL_GEAR,
                 physicalGearId,
@@ -113,6 +114,17 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 GearUseMeasurement.PROPERTY_RANK_ORDER
         );
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<MeasurementVO> getSampleMeasurements(int sampleId) {
+        return getMeasurementsByParentId(SampleMeasurement.class,
+                SampleMeasurement.PROPERTY_SAMPLE,
+                sampleId,
+                SampleMeasurement.PROPERTY_RANK_ORDER
+        );
+    }
+
 
     @Override
     public <T extends IMeasurementEntity>  MeasurementVO toMeasurementVO(T source) {

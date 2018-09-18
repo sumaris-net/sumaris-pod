@@ -34,7 +34,7 @@ import java.util.Date;
 @Entity(name = "vessel_position")
 public class VesselPosition implements IDataEntity<Integer> {
 
-    public static final String PROPERTY_DATE_TIME = "dateTime";
+    public static final String PROPERTY_DATE_TIME = "date";
     public static final String PROPERTY_LATITUDE = "latitude";
     public static final String PROPERTY_LONGITUDE = "longitude";
     public static final String PROPERTY_OPERATION = "operation";

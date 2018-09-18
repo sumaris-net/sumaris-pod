@@ -29,6 +29,7 @@ import io.reactivex.Observable;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.service.data.*;
+import net.sumaris.core.service.data.sample.SampleService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -43,7 +44,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,6 +72,9 @@ public class DataGraphQLService {
 
     @Autowired
     private VesselPositionService vesselPositionService;
+
+    @Autowired
+    private SampleService sampleService;
 
     @Autowired
     private MeasurementService measurementService;
@@ -304,6 +307,13 @@ public class DataGraphQLService {
         return vesselPositionService.getAllByOperationId(operation.getId(), 0, 100, VesselPositionVO.PROPERTY_DATE_TIME, SortDirection.ASC);
     }
 
+    /* -- Sample -- */
+
+    @GraphQLQuery(name = "samples", description = "Get operation's samples")
+    public List<SampleVO> getSamplesByOperation(@GraphQLContext OperationVO operation) {
+        return sampleService.getAllByOperationId(operation.getId());
+    }
+
     /* -- Measurements -- */
 
     @GraphQLQuery(name = "measurements", description = "Get trip's measurements")
@@ -323,7 +333,12 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "measurements", description = "Get physical gear measurements")
     public List<MeasurementVO> getPhysicalGearMeasurements(@GraphQLContext PhysicalGearVO physicalGear) {
-        return measurementService.getPhysicalGearMeasurement(physicalGear.getId());
+        return measurementService.getPhysicalGearMeasurements(physicalGear.getId());
+    }
+
+    @GraphQLQuery(name = "measurements", description = "Get physical gear measurements")
+    public List<MeasurementVO> getSampleMeasurements(@GraphQLContext SampleVO sample) {
+        return measurementService.getSampleMeasurements(sample.getId());
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get measurement's pmfm")

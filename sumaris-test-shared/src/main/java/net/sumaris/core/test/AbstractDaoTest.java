@@ -25,6 +25,7 @@ package net.sumaris.core.test;
  */
 
 
+import net.sf.ehcache.CacheManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
@@ -62,6 +63,8 @@ public abstract class AbstractDaoTest {
 	@Autowired
 	private EntityManager entityManager;
 
+	@Autowired(required = false)
+	protected CacheManager cacheManager;
 	/**
 	 * <p>setUp.</p>
 	 *
@@ -69,9 +72,11 @@ public abstract class AbstractDaoTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		status = transactionManager.getTransaction(null);
-		if (log.isDebugEnabled()) {
-			log.debug("Transaction initialized");
+		if (transactionManager != null) {
+			status = transactionManager.getTransaction(null);
+			if (log.isDebugEnabled()) {
+				log.debug("Transaction initialized");
+			}
 		}
 	}
 
@@ -82,11 +87,16 @@ public abstract class AbstractDaoTest {
 	 */
 	@After
 	public void tearDown() throws Exception {
-		if (commitOnTearDown) {
-			transactionManager.commit(status);
+		if (transactionManager != null) {
+			if (commitOnTearDown) {
+				transactionManager.commit(status);
+			} else {
+				transactionManager.rollback(status);
+			}
 		}
-		else {
-			transactionManager.rollback(status);
+		// Clear all cache, if any
+		if (cacheManager != null) {
+			cacheManager.clearAll();
 		}
 	}
 	

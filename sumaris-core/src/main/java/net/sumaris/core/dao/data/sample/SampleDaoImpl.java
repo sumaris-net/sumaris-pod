@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.dao.data.sample;
 
 /*-
  * #%L
@@ -24,26 +24,28 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.PersonDao;
+import net.sumaris.core.dao.data.VesselDao;
 import net.sumaris.core.dao.referential.LocationDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Beans;
-import net.sumaris.core.dao.technical.Dates;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.exception.BadUpdateDateException;
+import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.referential.Location;
+import net.sumaris.core.model.data.batch.Batch;
+import net.sumaris.core.model.data.sample.Sample;
+import net.sumaris.core.model.referential.Matrix;
 import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.SaleType;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SaleVO;
-import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,15 +62,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Repository("saleDao")
-public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
+@Repository("sampleDao")
+public class SampleDaoImpl extends HibernateDaoSupport implements SampleDao {
 
     /** Logger. */
     private static final Logger log =
-            LoggerFactory.getLogger(SaleDaoImpl.class);
-
-    @Autowired
-    private LocationDao locationDao;
+            LoggerFactory.getLogger(SampleDaoImpl.class);
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -76,46 +75,46 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
     @Autowired
     private PersonDao personDao;
 
-    @Autowired
-    private VesselDao vesselDao;
-
     @Override
     @SuppressWarnings("unchecked")
-    public List<SaleVO> getAllByTripId(int tripId) {
+    public List<SampleVO> getAllByOperationId(int operationId) {
 
         CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Sale> query = cb.createQuery(Sale.class);
-        Root<Sale> saleRoot = query.from(Sale.class);
+        CriteriaQuery<Sample> query = cb.createQuery(Sample.class);
+        Root<Sample> root = query.from(Sample.class);
 
-        query.select(saleRoot);
+        query.select(root);
 
         ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
 
-        query.where(cb.equal(saleRoot.get(Sale.PROPERTY_TRIP).get(Trip.PROPERTY_ID), tripIdParam));
+        query.where(cb.equal(root.get(Sample.PROPERTY_OPERATION).get(Sample.PROPERTY_ID), tripIdParam));
 
-        return toSaleVOs(getEntityManager().createQuery(query)
-                .setParameter(tripIdParam, tripId).getResultList(), false);
+        // Sort by rank order
+        query.orderBy(cb.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
+
+        return toSampleVOs(getEntityManager().createQuery(query)
+                .setParameter(tripIdParam, operationId).getResultList(), false);
     }
 
 
     @Override
-    public SaleVO get(int id) {
-        Sale entity = get(Sale.class, id);
-        return toSaleVO(entity, false);
+    public SampleVO get(int id) {
+        Sample entity = get(Sample.class, id);
+        return toSampleVO(entity, false);
     }
 
     @Override
-    public SaleVO save(SaleVO source) {
+    public SampleVO save(SampleVO source) {
         Preconditions.checkNotNull(source);
 
         EntityManager entityManager = getEntityManager();
-        Sale entity = null;
+        Sample entity = null;
         if (source.getId() != null) {
-            entity = get(Sale.class, source.getId());
+            entity = get(Sample.class, source.getId());
         }
         boolean isNew = (entity == null);
         if (isNew) {
-            entity = new Sale();
+            entity = new Sample();
         }
 
         if (!isNew) {
@@ -127,10 +126,10 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
         }
 
         // Copy some fields from the trip
-        copySomeFieldsFromTrip(source);
+        copySomeFieldsFromOperation(source);
 
         // VO -> Entity
-        saleVOToEntity(source, entity, true);
+        sampleVOToEntity(source, entity, true);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -159,33 +158,47 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
     @Override
     public void delete(int id) {
 
-        log.debug(String.format("Deleting sale {id=%s}...", id));
-        delete(Sale.class, id);
+        log.debug(String.format("Deleting sample {id=%s}...", id));
+        delete(Sample.class, id);
     }
 
     @Override
-    public SaleVO toSaleVO(Sale source) {
-        return this.toSaleVO(source, true);
+    public SampleVO toSampleVO(Sample source) {
+        return toSampleVO(source, true);
     }
 
-    public SaleVO toSaleVO(Sale source, boolean allFields) {
+
+    /* -- protected methods -- */
+
+    protected SampleVO toSampleVO(Sample source, boolean allFields) {
+
         if (source == null) return null;
 
-        SaleVO target = new SaleVO();
+        SampleVO target = new SampleVO();
 
         Beans.copyProperties(source, target);
 
-        // Sale location
-        target.setSaleLocation(locationDao.toLocationVO(source.getSaleLocation()));
+        // Matrix
+        ReferentialVO matrix = referentialDao.toReferentialVO(source.getMatrix());
+        target.setMatrix(matrix);
 
-        // Sale type
-        ReferentialVO saleType = referentialDao.toReferentialVO(source.getSaleType());
-        target.setSaleType(saleType);
+        // Taxon group
+        if (source.getTaxonGroup() != null) {
+            ReferentialVO taxonGroup = referentialDao.toReferentialVO(source.getTaxonGroup());
+            target.setTaxonGroup(taxonGroup);
+        }
 
+        // Operation
+        if (source.getOperation() != null) {
+            target.setOperationId(source.getOperation().getId());
+        }
+        // Batch
+        if (source.getBatch() != null) {
+            target.setBatchId(source.getBatch().getId());
+        }
+
+        // If full export
         if (allFields) {
-            target.setVesselFeatures(vesselDao.getByVesselIdAndDate(source.getVessel().getId(), source.getStartDateTime()));
-            target.setQualityFlagId(source.getQualityFlag().getId());
-
             // Recorder department
             DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);
             target.setRecorderDepartment(recorderDepartment);
@@ -200,71 +213,67 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
         return target;
     }
 
-    /* -- protected methods -- */
-
-    protected void copySomeFieldsFromTrip(SaleVO target) {
-        TripVO source = target.getTrip();
+    protected void copySomeFieldsFromOperation(SampleVO target) {
+        OperationVO source = target.getOperation();
         if (source == null) return;
 
         target.setRecorderDepartment(source.getRecorderDepartment());
-        target.setRecorderPerson(source.getRecorderPerson());
-        target.setVesselFeatures(source.getVesselFeatures());
-        target.setQualityFlagId(source.getQualityFlagId());
 
     }
 
-    protected List<SaleVO> toSaleVOs(List<Sale> source, boolean allFields) {
-        return this.toSaleVOs(source.stream(), allFields);
+    protected List<SampleVO> toSampleVOs(List<Sample> source, boolean allFields) {
+        return this.toSampleVOs(source.stream(), allFields);
     }
 
-    protected List<SaleVO> toSaleVOs(Stream<Sale> source, boolean allFields) {
-        return source.map(s -> this.toSaleVO(s, allFields))
+    protected List<SampleVO> toSampleVOs(Stream<Sample> source, boolean allFields) {
+        return source.map(s -> this.toSampleVO(s, allFields))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    protected void saleVOToEntity(SaleVO source, Sale target, boolean copyIfNull) {
+    protected void sampleVOToEntity(SampleVO source, Sample target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 
-        // Vessel
-        if (copyIfNull || (source.getVesselFeatures() != null && source.getVesselFeatures().getVesselId() != null)) {
-            if (source.getVesselFeatures() == null || source.getVesselFeatures().getVesselId() == null) {
-                target.setVessel(null);
+        // Matrix
+        if (copyIfNull || source.getMatrix() != null) {
+            if (source.getMatrix() == null || source.getMatrix().getId() == null) {
+                target.setMatrix(null);
             }
             else {
-                target.setVessel(load(Vessel.class, source.getVesselFeatures().getVesselId()));
+                target.setMatrix(load(Matrix.class, source.getMatrix().getId()));
             }
         }
 
-        // Trip
-        Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
-        if (copyIfNull || (tripId != null)) {
-            if (tripId == null) {
-                target.setTrip(null);
+        // Taxon group
+        if (copyIfNull || source.getTaxonGroup() != null) {
+            if (source.getTaxonGroup() == null || source.getTaxonGroup().getId() == null) {
+                target.setTaxonGroup(null);
             }
             else {
-                target.setTrip(load(Trip.class, tripId));
+                target.setTaxonGroup(load(TaxonGroup.class, source.getTaxonGroup().getId()));
             }
         }
 
-        // Sale location
-        if (copyIfNull || source.getSaleLocation() != null) {
-            if (source.getSaleLocation() == null || source.getSaleLocation().getId() == null) {
-                target.setSaleLocation(null);
+        // Operation
+        Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
+        if (copyIfNull || (opeId != null)) {
+            if (opeId == null) {
+                target.setOperation(null);
             }
             else {
-                target.setSaleLocation(load(Location.class, source.getSaleLocation().getId()));
+                target.setOperation(load(Operation.class, opeId));
             }
         }
 
-        // Sale type
-        if (copyIfNull || source.getSaleType() != null) {
-            if (source.getSaleType() == null || source.getSaleType().getId() == null) {
-                target.setSaleType(null);
+        // Batch
+        Integer batchId = source.getBatchId() != null ? source.getBatchId() : (source.getBatch() != null ? source.getBatch().getId() : null);
+        if (copyIfNull || (batchId != null)) {
+            if (batchId == null) {
+                target.setBatch(null);
             }
             else {
-                target.setSaleType(load(SaleType.class, source.getSaleType().getId()));
+                target.setBatch(load(Batch.class, batchId));
             }
         }
 

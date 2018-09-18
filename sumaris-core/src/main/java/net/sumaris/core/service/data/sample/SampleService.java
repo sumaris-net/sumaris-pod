@@ -1,4 +1,4 @@
-package net.sumaris.core.service.data;
+package net.sumaris.core.service.data.sample;
 
 /*-
  * #%L
@@ -23,7 +23,8 @@ package net.sumaris.core.service.data;
  */
 
 
-import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.SaleVO;
+import net.sumaris.core.vo.data.SampleVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -31,20 +32,25 @@ import java.util.List;
 /**
  * @author BLA
  * 
- *    Service in charge of measurements
+ *    Service in charge of importing csv file into DB
  * 
  */
 @Transactional
-public interface MeasurementService {
+public interface SampleService {
 
-    List<MeasurementVO> getVesselUseMeasurementsByTripId(int tripId);
 
-    List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId);
+	@Transactional(readOnly = true)
+	List<SampleVO> getAllByOperationId(int operationId);
 
-    List<MeasurementVO> getVesselUseMeasurementsByOperationId(int operationId);
+	@Transactional(readOnly = true)
+	SampleVO get(int id);
 
-    List<MeasurementVO> getGearUseMeasurementsByOperationId(int operationId);
+	SampleVO save(SampleVO sale);
 
-    List<MeasurementVO> getSampleMeasurements(int sampleId);
+	List<SampleVO> save(List<SampleVO> samples);
+
+	void delete(int id);
+
+	void delete(List<Integer> ids);
 
 }

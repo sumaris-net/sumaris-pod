@@ -24,7 +24,6 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.MeasurementVO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,8 +46,8 @@ public class MeasurementServiceImpl implements MeasurementService {
     }
 
 	@Override
-	public List<MeasurementVO> getPhysicalGearMeasurement(int physicalGearId) {
-		return measurementDao.getPhysicalGearMeasurement(physicalGearId);
+	public List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId) {
+		return measurementDao.getPhysicalGearMeasurements(physicalGearId);
 	}
 
 	@Override
@@ -59,6 +58,11 @@ public class MeasurementServiceImpl implements MeasurementService {
 	@Override
 	public List<MeasurementVO> getGearUseMeasurementsByOperationId(int operationId) {
 		return measurementDao.getGearUseMeasurementsByOperationId(operationId);
+	}
+
+	@Override
+	public List<MeasurementVO> getSampleMeasurements(int sampleId) {
+		return measurementDao.getSampleMeasurements(sampleId);
 	}
 
 }

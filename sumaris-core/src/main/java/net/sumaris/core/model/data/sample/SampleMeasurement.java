@@ -39,6 +39,7 @@ import java.util.Date;
 public class SampleMeasurement implements IMeasurementEntity {
 
     public static final String PROPERTY_SAMPLE = "sample";
+    public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -32,11 +32,13 @@ public interface MeasurementDao {
 
     List<MeasurementVO> getVesselUseMeasurementsByTripId(int tripId);
 
-    List<MeasurementVO> getPhysicalGearMeasurement(int physicalGearId);
+    List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId);
 
     List<MeasurementVO> getVesselUseMeasurementsByOperationId(int operationId);
 
     List<MeasurementVO> getGearUseMeasurementsByOperationId(int operationId);
+
+    List<MeasurementVO> getSampleMeasurements(int sampleId);
 
     <T extends IMeasurementEntity> MeasurementVO toMeasurementVO(T measurement);
 

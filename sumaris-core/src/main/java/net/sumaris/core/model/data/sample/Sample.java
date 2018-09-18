@@ -2,6 +2,7 @@ package net.sumaris.core.model.data.sample;
 
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.data.batch.Batch;
 import net.sumaris.core.model.referential.Matrix;
@@ -18,6 +19,8 @@ import java.util.List;
 @Entity
 public class Sample implements IDataEntity<Integer> {
 
+
+    public static final String PROPERTY_OPERATION = "operation";
     public static final String PROPERTY_PARENT = "parent";
     public static final String PROPERTY_SAMPLE_MEASUREMENTS = "sampleMeasurements";
 
@@ -28,8 +31,11 @@ public class Sample implements IDataEntity<Integer> {
     @Column(length = 40, nullable = false)
     private String label;
 
-    @Column(name = "date_time")
-    private Date dateTime;
+    @Column(name = "rank_order", nullable = false)
+    private Integer rankOrder;
+
+    @Column(name = "sample_date")
+    private Date sampleDate;
 
     @Column(name = "individual_count")
     private Integer individualCount;
@@ -47,6 +53,10 @@ public class Sample implements IDataEntity<Integer> {
 
     /* -- Quality insurance -- */
 
+    @Column(name = "creation_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date creationDate;
+
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
@@ -55,6 +65,9 @@ public class Sample implements IDataEntity<Integer> {
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recorder_person_fk")
+    private Person recorderPerson;
 
     @Column(name="control_date")
     @Temporal(TemporalType.TIMESTAMP)

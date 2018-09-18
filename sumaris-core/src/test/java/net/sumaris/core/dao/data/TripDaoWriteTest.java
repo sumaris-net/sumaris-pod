@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.test.AbstractDaoTest;
+import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.vo.data.TripVO;
 import org.junit.Assert;
 import org.junit.Before;

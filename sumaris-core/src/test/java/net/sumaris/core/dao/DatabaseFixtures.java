@@ -83,6 +83,28 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getSampleId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+
+			default:
+				return 1;
+		}
+	}
+
+	public Integer getBatchId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+
+			default:
+				return 1;
+		}
+	}
+
 	public Integer getLocationPortId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
@@ -115,5 +137,19 @@ public class DatabaseFixtures {
 				return 1;
 		}
 	}
+
+	public Integer getMatrixIdForIndividual() {
+		return 2; // INDIV
+	}
+
+	public Integer getTaxonGroupFAO(int index) {
+		Preconditions.checkArgument(index >= 0);
+		return 1000 + index;
+	}
+
+	public Integer getPmfmBatchWeight() {
+	    return 50;
+    }
+
 
 }

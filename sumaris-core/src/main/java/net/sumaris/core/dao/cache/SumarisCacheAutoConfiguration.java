@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
-
 @Configuration
 @ConditionalOnClass({org.springframework.cache.CacheManager.class, net.sf.ehcache.Cache.class})
 public class SumarisCacheAutoConfiguration {

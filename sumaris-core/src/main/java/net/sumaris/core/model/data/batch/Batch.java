@@ -25,9 +25,6 @@ public class Batch implements IDataEntity<Integer> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @Column(name = "is_catch_batch", nullable = false)
-    private Boolean isCatchBatch;
-
     @Column(length = 40)
     private String label;
 

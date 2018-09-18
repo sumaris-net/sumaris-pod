@@ -3,42 +3,30 @@ package net.sumaris.core.dao;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.cache.SumarisCacheAutoConfiguration;
-import net.sumaris.core.dao.technical.hibernate.HibernateImplicitNamingStrategy;
-import net.sumaris.core.dao.technical.hibernate.HibernatePhysicalNamingStrategy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.cfg.Environment;
-import org.hibernate.jpa.HibernatePersistenceProvider;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.util.Properties;
 
 @SpringBootApplication(
         exclude = {
                 LiquibaseAutoConfiguration.class,
-                FreeMarkerAutoConfiguration.class,
-                // Ignore cache
-                SumarisCacheAutoConfiguration.class
+                FreeMarkerAutoConfiguration.class
         },
         scanBasePackages = {
                 "net.sumaris.core.dao",
-                "net.sumaris.core.config"
+                "net.sumaris.core.config",
+                "net.sumaris.core.test"
         }
 )
 @EntityScan("net.sumaris.core.model")
@@ -55,7 +43,13 @@ public class DaoTestConfiguration {
 
     @Bean
     public static SumarisConfiguration sumarisConfiguration() {
-        return SumarisConfiguration.getInstance();
+        SumarisConfiguration config = SumarisConfiguration.getInstance();
+        if (config == null) {
+            log.warn("Sumaris configuration not exists: creating a new one");
+            config = new SumarisConfiguration("sumaris-core-test.properties");
+            SumarisConfiguration.setInstance(config);
+        }
+        return config;
     }
 
     @Resource
