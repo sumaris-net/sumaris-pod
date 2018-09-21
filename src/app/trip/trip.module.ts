@@ -27,6 +27,8 @@ import {
     IndividualMonitoringService
 } from './services/trip.validators';
 
+export { TripsPage, TripPage }
+
 @NgModule({
     imports: [
         CommonModule,

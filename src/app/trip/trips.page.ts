@@ -9,10 +9,9 @@ import { TripModal } from "./trip.modal";
 import { Trip, Referential, VesselFeatures, LocationLevelIds } from "./services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
-import { VesselService, ReferentialService } from '../referential/referential.module';
 import { Location } from '@angular/common';
 import { FormGroup, FormBuilder } from "@angular/forms";
-import { vesselFeaturesToString, referentialToString, EntityUtils } from "../referential/services/model";
+import { VesselService, ReferentialService, vesselFeaturesToString, referentialToString } from "../referential/referential.module";
 
 @Component({
   selector: 'page-trips',

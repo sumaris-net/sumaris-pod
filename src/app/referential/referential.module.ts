@@ -12,8 +12,9 @@ import { VesselsPage } from "./vessel/list/vessels";
 import { VesselModal } from "./vessel/modal/modal-vessel";
 import { ReferentialsPage } from './list/referentials';
 import { DateFormatPipe } from '../shared/pipes/date-format.pipe';
+import { vesselFeaturesToString, referentialToString } from './services/model';
 
-export { VesselModal, VesselService, ReferentialService }
+export { VesselModal, VesselService, ReferentialService, vesselFeaturesToString, referentialToString }
 
 @NgModule({
     imports: [
