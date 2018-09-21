@@ -50,6 +50,7 @@ const AccountQuery: any = gql`
       avatar
       statusId
       updateDate
+      creationDate
       settings {
         id
         locale
@@ -94,6 +95,7 @@ const SaveAccountMutation: any = gql`
       avatar
       statusId
       updateDate
+      creationDate
       settings {
         id
         locale
@@ -452,7 +454,7 @@ export class AccountService extends BaseDataService {
    */
   public loadAccount(pubkey: string): Promise<Account | undefined> {
 
-    console.debug("[account-service] Loading account {" + pubkey.substring(0, 6) + "}...");
+    if (this._debug) console.debug("[account-service] Loading account {" + pubkey.substring(0, 6) + "}...");
     var now = new Date();
 
     return this.query<{ account: any }>({
@@ -466,7 +468,7 @@ export class AccountService extends BaseDataService {
         if (res && res.account) {
           const account = new Account();
           account.fromObject(res.account);
-          console.debug("[account-service] Account {" + pubkey.substring(0, 6) + "} loaded in " + (new Date().getTime() - now.getTime()) + "ms", res);
+          if (this._debug) console.debug("[account-service] Account {" + pubkey.substring(0, 6) + "} loaded in " + (new Date().getTime() - now.getTime()) + "ms", res);
           return account;
         }
         else {

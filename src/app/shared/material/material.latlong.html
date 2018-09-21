@@ -5,10 +5,10 @@
   <input *ngIf="readonly" matInput hidden readonly="true" [formControl]="formControl">
   <span *ngIf="readonly" [innerHTML]="value | latLongFormat: {type: type, pattern: latLongPattern, maxDecimals: maxDecimals}"></span>
 
-  <mat-label *ngIf="!mobile && !readonly && placeholder">{{placeholder}}</mat-label>
+  <mat-label *ngIf="!mobile && !readonly && labelPlaceholder">{{labelPlaceholder}}</mat-label>
   <input *ngIf="!readonly" matInput type="text" [textMask]="{mask: mask, keepCharPositions: true, maxDecimals: maxDecimals, placeholderChar: placeholderChar}"
-    [formControl]="textFormControl" autocomplete="off" [placeholder]="('COMMON.' + latLongPattern + '_PLACEHOLDER')|translate"
-    (blur)="_onBlur($event)" [required]="required">
+    [formControl]="textFormControl" autocomplete="off" [placeholder]="inputPlaceholder|translate" (blur)="_onBlur($event)"
+    [required]="required">
 
   <ng-content select="[matSuffix]"></ng-content>
 </mat-form-field>

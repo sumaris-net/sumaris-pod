@@ -257,14 +257,9 @@ mat-option ion-row {
 // Material Table
 // --------------------------------------------------
 mat-table {
-  .mat-header-cell {
-    //padding-left: 8px;
-
-    ion-label {
-      white-space: normal;
-      text-align: center;
-      word-wrap: break-word;
-    }
+  .mat-header-cell>ion-label {
+    white-space: normal;
+    word-wrap: break-word;
   }
 
   .mat-header-cell[align-self-center]>ion-label,

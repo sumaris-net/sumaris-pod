@@ -1,7 +1,7 @@
 import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { VesselValidatorService } from "../validator/validators";
 import { FormGroup } from "@angular/forms";
-import { VesselFeatures, Referential, LocationLevelIds, referentialToString } from "../../services/model";
+import { VesselFeatures, Referential, LocationLevelIds, referentialToString, EntityUtils } from "../../services/model";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN } from '../../constants';
@@ -37,14 +37,12 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
   }
 
   ngOnInit() {
-    this.form = this.vesselValidatorService.getFormGroup();
     this.locations = this.form.controls['basePortLocation']
       .valueChanges
       .pipe(
         mergeMap(value => {
-          if (!value) return Observable.empty();
-          if (typeof value == "object") return Observable.of([value]);
-          if (typeof value != "string" || value.length < 2) return Observable.of([]);
+          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          value = (typeof value == "string") && value || undefined;
           return this.referentialService.loadAll(0, 50, undefined, undefined,
             {
               levelId: LocationLevelIds.PORT,

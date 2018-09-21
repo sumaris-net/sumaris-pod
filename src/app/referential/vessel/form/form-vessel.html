@@ -1,7 +1,10 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
 
-
-  <p ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></p>
+  <!-- error -->
+  <ion-item *ngIf="error">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
 
   <ion-grid>
 
@@ -9,7 +12,8 @@
     <ion-row>
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.EXTERIOR_MARKING'|translate" formControlName="exteriorMarking">
+          <input matInput [placeholder]="'VESSEL.EXTERIOR_MARKING'|translate" formControlName="exteriorMarking"
+            required>
           <mat-error *ngIf="form.controls['exteriorMarking'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
@@ -23,7 +27,7 @@
     <ion-row>
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.NAME'|translate" formControlName="name">
+          <input matInput [placeholder]="'VESSEL.NAME'|translate" formControlName="name" required>
           <mat-error *ngIf="form.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
@@ -34,8 +38,10 @@
       <ion-col hidden-xs>
         <mat-form-field>
           <ion-icon margin-right name="pin" matPrefix></ion-icon>
-          <input matInput [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate" [matAutocomplete]="autoLocation" formControlName="basePortLocation">
+          <input matInput [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate" [matAutocomplete]="autoLocation"
+            formControlName="basePortLocation" required>
           <mat-error *ngIf="form.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['basePortLocation'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
         <mat-autocomplete autoActiveFirstOption #autoLocation="matAutocomplete" [displayWith]="referentialToString">
           <ion-row class="mat-autocomplete-header">

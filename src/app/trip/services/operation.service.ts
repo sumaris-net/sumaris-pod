@@ -9,7 +9,7 @@ import { TripService } from "../services/trip.service";
 
 import { ErrorCodes } from "./trip.errors";
 import { AccountService } from "../../core/services/account.service";
-import { Fragments } from "./trip.queries";
+import { Fragments, DataFragments } from "./trip.queries";
 
 
 export declare class OperationFilter {
@@ -70,23 +70,11 @@ const LoadQuery: any = gql`
       measurements {
         ...MeasurementFragment
       }
+      gearMeasurements {
+        ...MeasurementFragment
+      }
       samples {
-        id
-        label
-        rankOrder
-        sampleDate
-        individualCount
-        comments
-        updateDate
-        matrix {
-          ...ReferentialFragment
-        }
-        taxonGroup {
-          ...ReferentialFragment
-        }
-        measurements {
-          ...MeasurementFragment
-        } 
+        ...SampleFragment
       }
     }  
   }
@@ -94,6 +82,7 @@ const LoadQuery: any = gql`
   ${Fragments.position}
   ${Fragments.measurement}
   ${Fragments.referential}
+  ${DataFragments.sample}  
 `;
 const SaveOperations: any = gql`
   mutation saveOperations($operations:[OperationVOInput]){
@@ -109,6 +98,9 @@ const SaveOperations: any = gql`
       comments
       hasCatch
       updateDate
+      metier {
+        ...ReferentialFragment
+      }
       recorderDepartment {
         ...DepartmentFragment
       }
@@ -121,11 +113,15 @@ const SaveOperations: any = gql`
       gearMeasurements {
         ...MeasurementFragment
       }
+      samples {
+        ...SampleFragment
+      }
     }
   }
   ${Fragments.department}
   ${Fragments.position}
   ${Fragments.measurement}
+  ${DataFragments.sample}
 `;
 const DeleteOperations: any = gql`
   mutation deleteOperations($ids:[Int]){
@@ -145,6 +141,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
     protected tripService: TripService
   ) {
     super(apollo);
+    this._debug = true;
   }
 
   /**
@@ -167,10 +164,9 @@ export class OperationService extends BaseDataService implements DataService<Ope
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
-
     this._lastVariables.loadAll = variables;
 
-    console.debug("[operation-service] Loading operations... using options:", variables);
+    if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
     return this.watchQuery<{ operations: Operation[] }>({
       query: LoadAllQuery,
       variables: variables,
@@ -178,7 +174,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
     })
       .pipe(
         map((data) => {
-          console.debug("[operation-service] Loaded {" + (data && data.operations && data.operations.length || 0) + "} operations");
+          if (this._debug) console.debug("[operation-service] Loaded {" + (data && data.operations && data.operations.length || 0) + "} operations");
           const res = (data && data.operations || []).map(t => {
             const res = new Operation();
             res.fromObject(t);
@@ -196,7 +192,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
   }
 
   load(id: number): Observable<Operation | null> {
-    console.debug("[operation-service] Loading operation {" + id + "}...");
+    if (this._debug) console.debug("[operation-service] Loading operation {" + id + "}...");
 
     return this.watchQuery<{ operation: Operation }>({
       query: LoadQuery,
@@ -208,8 +204,9 @@ export class OperationService extends BaseDataService implements DataService<Ope
       .pipe(
         map(data => {
           if (data && data.operation) {
-            console.debug("[operation-service] Loaded operation {" + id + "}");
-            return Operation.fromObject(data.operation);
+            const res = Operation.fromObject(data.operation);
+            if (this._debug) console.debug("[operation-service] Operation {" + id + "} loaded", res);
+            return res;
           }
           return null;
         })
@@ -238,7 +235,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
       return t.asObject();
     });
 
-    console.debug("[operation-service] Saving operations: ", json);
+    const now = new Date();
+    if (this._debug) console.debug("[operation-service] Saving operations...", json);
 
     const res = await this.mutate<{ saveOperations: Operation[] }>({
       mutation: SaveOperations,
@@ -254,6 +252,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
         const savedOperation = res.saveOperations.find(res => entity.equals(res));
         this.copyIdAndUpdateDate(savedOperation, entity);
       });
+
+    if (this._debug) console.debug("[operation-service] Operations saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entities);
 
     return entities;
   }
@@ -272,7 +272,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
     const json = entity.asObject();
     const isNew = !entity.id;
 
-    console.debug("[operation-service] Saving operation: ", json);
+    const now = new Date();
+    if (this._debug) console.debug("[operation-service] Saving operation...", json);
 
     const res = await this.mutate<{ saveOperations: Operation[] }>({
       mutation: SaveOperations,
@@ -296,6 +297,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
       }
     }
 
+    if (this._debug) console.debug("[operation-service] Operation saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+
     return entity;
   }
 
@@ -303,20 +306,31 @@ export class OperationService extends BaseDataService implements DataService<Ope
    * Save many operations
    * @param entities 
    */
-  deleteAll(entities: Operation[]): Promise<any> {
+  async deleteAll(entities: Operation[]): Promise<any> {
 
     let ids = entities && entities
       .map(t => t.id)
       .filter(id => (id > 0));
 
-    console.debug("[operation-service] Deleting operations... ids:", ids);
+    const now = new Date();
+    if (this._debug) console.debug("[operation-service] Deleting operations... ids:", ids);
 
-    return this.mutate<any>({
+    await this.mutate<any>({
       mutation: DeleteOperations,
       variables: {
         ids: ids
       }
     });
+
+    // Remove from cache
+    if (this._lastVariables.loadAll) {
+      this.removeToQueryCacheByIds({
+        query: LoadAllQuery,
+        variables: this._lastVariables.loadAll
+      }, 'operations', ids);
+    }
+
+    if (this._debug) console.debug("[operation-service] Operation deleted in " + (new Date().getTime() - now.getTime()) + "ms");
   }
 
   /* -- protected methods -- */
@@ -352,33 +366,54 @@ export class OperationService extends BaseDataService implements DataService<Ope
   }
 
   copyIdAndUpdateDate(source: Operation | undefined, target: Operation) {
-    if (source) {
+    if (!source) return
 
-      // Update (id and updateDate)
-      target.id = source.id || target.id;
-      target.updateDate = source.updateDate || target.updateDate;
-      target.dirty = false;
+    // Update (id and updateDate)
+    target.id = source.id || target.id;
+    target.updateDate = source.updateDate || target.updateDate;
+    target.dirty = false;
 
-      // Update positions (id and updateDate)
-      if (source.positions && source.positions.length > 0) {
-        [target.startPosition, target.endPosition].forEach(targetPos => {
-          let savedPos = source.positions.find(srcPos => targetPos.equals(srcPos));
-          if (savedPos) {
-            targetPos.id = savedPos.id || targetPos.id;
-            targetPos.updateDate = savedPos.updateDate || targetPos.updateDate;
-            targetPos.dirty = false;
-          }
-        });
-      }
-      // Update measurements
-      if (target.measurements && source.measurements) {
-        target.measurements.forEach(entity => {
-          const savedMeasurement = source.measurements.find(json => entity.equals(json));
-          entity.id = savedMeasurement && savedMeasurement.id || entity.id;
-          entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
-          entity.dirty = false;
-        });
-      }
+    // Update positions (id and updateDate)
+    if (source.positions && source.positions.length > 0) {
+      [target.startPosition, target.endPosition].forEach(targetPos => {
+        let savedPos = source.positions.find(srcPos => targetPos.equals(srcPos));
+        if (savedPos) {
+          targetPos.id = savedPos.id || targetPos.id;
+          targetPos.updateDate = savedPos.updateDate || targetPos.updateDate;
+          targetPos.dirty = false;
+        }
+      });
+    }
+
+    // Update measurements
+    if (target.measurements && source.measurements) {
+      target.measurements.forEach(targetMeas => {
+        const sourceMeas = source.measurements.find(json => targetMeas.equals(json));
+        targetMeas.id = sourceMeas && sourceMeas.id || targetMeas.id;
+        targetMeas.updateDate = sourceMeas && sourceMeas.updateDate || targetMeas.updateDate;
+        targetMeas.dirty = false;
+      });
+    }
+
+    // Update samples
+    if (target.samples && source.samples) {
+      target.samples.forEach(targetSample => {
+        const sourceSample = source.samples.find(json => targetSample.equals(json));
+        targetSample.id = sourceSample && sourceSample.id || targetSample.id;
+        targetSample.updateDate = sourceSample && sourceSample.updateDate || targetSample.updateDate;
+        targetSample.creationDate = sourceSample && sourceSample.creationDate || targetSample.creationDate;
+        targetSample.dirty = false;
+
+        // Update sample measurements
+        /*if (sourceSample && targetSample.measurements && sourceSample.measurements) {
+          targetSample.measurements.forEach(targetMeas => {
+            const sourceMeas = sourceSample.measurements.find(m => targetMeas.equals(m));
+            targetMeas.id = sourceMeas && sourceMeas.id || targetMeas.id;
+            targetMeas.updateDate = sourceMeas && sourceMeas.updateDate || targetMeas.updateDate;
+            targetMeas.dirty = false;
+          });
+        }*/
+      });
     }
   }
 }

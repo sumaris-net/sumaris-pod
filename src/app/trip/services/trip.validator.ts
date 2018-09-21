@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { Trip } from "./trip.model";
+import { SharedValidators } from "../../shared/validator/validators";
 
 @Injectable()
 export class TripValidatorService implements ValidatorService {
@@ -18,11 +19,11 @@ export class TripValidatorService implements ValidatorService {
       'id': [''],
       'updateDate': [''],
       'creationDate': [''],
-      'vesselFeatures': ['', Validators.required],
+      'vesselFeatures': ['', Validators.compose([Validators.required, SharedValidators.entity])],
       'departureDateTime': ['', Validators.required],
-      'departureLocation': ['', Validators.required],
+      'departureLocation': ['', Validators.compose([Validators.required, SharedValidators.entity])],
       'returnDateTime': [''],
-      'returnLocation': [''],
+      'returnLocation': ['', SharedValidators.entity],
       'comments': ['', Validators.maxLength(2000)]
     });
   }

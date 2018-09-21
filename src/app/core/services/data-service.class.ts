@@ -1,12 +1,11 @@
 import { Observable, Subscription } from "rxjs-compat";
 import { Apollo } from "apollo-angular";
-import { ApolloQueryResult, ApolloError } from "apollo-client";
+import { ApolloQueryResult, ApolloError, FetchPolicy } from "apollo-client";
 import { R } from "apollo-angular/types";
 import { ErrorCodes, ServiceError } from "./errors";
 import { map } from "rxjs/operators";
-import { Entity, Person, Referential } from "./model";
-import { AccountService } from "../core.module";
 
+import { environment } from '../../../environments/environment';
 export declare interface DataService<T, F> {
 
   loadAll(
@@ -26,6 +25,7 @@ export declare interface DataService<T, F> {
 
 export class BaseDataService {
 
+  protected _debug = false;
   protected _lastVariables: any = {
     loadAll: undefined
   };
@@ -47,7 +47,7 @@ export class BaseDataService {
         query: opts.query,
         variables: opts.variables
       })
-        .catch(this.onApolloError)
+        .catch(error => this.onApolloError<T>(error))
         .subscribe(({ data, errors }) => {
           subscription.unsubscribe();
 
@@ -59,7 +59,7 @@ export class BaseDataService {
               });
               return;
             }
-            console.error("[account] " + errors[0].message);
+            console.error("[data-service] " + errors[0].message);
             reject(opts.error ? opts.error : errors[0].message);
             return;
           }
@@ -71,13 +71,14 @@ export class BaseDataService {
   protected watchQuery<T, V = R>(opts: {
     query: any,
     variables: V,
-    error?: ServiceError
+    error?: ServiceError,
+    fetchPolicy?: FetchPolicy
   }): Observable<T> {
     //this.apollo.getClient().cache.reset();
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
       variables: opts.variables,
-      fetchPolicy: 'network-only',
+      fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy),
       notifyOnNetworkStatusChange: true
     })
       .valueChanges
@@ -92,13 +93,12 @@ export class BaseDataService {
                 message: "ERROR.UNKNOWN_NETWORK_ERROR"
               };
             }
-            console.error("[data] " + errors[0].message);
+            console.error("[data-service] " + errors[0].message);
             throw opts.error ? opts.error : errors[0].message;
           }
           return data;
         })
-      )
-      ;
+      );
   }
 
   protected mutate<T, V = R>(opts: { mutation: any, variables: V, error?: ServiceError }): Promise<T> {
@@ -114,7 +114,7 @@ export class BaseDataService {
               reject(errors[0]);
             }
             else {
-              console.error("[base-service] " + errors[0].message);
+              console.error("[data-service] " + errors[0].message);
               reject(opts.error ? opts.error : errors[0].message);
             }
           }
@@ -132,16 +132,17 @@ export class BaseDataService {
   }, propertyName: string, newValue: any) {
     const values = this.apollo.getClient().readQuery(opts);
 
-    if (values)
-      if (values && values[propertyName]) {
-        values[propertyName].push(newValue);
+    if (values && values[propertyName]) {
+      values[propertyName].push(newValue);
 
-        this.apollo.getClient().writeQuery({
-          query: opts.query,
-          variables: opts.variables,
-          data: values
-        });
-      }
+      this.apollo.getClient().writeQuery({
+        query: opts.query,
+        variables: opts.variables,
+        data: values
+      });
+    } else {
+      if (this._debug) console.debug("[data-service] Unable to add entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+    }
   }
 
   protected removeToQueryCacheById<V = R>(opts: {
@@ -153,9 +154,7 @@ export class BaseDataService {
 
     if (values && values[propertyName]) {
 
-      values[propertyName] = (values[propertyName] || []).reduce((result: any[], item: any) => {
-        return item['id'] == idToRemove ? result : result.concat(item);
-      }, []);
+      values[propertyName] = (values[propertyName] || []).filter(item => item['id'] !== idToRemove);
       this.apollo.getClient().writeQuery({
         query: opts.query,
         variables: opts.variables,

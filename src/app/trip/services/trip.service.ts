@@ -226,17 +226,9 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       filter: filter
     };
 
-    // Clean cache
-    if (this._lastVariables.loadAll) {
-      // TODO: remove element
-      // this.apollo.getClient().cache.evict({
-      //   query: LoadAllQuery,
-      //   variables: this._lastVariables.loadAll
-      // });
-    }
     this._lastVariables.loadAll = variables;
 
-    console.debug("[trip-service] Loading trips... using options:", variables);
+    if (this._debug) console.debug("[trip-service] Loading trips... using options:", variables);
     return this.watchQuery<{ trips: Trip[] }>({
       query: LoadAllQuery,
       variables: variables,
@@ -244,7 +236,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     })
       .pipe(
         map((data) => {
-          console.debug("[trip-service] Loaded {" + (data && data.trips && data.trips.length || 0) + "} trips");
+          if (this._debug) console.debug("[trip-service] Loaded {" + (data && data.trips && data.trips.length || 0) + "} trips");
           return (data && data.trips || []).map(t => {
             const res = new Trip();
             res.fromObject(t);
@@ -255,7 +247,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
   load(id: number): Observable<Trip | null> {
     if (!id) throw new Error("id should not be null");
-    console.debug("[trip-service] Loading trip {" + id + "}...");
+    if (this._debug) console.debug("[trip-service] Loading trip {" + id + "}...");
 
     return this.watchQuery<{ trip: Trip }>({
       query: LoadQuery,
@@ -267,8 +259,9 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       .pipe(
         map(data => {
           if (data && data.trip) {
-            console.debug("[trip-service] Loaded trip {" + id + "}");
-            return Trip.fromObject(data.trip);
+            const res = Trip.fromObject(data.trip);
+            if (this._debug) console.debug("[trip-service] Trip {" + id + "} loaded", res);
+            return res;
           }
           return null;
         })
@@ -287,7 +280,9 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       this.fillDefaultProperties(t)
       return this.asObject(t);
     });
-    console.debug("[trip-service] Saving trips: ", json);
+
+    const now = new Date();
+    if (this._debug) console.debug("[trip-service] Saving trips...", json);
 
     const res = await this.mutate<{ saveTrips: Trip[] }>({
       mutation: SaveTrips,
@@ -301,6 +296,10 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         const savedTrip = res.saveTrips.find(res => entity.equals(res));
         this.copyIdAndUpdateDate(savedTrip, entity);
       });
+
+    if (this._debug) console.debug("[trip-service] Trips saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entities);
+
+
     return entities;
   }
 
@@ -317,7 +316,8 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     const json = this.asObject(entity);
     const isNew = !entity.id;
 
-    console.debug("[trip-service] Saving trip: ", json);
+    const now = new Date();
+    if (this._debug) console.debug("[trip-service] Saving trip...", json);
 
     const res = await this.mutate<{ saveTrips: any }>({
       mutation: SaveTrips,
@@ -340,6 +340,8 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       }
     }
 
+    if (this._debug) console.debug("[trip-service] Trip saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+
     return entity;
   }
 
@@ -349,11 +351,13 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
    */
   async deleteAll(entities: Trip[]): Promise<any> {
 
+
     let ids = entities && entities
       .map(t => t.id)
       .filter(id => (id > 0));
 
-    console.debug("[trip-service] Deleting trips... ids:", ids);
+    const now = new Date();
+    if (this._debug) console.debug("[trip-service] Deleting trips... ids:", ids);
 
     const res = await this.mutate<any>({
       mutation: DeleteTrips,
@@ -363,10 +367,14 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     });
 
     // Update the cache
-    const list = this.removeToQueryCacheByIds({
-      query: LoadAllQuery,
-      variables: this._lastVariables.loadAll
-    }, 'trips', ids);
+    if (this._lastVariables.loadAll) {
+      const list = this.removeToQueryCacheByIds({
+        query: LoadAllQuery,
+        variables: this._lastVariables.loadAll
+      }, 'trips', ids);
+    }
+
+    if (this._debug) console.debug("[trip-service] Trips deleted in " + (new Date().getTime() - now.getTime()) + "ms");
 
     return res;
   }
@@ -417,52 +425,51 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
   }
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {
-    if (source) {
+    if (!source) return;
 
-      // Update (id and updateDate)
-      target.id = source.id || target.id;
-      target.updateDate = source.updateDate || target.updateDate;
-      target.creationDate = source.creationDate || target.creationDate;
-      target.dirty = false;
+    // Update (id and updateDate)
+    target.id = source.id || target.id;
+    target.updateDate = source.updateDate || target.updateDate;
+    target.creationDate = source.creationDate || target.creationDate;
+    target.dirty = false;
 
-      // Update sale
-      if (target.sale && source.sale) {
-        target.sale.id = source.sale.id || target.sale.id;
-        target.sale.updateDate = source.sale.updateDate || target.sale.updateDate;
-        target.sale.creationDate = source.sale.creationDate || target.sale.creationDate;
-        target.sale.dirty = false;
-      }
+    // Update sale
+    if (target.sale && source.sale) {
+      target.sale.id = source.sale.id || target.sale.id;
+      target.sale.updateDate = source.sale.updateDate || target.sale.updateDate;
+      target.sale.creationDate = source.sale.creationDate || target.sale.creationDate;
+      target.sale.dirty = false;
+    }
 
-      // Update gears
-      if (target.gears && source.gears) {
-        target.gears.forEach(entity => {
-          const savedGear = source.gears.find(json => entity.equals(json));
-          entity.id = savedGear && savedGear.id || entity.id;
-          entity.updateDate = savedGear && savedGear.updateDate || entity.updateDate;
-          entity.creationDate = savedGear && savedGear.creationDate || entity.creationDate;
-          entity.dirty = false;
+    // Update gears
+    if (target.gears && source.gears) {
+      target.gears.forEach(entity => {
+        const savedGear = source.gears.find(json => entity.equals(json));
+        entity.id = savedGear && savedGear.id || entity.id;
+        entity.updateDate = savedGear && savedGear.updateDate || entity.updateDate;
+        entity.creationDate = savedGear && savedGear.creationDate || entity.creationDate;
+        entity.dirty = false;
 
-          // Update measurements
-          if (savedGear && entity.measurements && savedGear.measurements) {
-            entity.measurements.forEach(entity => {
-              const savedMeasurement = savedGear.measurements.find(m => entity.equals(m));
-              entity.id = savedMeasurement && savedMeasurement.id || entity.id;
-              entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
-              entity.dirty = false;
-            });
-          }
-        });
-      }
+        // Update measurements
+        if (savedGear && entity.measurements && savedGear.measurements) {
+          entity.measurements.forEach(entity => {
+            const savedMeasurement = savedGear.measurements.find(m => entity.equals(m));
+            entity.id = savedMeasurement && savedMeasurement.id || entity.id;
+            entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
+            entity.dirty = false;
+          });
+        }
+      });
+    }
 
-      // Update measurements
-      if (target.measurements && source.measurements) {
-        target.measurements.forEach(entity => {
-          const savedMeasurement = source.measurements.find(m => entity.equals(m));
-          entity.id = savedMeasurement && savedMeasurement.id || entity.id;
-          entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
-          entity.dirty = false;
-        });
-      }
+    // Update measurements
+    if (target.measurements && source.measurements) {
+      target.measurements.forEach(entity => {
+        const savedMeasurement = source.measurements.find(m => entity.equals(m));
+        entity.id = savedMeasurement && savedMeasurement.id || entity.id;
+        entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
+        entity.dirty = false;
+      });
     }
   }
 }

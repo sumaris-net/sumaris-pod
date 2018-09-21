@@ -32,6 +32,9 @@
     "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
     "DDMM_PLACEHOLDER": "DD° MM.MMMMMM' N|S",
     "DD_PLACEHOLDER": "+DD.DDDDDD°",
+    "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\" E|W",
+    "DDDMM_PLACEHOLDER": "DDD° MM.MMMMMM' E|W",
+    "DDD_PLACEHOLDER": "+DDD.DDDDDD°",
 
     "METADATA": "Métadonnées :",
 
@@ -234,6 +237,9 @@
     },
     "SURVIVAL_TEST": {
       "TABLE": {
+        "TAXON_GROUP": "FAO species",
+        "TAXON_GROUP_PLACEHOLDER": "FAO code",
+        "SAMPLE_DATE": "Time of scoring",
         "HEADER_GROUP": {
           "R": "Reflex",
           "D": "Injuries"
@@ -327,6 +333,7 @@
       }
     },
     "ENTITY": {
+      "DEPARTMENT": "Organismes",
       "SALE_TYPE": "Types de vente",
       "LOCATION": "Lieux",
       "LOCATION_LEVEL": "Niveaux de lieux",
@@ -360,6 +367,7 @@
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
     "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
+    "FIELD_NOT_VALID_HOUR_MINUTE": "Heure/minute invalide",
     "FIELD_NOT_VALID_DATE_TIME": "Date/heure invalide",
     "FIELD_NOT_VALID_LATITUDE": "Latitude invalide",
     "FIELD_NOT_VALID_LONGITUDE": "Longitude invalide",

@@ -1,14 +1,12 @@
-import { Component, Optional, Input, EventEmitter, OnInit, forwardRef, ViewChild, ElementRef } from '@angular/core';
-import { DateFormatPipe } from '../pipes/date-format.pipe';
+import { Component, Optional, Input, OnInit, forwardRef, ViewChild } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { MatFormFieldControl, DateAdapter, MatDatepicker, MatDatepickerInputEvent, MatFormField, MatDateFormats } from '@angular/material';
-import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor, ValidationErrors } from "@angular/forms";
+import { FloatLabelType, DateAdapter, MatDatepicker, MatDatepickerInputEvent } from '@angular/material';
+import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 import { Moment } from 'moment/moment';
-import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR } from '../constants';
-import { merge } from "rxjs/observable/merge";
 import { SharedValidators } from '../validator/validators';
+import { debounceTime } from 'rxjs/operators';
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
     provide: NG_VALUE_ACCESSOR,
@@ -50,7 +48,9 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     mask = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
 
-    timeMask = [/\d/, /\d/];
+    hourMask = [/[0-2]/, /\d/];
+
+    minuteMask = [/[0-5]/, /\d/];
 
     @Input() disabled: boolean = false
 
@@ -62,11 +62,13 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     @Input() placeholder: string;
 
-    @Input() floatLabel: string;
+    @Input() floatLabel: FloatLabelType = "auto";
 
     @Input() readonly: boolean = false;
 
     @Input() required: boolean = false;
+
+    @Input() compact: boolean = false;
 
     @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
@@ -88,7 +90,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     ngOnInit() {
 
         this.form = this.formBuilder.group({
-            //date: (this.required ? ['', Validators.required] : ['']),
             day: (this.required ? ['', Validators.required] : ['']),
             hour: ['', this.required ? Validators.compose([Validators.min(0), Validators.max(23)]) : Validators.compose([Validators.required, Validators.min(0), Validators.max(23)])],
             minute: ['', this.required ? Validators.compose([Validators.min(0), Validators.max(59)]) : Validators.compose([Validators.required, Validators.min(0), Validators.max(59)])]
@@ -161,7 +162,14 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
             return;
         }
 
-        let date = json.day && this.dateAdapter.parse(json.day, this.dayPattern);
+        // Make to remove placeholder chars
+        while (json.day && json.day.indexOf(this.placeholderChar) != -1) {
+            json.day = json.day.replace(this.placeholderChar, '');
+        }
+
+        // Parse day string
+        let date: Moment = json.day && this.dateAdapter.parse(json.day, this.dayPattern);
+
         // If time
         if (this.displayTime) {
             date = date && date
@@ -236,9 +244,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     }
 
     public openDatePickerIfTouchUi(event: UIEvent) {
-        if (!this.touchUi) {
-            this.openDatePicker(event);
-        }
+        if (!this.touchUi) return;
+        this.openDatePicker(event);
     }
 
     public openDatePicker(event: UIEvent) {

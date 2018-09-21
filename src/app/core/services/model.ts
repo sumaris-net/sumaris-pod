@@ -81,6 +81,14 @@ export abstract class Entity<T> implements Cloneable<T> {
   }
 }
 
+export class EntityUtils {
+  static isNotEmpty(obj: any | Entity<any>): boolean {
+    return !!obj && obj['id'];
+  }
+  static isEmpty(obj: any | Entity<any>): boolean {
+    return !obj || !obj['id'];
+  }
+}
 export class Referential extends Entity<Referential>  {
 
   static fromObject(source: any): Referential {

@@ -8,7 +8,9 @@ import { AuthData } from "../../services/account.service";
 
 @Component({
   selector: 'form-auth',
-  templateUrl: 'form-auth.html'
+  templateUrl: 'form-auth.html',
+  styleUrls: ['./form-auth.scss']
+
 })
 export class AuthForm implements OnInit {
 

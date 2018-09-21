@@ -1,4 +1,4 @@
-import { OnInit, EventEmitter, Output } from '@angular/core';
+import { OnInit, EventEmitter, Output, Input } from '@angular/core';
 import { FormGroup } from "@angular/forms";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
@@ -9,12 +9,14 @@ import { DateAdapter } from "@angular/material";
 export abstract class AppForm<T> implements OnInit {
 
   private _enable: boolean = false;
-  protected debug: boolean = false;
+
 
   public touchUi: boolean = false;
   public mobile: boolean = false;
-
   public error: string = null;
+
+  @Input()
+  public debug: boolean = false;
 
   public get value(): any {
     return this.form.value;
@@ -69,8 +71,8 @@ export abstract class AppForm<T> implements OnInit {
     public form: FormGroup
   ) {
 
-    this.mobile = platform.is('mobile');
     this.touchUi = !platform.is('desktop');
+    this.mobile = this.touchUi && platform.is('mobile');
     //this.touchUi && console.debug("[form] Enabling touch UI");
   }
 
@@ -115,7 +117,7 @@ export abstract class AppForm<T> implements OnInit {
           value[key] = this.dateAdapter.format(data[key], DATE_ISO_PATTERN);
         }
         else {
-          value[key] = data[key] || null;
+          value[key] = data[key] || (data[key] === 0 ? 0 : null); // Do NOT replace 0 by null
         }
       }
     }

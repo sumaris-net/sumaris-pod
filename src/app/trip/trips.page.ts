@@ -12,7 +12,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService, ReferentialService } from '../referential/referential.module';
 import { Location } from '@angular/common';
 import { FormGroup, FormBuilder } from "@angular/forms";
-import { vesselFeaturesToString, referentialToString } from "../referential/services/model";
+import { vesselFeaturesToString, referentialToString, EntityUtils } from "../referential/services/model";
 
 @Component({
   selector: 'page-trips',
@@ -68,8 +68,8 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       .valueChanges
       .pipe(
         mergeMap(value => {
-          if (!value) return Observable.empty();
-          if (typeof value != "string" || value.length < 2) return Observable.of([]);
+          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          value = (typeof value === "string") && value || undefined;
           return this.referentialService.loadAll(0, 10, undefined, undefined,
             {
               levelId: LocationLevelIds.PORT,
@@ -94,11 +94,11 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     });
   }
 
-  public onOpenRowDetail(id: number): Promise<boolean> {
+  protected openEditRowDetail(id: number): Promise<boolean> {
     return this.router.navigateByUrl('/trips/' + id);
   }
 
-  public onAddRowDetail(): Promise<boolean> {
+  protected openNewRowDetail(): Promise<boolean> {
     return this.router.navigateByUrl('/trips/new');
   }
 

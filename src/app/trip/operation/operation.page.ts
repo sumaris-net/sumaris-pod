@@ -39,14 +39,13 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     protected tripService: TripService
   ) {
     super(route, router);
+    //this.debug = true;
   }
-
 
   ngOnInit() {
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
-      .registerTables([this.survivalTestsTable, this.individualMonitoringTable])
-      ;
+      .registerTables([this.survivalTestsTable, this.individualMonitoringTable]);
 
     // Disable, during load
     this.disable();
@@ -80,7 +79,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Existing operation
     if (id) {
-      console.debug("[page-operation] Loading operation...");
+
+      if (this.debug) console.debug("[page-operation] Loading operation...");
+
       this.operationService.load(id).first().subscribe(data => {
         if (!data || !data.tripId) {
           console.error("Unable to load operation with id:" + id);
@@ -88,6 +89,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           this.loading = false;
           return;
         }
+
+        if (this.debug) console.debug("[page-operation] Operation loaded", data);
 
         this.tripService.load(data.tripId).first().subscribe(trip => {
           this.updateView(data, trip);
@@ -99,7 +102,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // New operation
     else if (options && options.tripId) {
-      console.debug("[page-operation] Creating new operation...");
+      if (this.debug) console.debug("[page-operation] Creating new operation...");
       this.tripService.load(options.tripId).first()
         .subscribe(trip => {
 
@@ -127,21 +130,20 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.opeForm.setTrip(trip);
     }
 
+    const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label;
+
     // Set measurements
+    this.measurementsForm.gear = gearLabel;
     this.measurementsForm.value = data && data.measurements || [];
 
     // Set catch bacth
-    //const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label;
     //this.catchForm.gear = gearLabel;
     // TODO
     // this.catchForm.value = data && data.catch && data.catch.measurements || [];
-    this.catchForm.value = [];
+    this.catchForm.value = this.catchForm.value || [];
 
     // Set survival tests
-    // TODO
-    //this.survivalTestsTable.value = data && data.survivalTests || [];
     this.survivalTestsTable.value = data && data.samples || [];
-    //this.survivalTestsTable.value = [{ rankOrder: 1 }];
 
     // Set indiv monitoring
     // TODO
@@ -158,7 +160,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Not valid
     if (!this.valid) {
-      console.debug("[page-operation] Could not save (invalid)");
+      if (this.debug) console.warn("[page-operation] Validation errors: check forms or tables validity");
 
       if (this.opeForm.invalid) this.opeForm.markAsTouched();
       if (this.measurementsForm.invalid) this.measurementsForm.markAsTouched();
@@ -171,7 +173,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     if (this.loading || this.saving || !this.valid || !this.dirty) return;
     this.saving = true;
 
-    console.debug("[page-operation] Saving...");
+    if (this.debug) console.debug("[page-operation] Saving...");
 
     // Update entity from JSON
     let json = this.opeForm.value;
@@ -182,13 +184,16 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // get catch batch
     // TODO
     //this.data.catch = this.catchForm.value;
-    console.log("TODO: get catch", this.catchForm.value);
+    if (this.debug) console.warn("TODO: get catch", this.catchForm.value);
 
     // get survival tests
-    // TODO
+    await this.survivalTestsTable.save();
+    const survivalTests = this.survivalTestsTable.value;
 
     // get indiv monitoring
-    // TODO
+    //samples = samples.concat(this.individualMonitoringTable.value);
+
+    this.data.samples = (survivalTests || []);
 
     this.disable();
 

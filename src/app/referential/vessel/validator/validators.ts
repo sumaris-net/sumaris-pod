@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { VesselFeatures } from "../../services/model";
+import { SharedValidators } from "../../../shared/validator/validators";
 
 @Injectable()
 export class VesselValidatorService implements ValidatorService {
@@ -22,7 +23,7 @@ export class VesselValidatorService implements ValidatorService {
       'startDate': [null, Validators.required],
       'name': ['', Validators.required],
       'exteriorMarking': ['', Validators.required],
-      'basePortLocation': ['', Validators.required],
+      'basePortLocation': ['', Validators.compose([Validators.required, SharedValidators.entity])],
       'comments': ['', Validators.maxLength(2000)]
     });
   }

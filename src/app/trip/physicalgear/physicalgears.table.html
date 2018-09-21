@@ -43,13 +43,13 @@
           </mat-cell>
         </ng-container>
 
-        <!-- rankOrder Column -->
-        <ng-container matColumnDef="rankOrder">
+        <!-- id (=rankOrder) Column -->
+        <ng-container matColumnDef="id">
           <mat-header-cell *matHeaderCellDef mat-sort-header>
             <ion-label *ngIf="!loading">#</ion-label>
             <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
           </mat-header-cell>
-          <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder||resultLength }}</mat-cell>
+          <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
         </ng-container>
 
         <!-- gear -->
@@ -121,7 +121,7 @@
 
         <!-- Form -->
         <ion-card-content [hidden]="!selectedRow">
-          <form-physical-gear #gearForm>
+          <form-physical-gear [debug]="debug" #gearForm>
           </form-physical-gear>
         </ion-card-content>
       </ion-card>

@@ -10,11 +10,9 @@ export const environment: Environment = {
     baseUrl: '/',
     remoteBaseUrl: "http://localhost:8080",
     defaultLocale: "en",
-    version: pkg.version,
+    version: pkg.version as string,
     defaultProgram: "SUMARiS",
-
-    // debugging
-    mock: true
+    apolloFetchPolicy: 'cache-first'
 };
 
 /*

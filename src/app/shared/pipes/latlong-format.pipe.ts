@@ -1,6 +1,6 @@
 import { Pipe, Injectable, PipeTransform } from '@angular/core';
+import { DEFAULT_PLACEHOLDER_CHAR } from '../constants';
 
-const DEFAULT_PLACEHOLDER_CHAR = '_';
 const DEFAULT_MAX_DECIMALS = 7;
 
 declare class LatLongFormatOptions {
@@ -11,17 +11,17 @@ declare class LatLongFormatOptions {
 
 function formatLatitude(value: number | null, opts?: LatLongFormatOptions): string {
     opts = opts || { pattern: 'DDMM' };
-    if (!value) return "";
-    if (opts.pattern === 'DDMMSS') return formatToDDMMSS(value, true, opts.maxDecimals || 7);
-    if (opts.pattern == 'DDMM') return formatToDDMM(value, true, opts.maxDecimals || 7);
+    if (value === undefined || value === null) return "";
+    if (opts.pattern === 'DDMMSS') return formatToDDMMSS(value, true, opts.maxDecimals || DEFAULT_MAX_DECIMALS, opts.placeholderChar);
+    if (opts.pattern == 'DDMM') return formatToDDMM(value, true, opts.maxDecimals || DEFAULT_MAX_DECIMALS, opts.placeholderChar);
     return roundFloat(value, opts.maxDecimals || DEFAULT_MAX_DECIMALS).toString();
 }
 
 function formatLongitude(value: number | null, opts?: LatLongFormatOptions): string {
     opts = opts || { pattern: 'DDMM' };
-    if (!value) return "";
-    if (opts.pattern === 'DDMMSS') return formatToDDMMSS(value, false, opts.maxDecimals || 7, opts.placeholderChar);
-    if (opts.pattern === 'DDMM') return formatToDDMM(value, false, opts.maxDecimals || 7, opts.placeholderChar);
+    if (value === undefined || value === null) return "";
+    if (opts.pattern === 'DDMMSS') return formatToDDMMSS(value, false, opts.maxDecimals || DEFAULT_MAX_DECIMALS, opts.placeholderChar);
+    if (opts.pattern === 'DDMM') return formatToDDMM(value, false, opts.maxDecimals || DEFAULT_MAX_DECIMALS, opts.placeholderChar);
     return roundFloat(value, opts.maxDecimals || DEFAULT_MAX_DECIMALS).toString();
 }
 
@@ -51,6 +51,19 @@ function formatToDDMMSS(value: number, isLatitude: boolean, maxDecimals: number,
         }
         if (minutes < 10) {
             minutes = placeholderChar + minutes;
+        }
+        else {
+            minutes = minutes.toString(); // convert to string (need by  the while)
+        }
+        if (maxDecimals > 0) {
+            // Add decimal separator
+            if (minutes.length === 2) {
+                minutes += '.';
+            }
+            // Add trailing placeholder chars
+            while ((minutes.length < maxDecimals + 3)) {
+                minutes += placeholderChar;
+            }
         }
     }
 
@@ -85,6 +98,20 @@ function formatToDDMM(value: number, isLatitude: boolean, maxDecimals: number, p
         if (minutes < 10) {
             minutes = placeholderChar + minutes;
         }
+        else {
+            // convert to string (need by  the while)
+            minutes = minutes.toString();
+        }
+        if (maxDecimals > 0) {
+            // Add decimal separator
+            if (minutes.length === 2) {
+                minutes += '.';
+            }
+            // Add trailing placeholder chars
+            while ((minutes.length < maxDecimals + 3)) {
+                minutes += placeholderChar;
+            }
+        }
     }
 
     const output = degrees + '° ' + minutes + '\' ' + direction;
@@ -110,7 +137,7 @@ function parseLatitudeOrLongitude(input: string, pattern: string, maxDecimals?: 
 
     var dd = degrees + minutes / 60 + seconds / (60 * 60);
 
-    if (direction && (direction === "S" || direction === "W")) {
+    if (direction && (direction === "s" || direction === "S" || direction === "w" || direction === "W")) {
         dd = dd * -1;
     }
     dd = roundFloat(dd, maxDecimals);
@@ -144,9 +171,8 @@ export class LatLongFormatPipe implements PipeTransform {
 
     transform(value: number, args?: any): string | Promise<string> {
         args = args || {};
-        return (!args.type || args.type === 'latitude') ?
-            formatLatitude(value, { pattern: args.pattern, maxDecimals: args.maxDecimals, placeholderChar: args.placeholderChar }) :
-            formatLongitude(value, { pattern: args.pattern, maxDecimals: args.maxDecimals, placeholderChar: args.placeholderChar });
+        return ((!args.type || args.type !== 'longitude') && formatLatitude || formatLongitude)
+            (value, { pattern: args.pattern, maxDecimals: args.maxDecimals, placeholderChar: args.placeholderChar });
     }
 
 

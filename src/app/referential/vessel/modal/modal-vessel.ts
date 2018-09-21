@@ -13,28 +13,36 @@ export class VesselModal {
 
   loading: boolean = false;
 
-  @ViewChild('form') private form: VesselForm;
+  @ViewChild('formVessel') private form: VesselForm;
 
   constructor(
     private vesselService: VesselService,
     private viewCtrl: ModalController) {
   }
 
-  onSave(json: any): Promise<any> {
+  async onSave(event: any): Promise<any> {
+
+    console.debug("[vessel-modal] Saving new vessel...");
 
     // Avoid multiple call    
-    if (this.form.form.disabled) return;
-    this.form.disable();
+    if (this.form.invalid || this.form.form.disabled) return;
 
-    let data = new VesselFeatures();
-    data.fromObject(json);
+    this.loading = true;
 
-    return this.vesselService.save(data)
-      .then((res) => this.viewCtrl.dismiss(res))
-      .catch(err => {
-        this.form.error = err && err.message || err;
-        this.form.enable();
-      });
+    try {
+      const json = this.form.value;
+      let data = VesselFeatures.fromObject(json);
+
+      this.form.disable();
+
+      const res = await this.vesselService.save(data);
+      this.viewCtrl.dismiss(res)
+    }
+    catch (err) {
+      this.form.error = err && err.message || err;
+      this.form.enable();
+      this.loading = false;
+    }
   }
 
   cancel() {

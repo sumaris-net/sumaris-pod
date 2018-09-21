@@ -1,12 +1,12 @@
 <mat-form-field *ngIf="!readonly && formControl" [floatLabel]="floatLabel">
 
   <input matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl" [matAutocomplete]="autoQualitativeValue"
-    (blur)="_onBlur($event)" [required]="pmfm.isMandatory" (keydown)="onKeyDown.next($event.target.value)">
+    (blur)="_onBlur($event)" [required]="pmfm.isMandatory" (ngModelChange)="onValueChange.next($event)">
   <button mat-button *ngIf="clearable && formControl.value" matSuffix mat-icon-button (click)="clear()">
     <mat-icon>close</mat-icon>
   </button>
-  <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
-  <mat-error *ngIf="formControl.errors?.entity" translate>ERROR.FIELD_INVALID</mat-error>
+  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
   <!-- combo -->
   <mat-autocomplete autoActiveFirstOption #autoQualitativeValue="matAutocomplete" [displayWith]="displayWithFn">
     <ion-row class="mat-autocomplete-header">

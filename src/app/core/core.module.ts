@@ -28,6 +28,7 @@ import { RegisterModal } from './register/modal/modal-register';
 import { AppGraphQLModule } from './graphql/graphql.module';
 import { DateAdapter } from "@angular/material";
 import * as moment from "moment/moment";
+import { AppFormUtils } from './form/form.utils';
 
 import { ProgressBarService } from './services/progress-bar.service';
 import { ProgressInterceptor } from '../shared/interceptors/progess.interceptor';
@@ -39,7 +40,7 @@ import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-transla
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 
-export { environment, AppForm, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent, FormButtonsBarComponent }
+export { environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent, FormButtonsBarComponent }
 
 
 export function HttpLoaderFactory(http: HttpClient) {

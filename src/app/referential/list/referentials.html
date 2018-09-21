@@ -177,15 +177,20 @@
         <span></span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
+        <button mat-icon-button small color="light" *ngIf="row.editing && row.id != -1" [title]="'COMMON.BTN_UNDO'|translate"
+          (click)="cancelOrDelete($event, row)">
           <mat-icon>undo</mat-icon>
+        </button>
+        <button mat-icon-button small color="light" *ngIf="row.editing && row.id == -1" [title]="'COMMON.BTN_ADD'|translate"
+          (click)="confirmAndAddRow($event, row)">
+          <mat-icon>add</mat-icon>
         </button>
       </mat-cell>
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
     <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)" (onblur)="confirmAndAddRow($event, row)"></mat-row>
+      [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
     <!-- (dblclick)="onEditRow(row)"-->
   </mat-table>
 

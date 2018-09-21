@@ -13,6 +13,7 @@ import { AccountService } from '../../core/services/account.service';
 import { Location } from '@angular/common';
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
+import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 
 const DEFAULT_ENTITY_NAME = "Location";
 
@@ -64,14 +65,14 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
       // columns
-      ['select', 'id',
-        'label',
-        'name',
-        'level',
-        'status',
-        'comments',
-        'actions'
-      ],
+      RESERVED_START_COLUMNS
+        .concat([
+          'label',
+          'name',
+          'level',
+          'status',
+          'comments'])
+        .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
         prependNewElements: false,
         serviceOptions: {
@@ -100,7 +101,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         });
       }
       else {
-        this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
+        this.dataSource.serviceOptions = this.dataSource.serviceOptions || { full: true };
         this.dataSource.serviceOptions.entityName = entityName;
         this.entityNameForm.setValue({ entityName: entityName });
       }
@@ -158,7 +159,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     console.info("[referential] Loading " + entityName + "...");
 
     // Set the service options
-    this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
+    this.dataSource.serviceOptions = this.dataSource.serviceOptions || { full: true };
     this.dataSource.serviceOptions.entityName = entityName;
     this.onRefresh.emit();
     this.levels = this.referentialService.loadLevels(entityName);

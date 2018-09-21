@@ -1,4 +1,4 @@
-import { Referential, Department, Person, toDateISOString, fromDateISOString, StatusIds, Cloneable, Entity, joinProperties } from "../../core/services/model";
+import { Referential, EntityUtils, Department, Person, toDateISOString, fromDateISOString, StatusIds, Cloneable, Entity, joinProperties } from "../../core/services/model";
 import { Moment } from "moment/moment";
 import { DATE_ISO_PATTERN } from "../constants";
 
@@ -16,7 +16,7 @@ export const TaxonGroupIds = {
   METIER: 3
 }
 
-export { Referential, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department };
+export { Referential, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department };
 
 export function entityToString(obj: Entity<any> | any, properties?: String[]): string | undefined {
   return obj && obj.id && joinProperties(obj, properties || ['name']) || undefined;
@@ -31,6 +31,13 @@ export function vesselFeaturesToString(obj: VesselFeatures | any): string | unde
 }
 
 export class VesselFeatures extends Entity<VesselFeatures>  {
+
+  static fromObject(source: any): VesselFeatures {
+    const res = new VesselFeatures();
+    res.fromObject(source);
+    return res;
+  }
+
   vesselId: number;
   vesselTypeId: number;
   name: string;

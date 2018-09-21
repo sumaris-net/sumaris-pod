@@ -1,12 +1,12 @@
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { SaleValidatorService } from "../services/sale.validator";
-import { Sale, Referential, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString } from "../services/trip.model";
+import { Sale, Referential, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString, EntityUtils } from "../services/trip.model";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { AppForm } from '../../core/core.module';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, debounceTime } from 'rxjs/operators';
 import { VesselService, ReferentialService } from '../../referential/referential.module';
 
 @Component({
@@ -57,8 +57,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         .valueChanges
         .pipe(
           mergeMap(value => {
-            if (!value) return Observable.empty();
-            if (typeof value == "object") return Observable.of([value]);
+            if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+            value = (typeof value === "string") && value || undefined;
             return this.vesselService.loadAll(0, 10, undefined, undefined,
               { searchText: value as string }
             );
@@ -72,9 +72,10 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     this.locations = this.form.controls['saleLocation']
       .valueChanges
       .pipe(
+        debounceTime(250),
         mergeMap(value => {
-          if (!value) return Observable.empty();
-          if (typeof value != "string" || value.length < 2) return Observable.of([]);
+          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          value = (typeof value === "string") && value || undefined;
           return this.referentialService.loadAll(0, 10, undefined, undefined,
             {
               levelId: LocationLevelIds.PORT,
@@ -89,10 +90,10 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     this.saleTypes = this.form.controls['saleType']
       .valueChanges
       .pipe(
+        debounceTime(250),
         mergeMap(value => {
-          if (typeof value == "object") return Observable.of([value]);
-          //if (!value) return Observable.empty();
-          //if (typeof value != "string" || value.length < 2) return Observable.of([]);
+          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          value = (typeof value === "string") && value || undefined;
           return this.referentialService.loadAll(0, 10, undefined, undefined,
             { searchText: value as string },
             { entityName: 'SaleType' });

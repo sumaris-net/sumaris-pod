@@ -5,11 +5,11 @@ import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
-import { mergeMap, startWith } from 'rxjs/operators';
+import { mergeMap, debounceTime } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../core/core.module';
 import { VesselModal, ReferentialService, VesselService } from "../referential/referential.module";
-import { referentialToString } from '../referential/services/model';
+import { referentialToString, EntityUtils } from '../referential/services/model';
 
 @Component({
   selector: 'form-trip',
@@ -41,9 +41,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.vessels = this.form.controls['vesselFeatures']
       .valueChanges
       .pipe(
+        debounceTime(250),
         mergeMap(value => {
-          if (!value) return Observable.empty();
-          if (typeof value == "object") return Observable.of([value]);
+          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          value = (typeof value === "string") && value || undefined;
           return this.vesselService.loadAll(0, 10, undefined, undefined,
             { searchText: value as string }
           );
@@ -56,10 +57,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         this.form.controls.returnLocation.valueChanges
       )
         .pipe(
+          debounceTime(250),
           mergeMap(value => {
-            if (!value) return Observable.empty();
-            if (typeof value == "object") return Observable.of([value]);
-            if (typeof value != "string" || value.length < 2) return Observable.of([]);
+            if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+            value = (typeof value === "string") && value || undefined;
             return this.referentialService.loadAll(0, 10, undefined, undefined,
               {
                 levelId: LocationLevelIds.PORT,
@@ -69,16 +70,16 @@ export class TripForm extends AppForm<Trip> implements OnInit {
           }));
   }
 
-  public async  addVesselModal(): Promise<any> {
+  async addVesselModal(): Promise<any> {
     const modal = await this.modalCtrl.create({ component: VesselModal });
     modal.onDidDismiss().then(res => {
       // if new vessel added, use it
-      if (res) {
-        if (res instanceof VesselFeatures) {
-          let json = this.form.value;
-          json.vesselFeatures = res;
-          this.form.setValue(json);
-        }
+      if (res && res.data instanceof VesselFeatures) {
+        console.debug("[trip-form] New vessel added : updating form...", res.data);
+        this.form.controls['vesselFeatures'].setValue(res.data);
+      }
+      else {
+        console.debug("[trip-form] No vessel added (user cancelled)");
       }
     });
     return modal.present();

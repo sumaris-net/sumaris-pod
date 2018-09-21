@@ -11,6 +11,7 @@ import { Location } from '@angular/common';
 import { ReferentialService } from "../../referential/referential.module";
 import { DataService } from "../../core/services/data-service.class";
 import { PhysicalGearForm } from "./physicalgear.form";
+import { RESERVED_START_COLUMNS } from "../../core/table/table.class";
 
 
 @Component({
@@ -62,15 +63,11 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     protected referentialService: ReferentialService
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
-      ['select',
-        'rankOrder',
-        'gear',
-        'comments']
+      RESERVED_START_COLUMNS.concat(['gear', 'comments'])
     );
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = false;
     this.setDatasource(new AppTableDataSource<PhysicalGear, any>(PhysicalGear, this, this.validatorService));
-    this.debug = true;
   };
 
 
@@ -88,6 +85,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
         this._dirty = true;
       });
 
+    // DEBUG only
     this.detailMeasurements = this.debug && Observable.empty() || this.gearForm
       .valueChanges
       .debounceTime(300)
@@ -114,9 +112,11 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     options?: any
   ): Observable<PhysicalGear[]> {
     if (!this.data) return Observable.empty(); // Not initialized
-    sortBy = sortBy || 'rankOrder';
+    sortBy = sortBy != 'id' && sortBy || 'rankOrder'; // Replace 'id' with 'rankOrder'
 
-    //console.debug("[table-physical-gear] Sorting... ", sortBy, sortDirection);
+    const now = new Date();
+    if (this.debug) console.debug("[physicalgears-table] Reading rows from data", this.data);
+
     const res = this.data.slice(0); // Copy the array
     const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
     res.sort((a, b) =>
@@ -125,11 +125,14 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
           after : (-1 * after)
         )
     );
+
+    if (this.debug) console.debug("[physicalgears-table] Rows extracted in " + (new Date().getTime() - now.getTime()) + "ms", res);
+
     return Observable.of(res);
   }
 
   saveAll(data: PhysicalGear[], options?: any): Promise<PhysicalGear[]> {
-    if (!this.data) throw new Error("[table-physical-gears] Could not save table: value not set yet");
+    if (!this.data) throw new Error("[physicalgears-table] Could not save table: value not set yet");
 
     if (this.selectedRow) {
       this.selectedRow.currentData = this.gearForm.value;
@@ -140,7 +143,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
   }
 
   deleteAll(dataToRemove: PhysicalGear[], options?: any): Promise<any> {
-    console.debug("[table-physical-gear] Remove data", dataToRemove);
+    if (this.debug) console.debug("[physicalgears-table] Remove data", dataToRemove);
     this.data = this.data.filter(gear => !dataToRemove.find(g => g === gear || g.id === gear.id))
     return Promise.resolve();
   }
@@ -160,17 +163,19 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     return true;
   }
 
-  addRow() {
-    // Skip if error in previous row
-    if (this.selectedRow && this.selectedRow.validator.invalid) return;
+  addRow(): boolean {
+    if (this.debug) console.debug("[physicalgears-table] Calling addRow()");
 
     // Create new row
-    this.createNew();
+    const result = super.addRow();
+    if (!result) return false;
+
     const row = this.dataSource.getRow(-1);
     this.data.push(row.currentData);
     this.selectedRow = row;
     row.currentData.rankOrder = this.resultsLength;
     this.gearForm.value = row.currentData;
+    return true;
   }
 
   deleteSelection() {

@@ -21,31 +21,33 @@
           <input matInput [placeholder]="'TRIP.OPERATION.LIST.PHYSICAL_GEAR'|translate" [matAutocomplete]="autoPhysicalGear"
             (focus)="onFocusPhysicalGear.emit()" formControlName="physicalGear">
           <mat-error *ngIf="form.controls['physicalGear']?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['physicalGear']?.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Physical gear combo -->
-        <mat-autocomplete autoActiveFirstOption #autoPhysicalGear="matAutocomplete" [displayWith]="physicalGearToString" class="mat-gear-autocomplete">
-            <ion-row class="mat-autocomplete-header">
-              <ion-col size="1">
-                <ion-text translate>TRIP.PHYSICAL_GEAR.RANK_ORDER</ion-text>
-              </ion-col>
-              <ion-col size="2">
-                <ion-text translate>REFERENTIAL.LABEL</ion-text>
-              </ion-col>
-              <ion-col>
-                <ion-text translate>REFERENTIAL.NAME</ion-text>
-              </ion-col>
-            </ion-row>
+        <mat-autocomplete autoActiveFirstOption #autoPhysicalGear="matAutocomplete" [displayWith]="physicalGearToString"
+          class="mat-gear-autocomplete">
+          <ion-row class="mat-autocomplete-header">
+            <ion-col size="1">
+              <ion-text translate>TRIP.PHYSICAL_GEAR.RANK_ORDER</ion-text>
+            </ion-col>
+            <ion-col size="2">
+              <ion-text translate>REFERENTIAL.LABEL</ion-text>
+            </ion-col>
+            <ion-col>
+              <ion-text translate>REFERENTIAL.NAME</ion-text>
+            </ion-col>
+          </ion-row>
 
-            <mat-option *ngFor="let item of physicalGears | async" [value]="item">
-              <ion-row>
-                <ion-col size="1">
-                  <ion-text>{{item.rankOrder}}</ion-text>
-                </ion-col>
-                <ion-col size="2" [innerHTML]="item.gear.label | highlight: {search: form.controls['physicalGear'].value }"></ion-col>
-                <ion-col [innerHTML]="item.gear.name | highlight: {search: form.controls['physicalGear'].value }"></ion-col>
-              </ion-row>
-            </mat-option>
+          <mat-option *ngFor="let item of physicalGears | async" [value]="item">
+            <ion-row>
+              <ion-col size="1">
+                <ion-text>{{item.rankOrder}}</ion-text>
+              </ion-col>
+              <ion-col size="2" [innerHTML]="item.gear.label | highlight: {search: form.controls['physicalGear'].value }"></ion-col>
+              <ion-col [innerHTML]="item.gear.name | highlight: {search: form.controls['physicalGear'].value }"></ion-col>
+            </ion-row>
+          </mat-option>
         </mat-autocomplete>
 
       </ion-col>
@@ -56,12 +58,13 @@
           <input matInput [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate" [matAutocomplete]="autoMetier"
             formControlName="metier" (focus)="onFocusMetier.emit()">
           <mat-error *ngIf="form.controls['metier']?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['metier']?.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Metier combo -->
         <mat-autocomplete autoActiveFirstOption #autoMetier="matAutocomplete" [displayWith]="referentialToString">
           <ion-row class="mat-autocomplete-header">
-            <ion-col size="2">
+            <ion-col size="3">
               <ion-text translate>REFERENTIAL.LABEL</ion-text>
             </ion-col>
             <ion-col>
@@ -71,7 +74,7 @@
 
           <mat-option *ngFor="let item of metiers | async" [value]="item">
             <ion-row>
-              <ion-col size="2" [innerHTML]="item.label | highlight: {search: form.controls['metier'].value }"></ion-col>
+              <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls['metier'].value }"></ion-col>
               <ion-col [innerHTML]="item.name | highlight: {search: form.controls['metier'].value }"></ion-col>
             </ion-row>
           </mat-option>

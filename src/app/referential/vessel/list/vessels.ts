@@ -78,7 +78,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
 
   }
 
-  async onAddRowDetail(): Promise<any> {
+  async openNewRowDetail(): Promise<any> {
     if (this.loading) return Promise.resolve();
 
     const modal = await this.modalCtrl.create({ component: VesselModal });

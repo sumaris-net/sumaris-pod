@@ -59,12 +59,12 @@ export const Fragments = {
         pmfmId
         alphanumericalValue
         numericalValue
+        rankOrder
         qualitativeValue {
           id
           label
         }
         digitCount
-        rankOrder
         qualityFlagId
         creationDate
         updateDate
@@ -76,4 +76,29 @@ export const Fragments = {
         entityName
       }
     `
+};
+
+export const DataFragments = {
+  sample: gql`fragment SampleFragment on SampleVO {
+      id
+      label
+      rankOrder
+      sampleDate
+      individualCount
+      comments
+      updateDate
+      creationDate
+      matrix {
+        ...ReferentialFragment
+      }
+      taxonGroup {
+        ...ReferentialFragment
+      }
+      measurements {
+        ...MeasurementFragment
+      } 
+    }
+    ${Fragments.referential}
+    ${Fragments.measurement}
+  `
 };

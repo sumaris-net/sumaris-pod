@@ -15,6 +15,7 @@
           <ion-icon margin-right name="boat" matPrefix></ion-icon>
           <input matInput [placeholder]="'TRIP.VESSEL'|translate" [matAutocomplete]="autoVessel" formControlName="vesselFeatures">
           <mat-error *ngIf="form.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['vesselFeatures'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Vessel combo -->
@@ -60,6 +61,7 @@
           <input matInput [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate" [matAutocomplete]="autoDepartureLocation"
             formControlName="departureLocation">
           <mat-error *ngIf="form.controls['departureLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['departureLocation'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Location combo -->
@@ -98,8 +100,8 @@
           <ion-icon matPrefix name="pin"></ion-icon>
           <input matInput [placeholder]="'TRIP.RETURN_LOCATION'|translate" [matAutocomplete]="autoReturnLocation"
             formControlName="returnLocation">
-          <!-- <ion-icon padding-right name="arrow-dropdown" matSuffix (click)="autoReturnLocation.showPanel=!autoReturnLocation.showPanel"></ion-icon> -->
           <mat-error *ngIf="form.controls['returnLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['returnLocation'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Location combo -->

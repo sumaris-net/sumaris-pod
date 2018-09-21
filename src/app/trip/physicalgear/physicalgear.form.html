@@ -1,9 +1,9 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
 
-
-  <ion-text>
-    <p ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></p>
-  </ion-text>
+  <ion-item *ngIf="error">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
 
   <ion-grid no-padding>
 
@@ -15,6 +15,7 @@
           <input matInput [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate" [matAutocomplete]="autoGear"
             formControlName="gear" (keydown)="onGearKeyDown.next($event.target.value)">
           <mat-error *ngIf="form.controls['gear']?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['gear']?.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Gear combo -->
@@ -47,7 +48,7 @@
       </ion-col>
     </ion-row>
     <ion-row>
-      <form-measurements acquisitionLevel="PHYSICAL_GEAR" #measurementsForm></form-measurements>
+      <form-measurements acquisitionLevel="PHYSICAL_GEAR" [debug]="debug" #measurementsForm></form-measurements>
     </ion-row>
 
 

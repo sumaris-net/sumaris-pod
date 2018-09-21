@@ -8,6 +8,7 @@ export abstract class AppTabPage<T, F = any>{
 
     private _forms: AppForm<any>[];
     private _tables: AppTable<any, any>[];
+
     protected debug: boolean = false;
 
     data: T;

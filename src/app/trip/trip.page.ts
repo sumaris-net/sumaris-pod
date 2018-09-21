@@ -104,7 +104,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }
     this.saving = true;
 
-    console.log("[page-trip] Saving...");
+    if (this.debug) console.debug("[page-trip] Saving trip...");
 
     // Update Trip from JSON
     let json = this.tripForm.value;

@@ -6,6 +6,7 @@ import { AuthForm } from '../form/form-auth';
 @Component({
   selector: 'modal-auth',
   templateUrl: 'modal-auth.html',
+  styleUrls: ['./modal-auth.scss']
 })
 export class AuthModal {
 

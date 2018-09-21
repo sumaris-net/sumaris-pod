@@ -6,8 +6,7 @@ export const environment: Environment = {
     baseUrl: '/',
     remoteBaseUrl: "https://test.sumaris.net",
     defaultLocale: 'en',
-    version: pkg.version,
+    version: (pkg.version as string),
     defaultProgram: "SUMARiS",
-
-    mock: false
+    apolloFetchPolicy: 'network-only'
 };

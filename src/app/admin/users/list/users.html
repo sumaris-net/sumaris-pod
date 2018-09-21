@@ -8,7 +8,8 @@
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
-    <button mat-icon-button color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+    <button mat-icon-button color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+      (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
@@ -52,11 +53,13 @@
     </form>
   </mat-expansion-panel>
 
-  <mat-table #table [dataSource]="dataSource" matSort matSortActive="lastName" matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
+  <mat-table #table [dataSource]="dataSource" matSort matSortActive="lastName" matSortDirection="asc"
+    matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
-        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()" [indeterminate]="selection.hasValue() && !isAllSelected()">
+        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
@@ -128,8 +131,8 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="submitted && row.validator.invalid" [class.mat-row-disabled]="!row.editing"
-      (click)="onRowClick($event, row)" (onblur)="confirmAndAddRow($event, row)"></mat-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="submitted && row.validator.invalid"
+      [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
   </mat-table>
 
 

@@ -94,11 +94,11 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     });
   }
 
-  public onOpenRowDetail(id: number): Promise<boolean> {
+  protected openEditRowDetail(id: number): Promise<boolean> {
     return this.router.navigateByUrl('/trips/' + id);
   }
 
-  public onAddRowDetail(): Promise<boolean> {
+  protected openNewRowDetail(): Promise<boolean> {
     return this.router.navigateByUrl('/trips/new');
   }
 

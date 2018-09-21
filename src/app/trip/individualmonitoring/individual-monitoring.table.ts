@@ -10,6 +10,7 @@ import { Location } from '@angular/common';
 import { ReferentialService } from "../../referential/referential.module";
 import { OperationService, OperationFilter } from "../services/operation.service";
 import { IndividualMonitoringService } from "../services/individual-monitoring.validator";
+import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 
 
 @Component({
@@ -48,10 +49,9 @@ export class IndividualMonitoringTable extends AppTable<any, { operationId?: num
         protected referentialService: ReferentialService
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            ['select',
-                'rankOrder',
-                'comments',
-                'actions']
+            RESERVED_START_COLUMNS
+                .concat([])
+                .concat(RESERVED_END_COLUMNS)
         );
         this.i18nColumnPrefix = 'TRIP.INDIVIDUAL_MONITORING.TABLE.';
         this.autoLoad = false;
@@ -73,9 +73,11 @@ export class IndividualMonitoringTable extends AppTable<any, { operationId?: num
         options?: any
     ): Observable<any[]> {
         if (!this.data) return Observable.empty(); // Not initialized
-        sortBy = sortBy || 'rankOrder';
 
-        //console.debug("[table-physical-gear] Sorting... ", sortBy, sortDirection);
+        sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
+
+        if (this.debug) console.debug("[individual-monitoring] Extracting rows from samples:", this.data);
+
         const res = this.data.slice(0); // Copy the array
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
         res.sort((a, b) =>
@@ -88,14 +90,14 @@ export class IndividualMonitoringTable extends AppTable<any, { operationId?: num
     }
 
     saveAll(data: any[], options?: any): Promise<any[]> {
-        if (!this.data) throw new Error("[table-physical-gears] Could not save table: value not set yet");
+        if (!this.data) throw new Error("[individual-monitoring] Could not save table: value not set yet");
 
         this.data = data;
         return Promise.resolve(this.data);
     }
 
     deleteAll(dataToRemove: any[], options?: any): Promise<any> {
-        console.debug("[table-survival-tests] Remove data", dataToRemove);
+        if (this.debug) console.debug("[individual-monitoring] Remove data", dataToRemove);
         this.data = this.data.filter(item => !dataToRemove.find(g => g === item || g.id === item.id))
         return Promise.resolve();
     }

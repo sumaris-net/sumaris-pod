@@ -1,21 +1,20 @@
-import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
+import { EventEmitter, OnInit, Output, ViewChild, OnDestroy, Input } from "@angular/core";
 import { MatPaginator, MatSort, MatTable } from "@angular/material";
 import { merge } from "rxjs/observable/merge";
 import { Observable } from 'rxjs';
 import { startWith, mergeMap } from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
+import { TableElement } from "angular4-material-table";
 import { AppTableDataSource } from "./table-datasource.class";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Entity, Referential, joinProperties } from "../services/model";
+import { Entity } from "../services/model";
 import { Subscription } from "rxjs-compat";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from '../services/account.service';
 import { TableSelectColumnsComponent } from './table-select-columns.component';
 import { Location } from '@angular/common';
-import { PopoverController } from '@ionic/angular';
-import { map } from "rxjs/operators";
 import { ErrorCodes } from "../services/errors";
+import { AppFormUtils } from "../form/form.utils";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -27,7 +26,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     private _initialized = false;
     private _subscriptions: Subscription[] = [];
     protected _dirty = false;
-    protected debug = false;
+    private _columnValueChangesConfig: {
+        [key: string]: {
+            eventEmitter: EventEmitter<any>;
+            subscription: Subscription
+        }
+    } = {};
 
     inlineEdition: boolean = false;
     displayedColumns: string[];
@@ -43,6 +47,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     i18nColumnPrefix = 'COMMON.';
     autoLoad = true;
     settingsId;
+    mobile: boolean;
+
+    @Input()
+    public debug = false;
 
     @ViewChild(MatTable) table: MatSort;
     @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -98,6 +106,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         public dataSource?: AppTableDataSource<T, F>,
         protected filter?: F
     ) {
+        this.mobile = this.platform.is('mobile');
     };
 
     ngOnInit() {
@@ -151,10 +160,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 if (data) {
                     this.isRateLimitReached = !this.paginator || (data.length < this.paginator.pageSize);
                     this.resultsLength = (this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + data.length;
-                    if (this.debug) console.debug('[table] Loaded ' + data.length + ' rows');
+                    if (this.debug) console.debug('[table] ' + data.length + ' rows loaded');
                 }
                 else {
-                    if (this.debug) console.debug('[table] Loaded NO rows');
+                    if (this.debug) console.debug('[table] NO rows loaded');
                     this.isRateLimitReached = true;
                     this.resultsLength = 0;
                 }
@@ -165,10 +174,6 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         // Subscriptions:
         this._subscriptions.push(this.listChange.subscribe(event => this.onDataChanged(event)));
 
-        if (this.autoLoad) {
-            //this.onRefresh.emit();
-        }
-
         // Listen datasource events
         if (this.dataSource) this.listenDatasource(this.dataSource);
     }
@@ -176,6 +181,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     ngOnDestroy() {
         this._subscriptions.forEach(s => s.unsubscribe());
         this._subscriptions = [];
+
+        // Unsubcribe column value changes
+        Object.getOwnPropertyNames(this._columnValueChangesConfig).forEach(columnName => {
+            this.unsubscribeCellValueChanges(columnName);
+        });
+        this._columnValueChangesConfig = {};
     }
 
     setDatasource(datasource: AppTableDataSource<T, F>) {
@@ -190,59 +201,53 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this._subscriptions.push(dataSource.datasourceSubject.subscribe(data => this.listChange.emit(data)));
     }
 
-    confirmAndAddRow(row: TableElement<T>) {
+    confirmAndAddRow(event?: any, row?: TableElement<T>): boolean {
         // create
-        var valid = false;
-        if (row.id < 0) {
-            valid = this.dataSource.confirmCreate(row);
+        if (row && row.editing && !row.confirmEditCreate()) {
+            if (this.debug) console.warn("[table] Row not valid: unable to add new row", row);
+            return false;
         }
-        // update
-        else {
-            valid = this.dataSource.confirmEdit(row);
+
+        // Add row
+        return this.addRow(event);
+    }
+
+    cancelOrDelete(event: any, row: TableElement<T>) {
+        this.selectedRow = null; // unselect row
+        event.stopPropagation();
+        row.cancelOrDelete();
+
+        // If row never saved: this is a delete, else a cancel
+        if (row.id == -1) {
+            this.resultsLength--;
         }
-        if (!valid) {
-            console.warn("[table] Could NOT confirm row", row);
+    }
+
+    addRow(event?: any): boolean {
+        if (this.debug) console.debug("[table] Asking for new row...");
+
+        // Use modal if not expert mode, or if small screen
+        if (!this.inlineEdition) {
+            this.openNewRowDetail();
+            return false;
+        }
+
+        // Try to finish previous row first
+        if (this.selectedRow && this.selectedRow.editing && !this.selectedRow.confirmEditCreate()) {
+            if (this.debug) console.warn("[table] Selected row not valid: unable to add new row", this.selectedRow);
             return false;
         }
 
         // Add new row
-        this.createNew();
+        this.addRowToTable();
         return true;
     }
 
-    cancelOrDelete(event, row) {
-        // If row neveer saved: this is a delete
-        if (row.id == -1) {
-            this.resultsLength--;
-        }
-        this.selectedRow = null;
-        event.stopPropagation();
-
-        row.cancelOrDelete();
-    }
-
-    addRow() {
-        // Use modal if not expert mode, or if small screen
-        if (this.platform.is('mobile') || !this.inlineEdition) {
-            this.onAddRowDetail();
-            return;
-        }
-
-        // Add new row
+    protected addRowToTable() {
         this.focusFirstColumn = true;
-        this.createNew();
-    }
-
-    createNew() {
         this.dataSource.createNew();
         this._dirty = true;
         this.resultsLength++;
-    }
-
-    editRow(row) {
-        if (!row.editing) {
-            row.startEdit();
-        }
     }
 
     onDataChanged(data: T[]) {
@@ -256,9 +261,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     async save(): Promise<boolean> {
         this.error = undefined;
-        if (this.selectedRow && this.selectedRow.editing) {
-            var confirm = this.selectedRow.confirmEditCreate();
-            if (!confirm) throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
+        if (this.selectedRow && this.selectedRow.editing && !this.selectedRow.confirmEditCreate()) {
+            if (this.debug) console.warn("[table] Row not valid: unable to save", this.selectedRow);
+            throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
         }
         if (this.debug) console.debug("[table] Calling dataSource.save()...");
         try {
@@ -308,15 +313,16 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     public onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
         if (this.selectedRow && this.selectedRow === row || event.defaultPrevented) return;
-        if (this.selectedRow && this.selectedRow !== row && this.selectedRow.editing) {
-            var confirm = this.selectedRow.confirmEditCreate();
-            if (!confirm) {
+        if (this.selectedRow && this.selectedRow !== row) {
+            if (this.selectedRow.editing && !this.selectedRow.confirmEditCreate()) {
+                if (this.debug) console.warn("[table] selected row not valid: unable to edit another row", this.selectedRow);
                 return false;
             }
         }
         if (!row.editing && !this.loading) {
+            if (this.debug) console.warn("[table] Starting edition of row", row);
             row.startEdit();
-            row.currentData.dirty = true;
+            //AppFormUtils.copyEntity2Form(row.currentData, row.validator);
         }
         this.selectedRow = row;
         this._dirty = true;
@@ -324,32 +330,32 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     public onRowClick(event: MouseEvent, row: TableElement<T>): boolean {
-        if (row.id == -1 || !row.currentData.id || row.editing) return true
+        if (row.id == -1 || row.editing) return true;
         if (event.defaultPrevented) return false;
 
         // Open the detail page (if not editing)
         if (!this._dirty && !this.inlineEdition) {
             event.stopPropagation();
-            this.onOpenRowDetail(row.currentData.id, row);
+            this.openEditRowDetail(row.currentData.id, row);
             return true;
         }
 
         return this.onEditRow(event, row);
     }
 
-    public onOpenRowDetail(id: number, row?: TableElement<T>): Promise<boolean> {
+    protected openEditRowDetail(id: number, row?: TableElement<T>): Promise<boolean> {
         return this.router.navigate([id], {
             relativeTo: this.route
         });
     }
 
-    public onAddRowDetail(): Promise<any> {
+    protected openNewRowDetail(): Promise<any> {
         return this.router.navigate(['new'], {
             relativeTo: this.route
         });
     }
 
-    public getDisplayColumns(): string[] {
+    protected getDisplayColumns(): string[] {
         var userColumns = this.accountService.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
         // No user override: use defaults
         if (!userColumns) return this.columns;
@@ -366,7 +372,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     public async openSelectColumnsModal(event: any): Promise<any> {
-        const fixedColumns = this.columns.slice(0, 2);
+        const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
         var hiddenColumns = this.columns.slice(fixedColumns.length)
             .filter(name => this.displayedColumns.indexOf(name) == -1);
         let columns = this.displayedColumns.slice(fixedColumns.length)
@@ -375,7 +381,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             .map((name, index) => {
                 return {
                     name,
-                    label: this.i18nColumnPrefix + name.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase(),
+                    label: this.getI18nColumnName(name),
                     visible: this.displayedColumns.indexOf(name) != -1
                 }
             });
@@ -389,12 +395,16 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
                 // Apply columns
                 var userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
-                this.displayedColumns = fixedColumns.concat(userColumns).concat(['actions']);
+                this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
 
                 // Update user settings
                 this.accountService.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
             });
         return modal.present();
+    }
+
+    protected getI18nColumnName(columnName: string) {
+        return this.i18nColumnPrefix + columnName.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase()
     }
 
     public trackByFn(index: number, row: TableElement<T>) {
@@ -420,6 +430,52 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
         if (errorsMessage.length) {
             console.error("[table] Row (id=" + row.id + ") has errors: " + errorsMessage.slice(0, -1));
+        }
+    }
+
+    protected registerColumnValueChanges(columnName: string): Observable<any> {
+        if (this.debug) console.debug("[table] Register column {" + columnName + "} for value changes");
+        this._columnValueChangesConfig[columnName] = this._columnValueChangesConfig[columnName] || {
+            eventEmitter: new EventEmitter<any>(),
+            subscription: null
+        };
+
+        return this._columnValueChangesConfig[columnName].eventEmitter;
+    }
+
+    public subscribeCellValueChanges(columnName: string, row: TableElement<any>) {
+        if (this._columnValueChangesConfig[columnName] && this._columnValueChangesConfig[columnName].subscription) {
+            this._columnValueChangesConfig[columnName].subscription.unsubscribe();
+            this._columnValueChangesConfig[columnName].subscription = null;
+        }
+
+        const columnConfig = this._columnValueChangesConfig[columnName];
+        if (!columnConfig) {
+            console.warn("[table] Column {" + columnName + "} not resgistered for value changes. Please call registerColumnValueChanges() first;");
+            return;
+        }
+
+        if (this.debug) console.debug("[table] Subscribe to cell changes, on column {" + columnName + "}");
+
+        // Listen value changes, and redirect to event emitter
+        this._columnValueChangesConfig[columnName].subscription = row.validator.controls[columnName].valueChanges
+
+            //TODO check if working 
+            //.debounceTime(250)
+
+            .subscribe((value) => {
+                this._columnValueChangesConfig[columnName].eventEmitter.emit(value);
+            });
+
+        // Emit actual value
+        this._columnValueChangesConfig[columnName].eventEmitter.emit(row.validator.controls[columnName].value);
+    }
+
+    public unsubscribeCellValueChanges(columnName: string) {
+        if (this._columnValueChangesConfig[columnName] && this._columnValueChangesConfig[columnName].subscription) {
+            if (this.debug) console.debug("[table] Unsubcribe cell changes, on column {" + columnName + "}");
+            this._columnValueChangesConfig[columnName].subscription.unsubscribe();
+            this._columnValueChangesConfig[columnName].subscription = null;
         }
     }
 }

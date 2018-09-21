@@ -1,5 +1,5 @@
 import {
-  Referential, Department, Person,
+  Referential, EntityUtils, Department, Person,
   toDateISOString, fromDateISOString,
   vesselFeaturesToString, entityToString, referentialToString,
   StatusIds, Cloneable, Entity, LocationLevelIds, VesselFeatures, GearLevelIds, TaxonGroupIds,
@@ -8,7 +8,7 @@ import {
 import { Moment } from "moment/moment";
 
 export {
-  Referential, Person, Department,
+  Referential, EntityUtils, Person, Department,
   toDateISOString, fromDateISOString,
   vesselFeaturesToString, entityToString, referentialToString,
   StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds,
@@ -275,6 +275,7 @@ export class Measurement extends DataEntity<Measurement> {
     this.alphanumericalValue = source.alphanumericalValue;
     this.numericalValue = source.numericalValue;
     this.digitCount = source.digitCount;
+    this.rankOrder = source.rankOrder;
     this.qualitativeValue = source.qualitativeValue && Referential.fromObject(source.qualitativeValue);
 
     return this;
@@ -318,7 +319,7 @@ export class MeasurementUtils {
   }
 
   // Update measurement values
-  static updateMeasurementValues(valuesMap: any[], measurements: Measurement[], pmfms: PmfmStrategy[]) {
+  static updateMeasurementValues(valuesMap: { [key: number]: any }, measurements: Measurement[], pmfms: PmfmStrategy[]) {
     (measurements || []).forEach(m => {
       let pmfm = (pmfms || []).find(pmfm => pmfm.id === m.pmfmId);
       if (pmfm) {
@@ -436,6 +437,7 @@ export class Operation extends DataEntity<Operation> {
 
   measurements: Measurement[];
   samples: Sample[];
+  //catchBatch: Batch;
 
   constructor() {
     super();
@@ -444,6 +446,8 @@ export class Operation extends DataEntity<Operation> {
     this.endPosition = new VesselPosition();
     this.physicalGear = new PhysicalGear();
     this.measurements = [];
+    this.samples = [];
+    //this.catchBatch = null;
   }
 
   clone(): Operation {
@@ -475,6 +479,9 @@ export class Operation extends DataEntity<Operation> {
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject()) || undefined;
 
+    // Batch
+    //target.catchBatch  = this.catchBatch && this.catchBatch.asObject() || undefined;
+
     return target;
   }
 
@@ -499,6 +506,7 @@ export class Operation extends DataEntity<Operation> {
     delete this.positions;
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || undefined;
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
+    // TODO: batch
     return this;
   }
 
@@ -556,7 +564,7 @@ export class VesselPosition extends DataEntity<Operation> {
   }
 }
 
-export class Sample extends DataEntity<Sample> {
+export class Sample extends DataRootEntity<Sample> {
 
   static fromObject(source: any): Sample {
     const res = new Sample();
@@ -569,8 +577,8 @@ export class Sample extends DataEntity<Sample> {
   sampleDate: Moment;
   individualCount: number;
   taxonGroup: Referential;
-  comments: string;
-  measurements: Measurement[];
+  //measurements: Measurement[];
+  measurementsMap: { [key: string]: any };
   matrixId: number;
   batchId: number;
   operationId: number;
@@ -578,7 +586,8 @@ export class Sample extends DataEntity<Sample> {
   constructor() {
     super();
     this.taxonGroup = new Referential();
-    this.measurements = [];
+    //this.measurements = [];
+    this.measurementsMap = {};
   }
 
   clone(): Sample {
@@ -590,7 +599,18 @@ export class Sample extends DataEntity<Sample> {
   asObject(): any {
     const target = super.asObject();
     target.sampleDate = toDateISOString(this.sampleDate);
-    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject() || undefined;
+
+    // Measurement: keep only the map
+    delete target.measurements;
+    target.measurementsMap = this.measurementsMap && Object.getOwnPropertyNames(this.measurementsMap)
+      .reduce((map, pmfmId) => {
+        const value = this.measurementsMap[pmfmId] && this.measurementsMap[pmfmId].id || this.measurementsMap[pmfmId];
+        if (value || value === 0) {
+          map[pmfmId] = value;
+        }
+        return map;
+      }, {}) || undefined;
     return target;
   }
 
@@ -602,7 +622,18 @@ export class Sample extends DataEntity<Sample> {
     this.individualCount = source.individualCount;
     this.comments = source.comments;
     this.taxonGroup = source.taxonGroup && Referential.fromObject(source.taxonGroup) || undefined;
-    this.measurements = source.measurements && source.measurements.filter(m => !!m).map(Measurement.fromObject) || undefined;
+
+    // Convert measurement to map
+    if (source.measurements) {
+      this.measurementsMap = source.measurements && source.measurements.reduce((map, m) => {
+        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
+        if (value) map[m.pmfmId.toString()] = value;
+        return map;
+      }, {}) || undefined;
+    }
+    else {
+      this.measurementsMap = source.measurementsMap;
+    }
     this.matrixId = source.matrixId;
     this.batchId = source.batchId;
     this.operationId = source.operationId;
@@ -630,6 +661,7 @@ export class Batch extends DataEntity<Batch> {
   samplingRatio: number;
   samplingRatioText: string;
   individualCount: number;
+  taxonGroup: Referential;
   comments: string;
   parentBatch: Batch;
   children: Batch[];
@@ -639,6 +671,7 @@ export class Batch extends DataEntity<Batch> {
   constructor() {
     super();
     this.parentBatch = null;
+    this.taxonGroup = new Referential();
     this.measurements = [];
     this.children = [];
   }
@@ -655,6 +688,8 @@ export class Batch extends DataEntity<Batch> {
     const target = super.asObject();
     this.parentBatch = parent;
 
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject() || undefined;
+
     target.children = this.children && this.children.map(c => c.asObject()) || undefined;
     target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
     return target;
@@ -667,6 +702,7 @@ export class Batch extends DataEntity<Batch> {
     this.samplingRatio = source.samplingRatio;
     this.samplingRatioText = source.samplingRatioText;
     this.individualCount = source.individualCount;
+    this.taxonGroup = source.taxonGroup && Referential.fromObject(source.taxonGroup) || undefined;
     this.comments = source.comments;
     this.operationId = source.operationId;
     this.children = source.children && source.children.filter(c => !!c).map(Batch.fromObject) || undefined;

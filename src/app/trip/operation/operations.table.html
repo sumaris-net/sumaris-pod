@@ -49,6 +49,17 @@
     </mat-cell>
   </ng-container>
 
+  <!-- id -->
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef>
+      <ion-label *ngIf="!loading">#</ion-label>
+      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      {{row.id}}
+    </mat-cell>
+  </ng-container>
+
   <!-- metier -->
   <ng-container matColumnDef="metier">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -66,7 +77,7 @@
 
       <mat-autocomplete #autoMetier="matAutocomplete" [displayWith]="referentialToString">
         <ion-row class="mat-autocomplete-header">
-          <ion-col col-2>
+          <ion-col size="2">
             <ion-text translate>REFERENTIAL.LABEL</ion-text>
           </ion-col>
           <ion-col>
@@ -75,7 +86,7 @@
         </ion-row>
         <mat-option *ngFor="let item of metiers | async" [value]="item">
           <ion-row>
-            <ion-col col-2 [innerHTML]="item.label | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
+            <ion-col size="2" [innerHTML]="item.label | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
             <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
           </ion-row>
         </mat-option>

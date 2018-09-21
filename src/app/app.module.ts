@@ -16,7 +16,7 @@ import { CoreModule } from "./core/core.module";
 import { AdminModule } from "./admin/admin.module";
 import { ReferentialModule } from "./referential/referential.module";
 import { TripModule } from "./trip/trip.module";
-import { environment } from "../environments/environment.prod";
+import { environment } from "../environments/environment";
 
 
 @NgModule({

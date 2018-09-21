@@ -14,6 +14,7 @@ export declare class ReferentialFilter {
   name?: string;
   levelId?: number;
   searchText?: string;
+  searchAttribute?: string;
 }
 const LoadAllLightQuery: any = gql`
   query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -23,6 +24,7 @@ const LoadAllLightQuery: any = gql`
       name
       statusId
       levelId
+      entityName
     }
   }
 `;
@@ -118,6 +120,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
     protected accountService: AccountService
   ) {
     super(apollo);
+    //this._debug = true;
   }
 
   loadAll(offset: number,
@@ -142,16 +145,26 @@ export class ReferentialService extends BaseDataService implements DataService<R
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
-    this._lastVariables.loadAll = variables;
 
-    //console.debug("[referential-service] Getting data from options:", variables);
+    const now = new Date();
+    if (this._debug) console.debug("[referential-service] Loading " + options.entityName + " (" + (options && options.full && 'full' || 'light') + ")...", variables);
+
+    if (options.full) {
+      this._lastVariables.loadAll = variables;
+    }
+
     return this.watchQuery<{ referentials: any[] }>({
       query: query,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" }
+      error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" },
+      fetchPolicy: options.full ? 'network-only' : undefined
     })
       .pipe(
-        map((data) => (data && data.referentials || []).map(Referential.fromObject))
+        map((data) => {
+          const res = (data && data.referentials || []).map(Referential.fromObject);
+          if (this._debug) console.debug("[referential-service] " + options.entityName + " loaded in " + (new Date().getTime() - now.getTime()) + "ms", res);
+          return res;
+        })
       );
   }
 
@@ -163,9 +176,11 @@ export class ReferentialService extends BaseDataService implements DataService<R
       throw { code: ErrorCodes.SAVE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIALS_ERROR" };
     }
 
+    entities.forEach(t => t.entityName = options.entityName);
     const json = entities.map(t => t.asObject());
 
-    console.debug("[referential-service] Saving referentials: ", json);
+    const now = new Date();
+    if (this._debug) console.debug("[referential-service] Saving all " + options.entityName + "...", json);
 
     const res = await this.mutate<{ saveReferentials: Referential[] }>({
       mutation: SaveReferentials,
@@ -175,20 +190,26 @@ export class ReferentialService extends BaseDataService implements DataService<R
       },
       error: { code: ErrorCodes.SAVE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIALS_ERROR" }
     });
-    return (res && res.saveReferentials && entities || [])
-      .map(t => {
-        const data = res.saveReferentials.find(res => (res.id == t.id || res.label == t.label));
-        t.id = data && data.id || t.id;
-        t.updateDate = data && data.updateDate || t.updateDate;
-        return t;
+
+    // Update entites
+    (res && res.saveReferentials && entities || [])
+      .forEach(entity => {
+        const data = res.saveReferentials.find(res => (res.id == entity.id || res.label == entity.label));
+        entity.id = data && data.id || entity.id;
+        entity.updateDate = data && data.updateDate || entity.updateDate;
+        entity.dirty = false;
       });
+
+    if (this._debug) console.debug("[referential-service] " + options.entityName + " saved in " + (new Date().getTime() - now.getTime()) + "ms", entities);
+
+    return entities;
   }
 
   /**
    * Save a referential entity
    * @param entity 
    */
-  save(entity: Referential, options?: any): Promise<Referential> {
+  async save(entity: Referential, options?: any): Promise<Referential> {
 
     if (!options || !options.entityName) {
       console.error("[referential-service] Missing options.entityName");
@@ -199,37 +220,42 @@ export class ReferentialService extends BaseDataService implements DataService<R
     const json = entity.asObject();
     const isNew = !json.id;
 
-    console.debug("[referential-service] Saving referential: ", json);
+    const now = new Date();
+    if (this._debug) console.debug("[referential-service] Saving " + options.entityName + "...", json);
 
-    return this.mutate<{ saveReferentials: any }>({
+    const data = await this.mutate<{ saveReferentials: any }>({
       mutation: SaveReferentials,
       variables: {
         entityName: options.entityName,
         referentials: [json]
       },
       error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" }
-    })
-      .then(data => {
-        var res = data && data.saveReferentials && data.saveReferentials[0];
-        entity.id = res && res.id || entity.id;
-        entity.updateDate = res && res.updateDate || entity.updateDate;
+    });
 
-        // Update the cache
-        if (isNew && this._lastVariables.loadAll) {
-          const list = this.addToQueryCache({
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'trips', res);
-        }
+    // Update entity
+    var res = data && data.saveReferentials && data.saveReferentials[0];
+    entity.id = res && res.id || entity.id;
+    entity.updateDate = res && res.updateDate || entity.updateDate;
+    entity.dirty = false;
 
-        return entity;
-      });
+    // Update the cache
+    if (isNew && this._lastVariables.loadAll) {
+      if (this._debug) console.debug("[referential-service] Updating cache with saved entities...");
+      const list = this.addToQueryCache({
+        query: LoadAllQuery,
+        variables: this._lastVariables.loadAll
+      }, 'referentials', res);
+    }
+
+    if (this._debug) console.debug("[referential-service] " + options.entityName + " saved in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+
+    return entity;
   }
 
   /**
    * Delete referential entities
    */
-  deleteAll(entities: Referential[], options?: any): Promise<any> {
+  async deleteAll(entities: Referential[], options?: any): Promise<any> {
 
     if (!options || !options.entityName) {
       console.error("[referential-service] Missing options.entityName");
@@ -240,9 +266,13 @@ export class ReferentialService extends BaseDataService implements DataService<R
       .map(t => t.id)
       .filter(id => (id > 0));
 
-    console.debug("[referential-service] Deleting trips... ids:", ids);
+    // Nothing to save: skip
+    if (!ids.length) return Promise.resolve();
 
-    return this.mutate<any>({
+    const now = new Date();
+    if (this._debug) console.debug("[referential-service] Deleting " + options.entityName + "... ids:", ids);
+
+    const res = await this.mutate<any>({
       mutation: DeleteReferentials,
       variables: {
         entityName: options.entityName,
@@ -250,6 +280,18 @@ export class ReferentialService extends BaseDataService implements DataService<R
       },
       error: { code: ErrorCodes.DELETE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIALS_ERROR" }
     });
+
+    // Remove from cache
+    if (this._lastVariables.loadAll) {
+      this.removeToQueryCacheByIds({
+        query: LoadAllQuery,
+        variables: this._lastVariables.loadAll
+      }, 'referentials', ids);
+    }
+
+    if (this._debug) console.debug("[referential-service] " + options.entityName + " deleted in " + (new Date().getTime() - now.getTime()) + "ms");
+
+    return res;
   }
 
   /**

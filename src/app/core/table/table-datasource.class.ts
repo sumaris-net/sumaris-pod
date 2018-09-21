@@ -1,13 +1,15 @@
 import { TableDataSource, ValidatorService } from "angular4-material-table";
-import { Observable, Subject } from "rxjs-compat";
+import { Observable } from "rxjs-compat";
 import { DataService } from "../services/data-service.class";
 import { EventEmitter } from "@angular/core";
 import { Entity } from "../services/model";
-import { FormGroup, AbstractControl } from "@angular/forms";
 import { TableElement } from "angular4-material-table";
 import { ErrorCodes } from "../services/errors";
+import { AppFormUtils } from "../form/form.utils";
 
 export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
+
+  protected _debug = false;
 
   public serviceOptions: any;
   public onLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
@@ -24,10 +26,13 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     validatorService?: ValidatorService,
     config?: {
       prependNewElements: boolean;
-      serviceOptions?: any
+      serviceOptions?: {
+        saveOnlyDirtyRows?: boolean;
+      } | any
     }) {
     super([], dataType, validatorService, config);
     this.serviceOptions = config && config.serviceOptions;
+    this._debug = true;
   };
 
   load(offset: number,
@@ -49,42 +54,65 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   async save(): Promise<boolean> {
 
-    console.debug("[material.table] Saving rows...");
+    if (this._debug) console.debug("[table-datasource] Saving rows...");
     this.onLoading.emit(true);
 
-    // Get row's currentData
-    const rows = await this.getRows();
-    const data: T[] = rows
-      .map(r => {
-        if (r.editing && !r.confirmEditCreate()) {
-          this.logRowErrors(r);
-          this.onLoading.emit(false);
-          throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
-        }
-        return r.currentData as T;
-      });
-    // Keep new or dirty rows
-    const dataToSave = data.filter(t => (t && (t.id === undefined || t.dirty)));
-
-    // Nothing to save
-    if (!dataToSave.length) {
-      console.debug("[material.table] No row to save");
-      this.onLoading.emit(false);
-      return false;
-    }
-
     try {
+      // Get all rows
+      const rows = await this.getRows();
+
+      // Finish editing all rows, and log row in error
+      const invalidRows = rows.filter(row => row.editing && !row.confirmEditCreate());
+      if (invalidRows.length) {
+        // log errors
+        if (this._debug) invalidRows.forEach(this.logRowErrors);
+        // Stop with an error
+        throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
+      }
+
+      let data: T[] = rows.map(row => row.currentData);
+      if (this._debug) console.log("[table-datasource] Data to save:", data);
+
+      // Filter to keep only dirty row
+      const dataToSave = (this.serviceOptions && this.serviceOptions.saveOnlyDirtyRows) ?
+        data.filter(t => (t && (t.id === undefined || t.dirty))) : data;
+
+      // If no data to save: exit
+      if (!data.length) {
+        if (this._debug) console.debug("[table-datasource] No row to save");
+        return false;
+      }
+
+
       var savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
-      this.onLoading.emit(false);
-      console.debug("[material.table] Saved data received after data service:", savedData);
+      if (this._debug) console.debug("[table-datasource] Data saved. Updated data received by service:", savedData);
+      if (this._debug) console.debug("[table-datasource] Updating datasource...", data);
       this.updateDatasource(data, { emitEvent: false });
       return true;
     }
     catch (error) {
-      this.onLoading.emit(false);
+      if (this._debug) console.error("[table-datasource] Error while saving: " + error);
       throw error;
     }
+    finally {
+      // Always update the loading indicator
+      this.onLoading.emit(false);
+    }
   }
+
+  confirmCreate(row) {
+    if (row.validator.valid && row.validator.dirty) {
+      AppFormUtils.copyForm2Entity(row.validator, row.currentData);
+    }
+    return super.confirmCreate(row);
+  };
+
+  confirmEdit(row) {
+    if (row.validator.valid && row.validator.dirty) {
+      AppFormUtils.copyForm2Entity(row.validator, row.currentData);
+    }
+    return super.confirmEdit(row);
+  };
 
   public handleError(error: any, message: string): Observable<T[]> {
     console.error(error && error.message || error);
@@ -115,8 +143,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   /* -- private method -- */
 
-  protected getRows(): Promise<TableElement<T>[]> {
-    return new Promise<TableElement<T>[]>((resolve, reject) => {
+  public getRows(): Promise<TableElement<T>[]> {
+    return new Promise((resolve) => {
       this.connect().first().subscribe(rows => {
         resolve(rows);
       });
@@ -137,7 +165,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       });
 
     if (errorsMessage.length) {
-      console.error("[material.table] Row (id=" + row.id + ") has errors: " + errorsMessage.slice(0, -1));
+      console.error("[table-datasource] Row (id=" + row.id + ") has errors: " + errorsMessage.slice(0, -1));
     }
   }
 }

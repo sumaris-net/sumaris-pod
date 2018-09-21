@@ -1,27 +1,29 @@
 import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
 import { Observable } from 'rxjs';
 import { zip } from "rxjs/observable/zip";
-import { map } from "rxjs/operators";
-import { ValidatorService } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { Referential, Operation, Trip, referentialToString, PmfmStrategy, Sample } from "../services/trip.model";
+import { mergeMap, debounceTime } from "rxjs/operators";
+import { ValidatorService, TableElement } from "angular4-material-table";
+import { AppTableDataSource, AppTable, AccountService, AppFormUtils } from "../../core/core.module";
+import { referentialToString, PmfmStrategy, Sample, MeasurementUtils, TaxonGroupIds } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { ReferentialService } from "../../referential/referential.module";
-import { OperationService, OperationFilter } from "../services/operation.service";
 import { SurvivalTestValidatorService } from "../services/survivaltest.validator";
-
+import { FormBuilder } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
-import { AcquisitionLevelCodes } from "../../core/services/model";
+import { AcquisitionLevelCodes, Referential, EntityUtils } from "../../core/services/model";
 
 const PMFM_NAME_REGEXP = new RegExp(/^(([A-Z]+)([0-9]+))\s*[/]\s*(.*)$/);
-import { ValidatorService as ValidatorService2 } from "angular4-material-table";
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { MeasurementsValidatorService } from "../services/trip.validators";
 
-const SAMPLE_PROTECTED_COLUMNS: string[] = ['rankOrder', 'taxonGroup', 'sampleDate'];
+const PMFM_ID_REGEXP = new RegExp(/\d+/);
+
+import { FormGroup } from "@angular/forms";
+import { MeasurementsValidatorService } from "../services/trip.validators";
+import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
+
+const RESERVED_SAMPLE_COLUMNS: string[] = ['taxonGroup', 'sampleDate'];
 
 @Component({
     selector: 'table-survival-tests',
@@ -31,28 +33,20 @@ const SAMPLE_PROTECTED_COLUMNS: string[] = ['rankOrder', 'taxonGroup', 'sampleDa
         { provide: ValidatorService, useClass: SurvivalTestValidatorService }
     ]
 })
-export class SurvivalTestsTable extends AppTable<any, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
+export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
 
-    private _onGearChange: EventEmitter<any> = new EventEmitter<any>();
-    private _onDataChange: EventEmitter<any> = new EventEmitter<any>();
-    private _gear: string;
+    private _onDataChange = new EventEmitter<any>();
     private _acquisitionLevel: string = AcquisitionLevelCodes.SURVIVAL_TEST;
+    private _implicitTaxonGroup: Referential;
 
     started: boolean = false;
-    displayedHeaderColumns: string[];
-    cachedPmfms: PmfmStrategy[];
     pmfms: Observable<PmfmStrategy[]>;
-    pmfmHeaders: Observable<{ id: number, count: number, name: string }[]>;
+    cachedPmfms: PmfmStrategy[];
     data: Sample[];
+    taxonGroups: Observable<Referential[]>;
 
     @Input() program: string = environment.defaultProgram;
 
-    @Input()
-    set gear(value: string) {
-        if (this._gear === value) return; // Skip if same
-        this._gear = value;
-        if (!this.loading) this._onGearChange.emit();
-    }
 
     set value(data: Sample[]) {
         if (this.data !== data) {
@@ -75,67 +69,38 @@ export class SurvivalTestsTable extends AppTable<any, { operationId?: number }> 
         protected validatorService: SurvivalTestValidatorService,
         protected measurementsValidatorService: MeasurementsValidatorService,
         protected referentialService: ReferentialService,
-        protected translate: TranslateService
+        protected translate: TranslateService,
+        protected formBuilder: FormBuilder
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            ['select'].concat(SAMPLE_PROTECTED_COLUMNS).concat('actions')
+            RESERVED_START_COLUMNS.concat(RESERVED_SAMPLE_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
         this.i18nColumnPrefix = 'TRIP.SURVIVAL_TEST.TABLE.';
         this.autoLoad = false;
         this.inlineEdition = true;
-        this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(Operation, this, this))
-        this.debug = true;
+        this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(Sample, this, this))
+        //this.debug = true;
     };
-
 
     ngOnInit() {
         super.ngOnInit();
 
-        this.pmfms = this.referentialService.loadProgramPmfms(this.program,
+        this.pmfms = this.referentialService.loadProgramPmfms(
+            this.program,
             {
                 acquisitionLevel: this._acquisitionLevel
-            });
+            }).first();
 
-        this.pmfmHeaders = this.pmfms
-            .pipe(
-                map(pmfms => {
-
-                    let mapByLetter = {};
-                    let id = 0;
-                    return pmfms.reduce((res, pmfm) => {
-                        var matches = PMFM_NAME_REGEXP.exec(pmfm.name);
-                        if (matches) {
-                            var labelLetter = matches[2];
-                            if (!mapByLetter[labelLetter]) {
-                                mapByLetter[labelLetter] = {
-                                    id: id++,
-                                    count: 1,
-                                    name: "TRIP.SURVIVAL_TEST.TABLE.HEADER_GROUP." + labelLetter
-                                };
-                                return res.concat(mapByLetter[labelLetter]);
-                            }
-                            mapByLetter[labelLetter].count++;
-                            return res;
-                        }
-                        return res.concat({
-                            id: id++,
-                            count: 1,
-                            name: undefined
-                        });
-                    }, []);
-                })
-            );
         this.pmfms.subscribe(pmfms => {
             this.cachedPmfms = pmfms;
             let displayedColumns = pmfms.reduce((res, pmfm) => {
                 return res.concat('' + pmfm.id);
             }, []);
 
-            displayedColumns = ['select']
-                .concat(SAMPLE_PROTECTED_COLUMNS)
+            this.displayedColumns = RESERVED_START_COLUMNS
+                .concat(RESERVED_SAMPLE_COLUMNS)
                 .concat(displayedColumns)
-                .concat('actions');
-            this.displayedColumns = displayedColumns;
+                .concat(RESERVED_END_COLUMNS);
             this.started = true;
         });
 
@@ -144,6 +109,35 @@ export class SurvivalTestsTable extends AppTable<any, { operationId?: number }> 
             this._onDataChange
         )
             .subscribe(() => this.onRefresh.emit());
+
+        // Taxon group combo
+        this.taxonGroups = this.registerColumnValueChanges('taxonGroup')
+            .pipe(
+                debounceTime(250),
+                mergeMap((value) => {
+                    if (EntityUtils.isNotEmpty(value)) {
+                        return Observable.of([value]);
+                    }
+                    value = (typeof value === "string") && value || undefined;
+                    if (this.debug) console.debug("[survivaltests-table] Searching taxon group on {" + (value || '*') + "}...");
+                    return this.referentialService.loadAll(0, 10, undefined, undefined,
+                        {
+                            levelId: TaxonGroupIds.FAO,
+                            searchText: value as string,
+                            searchAttribute: 'label'
+                        },
+                        { entityName: 'TaxonGroup' });
+                })
+            );
+
+        this.taxonGroups.subscribe(items => {
+            this._implicitTaxonGroup = (items.length === 1) && items[0];
+        });
+
+        // Copy data to validator
+        this.dataSource.connect().subscribe(rows => {
+            rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
+        });
     }
 
     getRowValidator(): FormGroup {
@@ -153,7 +147,12 @@ export class SurvivalTestsTable extends AppTable<any, { operationId?: number }> 
     getFormGroup(data?: any): FormGroup {
         let formGroup = this.validatorService.getFormGroup(data);
         if (this.cachedPmfms) {
-            this.measurementsValidatorService.updateFormGroup(formGroup, this.cachedPmfms, { protectedColumns: SAMPLE_PROTECTED_COLUMNS });
+            let measForm = formGroup.get('measurementsMap') as FormGroup;
+            if (!measForm) {
+                measForm = this.formBuilder.group({});
+                formGroup.addControl('measurementsMap', measForm);
+            }
+            this.measurementsValidatorService.updateFormGroup(measForm, this.cachedPmfms);
         }
         return formGroup;
     }
@@ -166,51 +165,28 @@ export class SurvivalTestsTable extends AppTable<any, { operationId?: number }> 
         filter?: any,
         options?: any
     ): Observable<any[]> {
-        if (!this.data) return Observable.empty(); // Not initialized
-        sortBy = sortBy || 'rankOrder';
+        if (!this.data || !this.started) {
+            if (this.debug) console.debug("[survivaltests-table] Unable to extracting rows from samples (no data)");
+            return Observable.empty(); // Not initialized
+        }
+        sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
-        // Copy samples into json
-        const res = this.data.map(sample => {
-            let s: any = sample.asObject();
-            console.log(s);
+        const now = new Date();
+        if (this.debug) console.debug("[survivaltests-table] Extracting rows from samples:", this.data);
 
-            // Transform measurements array to a map (by pmfm id)
-            s.measurements = {};
+        // Fill samples measurement map
+        const res = this.data.slice(0); // copy
+        res.forEach(sample => {
+
+            const res = {};
             this.cachedPmfms.forEach(pmfm => {
-                const mIndex = (sample.measurements || []).findIndex(m => m.pmfmId === pmfm.id);
-                let m = mIndex != -1 ? sample.measurements.splice(mIndex, 1)[0] : undefined;
-
-                // Read value from measurement
-                let value = null;
-                if (m) {
-                    switch (pmfm.type) {
-                        case "qualitative_value":
-                            if (m.qualitativeValue && m.qualitativeValue.id) {
-                                value = pmfm.qualitativeValues.find(qv => qv.id == m.qualitativeValue.id);
-                            }
-                            break;
-                        case "integer":
-                        case "double":
-                            value = m.numericalValue;
-                            break;
-                        case "string":
-                            value = m.alphanumericalValue;
-                            break;
-                        case "boolean":
-                            value = m.numericalValue === 1 ? true : (m.numericalValue === 0 ? false : null);
-                            break;
-                        case "date":
-                            value = m.alphanumericalValue;
-                            break;
-                        default:
-                            console.error("[survivaltests-table-" + this._acquisitionLevel + "] Unknown Pmfm type for conversion into form value: " + pmfm.type);
-                            value = null;
-                    }
+                let value = sample.measurementsMap[pmfm.id.toString()];
+                if (value && pmfm.type === "qualitative_value") {
+                    value = pmfm.qualitativeValues.find(qv => qv.id === value);
                 }
-                // Set the value (convert undefined into null)
-                s.measurements[pmfm.id.toString()] = (value !== undefined ? value : null);
-            });
-            return s;
+                res[pmfm.id.toString()] = value || (value === 0 ? 0 : null);
+            })
+            sample.measurementsMap = res;
         });
 
         // Sort by column
@@ -221,21 +197,67 @@ export class SurvivalTestsTable extends AppTable<any, { operationId?: number }> 
                     after : (-1 * after)
                 )
         );
-        console.debug("[survivaltest-table] Getting data", res);
+        if (this.debug) console.debug("[survivaltests-table] Rows extracted in " + (new Date().getTime() - now.getTime()) + "ms", res);
+
         return Observable.of(res);
     }
 
-    saveAll(data: any[], options?: any): Promise<any[]> {
-        if (!this.data) throw new Error("[table-physical-gears] Could not save table: value not set yet");
+    async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
+        if (!this.data) throw new Error("[survivaltests-table] Could not save table: value not set yet");
 
-        this.data = data;
+        const rows = await this.dataSource.getRows();
+        if (this.debug) console.debug("[survivaltests-table] Saving data...");
+
+        this.data = rows.map(row => row.currentData);
+
         return Promise.resolve(this.data);
     }
 
-    deleteAll(dataToRemove: any[], options?: any): Promise<any> {
+    deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
         console.debug("[table-survival-tests] Remove data", dataToRemove);
         this.data = this.data.filter(item => !dataToRemove.find(g => g === item || g.id === item.id))
         return Promise.resolve();
+    }
+
+    addRow(): boolean {
+        if (this.debug) console.debug("[survivaltest-table] Calling addRow()");
+
+        // Create new row
+        const result = super.addRow();
+        if (!result) return result;
+
+        const row = this.dataSource.getRow(-1);
+        this.data.push(row.currentData);
+        this.selectedRow = row;
+        row.validator.controls['rankOrder'].setValue(this.resultsLength);
+        row.validator.controls['label'].setValue(this._acquisitionLevel + "#" + this.resultsLength);
+        return true;
+    }
+
+    referentialToString = referentialToString;
+
+    onTaxonGroupCellFocus(event: any, row: TableElement<any>) {
+        this.subscribeCellValueChanges('taxonGroup', row);
+    }
+
+    onTaxonGroupCellBlur(event: FocusEvent, row: TableElement<any>) {
+        this.unsubscribeCellValueChanges('taxonGroup');
+        // Apply last implicit value
+        if (row.validator.controls.taxonGroup.hasError('entity') && this._implicitTaxonGroup) {
+            row.validator.controls.taxonGroup.setValue(this._implicitTaxonGroup);
+        }
+    }
+
+    protected getI18nColumnName(columnName: string): string {
+
+        // Try to resolve PMFM column, using the cached pmfm list
+        if (PMFM_ID_REGEXP.test(columnName)) {
+            const pmfmId = parseInt(columnName);
+            const pmfm = this.cachedPmfms.find(p => p.id === pmfmId);
+            if (pmfm) return pmfm.name;
+        }
+
+        return super.getI18nColumnName(columnName);
     }
 
     getPmfmColumnHeader(pmfm: PmfmStrategy): string {
@@ -247,18 +269,8 @@ export class SurvivalTestsTable extends AppTable<any, { operationId?: number }> 
         return pmfm.name;
     }
 
-    addRow() {
-        // Skip if error in previous row
-        if (this.selectedRow && this.selectedRow.validator.invalid) return;
-
-        // Create new row
-        this.createNew();
-        const row = this.dataSource.getRow(-1);
-        this.data.push(row.currentData);
-        this.selectedRow = row;
-        row.currentData.rankOrder = this.resultsLength;
+    public trackByFn(index: number, row: TableElement<Sample>) {
+        return row.currentData.rankOrder;
     }
-
-    referentialToString = referentialToString;
 }
 

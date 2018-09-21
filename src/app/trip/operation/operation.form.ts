@@ -5,11 +5,11 @@ import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
-import { debounceTime, mergeMap, map } from 'rxjs/operators';
+import { debounceTime, mergeMap, map, startWith } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../../core/core.module';
 import { ReferentialService } from "../../referential/referential.module";
-import { referentialToString } from '../../referential/services/model';
+import { referentialToString, EntityUtils } from '../../referential/services/model';
 
 @Component({
     selector: 'form-operation',
@@ -51,7 +51,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                 .pipe(
                     mergeMap(value => {
                         // Display the selected object
-                        if (value && typeof value == "object") {
+                        if (value && typeof value == "object" && value['id']) {
                             this.form.controls["metier"].enable();
                             return Observable.of([value]);
                         }
@@ -61,7 +61,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                             return Observable.empty();
                         }
                         // Display all trip gears
-                        if (!value || typeof value != "string" || value.length < 2) return Observable.of(this.trip.gears || []);
+                        if (!value || typeof value != "string") return Observable.of(this.trip.gears || []);
 
                         const ucValue = value.toUpperCase();
                         return Observable.of((this.trip.gears || [])
@@ -78,14 +78,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         )
             .pipe(
                 mergeMap(value => {
-                    if (typeof value == "object") return Observable.of([value]);
+                    if (EntityUtils.isNotEmpty(value)) {
+                        return Observable.of([value]);
+                    }
+                    value = (typeof value === "string") && value || undefined;
                     const physicalGear = this.form.get('physicalGear').value;
                     return this.referentialService.loadAll(0, 10, undefined, undefined,
                         {
                             levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null,
                             searchText: value as string
                         },
-                        { entityName: 'Metier' });
+                        { entityName: 'Metier' }).first();
                 }));
     }
 

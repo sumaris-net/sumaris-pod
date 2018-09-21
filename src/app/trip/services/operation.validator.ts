@@ -3,6 +3,7 @@ import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { Operation } from "./trip.model";
 import { PositionValidatorService } from "./position.validator";
+import { SharedValidators } from "../../shared/validator/validators";
 
 @Injectable()
 export class OperationValidatorService implements ValidatorService {
@@ -29,8 +30,8 @@ export class OperationValidatorService implements ValidatorService {
       comments: ['', Validators.maxLength(2000)],
       startPosition: this.positionValidator.getFormGroup(),
       endPosition: this.positionValidator.getFormGroup(),
-      metier: ['', Validators.required],
-      physicalGear: ['', Validators.required]
+      metier: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      physicalGear: ['', Validators.compose([Validators.required, SharedValidators.entity])]
     };
   }
 }

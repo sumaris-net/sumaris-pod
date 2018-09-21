@@ -5,7 +5,6 @@ export class Environment {
     defaultLocale: string;
     version: string;
     defaultProgram: string;
-
-    // debugging
+    apolloFetchPolicy?: 'cache-first' | 'cache-and-network' | 'network-only' | 'cache-only' | 'no-cache' | 'standby';
     mock?: boolean;
 };

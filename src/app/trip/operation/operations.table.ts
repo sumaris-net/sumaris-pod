@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnDestroy } from "@angular/core";
+import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
 import { Observable } from 'rxjs';
 import { mergeMap } from "rxjs/operators";
 import { ValidatorService } from "angular4-material-table";
@@ -11,6 +11,7 @@ import { Location } from '@angular/common';
 import { ReferentialService } from "../../referential/referential.module";
 import { OperationService, OperationFilter } from "../services/operation.service";
 import { PositionValidatorService } from "../services/position.validator";
+import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../../core/table/table.class";
 
 
 @Component({
@@ -24,6 +25,7 @@ import { PositionValidatorService } from "../services/position.validator";
 })
 export class OperationTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
+  private _onMetierCellChange = new EventEmitter<any>();
 
   metiers: Observable<Referential[]>;
 
@@ -43,14 +45,15 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected referentialService: ReferentialService
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
-      ['select',
-        'metier',
-        'startDateTime',
-        'startPosition',
-        'endDateTime',
-        'endPosition',
-        'comments',
-        'actions'],
+      RESERVED_START_COLUMNS
+        .concat(
+          ['metier',
+            'startDateTime',
+            'startPosition',
+            'endDateTime',
+            'endPosition',
+            'comments'])
+        .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Operation, OperationFilter>(Operation, dataService, validatorService)
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
@@ -67,7 +70,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.tripId && this.setTripId(this.tripId);
 
     // Combo: métiers
-    this.metiers = Observable.of("") // TODO: change this to get user input
+    this.metiers = this._onMetierCellChange
       .pipe(
         mergeMap(value => {
           if (!value) return Observable.empty();
@@ -96,11 +99,11 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     }
   }
 
-  public onOpenRowDetail(id: number): Promise<boolean> {
+  protected openEditRowDetail(id: number): Promise<boolean> {
     return this.router.navigateByUrl('/operations/' + this.tripId + '/' + id);
   }
 
-  public onAddRowDetail(): Promise<boolean> {
+  protected openNewRowDetail(): Promise<boolean> {
     return this.router.navigateByUrl('/operations/' + this.tripId + '/new');
   }
 

@@ -19,10 +19,10 @@ export class TableSelectColumnsComponent implements OnInit {
         this.columns = this.navParams.data && this.navParams.data.columns || [];
     }
 
-    reorderItems(indexes) {
-        let element = this.columns[indexes.from];
-        this.columns.splice(indexes.from, 1);
-        this.columns.splice(indexes.to, 0, element);
+    reorderItems(event: CustomEvent<{ from: number; to: number; }>) {
+        let element = this.columns[event.detail.from];
+        this.columns.splice(event.detail.from, 1);
+        this.columns.splice(event.detail.to, 0, element);
     }
 
     close() {

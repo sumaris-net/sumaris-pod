@@ -1,6 +1,6 @@
 import { Component, Optional, Input, Output, EventEmitter, OnInit, forwardRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { MatRadioButton, MatRadioChange, MatCheckbox, MatCheckboxChange } from '@angular/material';
+import { MatRadioButton, MatRadioChange, MatCheckbox, MatCheckboxChange, FloatLabelType } from '@angular/material';
 import { FormControl, FormBuilder, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 
@@ -40,7 +40,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
 
     @Input() placeholder: string;
 
-    @Input() floatLabel: string;
+    @Input() floatLabel: FloatLabelType = "auto";
 
     @Input() readonly: boolean = false;
 

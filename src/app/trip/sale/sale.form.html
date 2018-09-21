@@ -15,6 +15,7 @@
           <ion-icon margin-right name="boat" matPrefix></ion-icon>
           <input matInput [placeholder]="'SALE.VESSEL'|translate" [matAutocomplete]="autoVessel" formControlName="vesselFeatures">
           <mat-error *ngIf="form.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['vesselFeatures'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Vessel combo -->
@@ -53,11 +54,15 @@
           <ion-icon margin-right name="card" matPrefix></ion-icon>
           <input matInput [placeholder]="'SALE.SALE_TYPE'|translate" [matAutocomplete]="autoSaleType" formControlName="saleType">
           <mat-error *ngIf="form.controls['saleType'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['saleType'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Sale type combo -->
         <mat-autocomplete autoActiveFirstOption #autoSaleType="matAutocomplete" [displayWith]="entityToString">
-          <mat-option *ngFor="let saleType of saleTypes | async" [value]="saleType" [innerHTML]="saleType.name | highlight: {search: form.controls['saleType'].value }">
+          <mat-option *ngFor="let saleType of saleTypes | async" [value]="saleType">
+            <ion-row>
+              <ion-col [innerHTML]="saleType.name | highlight: {search: form.controls['saleType'].value }"></ion-col>
+            </ion-row>
           </mat-option>
         </mat-autocomplete>
       </ion-col>
@@ -71,6 +76,7 @@
           <input matInput [placeholder]="'SALE.SALE_LOCATION'|translate" [matAutocomplete]="autoSaleLocation"
             formControlName="saleLocation">
           <mat-error *ngIf="form.controls['saleLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['saleLocation'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Location combo -->
@@ -106,6 +112,7 @@
           <input matInput [placeholder]="'SALE.SALE_LOCATION'|translate" [matAutocomplete]="autoSaleLocation"
             formControlName="saleLocation">
           <mat-error *ngIf="form.controls['saleLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['saleLocation'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Location combo -->

@@ -69,13 +69,13 @@
       <!-- Location combo -->
       <mat-autocomplete autoActiveFirstOption #autoFilterLocation="matAutocomplete" [displayWith]="referentialToString">
         <ion-row class="mat-autocomplete-header">
-          <ion-col col-2 translate>REFERENTIAL.LABEL</ion-col>
+          <ion-col size="2" translate>REFERENTIAL.LABEL</ion-col>
           <ion-col translate>REFERENTIAL.NAME</ion-col>
         </ion-row>
 
         <mat-option *ngFor="let location of locations | async" [value]="location">
           <ion-row>
-            <ion-col col-2 [innerHTML]="location.label | highlight: {search: filterForm.controls['location'].value }"></ion-col>
+            <ion-col size="2" [innerHTML]="location.label | highlight: {search: filterForm.controls['location'].value }"></ion-col>
             <ion-col [innerHTML]="location.name | highlight: {search: filterForm.controls['location'].value }"></ion-col>
           </ion-row>
         </mat-option>
@@ -162,7 +162,7 @@
 
         <mat-autocomplete #autoDepartureLocation="matAutocomplete" [displayWith]="referentialToString">
           <ion-row class="mat-autocomplete-header">
-            <ion-col col-2>
+            <ion-col size="2">
               <ion-text translate>REFERENTIAL.LABEL</ion-text>
             </ion-col>
             <ion-col>
@@ -171,7 +171,7 @@
           </ion-row>
           <mat-option *ngFor="let location of locations | async" [value]="location">
             <ion-row>
-              <ion-col col-2 [innerHTML]="location.label | highlight: {search: row.validator.controls['departureLocation'].value }"></ion-col>
+              <ion-col size="2" [innerHTML]="location.label | highlight: {search: row.validator.controls['departureLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: row.validator.controls['departureLocation'].value }"></ion-col>
             </ion-row>
           </mat-option>
@@ -227,8 +227,8 @@
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
     <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="!row.editing ? onRowClick($event, row) : false"
-      (onblur)="row.editing && confirmAndAddRow($event,row)"></mat-row>
+      [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"
+      (onblur)="confirmAndAddRow($event,row)"></mat-row>
   </mat-table>
 
 

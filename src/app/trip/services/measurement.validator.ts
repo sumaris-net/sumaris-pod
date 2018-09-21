@@ -25,9 +25,9 @@ export class MeasurementsValidatorService implements ValidatorService {
   }
 
   public updateFormGroup(form: FormGroup, pmfms: PmfmStrategy[], options?: {
-    protectedColumns?: string[]
+    protectedAttributes?: string[]
   }) {
-    options = options || { protectedColumns: ['id', 'rankOrder', 'comments'] };
+    options = options || { protectedAttributes: ['id', 'rankOrder', 'comments'] };
     let controlNamesToRemove: string[] = [];
     for (let controlName in form.controls) {
       controlNamesToRemove.push(controlName);
@@ -52,7 +52,7 @@ export class MeasurementsValidatorService implements ValidatorService {
 
     // Remove unused controls
     controlNamesToRemove
-      .filter(controlName => !options.protectedColumns || !options.protectedColumns.includes(controlName)) // Keep protected columns
+      .filter(controlName => !options.protectedAttributes || !options.protectedAttributes.includes(controlName)) // Keep protected columns
       .forEach(controlName => form.removeControl(controlName));
   }
 

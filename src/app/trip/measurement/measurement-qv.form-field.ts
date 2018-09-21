@@ -1,10 +1,10 @@
 import { Component, OnInit, Input, EventEmitter, Output, forwardRef, Optional } from '@angular/core';
 import { Referential, PmfmStrategy } from "../services/trip.model";
 import { Observable, Subject } from 'rxjs';
-import { startWith, mergeMap, debounceTime, map, distinctUntilChanged, filter } from 'rxjs/operators';
-import { referentialToString } from '../../referential/services/model';
+import { startWith, debounceTime, map } from 'rxjs/operators';
+import { referentialToString, EntityUtils } from '../../referential/services/model';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, Validators, FormControl, FormGroupDirective } from '@angular/forms';
-import { MatInput } from '@angular/material';
+import { FloatLabelType } from "@angular/material";
 
 
 import { SharedValidators } from '../../shared/validator/validators';
@@ -27,7 +27,7 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
     private _implicitValue: Referential | any;
 
     items: Observable<Referential[]>;
-    onKeyDown = new Subject<any>();
+    onValueChange = new Subject<any>();
 
     displayWithFn: (obj: Referential | any) => string;
 
@@ -41,7 +41,7 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 
     @Input() placeholder: string;
 
-    @Input() floatLabel: string;
+    @Input() floatLabel: FloatLabelType = "auto";
 
     @Input() required: boolean = false;
 
@@ -69,6 +69,7 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
         if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
 
         this.formControl.setValidators(this.required || this.pmfm.isMandatory ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
+        if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement-qv>.");
 
         this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm);
 
@@ -76,23 +77,23 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 
         this.clearable = this.compact ? false : this.clearable;
 
-        this.items = this.onKeyDown
-            .distinctUntilChanged()
-            .debounceTime(250)
-            .startWith('')
-            .map(value => {
-                if (!value) {
+        this.items = this.onValueChange
+            .pipe(
+                startWith(this.formControl.value),
+                debounceTime(this.compact ? 100 : 250), // Not too long on compact mode
+                map(value => {
+                    if (EntityUtils.isNotEmpty(value)) return [value];
                     if (!this.pmfm || !this.pmfm.qualitativeValues) return [];
-                    return this.pmfm.qualitativeValues;
-                }
-                if (typeof value == "object") return [value];
-                const ucValue = (value as string).toUpperCase();
-                const items: Referential[] = (this.pmfm.qualitativeValues)
-                    .filter((qv) => ((this.startsWithUpperCase(qv.label, ucValue)) || (!this.compact && this.startsWithUpperCase(qv.name, ucValue))));
-                // Store implicit value (will use it onBlur if not other value selected)
-                this._implicitValue = (items.length == 1) && items[0] || undefined;
-                return items;
-            });
+                    value = (typeof value == "string") && (value as string).toUpperCase() || undefined;
+                    if (!value) return this.pmfm.qualitativeValues;
+                    console.log("Searching QV field on text {" + value + "}...");
+                    // Filter by label and name
+                    const items: Referential[] = this.pmfm.qualitativeValues.filter((qv) => ((this.startsWithUpperCase(qv.label, value)) || (!this.compact && this.startsWithUpperCase(qv.name, value))));
+                    // Store implicit value (will use it onBlur if not other value selected)
+                    this._implicitValue = (items.length === 1) ? items[0] : undefined;
+                    return items;
+                })
+            );
     }
 
     get value(): any {
@@ -140,7 +141,7 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 
     public _onBlur(event: FocusEvent) {
         // When leave component without object, use implicit value if stored
-        if (typeof this.formControl.value != "object" && this._implicitValue) {
+        if (typeof this.formControl.value !== "object" && this._implicitValue) {
             this.writeValue(this._implicitValue);
         }
         this.markAsTouched();

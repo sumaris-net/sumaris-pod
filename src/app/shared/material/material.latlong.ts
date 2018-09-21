@@ -1,23 +1,22 @@
-import { Component, Optional, Input, Output, EventEmitter, OnInit, forwardRef, ContentChild, ElementRef, AfterContentInit } from '@angular/core';
+import { Component, Optional, Input, Output, EventEmitter, OnInit, forwardRef } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { MatFormFieldControl, MatFormField } from '@angular/material';
-import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor, ValidationErrors } from "@angular/forms";
+import { FloatLabelType } from '@angular/material';
+import { FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
-import { merge } from "rxjs/observable/merge";
 import { SharedValidators } from '../validator/validators';
-import { formatLatitude, formatLongitude, parseLatitudeOrLongitude } from '../pipes/latlong-format.pipe';
+import { formatLatitude, formatLongitude, parseLatitudeOrLongitude, DEFAULT_MAX_DECIMALS } from '../pipes/latlong-format.pipe';
 import { DEFAULT_PLACEHOLDER_CHAR } from '../constants';
 
 const MASKS = {
     'latitude': {
-        'DDMMSS': [' ', /\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '"', ' ', /N|S/],
-        'DDMM': [' ', /\d/, /\d/, '°', ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '\'', ' ', /N|S/],
-        'DD': [' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '°']
+        'DDMMSS': [' ', /\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '"', ' ', /N|S|n|s/],
+        'DDMM': [' ', /\d/, /\d/, '°', ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '\'', ' ', /N|S|n|s/],
+        'DD': [' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '°']
     },
     'longitude': {
-        'DDMMSS': [/\d/, /\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '"', ' ', /E|W/],
-        'DDMM': [/\d/, /\d/, /\d/, '°', ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '\'', ' ', /E|W/],
-        'DD': [/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '°']
+        'DDMMSS': [/\d/, /\d/, /\d/, '°', ' ', /\d/, /\d/, '\'', ' ', /\d/, /\d/, '"', ' ', /E|W|e|w/],
+        'DDMM': [/\d/, /\d/, /\d/, '°', ' ', /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '\'', ' ', /E|W|e|w/],
+        'DD': [/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, /\d/, '°']
     }
 };
 
@@ -44,6 +43,7 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     textFormControl: FormControl;
     mask: (string | RegExp)[];
     value: number;
+    inputPlaceholder: string;
 
     @Input() disabled: boolean = false
 
@@ -51,17 +51,17 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
 
     @Input() formControlName: string;
 
-    @Input() placeholder: string;
+    @Input("placeholder") labelPlaceholder: string;
 
-    @Input() type: string;
+    @Input() type: 'latitude' | 'longitude';
 
     @Input() latLongPattern: 'DDMMSS' | 'DDMM' | 'DD';
 
-    @Input() maxDecimals: number;
+    @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;
 
     @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
-    @Input() floatLabel: string;
+    @Input() floatLabel: FloatLabelType = "auto";
 
     @Input() readonly: boolean = false;
 
@@ -86,15 +86,23 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
         this.latLongPattern = this.latLongPattern || 'DDMM';
         this.mask = MASKS[this.type] && MASKS[this.type][this.latLongPattern];
         if (!this.mask) {
-            console.error("Invalid attribute value. Expected: type='latitude|longitude' latlongPattern='DD|DDMM|DDMMSS'");
+            console.error("Invalid attribute value. Expected: type: 'latitude|longitude' and latlongPattern: 'DD|DDMM|DDMMSS'");
             this.type = 'latitude';
             this.latLongPattern = 'DDMM';
             this.mask = MASKS[this.type][this.latLongPattern];
         }
-        if (this.maxDecimals && this.maxDecimals < 0) {
-            console.error("Invalid attribute 'maxDecimals'. Must a positive value.");
-            this.maxDecimals = undefined;
+        if (this.maxDecimals) {
+            if (this.maxDecimals < 0) {
+                console.error("Invalid attribute 'maxDecimals'. Must a positive value.");
+                this.maxDecimals = DEFAULT_MAX_DECIMALS;
+            }
+            else if (this.maxDecimals !== DEFAULT_MAX_DECIMALS) {
+                console.warn("Invalid attribute 'maxDecimals'. Must be equals to " + DEFAULT_MAX_DECIMALS + " ! TODO: manage other value in pattern.");
+                this.maxDecimals = DEFAULT_MAX_DECIMALS;
+            }
         }
+
+        this.inputPlaceholder = 'COMMON.' + (this.type === 'longitude' && 'D' || '') + this.latLongPattern + '_PLACEHOLDER';
 
         this.textFormControl = this.formBuilder.control(
             this.required ? ['', Validators.required] : ['']

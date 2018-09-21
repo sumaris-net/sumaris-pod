@@ -4,42 +4,49 @@
       max-width: 50px;
       padding-left: 16px;
     }
+
     .mat-column-id {
       max-width: 60px;
     }
+
     .mat-column-actions {
       max-width: 80px;
     }
+
     .mat-input-element:disabled {
       color: inherit;
     }
+
     .mat-form-field-infix {
       word-wrap: break-word;
       width: auto !important;
       max-width: 150px;
     }
+
     .mat-form-field-infix input {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
     .mat-header-row,
     .mat-row {
       max-height: 44px;
       padding: 0 0px;
     }
-    .mat-cell-date-time input {
-      max-width: 120px;
-    }
+
     .mat-form-field-disabled .mat-form-field-underline {
       background: none;
     }
+
     .mat-form-field-wrapper {
       padding-bottom: 10px;
     }
+
     .mat-form-field-underline {
       bottom: 10px;
     }
+
     .highlight {
       background: #42A948;
       /* green */

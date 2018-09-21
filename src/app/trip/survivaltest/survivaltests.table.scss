@@ -1,23 +1,16 @@
-.mat-header-row {
-  ion-label {
-    white-space: normal;
-    text-align: center;
-    word-wrap: break-word;
-  }
-}
-
 .mat-header-row,
 .mat-row {
-  .mat-column-rankOrder {
-    max-width: 25px;
+  .mat-column-id {
+    max-width: 30px;
   }
 
-  .mat-column-pmfm-date {
+  .mat-column-taxonGroup {
     min-width: 150px;
-    max-width: 175px;
   }
 
-  .mat-column-60 {
+  .mat-column-60,
+  .mat-column-62 {
+    min-width: 54px;
     max-width: 100px;
   }
 
@@ -33,8 +26,11 @@
     max-width: 30px;
   }
 
-  .mat-column-80,
-  .mat-column-81 {
+  .mat-column-80 {
     max-width: 50px;
+  }
+
+  .mat-column-81 {
+    max-width: 100px;
   }
 }

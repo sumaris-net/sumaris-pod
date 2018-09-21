@@ -1,7 +1,7 @@
 import { Component, Optional, OnInit, Input, forwardRef } from '@angular/core';
 import { PmfmStrategy, Measurement } from "../services/trip.model";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, FormBuilder, Validators, FormControl, FormGroupDirective } from '@angular/forms';
-
+import { FloatLabelType } from "@angular/material";
 import { MeasurementsValidatorService } from '../services/measurement.validator';
 
 const noop = () => {
@@ -36,9 +36,9 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
     @Input() compact: boolean = false;
 
-    @Input() floatLabel: string;
+    @Input() floatLabel: FloatLabelType = "auto";
 
-    @Input() ngModel: any;
+    @Input('ngModel') model: any;
 
     get value(): any {
         return this.formControl.value;
@@ -47,6 +47,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     writeValue(obj: any): void {
 
         if (obj !== this.formControl.value) {
+            console.debug("[mat-form-field-measurement] Replace value", obj);
             this.formControl.setValue(obj);
             this._onChangeCallback(this.value);
         }
@@ -70,6 +71,11 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
         this.formControl.setValidators(this.measurementValidatorService.getValidators(this.pmfm));
         this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm);
 
+        if (this.model) {
+            console.debug("[mat-form-field-measurement] Replace value (by ngModel)", this.formControl.value, this.model);
+            this.formControl.setValue(this.model);
+            //this.writeValue(this.model);
+        }
     }
 
     registerOnChange(fn: any): void {

@@ -26,19 +26,23 @@
 </ion-content>
 
 
+
 <ion-footer hidden-xs hidden-sm>
-  <!-- buttons -->
+
   <ion-toolbar>
 
-    <ion-row>
+    <ion-row no-padding nowrap>
       <ion-col></ion-col>
+
+      <!-- buttons -->
       <ion-col size="auto">
         <ion-button fill="clear" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button (click)="doSubmit()" fill="solid" color="secondary" [disabled]="loading || form.invalid">
-          <span translate>AUTH.BTN_LOGIN</span>
+        <ion-button [fill]="form.invalid ? 'clear' : 'solid'" color="primary" [disabled]="loading || form.invalid"
+          (click)="doSubmit()">
+          <ion-label translate>AUTH.BTN_LOGIN</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>
