@@ -51,15 +51,15 @@ public class Location implements IItemReferentialEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = LENGTH_LABEL)
     private String label;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = LENGTH_NAME)
     private String name;
 
     private String description;
 
-    @Column(length = 2000)
+    @Column(length = LENGTH_COMMENTS)
     private String comments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = LocationLevel.class)

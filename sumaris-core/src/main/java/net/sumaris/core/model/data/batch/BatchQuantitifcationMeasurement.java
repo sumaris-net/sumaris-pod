@@ -86,6 +86,9 @@ public class BatchQuantitifcationMeasurement implements IMeasurementEntity {
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
+    @Column(name = "rank_order")
+    private Integer rankOrder;
+
     @Column(name = "is_reference_quantification", nullable = false)
     private Boolean isReferenceQuantification;
 

@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.filter;
+package net.sumaris.core.model.data.measure;
 
 /*-
  * #%L
@@ -7,14 +7,14 @@ package net.sumaris.core.vo.filter;
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
+ * it under the terms of the GNU General License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General License for more details.
  * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
@@ -22,14 +22,11 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.Data;
+public interface ISortedMeasurementEntity extends IMeasurementEntity {
+    String PROPERTY_RANK_ORDER = "rankOrder";
 
-@Data
-public class ReferentialFilterVO {
+    Integer getRankOrder();
 
-    private String label;
-    private String name;
-    private Integer levelId;
-    private String searchText;
-    private String searchAttribute;
+    void setRankOrder(Integer rankOrder);
+
 }

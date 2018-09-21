@@ -247,6 +247,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "0",
             Integer.class),
 
+    MATRIX_ID_INDIVIDUAL(
+            "sumaris.enumeration.MatrixId.INDIVIDUAL",
+            n("sumaris.enumeration.MatrixId.INDIVIDUAL.description"),
+            "2",
+            Integer.class),
+
     IMPORT_NB_YEARS_DATA_HISTORY (
             "sumaris.synchro.import.nbYearDataHistory",
             n("sumaris.config.option.synchro.import.nbYearDataHistory.description"),

@@ -27,6 +27,7 @@ import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.vo.data.MeasurementVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MeasurementDao {
 
@@ -47,11 +48,15 @@ public interface MeasurementDao {
             List<MeasurementVO> sources,
             List<T> target);
 
-    List<MeasurementVO> saveVesselUseMeasurementsByTripId(int tripId, List<MeasurementVO> gears);
+    List<MeasurementVO> saveVesselUseMeasurementsByTripId(int tripId, List<MeasurementVO> sources);
 
-    List<MeasurementVO> savePhysicalGearMeasurementByPhysicalGearId(int physicalGearId, List<MeasurementVO> gears);
+    List<MeasurementVO> savePhysicalGearMeasurementByPhysicalGearId(int physicalGearId, List<MeasurementVO> sources);
 
-    List<MeasurementVO> saveVesselUseMeasurementsByOperationId(int operationId, List<MeasurementVO> gears);
+    List<MeasurementVO> saveVesselUseMeasurementsByOperationId(int operationId, List<MeasurementVO> sources);
 
-    List<MeasurementVO> saveGearUseMeasurementsByOperationId(int operationId, List<MeasurementVO> gears);
+    List<MeasurementVO> saveGearUseMeasurementsByOperationId(int operationId, List<MeasurementVO> sources);
+
+    List<MeasurementVO> saveSampleMeasurements(int sampleId, List<MeasurementVO> sources);
+
+    Map<Integer, Object> saveSampleMeasurementsMap(final int sampleId, Map<Integer, Object> sources);
 }

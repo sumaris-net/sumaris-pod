@@ -138,7 +138,14 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         );
 
 
-        String searchTextAsPrefix = StringUtils.isNotBlank(filter.getSearchText()) ? (filter.getSearchText().replaceAll("[*]", "%")+"%") : null;
+        String searchText = StringUtils.trimToNull(filter.getSearchText());
+        String searchTextAsPrefix = null;
+        if (StringUtils.isNotBlank(searchText)) {
+            searchTextAsPrefix = (searchText + "*"); // add trailing escape char
+            searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]+", "*"); // group escape chars
+            searchTextAsPrefix = searchTextAsPrefix.replaceAll("[%]", "\\%"); // protected '%' chars
+            searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]", "%"); // replace asterix
+        }
         String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
 
         TypedQuery<VesselFeatures> q = entityManager.createQuery(query)

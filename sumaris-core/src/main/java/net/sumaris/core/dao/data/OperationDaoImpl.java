@@ -187,7 +187,9 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
         }
 
         // Métier
-        target.setMetier(referentialDao.toReferentialVO(source.getMetier()));
+        if (source.getMetier() != null) {
+            target.setMetier(referentialDao.toReferentialVO(source.getMetier()));
+        }
 
         // Recorder department
         DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class);

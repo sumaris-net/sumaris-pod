@@ -6,6 +6,7 @@ import com.google.common.io.CharStreams;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.test.DatabaseResource;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -133,5 +134,12 @@ public class AbstractServiceTest {
 		} finally {
 			Daos.closeSilently(connection);
 		}
+	}
+
+
+	protected ReferentialVO createReferentialVO(int id) {
+		ReferentialVO result = new ReferentialVO();
+		result.setId(id);
+		return result;
 	}
 }

@@ -11,6 +11,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class SampleVO implements IUpdateDateEntityBean<Integer, Date> {
@@ -40,6 +41,7 @@ public class SampleVO implements IUpdateDateEntityBean<Integer, Date> {
     private Integer operationId;
 
     private List<MeasurementVO> measurements; // sample_measurement
+    private Map<Integer, Object> measurementsMap; // sample_measurement
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

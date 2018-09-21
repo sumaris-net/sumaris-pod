@@ -23,22 +23,23 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.measure.GearUseMeasurement;
-import net.sumaris.core.model.data.measure.IMeasurementEntity;
-import net.sumaris.core.model.data.measure.PhysicalGearMeasurement;
-import net.sumaris.core.model.data.measure.VesselUseMeasurement;
+import net.sumaris.core.model.data.measure.*;
+import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.data.sample.SampleMeasurement;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.referential.ParameterValueType;
+import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +55,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +77,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     @Autowired
     private ReferentialDao referentialDao;
+
+    @Autowired
+    private PmfmDao pmfmDao;
 
 
     @Override
@@ -210,6 +215,18 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public List<MeasurementVO> saveSampleMeasurements(final int sampleId, List<MeasurementVO> sources) {
+        Sample parent = get(Sample.class, sampleId);
+        return saveMeasurements(SampleMeasurement.class, sources, parent.getSampleMeasurements());
+    }
+
+    @Override
+    public Map<Integer, Object> saveSampleMeasurementsMap(final int sampleId, Map<Integer, Object> sources) {
+        Sample parent = get(Sample.class, sampleId);
+        return saveMeasurementsMap(SampleMeasurement.class, sources, parent.getSampleMeasurements(), parent);
+    }
+
+    @Override
     public <T extends IMeasurementEntity> List<MeasurementVO> saveMeasurements(
             final Class<? extends IMeasurementEntity> entityClass,
             List<MeasurementVO> sources,
@@ -239,6 +256,74 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     /* -- protected methods -- */
 
+    protected <T extends IMeasurementEntity> Map<Integer, Object> saveMeasurementsMap(
+            final Class<? extends T> entityClass,
+            Map<Integer, Object> sources,
+            List<T> target,
+            final IDataEntity<?> parent) {
+
+        final EntityManager session = getEntityManager();
+
+        // Remember existing measurements, to be able to remove unused measurements
+        // note: Need Beans.getList() to avoid NullPointerException if target=null
+        final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target), IMeasurementEntity.PROPERTY_PMFM + "." + IMeasurementEntity.PROPERTY_ID);
+
+        int rankOrder = 1;
+        for (Map.Entry<Integer, Object> source: sources.entrySet()) {
+            Integer pmfmId = source.getKey();
+            Object value = source.getValue();
+            // Get existing meas and remove it from list to remove
+            IMeasurementEntity entity = sourceToRemove.remove(pmfmId);
+
+            // Exists
+            boolean isNew = (entity == null);
+            if (isNew) {
+                try {
+                    entity = entityClass.newInstance();
+                } catch (IllegalAccessException | InstantiationException e) {
+                    throw new SumarisTechnicalException(e);
+                }
+            }
+
+            // Make sure to set pmfm
+            if (entity.getPmfm() == null) {
+                entity.setPmfm(load(Pmfm.class, pmfmId));
+            }
+
+            // Rank order
+            if (entity instanceof ISortedMeasurementEntity) {
+                ((ISortedMeasurementEntity) entity).setRankOrder(rankOrder++);
+            }
+
+            // Fill default properties
+            fillDefaultProperties(parent, entity);
+
+            // Set value to entity
+            valueToEntity(value, pmfmId, entity);
+
+            // Link to parent
+            linkToParent(entity, parent.getClass(), parent.getId(), false);
+
+            // Update update_dt
+            Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+            entity.setUpdateDate(newUpdateDate);
+
+            // Save entity
+            if (isNew) {
+                session.persist(entity);
+            } else {
+                session.merge(entity);
+            }
+        }
+
+        // Remove unused items
+        if (MapUtils.isNotEmpty(sourceToRemove)) {
+            sourceToRemove.values().forEach(entity -> getEntityManager().remove(entity));
+        }
+
+        return sources;
+    }
+
     protected MeasurementVO save(Class<? extends IMeasurementEntity> entityClass, MeasurementVO source) {
         Preconditions.checkNotNull(entityClass);
         Preconditions.checkNotNull(source);
@@ -261,12 +346,6 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             catch(IllegalAccessException | InstantiationException e) {
                 throw new SumarisTechnicalException(e);
             }
-        }
-
-        if (!isNew) {
-            // Lock entityName
-            // TODO: Use an optimistic lock, as we already lock the parent entity
-            //lockForUpdate(entity, LockModeType.OPTIMISTIC);
         }
 
         // VO -> Entity
@@ -292,6 +371,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         return source;
     }
+
+
 
     protected <T extends IMeasurementEntity> List<MeasurementVO> getMeasurementsByParentId(Class<T> entityClass,
                                                                                         String parentPropertyName,
@@ -359,50 +440,137 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             }
         }
 
+        // Trip
+        linkToParent(target, Trip.class, source.getTripId(), false);
+        // Operation
+        linkToParent(target, Operation.class, source.getOperationId(), false);
+        // Operation
+        linkToParent(target, Operation.class, source.getOperationId(), false);
+        // Physical gear
+        linkToParent(target, Operation.class, source.getPhysicalGearId(), false);
+        // Sample measurement
+        linkToParent(target, Sample.class, source.getSampleId(), false);
+    }
+
+    protected void valueToEntity(Object value, int pmfmId, IMeasurementEntity target) {
+
+        if (value == null) {
+            throw new SumarisTechnicalException("Unable to set value NULL value on a measurement");
+        }
+
+        PmfmVO pmfm = pmfmDao.get(pmfmId);
+
+        ParameterValueType type = ParameterValueType.fromPmfm(pmfm);
+        switch (type) {
+            case BOOLEAN:
+                target.setNumericalValue(Boolean.TRUE.equals(value) ? 1d : 0d);
+                break;
+            case QUALITATIVE_VALUE:
+                // If get a object structure (e.g. ReferentialVO), try to get the id
+                if (value instanceof Map) {
+                    Object valueId = ((Map)value).get(QualitativeValue.PROPERTY_ID);
+                    if (valueId != null) {
+                        target.setQualitativeValue(load(QualitativeValue.class, Integer.parseInt(valueId.toString())));
+                        break;
+                    }
+                }
+                target.setQualitativeValue(load(QualitativeValue.class, Integer.parseInt(value.toString())));
+                break;
+            case STRING:
+                target.setAlphanumericalValue(value.toString());
+                break;
+            case DATE:
+                target.setAlphanumericalValue(value.toString());
+                break;
+            case INTEGER:
+            case DOUBLE:
+                target.setNumericalValue(Double.parseDouble(value.toString()));
+                break;
+            default:
+                throw new SumarisTechnicalException(String.format("Unable to set value {%s} for type {%s}", value, type.name().toLowerCase()));
+        }
+    }
+
+    protected void fillDefaultProperties(IDataEntity<?> parent, IMeasurementEntity target) {
+
+        // Recorder department
+        if (target.getRecorderDepartment() == null) {
+            if (parent.getRecorderDepartment() == null || parent.getRecorderDepartment().getId() == null) {
+                target.setRecorderDepartment(null);
+            }
+            else {
+                target.setRecorderDepartment(parent.getRecorderDepartment());
+            }
+        }
+
+        // Quality flag
+        if (target.getQualityFlag() == null) {
+            target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+        }
+    }
+
+    protected void linkToParent(IMeasurementEntity target, final Class<?> parentClass, Serializable parentId, boolean copyIfNull) {
+
+        // If null: skip
+        if (parentClass == null || (!copyIfNull && parentId == null)) return;
+
         // If vessel use measurement
         if (target instanceof VesselUseMeasurement) {
+
             // Trip
-            if (copyIfNull || source.getTripId() != null) {
-                if (source.getTripId() == null) {
+            if (parentClass.isAssignableFrom(Trip.class)) {
+                if (parentId == null) {
                     ((VesselUseMeasurement) target).setTrip(null);
                 } else {
-                    ((VesselUseMeasurement) target).setTrip(load(Trip.class, source.getTripId()));
+                    ((VesselUseMeasurement) target).setTrip(load(Trip.class, parentId));
                 }
             }
 
             // Operation
-            if (copyIfNull || source.getOperationId() != null) {
-                if (source.getOperationId() == null) {
+            else if (parentClass.isAssignableFrom(Operation.class)) {
+                if (parentId == null) {
                     ((VesselUseMeasurement) target).setOperation(null);
                 } else {
-                    ((VesselUseMeasurement) target).setOperation(load(Operation.class, source.getOperationId()));
+                    ((VesselUseMeasurement) target).setOperation(load(Operation.class, parentId));
                 }
             }
         }
 
         // If gear use measurement
-        if (target instanceof GearUseMeasurement) {
+        else if (target instanceof GearUseMeasurement) {
             // Operation
-            if (copyIfNull || source.getOperationId() != null) {
-                if (source.getOperationId() == null) {
+            if (parentClass.isAssignableFrom(Operation.class)) {
+                if (parentId == null) {
                     ((GearUseMeasurement) target).setOperation(null);
                 } else {
-                    ((GearUseMeasurement) target).setOperation(load(Operation.class, source.getOperationId()));
+                    ((GearUseMeasurement) target).setOperation(load(Operation.class, parentId));
                 }
             }
         }
 
         // If physical gear measurement
-        if (target instanceof PhysicalGearMeasurement) {
+        else if (target instanceof PhysicalGearMeasurement) {
             // Physical gear
-            if (copyIfNull || source.getPhysicalGearId() != null) {
-                if (source.getPhysicalGearId() == null) {
-                    ((PhysicalGearMeasurement) target).setPhysicalGear(null);
-                } else {
-                    ((PhysicalGearMeasurement) target).setPhysicalGear(load(PhysicalGear.class, source.getPhysicalGearId()));
-                }
+            if (parentId == null) {
+                ((PhysicalGearMeasurement) target).setPhysicalGear(null);
+            } else {
+                ((PhysicalGearMeasurement) target).setPhysicalGear(load(PhysicalGear.class, parentId));
             }
         }
-    }
 
+        // Sample measurement
+        else if (target instanceof SampleMeasurement) {
+            if (parentId == null) {
+                ((SampleMeasurement) target).setSample(null);
+            } else {
+                ((SampleMeasurement) target).setSample(load(Sample.class, parentId));
+            }
+        }
+
+        // Unknown measurement class
+        else {
+            throw new IllegalArgumentException(String.format("Class {%s} not manage yet in this method", target.getClass().getSimpleName()));
+        }
+
+    }
 }

@@ -36,6 +36,7 @@ public class DepartmentVO implements IReferentialVO {
 
     private Integer id;
     private Date updateDate;
+    private Date creationDate;
     private String label;
     private String name;
     private Integer statusId;

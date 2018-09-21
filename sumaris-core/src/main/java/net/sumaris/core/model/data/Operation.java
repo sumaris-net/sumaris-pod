@@ -26,6 +26,7 @@ import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.measure.GearUseMeasurement;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
+import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import org.hibernate.annotations.Cascade;
@@ -100,7 +101,7 @@ public class Operation implements IDataEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "metier_fk")
-    private Metier metier;
+    private Metier metier; // <-- /!\ metier is nullable !
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "physical_gear_fk", nullable = false)
@@ -119,5 +120,9 @@ public class Operation implements IDataEntity<Integer> {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = "operation")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<GearUseMeasurement> gearUseMeasurements = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = "operation")
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Sample> samples = new ArrayList<>();
 
 }

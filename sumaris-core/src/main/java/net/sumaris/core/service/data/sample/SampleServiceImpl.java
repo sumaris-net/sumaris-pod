@@ -24,14 +24,26 @@ package net.sumaris.core.service.data.sample;
 
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleDao;
+import net.sumaris.core.dao.technical.Beans;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.VesselPosition;
+import net.sumaris.core.model.data.measure.IMeasurementEntity;
+import net.sumaris.core.model.data.measure.VesselUseMeasurement;
+import net.sumaris.core.model.data.sample.SampleMeasurement;
+import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.data.VesselPositionVO;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -43,6 +55,9 @@ public class SampleServiceImpl implements SampleService {
 	@Autowired
 	protected SampleDao sampleDao;
 
+	@Autowired
+	protected MeasurementDao measurementDao;
+
 	@Override
 	public List<SampleVO> getAllByOperationId(int tripId) {
 		return sampleDao.getAllByOperationId(tripId);
@@ -51,6 +66,27 @@ public class SampleServiceImpl implements SampleService {
 	@Override
 	public SampleVO get(int saleId) {
 		return sampleDao.get(saleId);
+	}
+
+	@Override
+	public List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources) {
+
+		List<SampleVO> result = sampleDao.saveByOperationId(operationId, sources);
+
+		// Save measurements
+		result.stream().forEach(savedSample -> {
+			if (savedSample.getMeasurementsMap() != null) {
+				measurementDao.saveSampleMeasurementsMap(savedSample.getId(), savedSample.getMeasurementsMap());
+			}
+			else {
+				List<MeasurementVO> measurements = Beans.getList(savedSample.getMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(savedSample, m, SampleMeasurement.class));
+				measurements = measurementDao.saveSampleMeasurements(savedSample.getId(), measurements);
+				savedSample.setMeasurements(measurements);
+			}
+		});
+
+		return result;
 	}
 
 	@Override
@@ -83,5 +119,19 @@ public class SampleServiceImpl implements SampleService {
 		ids.stream()
 				.filter(Objects::nonNull)
 				.forEach(this::delete);
+	}
+
+	/* -- protected methods -- */
+
+	protected void fillDefaultProperties(SampleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
+		if (measurement == null) return;
+
+		// Copy recorder department from the parent
+		if (measurement.getRecorderDepartment() == null || measurement.getRecorderDepartment().getId() == null) {
+			measurement.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		measurement.setOperationId(parent.getId());
+		measurement.setEntityName(entityClass.getSimpleName());
 	}
 }

@@ -188,6 +188,8 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
         if (isNew) {
             // Force creation date
             entity.setCreationDate(newUpdateDate);
+            source.setCreationDate(newUpdateDate);
+
             entityManager.persist(entity);
             source.setId(entity.getId());
         } else {

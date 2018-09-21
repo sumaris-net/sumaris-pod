@@ -148,7 +148,13 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         }
 
         String searchText = StringUtils.trimToNull(filter.getSearchText());
-        String searchTextAsPrefix = StringUtils.isNotBlank(searchText) ? ("%"+searchText.replaceAll("[*]+", "%")+"%") : null;
+        String searchTextAnyMatch = null;
+        if (StringUtils.isNotBlank(searchText)) {
+            searchTextAnyMatch = ("*" + searchText + "*"); // add trailing escape char
+            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]+", "*"); // group escape chars
+            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[%]", "\\%"); // protected '%' chars
+            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
+        }
 
         return entityManager.createQuery(query)
                 .setParameter(userProfileIdParam, filter.getUserProfileId())
@@ -157,7 +163,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
                 .setParameter(emailParam, filter.getEmail())
                 .setParameter(firstNameParam, filter.getFirstName())
                 .setParameter(lastNameParam, filter.getLastName())
-                .setParameter(searchTextParam, searchTextAsPrefix)
+                .setParameter(searchTextParam, searchTextAnyMatch)
                 .setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultList()
@@ -271,6 +277,8 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         if (isNew) {
             // Force creation date
             entity.setCreationDate(newUpdateDate);
+            source.setCreationDate(newUpdateDate);
+
             entityManager.persist(entity);
             source.setId(entity.getId());
         } else {

@@ -23,6 +23,7 @@ package net.sumaris.core.test;
  */
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Splitter;
 import com.google.common.io.Files;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
@@ -269,12 +270,9 @@ public class InitTests extends ExternalResource {
                 beforeInsert(conn);
 
                 // If multiple files, split and loop over
-                StringTokenizer st = new StringTokenizer(importFileNames, ",");
-                while (st.hasMoreTokens()) {
-                    String importFileName = st.nextToken();
-
-                    log.info(String.format("Importing data from file {%s}...", importFileNames));
-                    URL importFileUrl = getClass().getResource("/" + importFileName);
+                for(String importFileName : Splitter.on(',').split(importFileNames.trim())) {
+                    log.info(String.format("Importing data from file {%s}...", importFileName));
+                    URL importFileUrl = getClass().getResource("/" + importFileName.trim());
                     Assume.assumeTrue(
                             String.format("Unable to find resource for configuration option [%s] resource = %s. \nPlease review your properties in the test configuration.",
                                     DATASET_ADDITIONAL_XML_FILES, importFileName),
@@ -282,9 +280,9 @@ public class InitTests extends ExternalResource {
 
                     // Insert
                     insertFromXmlDataSet(importFileUrl, conn);
-                }
+                };
 
-                // Comitting insertions
+                // Committing insertions
                 conn.commit();
 
             } finally {

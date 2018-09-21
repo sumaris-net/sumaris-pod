@@ -26,24 +26,23 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.Beans;
-import net.sumaris.core.dao.technical.Dates;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.*;
+import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearLevel;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.IReferentialVO;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
@@ -58,7 +57,10 @@ import javax.persistence.criteria.*;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,6 +73,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
     private static Map<String, Class<? extends IReferentialEntity>> entityClassMap = Maps.uniqueIndex(
             ImmutableList.of(
+                    Department.class,
                     Location.class,
                     LocationLevel.class,
                     Gear.class,
@@ -148,7 +151,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
 
-        return createFindQuery(entityClass, filter.getLevelId(), StringUtils.trimToNull(filter.getSearchText()), sortAttribute, sortDirection)
+        return createFindQuery(entityClass, filter.getLevelId(), StringUtils.trimToNull(filter.getSearchText()), StringUtils.trimToNull(filter.getSearchAttribute()), sortAttribute, sortDirection)
                 .setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultList()
@@ -248,26 +251,10 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         if (!isNew) {
             // Check update date
-            if (entity.getUpdateDate() != null) {
-                Timestamp serverUpdateDtNoMillisecond = Dates.resetMillisecond(entity.getUpdateDate());
-                Timestamp sourceUpdateDtNoMillisecond = Dates.resetMillisecond(source.getUpdateDate());
-                if (!Objects.equals(sourceUpdateDtNoMillisecond, serverUpdateDtNoMillisecond)) {
-                    throw new BadUpdateDateException(I18n.t("sumaris.persistence.error.badUpdateDate",
-                            getTableName(entityClass.getSimpleName()), source.getId(), serverUpdateDtNoMillisecond,
-                            sourceUpdateDtNoMillisecond));
-                }
-            }
+            checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
-            /*try {
-                Session.LockRequest lockRequest = entityManager.buildLockRequest(LockOptions.UPGRADE);
-                lockRequest.setLockMode(LockMode.UPGRADE_NOWAIT);
-                lockRequest.setScope(true); // cascaded to owned collections and relationships.
-                lockRequest.lock(entity);
-            } catch (LockTimeoutException e) {
-                throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
-                        getTableName(entityName), source.getId()), e);
-            }*/
+            // TODO
         }
 
         // VO -> Entity
@@ -281,6 +268,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         if (isNew) {
             // Force creation date
             entity.setCreationDate(newUpdateDate);
+            source.setCreationDate(newUpdateDate);
 
             entityManager.persist(entity);
             source.setId(entity.getId());
@@ -354,6 +342,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
     private <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
                                          Integer levelId,
                                          String searchText,
+                                         String searchAttribute,
                                          String sortAttribute,
                                          SortDirection sortDirection) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
@@ -384,28 +373,35 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         }
 
         // Filter on text
-        ParameterExpression<String> searchLabelParam = builder.parameter(String.class);
-        ParameterExpression<String> searchNameParam = builder.parameter(String.class);
+        ParameterExpression<String> searchAsPrefixParam = builder.parameter(String.class);
+        ParameterExpression<String> searchAnyMatchParam = builder.parameter(String.class);
         Predicate searchTextClause = null;
         if (searchText != null) {
-            if (IItemReferentialEntity.class.isAssignableFrom(entityClass)) {
-                // Search on label+id
+            // Search on the given search attribute, if exists
+            if (StringUtils.isNotBlank(searchAttribute) && BeanUtils.getPropertyDescriptor(entityClass, searchAttribute) != null) {
                 searchTextClause = builder.or(
-                        builder.isNull(searchNameParam),
-                        builder.like(builder.upper(tripRoot.get(IItemReferentialEntity.PROPERTY_LABEL)), builder.upper(searchLabelParam)),
-                        builder.like(builder.upper(tripRoot.get(IItemReferentialEntity.PROPERTY_NAME)), builder.upper(searchNameParam))
+                        builder.isNull(searchAnyMatchParam),
+                        builder.like(builder.upper(tripRoot.get(searchAttribute)), builder.upper(searchAsPrefixParam))
+                );
+            }
+            else if (IItemReferentialEntity.class.isAssignableFrom(entityClass)) {
+                // Search on label+name
+                searchTextClause = builder.or(
+                        builder.isNull(searchAnyMatchParam),
+                        builder.like(builder.upper(tripRoot.get(IItemReferentialEntity.PROPERTY_LABEL)), builder.upper(searchAsPrefixParam)),
+                        builder.like(builder.upper(tripRoot.get(IItemReferentialEntity.PROPERTY_NAME)), builder.upper(searchAnyMatchParam))
                 );
             } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.PROPERTY_LABEL) != null) {
                 // Search on label
                 searchTextClause = builder.or(
-                        builder.isNull(searchNameParam),
-                        builder.like(builder.upper(tripRoot.get(IItemReferentialEntity.PROPERTY_LABEL)), builder.upper(searchLabelParam))
+                        builder.isNull(searchAnyMatchParam),
+                        builder.like(builder.upper(tripRoot.get(IItemReferentialEntity.PROPERTY_LABEL)), builder.upper(searchAsPrefixParam))
                 );
             } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.PROPERTY_NAME) != null) {
-                // Search on id
+                // Search on name
                 searchTextClause = builder.or(
-                        builder.isNull(searchNameParam),
-                        builder.like(builder.upper(tripRoot.get(IItemReferentialEntity.PROPERTY_NAME)), builder.upper(searchNameParam))
+                        builder.isNull(searchAnyMatchParam),
+                        builder.like(builder.upper(tripRoot.get(IItemReferentialEntity.PROPERTY_NAME)), builder.upper(searchAnyMatchParam))
                 );
             }
         }
@@ -451,10 +447,16 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         // Bind parameters
         if (searchTextClause != null) {
-            String searchTextAsPrefix = StringUtils.isNotBlank(searchText) ? (searchText.replaceAll("[*]", "%")+"%") : null;
+            String searchTextAsPrefix = null;
+            if (StringUtils.isNotBlank(searchText)) {
+                searchTextAsPrefix = (searchText + "*"); // add trailing escape char
+                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]+", "*"); // group escape chars
+                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[%]", "\\%"); // protected '%' chars
+                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]", "%"); // replace asterix
+            }
             String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
-            typedQuery.setParameter(searchLabelParam, searchTextAsPrefix);
-            typedQuery.setParameter(searchNameParam, searchTextAnyMatch);
+            typedQuery.setParameter(searchAsPrefixParam, searchTextAsPrefix);
+            typedQuery.setParameter(searchAnyMatchParam, searchTextAnyMatch);
         }
         if (levelClause != null) {
             typedQuery.setParameter(levelParam, levelId);

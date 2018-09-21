@@ -42,6 +42,8 @@ public interface SampleService {
 	@Transactional(readOnly = true)
 	List<SampleVO> getAllByOperationId(int operationId);
 
+	List<SampleVO> saveByOperationId(int operationId, List<SampleVO> samples);
+
 	@Transactional(readOnly = true)
 	SampleVO get(int id);
 

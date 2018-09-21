@@ -24,6 +24,7 @@ package net.sumaris.core.model.administration.user;
 
 import lombok.Data;
 import net.sumaris.core.model.data.ImageAttachment;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -35,9 +36,8 @@ import java.util.Objects;
 @Data
 @Entity
 @Cacheable
-public class Department implements IReferentialEntity {
+public class Department implements IItemReferentialEntity {
 
-    public static final String PROPERTY_LABEL = "label";
     public static final String PROPERTY_LOGO = "logo";
 
     @Id
@@ -56,10 +56,10 @@ public class Department implements IReferentialEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = LENGTH_LABEL)
     private String label;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = LENGTH_NAME)
     private String name;
 
     @Column(name = "site_url")
@@ -71,20 +71,8 @@ public class Department implements IReferentialEntity {
 
     private String description;
 
-    @Column(length = 2000)
+    @Column(length = LENGTH_COMMENTS)
     private String comments;
-
-    /*private Department parent;
-
-    @ManyToOne
-    @JoinColumn(id = "parent_department_fk")
-    public Department getParent() {
-        return parent;
-    }
-
-    public void setParent(Department parent) {
-        this.parent = parent;
-    }*/
 
     public String toString() {
         return label;

@@ -622,6 +622,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * <p>getMatrixIdIndividual.</p>
+     *
+     * @return a {@link int}.
+     */
+    public int getMatrixIdIndividual() {
+        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.MATRIX_ID_INDIVIDUAL.getKey());
+    }
+
+    /**
      * <p>getAppName.</p>
      *
      * @return a {@link String} object: the application id.

@@ -69,6 +69,10 @@ public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
     private List<MeasurementVO> measurements;
     private List<MeasurementVO> gearMeasurements;
 
+    private List<SampleVO> samples;
+
+    private BatchVO catchBatch;
+
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }

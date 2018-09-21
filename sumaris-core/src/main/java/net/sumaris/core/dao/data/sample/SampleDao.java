@@ -11,6 +11,8 @@ public interface SampleDao {
 
     SampleVO get(int id);
 
+    List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources);
+
     /**
      * Save a sample
      * @param sample

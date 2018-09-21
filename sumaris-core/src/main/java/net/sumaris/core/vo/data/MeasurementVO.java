@@ -64,6 +64,7 @@ public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date> {
     private Integer tripId;
     private Integer physicalGearId;
     private Integer operationId;
+    private Integer sampleId;
 
     private String entityName;
 

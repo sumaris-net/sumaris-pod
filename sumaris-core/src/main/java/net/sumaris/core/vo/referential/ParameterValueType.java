@@ -41,4 +41,27 @@ public enum ParameterValueType {
             return ParameterValueType.INTEGER;
         }
     }
+
+    public static ParameterValueType fromPmfm(PmfmVO pmfm) {
+        return pmfm != null ? fromString(pmfm.getType()) : null;
+    }
+
+    public static ParameterValueType fromString(String name) {
+        switch (name.toUpperCase()) {
+            case "BOOLEAN":
+                return ParameterValueType.BOOLEAN;
+            case "QUALITATIVE_VALUE":
+                return ParameterValueType.QUALITATIVE_VALUE;
+            case "STRING":
+                return ParameterValueType.STRING;
+            case "DATE":
+                return ParameterValueType.DATE;
+            case "INTEGER":
+                return ParameterValueType.INTEGER;
+            case "DOUBLE":
+                return ParameterValueType.DOUBLE;
+            default:
+                return null;
+        }
+    }
 }

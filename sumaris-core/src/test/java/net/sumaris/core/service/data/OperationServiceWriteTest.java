@@ -23,21 +23,25 @@ package net.sumaris.core.service.data;
  */
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.data.sample.SampleService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.data.VesselPositionVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class OperationServiceWriteTest extends AbstractServiceTest {
 
@@ -51,15 +55,24 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     private OperationService service;
 
     @Autowired
+    private MeasurementService measurementService;
+
+    @Autowired
+    private SampleService sampleService;
+
+    @Autowired
     private PmfmService pmfmService;
 
 
     private TripVO parent;
 
+    private DatabaseFixtures fixtures;
+
     @Before
     public void setUp() {
         this.parent = tripService.get(dbResource.getFixtures().getTripId(0));
         Assume.assumeNotNull(this.parent);
+        this.fixtures = dbResource.getFixtures();
     }
 
     @Test
@@ -104,19 +117,45 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
         // Recorder
         DepartmentVO recorderDepartment = new DepartmentVO();
-        recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
         vo.setRecorderDepartment(recorderDepartment);
 
         // Physical gear
         vo.setPhysicalGearId(1);
 
-        // Measurements
+        // Metier
+        vo.setMetier(createReferentialVO(fixtures.getMetierIdForOTB(0)));
+
+        // Measurements (= vessel use measurements)
         PmfmVO bottomDepthPmfm = pmfmService.getByLabel("FISHING_DEPTH_M");
         MeasurementVO meas1 = new MeasurementVO();
         meas1.setNumericalValue(15.0);
         meas1.setPmfmId(bottomDepthPmfm.getId());
+        meas1.setRankOrder(1);
 
         vo.setMeasurements(ImmutableList.of(meas1));
+
+        // Sample / Survival tests
+        {
+            SampleVO sample = new SampleVO();
+            sample.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAO(0)));
+            date.add(Calendar.MINUTE, 5);
+            sample.setSampleDate(date.getTime());
+            sample.setLabel("Survival test #1");
+
+            sample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
+            sample.setRankOrder(1);
+            sample.setComments("A survival test sample #1");
+
+            // Measurements (as map)
+            sample.setMeasurementsMap(
+                ImmutableMap.<Integer, Object>builder()
+                    .put(60, new Integer(155))
+                    .put(80, new Integer(185))
+                    .build());
+
+            vo.setSamples(ImmutableList.of(sample));
+        }
 
         // Save
         OperationVO savedVo = service.save(vo);
@@ -126,13 +165,29 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         // Full reload
         OperationVO reloadedVo = service.get(savedVo.getId());
         Assert.assertNotNull(reloadedVo);
-        Assert.assertEquals(vo.getPositions().size(), CollectionUtils.size(reloadedVo.getPositions()));
-        Assert.assertEquals(vo.getMeasurements().size(), CollectionUtils.size(reloadedVo.getMeasurements()));
 
+        // Check vessel position: Should NOT be loaded in VO
+        Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getPositions()));
+
+        // Check measurements
+        {
+            // Should NOT be loaded in VO
+            Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getMeasurements()));
+            List<MeasurementVO> reloadMeasurements = measurementService.getVesselUseMeasurementsByOperationId(savedVo.getId());
+            Assert.assertEquals(CollectionUtils.size(savedVo.getMeasurements()), CollectionUtils.size(reloadMeasurements));
+        }
+
+        // Check samples
+        {
+            // Should NOT be loaded in VO
+            Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getSamples()));
+            List<SampleVO> reloadSamples = sampleService.getAllByOperationId(savedVo.getId());
+            Assert.assertEquals(CollectionUtils.size(savedVo.getSamples()), CollectionUtils.size(reloadSamples));
+        }
     }
 
     @Test
     public void delete() {
-        service.delete(dbResource.getFixtures().getTripId(0));
+        service.delete(fixtures.getTripId(0));
     }
 }

@@ -93,6 +93,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 		Preconditions.checkNotNull(source);
 		Preconditions.checkNotNull(source.getStatusId(), "Missing statusId");
 
+		source.setEntityName(entityName); // Need by cache eviction
 		return referentialDao.save(entityName, source);
 	}
 

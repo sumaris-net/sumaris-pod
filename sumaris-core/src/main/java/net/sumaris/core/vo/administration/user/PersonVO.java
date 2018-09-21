@@ -41,6 +41,7 @@ public class PersonVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private Integer id;
     private Date updateDate;
+    private Date creationDate;
 
     private String firstName;
     private String lastName;

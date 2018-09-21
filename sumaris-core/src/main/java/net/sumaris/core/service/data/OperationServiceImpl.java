@@ -28,19 +28,24 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.OperationDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
+import net.sumaris.core.dao.data.sample.SampleDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.measure.GearUseMeasurement;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
+import net.sumaris.core.service.data.sample.SampleService;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.data.VesselPositionVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -62,6 +67,8 @@ public class OperationServiceImpl implements OperationService {
 	@Autowired
 	protected MeasurementDao measurementDao;
 
+	@Autowired
+	protected SampleService sampleService;
 
 	@Override
 	public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute,
@@ -113,6 +120,14 @@ public class OperationServiceImpl implements OperationService {
 			savedOperation.setGearMeasurements(measurements);
 		}
 
+		// Save samples
+		{
+			List<SampleVO> samples = Beans.getList(source.getSamples());
+			samples.forEach(s -> fillDefaultProperties(savedOperation, s));
+			samples = sampleService.saveByOperationId(savedOperation.getId(), samples);
+			savedOperation.setSamples(samples);
+		}
+
 		return savedOperation;
 	}
 
@@ -161,5 +176,29 @@ public class OperationServiceImpl implements OperationService {
 
 		measurement.setOperationId(parent.getId());
 		measurement.setEntityName(entityClass.getSimpleName());
+	}
+
+	protected void fillDefaultProperties(OperationVO parent, SampleVO sample) {
+		if (sample == null) return;
+
+		// Copy recorder department from the parent
+		if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
+			sample.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		// Fill matrix
+		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
+			ReferentialVO matrix = new ReferentialVO();
+			matrix.setId(config.getMatrixIdIndividual());
+			sample.setMatrix(matrix);
+		}
+
+		// Fill sample (use operation end date time)
+		if (sample.getSampleDate() == null) {
+			Date sampleDate = parent.getEndDateTime() != null ? parent.getEndDateTime() : parent.getFishingEndDateTime();
+			sample.setSampleDate(sampleDate);
+		}
+
+		sample.setOperationId(parent.getId());
 	}
 }

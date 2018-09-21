@@ -24,8 +24,7 @@ package net.sumaris.core.model.data.sample;
 
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.measure.IMeasurementEntity;
-import net.sumaris.core.model.data.sample.Sample;
+import net.sumaris.core.model.data.measure.ISortedMeasurementEntity;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -36,10 +35,9 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name="sample_measurement")
-public class SampleMeasurement implements IMeasurementEntity {
+public class SampleMeasurement implements ISortedMeasurementEntity {
 
     public static final String PROPERTY_SAMPLE = "sample";
-    public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

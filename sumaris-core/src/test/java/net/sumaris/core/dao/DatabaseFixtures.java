@@ -25,6 +25,7 @@ package net.sumaris.core.dao;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assume;
 
 /**
@@ -138,13 +139,27 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getMetierIdForOTB(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 5;
+			case 1:
+				return 6;
+
+			default:
+				return 1;
+		}
+	}
+
+
 	public Integer getMatrixIdForIndividual() {
 		return 2; // INDIV
 	}
 
 	public Integer getTaxonGroupFAO(int index) {
 		Preconditions.checkArgument(index >= 0);
-		return 1000 + index;
+		return 1001 + index;
 	}
 
 	public Integer getPmfmBatchWeight() {

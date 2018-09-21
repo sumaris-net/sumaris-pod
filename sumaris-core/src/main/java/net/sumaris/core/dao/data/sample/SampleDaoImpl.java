@@ -35,6 +35,7 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.VesselPosition;
 import net.sumaris.core.model.data.batch.Batch;
 import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.referential.Matrix;
@@ -45,7 +46,9 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.data.VesselPositionVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +61,7 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -102,6 +106,33 @@ public class SampleDaoImpl extends HibernateDaoSupport implements SampleDao {
         Sample entity = get(Sample.class, id);
         return toSampleVO(entity, false);
     }
+
+    @Override
+    public List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources) {
+
+        // Load parent entity
+        Operation parent = get(Operation.class, operationId);
+
+        // Remember existing entities
+        final Map<Integer, Sample> sourcesToRemove = Beans.splitById(Beans.getList(parent.getSamples()));
+
+        // Save each gears
+        List<SampleVO> result = sources.stream().map(source -> {
+            source.setOperationId(operationId);
+            if (source.getId() != null) {
+                sourcesToRemove.remove(source.getId());
+            }
+            return save(source);
+        }).collect(Collectors.toList());
+
+        // Remove unused entities
+        if (MapUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.values().forEach(this::delete);
+        }
+
+        return result;
+    }
+
 
     @Override
     public SampleVO save(SampleVO source) {
