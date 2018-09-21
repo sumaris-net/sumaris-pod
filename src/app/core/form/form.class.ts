@@ -11,39 +11,39 @@ export abstract class AppForm<T> implements OnInit {
   private _enable: boolean = false;
 
 
-  public touchUi: boolean = false;
-  public mobile: boolean = false;
-  public error: string = null;
+  touchUi: boolean = false;
+  mobile: boolean = false;
+  error: string = null;
 
   @Input()
-  public debug: boolean = false;
+  debug: boolean = false;
 
-  public get value(): any {
+  get value(): any {
     return this.form.value;
   }
-  public set value(data: any) {
+  set value(data: any) {
     this.setValue(data);
   }
 
-  public get dirty(): boolean {
+  get dirty(): boolean {
     return this.form.dirty;
   }
-  public get invalid(): boolean {
+  get invalid(): boolean {
     return this.form.invalid;
   }
-  public get valid(): boolean {
+  get valid(): boolean {
     return this.form.valid;
   }
 
-  public get empty(): boolean {
+  get empty(): boolean {
     return !this.form.dirty && !this.form.touched;
   }
 
-  public get untouched(): boolean {
+  get untouched(): boolean {
     return this.form.untouched;
   }
 
-  public disable(opts?: {
+  disable(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
   }): void {
@@ -51,7 +51,7 @@ export abstract class AppForm<T> implements OnInit {
     this._enable = false;
   }
 
-  public enable(opts?: {
+  enable(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
   }): void {

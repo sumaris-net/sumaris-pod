@@ -50,7 +50,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     mobile: boolean;
 
     @Input()
-    public debug = false;
+    debug = false;
 
     @ViewChild(MatTable) table: MatSort;
     @ViewChild(MatPaginator) paginator: MatPaginator;

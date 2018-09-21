@@ -13,7 +13,7 @@ export class VesselModal {
 
   loading: boolean = false;
 
-  @ViewChild('formVessel') private form: VesselForm;
+  @ViewChild('formVessel') form: VesselForm;
 
   constructor(
     private vesselService: VesselService,
