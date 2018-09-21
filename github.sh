@@ -73,7 +73,7 @@ case "$1" in
       upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
       if [[ "_$upload_url" = "_" ]]; then
-        echo "Failed to create new release for repo $REPO.
+        echo "Failed to create new release for repo $REPO."
         echo "Server response:"
         echo "$result"
         exit 1;
