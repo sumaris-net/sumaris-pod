@@ -77,6 +77,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         prependNewElements: false,
         serviceOptions: {
           full: true,
+          saveOnlyDirtyRows: true,
           entityName: null // will be set from route parameters
         }
       })
@@ -170,5 +171,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     });
   }
 
+  debugRow(row: any): string {
+    //console.log(row);
+    console.log(row.currentData);
+    return row.currentData.name;
+  }
 }
 

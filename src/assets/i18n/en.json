@@ -115,6 +115,7 @@
     "PASSWORD": "Password",
     "FIRST_NAME": "First name",
     "LAST_NAME": "Last name",
+    "DEPARTMENT": "Organization",
     "PROFILE": {
       "PROFILE_ADMIN": "Administrator",
       "PROFILE_OBSERVER": "Observer",
@@ -272,7 +273,7 @@
   "ERROR": {
     "FIELD_REQUIRED": "This field is required.",
     "FIELD_TOO_SHORT": "This field value is too short.",
-    "FIELD_TOO_SHORT_WITH_LENGTH": "Value is too short (min {{minLength]] characters).",
+    "FIELD_TOO_SHORT_WITH_LENGTH": "Value is too short (min {{minLength}} characters).",
     "FIELD_TOO_LONG": "Value is exceeding max length.",
     "FIELD_TOO_LONG_WITH_LENGTH": "Value is too long (max {{maxLength}} characters).",
     "FIELD_MIN": "Minimal value: {{min}}",

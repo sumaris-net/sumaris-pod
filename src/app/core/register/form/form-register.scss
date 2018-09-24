@@ -1,14 +1,10 @@
-form-register {
-  form mat-form-field {
-    width: 100%;
+form ion-toolbar.toolbar-buttons {
+  .toolbar-content {
+    text-align: right;
   }
-  form ion-toolbar.toolbar-buttons {
-    .toolbar-content {
-      text-align: right;
-    }
-    .toolbar-background {
-      border: 0;
-      background: inherit !important;
-    }
+
+  .toolbar-background {
+    border: 0;
+    background: inherit !important;
   }
 }

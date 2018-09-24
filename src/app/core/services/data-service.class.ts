@@ -39,13 +39,15 @@ export class BaseDataService {
   protected query<T, V = R>(opts: {
     query: any,
     variables: V,
-    error?: ServiceError
+    error?: ServiceError,
+    fetchPolicy?: FetchPolicy
   }): Promise<T> {
     //this.apollo.getClient().cache.reset();
     return new Promise<T>((resolve, reject) => {
       const subscription: Subscription = this.apollo.query<ApolloQueryResult<T>, V>({
         query: opts.query,
-        variables: opts.variables
+        variables: opts.variables,
+        fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy) || undefined
       })
         .catch(error => this.onApolloError<T>(error))
         .subscribe(({ data, errors }) => {
@@ -78,7 +80,7 @@ export class BaseDataService {
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
       variables: opts.variables,
-      fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy),
+      fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy) || undefined,
       notifyOnNetworkStatusChange: true
     })
       .valueChanges

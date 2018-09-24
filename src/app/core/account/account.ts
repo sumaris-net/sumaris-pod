@@ -153,6 +153,8 @@ export class AccountPage implements OnDestroy {
     if (this.form.invalid) return;
 
     this.saving = true;
+    this.error = undefined;
+
     let newAccount = this.account.clone();
     let json = newAccount.asObject();
 
@@ -163,7 +165,11 @@ export class AccountPage implements OnDestroy {
 
     console.log("[account] Saving account...", newAccount);
     try {
-      await this.accountService.saveRemotely(newAccount)
+      this.disable();
+
+      await this.accountService.saveRemotely(newAccount);
+
+      this.markAsPristine();
     }
     catch (err) {
       console.error(err);
@@ -171,11 +177,24 @@ export class AccountPage implements OnDestroy {
     }
     finally {
       this.saving = false;
+      this.enable();
     }
   }
 
   cancel() {
     this.setValue(this.account);
+    this.form.markAsPristine();
+  }
+
+  disable() {
+    this.form.disable();
+  }
+
+  enable() {
+    this.form.enable();
+  }
+
+  markAsPristine() {
     this.form.markAsPristine();
   }
 }

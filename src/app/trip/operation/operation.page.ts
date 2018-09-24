@@ -172,47 +172,49 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     if (this.loading || this.saving || !this.valid || !this.dirty) return;
     this.saving = true;
+    this.error = undefined;
 
     if (this.debug) console.debug("[page-operation] Saving...");
 
-    // Update entity from JSON
-    let json = this.opeForm.value;
-    this.data.fromObject(json);
-    this.data.tripId = this.trip.id;
-    this.data.measurements = this.measurementsForm.value;
-
-    // get catch batch
-    // TODO
-    //this.data.catch = this.catchForm.value;
-    if (this.debug) console.warn("TODO: get catch", this.catchForm.value);
-
-    // get survival tests
-    await this.survivalTestsTable.save();
-    const survivalTests = this.survivalTestsTable.value;
-
-    // get indiv monitoring
-    //samples = samples.concat(this.individualMonitoringTable.value);
-
-    this.data.samples = (survivalTests || []);
-
-    this.disable();
-
     try {
+      // Update entity from JSON
+      let json = this.opeForm.value;
+      this.data.fromObject(json);
+      this.data.tripId = this.trip.id;
+      this.data.measurements = this.measurementsForm.value;
+
+      // get catch batch
+      // TODO
+      //this.data.catch = this.catchForm.value;
+      if (this.debug) console.warn("TODO: get catch", this.catchForm.value);
+
+      // get survival tests
+      await this.survivalTestsTable.save();
+      const survivalTests = this.survivalTestsTable.value;
+
+      // get indiv monitoring
+      //samples = samples.concat(this.individualMonitoringTable.value);
+
+      this.data.samples = (survivalTests || []);
+
+      this.disable();
+
       // Save trip form (with sale) 
       const updatedData = await this.operationService.save(this.data);
 
       // Update the view (e.g metadata)
       this.updateView(updatedData);
+      this.submitted = false;
+
       return updatedData;
     }
     catch (err) {
       console.error(err);
-      this.submitted = true;
       this.error = err && err.message || err;
+      this.submitted = true;
     }
     finally {
       this.enable();
-      this.submitted = false;
       this.saving = false;
     }
   }

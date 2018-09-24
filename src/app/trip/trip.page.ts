@@ -103,6 +103,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       return;
     }
     this.saving = true;
+    this.error = undefined;
 
     if (this.debug) console.debug("[page-trip] Saving trip...");
 

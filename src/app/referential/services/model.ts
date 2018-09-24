@@ -1,6 +1,5 @@
-import { Referential, EntityUtils, Department, Person, toDateISOString, fromDateISOString, StatusIds, Cloneable, Entity, joinProperties } from "../../core/services/model";
+import { Referential, EntityUtils, Department, Person, toDateISOString, fromDateISOString, StatusIds, Cloneable, Entity, joinProperties, entityToString, referentialToString } from "../../core/services/model";
 import { Moment } from "moment/moment";
-import { DATE_ISO_PATTERN } from "../constants";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
@@ -16,15 +15,7 @@ export const TaxonGroupIds = {
   METIER: 3
 }
 
-export { Referential, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department };
-
-export function entityToString(obj: Entity<any> | any, properties?: String[]): string | undefined {
-  return obj && obj.id && joinProperties(obj, properties || ['name']) || undefined;
-}
-
-export function referentialToString(obj: Referential | any, properties?: String[]): string | undefined {
-  return obj && obj.id && joinProperties(obj, properties || ['label', 'name']) || undefined;
-}
+export { Referential, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department, entityToString, referentialToString };
 
 export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
   return obj && obj.vesselId && joinProperties(obj, ['exteriorMarking', 'name']) || undefined;

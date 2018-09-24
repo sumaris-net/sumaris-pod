@@ -1,7 +1,16 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component } from '@angular/core';
 import { Platform } from "@ionic/angular";
 import { MenuItem } from './core/menu/menu.component';
 import { HomePage } from './core/home/home';
+import { AccountService, DataService } from './core/core.module';
+import { ReferentialService } from './referential/referential.module';
+// import { StatusBar } from "@ionic-native/status-bar";
+// import { SplashScreen } from "@ionic-native/splash-screen";
+// import { Keyboard } from "@ionic-native/keyboard";
+// import { ReferentialService, ReferentialFilter } from './referential/referential.module';
+// import { AccountFieldDef, AccountService } from './core/core.module';
+// import { Referential } from './core/services/model';
+// import { DataService } from './core/services/data-service.class';
 
 
 @Component({
@@ -22,23 +31,29 @@ export class AppComponent {
   ];
 
   constructor(
-    private platform: Platform
-    /* TODO: waiting ionic-native release,
-    private statusBar: StatusBar,
-    private splashScreen: SplashScreen,
-    private keyboard: Keyboard*/
+    private platform: Platform,
+    private accountService: AccountService,
+    private referentialService: ReferentialService
+    // TODO: waiting ionic-native release
+    // private statusBar: StatusBar, 
+    // private splashScreen: SplashScreen,
+    // private keyboard: Keyboard
   ) {
 
     platform.ready().then(() => {
       console.info("[app] Setting cordova plugins...");
 
-      /*statusBar.styleDefault();
+      /*
+      statusBar.styleDefault();
       splashScreen.hide();
 
       statusBar.overlaysWebView(false);
 
-      //*** Control Keyboard
-      keyboard.disableScroll(true);*/
+      // Control Keyboard
+      keyboard.disableScroll(true);
+      */
+
+      this.addAccountFields();
     });
 
   }
@@ -56,5 +71,18 @@ export class AppComponent {
     }, 16);
   }
 
+  protected addAccountFields() {
+
+    console.debug("[app] Add additional account fields...");
+
+    // Add account field: department
+    this.accountService.addAdditionalAccountField({
+      name: 'department',
+      label: 'USER.DEPARTMENT',
+      required: true,
+      dataService: this.referentialService as DataService<any, any>,
+      dataServiceOptions: { entityName: 'Department' }
+    });
+  }
 }
 

@@ -6,9 +6,14 @@ import gql from "graphql-tag";
 import { TranslateService } from "@ngx-translate/core";
 import { Apollo } from "apollo-angular";
 import { Storage } from '@ionic/storage';
+import { FetchPolicy } from "apollo-client";
 
-import { BaseDataService } from "./data-service.class";
+import { BaseDataService, DataService } from "./data-service.class";
 import { ErrorCodes } from "./errors";
+import { environment } from "../../../environments/environment";
+
+import { Validators, ValidatorFn } from "@angular/forms";
+import { SharedValidators } from "../../shared/validator/validators";
 
 const base58 = require('../../../lib/base58')
 
@@ -30,6 +35,14 @@ export interface AuthData {
 export interface RegisterData extends AuthData {
   account: Account;
 }
+export interface AccountFieldDef<T = any, F = { searchText?: string; }> {
+  name: string;
+  label: string;
+  required: boolean;
+  dataService?: DataService<T, F>,
+  dataServiceOptions?: any
+}
+
 const PUBKEY_STORAGE_KEY = "pubkey"
 const SECKEY_STORAGE_KEY = "seckey"
 const ACCOUNT_STORAGE_KEY = "account"
@@ -61,6 +74,8 @@ const AccountQuery: any = gql`
       }
       department {
         id
+        label
+        name
       }
     }
   }
@@ -147,6 +162,7 @@ export class AccountService extends BaseDataService {
 
   private _startPromise: Promise<any>;
   private _started: boolean = false;
+  private _additionalAccountFields: AccountFieldDef[] = [];
 
   public onLogin: Subject<Account> = new Subject<Account>();
   public onLogout: Subject<any> = new Subject<any>();
@@ -171,6 +187,8 @@ export class AccountService extends BaseDataService {
         this._started = true;
         if (account) this.onLogin.next(this.data.account);
       });
+
+    this._debug = true;
   }
 
   private resetData() {
@@ -209,51 +227,50 @@ export class AccountService extends BaseDataService {
     return this.hasProfile("Administrator");
   }
 
-  public register(data: RegisterData): Promise<Account> {
+  public async register(data: RegisterData): Promise<Account> {
     if (this.isLogin()) {
-      return Promise.reject("User already login");
+      throw new Error("User already login. Please logout before register.");
     }
-    if (!data.username || !data.username) return Promise.reject("Missing required username por password");
+    if (!data.username || !data.username) throw new Error("Missing required username por password");
 
-    console.debug('[wallet] Register new user account...', data.account);
+    console.debug('[account] Register new user account...', data.account);
     this.data.loaded = false;
     let now = new Date();
 
-    return this.cryptoService.scryptKeypair(data.username, data.password)
-      .then((keypair) => {
-        data.account.pubkey = base58.encode(keypair.publicKey);
+    try {
+      const keypair = await this.cryptoService.scryptKeypair(data.username, data.password);
+      data.account.pubkey = base58.encode(keypair.publicKey);
 
-        // Default values
-        data.account.settings.locale = data.account.settings.locale || this.translate.currentLang || this.translate.defaultLang;
+      // Default values
+      data.account.settings.locale = data.account.settings.locale || this.translate.currentLang || this.translate.defaultLang;
+      data.account.settings.latLongFormat = environment.defaultLatLongFormat || 'DDMM';
 
-        // TODO: add department to register form
-        data.account.department.id = data.account.department.id || 1;
+      // TODO: add department to register form
+      data.account.department.id = data.account.department.id || environment.defaultDepartmentId;
 
-        this.data.keypair = keypair;
-        return this.saveAccount(data.account, keypair);
-      })
-      .then((account) => {
 
-        // Default values
-        account.avatar = account.avatar || "../assets/img/person.png";
-        this.data.mainProfile = this.getMainProfile(account.profiles);
+      this.data.keypair = keypair;
+      const account = await this.saveAccount(data.account, keypair);
 
-        this.data.account = account;
-        this.data.pubkey = account.pubkey;
-        this.data.loaded = true;
+      // Default values
+      account.avatar = account.avatar || "../assets/img/person.png";
+      this.data.mainProfile = this.getMainProfile(account.profiles);
 
-        return this.saveLocally();
-      })
-      .then(() => {
-        console.debug("[wallet] Account sucessfully registered in " + (new Date().getTime() - now.getTime()) + "ms");
-        this.onLogin.next(this.data.account);
-        return this.data.account;
-      })
-      .catch((error) => {
-        console.error(error);
-        this.resetData();
-        return undefined;
-      });
+      this.data.account = account;
+      this.data.pubkey = account.pubkey;
+      this.data.loaded = true;
+
+      await this.saveLocally();
+
+      console.debug("[account] Account sucessfully registered in " + (new Date().getTime() - now.getTime()) + "ms");
+      this.onLogin.next(this.data.account);
+      return this.data.account;
+    }
+    catch (error) {
+      console.error(error);
+      this.resetData();
+      throw error;
+    };
   }
 
   public login(data: AuthData): Promise<Account> {
@@ -452,30 +469,30 @@ export class AccountService extends BaseDataService {
    * Load a account by pubkey
    * @param pubkey 
    */
-  public loadAccount(pubkey: string): Promise<Account | undefined> {
+  public async loadAccount(pubkey: string, opts?: { fetchPolicy?: FetchPolicy }): Promise<Account | undefined> {
 
     if (this._debug) console.debug("[account-service] Loading account {" + pubkey.substring(0, 6) + "}...");
     var now = new Date();
 
-    return this.query<{ account: any }>({
+    const res = await this.query<{ account: any }>({
       query: AccountQuery,
       variables: {
         pubkey: pubkey
       },
-      error: { code: ErrorCodes.LOAD_ACCOUNT_ERROR, message: "ERROR.LOAD_ACCOUNT_ERROR" }
-    })
-      .then(res => {
-        if (res && res.account) {
-          const account = new Account();
-          account.fromObject(res.account);
-          if (this._debug) console.debug("[account-service] Account {" + pubkey.substring(0, 6) + "} loaded in " + (new Date().getTime() - now.getTime()) + "ms", res);
-          return account;
-        }
-        else {
-          console.warn("[account-service] Account {" + pubkey.substring(0, 6) + "} not found !");
-          return undefined;
-        }
-      });
+      error: { code: ErrorCodes.LOAD_ACCOUNT_ERROR, message: "ERROR.LOAD_ACCOUNT_ERROR" },
+      fetchPolicy: opts && opts.fetchPolicy || environment.apolloFetchPolicy || undefined
+    });
+
+    if (res && res.account) {
+      const account = new Account();
+      account.fromObject(res.account);
+      if (this._debug) console.debug("[account-service] Account {" + pubkey.substring(0, 6) + "} loaded in " + (new Date().getTime() - now.getTime()) + "ms", res);
+      return account;
+    }
+    else {
+      console.warn("[account-service] Account {" + pubkey.substring(0, 6) + "} not found !");
+      return undefined;
+    }
   }
 
   /**
@@ -483,11 +500,23 @@ export class AccountService extends BaseDataService {
    * @param account 
    * @param keyPair 
    */
-  public saveAccount(account: Account, keyPair: KeyPair): Promise<Account> {
-    const json = account.asObject();
-    json.pubkey = json.pubkey || base58.encode(keyPair.publicKey);
+  public async saveAccount(account: Account, keyPair: KeyPair): Promise<Account> {
+    account.pubkey = account.pubkey || base58.encode(keyPair.publicKey);
 
-    return this.mutate<{ saveAccount: any }>({
+    // First, try to get last account (for updateDate, etc)
+    const existingAccount = await this.loadAccount(account.pubkey, { fetchPolicy: 'network-only' });
+    if (!existingAccount || !existingAccount.updateDate) {
+      throw { code: ErrorCodes.ACCOUNT_NOT_EXISTS, message: "ERROR.ACCOUNT_NOT_EXISTS" }
+    }
+    account.updateDate = existingAccount.updateDate || account.updateDate;
+    if (account.settings && existingAccount.settings) {
+      account.settings.updateDate = existingAccount.settings.updateDate || account.settings.updateDate;
+    }
+
+    const json = account.asObject();
+
+    // Execute mutation
+    const res = await this.mutate<{ saveAccount: any }>({
       mutation: SaveAccountMutation,
       variables: {
         account: json
@@ -496,19 +525,17 @@ export class AccountService extends BaseDataService {
         code: ErrorCodes.SAVE_ACCOUNT_ERROR,
         message: "ERROR.SAVE_ACCOUNT_ERROR"
       }
-    })
-      .then(res => {
-        let data = res.saveAccount;
+    });
 
-        // Copy update properties
-        account.id = data.id;
-        account.updateDate = data.updateDate;
-        account.settings.id = data.settings && data.settings.id;
-        account.settings.updateDate = data.settings && data.settings.updateDate;
+    let data = res.saveAccount;
 
-        return account;
-      });
+    // Copy update properties
+    account.id = data.id;
+    account.updateDate = data.updateDate;
+    account.settings.id = data.settings && data.settings.id;
+    account.settings.updateDate = data.settings && data.settings.updateDate;
 
+    return account;
   }
 
   /**
@@ -530,28 +557,29 @@ export class AccountService extends BaseDataService {
    * Check if email is exists in server.
    * @param email
    */
-  public isEmailExists(email: string): Promise<boolean> {
+  async isEmailExists(email: string): Promise<boolean> {
 
-    console.debug("[wallet] Checking if {" + email + "} exists...");
+    if (this._debug) console.debug("[account] Checking if {" + email + "} exists...");
 
-    return this.query<{ isEmailExists: boolean }, IsEmailExistsVariables>({
+    const data = await this.query<{ isEmailExists: boolean }, IsEmailExistsVariables>({
       query: IsEmailExistsQuery,
       variables: {
         email: email,
         hash: undefined
       }
-    })
-      .then(data => {
-        return data && data.isEmailExists;
-      });
+    });
+
+    if (this._debug) console.debug("[account] Email exist: " + (data && data.isEmailExists));
+
+    return data && data.isEmailExists;
   }
 
-  public sendConfirmationEmail(email: String, locale?: string): Promise<boolean> {
+  async sendConfirmationEmail(email: String, locale?: string): Promise<boolean> {
 
     locale = locale || this.translate.currentLang;
     console.debug("[trip-service] Sending confirmation email to {" + email + "} with locale {" + locale + "}...");
 
-    return this.mutate<boolean>({
+    return await this.mutate<boolean>({
       mutation: SendConfirmEmailMutation,
       variables: {
         email: email,
@@ -647,6 +675,22 @@ export class AccountService extends BaseDataService {
     await this.storeLocalSettings();
   }
 
+  get additionalAccountFields(): AccountFieldDef[] {
+    return this._additionalAccountFields;
+  }
+
+  getAdditionalAccountField(name: string): AccountFieldDef | undefined {
+    return this._additionalAccountFields.find(f => f.name === name);
+  }
+
+  addAdditionalAccountField(field: AccountFieldDef) {
+    if (!!this._additionalAccountFields.find(f => f.name === field.name)) {
+      throw new Error("Additional account field {" + field.name + "} already define.");
+    }
+    if (this._debug) console.debug("[account] Adding additional account field {" + field.name + "}", field);
+    this._additionalAccountFields.push(field);
+  }
+
   /* -- Protected methods -- */
 
   private getMainProfile(profiles?: Referential[]): String {
@@ -667,5 +711,17 @@ export class AccountService extends BaseDataService {
       const settingsStr = JSON.stringify(this.data.localSettings);
       return this.storage.set(SETTINGS_STORAGE_KEY, settingsStr);
     }
+  }
+
+  public getValidators(field: AccountFieldDef): ValidatorFn | ValidatorFn[] {
+    let validatorFns: ValidatorFn[] = [];
+    if (field.required) {
+      validatorFns.push(Validators.required);
+    }
+    if (!!field.dataService) {
+      validatorFns.push(SharedValidators.entity);
+    }
+
+    return validatorFns.length ? Validators.compose(validatorFns) : validatorFns.length == 1 ? validatorFns[0] : undefined;
   }
 }

@@ -91,30 +91,9 @@
         <ion-spinner [ngClass]="{ 'center':true}" *ngIf="loading"></ion-spinner>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
+
     </ng-container>
 
-    <!-- Status column  -->
-    <ng-container matColumnDef="status">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>REFERENTIAL.STATUS</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatLabel="never">
-          <mat-select [formControl]="row.validator.controls['statusId']" [(ngModel)]="row.currentData.statusId">
-            <mat-select-trigger>
-              <ion-icon *ngIf="row.currentData.statusId &gt;=0" [name]="statusById[row.currentData.statusId].icon"></ion-icon>
-              <span *ngIf="row.currentData.statusId &gt;=0">{{statusById[row.currentData.statusId].label | translate}}</span>
-            </mat-select-trigger>
-            <mat-option *ngFor="let status of statusList" [value]="status.id">
-              <ion-icon [name]="status.icon"></ion-icon>
-              {{ status.label |translate }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="row.validator.controls['statusId'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-
-        </mat-form-field>
-      </mat-cell>
-    </ng-container>
 
     <!-- Label column -->
     <ng-container matColumnDef="label">
@@ -127,6 +106,8 @@
             [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [(ngModel)]="row.currentData.label">
           <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
+
+        {{row.currentData.label}}
       </mat-cell>
     </ng-container>
 
@@ -139,8 +120,8 @@
         <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['name']" [readonly]="!row.editing" [(ngModel)]="row.currentData.name">
           <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-
         </mat-form-field>
+        {{row.currentData.name}}
       </mat-cell>
     </ng-container>
 
@@ -155,6 +136,29 @@
             <mat-option *ngFor="let level of levels | async" [value]="level.id">{{ level.label }} - {{ level.name }}</mat-option>
           </mat-select>
           <mat-error *ngIf="row.validator.controls['levelId'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Status column  -->
+    <ng-container matColumnDef="status">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>REFERENTIAL.STATUS</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
+        <mat-form-field floatLabel="never">
+          <mat-select [formControl]="row.validator.controls.statusId" [(ngModel)]="row.currentData.statusId">
+            <mat-select-trigger>
+              <ion-icon *ngIf="row.currentData.statusId &gt;=0" [name]="statusById[row.currentData.statusId].icon"></ion-icon>
+              <span *ngIf="row.currentData.statusId &gt;=0">{{statusById[row.currentData?.statusId].label |
+                translate}}</span>
+            </mat-select-trigger>
+            <mat-option *ngFor="let status of statusList" [value]="status.id">
+              <ion-icon [name]="status.icon"></ion-icon>
+              {{ status.label |translate }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="row.validator.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-cell>
     </ng-container>

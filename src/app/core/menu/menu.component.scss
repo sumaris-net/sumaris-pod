@@ -1,4 +1,5 @@
 @import 'core';
+
 .no-profile-header .scroll-content {
   margin-top: 79px !important;
 }
@@ -12,13 +13,13 @@
 }
 
 .user-avatar {
-  color: #d9d9d9;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+  background-color: ion-color(secondary, base);
   border: solid 1px ion-color(primary, base);
   overflow: hidden !important;
   font-size: 80px !important;

@@ -1,17 +1,21 @@
 import { Component, EventEmitter, Output, ViewChild, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators, FormControl, AbstractControl, ValidationErrors, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
-import { RegisterData, AccountService } from "../../services/account.service";
-import { Account } from "../../services/model";
+import { RegisterData, AccountService, AccountFieldDef } from "../../services/account.service";
+import { Account, referentialToString, Entity } from "../../services/model";
 import { MatHorizontalStepper } from "@angular/material";
-import { Observable, Subscription } from "rxjs-compat";
+import { Observable, Subscription } from "rxjs";
 
 
 @Component({
   selector: 'form-register',
-  templateUrl: 'form-register.html'
+  templateUrl: 'form-register.html',
+  styleUrls: ['./form-register.scss']
 })
 export class RegisterForm implements OnInit {
 
+  protected debug = false;
+
+  additionalFields: AccountFieldDef[];
   form: FormGroup;
   forms: FormGroup[];
   subscriptions: Subscription[] = [];
@@ -30,19 +34,33 @@ export class RegisterForm implements OnInit {
     private accountService: AccountService,
     public formBuilder: FormBuilder
   ) {
+
+    this.additionalFields = this.accountService.additionalAccountFields;
+
     this.forms = [];
+    // Email form
     this.forms.push(formBuilder.group({
       email: new FormControl(null, Validators.compose([Validators.required, Validators.email]), this.emailAvailability(this.accountService)),
       confirmEmail: new FormControl(null, Validators.compose([Validators.required, this.equalsValidator('email')]))
     }));
+
+    // Password form
     this.forms.push(formBuilder.group({
       password: new FormControl(null, Validators.compose([Validators.required, Validators.minLength(8)])),
       confirmPassword: new FormControl(null, Validators.compose([Validators.required, this.equalsValidator('password')]))
     }));
-    this.forms.push(formBuilder.group({
+
+    // Detail form
+    const formDetailDef = {
       lastName: new FormControl(null, Validators.compose([Validators.required, Validators.minLength(2)])),
       firstName: new FormControl(null, Validators.compose([Validators.required, Validators.minLength(2)]))
-    }));
+    };
+    this.additionalFields.forEach(field => {
+      if (this.debug) console.debug("[register-form] Add additional field {" + field.name + "} to form", field);
+      formDetailDef[field.name] = new FormControl(null, this.accountService.getValidators(field));
+    });
+
+    this.forms.push(formBuilder.group(formDetailDef));
 
     this.form = formBuilder.group({
       emailStep: this.forms[0],
@@ -52,21 +70,23 @@ export class RegisterForm implements OnInit {
   }
 
   ngOnInit() {
+
     // For DEV only
-    /*this.form.setValue({
+    this.form.setValue({
       emailStep: {
         email: 'contact@e-is.pro',
         confirmEmail: 'contact@e-is.pro'
       },
-      passwordStep:{
+      passwordStep: {
         password: 'contactera',
         confirmPassword: 'contactera'
       },
       detailsStep: {
         lastName: 'Lavenier 2',
-        firstName: 'Benoit'
+        firstName: 'Benoit',
+        department: null
       }
-    });*/
+    });
   }
 
   public get value(): RegisterData {
@@ -77,6 +97,17 @@ export class RegisterForm implements OnInit {
     };
     result.account.fromObject(this.form.value.detailsStep);
     result.account.email = result.username;
+
+    // this.additionalFields
+    //   .filter(f => !!f.dataService)
+    //   .forEach(f => {
+    //     const value = result.account[f.name];
+    //     if (value && value instanceof Entity && value.id !== undefined) {
+    //       result.account[f.name] = { id: value.id };
+    //     }
+
+    //   });
+
     return result;
   }
 
@@ -135,4 +166,5 @@ export class RegisterForm implements OnInit {
     this.onSubmit.emit(this.value);
   }
 
+  referentialToString = referentialToString;
 }

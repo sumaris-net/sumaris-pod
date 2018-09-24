@@ -100,7 +100,11 @@ const SaveReferentials: any = gql`
     saveReferentials(entityName: $entityName, referentials: $referentials){
       id
       label
+      name
       updateDate
+      creationDate
+      statusId
+      levelId
       entityName
     }
   }
@@ -113,14 +117,14 @@ const DeleteReferentials: any = gql`
 `;
 
 @Injectable()
-export class ReferentialService extends BaseDataService implements DataService<Referential, ReferentialFilter>{
+export class ReferentialService extends BaseDataService implements DataService<Referential, ReferentialFilter> {
 
   constructor(
     protected apollo: Apollo,
     protected accountService: AccountService
   ) {
     super(apollo);
-    //this._debug = true;
+    this._debug = true;
   }
 
   loadAll(offset: number,

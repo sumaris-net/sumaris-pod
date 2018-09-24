@@ -10,6 +10,7 @@ export const environment: Environment = {
     baseUrl: '/',
     remoteBaseUrl: "http://localhost:8080",
     defaultLocale: "en",
+    defaultLatLongFormat: 'DDMM',
     version: pkg.version as string,
     defaultProgram: "SUMARiS",
     apolloFetchPolicy: 'cache-first'

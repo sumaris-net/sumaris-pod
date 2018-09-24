@@ -2,9 +2,10 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { AccountService } from './services/account.service';
+import { AccountService, AccountFieldDef } from './services/account.service';
 import { AuthGuardService } from './services/auth-guard.service';
 import { CryptoService } from './services/crypto.service';
+import { DataService } from './services/data-service.class';
 import { AuthForm } from './auth/form/form-auth';
 import { AuthModal } from './auth/modal/modal-auth';
 import { AboutModal } from './about/modal-about';
@@ -40,8 +41,11 @@ import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-transla
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 
-export { environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent, AccountService, AuthGuardService, FormMetadataComponent, FormButtonsBarComponent }
-
+export {
+    environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
+    AccountService, AccountFieldDef, DataService,
+    AuthGuardService, FormMetadataComponent, FormButtonsBarComponent
+}
 
 export function HttpLoaderFactory(http: HttpClient) {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');

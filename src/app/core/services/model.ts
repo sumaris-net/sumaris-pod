@@ -54,6 +54,14 @@ export function joinProperties(obj: any, properties: String[], separator?: strin
   }, "");
 }
 
+export function entityToString(obj: Entity<any> | any, properties?: String[]): string | undefined {
+  return obj && obj.id && joinProperties(obj, properties || ['name']) || undefined;
+}
+
+export function referentialToString(obj: Referential | any, properties?: String[]): string | undefined {
+  return obj && obj.id && joinProperties(obj, properties || ['label', 'name']) || undefined;
+}
+
 export abstract class Entity<T> implements Cloneable<T> {
   id: number;
   updateDate: Date | Moment;
@@ -142,7 +150,7 @@ export class Referential extends Entity<Referential>  {
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
-    this.levelId = source.levelId;
+    this.levelId = source.levelId && source.levelId !== 0 ? source.levelId : undefined; // Do not set as null (need for account.department, when regsiter)
     this.parentId = source.parentId;
     this.creationDate = fromDateISOString(source.creationDate);
     this.entityName = source.entityName;
@@ -164,12 +172,12 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
   avatar: string;
   creationDate: Date | Moment;
   statusId: number;
-  department: Referential;
+  department: Department;
   profiles: Referential[];
 
   constructor() {
     super();
-    this.department = new Referential();
+    this.department = new Department();
   }
 
   clone(): Person {
@@ -229,9 +237,16 @@ export class Department extends Referential implements Cloneable<Department>{
     return target;
   }
 
+  asObject(): any {
+    const target: any = super.asObject();
+    delete target.entityName;
+    return target;
+  }
+
   fromObject(source: any): Department {
     super.fromObject(source);
     this.logo = source.logo;
+    delete this.entityName; // not need 
     return this;
   }
 }

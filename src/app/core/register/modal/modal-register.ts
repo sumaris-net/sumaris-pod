@@ -22,20 +22,22 @@ export class RegisterModal {
     this.viewCtrl.dismiss();
   }
 
-  doSubmit(event?: any) {
+  async doSubmit(event?: any) {
     if (!this.form.valid || !this.form.isEnd()) return;
 
     this.sending = true;
     let data = this.form.value;
 
-    this.accountService.register(data)
-      .then(() => {
-        console.debug('[register] account registered. Closing modal...');
-        return this.viewCtrl.dismiss();
-      })
-      .catch(err => {
-        this.form.error = err && err.message || err;
-        this.sending = false;
-      });
+    try {
+      console.debug('[register] Sending resgistration...', data);
+      const res = await this.accountService.register(data);
+
+      console.debug('[register] account registered. Closing modal...');
+      await this.viewCtrl.dismiss();
+    }
+    catch (err) {
+      this.form.error = err && err.message || err;
+      this.sending = false;
+    };
   }
 }

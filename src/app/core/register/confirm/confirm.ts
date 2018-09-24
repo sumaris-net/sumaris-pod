@@ -39,39 +39,37 @@ export class RegisterConfirmPage implements OnDestroy {
     this.subscriptions = [];
   }
 
-  doConfirm(email: String, code: String) {
+  async doConfirm(email: String, code: String) {
     this.email = email;
 
     if (!code) {
       this.loading = false;
-      this.error = null;
+      this.error = undefined;
       return;
     }
 
-    if (this.accountService.isLogin()) {
-      let emailAccount = this.accountService.account && this.accountService.account.email
-      if (email != emailAccount) {
-        // Not same email => logout, then retry
-        return this.accountService.logout()
-          .then(() => this.doConfirm(email, code));
-      }
-    }
-
-    // Send the confirmation code
-    this.accountService.confirmEmail(email, code)
-      .then(confirmed => {
-        if (confirmed && this.isLogin) {
-          return this.accountService.refresh();
+    try {
+      if (this.accountService.isLogin()) {
+        let emailAccount = this.accountService.account && this.accountService.account.email;
+        if (email != emailAccount) {
+          // Not same email => logout, then retry
+          await this.accountService.logout()
+          return this.doConfirm(email, code);
         }
-      })
-      .then(() => {
-        this.loading = false;
-        //this.location.replaceState("/confirm/" + email + "/");
-      })
-      .catch(err => {
-        this.error = err && err.message || err;
-        this.loading = false;
-      });
+      }
+
+      // Send the confirmation code
+      const confirmed = await this.accountService.confirmEmail(email, code);
+      if (confirmed && this.isLogin) {
+        await this.accountService.refresh();
+      }
+      this.loading = false;
+      //this.location.replaceState("/confirm/" + email + "/");
+    }
+    catch (err) {
+      this.error = err && err.message || err;
+      this.loading = false;
+    };
 
   }
 }

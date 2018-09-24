@@ -13,6 +13,7 @@ import { ToolbarComponent } from './toolbar/toolbar';
 import { MatDateTime } from './material/material.datetime';
 import { MatLatLong } from './material/material.latlong';
 import { MatBooleanField } from './material/material.boolean';
+import { MatAutocompleteField } from './material/material.autocomplete';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TextMaskModule } from 'angular2-text-mask';
 
@@ -34,7 +35,8 @@ import { TextMaskModule } from 'angular2-text-mask';
         HighlightPipe,
         MatDateTime,
         MatLatLong,
-        MatBooleanField
+        MatBooleanField,
+        MatAutocompleteField
     ],
     exports: [
         MaterialModule,
@@ -50,7 +52,8 @@ import { TextMaskModule } from 'angular2-text-mask';
         TranslateModule,
         MatDateTime,
         MatLatLong,
-        MatBooleanField
+        MatBooleanField,
+        MatAutocompleteField
     ],
     providers: [
         DateFormatPipe,

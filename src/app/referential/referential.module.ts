@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from "@ionic/angular";
 import { CoreModule } from '../core/core.module';
 import { VesselService } from './services/vessel-service';
 import { VesselValidatorService } from './vessel/validator/validators';
@@ -11,7 +10,6 @@ import { VesselPage } from "./vessel/page/page-vessel";
 import { VesselsPage } from "./vessel/list/vessels";
 import { VesselModal } from "./vessel/modal/modal-vessel";
 import { ReferentialsPage } from './list/referentials';
-import { DateFormatPipe } from '../shared/pipes/date-format.pipe';
 import { vesselFeaturesToString, referentialToString } from './services/model';
 
 export { VesselModal, VesselService, ReferentialService, vesselFeaturesToString, referentialToString }
@@ -21,7 +19,6 @@ export { VesselModal, VesselService, ReferentialService, vesselFeaturesToString,
         CommonModule,
         CoreModule
     ],
-
     declarations: [
         VesselPage,
         VesselsPage,
