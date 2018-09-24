@@ -25,13 +25,17 @@ package net.sumaris.server.http.graphql;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import graphql.*;
+import graphql.ExceptionWhileDataFetching;
+import graphql.ExecutionResult;
+import graphql.GraphQLError;
+import graphql.GraphQLException;
 import graphql.execution.AbortExecutionException;
 import graphql.execution.ExecutionPath;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import net.sumaris.server.exception.ErrorCodes;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,13 +62,13 @@ public class GraphQLHelper {
             try {
                 return objectMapper.readValue(variableStr, Map.class);
             } catch (IOException e) {
-                throw new SumarisTechnicalException(e);
+                throw new SumarisTechnicalException(ErrorCodes.INVALID_QUERY_VARIABLES, e);
             }
         } else if (variablesObj instanceof Map) {
             return (Map<String, Object>) variablesObj;
         }
         else {
-            throw new SumarisTechnicalException("Unabmle to read param [variables] from the GraphQL request");
+            throw new SumarisTechnicalException(ErrorCodes.INVALID_QUERY_VARIABLES, "Unable to read param [variables] from the GraphQL request");
         }
     }
 
@@ -81,11 +85,11 @@ public class GraphQLHelper {
                 Throwable baseException = getSqlExceptionCause(exError.getException());
                 if (baseException instanceof SumarisBusinessException) {
                     SumarisBusinessException exception = (SumarisBusinessException) baseException;
-                    error = new AbortExecutionException(String.format("{code: %s, message: %s}", exception.getCode(), baseException.getMessage());
+                    error = new AbortExecutionException(String.format("{\"code\": %s, \"message\": \"%s\"}", exception.getCode(), baseException.getMessage()));
                 }
                 else if (baseException instanceof SumarisTechnicalException) {
                     SumarisTechnicalException exception = (SumarisTechnicalException) baseException;
-                    error = new AbortExecutionException(String.format("{code: %s, message: %s}", exception.getCode(), baseException.getMessage());
+                    error = new AbortExecutionException(String.format("{\"code\": %s, \"message\": \"%s\"}", exception.getCode(), baseException.getMessage()));
                 }
                 else {
                     error = new ExceptionWhileDataFetching(ExecutionPath.fromList(exError.getPath()),

@@ -25,6 +25,8 @@ package net.sumaris.core.exception;
  */
 
 
+import net.sumaris.shared.exception.ErrorCodes;
+
 /**
  * Technical exception
  *
@@ -32,7 +34,7 @@ package net.sumaris.core.exception;
  */
 public class SumarisTechnicalException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ErrorCodes.UNEXPECTED_ERROR;
 
 	private int code = -1;
 	/**
@@ -64,6 +66,15 @@ public class SumarisTechnicalException extends RuntimeException {
 	public SumarisTechnicalException(int code, Throwable cause) {
 		super(cause);
 		this.code = code;
+	}
+
+	/**
+	 * <p>Constructor for SumarisTechnicalException.</p>
+	 *
+	 * @param cause a {@link Throwable} object.
+	 */
+	public SumarisTechnicalException(Throwable cause) {
+		super(cause);
 	}
 
 	public int getCode() {

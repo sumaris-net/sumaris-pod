@@ -32,7 +32,7 @@ public abstract class SumarisBusinessException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
-	protected int code = -1;
+	protected int code;
 
 	/**
 	 * <p>Constructor for SumarisBusinessException.</p>

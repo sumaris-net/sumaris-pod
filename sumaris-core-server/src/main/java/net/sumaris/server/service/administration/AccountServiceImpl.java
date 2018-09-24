@@ -36,6 +36,7 @@ import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
+import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import net.sumaris.server.service.crypto.ServerCryptoService;
 import org.apache.commons.logging.Log;
@@ -99,7 +100,7 @@ public class AccountServiceImpl implements AccountService {
             try {
                 this.mailFromAddress = new InternetAddress(mailFrom);
             } catch (AddressException e) {
-                throw new SumarisTechnicalException(I18n.t("sumaris.error.email.invalid", mailFrom, e.getMessage()), e);
+                throw new SumarisTechnicalException(ErrorCodes.INVALID_EMAIL, I18n.t("sumaris.error.email.invalid", mailFrom, e.getMessage()), e);
             }
         }
 
@@ -144,7 +145,7 @@ public class AccountServiceImpl implements AccountService {
         BeanUtils.copyProperties(account, filter);
         List<PersonVO> duplicatedPersons = personDao.findByFilter(filter, 0, 2, null, null);
         if (CollectionUtils.isNotEmpty(duplicatedPersons)) {
-            throw new SumarisTechnicalException(I18n.t("sumaris.error.account.register.duplicatedPerson"));
+            throw new SumarisTechnicalException(ErrorCodes.ACCOUNT_ALREADY_EXISTS, I18n.t("sumaris.error.account.register.duplicatedPerson"));
         }
 
         // Generate confirmation code
@@ -292,7 +293,7 @@ public class AccountServiceImpl implements AccountService {
         try {
             new InternetAddress(account.getEmail());
         } catch (AddressException e) {
-            throw new SumarisTechnicalException(I18n.t("sumaris.error.email.invalid", account.getEmail(), e.getMessage()), e);
+            throw new SumarisTechnicalException(ErrorCodes.INVALID_EMAIL, I18n.t("sumaris.error.email.invalid", account.getEmail(), e.getMessage()), e);
         }
 
         // Check settings and settings.locale
@@ -342,7 +343,7 @@ public class AccountServiceImpl implements AccountService {
                 emailService.send(email);
             }
             catch(AddressException e) {
-                throw new SumarisTechnicalException(I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
+                throw new SumarisTechnicalException(ErrorCodes.SERVER_INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
             }
         }
     }

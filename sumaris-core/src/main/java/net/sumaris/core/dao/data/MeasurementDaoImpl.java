@@ -27,6 +27,7 @@ import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
@@ -513,7 +514,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     protected void valueToEntity(Object value, int pmfmId, IMeasurementEntity target) {
 
         if (value == null) {
-            throw new SumarisTechnicalException("Unable to set value NULL value on a measurement");
+            throw new SumarisTechnicalException(ErrorCodes.INVALID_DATA, "Unable to set value NULL value on a measurement");
         }
 
         PmfmVO pmfm = pmfmDao.get(pmfmId);
@@ -546,7 +547,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 break;
             default:
                 // Unknown type
-                throw new SumarisTechnicalException(String.format("Unable to set measurement value {%s} for the type {%s}", value, type.name().toLowerCase()));
+                throw new SumarisTechnicalException(ErrorCodes.UNEXPECTED_ERROR, String.format("Unable to set measurement value {%s} for the type {%s}", value, type.name().toLowerCase()));
         }
     }
 
@@ -574,7 +575,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 return source.getNumericalValue();
             default:
                 // Unknown type
-                throw new SumarisTechnicalException(String.format("Unable to read measurement's value for the type {%s}. Measurement id=%s", type.name().toLowerCase(), source.getId()));
+                throw new SumarisTechnicalException(ErrorCodes.UNEXPECTED_ERROR, String.format("Unable to read measurement's value for the type {%s}. Measurement id=%s", type.name().toLowerCase(), source.getId()));
         }
     }
 
