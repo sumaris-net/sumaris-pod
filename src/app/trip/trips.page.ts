@@ -12,7 +12,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { VesselService, ReferentialService, vesselFeaturesToString, referentialToString } from "../referential/referential.module";
-import { RESERVED_END_COLUMNS } from "../core/table/table.class";
+import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../core/table/table.class";
 
 @Component({
   selector: 'page-trips',
@@ -43,7 +43,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   ) {
 
     super(route, router, platform, location, modalCtrl, accountService,
-      RESERVED_END_COLUMNS
+      RESERVED_START_COLUMNS
         .concat([
           'vessel',
           'departureLocation',
