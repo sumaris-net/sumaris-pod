@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.batch.BatchDao;
-import net.sumaris.core.model.data.batch.BatchQuantitifcationMeasurement;
+import net.sumaris.core.model.data.batch.BatchQuantificationMeasurement;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
@@ -66,7 +66,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
         // Measurement: weight
         MeasurementVO weightMeasurement = new MeasurementVO();
         weightMeasurement.setPmfmId(dbResource.getFixtures().getPmfmBatchWeight()); // landing weight
-        weightMeasurement.setEntityName(BatchQuantitifcationMeasurement.class.getSimpleName());
+        weightMeasurement.setEntityName(BatchQuantificationMeasurement.class.getSimpleName());
 
         batch.setQuantificationMeasurements(ImmutableList.of(weightMeasurement));
 

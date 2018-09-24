@@ -22,11 +22,14 @@ package net.sumaris.core.exception;
  * #L%
  */
 
+import net.sumaris.shared.exception.ErrorCodes;
+
 /**
  * @author benoit.lavenier@e-is.pro
  */
 public class DataLockedException extends SumarisTechnicalException {
 
+    public static final int ERROR_CODE = ErrorCodes.DATA_LOCKED;
 
     /**
      * <p>Constructor for DataLockedException.</p>
@@ -34,7 +37,7 @@ public class DataLockedException extends SumarisTechnicalException {
      * @param message a {@link String} object.
      */
     public DataLockedException(String message) {
-        super(message);
+        super(ERROR_CODE, message);
     }
 
     /**
@@ -44,7 +47,7 @@ public class DataLockedException extends SumarisTechnicalException {
      * @param cause a {@link Throwable} object.
      */
     public DataLockedException(String message, Throwable cause) {
-        super(message, cause);
+        super(ERROR_CODE, message, cause);
     }
 
     /**
@@ -53,6 +56,6 @@ public class DataLockedException extends SumarisTechnicalException {
      * @param cause a {@link Throwable} object.
      */
     public DataLockedException(Throwable cause) {
-        super(cause);
+        super(ERROR_CODE, cause);
     }
 }

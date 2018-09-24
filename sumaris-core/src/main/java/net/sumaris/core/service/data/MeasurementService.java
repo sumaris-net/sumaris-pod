@@ -27,6 +27,7 @@ import net.sumaris.core.vo.data.MeasurementVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author BLA
@@ -37,14 +38,28 @@ import java.util.List;
 @Transactional
 public interface MeasurementService {
 
+    @Transactional(readOnly = true)
     List<MeasurementVO> getVesselUseMeasurementsByTripId(int tripId);
 
+    @Transactional(readOnly = true)
     List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId);
 
+    @Transactional(readOnly = true)
     List<MeasurementVO> getVesselUseMeasurementsByOperationId(int operationId);
 
+    @Transactional(readOnly = true)
     List<MeasurementVO> getGearUseMeasurementsByOperationId(int operationId);
 
+    @Transactional(readOnly = true)
     List<MeasurementVO> getSampleMeasurements(int sampleId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, Object> getSampleMeasurementsMap(int sampleId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, Object> getBatchSortingMeasurementsMap(int batchId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, Object> getBatchQuantificationMeasurementsMap(int batchId);
 
 }

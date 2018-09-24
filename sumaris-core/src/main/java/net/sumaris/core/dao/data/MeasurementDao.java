@@ -41,6 +41,13 @@ public interface MeasurementDao {
 
     List<MeasurementVO> getSampleMeasurements(int sampleId);
 
+    Map<Integer, Object> getSampleMeasurementsMap(int sampleId);
+
+    Map<Integer, Object> getBatchSortingMeasurementsMap(int batchId);
+
+    Map<Integer, Object> getBatchQuantificationMeasurementsMap(int batchId);
+
+
     <T extends IMeasurementEntity> MeasurementVO toMeasurementVO(T measurement);
 
     <T extends IMeasurementEntity> List<MeasurementVO> saveMeasurements(

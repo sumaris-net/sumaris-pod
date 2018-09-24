@@ -26,13 +26,16 @@ import net.sumaris.core.exception.SumarisBusinessException;
 
 public class InvalidEmailConfirmationException extends SumarisBusinessException {
 
+    public static final int ERROR_CODE = ErrorCodes.INVALID_EMAIL_CONFIRMATION;
+
+
     /**
      * <p>Constructor for InvalidEmailConfirmationException.</p>
      *
      * @param message a {@link String} object.
      */
     public InvalidEmailConfirmationException(String message) {
-        super(message);
+        super(ERROR_CODE, message);
     }
 
     /**
@@ -42,7 +45,7 @@ public class InvalidEmailConfirmationException extends SumarisBusinessException 
      * @param cause a {@link Throwable} object.
      */
     public InvalidEmailConfirmationException(String message, Throwable cause) {
-        super(message, cause);
+        super(ERROR_CODE, message, cause);
     }
 
     /**
@@ -51,6 +54,6 @@ public class InvalidEmailConfirmationException extends SumarisBusinessException 
      * @param cause a {@link Throwable} object.
      */
     public InvalidEmailConfirmationException(Throwable cause) {
-        super(cause);
+        super(ERROR_CODE, cause);
     }
 }

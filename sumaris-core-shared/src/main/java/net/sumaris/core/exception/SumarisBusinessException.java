@@ -28,17 +28,20 @@ package net.sumaris.core.exception;
 /**
  * <p>SumarisBusinessException class.</p>
  */
-public class SumarisBusinessException extends RuntimeException {
+public abstract class SumarisBusinessException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
+	protected int code = -1;
+
 	/**
 	 * <p>Constructor for SumarisBusinessException.</p>
 	 *
 	 * @param message a {@link String} object.
 	 */
-	public SumarisBusinessException(String message) {
+	public SumarisBusinessException(int code, String message) {
 		super(message);
+		this.code = code;
 	}
 
 	/**
@@ -47,8 +50,9 @@ public class SumarisBusinessException extends RuntimeException {
 	 * @param message a {@link String} object.
 	 * @param cause a {@link Throwable} object.
 	 */
-	public SumarisBusinessException(String message, Throwable cause) {
+	public SumarisBusinessException(int code, String message, Throwable cause) {
 		super(message, cause);
+		this.code = code;
 	}
 
 	/**
@@ -56,7 +60,12 @@ public class SumarisBusinessException extends RuntimeException {
 	 *
 	 * @param cause a {@link Throwable} object.
 	 */
-	public SumarisBusinessException(Throwable cause) {
+	public SumarisBusinessException(int code, Throwable cause) {
 		super(cause);
+		this.code = code;
+	}
+
+	public int getCode() {
+		return this.code;
 	}
 }

@@ -37,8 +37,8 @@ import java.util.List;
 @Transactional
 public interface PhysicalGearService {
 
+	@Transactional(readOnly = true)
 	List<PhysicalGearVO> getPhysicalGearByTripId(int tripId);
-
 
 	List<PhysicalGearVO> save(int tripId, List<PhysicalGearVO> sources);
 }

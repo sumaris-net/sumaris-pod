@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service("measurementService")
 public class MeasurementServiceImpl implements MeasurementService {
@@ -65,4 +66,18 @@ public class MeasurementServiceImpl implements MeasurementService {
 		return measurementDao.getSampleMeasurements(sampleId);
 	}
 
+	@Override
+	public Map<Integer, Object> getSampleMeasurementsMap(int sampleId) {
+		return measurementDao.getSampleMeasurementsMap(sampleId);
+	}
+
+	@Override
+	public Map<Integer, Object> getBatchSortingMeasurementsMap(int batchId) {
+		return measurementDao.getBatchSortingMeasurementsMap(batchId);
+	}
+
+	@Override
+	public Map<Integer, Object> getBatchQuantificationMeasurementsMap(int batchId) {
+		return measurementDao.getBatchQuantificationMeasurementsMap(batchId);
+	}
 }

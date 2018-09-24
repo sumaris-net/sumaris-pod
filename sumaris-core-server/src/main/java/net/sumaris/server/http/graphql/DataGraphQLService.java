@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -336,9 +337,23 @@ public class DataGraphQLService {
         return measurementService.getPhysicalGearMeasurements(physicalGear.getId());
     }
 
-    @GraphQLQuery(name = "measurements", description = "Get physical gear measurements")
+    @GraphQLQuery(name = "measurements", description = "Get sample measurements")
     public List<MeasurementVO> getSampleMeasurements(@GraphQLContext SampleVO sample) {
         return measurementService.getSampleMeasurements(sample.getId());
+    }
+
+    @GraphQLQuery(name = "measurementsValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, Object> getSampleMeasurementsMap(@GraphQLContext SampleVO sample) {
+        return measurementService.getSampleMeasurementsMap(sample.getId());
+    }
+
+    @GraphQLQuery(name = "sortingMeasurementsValues", description = "Get sorting measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, Object> getSortingMeasurementsMap(@GraphQLContext BatchVO sample) {
+        return measurementService.getBatchSortingMeasurementsMap(sample.getId());
+    }
+    @GraphQLQuery(name = "quantificationMeasurementsValues", description = "Get quantification measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, Object> getQuantificationMeasurementsMap(@GraphQLContext BatchVO sample) {
+        return measurementService.getBatchQuantificationMeasurementsMap(sample.getId());
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get measurement's pmfm")

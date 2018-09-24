@@ -91,9 +91,9 @@ public class Batch implements IDataEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<BatchSortingMeasurement> sortingMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchQuantitifcationMeasurement.class, mappedBy = BatchQuantitifcationMeasurement.PROPERTY_BATCH)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = BatchQuantificationMeasurement.class, mappedBy = BatchQuantificationMeasurement.PROPERTY_BATCH)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<BatchQuantitifcationMeasurement> quantificationMeasurements = new ArrayList<>();
+    private List<BatchQuantificationMeasurement> quantificationMeasurements = new ArrayList<>();
 
     /* -- parent entity -- */
 

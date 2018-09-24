@@ -83,6 +83,8 @@ public class UserSettingsDaoImpl extends HibernateDaoSupport implements UserSett
     @Override
     public UserSettingsVO save(UserSettingsVO source) {
         Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLocale(), "Missing 'settings.locale'");
+        Preconditions.checkNotNull(source.getLatLongFormat(), "Missing 'settings.latLongformat'");
 
         EntityManager entityManager = getEntityManager();
         UserSettings entity = null;

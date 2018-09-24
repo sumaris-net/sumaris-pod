@@ -23,12 +23,16 @@ package net.sumaris.core.exception;
  */
 
 
+import net.sumaris.shared.exception.ErrorCodes;
+
 import java.util.List;
 
 /**
  * Throw when a deletion is not allowed
  */
 public class DenyDeletionException extends SumarisTechnicalException {
+
+    public static final int ERROR_CODE = ErrorCodes.DENY_DELETION;
 
     private List<String> objectIds;
 
@@ -38,7 +42,7 @@ public class DenyDeletionException extends SumarisTechnicalException {
      * @param message a {@link String} object.
      */
     public DenyDeletionException(String message, List<String> objectIds) {
-        super(message);
+        super(ERROR_CODE, message);
         this.objectIds = objectIds;
     }
 
@@ -49,7 +53,7 @@ public class DenyDeletionException extends SumarisTechnicalException {
      * @param cause a {@link Throwable} object.
      */
     public DenyDeletionException(String message, List<String> objectIds, Throwable cause) {
-        super(message, cause);
+        super(ERROR_CODE, message, cause);
         this.objectIds = objectIds;
     }
 
@@ -59,7 +63,7 @@ public class DenyDeletionException extends SumarisTechnicalException {
      * @param cause a {@link Throwable} object.
      */
     public DenyDeletionException(Throwable cause) {
-        super(cause);
+        super(ERROR_CODE, cause);
     }
 
     public List<String> getObjectIds() {

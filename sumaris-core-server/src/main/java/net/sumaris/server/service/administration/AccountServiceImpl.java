@@ -281,10 +281,12 @@ public class AccountServiceImpl implements AccountService {
 
     protected void checkValid(AccountVO account) {
         Preconditions.checkNotNull(account);
-        Preconditions.checkNotNull(account.getPubkey(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.pubkey")));
-        Preconditions.checkNotNull(account.getEmail(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.email")));
-        Preconditions.checkNotNull(account.getFirstName(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.firstName")));
-        Preconditions.checkNotNull(account.getLastName(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.lastName")));
+        Preconditions.checkNotNull(account.getPubkey(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.pubkey")));
+        Preconditions.checkNotNull(account.getEmail(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.email")));
+        Preconditions.checkNotNull(account.getFirstName(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.firstName")));
+        Preconditions.checkNotNull(account.getLastName(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.lastName")));
+        Preconditions.checkNotNull(account.getDepartment(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.department")));
+        Preconditions.checkNotNull(account.getDepartment().getId(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.department")));
 
         // Check email
         try {
@@ -308,8 +310,8 @@ public class AccountServiceImpl implements AccountService {
         Preconditions.checkNotNull(settings);
         // Check settings and settings.locale
         Preconditions.checkNotNull(settings, I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.settings")));
-        Preconditions.checkNotNull(settings.getLocale(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.settings.locale")));
-        Preconditions.checkNotNull(settings.getLatLongFormat(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.account.settings.latLongFormat")));
+        Preconditions.checkNotNull(settings.getLocale(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.settings.locale")));
+        Preconditions.checkNotNull(settings.getLatLongFormat(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.settings.latLongFormat")));
     }
 
     private void sendConfirmationLinkByEmail(String toAddress, Locale locale) {

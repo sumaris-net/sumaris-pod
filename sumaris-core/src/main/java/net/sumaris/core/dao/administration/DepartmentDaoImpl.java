@@ -43,6 +43,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
 import java.util.List;
@@ -132,7 +134,7 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
             return entityManager.createQuery(query)
                     .setParameter(labelParam, label)
                     .getSingleResult();
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException | NoResultException e) {
             return null;
         }
     }
@@ -156,26 +158,10 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
 
         if (!isNew) {
             // Check update date
-            if (entity.getUpdateDate() != null) {
-                Timestamp serverUpdateDtNoMillisecond = Dates.resetMillisecond(entity.getUpdateDate());
-                Timestamp sourceUpdateDtNoMillisecond = Dates.resetMillisecond(source.getUpdateDate());
-                if (!Objects.equals(sourceUpdateDtNoMillisecond, serverUpdateDtNoMillisecond)) {
-                    throw new BadUpdateDateException(I18n.t("sumaris.persistence.error.badUpdateDate",
-                            I18n.t("sumaris.persistence.table.department"), source.getId(), serverUpdateDtNoMillisecond,
-                            sourceUpdateDtNoMillisecond));
-                }
-            }
+            checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
-            /*try {
-                Session.LockRequest lockRequest = entityManager.buildLockRequest(LockOptions.UPGRADE);
-                lockRequest.setLockMode(LockMode.UPGRADE_NOWAIT);
-                lockRequest.setScope(true); // cascaded to owned collections and relationships.
-                lockRequest.lock(entity);
-            } catch (LockTimeoutException e) {
-                throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
-                        I18n.t("sumaris.persistence.table.department"), source.getId()), e);
-            }*/
+            lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
         }
 
         departmentVOToEntity(source, entity, true);

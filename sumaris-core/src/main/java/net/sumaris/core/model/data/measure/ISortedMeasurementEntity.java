@@ -23,6 +23,7 @@ package net.sumaris.core.model.data.measure;
  */
 
 public interface ISortedMeasurementEntity extends IMeasurementEntity {
+
     String PROPERTY_RANK_ORDER = "rankOrder";
 
     Integer getRankOrder();

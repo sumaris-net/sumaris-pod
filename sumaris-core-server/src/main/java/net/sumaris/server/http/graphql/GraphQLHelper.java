@@ -26,7 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import graphql.*;
+import graphql.execution.AbortExecutionException;
 import graphql.execution.ExecutionPath;
+import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -77,10 +79,19 @@ public class GraphQLHelper {
             if (error instanceof ExceptionWhileDataFetching) {
                 ExceptionWhileDataFetching exError = (ExceptionWhileDataFetching)error;
                 Throwable baseException = getSqlExceptionCause(exError.getException());
-                error = new ExceptionWhileDataFetching(ExecutionPath.fromList(exError.getPath()),
-                        new GraphQLException(baseException.getMessage()),
-                        exError.getLocations().get(0));
-
+                if (baseException instanceof SumarisBusinessException) {
+                    SumarisBusinessException exception = (SumarisBusinessException) baseException;
+                    error = new AbortExecutionException(String.format("{code: %s, message: %s}", exception.getCode(), baseException.getMessage());
+                }
+                else if (baseException instanceof SumarisTechnicalException) {
+                    SumarisTechnicalException exception = (SumarisTechnicalException) baseException;
+                    error = new AbortExecutionException(String.format("{code: %s, message: %s}", exception.getCode(), baseException.getMessage());
+                }
+                else {
+                    error = new ExceptionWhileDataFetching(ExecutionPath.fromList(exError.getPath()),
+                            new GraphQLException(baseException.getMessage()),
+                            exError.getLocations().get(0));
+                }
             }
             Map<String, Object> newError = Maps.newLinkedHashMap();
             newError.put("message", error.getMessage());

@@ -26,6 +26,7 @@ import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.batch.Batch;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;
+import net.sumaris.core.model.data.measure.ISortedMeasurementEntity;
 import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
@@ -37,9 +38,10 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name="sorting_measurement_b")
-public class BatchSortingMeasurement implements IMeasurementEntity {
+public class BatchSortingMeasurement implements ISortedMeasurementEntity {
 
     public static final String PROPERTY_BATCH = "batch";
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

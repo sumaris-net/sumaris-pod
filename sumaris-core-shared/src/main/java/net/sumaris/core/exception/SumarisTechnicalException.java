@@ -34,13 +34,15 @@ public class SumarisTechnicalException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
+	private int code = -1;
 	/**
 	 * <p>Constructor for SumarisTechnicalException.</p>
 	 *
 	 * @param message a {@link String} object.
 	 */
-	public SumarisTechnicalException(String message) {
+	public SumarisTechnicalException(int code, String message) {
 		super(message);
+		this.code = code;
 	}
 
 	/**
@@ -49,8 +51,9 @@ public class SumarisTechnicalException extends RuntimeException {
 	 * @param message a {@link String} object.
 	 * @param cause a {@link Throwable} object.
 	 */
-	public SumarisTechnicalException(String message, Throwable cause) {
+	public SumarisTechnicalException(int code, String message, Throwable cause) {
 		super(message, cause);
+		this.code = code;
 	}
 
 	/**
@@ -58,7 +61,12 @@ public class SumarisTechnicalException extends RuntimeException {
 	 *
 	 * @param cause a {@link Throwable} object.
 	 */
-	public SumarisTechnicalException(Throwable cause) {
+	public SumarisTechnicalException(int code, Throwable cause) {
 		super(cause);
+		this.code = code;
+	}
+
+	public int getCode() {
+		return this.code;
 	}
 }

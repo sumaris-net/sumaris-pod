@@ -23,11 +23,14 @@ package net.sumaris.core.exception;
  */
 
 
+import net.sumaris.shared.exception.ErrorCodes;
+
 /**
  * @author benoit.lavenier@e-is.pro
  */
 public class BadUpdateDateException extends SumarisTechnicalException {
 
+    public static final int ERROR_CODE = ErrorCodes.BAD_UPDATE_DATE_EXCEPTION;
 
     /**
      * <p>Constructor for BadUpdateDtException.</p>
@@ -35,7 +38,7 @@ public class BadUpdateDateException extends SumarisTechnicalException {
      * @param message a {@link String} object.
      */
     public BadUpdateDateException(String message) {
-        super(message);
+        super(ERROR_CODE, message);
     }
 
     /**
@@ -45,7 +48,7 @@ public class BadUpdateDateException extends SumarisTechnicalException {
      * @param cause a {@link Throwable} object.
      */
     public BadUpdateDateException(String message, Throwable cause) {
-        super(message, cause);
+        super(ERROR_CODE, message, cause);
     }
 
     /**
@@ -54,6 +57,6 @@ public class BadUpdateDateException extends SumarisTechnicalException {
      * @param cause a {@link Throwable} object.
      */
     public BadUpdateDateException(Throwable cause) {
-        super(cause);
+        super(ERROR_CODE, cause);
     }
 }

@@ -30,6 +30,8 @@ import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.batch.BatchQuantificationMeasurement;
+import net.sumaris.core.model.data.batch.BatchSortingMeasurement;
 import net.sumaris.core.model.data.measure.*;
 import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.data.sample.SampleMeasurement;
@@ -73,6 +75,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         I18n.n("sumaris.persistence.table.vesselUseMeasurement");
         I18n.n("sumaris.persistence.table.gearUseMeasurement");
         I18n.n("sumaris.persistence.table.physicalGearMeasurement");
+        I18n.n("sumaris.persistence.table.sampleMeasurement");
+        I18n.n("sumaris.persistence.table.batchSortingMeasurement");
+        I18n.n("sumaris.persistence.table.batchQuantificationMeasurement");
     }
 
     @Autowired
@@ -130,6 +135,35 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         );
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<Integer, Object> getSampleMeasurementsMap(int sampleId) {
+        return getMeasurementsMapByParentId(SampleMeasurement.class,
+                SampleMeasurement.PROPERTY_SAMPLE,
+                sampleId,
+                SampleMeasurement.PROPERTY_RANK_ORDER
+        );
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<Integer, Object> getBatchSortingMeasurementsMap(int batchId) {
+        return getMeasurementsMapByParentId(BatchSortingMeasurement.class,
+                BatchSortingMeasurement.PROPERTY_BATCH,
+                batchId,
+                BatchSortingMeasurement.PROPERTY_RANK_ORDER
+        );
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<Integer, Object> getBatchQuantificationMeasurementsMap(int batchId) {
+        return getMeasurementsMapByParentId(BatchQuantificationMeasurement.class,
+                BatchQuantificationMeasurement.PROPERTY_BATCH,
+                batchId,
+                BatchQuantificationMeasurement.PROPERTY_ID
+        );
+    }
 
     @Override
     public <T extends IMeasurementEntity>  MeasurementVO toMeasurementVO(T source) {
@@ -378,6 +412,24 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                                                                                         String parentPropertyName,
                                                                                         int parentId,
                                                                                         String sortByPropertyName) {
+        TypedQuery<T> query = getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName);
+        return toMeasurementVOs(query.getResultList());
+    }
+
+    protected <T extends IMeasurementEntity> Map<Integer, Object> getMeasurementsMapByParentId(Class<T> entityClass,
+                                                                                           String parentPropertyName,
+                                                                                           int parentId,
+                                                                                           String sortByPropertyName) {
+        TypedQuery<T> query = getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName);
+        return toMeasurementsMap(query.getResultList());
+    }
+
+
+
+    protected <T extends IMeasurementEntity> TypedQuery<T> getMeasurementsByParentIdQuery(Class<T> entityClass,
+                                                                                           String parentPropertyName,
+                                                                                           int parentId,
+                                                                                           String sortByPropertyName) {
         Preconditions.checkNotNull(sortByPropertyName);
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
@@ -387,13 +439,12 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         ParameterExpression<Integer> idParam = builder.parameter(Integer.class);
 
         query.select(root)
-             .where(builder.equal(root.get(parentPropertyName).get(IRootDataEntity.PROPERTY_ID), idParam))
-             // Order byldev
-             .orderBy(builder.asc(root.get(sortByPropertyName)));
+                .where(builder.equal(root.get(parentPropertyName).get(IRootDataEntity.PROPERTY_ID), idParam))
+                // Order byldev
+                .orderBy(builder.asc(root.get(sortByPropertyName)));
 
-        TypedQuery<T> q = getEntityManager().createQuery(query)
+        return getEntityManager().createQuery(query)
                 .setParameter(idParam, parentId);
-        return toMeasurementVOs(q.getResultList());
     }
 
     protected <T extends IMeasurementEntity> List<MeasurementVO> toMeasurementVOs(List<T> source) {
@@ -402,6 +453,13 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
+
+    protected <T extends IMeasurementEntity> Map<Integer, Object> toMeasurementsMap(List<T> source) {
+        return source.stream()
+                .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null)
+                .collect(Collectors.toMap(m -> m.getPmfm().getId(), this::entityToValue));
+    }
+
 
     protected void measurementVOToEntity(MeasurementVO source, IMeasurementEntity target, boolean copyIfNull) {
 
@@ -487,7 +545,36 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 target.setNumericalValue(Double.parseDouble(value.toString()));
                 break;
             default:
-                throw new SumarisTechnicalException(String.format("Unable to set value {%s} for type {%s}", value, type.name().toLowerCase()));
+                // Unknown type
+                throw new SumarisTechnicalException(String.format("Unable to set measurement value {%s} for the type {%s}", value, type.name().toLowerCase()));
+        }
+    }
+
+    protected Object entityToValue(IMeasurementEntity source) {
+
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getPmfm());
+        Preconditions.checkNotNull(source.getPmfm().getId());
+
+        PmfmVO pmfm = pmfmDao.get(source.getPmfm().getId());
+
+        ParameterValueType type = ParameterValueType.fromPmfm(pmfm);
+        switch (type) {
+            case BOOLEAN:
+                return (source.getNumericalValue() != null && source.getNumericalValue().doubleValue() == 1d ? Boolean.TRUE : Boolean.FALSE);
+            case QUALITATIVE_VALUE:
+                // If get a object structure (e.g. ReferentialVO), try to get the id
+                return ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null) ? source.getQualitativeValue().getId() : null);
+            case STRING:
+            case DATE:
+                return source.getAlphanumericalValue();
+            case INTEGER:
+                return ((source.getNumericalValue() != null) ? new Integer(source.getNumericalValue().intValue()) : null);
+            case DOUBLE:
+                return source.getNumericalValue();
+            default:
+                // Unknown type
+                throw new SumarisTechnicalException(String.format("Unable to read measurement's value for the type {%s}. Measurement id=%s", type.name().toLowerCase(), source.getId()));
         }
     }
 

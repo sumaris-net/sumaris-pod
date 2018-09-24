@@ -55,6 +55,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -231,10 +232,10 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
     @Override
     public PersonVO save(PersonVO source) {
         Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getEmail());
-        Preconditions.checkNotNull(source.getStatusId());
-        Preconditions.checkNotNull(source.getDepartment());
-        Preconditions.checkNotNull(source.getDepartment().getId());
+        Preconditions.checkNotNull(source.getEmail(), "Missing 'email'");
+        Preconditions.checkNotNull(source.getStatusId(), "Missing 'statusId'");
+        Preconditions.checkNotNull(source.getDepartment(), "Missing 'department'");
+        Preconditions.checkNotNull(source.getDepartment().getId(), "Missing 'department.id'");
 
         EntityManager entityManager = getEntityManager();
         Person entity = null;
@@ -248,23 +249,13 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
 
         if (!isNew) {
             // Check update date
-            if (entity.getUpdateDate() != null) {
-                Timestamp serverUpdateDtNoMillisecond = Dates.resetMillisecond(entity.getUpdateDate());
-                Timestamp sourceUpdateDtNoMillisecond = Dates.resetMillisecond(source.getUpdateDate());
-                if (!Objects.equals(sourceUpdateDtNoMillisecond, serverUpdateDtNoMillisecond)) {
-                    throw new BadUpdateDateException(I18n.t("sumaris.persistence.error.badUpdateDate",
-                            I18n.t("sumaris.persistence.table.person"), source.getId(), serverUpdateDtNoMillisecond,
-                            sourceUpdateDtNoMillisecond));
-                }
-            }
+            checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
-            try {
-                entityManager.lock(entity, LockModeType.PESSIMISTIC_WRITE);
-            } catch (LockTimeoutException | PessimisticLockException e) {
-                throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
-                        I18n.t("sumaris.persistence.table.person"), source.getId()), e);
-            }
+            lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
+
+            // Force status to Temporary
+            source.setStatusId(config.getStatusIdTemporary());
         }
 
         personVOToEntity(source, entity, true);
@@ -402,7 +393,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
             return entityManager.createQuery(query)
                     .setParameter(pubkeyParam, pubkey)
                     .getSingleResult();
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException | NoResultException e) {
             return null;
         }
     }
