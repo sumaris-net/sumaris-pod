@@ -27,14 +27,25 @@
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
-    "DATE_PLACEHOLDER": "dd/mm/yyyy",
+    "DATE_PLACEHOLDER": "mm/dd/yyyy",
+
+    "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
+    "DDMM_PLACEHOLDER": "DD° MM.MMMMMM' N|S",
+    "DD_PLACEHOLDER": "+DD.DDDDDD°",
+    "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\" E|W",
+    "DDDMM_PLACEHOLDER": "DDD° MM.MMMMMM' E|W",
+    "DDD_PLACEHOLDER": "+DDD.DDDDDD°",
 
     "METADATA": "Metadata:",
 
-    "HOUR": "h",
-    "MINUTE": "min",
+    "DATE": "Date",
+    "HOUR": "Hour",
+    "MINUTE": "Minute",
     "HOUR_PLACEHOLDER": "hh",
     "MINUTE_PLACEHOLDER": "mm",
+
+    "YES": "yes",
+    "NO": "No",
 
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
@@ -105,7 +116,8 @@
     "SETTINGS": {
       "TITLE": "Settings",
       "DESCRIPTION": "Here are the possible settings for the use of the application:",
-      "LOCALE": "Language"
+      "LOCALE": "Language",
+      "LAT_LONG_FORMAT": "Latitude/longitude format"
     }
   },
   "USER": {
@@ -119,7 +131,7 @@
     "PROFILE": {
       "PROFILE_ADMIN": "Administrator",
       "PROFILE_OBSERVER": "Observer",
-      "PROFILE_USER": "Utilisateur"
+      "PROFILE_USER": "User"
     },
     "LIST": {
       "TITLE": "Users",
@@ -146,7 +158,8 @@
       "TITLE": "New fishing trip"
     },
     "EDIT": {
-      "TITLE": "Edit fishing trip"
+      "TITLE": "Edit fishing trip",
+      "OTHER_FEATURES": "Other features:"
     },
     "LIST": {
       "TITLE": "Fishing trips",
@@ -157,27 +170,82 @@
       }
     },
     "ERROR": {
+      "LOAD_TRIP_ERROR": "Error while loading the trip.",
       "LOAD_TRIPS_ERROR": "Error while loading trips.",
       "SAVE_TRIP_ERROR": "Error while saving the trip.",
       "SAVE_TRIPS_ERROR": "Error while saving trips."
     },
-    "OPERATION": {
-      "START_DATE_TIME": "Start",
-      "END_DATE_TIME": "End",
-      "FISHING_START_DATE_TIME": "Shooting",
-      "FISHING_END_DATE_TIME": "Towing",
+    "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
-      "ACTIONS": "Actions on row",
-      "START_POSITION": "Shooting GPS Position",
-      "END_POSITION": "Towing GPS Position"
+      "RANK_ORDER": "#",
+      "EDIT": {
+        "TITLE": "Gear #",
+        "GEAR": "Gear code",
+        "FEATURES": "Physical parameters:"
+      },
+      "LIST": {
+        "SELECT_ROW_HELP": "Select a row to edit it",
+        "GEAR": "Gear",
+        "COMMENTS": "Comments"
+      }
+    },
+    "OPERATION": {
+      "COMMENTS": "Comments",
+      "EDIT": {
+        "TITLE": "Operation",
+        "TAB_GENERAL": "Details",
+        "TAB_PHYSICAL_GEAR": "Use of gear",
+        "TAB_CATCH": "Catch",
+        "TAB_SURVIVAL_TEST": "Survival tests",
+        "TAB_INDIVIDUAL_MONITORING": "Individual monitoring",
+        "START": "Start of fishing:",
+        "END": "End of fishing:",
+        "GEAR_AND_TARGETED_SPECIES": "Gear / Target species:",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude",
+        "OTHER_FEATURES": "Other features:"
+      },
+      "LIST": {
+        "PHYSICAL_GEAR": "Used gear",
+        "METIER": "Metier",
+        "START_DATE_TIME": "Start",
+        "END_DATE_TIME": "End",
+        "FISHING_START_DATE_TIME": "Shooting",
+        "FISHING_END_DATE_TIME": "Towing",
+        "START_POSITION": "Shooting GPS Position",
+        "END_POSITION": "Towing GPS Position",
+        "COMMENTS": "Comments"
+      },
+      "ERROR": {
+        "LOAD_OPERATION_ERROR": "Error while loading the operation.",
+        "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
+        "SAVE_OPERATION_ERROR": "Error while saving the operation.",
+        "SAVE_OPERATIONS_ERROR": "Error while saving operations."
+      }
     },
     "CATCH": {
-      "EDIT": {
-        "ON_DECK": "On deck (for trawl):",
-        "SORTING": "Sorting priod:",
-        "START_DATE": "Start date",
-        "END_DATE": "End date",
-        "TOTAL_CATCH": "Total catch:"
+      "FORM": {
+        "ON_DECK": "On deck:",
+        "SORTING": "Start/end sorting:",
+        "TOTAL_CATCH": "Total cacth:"
+      }
+    },
+    "BATCH": {
+      "TABLE": {}
+    },
+    "INDIVIDUAL_LENGTH": {
+      "TABLE": {}
+    },
+    "SURVIVAL_TEST": {
+      "TABLE": {
+        "TAXON_GROUP": "FAO species",
+        "TAXON_GROUP_PLACEHOLDER": "FAO code",
+        "SAMPLE_DATE": "Time of scoring"
+      }
+    },
+    "INDIVIDUAL_MONITORING": {
+      "TABLE": {
+        "COMMENTS": "Comments"
       }
     }
   },
@@ -251,7 +319,8 @@
       "LOAD_REFERENTIALS_ERROR": "Error while loading referential data.",
       "LOAD_REFERENTIAL_ENTITIES_ERROR": "Error while loading referential types.",
       "DELETE_REFERENTIALS_ERROR": "Error while deleting referential data",
-      "LOAD_REFERENTIAL_LEVELS_ERROR": "Error while loading level for referential data."
+      "LOAD_REFERENTIAL_LEVELS_ERROR": "Error while loading level for referential data.",
+      "LOAD_PROGRAM_PMFMS_ERROR": "error while loading parameters collected by the program"
     },
     "LIST": {
       "TITLE": "Referentials",
@@ -261,26 +330,44 @@
       }
     },
     "ENTITY": {
+      "DEPARTMENT": "Organizations",
       "SALE_TYPE": "Sale type",
       "LOCATION": "Location",
       "LOCATION_LEVEL": "Location levels",
       "GEAR": "Gears",
       "GEAR_LEVEL": "Gear levels",
       "PARAMETER": "Parameters",
-      "USER_PROFILE": "User profiles"
+      "USER_PROFILE": "User profiles",
+      "VESSEL_TYPE": "Vessel types",
+      "PMFM": "Collected parameters",
+      "MATRIX": "Matrices",
+      "FRACTION": "Fractions",
+      "QUALITATIVE_VALUE": "Qualitatives values",
+      "TAXON_GROUP_TYPE": "Species group types",
+      "TAXON_GROUP": "Species groups",
+      "PROGRAM": "Data collection programmes",
+      "STRATEGY": "Collection strategies",
+      "ACQUISITION_LEVEL": "Acquisition levels",
+      "METIER": "Metiers"
     }
   },
   "ERROR": {
     "FIELD_REQUIRED": "This field is required.",
     "FIELD_TOO_SHORT": "This field value is too short.",
-    "FIELD_TOO_SHORT_WITH_LENGTH": "Value is too short (min {{minLength}} characters).",
+    "FIELD_TOO_SHORT_WITH_LENGTH": "Value is too short (min {{minLength]] characters).",
     "FIELD_TOO_LONG": "Value is exceeding max length.",
     "FIELD_TOO_LONG_WITH_LENGTH": "Value is too long (max {{maxLength}} characters).",
     "FIELD_MIN": "Minimal value: {{min}}",
     "FIELD_MAX": "Maximum value: {{max}}",
+    "FIELD_MAXIMUM_DECIMALS": "Invalid number of decimal ({{max}} max)",
+    "FIELD_INVALID": "Invalid value",
+    "FIELD_NOT_VALID_INTEGER": "Expected integer value",
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",
     "FIELD_NOT_VALID_DATE": "Invalid date",
-    "FIELD_NOT_VALID_DATE_TIME": "Invalid Date/hour",
+    "FIELD_NOT_VALID_HOUR_MINUTE": "Invalid hour/minute",
+    "FIELD_NOT_VALID_DATE_TIME": "Invalid date/hour",
+    "FIELD_NOT_VALID_LATITUDE": "Invalid latitude",
+    "FIELD_NOT_VALID_LONGITUDE": "Invalid longitude",
     "SPACE_NOT_ALLOW": "Spaces or special characters not allowed",
     "SCRYPT_ERROR": "Unable to create account keys",
     "UNKNOWN_ACCOUNT_EMAIL": "No account matches this email.",
@@ -289,6 +376,7 @@
     "UNKNOWN_NETWORK_ERROR": "Error communicating with the server.<br/>If the problem persists, please contact your administrator.",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<br/>If the problem persists, please contact your administrator.",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<br/>If the problem persists, please contact your administrator.",
+    "ACCOUNT_NOT_EXISTS": "Your account does not appear to exist and can not be backed up.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Error sending account confirmation email.<br/>If the problem persists, please contact your administrator.",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Error while confirming the email. This account may have already been confirmed?",
     "TABLE_INVALID_ROW_ERROR": "A row is invalid"

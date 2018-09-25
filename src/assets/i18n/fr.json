@@ -196,8 +196,8 @@
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",
-        "TAB_SURVIVAL_TEST": "Survival test",
-        "TAB_INDIVIDUAL_MONITORING": "Individual monitoring",
+        "TAB_SURVIVAL_TEST": "Tests de survie",
+        "TAB_INDIVIDUAL_MONITORING": "Suivi individuel",
         "START": "Début pêche :",
         "END": "Fin pêche :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
@@ -238,13 +238,9 @@
     },
     "SURVIVAL_TEST": {
       "TABLE": {
-        "TAXON_GROUP": "FAO species",
-        "TAXON_GROUP_PLACEHOLDER": "FAO code",
-        "SAMPLE_DATE": "Time of scoring",
-        "HEADER_GROUP": {
-          "R": "Reflex",
-          "D": "Injuries"
-        }
+        "TAXON_GROUP": "Espèce",
+        "TAXON_GROUP_PLACEHOLDER": "Code FAO",
+        "SAMPLE_DATE": "Heure du test"
       }
     },
     "INDIVIDUAL_MONITORING": {
@@ -343,7 +339,7 @@
       "PARAMETER": "Paramètres",
       "USER_PROFILE": "Profiles utilisateur",
       "VESSEL_TYPE": "Types de navire",
-      "PMFM": "Types de mesure",
+      "PMFM": "Paramètres collectés",
       "MATRIX": "Supports de mesure",
       "FRACTION": "Fractions du support",
       "QUALITATIVE_VALUE": "Valeurs qualitatives",
@@ -363,7 +359,7 @@
     "FIELD_TOO_LONG_WITH_LENGTH": "Valeur trop longue ({{maxLength}} caractères max)",
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
     "FIELD_MAX": "La valeur maximale autorisée est {{max}}",
-    "FIELD_MAXIMUM_DECIMALS": "Le nombre de décimale max est de {{max}}",
+    "FIELD_MAXIMUM_DECIMALS": "Nombre de décimale incorrect ({{max}} max)",
     "FIELD_INVALID": "Valeur non valide",
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
     "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
