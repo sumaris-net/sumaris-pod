@@ -84,16 +84,23 @@ public class Application extends SpringBootServletInitializer {
         return new WebMvcConfigurerAdapter() {
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
-                // Redirect path '/' to graphiql
-                registry.addRedirectViewController("/", "/graphiql");
+
+                // define path /
+                registry.addViewController("/").setViewName(
+                        "forward:/core/index.html");
+
+                // define path /graphiql
+                registry.addRedirectViewController("/graphiql/", "/graphiql");
                 registry.addViewController("/graphiql").setViewName(
                         "forward:/graphiql/index.html");
-
+                // define path /error
                 registry.addViewController("/error")
                         .setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
                         .setViewName("forward:/core/error.html");
                 registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
 
+                // define path to websocket test page
+                registry.addRedirectViewController("/graphql/websocket/test/", "/graphql/websocket/test");
                 registry.addViewController("/graphql/websocket/test")
                         .setViewName("forward:/websocket/index.html");
             }

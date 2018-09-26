@@ -50,8 +50,9 @@ public interface AccountService {
     List<Integer> getProfileIdsByPubkey(String pubkey) throws DataNotFoundException;
 
     @Transactional(readOnly = true)
-    List<String> getTokensByPubkey(String pubkey);
+    List<String> getAllTokensByPubkey(String pubkey);
 
+    @Transactional(readOnly = false)
     void addToken(String token, String pubkey);
 
     @Transactional(readOnly = true)

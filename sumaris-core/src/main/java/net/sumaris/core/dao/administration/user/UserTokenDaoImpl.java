@@ -59,9 +59,6 @@ public class UserTokenDaoImpl extends HibernateDaoSupport implements UserTokenDa
     private static final Logger log =
             LoggerFactory.getLogger(UserTokenDaoImpl.class);
 
-    @Autowired
-    private PersonDao personDao;
-
     @Override
     public List<String> getAllByPubkey(String pubkey) {
 

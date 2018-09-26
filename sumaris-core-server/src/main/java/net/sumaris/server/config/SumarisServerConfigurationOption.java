@@ -87,14 +87,14 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     AUTH_CHALLENGE_LIFE_TIME(
             "sumaris.auth.challenge.lifeTime",
             n("sumaris.config.option.auth.challenge.lifeTime"),
-            "120",
+            "120", // a challenge leave 2 minutes
             Integer.class,
             false),
 
     AUTH_TOKEN_LIFE_TIME(
             "sumaris.auth.session.duration",
             n("sumaris.config.option.auth.session.duration"),
-            "14400", // TODO use 3600 (=1h) ?
+            "14400", // = 4 hours
             Integer.class,
             false);
 

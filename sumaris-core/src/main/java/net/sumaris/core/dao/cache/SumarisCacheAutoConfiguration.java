@@ -66,8 +66,13 @@ public class SumarisCacheAutoConfiguration {
     }
 
     @Bean
+    public EhCacheFactoryBean personByPubkeyCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.PERSON_BY_PUBKEY, 1500, 1500, 600);
+    }
+
+    @Bean
     public EhCacheFactoryBean pmfmByProgramIdCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_PROGRAM_ID, 1500, 1500, 10);
+        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_PROGRAM_ID, 1500, 1500, 100);
     }
 
     @Bean

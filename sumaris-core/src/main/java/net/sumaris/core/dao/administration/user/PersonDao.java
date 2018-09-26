@@ -43,6 +43,7 @@ public interface PersonDao  {
     @Cacheable(cacheNames = CacheNames.PERSON_BY_ID, key = "#id")
     PersonVO get(int id);
 
+    @Cacheable(cacheNames = CacheNames.PERSON_BY_PUBKEY, key = "#pubkey")
     PersonVO getByPubkeyOrNull(String pubkey);
 
     ImageAttachmentVO getAvatarByPubkey(String pubkey);

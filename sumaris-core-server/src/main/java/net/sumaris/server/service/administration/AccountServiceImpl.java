@@ -310,7 +310,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<String> getTokensByPubkey(String pubkey) {
+    public List<String> getAllTokensByPubkey(String pubkey) {
         return userTokenDao.getAllByPubkey(pubkey);
     }
 

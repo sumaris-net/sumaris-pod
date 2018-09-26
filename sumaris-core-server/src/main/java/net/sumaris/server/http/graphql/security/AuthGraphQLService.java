@@ -45,7 +45,6 @@ public class AuthGraphQLService {
     /* -- Authentifcation -- */
 
     @GraphQLQuery(name = "authenticate", description = "Authenticate using a token")
-    @Transactional(readOnly = true)
     public boolean authenticate( @GraphQLArgument(name = "token") String token) {
         if (!authService.authenticate(token)) {
             throw new SumarisTechnicalException(ErrorCodes.UNAUTHORIZED, "Invalid authentication token");
@@ -55,7 +54,7 @@ public class AuthGraphQLService {
 
     @GraphQLQuery(name = "authChallenge", description = "Ask for a new auth challenge")
     @Transactional(readOnly = true)
-    public AuthDataVO newChallenge() {
+    public AuthDataVO newAuthChallenge() {
         return authService.createNewChallenge();
     }
 

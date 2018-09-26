@@ -4,31 +4,32 @@ import com.google.common.collect.ImmutableList;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.crypto.CryptoUtils;
-import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.crypto.ServerCryptoService;
-import net.sumaris.server.service.technical.ChangesPublisherServiceImpl;
 import net.sumaris.server.vo.security.AuthDataVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.List;
 
-@Component("authService")
+@Service("authService")
 public class AuthServiceImpl implements AuthService {
 
     /** Logger. */
     private static final Logger log =
-            LoggerFactory.getLogger(ChangesPublisherServiceImpl.class);
+            LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final List<Integer> ACCEPTED_USER_PROFILES = ImmutableList.of(UserProfileEnum.ADMIN.id, UserProfileEnum.USER.id, UserProfileEnum.SUPERVISOR.id);
 
-    private ValidationExpiredCache challenges;
-    private ValidationExpiredCache checkedTokens;
+    private final ValidationExpiredCache challenges;
+    private final ValidationExpiredCache checkedTokens;
+    private final boolean debug;
 
     @Autowired
     private ServerCryptoService cryptoService;
@@ -37,17 +38,21 @@ public class AuthServiceImpl implements AuthService {
     private AccountService accountService;
 
     @Autowired
-    public AuthServiceImpl(SumarisServerConfiguration config) {
-        this.challenges = new ValidationExpiredCache(config.getAuthChallengeLifeTime());
-        this.checkedTokens = new ValidationExpiredCache(config.getAuthTokenLifeTimeInSeconds());
+    public AuthServiceImpl(Environment environment) {
+
+        int challengeLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_CHALLENGE_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_CHALLENGE_LIFE_TIME.getDefaultValue()));
+        this.challenges = new ValidationExpiredCache(challengeLifeTimeInSeconds);
+
+        int tokenLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getDefaultValue()));
+        this.checkedTokens = new ValidationExpiredCache(tokenLifeTimeInSeconds);
+
+        this.debug = log.isDebugEnabled();
     }
 
     public boolean authenticate(String token) {
 
         // Check if present in cache
-        if (checkedTokens.contains(token)) {
-            return true;
-        }
+        if (checkedTokens.contains(token)) return true;
 
         try {
             AuthDataVO authData = AuthDataVO.parse(token);
@@ -63,27 +68,27 @@ public class AuthServiceImpl implements AuthService {
         // Check if pubkey can authenticate
         try {
             if (authData.getPubkey().length() < 6) {
-                log.warn("Authentication failed. Bad pubkey format: " + authData.getPubkey());
+                if (debug) log.debug("Authentication failed. Bad pubkey format: " + authData.getPubkey());
                 return false;
             }
             if (!canAuth(authData.getPubkey())) {
-                log.warn("Authentication failed. User is not allowed to authenticate: " + authData.getPubkey());
+                if (debug) log.debug("Authentication failed. User is not allowed to authenticate: " + authData.getPubkey());
                 return false;
             }
         } catch(DataNotFoundException e) {
-            log.warn("Authentication failed. User not found: " + authData.getPubkey());
+            log.debug("Authentication failed. User not found: " + authData.getPubkey());
             return false;
         }
 
         // Check challenge exists and not expired
         if (!challenges.contains(authData.getChallenge())) {
-            log.warn("Authentication failed. Challenge not found or expired: " + authData.getChallenge());
+            if (debug) log.debug("Authentication failed. Challenge not found or expired: " + authData.getChallenge());
             return false;
         }
 
         // Check signature
         if (!cryptoService.verify(authData.getChallenge(), authData.getSignature(), authData.getPubkey())) {
-            log.warn("Authentication failed. Bad challenge signature: " + authData.toString());
+            if (debug) log.debug("Authentication failed. Bad challenge signature: " + authData.toString());
             return false;
         }
 
@@ -96,14 +101,24 @@ public class AuthServiceImpl implements AuthService {
         checkedTokens.add(token);
 
         // Add token to database
-        accountService.addToken(token, authData.getPubkey());
+        try {
+            accountService.addToken(token, authData.getPubkey());
+        } catch(RuntimeException e) {
+            // Log then continue
+            log.error("Could not save auth token.", e);
+        }
+
+        if (debug) log.debug(String.format("Authentication succeed for pubkey {%s}", authData.getPubkey().substring(0, 6)));
 
         return true;
     }
 
     public boolean canAuth(String pubkey) throws DataNotFoundException {
         List<Integer> userProfileIds = accountService.getProfileIdsByPubkey(pubkey);
-        return CollectionUtils.containsAny(userProfileIds, ACCEPTED_USER_PROFILES);
+
+        boolean result = CollectionUtils.containsAny(userProfileIds, ACCEPTED_USER_PROFILES);
+        if (debug) log.debug(String.format("User {%s} has profiles ids={%s}: %s authenticate", pubkey.substring(0,6), userProfileIds, (result ? "can" : "cannot")));
+        return result;
     }
 
     public AuthDataVO createNewChallenge() {
@@ -112,6 +127,9 @@ public class AuthServiceImpl implements AuthService {
 
         AuthDataVO result = new AuthDataVO(cryptoService.getServerPubkey(), challenge, signature);
 
+        if (debug) log.debug("New authentication challenge: " + result.toString());
+
+        // Add challenge to cache
         challenges.add(challenge);
 
         return result;

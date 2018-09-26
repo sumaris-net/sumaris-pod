@@ -41,7 +41,7 @@ public class ValidationExpiredCache {
 
     public ValidationExpiredCache(final int lifeTimeInSeconds) {
         this.cache = CacheBuilder.newBuilder()
-                .expireAfterWrite(lifeTimeInSeconds, TimeUnit.SECONDS)
+                .expireAfterWrite(Math.max(lifeTimeInSeconds, 60 /* min value */), TimeUnit.SECONDS)
                 .build();
     }
 
@@ -52,10 +52,14 @@ public class ValidationExpiredCache {
     }
 
     public void remove(String data) {
-        cache.put(data, null);
+        cache.invalidate(data);
     }
 
     public void add(String token) {
         cache.put(token, token);
+    }
+
+    public void clean() {
+        this.cache.invalidateAll();
     }
 }

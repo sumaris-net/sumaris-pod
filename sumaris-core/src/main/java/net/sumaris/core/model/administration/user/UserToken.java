@@ -21,7 +21,7 @@ public class UserToken implements IEntityBean<Integer> {
     @Column(name = "creation_date", nullable = false)
     private Date creationDate;
 
-    @Column(name="pubkey", nullable = false, unique = true)
+    @Column(name="pubkey", nullable = false)
     private String pubkey;
 
     @Column(name="token", nullable = false, unique = true)
