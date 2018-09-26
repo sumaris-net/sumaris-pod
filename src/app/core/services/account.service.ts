@@ -68,6 +68,10 @@ const AccountQuery: any = gql`
       statusId
       updateDate
       creationDate
+      userProfiles {
+        id
+        label
+      }
       settings {
         id
         locale
