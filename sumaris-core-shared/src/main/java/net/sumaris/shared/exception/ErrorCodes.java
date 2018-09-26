@@ -2,9 +2,16 @@ package net.sumaris.shared.exception;
 
 public interface ErrorCodes  {
 
-    int UNEXPECTED_ERROR = -1;
+    // >= 400
+    int BAD_REQUEST = 400;
+    int NOT_FOUND = 404;
 
-    int BAD_UPDATE_DATE_EXCEPTION = 1;
-    int DATA_LOCKED = 2;
-    int DENY_DELETION = 3;
+    // >= 500
+    int INTERNAL_ERROR = 500;
+
+    // Application specific errors
+    int DATA_LOCKED = 520;
+    int BAD_UPDATE_DATE = 521;
+    int DENY_DELETION = 522;
+
 }

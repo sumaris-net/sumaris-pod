@@ -1,8 +1,8 @@
-package net.sumaris.server.http;
+package net.sumaris.core.dao.administration.user;
 
 /*-
  * #%L
- * SUMARiS:: Server
+ * SUMARiS:: Core
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,16 +22,13 @@ package net.sumaris.server.http;
  * #L%
  */
 
-/**
- * Application HTTP status
- */
-public interface HttpStatus extends org.apache.http.HttpStatus {
-    /** Constant <code>SC_DATA_LOCKED=520</code> */
-    int SC_DATA_LOCKED = 520;
-    /** Constant <code>SC_BAD_UPDATE_DT=521</code> */
-    int SC_BAD_UPDATE_DT = 521;
-    /** Constant <code>SC_DELETE_FORBIDDEN=522</code> */
-    int SC_DELETE_FORBIDDEN = 522;
-    /** Constant <code>INVALID_EMAIL_CONFIRMATION=522</code> */
-    int INVALID_EMAIL_CONFIRMATION = 523;
+import java.util.List;
+
+public interface UserTokenDao {
+
+    List<String> getAllByPubkey(String pubkey);
+
+    void add(String token, String pubkey);
+
+    void delete(String token);
 }

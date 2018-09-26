@@ -1,4 +1,4 @@
-package net.sumaris.server.http.graphql;
+package net.sumaris.server.http.graphql.data;
 
 /*-
  * #%L
@@ -24,8 +24,6 @@ package net.sumaris.server.http.graphql;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Observable;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.service.data.*;
@@ -38,6 +36,7 @@ import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.server.service.technical.ChangesPublisherService;
 import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.logging.Log;
@@ -47,11 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 @Service
 @Transactional
@@ -88,6 +83,9 @@ public class DataGraphQLService {
 
     @Autowired
     private ImageService imageService;
+
+    @Autowired
+    private ChangesPublisherService changesPublisherService;
 
     /* -- Vessel -- */
 
@@ -222,20 +220,11 @@ public class DataGraphQLService {
     }
 
     @GraphQLSubscription(name = "updateTrip", description = "Subcribe to a trip update")
-    public Publisher<TripVO> updateTrip(@GraphQLArgument(name = "tripId") final Integer tripId) {
+    public Publisher<TripVO> updateTrip(@GraphQLArgument(name = "tripId") final int tripId,
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
 
-        log.debug("Register subscription on trip with id=" + tripId);
-
-        // TODO: access to trip service
-        Observable<TripVO> observable = Observable
-                .interval(15, TimeUnit.SECONDS)
-                .flatMap(n -> Observable.create(observableEmitter -> {
-                    TripVO trip = new TripVO();
-                    trip.setId(tripId);
-                    trip.setUpdateDate(new Timestamp(System.currentTimeMillis()));
-                    observableEmitter.onNext(trip);
-                }));
-        return observable.toFlowable(BackpressureStrategy.BUFFER);
+        Preconditions.checkArgument(tripId >= 0, "Invalid tripId");
+        return changesPublisherService.getPublisher(Trip.class, TripVO.class, tripId, minIntervalInSecond, true);
     }
 
     @GraphQLQuery(name = "gears", description = "Get operation's gears")

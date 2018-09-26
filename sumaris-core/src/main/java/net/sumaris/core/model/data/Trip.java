@@ -26,8 +26,12 @@ import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Location;
 import net.sumaris.core.model.referential.QualityFlag;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.FetchProfile;
@@ -81,7 +85,7 @@ public class Trip implements IRootDataEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = 2000)
+    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
     private Date qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
@@ -107,20 +111,24 @@ public class Trip implements IRootDataEntity<Integer> {
     private Location returnLocation;
 
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = "trip")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Operation.PROPERTY_TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Operation> operations = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = "trip")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.PROPERTY_TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     @OrderBy("rankOrder ASC")
     private List<PhysicalGear> physicalGears = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = "trip")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.PROPERTY_TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = "trip")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.PROPERTY_TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselUseMeasurement> measurements = new ArrayList<>();
+
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
 }

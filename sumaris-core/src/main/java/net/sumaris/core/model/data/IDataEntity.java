@@ -32,6 +32,8 @@ import java.util.Date;
 
 public interface IDataEntity<T extends Serializable> extends Serializable, IUpdateDateEntityBean<T, Date> {
 
+    int LENGTH_COMMENTS = 2000;
+
     String PROPERTY_CONTROL_DATE = "controlDate";
     String PROPERTY_QUALIFICATION_DATE = "qualificationDate";
     String PROPERTY_QUALITY_FLAG = "qualityFlag";

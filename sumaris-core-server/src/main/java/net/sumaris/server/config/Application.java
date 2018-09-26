@@ -85,7 +85,8 @@ public class Application extends SpringBootServletInitializer {
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
                 // Redirect path '/' to graphiql
-                registry.addViewController("/").setViewName(
+                registry.addRedirectViewController("/", "/graphiql");
+                registry.addViewController("/graphiql").setViewName(
                         "forward:/graphiql/index.html");
 
                 registry.addViewController("/error")
@@ -93,7 +94,7 @@ public class Application extends SpringBootServletInitializer {
                         .setViewName("forward:/core/error.html");
                 registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
 
-                registry.addViewController("/subscriptions")
+                registry.addViewController("/graphql/websocket/test")
                         .setViewName("forward:/websocket/index.html");
             }
 

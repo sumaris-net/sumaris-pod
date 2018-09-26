@@ -1,4 +1,4 @@
-package net.sumaris.server.http.graphql;
+package net.sumaris.server.http.graphql.referential;
 
 /*-
  * #%L

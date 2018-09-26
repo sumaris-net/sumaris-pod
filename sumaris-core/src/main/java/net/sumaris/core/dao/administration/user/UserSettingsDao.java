@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.administration;
+package net.sumaris.core.dao.administration.user;
 
 /*-
  * #%L
@@ -22,12 +22,18 @@ package net.sumaris.core.dao.administration;
  * #L%
  */
 
-import net.sumaris.core.model.administration.user.Person;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import net.sumaris.core.model.administration.user.UserSettings;
+import net.sumaris.core.vo.administration.user.UserSettingsVO;
 
-@Repository
-public interface PersonRepository extends CrudRepository<Person, Long> {
+public interface UserSettingsDao {
 
-    //List<Person> findByLastName(String lastName);
+    UserSettingsVO getByIssuer(String issuer);
+
+    UserSettingsVO get(int id);
+
+    void delete(int id);
+
+    UserSettingsVO save(UserSettingsVO person);
+
+    UserSettingsVO toUserSettingsVO(UserSettings settings);
 }

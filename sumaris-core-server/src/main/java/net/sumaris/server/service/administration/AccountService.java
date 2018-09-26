@@ -22,9 +22,13 @@ package net.sumaris.server.service.administration;
  * #L%
  */
 
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.vo.administration.user.AccountVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Transactional
 public interface AccountService {
@@ -41,4 +45,16 @@ public interface AccountService {
     void confirmEmail(String email, String signatureHash) throws InvalidEmailConfirmationException;
 
     void sendConfirmationEmail(String email, String locale) throws InvalidEmailConfirmationException;
+
+    @Transactional(readOnly = true)
+    List<Integer> getProfileIdsByPubkey(String pubkey) throws DataNotFoundException;
+
+    @Transactional(readOnly = true)
+    List<String> getTokensByPubkey(String pubkey);
+
+    void addToken(String token, String pubkey);
+
+    @Transactional(readOnly = true)
+    AccountVO toAccountVO(PersonVO person);
+
 }

@@ -27,9 +27,12 @@ import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import it.ozimov.springboot.mail.service.EmailService;
-import net.sumaris.core.dao.administration.PersonDao;
-import net.sumaris.core.dao.administration.UserSettingsDao;
+import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.UserSettingsDao;
+import net.sumaris.core.dao.administration.user.UserTokenDao;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -44,17 +47,20 @@ import org.apache.commons.logging.LogFactory;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.PostConstruct;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service("accountService")
 public class AccountServiceImpl implements AccountService {
@@ -72,10 +78,19 @@ public class AccountServiceImpl implements AccountService {
     private UserSettingsDao userSettingsDao;
 
     @Autowired
+    private UserTokenDao userTokenDao;
+
+    @Autowired
     private EmailService emailService;
 
     @Autowired
     private ServerCryptoService serverCryptoService;
+
+    @Autowired
+    private GenericConversionService conversionService;
+
+    @Autowired
+    private AccountService self; // loop back to force transactional handling
 
     private SumarisServerConfiguration config;
 
@@ -100,12 +115,19 @@ public class AccountServiceImpl implements AccountService {
             try {
                 this.mailFromAddress = new InternetAddress(mailFrom);
             } catch (AddressException e) {
-                throw new SumarisTechnicalException(ErrorCodes.INVALID_EMAIL, I18n.t("sumaris.error.email.invalid", mailFrom, e.getMessage()), e);
+                throw new SumarisTechnicalException(I18n.t("sumaris.error.email.invalid", mailFrom, e.getMessage()), e);
             }
         }
 
         // Get server URL
         this.serverUrl = config.getServerUrl();
+    }
+
+    @PostConstruct
+    public void registerConverter() {
+        log.debug("Register {Account} converters");
+        conversionService.addConverter(PersonVO.class, AccountVO.class, p -> self.toAccountVO(p));
+        conversionService.addConverter(Person.class, AccountVO.class, p -> self.getByPubkey(p.getPubkey()));
     }
 
     @Override
@@ -278,7 +300,40 @@ public class AccountServiceImpl implements AccountService {
 
     }
 
+    @Override
+    public List<Integer> getProfileIdsByPubkey(String pubkey) {
+        PersonVO person = personDao.getByPubkeyOrNull(pubkey);
+        if (person == null) {
+            throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
+        }
+        return person.getUserProfiles().stream().map(up -> up.getId()).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getTokensByPubkey(String pubkey) {
+        return userTokenDao.getAllByPubkey(pubkey);
+    }
+
+    @Override
+    public void addToken(String token, String pubkey) {
+        userTokenDao.add(token, pubkey);
+    }
+
+    @Override
+    public AccountVO toAccountVO(PersonVO person) {
+        if (person == null) return null;
+
+        AccountVO account = new AccountVO();
+        BeanUtils.copyProperties(person, account);
+
+        UserSettingsVO settings = userSettingsDao.getByIssuer(account.getPubkey());
+        account.setSettings(settings);
+
+        return account;
+    }
+
     /* -- protected methods -- */
+
 
     protected void checkValid(AccountVO account) {
         Preconditions.checkNotNull(account);
@@ -293,7 +348,7 @@ public class AccountServiceImpl implements AccountService {
         try {
             new InternetAddress(account.getEmail());
         } catch (AddressException e) {
-            throw new SumarisTechnicalException(ErrorCodes.INVALID_EMAIL, I18n.t("sumaris.error.email.invalid", account.getEmail(), e.getMessage()), e);
+            throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, I18n.t("sumaris.error.email.invalid", account.getEmail(), e.getMessage()), e);
         }
 
         // Check settings and settings.locale
@@ -343,7 +398,7 @@ public class AccountServiceImpl implements AccountService {
                 emailService.send(email);
             }
             catch(AddressException e) {
-                throw new SumarisTechnicalException(ErrorCodes.SERVER_INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
+                throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
             }
         }
     }

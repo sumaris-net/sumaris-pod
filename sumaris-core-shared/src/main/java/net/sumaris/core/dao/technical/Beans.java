@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import net.sumaris.core.dao.technical.model.IEntityBean;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.shared.exception.ErrorCodes;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ComparatorUtils;
@@ -142,13 +143,12 @@ public class Beans {
      * <p>splitByProperty.</p>
      *
      * @param list a {@link Iterable} object.
-     * @param propertyName a {@link String} object.
      * @param <K> a K object.
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
     public static <K extends Serializable, V extends IEntityBean<K>> Map<K, V> splitById(Iterable<V> list) {
-        return getMap(Maps.uniqueIndex(list, input -> input.getId()));
+        return getMap(Maps.uniqueIndex(list, IEntityBean::getId));
     }
 
     /**
@@ -185,7 +185,7 @@ public class Beans {
         try {
             return (V) PropertyUtils.getProperty(object, propertyName);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new SumarisTechnicalException(String.format("Could not get property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
+            throw new SumarisTechnicalException( String.format("Could not get property %1s on object of type %2s", propertyName, object.getClass().getName()), e);
         }
     }
 
@@ -202,7 +202,7 @@ public class Beans {
         try {
             PropertyUtils.setProperty(object, propertyName, value);
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new SumarisTechnicalException(String.format("Could not set property %1s not found on object of type %2s", propertyName, object.getClass().getName()), e);
+            throw new SumarisTechnicalException( String.format("Could not set property %1s not found on object of type %2s", propertyName, object.getClass().getName()), e);
         }
     }
 
@@ -268,7 +268,6 @@ public class Beans {
      * Usefull method that ignore complex type, as list
      * @param source
      * @param target
-     * @param ignoreProperties
      */
     public static <S, T> void copyProperties(S source, T target) {
 

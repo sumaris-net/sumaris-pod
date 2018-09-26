@@ -25,6 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualityFlag;
 
 import javax.persistence.*;
@@ -57,7 +58,7 @@ public class ImageAttachment implements IRootDataEntity<Integer> {
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
 
-    @Column(length = 2000)
+    @Column(length = LENGTH_COMMENTS)
     private String comments;
 
     @Column(name="control_date")
@@ -68,7 +69,7 @@ public class ImageAttachment implements IRootDataEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = 2000)
+    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
     private Date qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -87,5 +88,16 @@ public class ImageAttachment implements IRootDataEntity<Integer> {
 
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if ( !(other instanceof ImageAttachment) ) return false;
+
+        final ImageAttachment bean = (ImageAttachment) other;
+
+        if ( !Objects.equals(bean.getId(), getId() ) ) return false;
+
+        return true;
     }
 }

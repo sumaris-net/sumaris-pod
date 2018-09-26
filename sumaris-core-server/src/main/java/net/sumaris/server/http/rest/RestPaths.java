@@ -24,7 +24,7 @@ package net.sumaris.server.http.rest;
 
 public interface RestPaths {
 
-    String BASE_PATH = "/service";
+    String BASE_PATH = "/api";
 
     String REGISTER_CONFIRM_PATH = BASE_PATH + "/confirmEmail";
 

@@ -29,6 +29,7 @@ import java.util.Date;
 
 public interface IRootDataEntity<T extends Serializable> extends IDataEntity<T> {
 
+
     String PROPERTY_CREATION_DATE = "creationDate";
     String PROPERTY_RECORDER_PERSON = "recorderPerson";
     String PROPERTY_COMMENTS = "comments";

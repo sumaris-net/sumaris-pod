@@ -23,13 +23,8 @@ package net.sumaris.server.http.graphql;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import graphql.*;
-import graphql.execution.ExecutionPath;
 import graphql.schema.GraphQLSchema;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +35,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -58,9 +51,10 @@ public class GraphQLRestController {
                                  ObjectMapper objectMapper) {
         this.graphQL = GraphQL.newGraphQL(schema).build();
         this.objectMapper = objectMapper;
+        log.info(String.format("Starting GraphQL rest controller at {%s}...", GraphQLPaths.BASE_PATH));
     }
 
-    @PostMapping(value = "/graphql", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = GraphQLPaths.BASE_PATH, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public Map<String, Object> indexFromAnnotated(@RequestBody Map<String, Object> request, HttpServletRequest raw) {
         ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
@@ -70,7 +64,7 @@ public class GraphQLRestController {
                 .context(raw)
                 .build());
 
-        return GraphQLHelper.processResult(executionResult);
+        return GraphQLHelper.processExecutionResult(executionResult);
     }
 
     /* -- private methods -- */

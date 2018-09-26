@@ -17,6 +17,7 @@ import java.util.List;
 public class Batch implements IDataEntity<Integer> {
 
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
+    public static final String PROPERTY_OPERATION = "operation";
     public static final String PROPERTY_PARENT = "parent";
     public static final String PROPERTY_SORTING_MEASUREMENTS = "sortingMeasurements";
     public static final String PROPERTY_QUANTIFICATION_MEASUREMENTS = "quantificationMeasurements";
@@ -43,7 +44,7 @@ public class Batch implements IDataEntity<Integer> {
     @Column(name = "individual_count")
     private Integer individualCount;
 
-    @Column(length = 2000)
+    @Column(length = IRootDataEntity.LENGTH_COMMENTS)
     private String comments;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -68,7 +69,7 @@ public class Batch implements IDataEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = 2000)
+    @Column(name="qualification_comments", length = IRootDataEntity.LENGTH_COMMENTS)
     private Date qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY)

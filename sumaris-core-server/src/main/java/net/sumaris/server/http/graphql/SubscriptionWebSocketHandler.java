@@ -22,61 +22,74 @@ package net.sumaris.server.http.graphql;
  * #L%
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
-import com.lambdaworks.codec.Base64;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.server.exception.ErrorCodes;
+import net.sumaris.server.http.security.AuthService;
+import net.sumaris.server.service.crypto.ServerCryptoService;
+import net.sumaris.server.vo.security.AuthDataVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger log = LoggerFactory.getLogger(SubscriptionWebSocketHandler.class);
 
-
     private final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
     private final GraphQL graphQL;
+
+    private final boolean debug;
+
+    private List<WebSocketSession> sessions = new CopyOnWriteArrayList();
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
+    private AuthService authService;
+
+
+    @Autowired
     public SubscriptionWebSocketHandler(GraphQLSchema graphQLSchema) {
         this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();
+        this.debug = log.isDebugEnabled();
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        super.afterConnectionEstablished(session);
+        // keep all sessions (for broadcast)
+        sessions.add(session);
+        //log.debug("afterConnectionEstablished", session);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        super.afterConnectionClosed(session, status);
+        sessions.remove(session);
         if (subscriptionRef.get() != null) subscriptionRef.get().cancel();
     }
 
@@ -86,25 +99,16 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
         Map<String, Object> request;
         try {
             request = objectMapper.readValue(message.asBytes(), Map.class);
-            log.debug("Getting WS request :" + request);
+            if (debug) log.debug(I18n.t("sumaris.server.subscription.getRequest", request));
         }
         catch(IOException e) {
-            log.error("Bad WS request: " + e.getMessage());
+            log.error(I18n.t("sumaris.server.error.subscription.badRequest", e.getMessage()));
             return;
         }
 
         String type = Objects.toString(request.get("type"), "start");
         if ("connection_init".equals(type)) {
-            // TODO : get auth data
-            /*
-            final Object opId = request.get("id");
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
-                                ImmutableMap.of(
-                                        "id", opId,
-                                        "type", "connection_error",
-                                        "payload", ...))
-                        )));
-             */
+            handleInitConnection(session, request);
             return; // ignore
         }
         else if ("stop".equals(type)) {
@@ -121,10 +125,6 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
                     .variables(GraphQLHelper.getVariables(payload, objectMapper))
                     .build());
 
-            //ExecutionResult executionResult = graphQL.execute(msq);
-
-            // TODO: read variables, query, etc. ?
-
             // If error: send error then disconnect
             if (CollectionUtils.isNotEmpty(executionResult.getErrors())) {
                 try {
@@ -132,7 +132,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
                             ImmutableMap.of(
                                     "id", opId,
                                     "type", "error",
-                                    "payload", GraphQLHelper.processResult(executionResult))
+                                    "payload", GraphQLHelper.processExecutionResult(executionResult))
                     )));
 
                     //session.close(CloseStatus.SERVER_ERROR);
@@ -158,7 +158,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
                                 ImmutableMap.of(
                                         "id", opId,
                                         "type", "data",
-                                        "payload", GraphQLHelper.processResult(result))
+                                        "payload", GraphQLHelper.processExecutionResult(result))
                         )));
                         //session.sendMessage(new TextMessage(objectMapper.writeValueAsString(result.toSpecification())));
                     } catch (IOException e) {
@@ -171,7 +171,16 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
                 @Override
                 public void onError(Throwable throwable) {
                     try {
-                        session.close(CloseStatus.SERVER_ERROR);
+                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+                                ImmutableMap.of(
+                                        "id", opId,
+                                        "type", "error",
+                                        "payload", GraphQLHelper.processError(throwable))
+                        )));
+
+                        // Not need to close, as the client will do it
+                        // TODO maybe close on auth error ??
+
                     } catch (IOException e) {
                         log.error(e.getMessage(), e);
                     }
@@ -194,5 +203,33 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
         session.close(CloseStatus.SERVER_ERROR);
     }
 
+    /* -- protected methods -- */
+
+    protected void handleInitConnection(WebSocketSession session, Map<String, Object> request) {
+        try {
+            Map<String, Object> payload = (Map<String, Object>) request.get("payload");
+            String authToken =MapUtils.getString(payload, "authToken");
+
+            // Success: continue
+            if (StringUtils.isNotBlank(authToken) && authService.authenticate(authToken)) {
+                // success
+            }
+
+            // Not auth: send a new challenge
+            else {
+                AuthDataVO challenge = authService.createNewChallenge();
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+                        ImmutableMap.of(
+                                "type", "error",
+                                "payload", ImmutableMap.of(
+                                        "message", GraphQLHelper.toJsonErrorString(ErrorCodes.UNAUTHORIZED, "Authentication required"),
+                                        "challenge", challenge)
+                        ))));
+            }
+        }
+        catch(IOException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
 
 }

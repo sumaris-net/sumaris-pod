@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.data.batch.Batch;
 import net.sumaris.core.model.data.measure.GearUseMeasurement;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
 import net.sumaris.core.model.data.sample.Sample;
@@ -59,7 +60,7 @@ public class Operation implements IDataEntity<Integer> {
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
 
-    @Column(length = 2000)
+    @Column(length = LENGTH_COMMENTS)
     private String comments;
 
     @Column(name="control_date")
@@ -70,7 +71,7 @@ public class Operation implements IDataEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = 2000)
+    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
     private Date qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -108,21 +109,24 @@ public class Operation implements IDataEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.REMOVE)
     private PhysicalGear physicalGear;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPosition.class, mappedBy = "operation")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPosition.class, mappedBy = VesselPosition.PROPERTY_OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselPosition> positions = new ArrayList<>();
 
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = "operation")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.PROPERTY_OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselUseMeasurement> vesselUseMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = "operation")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = GearUseMeasurement.PROPERTY_OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<GearUseMeasurement> gearUseMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = "operation")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.PROPERTY_OPERATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sample> samples = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = Batch.PROPERTY_OPERATION)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Batch> batches;
 }

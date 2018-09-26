@@ -30,7 +30,7 @@ import net.sumaris.shared.exception.ErrorCodes;
  */
 public class BadUpdateDateException extends SumarisTechnicalException {
 
-    public static final int ERROR_CODE = ErrorCodes.BAD_UPDATE_DATE_EXCEPTION;
+    public static final int ERROR_CODE = ErrorCodes.BAD_UPDATE_DATE;
 
     /**
      * <p>Constructor for BadUpdateDtException.</p>

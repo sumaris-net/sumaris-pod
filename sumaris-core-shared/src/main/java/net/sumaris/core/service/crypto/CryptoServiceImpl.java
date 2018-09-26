@@ -28,6 +28,7 @@ import jnr.ffi.byref.LongLongByReference;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.util.crypto.KeyPair;
+import net.sumaris.shared.exception.ErrorCodes;
 import org.abstractj.kalium.NaCl;
 import org.abstractj.kalium.NaCl.Sodium;
 import org.abstractj.kalium.crypto.Util;

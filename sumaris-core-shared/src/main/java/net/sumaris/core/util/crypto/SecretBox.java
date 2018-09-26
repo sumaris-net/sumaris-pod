@@ -26,6 +26,7 @@ package net.sumaris.core.util.crypto;
 import com.lambdaworks.crypto.SCrypt;
 import jnr.ffi.byref.LongLongByReference;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.shared.exception.ErrorCodes;
 import org.abstractj.kalium.crypto.Util;
 
 import java.security.GeneralSecurityException;

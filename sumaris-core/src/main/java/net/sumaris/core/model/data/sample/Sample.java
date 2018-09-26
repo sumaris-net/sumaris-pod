@@ -17,7 +17,7 @@ import java.util.List;
 
 @Data
 @Entity
-public class Sample implements IDataEntity<Integer> {
+public class Sample implements IRootDataEntity<Integer> {
 
 
     public static final String PROPERTY_OPERATION = "operation";
@@ -48,7 +48,7 @@ public class Sample implements IDataEntity<Integer> {
     @JoinColumn(name = "matrix_fk", nullable = false)
     private Matrix matrix;
 
-    @Column(length = 2000)
+    @Column(length = LENGTH_COMMENTS)
     private String comments;
 
     /* -- Quality insurance -- */
@@ -77,7 +77,7 @@ public class Sample implements IDataEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = 2000)
+    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
     private Date qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY)

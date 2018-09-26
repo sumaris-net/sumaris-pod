@@ -24,6 +24,7 @@ package net.sumaris.core.dao.referential;
 
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.model.IEntityBean;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
@@ -32,9 +33,11 @@ import net.sumaris.core.vo.referential.IReferentialVO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
+import java.io.Serializable;
 import java.util.List;
 
 public interface ReferentialDao {
+
 
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
     List<ReferentialTypeVO> getAllTypes();

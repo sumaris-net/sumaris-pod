@@ -24,8 +24,9 @@ package net.sumaris.core.service.administration;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.PersonDao;
+import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
@@ -34,7 +35,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -68,7 +68,7 @@ public class PersonServiceImpl implements PersonService {
 		Preconditions.checkNotNull(pubkey);
 		PersonVO person = personDao.getByPubkeyOrNull(pubkey);
 		if (person == null) {
-			throw new DataRetrievalFailureException(I18n.t("sumaris.error.person.notFound"));
+			throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
 		}
 		return person;
 	}

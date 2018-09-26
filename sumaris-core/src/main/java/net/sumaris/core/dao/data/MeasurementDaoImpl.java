@@ -514,7 +514,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     protected void valueToEntity(Object value, int pmfmId, IMeasurementEntity target) {
 
         if (value == null) {
-            throw new SumarisTechnicalException(ErrorCodes.INVALID_DATA, "Unable to set value NULL value on a measurement");
+            throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to set value NULL value on a measurement");
         }
 
         PmfmVO pmfm = pmfmDao.get(pmfmId);
@@ -547,7 +547,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 break;
             default:
                 // Unknown type
-                throw new SumarisTechnicalException(ErrorCodes.UNEXPECTED_ERROR, String.format("Unable to set measurement value {%s} for the type {%s}", value, type.name().toLowerCase()));
+                throw new SumarisTechnicalException( String.format("Unable to set measurement value {%s} for the type {%s}", value, type.name().toLowerCase()));
         }
     }
 
@@ -575,7 +575,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 return source.getNumericalValue();
             default:
                 // Unknown type
-                throw new SumarisTechnicalException(ErrorCodes.UNEXPECTED_ERROR, String.format("Unable to read measurement's value for the type {%s}. Measurement id=%s", type.name().toLowerCase(), source.getId()));
+                throw new SumarisTechnicalException( String.format("Unable to read measurement's value for the type {%s}. Measurement id=%s", type.name().toLowerCase(), source.getId()));
         }
     }
 

@@ -25,7 +25,11 @@ package net.sumaris.server.http.rest;
  */
 
 import com.google.common.base.Joiner;
-import net.sumaris.core.exception.*;
+import net.sumaris.core.exception.BadUpdateDateException;
+import net.sumaris.core.exception.DataLockedException;
+import net.sumaris.core.exception.DenyDeletionException;
+import net.sumaris.server.exception.ErrorCodes;
+import net.sumaris.server.exception.ErrorHelper;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
@@ -56,7 +60,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
      */
     @ExceptionHandler(value = {InvalidEmailConfirmationException.class })
     protected ResponseEntity<Object> handleAnyException(RuntimeException ex, WebRequest request) {
-        String message = getInternalServerErrorMessage(net.sumaris.server.http.HttpStatus.INVALID_EMAIL_CONFIRMATION, ex.getMessage());
+        String message = ErrorHelper.toJsonErrorString(ErrorCodes.INVALID_EMAIL_CONFIRMATION, ex.getMessage());
         if (log.isDebugEnabled()) {
             log.debug(message);
         }
@@ -70,7 +74,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
      */
     @ExceptionHandler(value = {BadUpdateDateException.class })
     protected ResponseEntity<Object> handleBadUpdateDt(RuntimeException ex, WebRequest request) {
-        String message = getInternalServerErrorMessage(net.sumaris.server.http.HttpStatus.SC_BAD_UPDATE_DT, ex.getMessage());
+        String message = ErrorHelper.toJsonErrorString(ErrorCodes.BAD_UPDATE_DATE, ex.getMessage());
         if (log.isDebugEnabled()) {
             log.debug(message);
         }
@@ -82,7 +86,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
      */
     @ExceptionHandler(value = {DataLockedException.class })
     protected ResponseEntity<Object> handleLock(RuntimeException ex, WebRequest request) {
-        String message = getInternalServerErrorMessage(net.sumaris.server.http.HttpStatus.SC_DATA_LOCKED, ex.getMessage());
+        String message = ErrorHelper.toJsonErrorString(ErrorCodes.DATA_LOCKED, ex.getMessage());
         if (log.isDebugEnabled()) {
             log.debug(message);
         }
@@ -94,7 +98,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
      */
     @ExceptionHandler(value = {DenyDeletionException.class })
     protected ResponseEntity<Object> handleDeleteForbidden(RuntimeException ex, WebRequest request) {
-        String message = getInternalServerErrorMessage(net.sumaris.server.http.HttpStatus.SC_DELETE_FORBIDDEN, ex.getMessage());
+        String message = ErrorHelper.toJsonErrorString(ErrorCodes.DENY_DELETION, ex.getMessage());
         if (log.isDebugEnabled()) {
             log.debug(message);
         }
@@ -110,16 +114,5 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         return handleExceptionInternal(ex, message, httpHeaders, HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
-    /* -- private methods -- */
 
-    /**
-     * <p>getInternalServerErrorMessage.</p>
-     *
-     * @param errorCode a int.
-     * @param message a {@link java.lang.String} object.
-     * @return a {@link java.lang.String} object.
-     */
-    public static String getInternalServerErrorMessage(int errorCode, String message) {
-        return String.format("{\"code\": %s, \"message\": \"%s\"}", errorCode, message);
-    }
 }

@@ -45,6 +45,7 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateConnectionProvider;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.shared.exception.ErrorCodes;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.cfg.Environment;
@@ -641,7 +642,7 @@ public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoade
         } catch (SQLException e) {
             throw new DatabaseException(e);
         } catch (FileNotFoundException e) {
-            throw new SumarisTechnicalException("Could not write diff report file.", e);
+            throw new SumarisTechnicalException( "Could not write diff report file.", e);
         } finally {
             if (c != null) {
                 try {
@@ -692,7 +693,7 @@ public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoade
         } catch (SQLException e) {
             throw new DatabaseException(e);
         } catch (ParserConfigurationException | IOException e) {
-            throw new SumarisTechnicalException("Could not generate changelog file.", e);
+            throw new SumarisTechnicalException( "Could not generate changelog file.", e);
         } finally {
             if (c != null) {
                 try {

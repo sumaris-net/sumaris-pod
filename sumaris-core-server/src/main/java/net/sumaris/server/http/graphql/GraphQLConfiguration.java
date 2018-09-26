@@ -27,6 +27,10 @@ import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
+import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
+import net.sumaris.server.http.graphql.data.DataGraphQLService;
+import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
+import net.sumaris.server.http.graphql.security.AuthGraphQLService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +56,8 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
     @Autowired
     private ReferentialGraphQLService referentialService;
+    @Autowired
+    private AuthGraphQLService authGraphQLService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -66,6 +72,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
                 .withOperationsFromSingleton(dataService, DataGraphQLService.class)
                 .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
+                .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
                 .withValueMapperFactory(new JacksonValueMapperFactory.Builder().withPrototype(objectMapper).build())
                 .generate();
     }
@@ -73,7 +80,12 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
-        webSocketHandlerRegistry.addHandler(webSocketHandler(), "/subscriptions").setAllowedOrigins("*").withSockJS();
+
+        log.info(String.format("GraphQL websocket handler started at {%s}...", GraphQLPaths.SUBSCRIPTION_PATH));
+
+        webSocketHandlerRegistry.addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
+                .setAllowedOrigins("*")
+                .withSockJS();
     }
 
     @Bean

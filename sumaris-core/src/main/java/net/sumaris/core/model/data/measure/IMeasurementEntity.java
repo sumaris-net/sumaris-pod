@@ -23,6 +23,7 @@ package net.sumaris.core.model.data.measure;
  */
 
 import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
 

@@ -203,6 +203,24 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         return applicationConfig.getOption(SumarisServerConfigurationOption.KEYPAIR_PASSWORD.getKey());
     }
 
+    /**
+     * <p>get auth challenge life time (in seconds).</p>
+     *
+     * @return a {@link Integer}
+     */
+    public int getAuthChallengeLifeTime() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.AUTH_CHALLENGE_LIFE_TIME.getKey());
+    }
+
+    /**
+     * <p>get auth session duration (in seconds).</p>
+     *
+     * @return a {@link Integer}
+     */
+    public int getAuthTokenLifeTimeInSeconds() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getKey());
+    }
+
     /* -- Internal methods -- */
 
     /**

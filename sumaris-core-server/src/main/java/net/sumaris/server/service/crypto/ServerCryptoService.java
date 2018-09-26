@@ -27,6 +27,11 @@ import net.sumaris.core.util.crypto.KeyPair;
 
 public interface ServerCryptoService extends  CryptoService {
 
+    /**
+     * Get the server public key
+     * @return
+     */
+    String getServerPubkey();
 
     /**
      * Get the server keypair

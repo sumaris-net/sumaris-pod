@@ -24,7 +24,7 @@ package net.sumaris.core.service.administration;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.administration.DepartmentDao;
+import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.data.ImageAttachmentDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;

@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.administration;
+package net.sumaris.core.dao.administration.user;
 
 /*-
  * #%L

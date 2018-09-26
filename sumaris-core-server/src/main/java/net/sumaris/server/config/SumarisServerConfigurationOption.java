@@ -82,6 +82,20 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.mail.from.description"),
             "no-reply@sumaris.net",
             String.class,
+            false),
+
+    AUTH_CHALLENGE_LIFE_TIME(
+            "sumaris.auth.challenge.lifeTime",
+            n("sumaris.config.option.auth.challenge.lifeTime"),
+            "120",
+            Integer.class,
+            false),
+
+    AUTH_TOKEN_LIFE_TIME(
+            "sumaris.auth.session.duration",
+            n("sumaris.config.option.auth.session.duration"),
+            "14400", // TODO use 3600 (=1h) ?
+            Integer.class,
             false);
 
     /** Configuration key. */

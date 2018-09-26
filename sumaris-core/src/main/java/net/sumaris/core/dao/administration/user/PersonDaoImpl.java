@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.administration;
+package net.sumaris.core.dao.administration.user;
 
 /*-
  * #%L
@@ -25,11 +25,8 @@ package net.sumaris.core.dao.administration;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.ImageAttachmentDao;
 import net.sumaris.core.dao.technical.Beans;
-import net.sumaris.core.dao.technical.Dates;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.exception.BadUpdateDateException;
-import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IReferentialEntity;
@@ -43,8 +40,6 @@ import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.core.vo.referential.UserProfileVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.*;
-import org.hibernate.exception.LockTimeoutException;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

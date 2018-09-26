@@ -34,12 +34,45 @@ import net.sumaris.shared.exception.ErrorCodes;
  */
 public class SumarisTechnicalException extends RuntimeException {
 
-	private static final long serialVersionUID = ErrorCodes.UNEXPECTED_ERROR;
+	private static final long serialVersionUID = ErrorCodes.INTERNAL_ERROR;
 
-	private int code = -1;
+	private final int code;
+
 	/**
 	 * <p>Constructor for SumarisTechnicalException.</p>
 	 *
+	 * @param message a {@link String} object.
+	 */
+	public SumarisTechnicalException(String message) {
+		super(message);
+		this.code = ErrorCodes.INTERNAL_ERROR;
+	}
+
+	/**
+	 * <p>Constructor for SumarisTechnicalException.</p>
+	 *
+	 * @param cause a {@link Throwable} object.
+	 */
+	public SumarisTechnicalException(Throwable cause) {
+		super(cause);
+		this.code = ErrorCodes.INTERNAL_ERROR;
+	}
+
+	/**
+	 * <p>Constructor for SumarisTechnicalException.</p>
+	 *
+	 * @param message a {@link String} object.
+	 * @param cause a {@link Throwable} object.
+	 */
+	public SumarisTechnicalException(String message, Throwable cause) {
+		super(message, cause);
+		this.code = ErrorCodes.INTERNAL_ERROR;
+	}
+
+	/**
+	 * <p>Constructor for SumarisTechnicalException.</p>
+	 *
+	 * @param code a {@link int} for error code.
 	 * @param message a {@link String} object.
 	 */
 	public SumarisTechnicalException(int code, String message) {
@@ -50,6 +83,7 @@ public class SumarisTechnicalException extends RuntimeException {
 	/**
 	 * <p>Constructor for SumarisTechnicalException.</p>
 	 *
+	 * @param code a {@link int} for error code.
 	 * @param message a {@link String} object.
 	 * @param cause a {@link Throwable} object.
 	 */
@@ -61,6 +95,7 @@ public class SumarisTechnicalException extends RuntimeException {
 	/**
 	 * <p>Constructor for SumarisTechnicalException.</p>
 	 *
+	 * @param code a {@link int} for error code.
 	 * @param cause a {@link Throwable} object.
 	 */
 	public SumarisTechnicalException(int code, Throwable cause) {
@@ -68,15 +103,11 @@ public class SumarisTechnicalException extends RuntimeException {
 		this.code = code;
 	}
 
-	/**
-	 * <p>Constructor for SumarisTechnicalException.</p>
-	 *
-	 * @param cause a {@link Throwable} object.
-	 */
-	public SumarisTechnicalException(Throwable cause) {
-		super(cause);
-	}
 
+	/**
+	 * Get the error code
+	 * @return
+	 */
 	public int getCode() {
 		return this.code;
 	}

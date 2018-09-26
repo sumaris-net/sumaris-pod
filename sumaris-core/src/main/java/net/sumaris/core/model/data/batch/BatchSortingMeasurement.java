@@ -55,7 +55,7 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
 
-    @Column(length = 2000)
+    @Column(length = LENGTH_COMMENTS)
     private String comments;
 
     @Column(name="control_date")
@@ -66,7 +66,7 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = 2000)
+    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
     private Date qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -28,6 +28,7 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.dao.technical.model.IEntityBean;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;

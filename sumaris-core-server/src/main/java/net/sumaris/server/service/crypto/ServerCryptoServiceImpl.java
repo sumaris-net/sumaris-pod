@@ -44,11 +44,13 @@ public class ServerCryptoServiceImpl extends net.sumaris.core.service.crypto.Cry
 
     private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 
-    private SumarisServerConfiguration config;
+    private final SumarisServerConfiguration config;
 
-    private CryptoService cryptoService;
+    private final CryptoService cryptoService;
 
-    private KeyPair serverKeyPair;
+    private final KeyPair serverKeyPair;
+
+    private final String serverPubkey;
 
     @Autowired
     public ServerCryptoServiceImpl(SumarisServerConfiguration config, CryptoService cryptoService) {
@@ -58,17 +60,24 @@ public class ServerCryptoServiceImpl extends net.sumaris.core.service.crypto.Cry
         // Generate server keypair
         if (StringUtils.isEmpty(config.getKeypairSalt()) || StringUtils.isEmpty(config.getKeypairSalt())) {
             this.serverKeyPair = cryptoService.getRandomKeypair();
-            log.warn(I18n.t("sumaris.server.keypair.pubkey.random", CryptoUtils.encodeBase58(this.serverKeyPair.getPubKey())));
+            this.serverPubkey = CryptoUtils.encodeBase58(this.serverKeyPair.getPubKey());
+            log.warn(I18n.t("sumaris.server.keypair.pubkey.random", serverPubkey));
         }
         else {
             this.serverKeyPair = cryptoService.getKeyPair(config.getKeypairSalt(), config.getKeypairPassword());
-            log.warn(I18n.t("sumaris.server.keypair.pubkey", CryptoUtils.encodeBase58(this.serverKeyPair.getPubKey())));
+            this.serverPubkey = CryptoUtils.encodeBase58(this.serverKeyPair.getPubKey());
+            log.warn(I18n.t("sumaris.server.keypair.pubkey", serverPubkey));
         }
     }
 
     @Override
     public KeyPair getServerKeypair() {
         return this.serverKeyPair;
+    }
+
+    @Override
+    public String getServerPubkey() {
+        return this.serverPubkey;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.administration;
+package net.sumaris.core.dao.administration.user;
 
 /*-
  * #%L
@@ -24,33 +24,36 @@ package net.sumaris.core.dao.administration;
 
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.filter.DepartmentFilterVO;
+import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
+import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
-public interface DepartmentDao {
+public interface PersonDao  {
 
-    List<DepartmentVO> findByFilter(DepartmentFilterVO filter,
-                                    int offset,
-                                    int size,
-                                    String sortAttribute,
-                                    SortDirection sortDirection);
+    List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
-    @Cacheable(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id")
-    DepartmentVO get(int id);
+    Long countByFilter(PersonFilterVO filter);
 
-    Department getByLabelOrNull(String label);
+    @Cacheable(cacheNames = CacheNames.PERSON_BY_ID, key = "#id")
+    PersonVO get(int id);
 
-    @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id")
+    PersonVO getByPubkeyOrNull(String pubkey);
+
+    ImageAttachmentVO getAvatarByPubkey(String pubkey);
+
+    boolean isExistsByEmailHash(String hash);
+
+    @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#id")
     void delete(int id);
 
-    @CachePut(cacheNames= CacheNames.DEPARTMENT_BY_ID, key="#department.id", condition = "#department.id != null")
-    DepartmentVO save(DepartmentVO department);
+    @CachePut(cacheNames= CacheNames.PERSON_BY_ID, key="#result.id")
+    PersonVO save(PersonVO person);
 
-    DepartmentVO toDepartmentVO(Department department);
+    PersonVO toPersonVO(Person person);
 }

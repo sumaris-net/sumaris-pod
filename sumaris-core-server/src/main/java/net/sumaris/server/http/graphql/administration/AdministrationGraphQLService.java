@@ -1,4 +1,4 @@
-package net.sumaris.server.http.graphql;
+package net.sumaris.server.http.graphql.administration;
 
 /*-
  * #%L
@@ -24,10 +24,9 @@ package net.sumaris.server.http.graphql;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Observable;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
@@ -44,18 +43,17 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.RestPaths;
 import net.sumaris.server.service.administration.AccountService;
+import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Transactional
@@ -82,6 +80,9 @@ public class AdministrationGraphQLService {
 
     @Autowired
     private StrategyService strategyService;
+
+    @Autowired
+    private ChangesPublisherService changesPublisherService;
 
     @Autowired
     public AdministrationGraphQLService(SumarisServerConfiguration config) {
@@ -238,21 +239,14 @@ public class AdministrationGraphQLService {
     @GraphQLSubscription(name = "updateAccount", description = "Subcribe to an account update")
     public Publisher<AccountVO> updateAccount(
             @GraphQLArgument(name = "pubkey") final String pubkey,
-            @GraphQLArgument(name = "interval", defaultValue = "30") final Integer intervalInSecond) {
+            @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkNotNull(pubkey, "Missing pubkey");
         Preconditions.checkArgument(pubkey.length() > 6, "Invalid pubkey");
-        Preconditions.checkArgument(intervalInSecond >= 10, "interval minimum value is [10] seconds");
 
-        log.debug(String.format("Register subscription on account {%s}", pubkey.substring(0, 6)));
+        PersonVO person = personService.getByPubkey(pubkey);
 
-        Observable<AccountVO> observable = Observable
-                .interval(intervalInSecond, TimeUnit.SECONDS)
-                .flatMap(n -> Observable.create(observableEmitter -> {
-                    AccountVO account = accountService.getByPubkey(pubkey);
-                    observableEmitter.onNext(account);
-                }));
-        return observable.toFlowable(BackpressureStrategy.BUFFER);
+        return changesPublisherService.getPublisher(Person.class, AccountVO.class, person.getId(), minIntervalInSecond, true);
     }
 
     /* -- Program / Strategy-- */
