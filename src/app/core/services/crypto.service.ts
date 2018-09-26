@@ -1,6 +1,6 @@
-import {Injectable} from "@angular/core";
-import {sign, box} from "tweetnacl";
-const scrypt = require('scrypt-async')
+import { Injectable } from "@angular/core";
+import { sign, box } from "tweetnacl";
+export const scrypt = require('scrypt-async')
 const nacl = {
   sign: sign,
   box: box,
@@ -43,6 +43,7 @@ const nacl = {
   }
 };
 
+export const Nacl = nacl;
 export interface CryptoSaltParams {
   N: number;
   r: number;
@@ -62,19 +63,19 @@ export class CryptoService {
    * @param password 
    * @param scryptParams 
    */
-  public scryptKeypair(salt: string, password:string, scryptParams?: CryptoSaltParams): Promise<KeyPair> {
-    
+  public scryptKeypair(salt: string, password: string, scryptParams?: CryptoSaltParams): Promise<KeyPair> {
+
     return new Promise((resolve) => {
-        scrypt(password, salt, {
-          N: scryptParams && scryptParams.N || nacl.constants.SCRYPT_PARAMS.DEFAULT.N,
-          r: scryptParams && scryptParams.r || nacl.constants.SCRYPT_PARAMS.DEFAULT.r,
-          p: scryptParams && scryptParams.p || nacl.constants.SCRYPT_PARAMS.DEFAULT.p,
-          dkLen: nacl.constants.SEED_LENGTH,
-          encoding: 'base64'
-        }, function(derivedKey) {
-          resolve(derivedKey);
-        });
-      })
+      scrypt(password, salt, {
+        N: scryptParams && scryptParams.N || nacl.constants.SCRYPT_PARAMS.DEFAULT.N,
+        r: scryptParams && scryptParams.r || nacl.constants.SCRYPT_PARAMS.DEFAULT.r,
+        p: scryptParams && scryptParams.p || nacl.constants.SCRYPT_PARAMS.DEFAULT.p,
+        dkLen: nacl.constants.SEED_LENGTH,
+        encoding: 'base64'
+      }, function (derivedKey) {
+        resolve(derivedKey);
+      });
+    })
       .then((seed) => {
         const byteseed = nacl.util.decodeBase64(seed);
         const signKeypair = nacl.sign.keyPair.fromSeed(byteseed);
@@ -98,7 +99,5 @@ export class CryptoService {
       resolve(signature);
     });
   };
-
-  
 
 }

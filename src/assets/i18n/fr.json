@@ -369,7 +369,7 @@
     "FIELD_NOT_VALID_LATITUDE": "Latitude invalide",
     "FIELD_NOT_VALID_LONGITUDE": "Longitude invalide",
     "SPACE_NOT_ALLOW": "Espaces ou caractères spéciaux non autorisés",
-    "SCRYPT_ERROR": "Erreur de clefs d'ouverture du compte",
+    "SCRYPT_ERROR": "Erreur de generation des clefs d'ouverture du compte",
     "UNKNOWN_ACCOUNT_EMAIL": "Aucun compte ne correspond à cet email.",
     "BAD_PASSWORD": "Mot de passe incorrect.",
     "EMAIL_ALREADY_REGISTERED": "Email déjà enregistrée",
@@ -379,6 +379,9 @@
     "ACCOUNT_NOT_EXISTS": "Votre compte semble inexistant, et ne peut donc être sauvegardé.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Erreur d'envoi de l'email de confirmation du compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Erreur lors de la confirmation de l'email. Ce compte a peut-être déjà été confirmé ?",
+    "UNAUTHORIZED": "Echec de l'authentification sur le serveur",
+    "AUTH_SERVER_ERROR": "Erreur lors de l'authentification sur le serveur",
+    "AUTH_CHALLENGE_ERROR": "Erreur lors de l'authentification sur le serveur (récupration du challenge)",
     "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur"
   }
 }

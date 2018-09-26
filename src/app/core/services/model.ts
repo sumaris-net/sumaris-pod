@@ -15,6 +15,7 @@ export const LocationLevelIds = {
   PORT: 2
 }
 
+export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
 
 export const AcquisitionLevelCodes = {
   TRIP: 'TRIP',
@@ -284,6 +285,13 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
  * An user account
  */
 export class Account extends Person {
+
+  static fromObject(source: any): Account {
+    const result = new Account();
+    result.fromObject(source);
+    return result;
+  }
+
   settings: UserSettings;
 
   constructor() {

@@ -5,6 +5,9 @@ export declare interface ServiceError {
 }
 
 export const ErrorCodes = {
+
+  UNKNOWN_ERROR: 0,
+
   LOAD_ACCOUNT_ERROR: 1,
   BAD_PASSWORD: 2,
   UNKNOWN_ACCOUNT_EMAIL: 3,
@@ -35,5 +38,20 @@ export const ErrorCodes = {
   SAVE_VESSEL_ERROR: 302,
   SAVE_VESSELS_ERROR: 303,
 
-  TABLE_INVALID_ROW_ERROR: 400,
+  TABLE_INVALID_ROW_ERROR: 350,
+
+  UNAUTHORIZED: 401,
+  AUTH_CHALLENGE_ERROR: 601,
+  AUTH_SERVER_ERROR: 602
 };
+
+export const ServerErrorCodes = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401, // not authentifcated
+  FORBIDDEN: 403, // authentifcated but no access right
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+  DATA_LOCKED: 520,
+  BAD_UPDATE_DATE: 521,
+  DENY_DELETION: 522
+}

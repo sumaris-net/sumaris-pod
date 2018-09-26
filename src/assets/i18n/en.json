@@ -379,6 +379,9 @@
     "ACCOUNT_NOT_EXISTS": "Your account does not appear to exist and can not be backed up.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Error sending account confirmation email.<br/>If the problem persists, please contact your administrator.",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Error while confirming the email. This account may have already been confirmed?",
+    "UNAUTHORIZED": "Failed authentication on the server",
+    "AUTH_SERVER_ERROR": "Error during authentication on the server",
+    "AUTH_CHALLENGE_ERROR": "Error during authentication on the server (loading challenge failed)",
     "TABLE_INVALID_ROW_ERROR": "A row is invalid"
   }
 }

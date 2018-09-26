@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { KeyPair, CryptoService } from "./crypto.service";
-import { Account, Referential, UserSettings, toDateISOString } from "./model";
+import { Account, Referential, UserSettings, toDateISOString, UserProfileLabel } from "./model";
 import { Subject, Subscription } from "rxjs-compat";
 import gql from "graphql-tag";
 import { TranslateService } from "@ngx-translate/core";
@@ -9,7 +9,7 @@ import { Storage } from '@ionic/storage';
 import { FetchPolicy } from "apollo-client";
 
 import { BaseDataService, DataService } from "./data-service.class";
-import { ErrorCodes } from "./errors";
+import { ErrorCodes, ServerErrorCodes } from "./errors";
 import { environment } from "../../../environments/environment";
 
 import { Validators, ValidatorFn } from "@angular/forms";
@@ -20,6 +20,7 @@ const base58 = require('../../../lib/base58')
 export declare interface AccountHolder {
   loaded: boolean;
   keypair: KeyPair;
+  authToken: string;
   pubkey: string;
   account: Account;
   localSettings: {
@@ -43,6 +44,9 @@ export interface AccountFieldDef<T = any, F = { searchText?: string; }> {
   dataServiceOptions?: any
 }
 
+const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
+
+const TOKEN_STORAGE_KEY = "token"
 const PUBKEY_STORAGE_KEY = "pubkey"
 const SECKEY_STORAGE_KEY = "seckey"
 const ACCOUNT_STORAGE_KEY = "account"
@@ -148,12 +152,31 @@ const TestSubscription: any = gql`
   }
 `;
 
+// Authentication  query
+const AuthQuery: any = gql`
+  query Auth($token: String){
+    authenticate(token: $token)
+  }
+`;
+
+// New auth challenge query
+const AuthChallengeQuery: any = gql`
+  query AuthChallenge{
+    authChallenge{
+      challenge
+      pubkey
+      signature
+    }
+  }
+`;
+
 @Injectable()
 export class AccountService extends BaseDataService {
 
   private data: AccountHolder = {
     loaded: false,
     keypair: null,
+    authToken: null,
     pubkey: null,
     mainProfile: null,
     account: null,
@@ -166,6 +189,7 @@ export class AccountService extends BaseDataService {
 
   public onLogin: Subject<Account> = new Subject<Account>();
   public onLogout: Subject<any> = new Subject<any>();
+  public onAuthTokenChange: Subject<any> = new Subject<string | undefined>();
 
   public get account(): Account {
     return this.data.loaded ? this.data.account : undefined;
@@ -194,6 +218,7 @@ export class AccountService extends BaseDataService {
   private resetData() {
     this.data.loaded = false;
     this.data.keypair = null;
+    this.data.authToken = null;
     this.data.pubkey = null;
     this.data.mainProfile = null;
     this.data.account = new Account();
@@ -248,7 +273,6 @@ export class AccountService extends BaseDataService {
       // TODO: add department to register form
       data.account.department.id = data.account.department.id || environment.defaultDepartmentId;
 
-
       this.data.keypair = keypair;
       const account = await this.saveAccount(data.account, keypair);
 
@@ -273,49 +297,70 @@ export class AccountService extends BaseDataService {
     };
   }
 
-  public login(data: AuthData): Promise<Account> {
-    if (!data.username || !data.username) return Promise.reject("Missing required username por password");
+  async login(data: AuthData): Promise<Account> {
+    if (!data.username || !data.username) throw "Missing required username por password";
 
     console.debug("[account] Trying to login...");
 
-    return this.cryptoService.scryptKeypair(data.username, data.password)
-      .catch((error) => {
-        console.error(error);
-        this.resetData();
-        throw new Error("ERROR.SCRYPT_ERROR");
-      })
-      .then((keypair) => {
-        this.data.pubkey = base58.encode(keypair.publicKey);
-        this.data.keypair = keypair;
-        return this.loadData()
-          .catch(err => {
-            // If account not found, check if email is valid
-            if (err && err.code == ErrorCodes.LOAD_ACCOUNT_ERROR) {
-              return this.isEmailExists(data.username)
-                .catch(otherError => {
-                  throw err; // resend the first error
-                })
-                .then(isEmailExists => {
-                  // Email not exists (no account)
-                  if (!isEmailExists) {
-                    throw { code: ErrorCodes.UNKNOWN_ACCOUNT_EMAIL, message: "ERROR.UNKNOWN_ACCOUNT_EMAIL" };
-                  }
-                  // Email exists, so error = 'bad password' 
-                  throw { code: ErrorCodes.BAD_PASSWORD, message: "ERROR.BAD_PASSWORD" }
-                });
-            }
-            throw err; // resend the first error
-          })
-      })
-      .then(() => {
-        return this.saveLocally();
-      })
-      .then(() => {
-        console.debug("[account] Sucessfully authenticated {" + this.data.pubkey.substr(0, 6) + "}");
-        this.onLogin.next(this.data.account);
-        return this.data.account;
-      })
-      ;
+    let keypair;
+    try {
+      keypair = await this.cryptoService.scryptKeypair(data.username, data.password);
+    } catch (error) {
+      console.error(error);
+      this.resetData();
+      throw { code: ErrorCodes.UNKNOWN_ERROR, message: "ERROR.SCRYPT_ERROR" };
+    }
+
+    // Store pubkey+keypair
+    this.data.pubkey = base58.encode(keypair.publicKey);
+    this.data.keypair = keypair;
+
+    // Load account data
+    try {
+      await this.loadData();
+    }
+    catch (err) {
+      // If account not found, check if email is valid
+      if (err && err.code == ErrorCodes.LOAD_ACCOUNT_ERROR) {
+
+        let isEmailExists;
+        try {
+          isEmailExists = await this.isEmailExists(data.username);
+        } catch (otherError) {
+          throw err; // resend the first error
+        }
+
+        // Email not exists (no account)
+        if (!isEmailExists) {
+          throw { code: ErrorCodes.UNKNOWN_ACCOUNT_EMAIL, message: "ERROR.UNKNOWN_ACCOUNT_EMAIL" };
+        }
+        // Email exists, so error = 'bad password' 
+        throw { code: ErrorCodes.BAD_PASSWORD, message: "ERROR.BAD_PASSWORD" };
+      }
+
+      throw err; // resend the first error
+    }
+
+    try {
+      // Try to auth on remote server
+      this.data.authToken = await this.authenticateAndGetToken();
+
+      // Store to local storage
+      await this.saveLocally();
+    }
+    catch (error) {
+      console.error(error);
+      this.resetData();
+      throw error;
+    }
+
+
+    console.debug("[account] Sucessfully authenticated {" + this.data.pubkey.substr(0, 6) + "}");
+
+    // Emit event to observers
+    this.onLogin.next(this.data.account);
+
+    return this.data.account;
   }
 
   public refresh(): Promise<Account> {
@@ -376,25 +421,55 @@ export class AccountService extends BaseDataService {
 
   public async restoreLocally(): Promise<Account | undefined> {
 
+    // Restore from storage
+    const values = await Promise.all([
+      this.storage.get(PUBKEY_STORAGE_KEY),
+      this.storage.get(TOKEN_STORAGE_KEY),
+      this.storage.get(ACCOUNT_STORAGE_KEY),
+      this.storage.get(SETTINGS_STORAGE_KEY),
+      this.storage.get(SECKEY_STORAGE_KEY)
+    ])
+    const pubkey = values[0];
+    const token = values[1];
+    const accountStr = values[2];
+    const settingsStr = values[3];
+    const seckey = values[4];
+
     // Restore local settings
-    let settingsStr = await this.storage.get(SETTINGS_STORAGE_KEY);
     this.data.localSettings = settingsStr && JSON.parse(settingsStr) || {};
 
-    let pubkey = await this.storage.get(PUBKEY_STORAGE_KEY);
+    // Quit if no pubkey
     if (!pubkey) return;
 
-    console.debug("[account] Restoring account {" + pubkey.substr(0, 6) + "}'...");
-    this.data.pubkey = pubkey;
+    // Quit if could not auth on remote server
+    const canRemoteAuth = !!token || !!seckey;
+    if (!canRemoteAuth) return;
 
-    // Get account from local storage
-    let accountStr = await this.storage.get(ACCOUNT_STORAGE_KEY);
+    if (this._debug) console.debug("[account] Restoring account {" + pubkey.substr(0, 6) + "}'...");
+
+    this.data.pubkey = pubkey;
+    this.data.keypair = seckey && {
+      publicKey: base58.decode(pubkey),
+      secretKey: base58.decode(seckey)
+    };
+
+    try {
+      this.data.authToken = await this.authenticateAndGetToken(token);
+      if (!this.data.authToken) throw "Authentication failed";
+    }
+    catch (error) {
+      console.error(error);
+      this.resetData();
+      return
+    }
+
+    // No account: stop here (= data not loaded)
     if (!accountStr) return;
 
     let accountObj: any = JSON.parse(accountStr);
     if (!accountObj) return;
 
-    let account = new Account();
-    account.fromObject(accountObj);
+    let account = Account.fromObject(accountObj);
     if (account.pubkey != pubkey) return;
 
     this.data.account = account;
@@ -407,17 +482,22 @@ export class AccountService extends BaseDataService {
   /** 
   * Save account into the local storage
   */
-  public async saveLocally(): Promise<void> {
-    if (!this.data.pubkey) return Promise.reject("User not logged");
+  async saveLocally(): Promise<void> {
+    if (!this.data.pubkey) throw "User not logged";
 
-    console.debug("[account] Saving account {" + this.data.pubkey.substring(0, 6) + "} in local storage...");
+    if (this._debug) console.debug("[account] Saving account {" + this.data.pubkey.substring(0, 6) + "} in local storage...");
 
     let copy = this.data.account.asObject();
+    const seckey = this.data.keypair && !!this.data.keypair.secretKey && base58.encode(this.data.keypair.secretKey) || null;
+
     await Promise.all([
       this.storage.set(PUBKEY_STORAGE_KEY, this.data.pubkey),
-      this.storage.set(ACCOUNT_STORAGE_KEY, JSON.stringify(copy))
+      this.storage.set(TOKEN_STORAGE_KEY, this.data.authToken),
+      this.storage.set(ACCOUNT_STORAGE_KEY, JSON.stringify(copy)),
+      this.storage.set(SECKEY_STORAGE_KEY, seckey)
     ]);
-    //console.debug("[account] Account saved in local storage");
+
+    if (this._debug) console.debug("[account] Account saved in local storage");
   }
 
   /**
@@ -451,18 +531,27 @@ export class AccountService extends BaseDataService {
   }
 
   public async logout(): Promise<void> {
+
+    const tokenRemoved = !!this.data.authToken;
+
     this.resetData();
 
     await Promise.all([
-      this.storage.remove(SECKEY_STORAGE_KEY),
       this.storage.remove(PUBKEY_STORAGE_KEY),
-      this.storage.remove(ACCOUNT_STORAGE_KEY)
+      this.storage.remove(TOKEN_STORAGE_KEY),
+      this.storage.remove(ACCOUNT_STORAGE_KEY),
+      this.storage.remove(SECKEY_STORAGE_KEY)
     ]);
 
     // Clear cache
     this.apollo.getClient().cache.reset();
 
+    // Notify observers
     this.onLogout.next();
+    if (tokenRemoved) {
+      this.onAuthTokenChange.next(undefined);
+    }
+
   }
 
   /**
@@ -506,7 +595,7 @@ export class AccountService extends BaseDataService {
     // First, try to get last account (for updateDate, etc)
     const existingAccount = await this.loadAccount(account.pubkey, { fetchPolicy: 'network-only' });
     if (!existingAccount || !existingAccount.updateDate) {
-      throw { code: ErrorCodes.ACCOUNT_NOT_EXISTS, message: "ERROR.ACCOUNT_NOT_EXISTS" }
+      throw { code: ErrorCodes.ACCOUNT_NOT_EXISTS, message: "ERROR.ACCOUNT_NOT_EXISTS" };
     }
     account.updateDate = existingAccount.updateDate || account.updateDate;
     if (account.settings && existingAccount.settings) {
@@ -592,11 +681,11 @@ export class AccountService extends BaseDataService {
     });
   }
 
-  public confirmEmail(email: String, code: String): Promise<boolean> {
+  async confirmEmail(email: String, code: String): Promise<boolean> {
 
     console.debug("[account-service] Sendng confirm request for email {" + email + "} with code {" + code + "}...");
 
-    return this.mutate<{ confirmAccountEmail: boolean }>({
+    const res = await this.mutate<{ confirmAccountEmail: boolean }>({
       mutation: ConfirmEmailMutation,
       variables: {
         email: email,
@@ -607,7 +696,7 @@ export class AccountService extends BaseDataService {
         message: "ERROR.CONFIRM_ACCOUNT_EMAIL_FAILED"
       }
     })
-      .then(res => res && res.confirmAccountEmail);
+    return res && res.confirmAccountEmail;
   }
 
   public listenChanges(): Subscription {
@@ -640,12 +729,19 @@ export class AccountService extends BaseDataService {
         }
       },
       error(err) {
-        console.log("[account] [WS] Received error:", err);
+        if (err && err.code == ServerErrorCodes.NOT_FOUND) {
+          console.log("[account] Account not exists anymore: force user to logout...", err);
+          this.logout();
+        }
+        else {
+          console.log("[account] [WS] Received error:", err);
+        }
       },
       complete() {
         console.debug('[account] [WS] Completed');
       }
     });
+
     // Add log when closing WS
     subscription.add(() => console.debug('[account] [WS] Stop to listen changes'));
 
@@ -691,15 +787,80 @@ export class AccountService extends BaseDataService {
     this._additionalAccountFields.push(field);
   }
 
+  async authenticateAndGetToken(token?: string, counter?: number): Promise<string> {
+    if (!this.data.pubkey) throw "User not logged";
+
+    if (this._debug && !counter) console.debug("[account] Authenticating on server...");
+
+    if (counter > 4) {
+      if (this._debug) console.debug(`[account] Authentification failed after ${counter} attempts`);
+      throw { code: ErrorCodes.AUTH_SERVER_ERROR, message: "ERROR.AUTH_SERVER_ERROR" };
+    }
+
+    // Check if valid
+    if (token) {
+      const data = await this.query<{ authenticate: boolean }, { token: string }>({
+        query: AuthQuery,
+        variables: {
+          token: token
+        },
+        error: {
+          code: ErrorCodes.UNAUTHORIZED,
+          message: "ERROR.UNAUTHORIZED"
+        },
+        fetchPolicy: 'network-only'
+      });
+
+      // Token is accepted by the server: store it
+      if (data && data.authenticate) {
+        this.onAuthTokenChange.next(token);
+        return token; // return the token
+      }
+
+      // Continue: retry with another challenge
+    }
+
+    // Generate a new token
+    const challengeError = {
+      code: ErrorCodes.AUTH_CHALLENGE_ERROR,
+      message: "ERROR.AUTH_CHALLENGE_ERROR"
+    };
+    const data = await this.query<{
+      authChallenge: {
+        pubkey: string,
+        challenge: string,
+        signature: string
+      }
+    }>({
+      query: AuthChallengeQuery,
+      variables: {},
+      error: challengeError,
+      fetchPolicy: 'network-only'
+    });
+
+    // Check challenge
+    if (!data || !data.authChallenge) throw challengeError; // should never occur
+
+    // TODO: check server signature
+
+    // Do the challenge
+    const signature = await this.cryptoService.sign(data.authChallenge.challenge, this.data.keypair);
+    const newToken = `${this.data.pubkey}:${data.authChallenge.challenge}|${signature}`;
+
+    // iIerate with the new token
+    return await this.authenticateAndGetToken(newToken, (counter || 1) + 1 /* increment */);
+  }
+
   /* -- Protected methods -- */
 
-  private getMainProfile(profiles?: Referential[]): String {
+  private getMainProfile(profiles?: Referential[]): UserProfileLabel | undefined {
 
-    if (!profiles || profiles.length == 0) return 'user'; // default profile
+    if (this._debug) console.debug("[account] Retrieving user main profiles...", profiles);
 
-    // TODO: sort by label ?
-    // ADMIN => LOCAL_ADMIN  => OBSERVER => VIEWER => USER
-    return profiles[0].label;
+    const res = profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(label => !!profiles.find(p => p.label == label)) || 'GUEST';
+
+    if (this._debug) console.debug("[account] Find user main profile: " + res);
+    return res;
   }
 
   private storeLocalSettings(): Promise<any> {

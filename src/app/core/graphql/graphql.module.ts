@@ -1,24 +1,24 @@
 import { NgModule } from '@angular/core';
 import { HttpClientModule, HttpHeaders } from '@angular/common/http';
-import { GC_AUTH_TOKEN } from '../constants';
+import { environment } from '../../../environments/environment';
+import { AccountService } from '../services/account.service';
+
 // Apollo
 import { Apollo, ApolloModule } from 'apollo-angular';
 import { HttpLink, HttpLinkModule } from 'apollo-angular-link-http';
 import { InMemoryCache, defaultDataIdFromObject } from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
-//import { getOperationAST } from 'graphql';
-import { DocumentNode } from 'graphql';
 import { WebSocketLink } from 'apollo-link-ws';
-import { Storage } from '@ionic/storage';
-import { Hermes } from 'apollo-cache-hermes';
-import { environment } from '../../../environments/environment';
+import { getMainDefinition } from 'apollo-utilities';
+
 
 /* Hack on Websocket, to avoid the use of protocol */
 declare let window: any;
 const _global = typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : {});
 const NativeWebSocket = _global.WebSocket || _global.MozWebSocket;
-var AppWebSocket = function (url: string, protocols?: string | string[]) {
+const AppWebSocket = function (url: string, protocols?: string | string[]) {
   const self = new NativeWebSocket(url/*no protocols*/);
+  console.log(self);
   return self;
 } as any;
 AppWebSocket.CLOSED = NativeWebSocket.CLOSED;
@@ -36,19 +36,6 @@ export const dataIdFromObject = function (object: Object): string {
   }
 };
 
-export const getOperationAST = function (query: DocumentNode, operationName: String): {
-  operation: String
-} {
-  if (query && query.definitions && query.definitions.length == 1) {
-    const def: any = query.definitions[0];
-    if (def.operation) {
-      //console.debug("[graphql] getOperationAST return operation: " + def.operation);
-      return { operation: def.operation };
-    }
-  }
-  return undefined;
-}
-
 WebSocket
 @NgModule({
   imports: [
@@ -63,28 +50,31 @@ WebSocket
   ]
 })
 export class AppGraphQLModule {
-  constructor(apollo: Apollo,
-    httpLink: HttpLink,
-    storage: Storage) {
+  constructor(
+    private apollo: Apollo,
+    private httpLink: HttpLink,
+    private accountService: AccountService) {
 
-    console.info("[app] Creating apollo module...");
+    const uri = environment.remoteBaseUrl + '/graphql';
+    const wsUri = String.prototype.replace.call(uri, "http", "ws") + '/websocket';
+    console.info("[apollo] Starting GraphQL client...");
+    console.info("[apollo] GraphQL base uri: " + uri);
+    console.info("[apollo] GraphQL subscription uri: " + wsUri);
 
-    // TODO: auth
-    //const token = storage.get(GC_AUTH_TOKEN);
-    //const authorization = token ? `Bearer ${token}` : null;
-    //const headers = new HttpHeaders().append('Authorization', authorization);
+    // auth
+    const headers = new HttpHeaders();
+    const http = httpLink.create({
+      uri: uri,
+      headers: headers
+    });
 
-    const http = httpLink.create({ uri: environment.remoteBaseUrl + '/graphql' });
-
-    const wsUrl = String.prototype.replace.call(environment.remoteBaseUrl, "http", "ws");
+    const wsConnectionParams: { authToken?: string } = {};
     const ws = new WebSocketLink({
-      uri: wsUrl + '/subscriptions/websocket',
+      uri: wsUri,
       options: {
-        reconnect: true
-        /*,
-        connectionParams: {
-          authToken: storage.get(GC_AUTH_TOKEN),
-        }*/
+        lazy: true,
+        reconnect: true,
+        connectionParams: wsConnectionParams
       },
       webSocketImpl: AppWebSocket
     });
@@ -92,21 +82,34 @@ export class AppGraphQLModule {
     const imCache = new InMemoryCache({
       dataIdFromObject: dataIdFromObject
     });
-    // const heCache = new Hermes({
-    //   entityIdForNode: dataIdFromObject
-    // });
 
     // create Apollo
     apollo.create({
       link: ApolloLink.split(
-        operation => {
-          const operationAST = getOperationAST(operation.query, operation.operationName);
-          return !!operationAST && operationAST.operation === 'subscription';
+        ({ query }) => {
+          const def = getMainDefinition(query);
+          return def.kind === 'OperationDefinition' && def.operation === 'subscription';
         },
         ws,
         http,
       ),
-      cache: imCache
+      cache: imCache,
+      connectToDevTools: !environment.production
+    });
+
+    // Update auth Token
+    accountService.onAuthTokenChange.subscribe((token) => {
+      if (token) {
+        console.debug("[apollo] Setting new authentication token");
+        headers.delete('Authorization');
+        headers.append('Authorization', `token ${token}`);
+        wsConnectionParams.authToken = token;
+      }
+      else {
+        console.debug("[apollo] Resseting authentication token");
+        headers.delete('Authorization');
+        delete wsConnectionParams.authToken;
+      }
     });
   }
 }
