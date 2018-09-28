@@ -20,9 +20,9 @@ const noop = () => {
 })
 export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
-    private _onChangeCallback = (_: any) => { };
-    private _onTouchedCallback = () => { };
-
+    private _onChange: (_: any) => void = noop;
+    private _onTouched: () => void = noop;
+    protected disabling: boolean = false;
 
     @Input() pmfm: PmfmStrategy;
 
@@ -49,7 +49,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
         if (obj !== this.formControl.value) {
             console.debug("[mat-form-field-measurement] Replace value", obj);
             this.formControl.setValue(obj);
-            this._onChangeCallback(this.value);
+            this._onChange(this.value);
         }
     }
 
@@ -79,27 +79,30 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     }
 
     registerOnChange(fn: any): void {
-        this._onChangeCallback = fn;
+        this._onChange = fn;
     }
     registerOnTouched(fn: any): void {
-        this._onTouchedCallback = fn;
+        this._onTouched = fn;
     }
 
     setDisabledState(isDisabled: boolean): void {
-        if (this.disabled != isDisabled) {
-            this.disabled = isDisabled;
-            if (isDisabled) {
-                this.formControl.disable();
-            }
-            else {
-                this.formControl.enable();
-            }
+        if (this.disabling) return;
+
+        this.disabling = true;
+
+        this.disabled = isDisabled;
+        if (isDisabled) {
+            this.formControl.disable();
         }
+        else {
+            this.formControl.enable();
+        }
+        this.disabling = false;
     }
 
     public markAsTouched() {
         if (this.formControl.touched) {
-            this._onTouchedCallback();
+            this._onTouched();
         }
     }
 

@@ -36,6 +36,8 @@ export class CatchForm extends MeasurementsForm implements OnInit {
         super(dateAdapter, platform, measurementsValidatorService, formBuilder, referentialService, translate);
 
         this.acquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
+
+        this.debug = true;
     }
 
     ngOnInit() {
@@ -44,6 +46,8 @@ export class CatchForm extends MeasurementsForm implements OnInit {
         // pmfm
         this.pmfms
             .subscribe(pmfms => {
+
+                this.logDebug("[catch-form] Received pmfms:", pmfms);
 
                 this.measurementsValidatorService.updateFormGroup(this.form, pmfms);
 

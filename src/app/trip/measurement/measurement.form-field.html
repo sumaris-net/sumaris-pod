@@ -19,11 +19,12 @@
       [step]="computeNumberInputStep(pmfm)" [formControl]="formControl" [required]="pmfm.isMandatory">
     <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.errors?.min">
-      {{'ERROR.FIELD_MIN'| translate:{min: pmfm.minValue} }}</mat-error>
+      {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:{min: pmfm.minValue} }}</mat-error>
     <mat-error *ngIf="formControl.errors?.max">
-      {{'ERROR.FIELD_MAX'| translate:{max: pmfm.maxValue} }}</mat-error>
+      {{ (compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAN')| translate:{max: pmfm.maxValue} }}</mat-error>
     <mat-error *ngIf="formControl.errors?.pattern">
-      {{'ERROR.FIELD_MAXIMAL_DECIMALS'| translate:{max: pmfm.maximumNumberDecimals} }}</mat-error>
+      {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max:
+      pmfm.maximumNumberDecimals} }}</mat-error>
   </mat-form-field>
 
   <!-- boolean -->

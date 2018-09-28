@@ -1,8 +1,14 @@
-<!-- <ion-spinner *ngIf="loading"></ion-spinner> -->
+<ion-spinner *ngIf="loading"></ion-spinner>
 
-<form [formGroup]="form" *ngIf="!loading">
+<form class="form-container" [formGroup]="form" novalidate (ngSubmit)="doSubmit($event)" *ngIf="!loading">
 
-  <ion-col no-padding [size]="6" *ngFor="let pmfm of pmfms | async">
+  <!-- error -->
+  <ion-item *ngIf="error && showError" visible-xs visible-sm>
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
+  </ion-item>
+
+  <ion-col no-padding size="6" *ngFor="let pmfm of cachedPmfms">
 
     <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls[pmfm.id]" [compact]="compact" [floatLabel]="floatLabel"></mat-form-field-measurement>
 
