@@ -41,7 +41,7 @@
     "DATE": "Date",
     "HOUR": "Heure",
     "MINUTE": "Minute",
-    "HOUR_PLACEHOLDER": "hh",
+    "HOUR_PLACEHOLDER": "hh:mm",
     "MINUTE_PLACEHOLDER": "mm",
 
     "YES": "Oui",
@@ -166,7 +166,7 @@
       "FILTER": {
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
-        "LOCATION": "Port (departure or return)"
+        "LOCATION": "Port (départ ou retour)"
       }
     },
     "ERROR": {
@@ -358,8 +358,11 @@
     "FIELD_TOO_LONG": "Valeur trop longue",
     "FIELD_TOO_LONG_WITH_LENGTH": "Valeur trop longue ({{maxLength}} caractères max)",
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
+    "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
     "FIELD_MAX": "La valeur maximale autorisée est {{max}}",
+    "FIELD_MAX_COMPACT": "Max autorisé={{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Nombre de décimale incorrect ({{max}} max)",
+    "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale max={{max}}",
     "FIELD_INVALID": "Valeur non valide",
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
     "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
@@ -383,5 +386,10 @@
     "AUTH_SERVER_ERROR": "Erreur lors de l'authentification sur le serveur",
     "AUTH_CHALLENGE_ERROR": "Erreur lors de l'authentification sur le serveur (récupration du challenge)",
     "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur"
+  },
+  "CONFIRM": {
+    "ALERT_HEADER": "Confirmation",
+    "SAVE": "Voulez-vous sauvegarder vos modifications ?",
+    "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?"
   }
 }

@@ -1,9 +1,10 @@
-import { OnInit } from '@angular/core';
 import { Router, ActivatedRoute, Params, NavigationEnd } from "@angular/router";
 import { MatTabChangeEvent } from "@angular/material";
 import { AppForm, AppTable } from '../../core/core.module';
-
-export abstract class AppTabPage<T, F = any>{
+import { Entity } from '../services/model';
+import { AlertController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+export abstract class AppTabPage<T extends Entity<T>, F = any>{
 
 
     private _forms: AppForm<any>[];
@@ -30,7 +31,9 @@ export abstract class AppTabPage<T, F = any>{
 
     constructor(
         protected route: ActivatedRoute,
-        protected router: Router
+        protected router: Router,
+        protected alertCtrl: AlertController,
+        protected translate: TranslateService
     ) {
         // Listen route parameters
         this.route.queryParams.subscribe(res => {
@@ -40,8 +43,6 @@ export abstract class AppTabPage<T, F = any>{
             }
         });
     }
-
-    abstract async cancel();
 
     abstract async load(id?: number, options?: F);
 
@@ -93,7 +94,7 @@ export abstract class AppTabPage<T, F = any>{
         this._tables && this._tables.forEach(table => table.markAsUntouched());
     }
 
-    onTabChange(event: MatTabChangeEvent) {
+    public onTabChange(event: MatTabChangeEvent) {
         const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
         queryParams['tab'] = event.index;
         this.router.navigate(['.'], {
@@ -101,6 +102,68 @@ export abstract class AppTabPage<T, F = any>{
             queryParams: queryParams
         });
     }
+
+    async cancel() {
+        if (!this.dirty) return;
+        await this.reload();
+    };
+
+    public async reload(confirm?: boolean) {
+        // if not confirm yet: ask confirmation
+        if (!confirm) {
+            const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.CANCEL_CHANGES', 'CONFIRM.ALERT_HEADER']);
+            const alert = await this.alertCtrl.create({
+                header: translations['CONFIRM.ALERT_HEADER'],
+                message: translations['CONFIRM.CANCEL_CHANGES'],
+                buttons: [
+                    {
+                        text: translations['COMMON.NO'],
+                        role: 'cancel',
+                        cssClass: 'secondary',
+                        handler: () => { }
+                    },
+                    {
+                        text: translations['COMMON.YES'],
+                        handler: () => {
+                            confirm = true; // update upper value
+                        }
+                    }
+                ]
+            });
+            await alert.present();
+            await alert.onDidDismiss();
+        }
+
+        // If confirm: execute the reload
+        if (confirm) {
+            this.scrollToTop();
+            this.disable();
+            return await this.doReload();
+        }
+    }
+
+    public async doReload() {
+        this.loading = true;
+        await this.load(this.data && this.data.id);
+    }
+
+    protected async scrollToTop() {
+        let scrollToTop = window.setInterval(() => {
+            let pos = window.pageYOffset;
+            if (pos > 0) {
+                window.scrollTo(0, pos - 20); // how far to scroll on each step
+            } else {
+                window.clearInterval(scrollToTop);
+            }
+        }, 16);
+    }
+
+    /* -- protected methods -- */
+
+    protected isNewData(): boolean {
+        return !this.data || this.data.id === undefined || this.data.id === null
+    }
+
 
 
 }

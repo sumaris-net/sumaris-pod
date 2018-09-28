@@ -43,7 +43,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     isRateLimitReached = false;
     selection = new SelectionModel<TableElement<T>>(true, []);
     selectedRow: TableElement<T> = undefined;
-    onRefresh: EventEmitter<any> = new EventEmitter<any>();
+    onRefresh = new EventEmitter<any>();
     i18nColumnPrefix = 'COMMON.';
     autoLoad = true;
     settingsId;

@@ -68,10 +68,7 @@ const AccountQuery: any = gql`
       statusId
       updateDate
       creationDate
-      userProfiles {
-        id
-        label
-      }
+      profiles
       settings {
         id
         locale
@@ -119,6 +116,7 @@ const SaveAccountMutation: any = gql`
       statusId
       updateDate
       creationDate
+      profiles
       settings {
         id
         locale
@@ -607,6 +605,7 @@ export class AccountService extends BaseDataService {
     }
 
     const json = account.asObject();
+    delete json.profiles;
 
     // Execute mutation
     const res = await this.mutate<{ saveAccount: any }>({
@@ -857,14 +856,15 @@ export class AccountService extends BaseDataService {
 
   /* -- Protected methods -- */
 
-  private getMainProfile(profiles?: Referential[]): UserProfileLabel | undefined {
+  private getMainProfile(profiles?: Referential[]): UserProfileLabel {
 
     if (this._debug) console.debug("[account] Retrieving user main profiles...", profiles);
 
-    const res = profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(label => !!profiles.find(p => p.label == label)) || 'GUEST';
+    const mainProfile = profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(label => !!profiles.find(p => p.label == label));
+    const mainProfileLabel = (mainProfile && mainProfile['label'] || 'GUEST') as UserProfileLabel;
 
-    if (this._debug) console.debug("[account] Find user main profile: " + res);
-    return res;
+    if (this._debug) console.debug("[account] Main user profile {" + mainProfileLabel + "}");
+    return mainProfileLabel;
   }
 
   private storeLocalSettings(): Promise<any> {

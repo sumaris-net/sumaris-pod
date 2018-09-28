@@ -41,7 +41,7 @@
                   <ion-label translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
                 </ion-col>
                 <ion-col>
-                  <form-measurements acquisitionLevel="TRIP" #measurementsForm></form-measurements>
+                  <form-measurements acquisitionLevel="TRIP" [debug]="true" #measurementsForm></form-measurements>
                 </ion-col>
               </ion-row>
 
@@ -98,7 +98,7 @@
 
 <ion-footer hidden-xs hidden-sm>
 
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading ">
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error">

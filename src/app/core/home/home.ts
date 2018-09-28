@@ -13,8 +13,12 @@ import { fadeInAnimation } from '../../shared/material/material.animations';
 
 export function getRandomImage() {
 
-  var imageCount = 7;
-  const kind = 'ray';
+  const kinds = {
+    'ray': 7,
+    'boat': 3
+  };
+  const kind = (Math.random() < 0.3) ? 'ray' : 'boat';
+  const imageCount = kinds[kind];
 
   if (imageCount == 0) return getRandomImage();
   var imageIndex = Math.floor(Math.random() * imageCount) + 1;

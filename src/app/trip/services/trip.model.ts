@@ -108,6 +108,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     return res;
   }
 
+  program: string;
   departureDateTime: Moment;
   returnDateTime: Moment;
   departureLocation: Referential;
@@ -147,6 +148,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
 
   fromObject(source: any): Trip {
     super.fromObject(source);
+    this.program = source.program;
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);
     source.departureLocation && this.departureLocation.fromObject(source.departureLocation);
@@ -156,7 +158,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
       this.sale.fromObject(source.sale);
     };
     this.gears = source.gears && source.gears.filter(g => !!g).map(PhysicalGear.fromObject) || undefined;
-    this.measurements = source.measurements && source.measurements.filter(m => !!m).map(Measurement.fromObject) || undefined;
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     return this;
   }
 
@@ -172,7 +174,6 @@ export class Trip extends DataRootVesselEntity<Trip> {
   }
 }
 
-
 export class PhysicalGear extends DataRootEntity<PhysicalGear> {
 
   static fromObject(source: any): PhysicalGear {
@@ -181,10 +182,9 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
     return res;
   }
 
-  gear: Referential;
-  comments: string;
-  measurements: Measurement[];
   rankOrder: number;
+  gear: Referential;
+  measurements: Measurement[];
 
   constructor() {
     super();
@@ -215,12 +215,8 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
   fromObject(source: any): PhysicalGear {
     super.fromObject(source);
     this.rankOrder = source.rankOrder;
-    this.comments = source.comments;
     source.gear && this.gear.fromObject(source.gear);
-
-    // Measurements
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || undefined;
-
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     return this;
   }
 
@@ -504,7 +500,7 @@ export class Operation extends DataEntity<Operation> {
       this.endPosition = this.positions[1];
     }
     delete this.positions;
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || undefined;
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
     // TODO: batch
     return this;
@@ -707,7 +703,7 @@ export class Batch extends DataEntity<Batch> {
     this.operationId = source.operationId;
     this.children = source.children && source.children.filter(c => !!c).map(Batch.fromObject) || undefined;
     this.children && this.children.forEach(c => c.parentBatch = this); // link children to self
-    this.measurements = source.measurements && source.measurements.filter(m => !!m).map(Measurement.fromObject) || undefined;
+    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     return this;
   }
 

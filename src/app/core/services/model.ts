@@ -190,7 +190,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
   copy(target: Person) {
     Object.assign(target, this);
     target.department = this.department.clone();
-    target.profiles = this.profiles && this.profiles.map(p => p.clone()) || undefined;
+    target.profiles = this.profiles && this.profiles.slice(0) || undefined;
   }
 
   asObject(): any {
@@ -198,7 +198,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     delete target.dirty;
     delete target.__typename;
     target.department = this.department && this.department.asObject() || undefined;
-    target.userProfiles = this.profiles && this.profiles.map(p => p.asObject()) || undefined;
+    target.profiles = this.profiles && this.profiles.slice(0) || undefined;
     target.creationDate = toDateISOString(this.creationDate);
     return target;
   }
@@ -213,7 +213,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     this.avatar = source.avatar;
     this.statusId = source.statusId;
     source.department && this.department.fromObject(source.department);
-    this.profiles = source.userProfiles && source.userProfiles.map(Referential.fromObject) || undefined;
+    this.profiles = source.profiles && source.profiles.slice(0) || undefined;
     return this;
   }
 }

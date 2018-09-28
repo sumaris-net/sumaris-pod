@@ -31,7 +31,7 @@ ion-card {
   background-color: $card-background;
   min-width: 240px;
   max-width: 400px;
-  z-index: 99;
+  z-index: 9;
 
   button {
     margin-top: 16px;
@@ -52,7 +52,7 @@ ion-text {
   @extend [padding];
   background-color: $card-background;
   min-width: 240px;
-  z-index: -99;
+  z-index: 0;
 
   img.logo {
     max-height: 50px;
@@ -63,13 +63,16 @@ ion-text {
 // Extra small device: Phones (<767px)
 @media screen and (max-width: $screen-xs-max) {
   ion-content {
-    // Avoid boittom-banner to override main-content
-    min-height: 539px;
 
     ion-card {
       min-width: 160px;
       width: auto;
       max-width: 260px;
+
+      img {
+        max-width: 100px;
+        margin-left: 8px;
+      }
 
       button {
         margin-top: 8px;

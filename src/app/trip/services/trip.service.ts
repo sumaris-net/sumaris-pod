@@ -20,6 +20,7 @@ const LoadAllQuery: any = gql`
   query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TripFilterVOInput){
     trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       id
+      program
       departureDateTime
       returnDateTime
       creationDate
@@ -52,6 +53,7 @@ const LoadQuery: any = gql`
   query Trip($id: Int) {
     trip(id: $id) {
       id
+      program
       departureDateTime
       returnDateTime
       creationDate
@@ -228,6 +230,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     this._lastVariables.loadAll = variables;
 
+    const now = new Date();
     if (this._debug) console.debug("[trip-service] Loading trips... using options:", variables);
     return this.watchQuery<{ trips: Trip[] }>({
       query: LoadAllQuery,
@@ -236,17 +239,16 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     })
       .pipe(
         map((data) => {
-          if (this._debug) console.debug("[trip-service] Loaded {" + (data && data.trips && data.trips.length || 0) + "} trips");
-          return (data && data.trips || []).map(t => {
-            const res = new Trip();
-            res.fromObject(t);
-            return res;
-          });
+          const res = (data && data.trips || []).map(Trip.fromObject);
+          if (this._debug) console.debug("[trip-service] Loaded {" + (res.length || 0) + "} trips in " + (new Date().getTime() - now.getTime()) + "ms");
+          return res;
         }));
   }
 
   load(id: number): Observable<Trip | null> {
     if (!id) throw new Error("id should not be null");
+
+    const now = new Date();
     if (this._debug) console.debug("[trip-service] Loading trip {" + id + "}...");
 
     return this.watchQuery<{ trip: Trip }>({
@@ -260,7 +262,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         map(data => {
           if (data && data.trip) {
             const res = Trip.fromObject(data.trip);
-            if (this._debug) console.debug("[trip-service] Trip {" + id + "} loaded", res);
+            if (this._debug) console.debug("[trip-service] Trip {" + id + "} loaded in " + (new Date().getTime() - now.getTime()) + "ms", res);
             return res;
           }
           return null;

@@ -14,6 +14,9 @@ export class FormButtonsBarComponent {
     @Input()
     disabled: boolean = false;
 
+    @Input()
+    disabledCancel: boolean = false;
+
     @Output()
     onCancel: EventEmitter<any> = new EventEmitter<any>();
 

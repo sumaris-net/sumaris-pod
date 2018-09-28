@@ -1,15 +1,16 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute, Params } from "@angular/router";
-import { MatTabChangeEvent } from "@angular/material";
+import { Router, ActivatedRoute } from "@angular/router";
+import { AlertController } from "@ionic/angular";
+
 import { TripService } from './services/trip.service';
 import { TripForm } from './trip.form';
 import { Trip } from './services/trip.model';
 import { SaleForm } from './sale/sale.form';
 import { OperationTable } from './operation/operations.table';
 import { MeasurementsForm } from './measurement/measurements.form';
-import { AppForm, AppTable, AppTabPage } from '../core/core.module';
+import { AppTabPage } from '../core/core.module';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
-
+import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'page-trip',
   templateUrl: './trip.page.html',
@@ -31,11 +32,13 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   @ViewChild('operationTable') operationTable: OperationTable;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
+    route: ActivatedRoute,
+    router: Router,
+    alertCtrl: AlertController,
+    translate: TranslateService,
     protected tripService: TripService
   ) {
-    super(route, router);
+    super(route, router, alertCtrl, translate);
   }
 
   ngOnInit() {
@@ -115,6 +118,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.data.measurements = this.measurementsForm.value;
 
     const formDirty = this.dirty;
+    const isNewData = this.isNewData();
     this.disable();
 
     try {
@@ -129,6 +133,15 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
       // Update the view (e.g metadata)
       this.updateView(updatedData, false);
+
+      // Update route location
+      if (isNewData) {
+        this.router.navigate(['../' + updatedData.id], {
+          relativeTo: this.route,
+          queryParams: this.route.snapshot.queryParams
+        });
+      }
+
       return updatedData;
     }
     catch (err) {
@@ -143,10 +156,5 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }
   }
 
-  async cancel() {
-    // reload
-    this.loading = true;
-    await this.load(this.data.id);
-  }
 
 }

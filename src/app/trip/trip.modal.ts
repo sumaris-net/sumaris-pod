@@ -4,7 +4,8 @@ import { ModalController } from "@ionic/angular";
 import { TripService } from './services/trip.service';
 import { MatHorizontalStepper } from "@angular/material";
 import { TripPage } from "./trip.page";
-
+import { AlertController } from "@ionic/angular";
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'modal-trip',
@@ -16,11 +17,13 @@ export class TripModal extends TripPage {
   @ViewChild('stepper') private stepper: MatHorizontalStepper;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
+    route: ActivatedRoute,
+    router: Router,
+    alterCtrl: AlertController,
+    translate: TranslateService,
     protected tripService: TripService,
     protected viewCtrl: ModalController) {
-    super(route, router, tripService);
+    super(route, router, alterCtrl, translate, tripService);
   }
 
   async save(event: any): Promise<any> {

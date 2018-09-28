@@ -9,9 +9,8 @@ import { AppTabPage } from '../../core/core.module';
 import { CatchForm } from '../catch/catch.form';
 import { SurvivalTestsTable } from '../survivaltest/survivaltests.table';
 import { IndividualMonitoringTable } from '../individualmonitoring/individual-monitoring.table';
-import { map, mergeMap } from 'rxjs/operators';
-
-
+import { AlertController } from "@ionic/angular";
+import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'page-operation',
   templateUrl: './operation.page.html',
@@ -33,12 +32,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringTable;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
+    route: ActivatedRoute,
+    router: Router,
+    alterCtrl: AlertController,
+    translate: TranslateService,
     protected operationService: OperationService,
     protected tripService: TripService
   ) {
-    super(route, router);
+    super(route, router, alterCtrl, translate);
     //this.debug = true;
   }
 
@@ -219,8 +220,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     }
   }
 
-  async cancel() {
-    // reload
+  // Override default function
+  async doReload() {
     this.loading = true;
     await this.load(this.data && this.data.id,
       { tripId: this.trip && this.trip.id });
