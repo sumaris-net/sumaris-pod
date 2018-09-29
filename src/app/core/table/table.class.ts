@@ -227,20 +227,27 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     addRow(event?: any): boolean {
         if (this.debug) console.debug("[table] Asking for new row...");
 
-        // Use modal if not expert mode, or if small screen
+        // Use modal if inline edition is disabled
         if (!this.inlineEdition) {
             this.openNewRowDetail();
             return false;
         }
 
-        // Try to finish previous row first
-        if (this.selectedRow && this.selectedRow.editing && !this.selectedRow.confirmEditCreate()) {
-            if (this.debug) console.warn("[table] Selected row not valid: unable to add new row", this.selectedRow);
+        // Try to finish selected row first
+        if (!this.confirmEditCreateSelectedRow()) {
             return false;
         }
 
         // Add new row
         this.addRowToTable();
+        return true;
+    }
+
+    protected confirmEditCreateSelectedRow(): boolean {
+        if (this.selectedRow && this.selectedRow.editing && !this.selectedRow.confirmEditCreate()) {
+            if (this.debug) console.warn("[table] Selected row not valid", this.selectedRow);
+            return false;
+        }
         return true;
     }
 
@@ -253,8 +260,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     async save(): Promise<boolean> {
         this.error = undefined;
-        if (this.selectedRow && this.selectedRow.editing && !this.selectedRow.confirmEditCreate()) {
-            if (this.debug) console.warn("[table] Row not valid: unable to save", this.selectedRow);
+        if (!this.confirmEditCreateSelectedRow()) {
             throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
         }
         if (this.debug) console.debug("[table] Calling dataSource.save()...");
@@ -303,14 +309,13 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.selectedRow = null;
     }
 
-    public onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
-        if (this.selectedRow && this.selectedRow === row || event.defaultPrevented) return;
-        if (this.selectedRow && this.selectedRow !== row) {
-            if (this.selectedRow.editing && !this.selectedRow.confirmEditCreate()) {
-                if (this.debug) console.warn("[table] selected row not valid: unable to edit another row", this.selectedRow);
-                return false;
-            }
+    onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
+        if (this.selectedRow === row || event.defaultPrevented) return;
+
+        if (!this.confirmEditCreateSelectedRow()) {
+            return false;
         }
+
         if (!row.editing && !this.loading) {
             this.dataSource.startEdit(row);
         }
@@ -319,7 +324,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         return true;
     }
 
-    public onRowClick(event: MouseEvent, row: TableElement<T>): boolean {
+    onRowClick(event: MouseEvent, row: TableElement<T>): boolean {
         if (row.id == -1 || row.editing) return true;
         if (event.defaultPrevented) return false;
 

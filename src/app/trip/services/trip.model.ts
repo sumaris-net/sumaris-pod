@@ -28,6 +28,9 @@ export function fillRankOrder(values: { rankOrder: number }[]) {
   });
 }
 
+const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? -1 : 1); };
+
+
 /* -- DATA -- */
 export abstract class DataEntity<T> extends Entity<T> {
   recorderDepartment: Department;
@@ -499,12 +502,24 @@ export class Operation extends DataEntity<Operation> {
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     source.metier && this.metier.fromObject(source.metier);
-    this.positions = source.positions && source.positions.map(VesselPosition.fromObject) || undefined;
-    if (this.positions && this.positions.length == 2) {
-      this.startPosition = this.positions[0];
-      this.endPosition = this.positions[1];
+    if (source.startPosition || source.endPosition) {
+      this.startPosition = source.startPosition && VesselPosition.fromObject(source.startPosition);
+      this.endPosition = source.endPosition && VesselPosition.fromObject(source.endPosition);
+      this.positions = undefined;
     }
-    delete this.positions;
+    else if (source.positions) {
+      const positions = source.positions.map(VesselPosition.fromObject).sort(sortByDateTimeFn) || undefined;
+      if (positions.length == 2) {
+        this.startPosition = positions[0];
+        this.endPosition = positions[1];
+        this.positions = undefined;
+      }
+      else {
+        this.startPosition = undefined;
+        this.endPosition = undefined;
+        this.positions = positions;
+      }
+    }
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
     // TODO: batch

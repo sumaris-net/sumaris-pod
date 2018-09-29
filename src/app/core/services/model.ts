@@ -198,6 +198,7 @@ export class ReferentialRef extends Entity<ReferentialRef>  {
 
   asObject(): any {
     const target: any = super.asObject();
+    delete target.entityName;
     return target;
   }
 

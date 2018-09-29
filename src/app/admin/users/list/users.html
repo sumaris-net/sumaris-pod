@@ -129,6 +129,8 @@
       </mat-cell>
     </ng-container>
 
+    <!-- TODO: add department -->
+
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
     <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="submitted && row.validator.invalid"
       [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>

@@ -174,12 +174,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
     })
       .pipe(
         map((data) => {
-          if (this._debug) console.debug("[operation-service] Loaded {" + (data && data.operations && data.operations.length || 0) + "} operations");
-          const res = (data && data.operations || []).map(t => {
-            const res = new Operation();
-            res.fromObject(t);
-            return res;
-          });
+          const res = (data && data.operations || []).map(Operation.fromObject);
+          if (this._debug) console.debug(`[operation-service] Loaded ${res.length} operations`);
 
           // Compute rankOrderOnPeriod, by tripId
           if (filter && filter.tripId) {

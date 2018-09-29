@@ -67,11 +67,14 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     );
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = false;
+    this.allowRowDetail = false;
     this.setDatasource(new AppTableDataSource<PhysicalGear, any>(PhysicalGear, this, this.validatorService));
   };
 
 
   ngOnInit() {
+
+    this.debug = true;
 
     super.ngOnInit();
 
@@ -148,7 +151,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     return Promise.resolve();
   }
 
-  public onRowClick(event: MouseEvent, row: TableElement<PhysicalGear>): boolean {
+  onRowClick(event: MouseEvent, row: TableElement<PhysicalGear>): boolean {
     if (!row.currentData || event.defaultPrevented) return false;
 
     if (this.selectedRow && this.selectedRow.validator.invalid) {
@@ -162,13 +165,16 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     return true;
   }
 
-  addRow(): boolean {
+  addRow(event?: any): boolean {
     if (this.debug) console.debug("[physicalgears-table] Calling addRow()");
 
-    // Create new row
-    const result = super.addRow();
-    if (!result) return false;
+    // Try to finish selected row first
+    if (!this.confirmEditCreateSelectedRow()) {
+      return false;
+    }
 
+    // Create new row
+    super.addRowToTable();
     const row = this.dataSource.getRow(-1);
     this.data.push(row.currentData);
     this.selectedRow = row;

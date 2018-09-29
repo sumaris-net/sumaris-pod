@@ -131,7 +131,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
             .filter(() => !!this._program && !!this._acquisitionLevel)
             .pipe(
                 switchMap((event: any) => {
-                    this.loading = true;
+                    //this.loading = true;
                     if (event) this.logDebug(`call _onRefreshPmfms.emit('${event}')`);
                     now = new Date();
                     this.logDebug(`Loading pmfms for '${this._program}' and gear '${this._gear}'...`);

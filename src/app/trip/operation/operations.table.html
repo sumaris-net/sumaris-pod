@@ -144,13 +144,13 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <form [formGroup]="row.validator.controls['endPosition']">
-        <mat-latlong floatLabel="never" formControlName="latitude" [(ngModel)]="row.currentData.endPosition.latitude"
-          type="latitude" [latLongPattern]="latLongPattern" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate"
-          [(ngModel)]="row.currentData.endPosition.latitude" [readonly]="!row.editing" required>
+        <mat-latlong floatLabel="never" formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern"
+          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [(ngModel)]="row.currentData.endPosition.latitude"
+          [readonly]="!row.editing" required>
         </mat-latlong>
-        <mat-latlong floatLabel="never" formControlName="longitude" [(ngModel)]="row.currentData.endPosition.longitude"
-          type="longitude" [latLongPattern]="latLongPattern" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)"
-          [(ngModel)]="row.currentData.endPosition.longitude" [readonly]="!row.editing" required>
+        <mat-latlong floatLabel="never" formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern"
+          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [(ngModel)]="row.currentData.endPosition.longitude"
+          [readonly]="!row.editing" required>
         </mat-latlong>
       </form>
     </mat-cell>
