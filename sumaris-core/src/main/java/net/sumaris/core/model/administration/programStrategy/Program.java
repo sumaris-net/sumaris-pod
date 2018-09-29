@@ -24,6 +24,8 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import lombok.Data;
 import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.PhysicalGear;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.LocationLevel;
 import net.sumaris.core.model.referential.Status;
@@ -70,4 +72,5 @@ public class Program implements IItemReferentialEntity {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.PROPERTY_PROGRAM)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Strategy> strategies = new ArrayList<>();
+
 }

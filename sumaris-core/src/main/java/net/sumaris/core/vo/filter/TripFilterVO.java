@@ -32,7 +32,7 @@ public class TripFilterVO {
     private Date startDate;
     private Date endDate;
 
-    private String programCode;
+    private String programLabel;
 
     private Integer recorderDepartmentId;
 

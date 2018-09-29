@@ -25,6 +25,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;

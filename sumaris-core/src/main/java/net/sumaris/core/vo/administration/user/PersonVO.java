@@ -53,7 +53,7 @@ public class PersonVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private DepartmentVO department;
 
-    private List<UserProfileVO> userProfiles;
+    private List<String> profiles;
 
     private boolean hasAvatar;
 

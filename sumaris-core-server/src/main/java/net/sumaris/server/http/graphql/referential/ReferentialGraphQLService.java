@@ -83,17 +83,15 @@ public class ReferentialGraphQLService {
     }
 
     @GraphQLMutation(name = "saveReferential", description = "Create or update a referential")
-    public ReferentialVO saveVessel(
-            @GraphQLArgument(name = "entityName") String entityName,
-            @GraphQLArgument(name = "referential") ReferentialVO bean) {
-        return referentialService.save(entityName, bean);
+    public ReferentialVO saveReferential(
+            @GraphQLArgument(name = "referential") ReferentialVO referential) {
+        return referentialService.save(referential);
     }
 
     @GraphQLMutation(name = "saveReferentials", description = "Create or update many referential")
-    public List<ReferentialVO> saveVessels(
-            @GraphQLArgument(name = "entityName") String entityName,
-            @GraphQLArgument(name = "referentials") List<ReferentialVO> beans) {
-        return referentialService.save(entityName, beans);
+    public List<ReferentialVO> saveReferentials(
+            @GraphQLArgument(name = "referentials") List<ReferentialVO> referential) {
+        return referentialService.save(referential);
     }
 
     @GraphQLMutation(name = "deleteReferential", description = "Delete a referential (by id)")

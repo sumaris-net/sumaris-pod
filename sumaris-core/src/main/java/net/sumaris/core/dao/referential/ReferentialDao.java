@@ -31,7 +31,9 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 import java.io.Serializable;
 import java.util.List;
@@ -57,10 +59,14 @@ public interface ReferentialDao {
 
     <T extends IReferentialVO, S extends IReferentialEntity> T toTypedVO(S source, Class<T> targetClazz);
 
-    @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Pmfm'")
-    ReferentialVO save(String entityName, ReferentialVO source);
+    ReferentialVO save(ReferentialVO source);
 
-    @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'")
+    @Caching(evict= {
+            @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#id", condition = "#entityName == 'Person'"),
+            @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id", condition = "#entityName == 'Department'"),
+            @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
+            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#id", condition = "#entityName == 'Program'")
+    })
     void delete(String entityName, int id);
 
 }

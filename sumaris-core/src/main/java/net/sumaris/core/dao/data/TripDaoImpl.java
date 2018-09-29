@@ -24,12 +24,14 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.LocationDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Trip;
@@ -37,6 +39,7 @@ import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Location;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.TripVO;
@@ -77,7 +80,7 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
     private DepartmentDao departmentDao;
 
     @Autowired
-    private VesselDao vesselDao;
+    private ProgramDao programDao;
 
     public TripDaoImpl() {
         super();
@@ -113,6 +116,11 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
 
+        Integer programId = null;
+        if (StringUtils.isNotBlank(filter.getProgramLabel())) {
+            programId = programDao.getByLabel(filter.getProgramLabel()).getId();
+        }
+
         // Fetch locations
         //getEntityManager().enableFetchProfile("with-location");
 
@@ -123,24 +131,30 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         ParameterExpression<Date> startDateParam = builder.parameter(Date.class);
         ParameterExpression<Date> endDateParam = builder.parameter(Date.class);
         ParameterExpression<Integer> locationIdParam = builder.parameter(Integer.class);
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
 
         query.select(root)
             .where(builder.and(
+                // Filter: program
+                builder.or(
+                        builder.isNull(programIdParam),
+                        builder.equal(root.get(Trip.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                ),
                 // Filter: startDate
                 builder.or(
                         builder.isNull(startDateParam),
-                        builder.not(builder.lessThan(root.get(TripVO.PROPERTY_RETURN_DATE_TIME), startDateParam))
+                        builder.not(builder.lessThan(root.get(Trip.PROPERTY_RETURN_DATE_TIME), startDateParam))
                 ),
                 // Filter: endDate
                 builder.or(
                     builder.isNull(endDateParam),
-                    builder.not(builder.greaterThan(root.get(TripVO.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
+                    builder.not(builder.greaterThan(root.get(Trip.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
                 ),
                 // Filter: location
                 builder.or(
                         builder.isNull(locationIdParam),
-                        builder.equal(root.get(TripVO.PROPERTY_DEPARTURE_LOCATION).get(IReferentialEntity.PROPERTY_ID), locationIdParam),
-                        builder.equal(root.get(TripVO.PROPERTY_RETURN_LOCATION).get(IReferentialEntity.PROPERTY_ID), locationIdParam)
+                        builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
+                        builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
                 )
             ));
 
@@ -154,6 +168,7 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         }
 
         TypedQuery<Trip> q = getEntityManager().createQuery(query)
+                .setParameter(programIdParam, programId)
                 .setParameter(startDateParam, filter.getStartDate())
                 .setParameter(endDateParam, filter.getEndDate())
                 .setParameter(locationIdParam, filter.getLocationId())
@@ -240,6 +255,10 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
         Beans.copyProperties(source, target);
 
+        // Program
+        target.setProgram(programDao.toProgramVO(source.getProgram()));
+
+        // Vessel
         VesselFeaturesVO vesselFeatures = new VesselFeaturesVO();
         vesselFeatures.setVesselId(source.getVessel().getId());
         target.setVesselFeatures(vesselFeatures);
@@ -274,6 +293,22 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
     protected void tripVOToEntity(TripVO source, Trip target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
+
+        // Program
+        if (copyIfNull || (source.getProgram() != null && (source.getProgram().getId() != null || source.getProgram().getLabel() != null))) {
+            if (source.getProgram() == null || (source.getProgram().getId() == null && source.getProgram().getLabel() == null)) {
+                target.setProgram(null);
+            }
+            // Load by id
+            else if (source.getProgram().getId() != null){
+                target.setProgram(load(Program.class, source.getProgram().getId()));
+            }
+            // Load by label
+            else {
+                ProgramVO program = programDao.getByLabel(source.getProgram().getLabel());
+                target.setProgram(load(Program.class, program.getId()));
+            }
+        }
 
         // Vessel
         if (copyIfNull || (source.getVesselFeatures() != null && source.getVesselFeatures().getVesselId() != null)) {

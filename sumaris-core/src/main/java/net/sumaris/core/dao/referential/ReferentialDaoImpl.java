@@ -229,11 +229,11 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
     }
 
     @Override
-    public ReferentialVO save(final String entityName, ReferentialVO source) {
+    public ReferentialVO save(final ReferentialVO source) {
         Preconditions.checkNotNull(source);
 
         // Get the entity class
-        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(source.getEntityName());
 
         EntityManager entityManager = getEntityManager();
 
@@ -246,7 +246,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             try {
                 entity = entityClass.newInstance();
             } catch (IllegalAccessException |InstantiationException e) {
-                throw new IllegalArgumentException("Entity with name [" + entityName + "] has no empty constructor");
+                throw new IllegalArgumentException(String.format("Entity with name [%s] has no empty constructor", source.getEntityName()));
             }
         }
 
@@ -259,7 +259,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         }
 
         // VO -> Entity
-        referentialVOToEntity(entityName, source, entity, true);
+        referentialVOToEntity(source, entity, true);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -482,7 +482,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
     }
 
-    protected void referentialVOToEntity(final String entityName, ReferentialVO source, IReferentialEntity target, boolean copyIfNull) {
+    protected void referentialVOToEntity(final ReferentialVO source, IReferentialEntity target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 
@@ -499,7 +499,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         // Level
         Integer levelID = source.getLevelId();
         if (copyIfNull || levelID != null) {
-            PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(entityName);
+            PropertyDescriptor levelDescriptor = levelPropertyNameMap.get(source.getEntityName());
             if (levelDescriptor != null) {
                 try {
                     if (levelID == null) {

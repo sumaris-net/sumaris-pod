@@ -25,7 +25,6 @@ package net.sumaris.core.model.referential;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data

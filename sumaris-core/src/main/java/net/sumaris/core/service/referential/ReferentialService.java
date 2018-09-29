@@ -48,9 +48,9 @@ public interface ReferentialService {
     @Transactional(readOnly = true)
     ReferentialVO getLevelById(String entityName, int levelId);
 
-    ReferentialVO save(String entityName, ReferentialVO source);
+    ReferentialVO save(ReferentialVO source);
 
-    List<ReferentialVO> save(String entityName, List<ReferentialVO> beans);
+    List<ReferentialVO> save(List<ReferentialVO> beans);
 
     void delete(String entityName, int id);
 

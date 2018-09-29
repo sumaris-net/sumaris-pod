@@ -88,22 +88,20 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
-	public ReferentialVO save(final String entityName, ReferentialVO source) {
-		Preconditions.checkNotNull(entityName, "Missing entityName");
+	public ReferentialVO save(ReferentialVO source) {
 		Preconditions.checkNotNull(source);
 		Preconditions.checkNotNull(source.getStatusId(), "Missing statusId");
+		Preconditions.checkNotNull(source.getEntityName(), "Missing entityName");
 
-		source.setEntityName(entityName); // Need by cache eviction
-		return referentialDao.save(entityName, source);
+		return referentialDao.save(source);
 	}
 
 	@Override
-	public List<ReferentialVO> save(final String entityName, List<ReferentialVO> beans) {
-		Preconditions.checkNotNull(entityName);
+	public List<ReferentialVO> save(List<ReferentialVO> beans) {
 		Preconditions.checkNotNull(beans);
 
 		return beans.stream()
-				.map(b -> save(entityName, b))
+				.map(this::save)
 				.collect(Collectors.toList());
 	}
 }

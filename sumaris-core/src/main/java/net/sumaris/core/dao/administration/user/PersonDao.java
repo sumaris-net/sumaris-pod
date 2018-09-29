@@ -31,6 +31,7 @@ import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 
@@ -53,7 +54,10 @@ public interface PersonDao  {
     @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#id")
     void delete(int id);
 
-    @CachePut(cacheNames= CacheNames.PERSON_BY_ID, key="#result.id")
+    @Caching(put = {
+        @CachePut(cacheNames= CacheNames.PERSON_BY_ID, key="#person.id", condition = "#person.id != null"),
+        @CachePut(cacheNames= CacheNames.PERSON_BY_PUBKEY, key="#person.pubkey", condition = "#person.id != null")
+    })
     PersonVO save(PersonVO person);
 
     PersonVO toPersonVO(Person person);

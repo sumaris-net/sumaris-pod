@@ -25,7 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private static final Logger log =
             LoggerFactory.getLogger(AuthServiceImpl.class);
 
-    private final List<Integer> ACCEPTED_USER_PROFILES = ImmutableList.of(UserProfileEnum.ADMIN.id, UserProfileEnum.USER.id, UserProfileEnum.SUPERVISOR.id);
+    private final List<Integer> AUTH_ACCEPTED_PROFILES = ImmutableList.of(UserProfileEnum.ADMIN.id, UserProfileEnum.USER.id, UserProfileEnum.SUPERVISOR.id);
 
     private final ValidationExpiredCache challenges;
     private final ValidationExpiredCache checkedTokens;
@@ -108,16 +108,16 @@ public class AuthServiceImpl implements AuthService {
             log.error("Could not save auth token.", e);
         }
 
-        if (debug) log.debug(String.format("Authentication succeed for pubkey {%s}", authData.getPubkey().substring(0, 6)));
+        if (debug) log.debug(String.format("Authentication succeed for user with pubkey {%s}", authData.getPubkey().substring(0, 6)));
 
         return true;
     }
 
-    public boolean canAuth(String pubkey) throws DataNotFoundException {
+    public boolean canAuth(final String pubkey) throws DataNotFoundException {
         List<Integer> userProfileIds = accountService.getProfileIdsByPubkey(pubkey);
 
-        boolean result = CollectionUtils.containsAny(userProfileIds, ACCEPTED_USER_PROFILES);
-        if (debug) log.debug(String.format("User {%s} has profiles ids={%s}: %s authenticate", pubkey.substring(0,6), userProfileIds, (result ? "can" : "cannot")));
+        boolean result = CollectionUtils.containsAny(userProfileIds, AUTH_ACCEPTED_PROFILES);
+        if (debug) log.debug(String.format("User with pubkey {%s} %s authenticate, because he has this profiles: %s", pubkey.substring(0,6), (result ? "can" : "cannot"), userProfileIds));
         return result;
     }
 

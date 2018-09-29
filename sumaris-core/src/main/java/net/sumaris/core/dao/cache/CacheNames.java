@@ -8,10 +8,9 @@ public interface CacheNames {
     String REFERENTIAL_TYPES = "net.sumaris.core.dao.referential.allTypesCache";
 
     String PROGRAM_BY_LABEL= "net.sumaris.core.dao.administration.programStrategy.programBylabelCache";
-    String PMFM_BY_PROGRAM_ID= "net.sumaris.core.dao.administration.programStrategy.pmfmByProgramIdCache";
 
     String PMFM_BY_ID= "net.sumaris.core.dao.referential.pmfmByIdCache";
-
+    String PMFM_BY_PROGRAM_ID= "net.sumaris.core.dao.administration.programStrategy.pmfmByProgramIdCache";
 
     String QUERY_CACHE_NAME = "org.hibernate.cache.spi.QueryResultsRegion";
     String TIMESTAMPS_REGION_CACHE_NAME = "org.hibernate.cache.spi.TimestampsRegion";

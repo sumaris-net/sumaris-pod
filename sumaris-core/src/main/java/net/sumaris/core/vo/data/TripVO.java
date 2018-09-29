@@ -24,6 +24,7 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -38,6 +39,7 @@ import java.util.List;
 @Data
 public class TripVO implements IUpdateDateEntityBean<Integer, Date> {
 
+    public static final String PROPERTY_PROGRAM = "program";
     public static final String PROPERTY_DEPARTURE_DATE_TIME = "departureDateTime";
     public static final String PROPERTY_RETURN_DATE_TIME = "returnDateTime";
     public static final String PROPERTY_DEPARTURE_LOCATION = "departureLocation";
@@ -62,6 +64,8 @@ public class TripVO implements IUpdateDateEntityBean<Integer, Date> {
     private Date returnDateTime;
     private LocationVO departureLocation;
     private LocationVO returnLocation;
+
+    private ProgramVO program;
 
     private List<SaleVO> sales;
     private SaleVO sale;

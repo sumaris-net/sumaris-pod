@@ -24,6 +24,7 @@ package net.sumaris.core.service.administration;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -57,8 +58,9 @@ public class PersonServiceTest extends AbstractServiceTest{
         Assert.assertNotNull(results);
         Assert.assertTrue(results.size() > 0);
         PersonVO person = results.get(0);
-        Assert.assertTrue(person.getUserProfiles().size() > 0);
-        Assert.assertEquals(observerProfileId, person.getUserProfiles().get(0).getId());
+        Assert.assertTrue(person.getProfiles().size() > 0);
+        UserProfileEnum profile = UserProfileEnum.valueOf(person.getProfiles().get(0)) ;
+        Assert.assertEquals(observerProfileId, new Integer(profile.id));
 
         // Find by status
         filter = new PersonFilterVO();

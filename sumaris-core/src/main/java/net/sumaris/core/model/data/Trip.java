@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
@@ -53,6 +54,13 @@ import java.util.List;
 @Data
 @Entity
 public class Trip implements IRootDataEntity<Integer> {
+
+    public static final String PROPERTY_PROGRAM = "program";
+    public static final String PROPERTY_DEPARTURE_DATE_TIME = "departureDateTime";
+    public static final String PROPERTY_RETURN_DATE_TIME = "returnDateTime";
+    public static final String PROPERTY_DEPARTURE_LOCATION = "departureLocation";
+    public static final String PROPERTY_RETURN_LOCATION = "returnLocation";
+    public static final String PROPERTY_VESSEL = "vessel";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -110,6 +118,9 @@ public class Trip implements IRootDataEntity<Integer> {
     @JoinColumn(name = "return_location_fk", nullable = false)
     private Location returnLocation;
 
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
+    @JoinColumn(name = "program_fk", nullable = false)
+    private Program program;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Operation.PROPERTY_TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
@@ -129,6 +140,9 @@ public class Trip implements IRootDataEntity<Integer> {
     private List<VesselUseMeasurement> measurements = new ArrayList<>();
 
     public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+        return new StringBuilder().append("Trip(")
+                .append("id=").append(id)
+                .append(",departureDateTime=").append(departureDateTime)
+                .append(")").toString();
     }
 }

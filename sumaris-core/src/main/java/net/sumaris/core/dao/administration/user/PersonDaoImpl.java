@@ -32,6 +32,7 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.UserProfile;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -299,16 +300,12 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         // Status
         target.setStatusId(source.getStatus().getId());
 
-        // User profiles
+        // Profiles (keep only label)
         if (CollectionUtils.isNotEmpty(source.getUserProfiles())) {
-            List<UserProfileVO> profiles = source.getUserProfiles().stream().map(p -> {
-                UserProfileVO profileVO = new UserProfileVO();
-                profileVO.setId(p.getId());
-                profileVO.setLabel(p.getLabel());
-                profileVO.setName(p.getName());
-                return profileVO;
-            }).collect(Collectors.toList());
-            target.setUserProfiles(profiles);
+            List<String> profiles = source.getUserProfiles().stream()
+                    .map(UserProfile::getLabel)
+                    .collect(Collectors.toList());
+            target.setProfiles(profiles);
         }
 
         // Has avatar
@@ -356,16 +353,17 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         }
 
         // User profiles
-        if (copyIfNull || CollectionUtils.isNotEmpty(source.getUserProfiles())) {
-            if (CollectionUtils.isEmpty(source.getUserProfiles())) {
+        if (copyIfNull || CollectionUtils.isNotEmpty(source.getProfiles())) {
+            if (CollectionUtils.isEmpty(source.getProfiles())) {
                 target.getUserProfiles().clear();
             }
             else {
                 target.getUserProfiles().clear();
-                source.getUserProfiles().stream()
-                        .mapToInt(UserProfileVO::getId)
-                        .filter(Objects::nonNull)
-                        .forEach(id -> target.getUserProfiles().add(load(UserProfile.class, id)));
+                source.getProfiles().stream()
+                        .filter(StringUtils::isNotBlank)
+                        .map(UserProfileEnum::valueOf) // to enum
+                        .filter(Objects::nonNull) // filter invalid enum
+                        .forEach(profileEnum -> target.getUserProfiles().add(load(UserProfile.class, profileEnum.id)));
             }
         }
 

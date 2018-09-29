@@ -33,6 +33,7 @@ import net.sumaris.core.dao.administration.user.UserTokenDao;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -183,8 +184,8 @@ public class AccountServiceImpl implements AccountService {
             account.setStatusId(config.getStatusIdTemporary());
         }
 
-        // Reset user profiles
-        account.setUserProfiles(null);
+        // Set default profile
+        account.setProfiles(Lists.newArrayList(UserProfileEnum.GUEST.label));
 
         // Normalize email
         account.setEmail(org.apache.commons.lang3.StringUtils.trimToNull(account.getEmail()));
@@ -214,9 +215,19 @@ public class AccountServiceImpl implements AccountService {
         checkValid(account);
         Preconditions.checkNotNull(account.getId());
 
-        // TODO: check
-        // - same email
-        // - same profiles, etc.
+        // Get existing account
+        PersonVO existingPerson = personDao.get(account.getId());
+        if (existingPerson == null) {
+            throw new DataNotFoundException(I18n.t("sumaris.error.account.notFound"));
+        }
+
+        // Check same email
+        Preconditions.checkArgument(Objects.equals(existingPerson.getEmail(), account.getEmail()), "Email could not be changed by the user, but only by an administrator.");
+
+        // Make sure to restore existing profiles, to avoid any changes by the user himself
+        account.setProfiles(existingPerson.getProfiles());
+
+        // Do the save
         account = (AccountVO) personDao.save(account);
 
         // Save settings
@@ -306,7 +317,10 @@ public class AccountServiceImpl implements AccountService {
         if (person == null) {
             throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
         }
-        return person.getUserProfiles().stream().map(up -> up.getId()).collect(Collectors.toList());
+        return person.getProfiles().stream()
+                .map(UserProfileEnum::valueOf)
+                .map(up -> up.id)
+                .collect(Collectors.toList());
     }
 
     @Override
