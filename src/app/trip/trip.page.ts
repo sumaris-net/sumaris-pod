@@ -11,6 +11,8 @@ import { MeasurementsForm } from './measurement/measurements.form';
 import { AppTabPage } from '../core/core.module';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { TranslateService } from '@ngx-translate/core';
+import { environment } from '../../environments/environment.prod';
+import { Subscription } from 'rxjs-compat';
 @Component({
   selector: 'page-trip',
   templateUrl: './trip.page.html',
@@ -18,6 +20,8 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class TripPage extends AppTabPage<Trip> implements OnInit {
 
+
+  protected _enableListenChanges: boolean = false;
 
   saving: boolean = false;
 
@@ -39,6 +43,9 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     protected tripService: TripService
   ) {
     super(route, router, alertCtrl, translate);
+
+    // FOR DEV ONLY ----
+    this.debug = true;
   }
 
   ngOnInit() {
@@ -61,19 +68,46 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   async load(id?: number, options?: any) {
     this.error = null;
-    if (id) {
-      this.tripService.load(id)
+    // new
+    if (!id) {
+
+      // Create using default values
+      const data = Trip.fromObject({
+        program: { label: environment.defaultProgram }
+      });
+
+      this.updateView(data, true);
+      this.enable();
+      this.loading = false;
+    }
+
+    // Load
+    else {
+      this.tripService.load(id).first()
         .subscribe(data => {
           this.updateView(data, true);
           this.enable();
           this.loading = false;
+          this.startListenChanges();
         });
     }
-    else {
-      this.updateView(new Trip(), true);
-      this.enable();
-      this.loading = false;
-    }
+  }
+
+  startListenChanges() {
+    if (!this._enableListenChanges) return;
+
+    const subscription = this.tripService.listenChanges(this.data.id)
+      .subscribe((data: Trip | undefined) => {
+        if (data && data.updateDate) {
+          if (this.debug) console.debug("[trip] Detected update on server", data.updateDate, this.data.updateDate);
+        }
+      });
+
+    // Add log when closing
+    if (this.debug) subscription.add(() => console.debug('[trip] [WS] Stop to listen changes'));
+
+    //.subscribe(data => this.updateView(data, true));
+    this.registerSubscription(subscription);
   }
 
   updateView(data: Trip | null, updateOperations?: boolean) {
@@ -118,7 +152,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.data.measurements = this.measurementsForm.value;
 
     const formDirty = this.dirty;
-    const isNewData = this.isNewData();
+    const isNew = this.isNewData();
     this.disable();
 
     try {
@@ -135,11 +169,14 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       this.updateView(updatedData, false);
 
       // Update route location
-      if (isNewData) {
+      if (isNew) {
         this.router.navigate(['../' + updatedData.id], {
           relativeTo: this.route,
           queryParams: this.route.snapshot.queryParams
         });
+
+        // SUbscription to changes
+        this.startListenChanges();
       }
 
       return updatedData;

@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Observable } from "rxjs";
+import { Observable, Subject } from "rxjs";
 import { map } from "rxjs/operators";
-import { ValidatorService } from "angular4-material-table";
-import { AppTableDataSource, AppTable } from "../../core/core.module";
+import { ValidatorService, TableElement } from "angular4-material-table";
+import { AppTableDataSource, AppTable, AppFormUtils } from "../../core/core.module";
 import { ReferentialValidatorService } from "../validator/validators";
 import { ReferentialService, ReferentialFilter } from "../services/referential-service";
-import { Referential, StatusIds } from "../services/model";
+import { Referential, StatusIds, ReferentialRef } from "../services/model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { VesselService } from '../services/vessel-service';
@@ -14,6 +14,7 @@ import { Location } from '@angular/common';
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
+
 
 const DEFAULT_ENTITY_NAME = "Location";
 
@@ -27,10 +28,13 @@ const DEFAULT_ENTITY_NAME = "Location";
 })
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
-  entityNameForm: FormGroup;
+  protected entityName: string;
+
+  showLevelColumn = true;
   filterForm: FormGroup;
   entities: Observable<{ id: string, label: string, level?: string, levelLabel?: string }[]>;
-  levels: Observable<Referential[]>;
+  levels = new Subject<ReferentialRef[]>();
+  levelsItems = this.levels.asObservable();
   statusList: any[] = [
     {
       id: StatusIds.ENABLE,
@@ -76,20 +80,20 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       new AppTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
         prependNewElements: false,
         serviceOptions: {
-          full: true,
-          saveOnlyDirtyRows: true,
-          entityName: null // will be set from route parameters
+          saveOnlyDirtyRows: true
         }
       })
     );
-    //this.autoLoad = false;
-    this.inlineEdition = true; // always inline edition
+
+    this.allowRowDetail = false;
+
+    // Allow inline edition only if admin
+    this.inlineEdition = accountService.hasProfile('ADMIN');
+
     this.i18nColumnPrefix = 'REFERENTIAL.';
 
-    this.entityNameForm = formBuilder.group({
-      'entityName': ['']
-    });
     this.filterForm = formBuilder.group({
+      'entityName': [''],
       'searchText': [null]
     });
 
@@ -102,9 +106,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         });
       }
       else {
-        this.dataSource.serviceOptions = this.dataSource.serviceOptions || { full: true };
-        this.dataSource.serviceOptions.entityName = entityName;
-        this.entityNameForm.setValue({ entityName: entityName });
+        //this.filterForm.controls['entityName'].setValue(entityName);
+        this.filterForm.setValue({ entityName: entityName, searchText: res["q"] || null });
       }
     });
 
@@ -112,6 +115,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.statusById = {};
     this.statusList.forEach((status) => this.statusById[status.id] = status);
     this.autoLoad = false;
+
+    // FOR DEV ONLY
+    this.debug = true;
   };
 
   ngOnInit() {
@@ -141,29 +147,34 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       this.filterForm.markAsPristine();
     });
 
+    // Copy data to validator
+    this.dataSource.connect().subscribe(rows => {
+      rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
+    });
+
     // Only if entityName has been select:  load data
-    if (this.dataSource.serviceOptions && this.dataSource.serviceOptions.entityName) {
-      console.info("[referential] Loading " + this.dataSource.serviceOptions.entityName + "...");
+    this.filter = this.filterForm.value;
+    this.entityName = this.filter.entityName;
+    if (this.entityName) {
       // Load levels
-      this.levels = this.referentialService.loadLevels(this.dataSource.serviceOptions.entityName)
-      // then load list
+      this.loadLevels(this.entityName);
+      // Load items
+      console.info(`[referential] Loading ${this.entityName}...`);
       this.onRefresh.emit();
     }
   }
 
   onEntityNameChange(entityName: string) {
     // No change: skip
-    if (this.dataSource.serviceOptions.entityName === entityName) return;
+    if (this.entityName === entityName) return;
 
-    entityName = entityName || this.dataSource.serviceOptions.entityName;
+    this.entityName = entityName || this.filterForm.controls['entityName'].value;
 
-    console.info("[referential] Loading " + entityName + "...");
+    // Load levels
+    this.loadLevels(entityName);
 
-    // Set the service options
-    this.dataSource.serviceOptions = this.dataSource.serviceOptions || { full: true };
-    this.dataSource.serviceOptions.entityName = entityName;
+    console.info(`[referential] Loading ${entityName}...`);
     this.onRefresh.emit();
-    this.levels = this.referentialService.loadLevels(entityName);
 
     this.router.navigate([entityName], {
       relativeTo: this.route.parent,
@@ -171,10 +182,21 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     });
   }
 
-  debugRow(row: any): string {
-    //console.log(row);
-    console.log(row.currentData);
-    return row.currentData.name;
+  addRow(): boolean {
+    // Create new row
+    const result = super.addRow();
+    if (!result) return result;
+
+    const row = this.dataSource.getRow(-1);
+    row.validator.controls['entityName'].setValue(this.entityName);
+    return true;
+  }
+
+  async loadLevels(entityName: string): Promise<Referential[]> {
+    const res = await this.referentialService.loadLevels(entityName);
+    this.levels.next(res);
+    this.showLevelColumn = res && res.length > 0;
+    return res
   }
 }
 

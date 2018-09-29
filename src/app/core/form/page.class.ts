@@ -4,11 +4,13 @@ import { AppForm, AppTable } from '../../core/core.module';
 import { Entity } from '../services/model';
 import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 export abstract class AppTabPage<T extends Entity<T>, F = any>{
 
 
     private _forms: AppForm<any>[];
     private _tables: AppTable<any, any>[];
+    private _subscriptions: Subscription[];
 
     debug: boolean = false;
     data: T;
@@ -42,6 +44,13 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
                 this.selectedTabIndex = parseInt(tabIndex);
             }
         });
+    }
+
+    ngOnDestroy() {
+        if (this._subscriptions) {
+            this._subscriptions.forEach(s => s.unsubscribe());
+            this._subscriptions = undefined;
+        }
     }
 
     abstract async load(id?: number, options?: F);
@@ -147,7 +156,10 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
         await this.load(this.data && this.data.id);
     }
 
+    /* -- protected methods -- */
+
     protected async scrollToTop() {
+        // TODO: FIXME (not working as the page is not the window)
         let scrollToTop = window.setInterval(() => {
             let pos = window.pageYOffset;
             if (pos > 0) {
@@ -158,12 +170,13 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
         }, 16);
     }
 
-    /* -- protected methods -- */
-
     protected isNewData(): boolean {
         return !this.data || this.data.id === undefined || this.data.id === null
     }
 
-
+    protected registerSubscription(sub: Subscription) {
+        this._subscriptions = this._subscriptions || [];
+        this._subscriptions.push(sub);
+    }
 
 }

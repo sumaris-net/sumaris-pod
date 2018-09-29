@@ -8,8 +8,7 @@ import { DateAdapter } from "@angular/material";
 
 export abstract class AppForm<T> implements OnInit {
 
-  private _enable: boolean = false;
-
+  protected _enable: boolean = false;
 
   touchUi: boolean = false;
   mobile: boolean = false;

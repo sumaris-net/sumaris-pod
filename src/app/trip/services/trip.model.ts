@@ -1,5 +1,5 @@
 import {
-  Referential, EntityUtils, Department, Person,
+  Referential, ReferentialRef, EntityUtils, Department, Person,
   toDateISOString, fromDateISOString,
   vesselFeaturesToString, entityToString, referentialToString,
   StatusIds, Cloneable, Entity, LocationLevelIds, VesselFeatures, GearLevelIds, TaxonGroupIds,
@@ -8,7 +8,7 @@ import {
 import { Moment } from "moment/moment";
 
 export {
-  Referential, EntityUtils, Person, Department,
+  Referential, ReferentialRef, EntityUtils, Person, Department,
   toDateISOString, fromDateISOString,
   vesselFeaturesToString, entityToString, referentialToString,
   StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds,
@@ -108,19 +108,20 @@ export class Trip extends DataRootVesselEntity<Trip> {
     return res;
   }
 
-  program: string;
+  program: ReferentialRef;
   departureDateTime: Moment;
   returnDateTime: Moment;
-  departureLocation: Referential;
-  returnLocation: Referential;
+  departureLocation: ReferentialRef;
+  returnLocation: ReferentialRef;
   sale: Sale;
   gears: PhysicalGear[];
   measurements: Measurement[];
 
   constructor() {
     super();
-    this.departureLocation = new Referential();
-    this.returnLocation = new Referential();
+    this.program = new ReferentialRef();
+    this.departureLocation = new ReferentialRef();
+    this.returnLocation = new ReferentialRef();
     this.measurements = [];
   }
 
@@ -136,6 +137,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
 
   asObject(): any {
     const target = super.asObject();
+    target.program = this.program && this.program.asObject() || undefined;
     target.departureDateTime = toDateISOString(this.departureDateTime);
     target.returnDateTime = toDateISOString(this.returnDateTime);
     target.departureLocation = this.departureLocation && this.departureLocation.asObject() || undefined;
@@ -148,7 +150,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
 
   fromObject(source: any): Trip {
     super.fromObject(source);
-    this.program = source.program;
+    source.program && this.program.fromObject(source.program);
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);
     source.departureLocation && this.departureLocation.fromObject(source.departureLocation);
@@ -183,12 +185,12 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
   }
 
   rankOrder: number;
-  gear: Referential;
+  gear: ReferentialRef;
   measurements: Measurement[];
 
   constructor() {
     super();
-    this.gear = new Referential();
+    this.gear = new ReferentialRef();
     this.measurements = [];
   }
 
@@ -235,7 +237,7 @@ export class Measurement extends DataEntity<Measurement> {
   pmfmId: number;
   alphanumericalValue: string;
   numericalValue: number;
-  qualitativeValue: Referential;
+  qualitativeValue: ReferentialRef;
   digitCount: number;
   rankOrder: number;
 
@@ -272,7 +274,7 @@ export class Measurement extends DataEntity<Measurement> {
     this.numericalValue = source.numericalValue;
     this.digitCount = source.digitCount;
     this.rankOrder = source.rankOrder;
-    this.qualitativeValue = source.qualitativeValue && Referential.fromObject(source.qualitativeValue);
+    this.qualitativeValue = source.qualitativeValue && ReferentialRef.fromObject(source.qualitativeValue);
 
     return this;
   }
@@ -339,7 +341,7 @@ export class MeasurementUtils {
       case "boolean":
         return source.numericalValue === 1 ? true : (source.numericalValue === 0 ? false : null);
       case "date":
-        return source.alphanumericalValue;
+        return fromDateISOString(source.alphanumericalValue);
       default:
         throw new Error("Unknown pmfm.type for getting value of measurement: " + pmfm.type);
     }
@@ -361,8 +363,11 @@ export class MeasurementUtils {
       case "boolean":
         target.numericalValue = (value === true || value === "true") ? 1 : 0;
         break;
+      case "date":
+        target.alphanumericalValue = toDateISOString(value);
+        break;
       default:
-        throw new Error("Unknown pmfm.type, to fill measruement value: " + pmfm.type);
+        throw new Error("Unknown pmfm.type, to fill measurement value: " + pmfm.type);
     }
   }
 }
@@ -370,13 +375,13 @@ export class MeasurementUtils {
 export class Sale extends DataRootVesselEntity<Sale> {
   startDateTime: Moment;
   endDateTime: Moment;
-  saleLocation: Referential;
-  saleType: Referential;
+  saleLocation: ReferentialRef;
+  saleType: ReferentialRef;
 
   constructor() {
     super();
-    this.saleLocation = new Referential();
-    this.saleType = new Referential();
+    this.saleLocation = new ReferentialRef();
+    this.saleType = new ReferentialRef();
   }
 
   clone(): Sale {
@@ -427,7 +432,7 @@ export class Operation extends DataEntity<Operation> {
   startPosition: VesselPosition;
   endPosition: VesselPosition;
 
-  metier: Referential;
+  metier: ReferentialRef;
   physicalGear: PhysicalGear;
   tripId: number;
 
@@ -437,7 +442,7 @@ export class Operation extends DataEntity<Operation> {
 
   constructor() {
     super();
-    this.metier = new Referential();
+    this.metier = new ReferentialRef();
     this.startPosition = new VesselPosition();
     this.endPosition = new VesselPosition();
     this.physicalGear = new PhysicalGear();
@@ -572,7 +577,7 @@ export class Sample extends DataRootEntity<Sample> {
   rankOrder: number;
   sampleDate: Moment;
   individualCount: number;
-  taxonGroup: Referential;
+  taxonGroup: ReferentialRef;
   //measurements: Measurement[];
   measurementsMap: { [key: string]: any };
   matrixId: number;
@@ -581,7 +586,7 @@ export class Sample extends DataRootEntity<Sample> {
 
   constructor() {
     super();
-    this.taxonGroup = new Referential();
+    this.taxonGroup = new ReferentialRef();
     //this.measurements = [];
     this.measurementsMap = {};
   }
@@ -617,7 +622,7 @@ export class Sample extends DataRootEntity<Sample> {
     this.sampleDate = fromDateISOString(source.sampleDate);
     this.individualCount = source.individualCount;
     this.comments = source.comments;
-    this.taxonGroup = source.taxonGroup && Referential.fromObject(source.taxonGroup) || undefined;
+    source.taxonGroup && this.taxonGroup.fromObject(source.taxonGroup);
 
     // Convert measurement to map
     if (source.measurements) {
@@ -657,7 +662,7 @@ export class Batch extends DataEntity<Batch> {
   samplingRatio: number;
   samplingRatioText: string;
   individualCount: number;
-  taxonGroup: Referential;
+  taxonGroup: ReferentialRef;
   comments: string;
   parentBatch: Batch;
   children: Batch[];
@@ -667,7 +672,7 @@ export class Batch extends DataEntity<Batch> {
   constructor() {
     super();
     this.parentBatch = null;
-    this.taxonGroup = new Referential();
+    this.taxonGroup = null;
     this.measurements = [];
     this.children = [];
   }
@@ -698,7 +703,7 @@ export class Batch extends DataEntity<Batch> {
     this.samplingRatio = source.samplingRatio;
     this.samplingRatioText = source.samplingRatioText;
     this.individualCount = source.individualCount;
-    this.taxonGroup = source.taxonGroup && Referential.fromObject(source.taxonGroup) || undefined;
+    this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.comments = source.comments;
     this.operationId = source.operationId;
     this.children = source.children && source.children.filter(c => !!c).map(Batch.fromObject) || undefined;

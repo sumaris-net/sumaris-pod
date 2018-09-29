@@ -142,6 +142,7 @@
   },
   "TRIP": {
     "TITLE": "Fishing trip",
+    "PROGRAM": "Data collection programme",
     "VESSEL": "Vessel",
     "DEPARTURE": "Departure:",
     "DEPARTURE_DATE_TIME": "Departure date",
@@ -163,6 +164,7 @@
     },
     "LIST": {
       "TITLE": "Fishing trips",
+      "PROGRAM": "Programme",
       "FILTER": {
         "START_DATE": "Start period",
         "END_DATE": "End period",

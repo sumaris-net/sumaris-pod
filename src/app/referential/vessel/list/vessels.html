@@ -83,8 +83,8 @@
         <span translate>VESSEL.START_DATE</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm mat-cell-date-time" *matCellDef="let row">
-        <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDate']" [(ngModel)]="row.currentData.startDate"
-          [readonly]="!row.editing" [displayTime]="false" required>
+        <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDate']" [readonly]="!row.editing"
+          [displayTime]="false" required>
         </mat-date-time>
       </mat-cell>
     </ng-container>
@@ -97,7 +97,7 @@
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
         <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['exteriorMarking']" [placeholder]="'VESSEL.EXTERIOR_MARKING'|translate"
-            [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [(ngModel)]="row.currentData.exteriorMarking">
+            [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['exteriorMarking'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-cell>
@@ -111,7 +111,7 @@
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
         <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['name']" [placeholder]="'VESSEL.NAME'|translate"
-            [readonly]="!row.editing" [(ngModel)]="row.currentData.name">
+            [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-cell>
@@ -125,7 +125,7 @@
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['basePortLocation']" [matAutocomplete]="autoLocation"
-            [readonly]="!row.editing" [(ngModel)]="row.currentData.basePortLocation" required>
+            [readonly]="!row.editing" required>
           <mat-error *ngIf="row.validator.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
         </mat-form-field>

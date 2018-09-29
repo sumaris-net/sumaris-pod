@@ -1,10 +1,10 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable } from "../../../core/core.module";
+import { AppTableDataSource, AppTable, AppFormUtils } from "../../../core/core.module";
 import { VesselValidatorService } from "../validator/validators";
 import { VesselService, VesselFilter } from "../../services/vessel-service";
 import { VesselModal } from "../modal/modal-vessel";
-import { VesselFeatures, Referential, toDateISOString, fromDateISOString, referentialToString } from "../../services/model";
+import { VesselFeatures, Referential, toDateISOString, fromDateISOString, referentialToString, ReferentialRef } from "../../services/model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { AccountService } from "../../../core/services/account.service";
@@ -23,7 +23,7 @@ import { FormGroup, FormBuilder } from "@angular/forms";
 export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implements OnInit {
 
   filterForm: FormGroup;
-  locations: Observable<Referential[]>;
+  locations: Observable<ReferentialRef[]>;
 
   constructor(
     protected route: ActivatedRoute,
@@ -75,7 +75,10 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
       this.filterForm.markAsPristine();
     });
 
-
+    // Copy data to validator
+    this.dataSource.connect().subscribe(rows => {
+      rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
+    });
   }
 
   async openNewRowDetail(): Promise<any> {

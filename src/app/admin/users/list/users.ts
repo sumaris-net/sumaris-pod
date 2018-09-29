@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { AppTable, AppTableDataSource } from "../../../core/core.module";
+import { AppTable, AppTableDataSource, AppFormUtils } from "../../../core/core.module";
 import { Person } from "../../../core/services/model";
 import { PersonService, PersonFilter } from "../../services/person-service";
 import { PersonValidatorService } from "../validator/validators";
@@ -57,6 +57,10 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
       this.filterForm.markAsPristine();
     });
 
+    // Copy data to validator
+    this.dataSource.connect().subscribe(rows => {
+      rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
+    });
   }
 }
 

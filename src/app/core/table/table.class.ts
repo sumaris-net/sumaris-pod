@@ -25,13 +25,14 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     private _initialized = false;
     private _subscriptions: Subscription[] = [];
-    protected _dirty = false;
     private _columnValueChangesConfig: {
         [key: string]: {
             eventEmitter: EventEmitter<any>;
             subscription: Subscription
         }
     } = {};
+    protected _dirty = false;
+    protected allowRowDetail = true;
 
     inlineEdition: boolean = false;
     displayedColumns: string[];
@@ -171,9 +172,6 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 this.markAsPristine();
             });
 
-        // Subscriptions:
-        this._subscriptions.push(this.listChange.subscribe(event => this.onDataChanged(event)));
-
         // Listen datasource events
         if (this.dataSource) this.listenDatasource(this.dataSource);
     }
@@ -198,7 +196,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     listenDatasource(dataSource: AppTableDataSource<T, F>) {
         if (!dataSource) throw new Error("[table] dataSource not set !");
         this._subscriptions.push(dataSource.onLoading.subscribe(loading => this.loading = loading));
-        this._subscriptions.push(dataSource.datasourceSubject.subscribe(data => this.listChange.emit(data)));
+        this._subscriptions.push(dataSource.datasourceSubject.subscribe(data => {
+            this.error = undefined;
+            this.listChange.emit(data)
+        }));
     }
 
     confirmAndAddRow(event?: any, row?: TableElement<T>): boolean {
@@ -248,15 +249,6 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.dataSource.createNew();
         this._dirty = true;
         this.resultsLength++;
-    }
-
-    onDataChanged(data: T[]) {
-        this.error = undefined;
-        data.forEach(t => {
-            if (!t.id && !t.dirty) {
-                t.dirty = true;
-            }
-        });
     }
 
     async save(): Promise<boolean> {
@@ -320,9 +312,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             }
         }
         if (!row.editing && !this.loading) {
-            if (this.debug) console.warn("[table] Starting edition of row", row);
-            row.startEdit();
-            //AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+            this.dataSource.startEdit(row);
         }
         this.selectedRow = row;
         this._dirty = true;
@@ -344,12 +334,14 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     protected openEditRowDetail(id: number, row?: TableElement<T>): Promise<boolean> {
+        if (!this.allowRowDetail) return Promise.resolve(false);
         return this.router.navigate([id], {
             relativeTo: this.route
         });
     }
 
     protected openNewRowDetail(): Promise<any> {
+        if (!this.allowRowDetail) return Promise.resolve(false);
         return this.router.navigate(['new'], {
             relativeTo: this.route
         });

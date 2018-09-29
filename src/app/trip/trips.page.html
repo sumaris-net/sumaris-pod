@@ -40,25 +40,35 @@
   <mat-expansion-panel #filterExpansionPanel>
     <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" padding class="no-padding-xs">
 
-      <!-- Start date -->
-      <mat-form-field>
-        <input matInput [placeholder]="'TRIP.LIST.FILTER.START_DATE'|translate" [matDatepicker]="filterStartDatepicker"
-          formControlName="startDate">
-        <mat-datepicker-toggle matSuffix [for]="filterStartDatepicker">
-          <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
-        </mat-datepicker-toggle>
-        <mat-datepicker #filterStartDatepicker></mat-datepicker>
+      <!-- Program -->
+      <mat-form-field style="min-width: 150px;">
+        <input matInput [placeholder]="'TRIP.PROGRAM'|translate" [matAutocomplete]="autoFilterProgram" formControlName="program">
       </mat-form-field>
 
+      <!-- Program combo -->
+      <mat-autocomplete autoActiveFirstOption #autoFilterProgram="matAutocomplete" [displayWith]="programToString">
+        <ion-row class="mat-autocomplete-header">
+          <ion-col size="4" translate>REFERENTIAL.LABEL</ion-col>
+          <ion-col translate>REFERENTIAL.NAME</ion-col>
+        </ion-row>
+
+        <mat-option *ngFor="let item of programs | async" [value]="item">
+          <ion-row>
+            <ion-col size="4" [innerHTML]="item.label | highlight: {search: filterForm.controls.program.value }"></ion-col>
+            <ion-col [innerHTML]="item.name | highlight: {search: filterForm.controls.program.value }" [title]="item.name"></ion-col>
+          </ion-row>
+        </mat-option>
+      </mat-autocomplete>
+
+      <!-- Start date -->
+      <mat-date-time [placeholder]="'TRIP.LIST.FILTER.START_DATE'|translate" [formControl]="filterForm.controls.startDate"
+        [displayTime]="false">
+      </mat-date-time>
+
       <!-- End date -->
-      <mat-form-field>
-        <input matInput [placeholder]="'TRIP.LIST.FILTER.END_DATE'|translate" [matDatepicker]="filterEndDatepicker"
-          formControlName="endDate">
-        <mat-datepicker-toggle matSuffix [for]="filterEndDatepicker">
-          <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
-        </mat-datepicker-toggle>
-        <mat-datepicker #filterEndDatepicker></mat-datepicker>
-      </mat-form-field>
+      <mat-date-time [placeholder]="'TRIP.LIST.FILTER.END_DATE'|translate" [formControl]="filterForm.controls.endDate"
+        [displayTime]="false">
+      </mat-date-time>
 
       <!-- Location -->
       <mat-form-field style="min-width: 300px;">
@@ -73,10 +83,10 @@
           <ion-col translate>REFERENTIAL.NAME</ion-col>
         </ion-row>
 
-        <mat-option *ngFor="let location of locations | async" [value]="location">
+        <mat-option *ngFor="let item of locations | async" [value]="item">
           <ion-row>
-            <ion-col size="2" [innerHTML]="location.label | highlight: {search: filterForm.controls['location'].value }"></ion-col>
-            <ion-col [innerHTML]="location.name | highlight: {search: filterForm.controls['location'].value }"></ion-col>
+            <ion-col size="2" [innerHTML]="item.label | highlight: {search: filterForm.controls.location.value }"></ion-col>
+            <ion-col [innerHTML]="item.name | highlight: {search: filterForm.controls.location.value }"></ion-col>
           </ion-row>
         </mat-option>
       </mat-autocomplete>
@@ -115,6 +125,16 @@
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">{{ row.currentData.id }}</mat-cell>
     </ng-container>
 
+    <!-- Program Column -->
+    <ng-container matColumnDef="program">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>TRIP.LIST.PROGRAM</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{row.currentData.program.label}}
+      </mat-cell>
+    </ng-container>
+
     <!-- Vessel Column -->
     <ng-container matColumnDef="vessel">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -123,22 +143,22 @@
       <mat-cell *matCellDef="let row">
         <mat-form-field floatLabel="never" [title]="vesselFeaturesToString(row.currentData.vesselFeatures)">
           <input matInput [formControl]="row.validator.controls['vesselFeatures']" [placeholder]="'TRIP.VESSEL'|translate"
-            [matAutocomplete]="autoVessel" [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing"
-            [(ngModel)]="row.currentData.vesselFeatures">
+            [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [(ngModel)]="row.currentData.vesselFeatures"
+            [matAutocomplete]="autoVessel">
           <mat-error *ngIf="row.validator.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
 
         <!-- Vessel combo -->
         <mat-autocomplete autoActiveFirstOption #autoVessel="matAutocomplete" [displayWith]="vesselFeaturesToString">
           <ion-row class="mat-autocomplete-header">
-            <ion-col col-3 translate>VESSEL.EXTERIOR_MARKING</ion-col>
+            <ion-col size="3" translate>VESSEL.EXTERIOR_MARKING</ion-col>
             <ion-col translate>VESSEL.NAME</ion-col>
             <ion-col translate>VESSEL.BASE_PORT_LOCATION</ion-col>
           </ion-row>
 
           <mat-option *ngFor="let vessel of vessels | async" [value]="vessel">
             <ion-row>
-              <ion-col col-3 [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
+              <ion-col size="3" [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
               <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
               <ion-col>{{vessel.basePortLocation.label}} - {{vessel.basePortLocation.name}}</ion-col>
             </ion-row>

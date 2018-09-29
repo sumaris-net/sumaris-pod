@@ -1,4 +1,4 @@
-import { Referential, EntityUtils, Department, Person, toDateISOString, fromDateISOString, StatusIds, Cloneable, Entity, joinProperties, entityToString, referentialToString } from "../../core/services/model";
+import { Referential, ReferentialRef, EntityUtils, Department, Person, toDateISOString, fromDateISOString, StatusIds, Cloneable, Entity, joinProperties, entityToString, referentialToString } from "../../core/services/model";
 import { Moment } from "moment/moment";
 
 export const LocationLevelIds = {
@@ -15,7 +15,7 @@ export const TaxonGroupIds = {
   METIER: 3
 }
 
-export { Referential, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department, entityToString, referentialToString };
+export { Referential, ReferentialRef, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department, entityToString, referentialToString };
 
 export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
   return obj && obj.vesselId && joinProperties(obj, ['exteriorMarking', 'name']) || undefined;
@@ -107,7 +107,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy>  {
 
   acquisitionLevel: string;
   gears: string[];
-  qualitativeValues: Referential[];
+  qualitativeValues: ReferentialRef[];
 
   constructor() {
     super();
@@ -147,7 +147,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy>  {
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
     this.gears = source.gears || [];
-    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(json => Referential.fromObject(json)) || [];
+    this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || [];
     return this;
   }
 }

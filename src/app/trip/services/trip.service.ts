@@ -1,8 +1,8 @@
 import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
-import { Observable, Subject } from "rxjs-compat";
-import { Trip, Person, PhysicalGear, fillRankOrder } from "./trip.model";
+import { Observable, Subscription } from "rxjs-compat";
+import { Trip, Person, fillRankOrder } from "./trip.model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
@@ -10,104 +10,101 @@ import { Moment } from "moment";
 import { ErrorCodes } from "./trip.errors";
 import { AccountService } from "../../core/services/account.service";
 import { Fragments } from "./trip.queries";
+import { ServerErrorCodes } from "../../core/services/errors";
 
-export declare class TripFilter {
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
-  locationId?: number
-}
-const LoadAllQuery: any = gql`
-  query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TripFilterVOInput){
-    trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      id
-      program
-      departureDateTime
-      returnDateTime
-      creationDate
-      updateDate
-      comments
-      departureLocation {
-        ...LocationFragment
-      }
-      returnLocation {
-        ...LocationFragment
-      }
-      recorderDepartment {
-        ...DepartmentFragment
-      }
-      recorderPerson {
-        ...PersonFragment
-      }
-      vesselFeatures {
-        vesselId,
-        name,
-        exteriorMarking
-      }
+export const TripFragments = {
+  lightTrip: gql`fragment LightTripFragment on TripVO {
+    id
+    program {
+      id 
+      label
+    }
+    departureDateTime
+    returnDateTime
+    creationDate
+    updateDate
+    comments
+    departureLocation {
+      ...LocationFragment
+    }
+    returnLocation {
+      ...LocationFragment
+    }
+    recorderDepartment {
+      ...DepartmentFragment
+    }
+    recorderPerson {
+      ...PersonFragment
+    }
+    vesselFeatures {
+      vesselId,
+      name,
+      exteriorMarking
     }
   }
+  ${Fragments.location}
   ${Fragments.department}
   ${Fragments.person}
-  ${Fragments.location}
-`;
-const LoadQuery: any = gql`
-  query Trip($id: Int) {
-    trip(id: $id) {
+  `,
+  trip: gql`fragment TripFragment on TripVO {
+    id
+    program {
+      id 
+      label
+    }
+    departureDateTime
+    returnDateTime
+    creationDate
+    updateDate
+    comments
+    departureLocation {
+      ...LocationFragment
+    }
+    returnLocation {
+      ...LocationFragment
+    }
+    recorderDepartment {
+      ...DepartmentFragment
+    }
+    recorderPerson {
+      ...PersonFragment
+    }
+    vesselFeatures {
+      vesselId
+      name
+      exteriorMarking
+    }
+    sale {
       id
-      program
-      departureDateTime
-      returnDateTime
+      startDateTime
       creationDate
       updateDate
       comments
-      departureLocation {
+      saleType {
+        ...ReferentialFragment
+      }
+      saleLocation {
         ...LocationFragment
       }
-      returnLocation {
-        ...LocationFragment
+    }
+    gears {
+      id
+      rankOrder
+      updateDate
+      creationDate
+      comments
+      gear {
+        ...ReferentialFragment
       }
       recorderDepartment {
         ...DepartmentFragment
-      }
-      recorderPerson {
-        ...PersonFragment
-      }
-      vesselFeatures {
-        vesselId
-        name
-        exteriorMarking
-      }
-      sale {
-        id
-        startDateTime
-        creationDate
-        updateDate
-        comments
-        saleType {
-          ...ReferentialFragment
-        }
-        saleLocation {
-          ...LocationFragment
-        }
-      }
-      gears {
-        id
-        rankOrder
-        updateDate
-        creationDate
-        comments
-        gear {
-          ...ReferentialFragment
-        }
-        recorderDepartment {
-          ...DepartmentFragment
-        }
-        measurements {
-          ...MeasurementFragment
-        }
       }
       measurements {
         ...MeasurementFragment
       }
+    }
+    measurements {
+      ...MeasurementFragment
     }
   }
   ${Fragments.department}
@@ -115,55 +112,38 @@ const LoadQuery: any = gql`
   ${Fragments.measurement}
   ${Fragments.referential}
   ${Fragments.location}
+  `
+};
+
+export declare class TripFilter {
+  programLabel?: string;
+  startDate?: Date | Moment;
+  endDate?: Date | Moment;
+  locationId?: number;
+}
+const LoadAllQuery: any = gql`
+  query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TripFilterVOInput){
+    trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightTripFragment
+    }
+  }
+  ${TripFragments.lightTrip}
+`;
+const LoadQuery: any = gql`
+  query Trip($id: Int) {
+    trip(id: $id) {
+      ...TripFragment
+    }
+  }
+  ${TripFragments.trip}
 `;
 const SaveTrips: any = gql`
   mutation saveTrips($trips:[TripVOInput]){
     saveTrips(trips: $trips){
-      id
-      departureDateTime
-      returnDateTime
-      creationDate
-      updateDate
-      comments
-      departureLocation {
-        ...LocationFragment
-      }
-      returnLocation {
-        ...LocationFragment
-      }
-      recorderDepartment {
-        ...DepartmentFragment
-      }
-      recorderPerson {
-        ...PersonFragment
-      }
-      vesselFeatures {
-        vesselId,
-        name,
-        exteriorMarking
-      }
-      sale {
-        id
-        creationDate
-        updateDate
-      }     
-      gears {
-        id
-        updateDate
-        creationDate
-        measurements {
-          ...MeasurementFragment
-        }
-      }
-      measurements {
-        ...MeasurementFragment
-      }
+      ...TripFragment
     }
   }
-  ${Fragments.department}
-  ${Fragments.person}
-  ${Fragments.measurement}
-  ${Fragments.location}
+  ${TripFragments.trip}
 `;
 const DeleteTrips: any = gql`
   mutation deleteTrips($ids:[Int]){
@@ -171,30 +151,14 @@ const DeleteTrips: any = gql`
   }
 `;
 
-/* const Subscription = gql`  
-subscription changedTrips {  
-  Item(
-    filter: {
-      mutation_in: [CREATED, UPDATED, DELETED]
-    }
-  ) {
-    mutation
-    node {
-      id
-      name
-      done
-      category {
-        id
-      }
-      createdAt
-      updatedAt
-    }
-    previousValues {
-      id
+const UpdateSubscription = gql`
+  subscription updateTrip($tripId: Int, $interval: Int){
+    updateTrip(tripId: $tripId, interval: $interval) {
+      ...TripFragment
     }
   }
-}
-`; */
+  ${TripFragments.trip}
+`;
 
 @Injectable()
 export class TripService extends BaseDataService implements DataService<Trip, TripFilter>{
@@ -205,6 +169,8 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
   ) {
     super(apollo);
 
+    // FOR DEV ONLY
+    this._debug = true;
   }
 
   /**
@@ -235,12 +201,13 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     return this.watchQuery<{ trips: Trip[] }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" }
+      error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
+      fetchPolicy: 'cache-and-network'
     })
       .pipe(
         map((data) => {
           const res = (data && data.trips || []).map(Trip.fromObject);
-          if (this._debug) console.debug("[trip-service] Loaded {" + (res.length || 0) + "} trips in " + (new Date().getTime() - now.getTime()) + "ms");
+          if (this._debug) console.debug("[trip-service] Loaded {" + (res.length || 0) + "} trips in " + (new Date().getTime() - now.getTime()) + "ms", res);
           return res;
         }));
   }
@@ -266,6 +233,34 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
             return res;
           }
           return null;
+        })
+      );
+  }
+
+  public listenChanges(id: number): Observable<Trip> {
+    if (!id && id !== 0) throw "Missing argument 'id' ";
+
+    console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
+
+    return this.subscribe<{ updateTrip: Trip }, { tripId: number, interval: number }>({
+      query: UpdateSubscription,
+      variables: {
+        tripId: id,
+        interval: 10
+      },
+      error: {
+        code: ErrorCodes.SUBSCRIBE_TRIP_ERROR,
+        message: 'ERROR.TRIP.SUBSCRIBE_TRIP_ERROR'
+      }
+    })
+      .pipe(
+        map(data => {
+          if (data && data.updateTrip) {
+            const res = Trip.fromObject(data.updateTrip);
+            if (this._debug) console.debug(`[trip-service] Trip {${id}} updated on server !`, res);
+            return res;
+          }
+          return null; // deleted ?
         })
       );
   }

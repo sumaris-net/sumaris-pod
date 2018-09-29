@@ -4,7 +4,7 @@ import { mergeMap } from "rxjs/operators";
 import { ValidatorService } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
 import { OperationValidatorService } from "../services/operation.validator";
-import { Referential, Operation, Trip, referentialToString } from "../services/trip.model";
+import { Referential, Operation, Trip, referentialToString, EntityUtils, ReferentialRef } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
@@ -27,7 +27,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
 
   private _onMetierCellChange = new EventEmitter<any>();
 
-  metiers: Observable<Referential[]>;
+  metiers: Observable<ReferentialRef[]>;
 
   @Input() latLongPattern: string;
 
@@ -73,13 +73,13 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.metiers = this._onMetierCellChange
       .pipe(
         mergeMap(value => {
-          if (!value) return Observable.empty();
-          if (typeof value != "string" || value.length < 2) return Observable.of([]);
-          return this.referentialService.loadAll(0, 10, undefined, undefined,
+          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          value = (typeof value === "string") && value || undefined;
+          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
             {
+              entityName: 'Metier',
               searchText: value as string
-            },
-            { entityName: 'Metier' });
+            });
         }));
 
   }

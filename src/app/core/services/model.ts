@@ -59,7 +59,7 @@ export function entityToString(obj: Entity<any> | any, properties?: String[]): s
   return obj && obj.id && joinProperties(obj, properties || ['name']) || undefined;
 }
 
-export function referentialToString(obj: Referential | any, properties?: String[]): string | undefined {
+export function referentialToString(obj: Referential | ReferentialRef | any, properties?: String[]): string | undefined {
   return obj && obj.id && joinProperties(obj, properties || ['label', 'name']) || undefined;
 }
 
@@ -79,7 +79,7 @@ export abstract class Entity<T> implements Cloneable<T> {
   }
 
   fromObject(source: any): Entity<T> {
-    this.id = source.id ? source.id : undefined;
+    this.id = (source.id || source.id === 0) ? source.id : undefined;
     this.updateDate = fromDateISOString(source.updateDate);
     this.dirty = source.dirty;
     return this;
@@ -161,6 +161,54 @@ export class Referential extends Entity<Referential>  {
   equals(other: Referential): boolean {
     return super.equals(other) && this.entityName === other.entityName;
   }
+}
+
+export class ReferentialRef extends Entity<ReferentialRef>  {
+
+  static fromObject(source: any): ReferentialRef {
+    const res = new ReferentialRef();
+    res.fromObject(source);
+    return res;
+  }
+
+  label: string;
+  name: string;
+  statusId: number;
+  entityName: string;
+
+  constructor(data?: {
+    id?: number,
+    label?: string,
+    name?: string
+  }) {
+    super();
+    this.id = data && data.id;
+    this.label = data && data.label;
+    this.name = data && data.name;
+  }
+
+  clone(): ReferentialRef {
+    return this.copy(new ReferentialRef());
+  }
+
+  copy(target: ReferentialRef): ReferentialRef {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(): any {
+    const target: any = super.asObject();
+    return target;
+  }
+
+  fromObject(source: any): Entity<ReferentialRef> {
+    super.fromObject(source);
+    this.label = source.label;
+    this.name = source.name;
+    this.statusId = source.statusId;
+    this.entityName = source.entityName;
+    return this;
+  }
 
 }
 
@@ -174,7 +222,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
   creationDate: Date | Moment;
   statusId: number;
   department: Department;
-  profiles: Referential[];
+  profiles: string[];
 
   constructor() {
     super();

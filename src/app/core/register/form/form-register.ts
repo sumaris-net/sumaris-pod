@@ -167,4 +167,16 @@ export class RegisterForm implements OnInit {
   }
 
   referentialToString = referentialToString;
+
+  markAsTouched() {
+    this.form.markAsTouched();
+  }
+
+  disable() {
+    this.form.disable();
+  }
+
+  enable() {
+    this.form.enable();
+  }
 }

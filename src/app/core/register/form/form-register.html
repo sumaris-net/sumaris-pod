@@ -9,7 +9,7 @@
       <!-- Email -->
       <mat-form-field>
         <input matInput [appAutofocus]="true" [autofocusDelay]="500" [placeholder]="'USER.EMAIL'|translate"
-          formControlName="email" autocomplete="section-blue username email">
+          formControlName="email" autocomplete="section-blue username email" required>
         <mat-error *ngIf="controls.email.hasError('required') && controls.email.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.email.hasError('email') && !controls.email.hasError('required') && controls.email.touched">
           <span>{{'ERROR.FIELD_NOT_VALID_EMAIL' | translate }}</span>
@@ -41,7 +41,7 @@
       <!-- Password -->
       <mat-form-field>
         <input matInput [placeholder]="'USER.PASSWORD'|translate" formControlName="password" autocomplete="section-red new-password"
-          type="password">
+          type="password" required>
         <mat-error *ngIf="controls.password.hasError('required') && controls.password.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.password.hasError('minlength') && controls.password.touched">
           <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 8} }}</span>

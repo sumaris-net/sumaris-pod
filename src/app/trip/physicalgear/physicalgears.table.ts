@@ -156,7 +156,6 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       return false;
     }
 
-    //row.startEdit();
     this.selectedRow = row;
     this.gearForm.value = row.currentData;
 

@@ -5,11 +5,11 @@ import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
-import { mergeMap, debounceTime } from 'rxjs/operators';
+import { mergeMap, debounceTime, startWith } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../core/core.module';
 import { VesselModal, ReferentialService, VesselService } from "../referential/referential.module";
-import { referentialToString, EntityUtils } from '../referential/services/model';
+import { referentialToString, EntityUtils, ReferentialRef } from '../referential/services/model';
 
 @Component({
   selector: 'form-trip',
@@ -18,8 +18,9 @@ import { referentialToString, EntityUtils } from '../referential/services/model'
 })
 export class TripForm extends AppForm<Trip> implements OnInit {
 
+  programs: Observable<ReferentialRef[]>;
   vessels: Observable<VesselFeatures[]>;
-  locations: Observable<Referential[]>;
+  locations: Observable<ReferentialRef[]>;
 
   @Input() showComment: boolean = true;
   @Input() showError: boolean = true;
@@ -38,6 +39,21 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   ngOnInit() {
     // Combo: vessels
+    this.programs = this.form.controls['program']
+      .valueChanges
+      .pipe(
+        debounceTime(250),
+        mergeMap(value => {
+          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          value = (typeof value === "string") && value || undefined;
+          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+            {
+              entityName: 'Program',
+              searchText: value as string
+            });
+        }));
+
+    // Combo: vessels
     this.vessels = this.form.controls['vesselFeatures']
       .valueChanges
       .pipe(
@@ -53,21 +69,22 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Combo: sale location
     this.locations =
       merge(
-        this.form.controls.departureLocation.valueChanges,
-        this.form.controls.returnLocation.valueChanges
+        this.form.controls['departureLocation'].valueChanges,
+        this.form.controls['returnLocation'].valueChanges
       )
         .pipe(
           debounceTime(250),
           mergeMap(value => {
             if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
             value = (typeof value === "string") && value || undefined;
-            return this.referentialService.loadAll(0, 10, undefined, undefined,
+            return this.referentialService.loadAllRef(0, 10, undefined, undefined,
               {
+                entityName: 'Location',
                 levelId: LocationLevelIds.PORT,
                 searchText: value as string
-              },
-              { entityName: 'Location' });
-          }));
+              });
+          })
+        );
   }
 
   async addVesselModal(): Promise<any> {
@@ -87,4 +104,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
+
+  programToString(value: Referential) {
+    return referentialToString(value, ['label']);
+  }
 }

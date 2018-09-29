@@ -146,14 +146,6 @@ const ConfirmEmailMutation: any = gql`
   }
 `;
 
-
-// Subscription TEST
-const TestSubscription: any = gql`
-  subscription updateTrip($tripId: Int){
-    updateTrip(tripId: $tripId)
-  }
-`;
-
 // Authentication  query
 const AuthQuery: any = gql`
   query Auth($token: String){
@@ -168,6 +160,15 @@ const AuthChallengeQuery: any = gql`
       challenge
       pubkey
       signature
+    }
+  }
+`;
+
+const UpdateSubscription: any = gql`
+  subscription updateAccount($pubkey: String, $interval: Int){
+    updateAccount(pubkey: $pubkey, interval: $interval) {
+      id
+      updateDate
     }
   }
 `;
@@ -247,7 +248,9 @@ export class AccountService extends BaseDataService {
   public hasProfile(label: string): boolean {
     if (!this.data.account || !this.data.account.pubkey) return false;
 
-    return this.data.account.profiles && this.data.account.profiles.filter(up => up.label == label).length > 0;
+    const res = this.data.account.profiles && !!this.data.account.profiles.find(p => p === label);
+    if (this._debug) console.debug(`[account] Has profile ${label} ? ${res}`);
+    return res;
   }
 
   public isAdmin(): boolean {
@@ -260,7 +263,7 @@ export class AccountService extends BaseDataService {
     }
     if (!data.username || !data.username) throw new Error("Missing required username por password");
 
-    console.debug('[account] Register new user account...', data.account);
+    if (this._debug) console.debug('[account] Register new user account...', data.account);
     this.data.loaded = false;
     let now = new Date();
 
@@ -546,7 +549,7 @@ export class AccountService extends BaseDataService {
     ]);
 
     // Clear cache
-    this.apollo.getClient().cache.reset();
+    await this.apollo.getClient().cache.reset();
 
     // Notify observers
     this.onLogout.next();
@@ -594,14 +597,18 @@ export class AccountService extends BaseDataService {
   public async saveAccount(account: Account, keyPair: KeyPair): Promise<Account> {
     account.pubkey = account.pubkey || base58.encode(keyPair.publicKey);
 
-    // First, try to get last account (for updateDate, etc)
-    const existingAccount = await this.loadAccount(account.pubkey, { fetchPolicy: 'network-only' });
-    if (!existingAccount || !existingAccount.updateDate) {
-      throw { code: ErrorCodes.ACCOUNT_NOT_EXISTS, message: "ERROR.ACCOUNT_NOT_EXISTS" };
-    }
-    account.updateDate = existingAccount.updateDate || account.updateDate;
-    if (account.settings && existingAccount.settings) {
-      account.settings.updateDate = existingAccount.settings.updateDate || account.settings.updateDate;
+    const isNew = !account.id && account.id !== 0;
+
+    // If this is an update: get existing account's updateDate, to avoid 'version error' when saving
+    if (!isNew) {
+      const existingAccount = await this.loadAccount(account.pubkey, { fetchPolicy: 'network-only' });
+      if (!existingAccount || !existingAccount.updateDate) {
+        throw { code: ErrorCodes.ACCOUNT_NOT_EXISTS, message: "ERROR.ACCOUNT_NOT_EXISTS" };
+      }
+      account.updateDate = existingAccount.updateDate || account.updateDate;
+      if (account.settings && existingAccount.settings) {
+        account.settings.updateDate = existingAccount.settings.updateDate || account.settings.updateDate;
+      }
     }
 
     const json = account.asObject();
@@ -619,13 +626,13 @@ export class AccountService extends BaseDataService {
       }
     });
 
-    let data = res.saveAccount;
+    const savedAccount = res && res.saveAccount;
 
     // Copy update properties
-    account.id = data.id;
-    account.updateDate = data.updateDate;
-    account.settings.id = data.settings && data.settings.id;
-    account.settings.updateDate = data.settings && data.settings.updateDate;
+    account.id = savedAccount && savedAccount.id || account.id;
+    account.updateDate = savedAccount && savedAccount.updateDate || account.updateDate;
+    account.settings.id = savedAccount && savedAccount.settings && savedAccount.settings.id || account.settings.id;
+    account.settings.updateDate = savedAccount && savedAccount.settings && savedAccount.settings.updateDate || account.settings.updateDate;
 
     return account;
   }
@@ -635,14 +642,11 @@ export class AccountService extends BaseDataService {
    * Throw an error if not available
    * @param email
    */
-  public checkEmailAvailable(email: string): Promise<void> {
-
-    return this.isEmailExists(email)
-      .then(isEmailExists => {
-        if (isEmailExists) {
-          throw { code: ErrorCodes.EMAIL_ALREADY_REGISTERED, message: "ERROR.EMAIL_ALREADY_REGISTERED" };
-        }
-      });
+  public async checkEmailAvailable(email: string): Promise<void> {
+    const isEmailExists = await this.isEmailExists(email);
+    if (isEmailExists) {
+      throw { code: ErrorCodes.EMAIL_ALREADY_REGISTERED, message: "ERROR.EMAIL_ALREADY_REGISTERED" };
+    }
   }
 
   /**
@@ -710,13 +714,7 @@ export class AccountService extends BaseDataService {
     console.debug('[account] [WS] Listening changes on {/subscriptions/websocket}...');
 
     const subscription = this.apollo.subscribe({
-      query: gql`
-        subscription updateAccount($pubkey: String, $interval: Int){
-          updateAccount(pubkey: $pubkey, interval: $interval) {
-            id
-            updateDate
-          }
-        }`,
+      query: UpdateSubscription,
       variables: {
         pubkey: this.data.pubkey,
         interval: 10
@@ -796,7 +794,7 @@ export class AccountService extends BaseDataService {
     if (this._debug && !counter) console.debug("[account] Authenticating on server...");
 
     if (counter > 4) {
-      if (this._debug) console.debug(`[account] Authentification failed after ${counter} attempts`);
+      if (this._debug) console.debug(`[account] Authentification failed (after ${counter} attempts)`);
       throw { code: ErrorCodes.AUTH_SERVER_ERROR, message: "ERROR.AUTH_SERVER_ERROR" };
     }
 
@@ -856,14 +854,14 @@ export class AccountService extends BaseDataService {
 
   /* -- Protected methods -- */
 
-  private getMainProfile(profiles?: Referential[]): UserProfileLabel {
+  private getMainProfile(profiles?: string[]): UserProfileLabel {
 
     if (this._debug) console.debug("[account] Retrieving user main profiles...", profiles);
 
-    const mainProfile = profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(label => !!profiles.find(p => p.label == label));
-    const mainProfileLabel = (mainProfile && mainProfile['label'] || 'GUEST') as UserProfileLabel;
+    const mainProfile = profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(pp => !!profiles.find(p => p == pp));
+    const mainProfileLabel = (mainProfile || 'GUEST') as UserProfileLabel;
 
-    if (this._debug) console.debug("[account] Main user profile {" + mainProfileLabel + "}");
+    if (this._debug) console.debug(`[account] Main user profile: ${mainProfileLabel}`);
     return mainProfileLabel;
   }
 

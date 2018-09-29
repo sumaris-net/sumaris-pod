@@ -1,7 +1,7 @@
 import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { VesselValidatorService } from "../validator/validators";
 import { FormGroup } from "@angular/forms";
-import { VesselFeatures, Referential, LocationLevelIds, referentialToString, EntityUtils } from "../../services/model";
+import { VesselFeatures, Referential, LocationLevelIds, referentialToString, EntityUtils, ReferentialRef } from "../../services/model";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN } from '../../constants';
@@ -22,7 +22,7 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
 
   form: FormGroup;
   data: VesselFeatures;
-  locations: Observable<Referential[]>;
+  locations: Observable<ReferentialRef[]>;
 
 
   constructor(
@@ -43,12 +43,12 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value == "string") && value || undefined;
-          return this.referentialService.loadAll(0, 50, undefined, undefined,
+          return this.referentialService.loadAllRef(0, 50, undefined, undefined,
             {
+              entityName: 'Location',
               levelId: LocationLevelIds.PORT,
               searchText: value as string
-            },
-            { entityName: 'Location' }
+            }
           );
         }));
   }

@@ -1,5 +1,6 @@
 import { TableDataSource, ValidatorService } from "angular4-material-table";
-import { Observable } from "rxjs-compat";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 import { DataService } from "../services/data-service.class";
 import { EventEmitter } from "@angular/core";
 import { Entity } from "../services/model";
@@ -12,7 +13,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   protected _debug = false;
 
   public serviceOptions: any;
-  public onLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
+  public onLoading = new EventEmitter<boolean>();
+
   /**
    * Creates a new TableDataSource instance, that can be used as datasource of `@angular/cdk` data-table.
    * @param data Array containing the initial values for the TableDataSource. If not specified, then `dataType` must be specified.
@@ -43,13 +45,13 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     this.onLoading.emit(true);
     return this.dataService.loadAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
-      .map(rows => {
-        this.onLoading.emit(false);
-        this.updateDatasource(rows);
-        return rows
-      })
       .catch(err => this.handleError(err, 'Unable to load rows'))
-      ;
+      .map(data => {
+        this.onLoading.emit(false);
+        if (this._debug) console.debug("[table-datasource] Updating datasource...", data);
+        this.updateDatasource(data);
+        return data
+      });
   }
 
   async save(): Promise<boolean> {
@@ -78,7 +80,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
         data.filter(t => (t && (t.id === undefined || t.dirty))) : data;
 
       // If no data to save: exit
-      if (!data.length) {
+      if (!dataToSave.length) {
         if (this._debug) console.debug("[table-datasource] No row to save");
         return false;
       }
@@ -91,7 +93,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       return true;
     }
     catch (error) {
-      if (this._debug) console.error("[table-datasource] Error while saving: " + error);
+      if (this._debug) console.error("[table-datasource] Error while saving: " + error && error.message || error);
       throw error;
     }
     finally {
@@ -103,6 +105,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   confirmCreate(row) {
     if (row.validator.valid && row.validator.dirty) {
       AppFormUtils.copyForm2Entity(row.validator, row.currentData);
+      row.currentData.dirty = true;
     }
     return super.confirmCreate(row);
   };
@@ -110,8 +113,15 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   confirmEdit(row) {
     if (row.validator.valid && row.validator.dirty) {
       AppFormUtils.copyForm2Entity(row.validator, row.currentData);
+      row.currentData.dirty = true;
     }
     return super.confirmEdit(row);
+  };
+
+  startEdit(row) {
+    if (this._debug) console.warn("[table-datasource] Start to edit row", row);
+    row.startEdit();
+    AppFormUtils.copyEntity2Form(row.currentData, row.validator);
   };
 
   public handleError(error: any, message: string): Observable<T[]> {

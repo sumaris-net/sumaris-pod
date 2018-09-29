@@ -8,7 +8,7 @@ import { Observable, Subject } from 'rxjs';
 import { mergeMap, startWith, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { AppForm } from '../../core/core.module';
 import { ReferentialService } from "../../referential/referential.module";
-import { referentialToString } from '../../referential/services/model';
+import { referentialToString, ReferentialRef } from '../../referential/services/model';
 import { MeasurementsForm } from '../measurement/measurements.form';
 
 @Component({
@@ -21,7 +21,7 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
     onGearKeyDown = new Subject<any>();
     loading = true;
     data: PhysicalGear;
-    gears: Observable<Referential[]>;
+    gears: Observable<ReferentialRef[]>;
     measurements: Measurement[];
     gear: string;
 
@@ -73,12 +73,12 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
                     //this.gear = null;
                     if (!value || !value.length) return Observable.empty();
                     if (typeof value != "string") return Observable.empty();
-                    return this.referentialService.loadAll(0, 10, undefined, undefined,
+                    return this.referentialService.loadAllRef(0, 10, undefined, undefined,
                         {
+                            entityName: 'Gear',
                             levelId: GearLevelIds.FAO,
                             searchText: value as string
-                        },
-                        { entityName: 'Gear' });
+                        });
                 })
             );
 

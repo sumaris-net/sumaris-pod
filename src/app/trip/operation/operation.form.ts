@@ -9,7 +9,7 @@ import { debounceTime, mergeMap, map, startWith } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../../core/core.module';
 import { ReferentialService } from "../../referential/referential.module";
-import { referentialToString, EntityUtils } from '../../referential/services/model';
+import { referentialToString, EntityUtils, ReferentialRef } from '../../referential/services/model';
 
 @Component({
     selector: 'form-operation',
@@ -21,7 +21,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     labelColSize = 3;
 
     trip: Trip;
-    metiers: Observable<Referential[]>;
+    metiers: Observable<ReferentialRef[]>;
     physicalGears: Observable<PhysicalGear[]>;
 
     onFocusPhysicalGear: EventEmitter<any> = new EventEmitter<any>();
@@ -78,17 +78,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         )
             .pipe(
                 mergeMap(value => {
-                    if (EntityUtils.isNotEmpty(value)) {
-                        return Observable.of([value]);
-                    }
+                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string") && value || undefined;
                     const physicalGear = this.form.get('physicalGear').value;
-                    return this.referentialService.loadAll(0, 10, undefined, undefined,
+                    return this.referentialService.loadAllRef(0, 10, undefined, undefined,
                         {
+                            entityName: 'Metier',
                             levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null,
                             searchText: value as string
-                        },
-                        { entityName: 'Metier' }).first();
+                        }).first();
                 }));
     }
 

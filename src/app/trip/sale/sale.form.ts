@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { SaleValidatorService } from "../services/sale.validator";
-import { Sale, Referential, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString, EntityUtils } from "../services/trip.model";
+import { Sale, Referential, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString, EntityUtils, ReferentialRef } from "../services/trip.model";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { AppForm } from '../../core/core.module';
@@ -17,8 +17,8 @@ import { VesselService, ReferentialService } from '../../referential/referential
 export class SaleForm extends AppForm<Sale> implements OnInit {
 
   vessels: Observable<VesselFeatures[]>;
-  locations: Observable<Referential[]>;
-  saleTypes: Observable<Referential[]>;
+  locations: Observable<ReferentialRef[]>;
+  saleTypes: Observable<ReferentialRef[]>;
 
   @Input() required: boolean = true;
   @Input() showError: boolean = true;
@@ -76,13 +76,11 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.referentialService.loadAll(0, 10, undefined, undefined,
+          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
             {
+              entityName: 'Location',
               levelId: LocationLevelIds.PORT,
               searchText: value as string
-            },
-            {
-              entityName: 'Location'
             });
         }));
 
@@ -94,9 +92,11 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.referentialService.loadAll(0, 10, undefined, undefined,
-            { searchText: value as string },
-            { entityName: 'SaleType' });
+          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+            {
+              entityName: 'SaleType',
+              searchText: value as string
+            });
         }));
   }
 

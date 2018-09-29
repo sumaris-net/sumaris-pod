@@ -8,6 +8,44 @@
 
   <ion-grid no-padding>
 
+    <!-- PRORGAM -->
+    <ion-row no-padding>
+      <ion-col>
+        <mat-form-field>
+          <ion-icon margin-right name="contract" matPrefix></ion-icon>
+          <input matInput [placeholder]="'TRIP.PROGRAM'|translate" [matAutocomplete]="autoProgram" formControlName="program">
+          <mat-error *ngIf="form.controls.program.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.program.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+        </mat-form-field>
+
+        <!-- Program combo -->
+        <mat-autocomplete autoActiveFirstOption #autoProgram="matAutocomplete" [displayWith]="programToString">
+
+          <ion-row class="mat-autocomplete-header">
+            <ion-col size="3">
+              <ion-text translate>REFERENTIAL.LABEL</ion-text>
+            </ion-col>
+            <ion-col>
+              <ion-text translate>REFERENTIAL.NAME</ion-text>
+            </ion-col>
+          </ion-row>
+
+          <mat-option *ngFor="let item of programs | async" [value]="item">
+            <ion-row>
+              <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls.program.value }"></ion-col>
+              <ion-col [innerHTML]="item.name | highlight: {search: form.controls.program.value }" [title]="item.name"></ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+
+      <!-- <ion-col size="auto">
+        <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate" (click)="addVesselModal()" type="button">
+          <mat-icon>add</mat-icon>
+        </button>
+      </ion-col> -->
+    </ion-row>
+
     <!-- VESSEL -->
     <ion-row no-padding>
       <ion-col>

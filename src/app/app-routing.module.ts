@@ -44,10 +44,13 @@ const routes: Routes = [
   {
     path: 'admin/users',
     component: UsersPage,
-    canActivate: [AuthGuardService]
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'ADMIN'
+    }
   },
 
-  // Referential pâth
+  // Referential path
   {
     path: 'referential',
     canActivate: [AuthGuardService],

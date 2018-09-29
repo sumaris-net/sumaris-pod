@@ -22,6 +22,7 @@ export class AuthGuardService implements CanActivate {
     // If account not started: loop after started
     if (!this.accountService.isStarted()) {
       return this.accountService.waitStart()
+        // Iterate
         .then(() => this.canActivate(next, state) as Promise<boolean>);
     }
 
@@ -33,15 +34,20 @@ export class AuthGuardService implements CanActivate {
             console.debug("[auth-gard] Authentication cancelled. Could not access to /" + next.url.join('/'));
             this.redirectToHome();
           }
-          return res;
+          // Iterate
+          return this.canActivate(next, state) as Promise<boolean>;
         });
-    } else {
-      console.debug("[auth-gard] Authorized access to /" + next.url.join('/'));
-      return true;
     }
+
+    if (next.data && next.data.profile && !this.accountService.hasProfile(next.data.profile)) {
+      console.debug("[auth-gard] Not authorized access to /" + next.url.join('/') + ". Missing required profile: " + next.data.profile);
+      return false;
+    }
+    console.debug("[auth-gard] Authorized access to /" + next.url.join('/'));
+    return true;
   }
 
-  async login(next?: ActivatedRouteSnapshot): Promise<boolean> {
+  login(next?: ActivatedRouteSnapshot): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
       let modal = await this.modalCtrl.create({ component: AuthModal, componentProps: { next: next } });
       modal.onDidDismiss()
@@ -50,7 +56,6 @@ export class AuthGuardService implements CanActivate {
             resolve(true);
             return;
           }
-          console.debug("[auth-gard] Authentication cancelled.");
           resolve(false);
         });
       return modal.present();

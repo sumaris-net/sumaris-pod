@@ -2,7 +2,7 @@ import { Component, OnInit, Input, EventEmitter, Output, forwardRef, Optional } 
 import { Referential, PmfmStrategy } from "../services/trip.model";
 import { Observable, Subject } from 'rxjs';
 import { startWith, debounceTime, map } from 'rxjs/operators';
-import { referentialToString, EntityUtils } from '../../referential/services/model';
+import { referentialToString, EntityUtils, ReferentialRef } from '../../referential/services/model';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, Validators, FormControl, FormGroupDirective } from '@angular/forms';
 import { FloatLabelType } from "@angular/material";
 
@@ -24,12 +24,12 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 
     private _onChangeCallback = (_: any) => { };
     private _onTouchedCallback = () => { };
-    private _implicitValue: Referential | any;
+    private _implicitValue: ReferentialRef | any;
 
-    items: Observable<Referential[]>;
+    items: Observable<ReferentialRef[]>;
     onValueChange = new Subject<any>();
 
-    displayWithFn: (obj: Referential | any) => string;
+    displayWithFn: (obj: ReferentialRef | any) => string;
 
     @Input() pmfm: PmfmStrategy;
 
@@ -55,21 +55,17 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
     onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
     constructor(
-
         @Optional() private formGroupDir: FormGroupDirective
     ) {
-
     }
 
     ngOnInit() {
 
         this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
-
+        if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement-qv>.");
 
         if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
-
         this.formControl.setValidators(this.required || this.pmfm.isMandatory ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
-        if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement-qv>.");
 
         this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm);
 
@@ -83,15 +79,17 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
                 debounceTime(this.compact ? 100 : 250), // Not too long on compact mode
                 map(value => {
                     if (EntityUtils.isNotEmpty(value)) return [value];
-                    if (!this.pmfm || !this.pmfm.qualitativeValues) return [];
+                    if (!this.pmfm.qualitativeValues) return [];
                     value = (typeof value == "string") && (value as string).toUpperCase() || undefined;
                     if (!value) return this.pmfm.qualitativeValues;
-                    console.log("Searching QV field on text {" + value + "}...");
+
                     // Filter by label and name
-                    const items: Referential[] = this.pmfm.qualitativeValues.filter((qv) => ((this.startsWithUpperCase(qv.label, value)) || (!this.compact && this.startsWithUpperCase(qv.name, value))));
+                    //console.debug(`[mat-qv-field] Searching on text '${value}'...`);
+                    const res: ReferentialRef[] = this.pmfm.qualitativeValues.filter((qv) => ((this.startsWithUpperCase(qv.label, value)) || (!this.compact && this.startsWithUpperCase(qv.name, value))));
+
                     // Store implicit value (will use it onBlur if not other value selected)
-                    this._implicitValue = (items.length === 1) ? items[0] : undefined;
-                    return items;
+                    this._implicitValue = (res.length === 1) ? res[0] : undefined;
+                    return res;
                 })
             );
     }
@@ -152,7 +150,7 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
         return input && input.toUpperCase().substr(0, search.length) === search;
     }
 
-    referentialToLabel(obj: Referential | any): string {
+    referentialToLabel(obj: Referential | ReferentialRef | any): string {
         return obj && obj.label || '';
     }
 

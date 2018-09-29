@@ -103,9 +103,13 @@ export class BaseDataService {
       );
   }
 
-  protected mutate<T, V = R>(opts: { mutation: any, variables: V, error?: ServiceError }): Promise<T> {
+  protected mutate<T, V = R>(opts: {
+    mutation: any,
+    variables: V,
+    error?: ServiceError
+  }): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      let subscription = this.apollo.mutate<ApolloQueryResult<T>, V>({
+      const subscription = this.apollo.mutate<ApolloQueryResult<T>, V>({
         mutation: opts.mutation,
         variables: opts.variables
       })
@@ -126,6 +130,37 @@ export class BaseDataService {
           subscription.unsubscribe();
         });
     });
+  }
+
+  protected subscribe<T, V = R>(opts: {
+    query: any,
+    variables: V,
+    error?: ServiceError
+  }): Observable<T> {
+
+    const res = this.apollo.subscribe({
+      query: opts.query,
+      variables: opts.variables
+    })
+      .catch(error => this.onApolloError<T>(error))
+      .pipe(
+        map(({ data, errors }) => {
+          if (errors) {
+            var error = errors[0];
+            if (error.message === "ERROR.UNKNOWN_NETWORK_ERROR") {
+              throw {
+                code: ErrorCodes.UNKNOWN_NETWORK_ERROR,
+                message: "ERROR.UNKNOWN_NETWORK_ERROR"
+              };
+            }
+            console.error("[data-service] " + errors[0].message);
+            throw opts.error ? opts.error : errors[0].message;
+          }
+          return data;
+        })
+      );
+
+    return res;
   }
 
   protected addToQueryCache<V = R>(opts: {

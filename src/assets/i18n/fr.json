@@ -142,6 +142,7 @@
   },
   "TRIP": {
     "TITLE": "Marée",
+    "PROGRAM": "Programme de collecte",
     "VESSEL": "Navire",
     "DEPARTURE": "Départ :",
     "DEPARTURE_DATE_TIME": "Date de départ",
@@ -163,6 +164,7 @@
     },
     "LIST": {
       "TITLE": "Marées",
+      "PROGRAM": "Programme",
       "FILTER": {
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
@@ -173,7 +175,8 @@
       "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",
       "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
       "SAVE_TRIP_ERROR": "Erreur lors de la sauvegarde de la marée.",
-      "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées."
+      "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées.",
+      "SUBSCRIBE_TRIP_ERROR": "Erreur lors de l'écoute des modifications distantes de la marée."
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",

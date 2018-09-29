@@ -92,8 +92,7 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['lastName']" [readonly]="!row.editing" [appAutofocus]="row.editing"
-            [(ngModel)]="row.currentData.lastName">
+          <input matInput [formControl]="row.validator.controls['lastName']" [readonly]="!row.editing" [appAutofocus]="row == -1 && row.editing">
           <mat-error *ngIf="row.validator.controls['lastName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
 
@@ -108,7 +107,7 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['firstName']" [readonly]="!row.editing" [(ngModel)]="row.currentData.firstName">
+          <input matInput [formControl]="row.validator.controls['firstName']" [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['firstName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-cell>
@@ -121,7 +120,7 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['email']" [readonly]="!row.editing" [(ngModel)]="row.currentData.email">
+          <input matInput [formControl]="row.validator.controls['email']" [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['email'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="row.validator.controls['email'].hasError('email')">
             <span translate>ERROR.FIELD_NOT_VALID_EMAIL</span>

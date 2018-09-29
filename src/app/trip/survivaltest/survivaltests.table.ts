@@ -13,7 +13,7 @@ import { SurvivalTestValidatorService } from "../services/survivaltest.validator
 import { FormBuilder } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
-import { AcquisitionLevelCodes, Referential, EntityUtils } from "../../core/services/model";
+import { AcquisitionLevelCodes, Referential, EntityUtils, ReferentialRef } from "../../core/services/model";
 
 const PMFM_NAME_REGEXP = new RegExp(/^(([A-Z]+)([0-9]+))\s*[/]\s*(.*)$/);
 
@@ -37,13 +37,13 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
 
     private _onDataChange = new EventEmitter<any>();
     private _acquisitionLevel: string = AcquisitionLevelCodes.SURVIVAL_TEST;
-    private _implicitTaxonGroup: Referential;
+    private _implicitTaxonGroup: ReferentialRef;
 
     started: boolean = false;
     pmfms: Observable<PmfmStrategy[]>;
     cachedPmfms: PmfmStrategy[];
     data: Sample[];
-    taxonGroups: Observable<Referential[]>;
+    taxonGroups: Observable<ReferentialRef[]>;
 
     @Input() program: string = environment.defaultProgram;
 
@@ -115,18 +115,16 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
             .pipe(
                 debounceTime(250),
                 mergeMap((value) => {
-                    if (EntityUtils.isNotEmpty(value)) {
-                        return Observable.of([value]);
-                    }
+                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string") && value || undefined;
                     if (this.debug) console.debug("[survivaltests-table] Searching taxon group on {" + (value || '*') + "}...");
-                    return this.referentialService.loadAll(0, 10, undefined, undefined,
+                    return this.referentialService.loadAllRef(0, 10, undefined, undefined,
                         {
+                            entityName: 'TaxonGroup',
                             levelId: TaxonGroupIds.FAO,
                             searchText: value as string,
                             searchAttribute: 'label'
-                        },
-                        { entityName: 'TaxonGroup' });
+                        });
                 })
             );
 

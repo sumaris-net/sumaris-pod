@@ -163,7 +163,7 @@ export class AccountPage implements OnDestroy {
     json.settings = Object.assign(this.account.settings.asObject(), settings);
     newAccount.fromObject(json);
 
-    console.log("[account] Saving account...", newAccount);
+    console.debug("[account] Saving account...", newAccount);
     try {
       this.disable();
 

@@ -66,7 +66,7 @@ export class MenuComponent {
   }
 
   onLogout() {
-    console.log("[app] logout");
+    console.debug("[app] logout");
     this.isLogin = false;
     this.account = null;
     this.router.navigate(['']);

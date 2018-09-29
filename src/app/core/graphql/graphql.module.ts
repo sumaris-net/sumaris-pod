@@ -17,9 +17,7 @@ declare let window: any;
 const _global = typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : {});
 const NativeWebSocket = _global.WebSocket || _global.MozWebSocket;
 const AppWebSocket = function (url: string, protocols?: string | string[]) {
-  const self = new NativeWebSocket(url/*no protocols*/);
-  console.log(self);
-  return self;
+  return new NativeWebSocket(url/*no protocols*/);
 } as any;
 AppWebSocket.CLOSED = NativeWebSocket.CLOSED;
 AppWebSocket.CLOSING = NativeWebSocket.CLOSING;

@@ -1,19 +1,18 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Observable } from 'rxjs';
-import { mergeMap } from "rxjs/operators";
 import { ValidatorService } from "angular4-material-table";
-import { AppTable, AppTableDataSource, AccountService } from "../core/core.module";
+import { AppTable, AppTableDataSource, AccountService, environment } from "../core/core.module";
 import { TripValidatorService } from "./services/trip.validator";
 import { TripService, TripFilter } from "./services/trip.service";
 import { TripModal } from "./trip.modal";
-import { Trip, Referential, VesselFeatures, LocationLevelIds, EntityUtils } from "./services/trip.model";
+import { Trip, Referential, VesselFeatures, LocationLevelIds, EntityUtils, ReferentialRef } from "./services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { VesselService, ReferentialService, vesselFeaturesToString, referentialToString } from "../referential/referential.module";
 import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../core/table/table.class";
-
+import { debounceTime, mergeMap, startWith } from "rxjs/operators";
 @Component({
   selector: 'page-trips',
   templateUrl: 'trips.page.html',
@@ -25,8 +24,9 @@ import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../core/table/tabl
 export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
   filterForm: FormGroup;
+  programs: Observable<ReferentialRef[]>;
+  locations: Observable<ReferentialRef[]>;
   vessels: Observable<VesselFeatures[]>;
-  locations: Observable<Referential[]>;
 
   constructor(
     protected route: ActivatedRoute,
@@ -45,6 +45,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     super(route, router, platform, location, modalCtrl, accountService,
       RESERVED_START_COLUMNS
         .concat([
+          'program',
           'vessel',
           'departureLocation',
           'departureDateTime',
@@ -55,6 +56,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     );
     this.i18nColumnPrefix = 'TRIP.';
     this.filterForm = formBuilder.group({
+      'program': [null],
       'startDate': [null],
       'endDate': [null],
       'location': [null]
@@ -64,25 +66,43 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   ngOnInit() {
     super.ngOnInit();
 
-    // Combo: sale locations
-    this.locations = this.filterForm.controls.location
+    // Programs combo (filter)
+    this.programs = this.filterForm.controls['program']
       .valueChanges
       .pipe(
+        debounceTime(250),
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.referentialService.loadAll(0, 10, undefined, undefined,
+          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
             {
+              entityName: 'Program',
+              searchText: value as string
+            });
+        })
+      );
+
+    // Locations combo (filter)
+    this.locations = this.filterForm.controls['location']
+      .valueChanges
+      .pipe(
+        debounceTime(250),
+        mergeMap(value => {
+          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          value = (typeof value === "string") && value || undefined;
+          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+            {
+              entityName: 'Location',
               levelId: LocationLevelIds.PORT,
               searchText: value as string
-            },
-            { entityName: 'Location' });
+            });
         }));
 
     // Update filter when changes
     this.filterForm.valueChanges.subscribe(() => {
       const filter = this.filterForm.value;
       this.filter = {
+        programLabel: filter.program && typeof filter.program == "object" && filter.program.label || undefined,
         startDate: filter.startDate,
         endDate: filter.endDate,
         locationId: filter.location && typeof filter.location == "object" && filter.location.id || undefined
@@ -115,5 +135,9 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
+
+  programToString(item: Referential) {
+    return referentialToString(item, ['label']);
+  }
 }
 
