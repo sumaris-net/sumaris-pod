@@ -34,6 +34,8 @@ export class MatAutocompleteField implements OnInit {
 
     @Input() serviceOptions: any;
 
+    @Input() required = false;
+
     @Input() displayWith = (_: any) => '';
 
     constructor(
