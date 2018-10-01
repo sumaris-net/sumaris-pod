@@ -130,12 +130,13 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     if (this.loading || this.saving) return;
 
     // Copy vessel features, before trying to validate saleForm
-    if (this.tripForm.valid) {
+    if (this.tripForm.valid && !this.saleForm.empty) {
       this.saleForm.form.controls['vesselFeatures'].setValue(this.tripForm.form.controls['vesselFeatures'].value);
     }
 
     // Not valid
     if (!this.valid) {
+      if (this.debug) console.debug("[page-trip] Form not valid");
       this.submitted = true;
       return;
     }
