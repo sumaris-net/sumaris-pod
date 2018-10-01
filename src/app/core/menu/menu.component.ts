@@ -1,12 +1,10 @@
-import { Component, ViewChild, Input } from '@angular/core';
-import { Platform, MenuController, ModalController, Menu } from "@ionic/angular";
+import { Component, OnInit, Input } from '@angular/core';
+import { MenuController, ModalController } from "@ionic/angular";
 
 import { Router } from "@angular/router";
-import { Content } from "@ionic/angular";
 import { Account } from "../services/model";
 import { AccountService } from "../services/account.service";
 import { AboutModal } from '../about/modal-about';
-import { AppComponent } from '../../app.component';
 
 import { environment } from '../../../environments/environment';
 import { HomePage } from '../home/home';
@@ -17,6 +15,7 @@ export interface MenuItem {
   path?: string;
   page?: string | any;
   icon?: string;
+  requiredProfiles?: string[];
 }
 
 @Component({
@@ -24,10 +23,12 @@ export interface MenuItem {
   templateUrl: 'menu.component.html',
   styleUrls: ['./menu.component.scss']
 })
-export class MenuComponent {
+export class MenuComponent implements OnInit {
 
   public isLogin: boolean;
   public account: Account;
+
+  filteredItems: Array<MenuItem> = [];
 
   @Input()
   appVersion: String = environment.version;
@@ -59,10 +60,15 @@ export class MenuComponent {
 
   }
 
+  ngOnInit() {
+    this.filteredItems = (this.items || []).filter(i => !i.requiredProfiles || i.requiredProfiles.indexOf('GUEST') != -1);
+  }
+
   onLogin(account: Account) {
     //console.log('[app] Logged account: ', account);
     this.account = account;
     this.isLogin = true;
+    this.filteredItems = (this.items || []).filter(i => !i.requiredProfiles || !!i.requiredProfiles.find(p => this.accountService.hasProfile(p)));
   }
 
   onLogout() {

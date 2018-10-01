@@ -24,10 +24,10 @@ export class AppComponent {
   menuItems: Array<MenuItem> = [
     { title: 'MENU.HOME', path: '/', icon: 'home' },
     { title: 'MENU.TRIPS', path: '/trips', icon: 'pin' },
-    { title: 'MENU.ADMINISTRATION_DIVIDER' },
-    { title: 'MENU.USERS', path: '/admin/users', icon: 'people' },
-    { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat' },
-    { title: 'MENU.REFERENTIALS', path: '/referential/list', icon: 'list' }
+    { title: 'MENU.ADMINISTRATION_DIVIDER', requiredProfiles: ['ADMIN', 'SUPERVISOR', 'USER'] },
+    { title: 'MENU.USERS', path: '/admin/users', icon: 'people', requiredProfiles: ['ADMIN'] },
+    { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', requiredProfiles: ['ADMIN', 'SUPERVISOR', 'USER'] },
+    { title: 'MENU.REFERENTIALS', path: '/referential/list', icon: 'list', requiredProfiles: ['ADMIN'] }
   ];
 
   constructor(
