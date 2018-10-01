@@ -20,6 +20,8 @@ const MASKS = {
     }
 };
 
+const noop = () => {
+};
 @Component({
     selector: 'mat-latlong',
     templateUrl: 'material.latlong.html',
@@ -33,10 +35,11 @@ const MASKS = {
     ]
 })
 export class MatLatLong implements OnInit, ControlValueAccessor {
+    private _onChange: (_: any) => void = noop;
+    private _onTouched: () => void = noop;
+    protected disabling = false;
     protected writing: boolean = false;
     protected touchUi: boolean = false;
-    private _onChange = (_: any) => { };
-    private _onTouched = () => { };
 
     mobile: boolean;
     requiredError: boolean = false;
@@ -144,8 +147,9 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     }
 
     setDisabledState(isDisabled: boolean): void {
-        if (this.writing) return;
+        if (this.disabling) return;
 
+        this.disabling = true;
         this.writing = true;
         this.disabled = isDisabled;
         if (isDisabled) {
@@ -157,6 +161,7 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
             this.textFormControl.enable();
         }
         this.writing = false;
+        this.disabling = false;
     }
 
     private onFormChange(strValue): void {

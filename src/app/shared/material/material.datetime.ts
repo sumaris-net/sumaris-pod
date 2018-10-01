@@ -26,6 +26,9 @@ const DateFormats = {
     }
 };
 
+const noop = () => {
+};
+
 @Component({
     selector: 'mat-date-time',
     templateUrl: 'material.datetime.html',
@@ -33,12 +36,13 @@ const DateFormats = {
     providers: [DEFAULT_VALUE_ACCESSOR]
 })
 export class MatDateTime implements OnInit, ControlValueAccessor {
-    protected writing: boolean = false;
+    private _onChange: (_: any) => void = noop;
+    private _onTouched: () => void = noop;
+    protected writing: boolean = true;
+    protected disabling = false;
+
     touchUi: boolean = false;
     mobile: boolean = false;
-    private _onChange = (_: any) => { };
-    private _onTouched = () => { };
-
     requiredError: boolean = false;
     form: FormGroup;
     displayPattern: string;
@@ -47,10 +51,9 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     locale: string;
 
     mask = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
-
-    hourMask = [/[0-2]/, /\d/];
-
-    minuteMask = [/[0-5]/, /\d/];
+    hourMask = [/[0-2]/, /\d/, ':', /[0-5]/, /\d/];
+    //hourMask = [/[0-2]/, /\d/];
+    //minuteMask = [/[0-5]/, /\d/];
 
     @Input() disabled: boolean = false
 
@@ -91,8 +94,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
         this.form = this.formBuilder.group({
             day: (this.required ? ['', Validators.required] : ['']),
-            hour: ['', this.required ? Validators.compose([Validators.min(0), Validators.max(23)]) : Validators.compose([Validators.required, Validators.min(0), Validators.max(23)])],
-            minute: ['', this.required ? Validators.compose([Validators.min(0), Validators.max(59)]) : Validators.compose([Validators.required, Validators.min(0), Validators.max(59)])]
+            hour: ['', this.required ? Validators.pattern(/[0-2]\d:[0-5]\d/) : Validators.compose([Validators.required, Validators.pattern(/[0-2]\d:[0-5]\d/)])]
         });
 
         this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
@@ -101,11 +103,16 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         // Add custom 'validDate' validator
         this.formControl.setValidators(Validators.compose([this.formControl.validator, SharedValidators.validDate]));
 
-        const patterns = this.translate.instant(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN']);
-        this.displayPattern = (this.displayTime) ?
-            (patterns['COMMON.DATE_TIME_PATTERN'] != 'COMMON.DATE_TIME_PATTERN' ? patterns['COMMON.DATE_TIME_PATTERN'] : 'L LT') :
-            (this.displayPattern = patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
-        this.dayPattern = (patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+        // Get patterns to display date and date+time
+        this.translate.get(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN'])
+            .subscribe(patterns => {
+                this.displayPattern = (this.displayTime) ?
+                    (patterns['COMMON.DATE_TIME_PATTERN'] != 'COMMON.DATE_TIME_PATTERN' ? patterns['COMMON.DATE_TIME_PATTERN'] : 'L LT') :
+                    (this.displayPattern = patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+                this.dayPattern = (patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+                this.writing = false;
+            });
+
         this.form.valueChanges
             .subscribe((value) => this.onFormChange(value));
     }
@@ -116,12 +123,16 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.date = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
         if (this.date) {
             this.writing = true;
-            const hour = this.date.hour();
-            const minutes = this.date.minutes();
+            // Format hh
+            let hour: number | string = this.date.hour();
+            hour = hour < 10 ? ('0' + hour) : hour;
+            // Format mm
+            let minutes: number | string = this.date.minutes();
+            minutes = minutes < 10 ? ('0' + minutes) : minutes
+            // Set form value
             this.form.setValue({
                 day: this.date.clone().startOf('day').format(this.dayPattern),
-                hour: hour < 10 ? ('0' + hour) : hour,
-                minute: minutes < 10 ? ('0' + minutes) : minutes,
+                hour: `${hour}:${minutes}`
             }, { emitEvent: false });
             this.writing = false;
         }
@@ -135,9 +146,9 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     }
 
     setDisabledState(isDisabled: boolean): void {
-        if (this.writing) return;
+        if (this.disabling) return;
 
-        this.writing = true;
+        this.disabling = true;
         this.disabled = isDisabled;
         if (isDisabled) {
             this.formControl.disable();
@@ -147,7 +158,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
             this.formControl.enable();
             this.form.enable();
         }
-        this.writing = false;
+        this.disabling = false;
     }
 
     private onFormChange(json): void {
@@ -156,7 +167,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
         if (this.form.invalid) {
             this.formControl.markAsPending();
-            let errors = Object.assign({}, this.form.controls.day.errors, this.form.controls.hour.errors, this.form.controls.minute.errors);
+            let errors = Object.assign({}, this.form.controls.day.errors, this.form.controls.hour.errors);
             this.formControl.setErrors(errors);
             this.writing = false;
             return;
@@ -172,11 +183,12 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
         // If time
         if (this.displayTime) {
+            const hourParts = (json.hour || '').split(':');
             date = date && date
                 // set as time as locale time
                 .locale(this.locale)
-                .hour(json.hour || 0)
-                .minute(json.minute || 0)
+                .hour(parseInt(hourParts[0] || 0))
+                .minute(parseInt(hourParts[1] || 0))
                 .seconds(0).millisecond(0)
                 // then change in UTC, to avoid TZ offset in final string
                 .utc();
@@ -204,11 +216,12 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         let date = event.value;
         date = typeof date === 'string' && this.dateAdapter.parse(date, DATE_ISO_PATTERN) || date;
         if (this.displayTime) {
+            const hourParts = (this.form.controls.hour.value || '').split(':');
             date = date && date && date
                 // set as time as locale time
                 .locale(this.locale)
-                .hour(this.form.controls.hour.value || 0)
-                .minute(this.form.controls.minute.value || 0)
+                .hour(parseInt(hourParts[0] || 0))
+                .minute(parseInt(hourParts[1] || 0))
                 .seconds(0).millisecond(0)
                 // then change in UTC, to avoid TZ offset in final string
                 .utc();

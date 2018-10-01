@@ -21,13 +21,13 @@
   <mat-label>{{placeholder}}</mat-label>
 
   <input matInput autocomplete="off" type="text" [textMask]="{mask: mask, keepCharPositions: true, placeholderChar: placeholderChar}"
-    formControlName="day" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()" (keydown)="onKeyDown($event)"
-    (click)="openDatePickerIfTouchUi($event)">
+    formControlName="day" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()"
+    (keyup.arrowdown)="openDatePicker($event)" (click)="openDatePickerIfTouchUi($event)">
   <input matInput type="text" [formControl]="formControl" hidden [matDatepicker]="datePicker1" (dateChange)="onDatePickerChange($event)">
 
-  <mat-datepicker-toggle *ngIf="!mobile" matSuffix [for]="datePicker1">
-    <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
-  </mat-datepicker-toggle>
+  <button type="button" matSuffix (click)="openDatePicker($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+    <mat-icon>keyboard_arrow_down</mat-icon>
+  </button>
   <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #datePicker1></mat-datepicker>
 
   <div class="mat-form-field-subscript mat-form-field-subscript-wrapper" *ngIf="!readonly && displayTime && formControl.invalid">
@@ -60,21 +60,22 @@
         <mat-label>{{placeholder}}</mat-label>
 
         <input matInput autocomplete="off" type="text" [textMask]="{mask: mask, keepCharPositions: true, placeholderChar: placeholderChar}"
-          formControlName="day" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()" (keydown)="onKeyDown($event)"
-          (click)="openDatePickerIfTouchUi($event)">
+          formControlName="day" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()"
+          (keyup.arrowdown)="openDatePicker($event)" (click)="openDatePickerIfTouchUi($event)">
 
         <input matInput type="text" [formControl]="formControl" hidden [matDatepicker]="datePicker2" (dateChange)="onDatePickerChange($event)">
-        <mat-datepicker-toggle matSuffix [for]="datePicker2" *ngIf="!compact">
-          <mat-icon matSuffix matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
-        </mat-datepicker-toggle>
+        <button type="button" matSuffix (click)="openDatePicker($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+          <mat-icon>keyboard_arrow_down</mat-icon>
+        </button>
         <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #datePicker2></mat-datepicker>
 
       </mat-form-field>
       <div class="mat-form-field-subscript mat-form-field-subscript-wrapper" *ngIf="formControl.invalid">
-        <mat-error *ngIf="formControl.touched && formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        <mat-error *ngIf="formControl.touched && formControl.hasError('validDate')" translate>ERROR.FIELD_NOT_VALID_DATE_TIME</mat-error>
-        <mat-error *ngIf="formControl.touched && (formControl.hasError('max') || formControl.hasError('min'))"
-          translate>ERROR.FIELD_NOT_VALID_HOUR_MINUTE</mat-error>
+        <mat-error *ngIf="formControl.touched && form.controls.hour.touched && formControl.hasError('required')"
+          translate>ERROR.FIELD_REQUIRED</mat-error>
+        <mat-error *ngIf="formControl.touched && form.controls.hour.touched && formControl.hasError('validDate')"
+          translate>ERROR.FIELD_NOT_VALID_DATE_TIME</mat-error>
+        <mat-error *ngIf="formControl.touched && formControl.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_HOUR_MINUTE</mat-error>
       </div>
     </ion-col>
 
@@ -84,20 +85,8 @@
         <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.HOUR</mat-label>
         <input matInput type="text" min="0" max="23" [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar}"
           autocomplete="off" [placeholder]="'COMMON.HOUR_PLACEHOLDER'|translate" formControlName="hour" (blur)="markAsTouched()">
-        <span matSuffix>:</span>
       </mat-form-field>
     </ion-col>
-
-    <!-- time -->
-    <ion-col no-padding class="minute">
-      <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-invalid]="form.controls.minute.invalid">
-        <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.MINUTE</mat-label>
-        <input matInput type="text" min="0" max="59" [textMask]="{mask: minuteMask, keepCharPositions: true, placeholderChar: placeholderChar}"
-          autocomplete="off" [placeholder]="'COMMON.MINUTE_PLACEHOLDER'|translate" formControlName="minute" (blur)="markAsTouched()">
-      </mat-form-field>
-    </ion-col>
-
-
 
   </ion-row>
 
