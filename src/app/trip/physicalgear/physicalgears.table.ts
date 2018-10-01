@@ -47,7 +47,9 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
   }
   get valid(): boolean {
     if (this.selectedRow && this.gearForm.dirty) {
-      return this.gearForm.valid;
+      const res = this.gearForm.valid
+      if (this.debug && !res) console.debug("[physicalgears-table] Gear form not valid");
+      return res;
     }
     return true;
   }
