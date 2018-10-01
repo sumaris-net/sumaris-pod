@@ -1,10 +1,11 @@
 
-import { FormGroup } from "@angular/forms";
+import { FormGroup, AbstractControl } from "@angular/forms";
 
 export class AppFormUtils {
     static copyForm2Entity = copyForm2Entity;
     static copyEntity2Form = copyEntity2Form;
     static getFormValueFromEntity = getFormValueFromEntity;
+    static logFormErrors = logFormErrors;
 }
 
 /**
@@ -69,4 +70,19 @@ export function getFormValueFromEntity(source: any, form: FormGroup): Object {
         }
     }
     return value;
+}
+
+export function logFormErrors(form: FormGroup, logPrefix?: string, path?: string) {
+    const value = {};
+    for (let key in form.controls) {
+        let keyPath = (path ? `${path}/${key}` : key);
+        if (form.controls[key] instanceof FormGroup) {
+            logFormErrors(form.controls[key] as FormGroup, logPrefix, keyPath);
+        }
+        else if (form.controls[key]) {
+            for (let error in form.controls[key].errors) {
+                console.debug((logPrefix || '') + `field {${keyPath}}} error: ${error}`);
+            }
+        }
+    }
 }

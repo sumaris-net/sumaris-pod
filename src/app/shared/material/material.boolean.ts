@@ -6,8 +6,6 @@ import { TranslateService } from "@ngx-translate/core";
 
 const noop = () => {
 };
-
-
 @Component({
     selector: 'mat-boolean-field',
     templateUrl: 'material.boolean.html',
@@ -21,10 +19,11 @@ const noop = () => {
     ]
 })
 export class MatBooleanField implements OnInit, ControlValueAccessor {
+    private _onChange: (_: any) => void = noop;
+    private _onTouched: () => void = noop;
+    protected disabling: boolean = false;
     protected writing: boolean = false;
     protected touchUi: boolean = false;
-    private onTouchedCallback: () => void = noop;
-    private onChangeCallback: (_: any) => void = noop;
 
     mobile: boolean;
     requiredError: boolean = false;
@@ -64,7 +63,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
     set value(v: any) {
         if (v !== this._value) {
             this._value = v;
-            this.onChangeCallback(v);
+            this._onChange(v);
         }
     }
 
@@ -98,16 +97,16 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
     }
 
     registerOnChange(fn: any): void {
-        this.onChangeCallback = fn;
+        this._onChange = fn;
     }
     registerOnTouched(fn: any): void {
-        this.onTouchedCallback = fn;
+        this._onTouched = fn;
     }
 
     setDisabledState(isDisabled: boolean): void {
-        if (this.writing) return;
+        if (this.disabling) return;
 
-        this.writing = true;
+        this.disabling = true;
         this.disabled = isDisabled;
         if (isDisabled) {
             this.formControl.disable();
@@ -115,7 +114,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
         else {
             this.formControl.enable();
         }
-        this.writing = false;
+        this.disabling = false;
     }
 
     private onRadioValueChanged(event: MatRadioChange): void {
@@ -123,7 +122,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
         this.writing = true;
         this._value = event.value;
         this.markAsTouched();
-        this.onChangeCallback(event.value);
+        this._onChange(event.value);
         this.writing = false;
     }
 
@@ -132,7 +131,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
         this.writing = true;
         this._value = event.checked;
         this.markAsTouched();
-        this.onChangeCallback(event.checked);
+        this._onChange(event.checked);
         this.writing = false;
     }
 
@@ -141,7 +140,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
         this.requiredError = this.formControl && this.formControl.hasError('required');
         //console.log("has error ?", this.formControl.hasError('required'));
         if (this.formControl.touched) {
-            this.onTouchedCallback();
+            this._onTouched();
         }
     }
 

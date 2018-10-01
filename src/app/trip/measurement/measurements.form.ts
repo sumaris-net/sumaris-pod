@@ -154,6 +154,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
                 else {
                     this.logDebug(`Pmfms for '${this._program}' loaded in ${new Date().getTime() - now.getTime()}ms`, pmfms);
                     this.pmfms.next(pmfms);
+                    // Emit measurement because of zip(), that wait for measurement event
+                    if (this._measurements && this.cachedPmfms) {
+                        this._onMeasurementsChange.emit('_onRefreshPmfms.subscribe');
+                    }
+
                 }
                 this.cachedPmfms = pmfms;
             });
@@ -161,7 +166,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         // Update the form group
         zip(
             this._onMeasurementsChange,
-            this.pmfms // skip startWith
+            this.pmfms
         )
             .subscribe(([event, pmfms]) => {
 

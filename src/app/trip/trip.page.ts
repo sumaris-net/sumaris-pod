@@ -8,7 +8,7 @@ import { Trip } from './services/trip.model';
 import { SaleForm } from './sale/sale.form';
 import { OperationTable } from './operation/operations.table';
 import { MeasurementsForm } from './measurement/measurements.form';
-import { AppTabPage } from '../core/core.module';
+import { AppTabPage, AppFormUtils } from '../core/core.module';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../environments/environment.prod';
@@ -136,7 +136,20 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     // Not valid
     if (!this.valid) {
-      if (this.debug) console.debug("[page-trip] Form not valid");
+      if (this.debug) {
+        console.debug("[page-trip] Form not valid. Detecting where...");
+        if (this.tripForm.invalid) {
+          AppFormUtils.logFormErrors(this.saleForm.form, "[page-trip] [gear-form] ");
+        }
+        if (!this.saleForm.empty && this.saleForm.invalid) {
+          AppFormUtils.logFormErrors(this.saleForm.form, "[page-trip] [sale-form] ");
+        }
+        if (this.physicalGearTable.invalid) {
+          AppFormUtils.logFormErrors(this.physicalGearTable.gearForm.form, "[page-trip] [gear-form] ");
+          AppFormUtils.logFormErrors(this.physicalGearTable.gearForm.measurementsForm.form, "[page-trip] [gear-measurementsForm] ");
+
+        }
+      }
       this.submitted = true;
       return;
     }
