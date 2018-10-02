@@ -56,8 +56,14 @@ public class SumarisCacheAutoConfiguration {
     }
 
     @Bean
-    public EhCacheFactoryBean departmentBydIdCache() {
+    public EhCacheFactoryBean departmentByIdCache() {
         return Caches.createHeapCache(ehcache(), CacheNames.DEPARTMENT_BY_ID, 1500, 1500, 600);
+    }
+
+
+    @Bean
+    public EhCacheFactoryBean departmentByLabelCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.DEPARTMENT_BY_LABEL, 1500, 1500, 600);
     }
 
     @Bean

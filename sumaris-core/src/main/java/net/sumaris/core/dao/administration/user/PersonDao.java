@@ -41,10 +41,10 @@ public interface PersonDao  {
 
     Long countByFilter(PersonFilterVO filter);
 
-    @Cacheable(cacheNames = CacheNames.PERSON_BY_ID, key = "#id")
+    @Cacheable(cacheNames = CacheNames.PERSON_BY_ID, key = "#id", unless="#result==null")
     PersonVO get(int id);
 
-    @Cacheable(cacheNames = CacheNames.PERSON_BY_PUBKEY, key = "#pubkey")
+    @Cacheable(cacheNames = CacheNames.PERSON_BY_PUBKEY, key = "#pubkey", unless="#result==null")
     PersonVO getByPubkeyOrNull(String pubkey);
 
     ImageAttachmentVO getAvatarByPubkey(String pubkey);
@@ -55,8 +55,8 @@ public interface PersonDao  {
     void delete(int id);
 
     @Caching(put = {
-        @CachePut(cacheNames= CacheNames.PERSON_BY_ID, key="#person.id", condition = "#person.id != null"),
-        @CachePut(cacheNames= CacheNames.PERSON_BY_PUBKEY, key="#person.pubkey", condition = "#person.id != null")
+        @CachePut(cacheNames= CacheNames.PERSON_BY_ID, key="#person.id", condition = "#person != null && #person.id != null"),
+        @CachePut(cacheNames= CacheNames.PERSON_BY_PUBKEY, key="#person.pubkey", condition = "#person != null && #person.id != null && #person.pubkey != null")
     })
     PersonVO save(PersonVO person);
 

@@ -41,15 +41,16 @@ public interface DepartmentDao {
                                     String sortAttribute,
                                     SortDirection sortDirection);
 
-    @Cacheable(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id")
+    @Cacheable(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id", unless="#result==null")
     DepartmentVO get(int id);
 
+    @Cacheable(cacheNames = CacheNames.DEPARTMENT_BY_LABEL, key = "#label", unless="#result==null")
     Department getByLabelOrNull(String label);
 
     @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id")
     void delete(int id);
 
-    @CachePut(cacheNames= CacheNames.DEPARTMENT_BY_ID, key="#department.id", condition = "#department.id != null")
+    @CachePut(cacheNames= CacheNames.DEPARTMENT_BY_ID, key="#department.id", condition = "#department != null && #department.id != null")
     DepartmentVO save(DepartmentVO department);
 
     DepartmentVO toDepartmentVO(Department department);

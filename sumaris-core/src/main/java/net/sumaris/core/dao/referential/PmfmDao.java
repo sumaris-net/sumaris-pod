@@ -31,7 +31,7 @@ public interface PmfmDao {
 
     PmfmVO getByLabel(String label);
 
-    @Cacheable(cacheNames = CacheNames.PMFM_BY_ID)
+    @Cacheable(cacheNames = CacheNames.PMFM_BY_ID, unless = "#result == null")
     PmfmVO get(int pmfmId);
 
     PmfmVO toPmfmVO(Pmfm source);
