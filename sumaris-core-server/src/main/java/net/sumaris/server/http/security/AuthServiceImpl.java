@@ -2,8 +2,10 @@ package net.sumaris.server.http.security;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.model.referential.StatusId;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.crypto.CryptoUtils;
+import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.crypto.ServerCryptoService;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -75,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
                 if (debug) log.debug("Authentication failed. User is not allowed to authenticate: " + authData.getPubkey());
                 return false;
             }
-        } catch(DataNotFoundException e) {
+        } catch(DataNotFoundException | DataRetrievalFailureException e) {
             log.debug("Authentication failed. User not found: " + authData.getPubkey());
             return false;
         }
@@ -114,11 +117,23 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public boolean canAuth(final String pubkey) throws DataNotFoundException {
-        List<Integer> userProfileIds = accountService.getProfileIdsByPubkey(pubkey);
+        AccountVO account = accountService.getByPubkey(pubkey);
 
+        // Cannot auth if user has been deleted or is disable
+        StatusId status = StatusId.valueOf(account.getStatusId());
+        if (StatusId.DISABLE.equals(status) || StatusId.DELETED.equals(status)) {
+            return false;
+        }
+
+        // TODO: check if necessary ?
+        /*
+        List<Integer> userProfileIds = accountService.getProfileIdsByPubkey(pubkey);
         boolean result = CollectionUtils.containsAny(userProfileIds, AUTH_ACCEPTED_PROFILES);
         if (debug) log.debug(String.format("User with pubkey {%s} %s authenticate, because he has this profiles: %s", pubkey.substring(0,6), (result ? "can" : "cannot"), userProfileIds));
         return result;
+        */
+
+        return true;
     }
 
     public AuthDataVO createNewChallenge() {

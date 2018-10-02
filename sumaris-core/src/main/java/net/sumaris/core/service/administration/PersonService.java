@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,8 +60,11 @@ public interface PersonService {
 	@Transactional(readOnly = true)
 	ImageAttachmentVO getAvatarByPubkey(String pubkey);
 
-	void delete(int id);
+	List<PersonVO> save(List<PersonVO> persons);
 
 	PersonVO save(PersonVO person);
 
+	void delete(int id);
+
+	void delete(List<Integer> ids);
 }

@@ -129,6 +129,23 @@ public class AdministrationGraphQLService {
         return result;
     }
 
+    @GraphQLMutation(name = "savePersons", description = "Create or update many persons")
+    public List<PersonVO> savePersons(
+            @GraphQLArgument(name = "persons") List<PersonVO> persons) {
+        return personService.save(persons);
+    }
+
+    @GraphQLMutation(name = "deletePerson", description = "Delete a person (by id)")
+    public void deletePerson(
+            @GraphQLArgument(name = "id") int id) {
+        personService.delete(id);
+    }
+
+    @GraphQLMutation(name = "deletePersons", description = "Delete many person (by ids)")
+    public void deletePersons(
+            @GraphQLArgument(name = "ids") List<Integer> ids) {
+        personService.delete(ids);
+    }
 
     @GraphQLQuery(name = "isEmailExists", description = "Check if email exists (from a md5 hash)")
     @Transactional(readOnly = true)

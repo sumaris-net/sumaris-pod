@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service("personService")
 public class PersonServiceImpl implements PersonService {
@@ -92,8 +93,24 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	@Override
+	public List<PersonVO> save(List<PersonVO> persons) {
+		Preconditions.checkNotNull(persons);
+
+		return persons.stream()
+				.map(this::save)
+				.collect(Collectors.toList());
+	}
+
+	@Override
 	public void delete(int id) {
 		personDao.delete(id);
+	}
+
+	@Override
+	public void delete(List<Integer> ids) {
+		Preconditions.checkNotNull(ids);
+
+		ids.stream().forEach(id -> delete(id));
 	}
 
 	/* -- protected methods -- */
@@ -103,6 +120,8 @@ public class PersonServiceImpl implements PersonService {
 		Preconditions.checkNotNull(person.getEmail(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.email")));
 		Preconditions.checkNotNull(person.getFirstName(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.firstName")));
 		Preconditions.checkNotNull(person.getLastName(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.lastName")));
+		Preconditions.checkNotNull(person.getDepartment(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.department")));
+		Preconditions.checkNotNull(person.getDepartment().getId(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.department")));
 
 	}
 }

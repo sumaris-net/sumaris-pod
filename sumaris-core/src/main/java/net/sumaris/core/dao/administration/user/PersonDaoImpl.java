@@ -243,15 +243,21 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
             entity = new Person();
         }
 
-        if (!isNew) {
+        // If new
+        if (isNew) {
+            // Set default status to Temporary
+            if (source.getStatusId() == null) {
+                source.setStatusId(config.getStatusIdTemporary());
+            }
+        }
+        // If update
+        else {
+
             // Check update date
             checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
-
-            // Force status to Temporary
-            source.setStatusId(config.getStatusIdTemporary());
         }
 
         personVOToEntity(source, entity, true);

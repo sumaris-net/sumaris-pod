@@ -46,4 +46,15 @@ public enum StatusId implements Serializable {
     {
         return this.id;
     }
+
+
+    public static StatusId valueOf(final int id) {
+        switch (id) {
+            case 0: return DISABLE;
+            case 1: return ENABLE;
+            case 2: return TEMPORARY;
+            case 3: return DELETED;
+        }
+        throw new IllegalArgumentException("Unknown StatusId: " + id);
+    }
 }
