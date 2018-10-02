@@ -26,6 +26,7 @@ export class AuthGuardService implements CanActivate {
         .then(() => this.canActivate(next, state) as Promise<boolean>);
     }
 
+    // Force login 
     if (!this.accountService.isLogin()) {
       console.debug("[auth-gard] Need authentication for page /" + next.url.join('/'));
       return this.login(next)

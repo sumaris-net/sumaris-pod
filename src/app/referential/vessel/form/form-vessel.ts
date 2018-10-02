@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { VesselService } from '../../services/vessel-service';
 import { AppForm } from '../../../core/core.module';
-import { ReferentialService } from '../../services/referential-service';
+import { ReferentialService } from '../../services/referential.service';
 
 
 @Component({

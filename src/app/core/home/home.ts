@@ -1,5 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
-import { DatePipe } from "@angular/common";
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { RegisterModal } from '../register/modal/modal-register';
@@ -7,9 +6,6 @@ import { Subscription } from 'rxjs';
 import { AccountService } from '../services/account.service';
 import { Account } from '../services/model';
 import { TranslateService } from '@ngx-translate/core';
-
-// import fade in animation
-import { fadeInAnimation } from '../../shared/material/material.animations';
 
 export function getRandomImage() {
 
@@ -31,7 +27,7 @@ export function getRandomImage() {
   templateUrl: 'home.html',
   styleUrls: ['./home.scss']
 })
-export class HomePage implements OnDestroy {
+export class HomePage implements OnInit, OnDestroy {
 
   bgImage: String;
   displayName: String = '';
@@ -54,6 +50,18 @@ export class HomePage implements OnDestroy {
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
     this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
   };
+
+  ngOnInit(): void {
+    // Workaround need on Firefox Browser
+    const pageElements = document.getElementsByTagName('page-home');
+    if (pageElements && pageElements.length == 1) {
+      const pageElement: Element = pageElements[0];
+      if (pageElement.classList.contains('ion-page-invisible')) {
+        console.warn("[home] FIXME Applying workaround on page visibility (see issue #1)");
+        pageElement.classList.remove('ion-page-invisible');
+      }
+    }
+  }
 
   ngOnDestroy() {
     this.subscriptions.forEach(s => s.unsubscribe());

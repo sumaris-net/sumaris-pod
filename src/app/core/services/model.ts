@@ -17,6 +17,14 @@ export const LocationLevelIds = {
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
 
+export const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
+
+export function getMainProfile(profiles?: string[]): UserProfileLabel {
+  const mainProfile = profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(pp => !!profiles.find(p => p == pp));
+  const mainProfileLabel = (mainProfile || 'GUEST') as UserProfileLabel;
+  return mainProfileLabel;
+}
+
 export const AcquisitionLevelCodes = {
   TRIP: 'TRIP',
   PHYSICAL_GEAR: 'PHYSICAL_GEAR',
@@ -108,6 +116,8 @@ export class Referential extends Entity<Referential>  {
 
   label: string;
   name: string;
+  description: string;
+  comments: string;
   creationDate: Date | Moment;
   statusId: number;
   levelId: number;
@@ -150,6 +160,8 @@ export class Referential extends Entity<Referential>  {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
+    this.description = source.description;
+    this.comments = source.comments;
     this.statusId = source.statusId;
     this.levelId = source.levelId && source.levelId !== 0 ? source.levelId : undefined; // Do not set as null (need for account.department, when regsiter)
     this.parentId = source.parentId;
@@ -214,7 +226,15 @@ export class ReferentialRef extends Entity<ReferentialRef>  {
 }
 
 
+
 export class Person extends Entity<Person> implements Cloneable<Person> {
+
+  static fromObject(source: any): Person {
+    const result = new Person();
+    result.fromObject(source);
+    return result;
+  }
+
   firstName: string;
   lastName: string;
   email: string;
@@ -223,7 +243,8 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
   creationDate: Date | Moment;
   statusId: number;
   department: Department;
-  profiles: string[];
+  profiles: UserProfileLabel[];
+  mainProfile: UserProfileLabel;
 
   constructor() {
     super();
@@ -244,10 +265,13 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
 
   asObject(): any {
     const target: any = super.asObject();
-    delete target.dirty;
-    delete target.__typename;
     target.department = this.department && this.department.asObject() || undefined;
-    target.profiles = this.profiles && this.profiles.slice(0) || undefined;
+    target.profiles = this.profiles && this.profiles.slice(0) || [];
+    // Add main profile to the list, if need
+    if (this.mainProfile && !target.profiles.find(p => p === this.mainProfile)) {
+      target.profiles = target.profiles.concat(this.mainProfile);
+    }
+    target.mainProfile = getMainProfile(target.profiles);
     target.creationDate = toDateISOString(this.creationDate);
     return target;
   }
@@ -262,7 +286,12 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     this.avatar = source.avatar;
     this.statusId = source.statusId;
     source.department && this.department.fromObject(source.department);
-    this.profiles = source.profiles && source.profiles.slice(0) || undefined;
+    this.profiles = source.profiles && source.profiles.slice(0) || [];
+    // Add main profile to the list, if need
+    if (source.mainProfile && !this.profiles.find(p => p === source.mainProfile)) {
+      this.profiles = this.profiles.concat(source.mainProfile);
+    }
+    this.mainProfile = getMainProfile(this.profiles);
     return this;
   }
 }

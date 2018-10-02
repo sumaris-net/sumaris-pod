@@ -182,6 +182,35 @@ export class BaseDataService {
     }
   }
 
+  protected addManyToQueryCache<V = R>(opts: {
+    query: any,
+    variables: V
+  }, propertyName: string, newValues: any[]) {
+
+    if (!newValues || !newValues.length) return; // nothing to process
+
+    const values = this.apollo.getClient().readQuery(opts);
+
+    if (values && values[propertyName]) {
+      // Keep only not existing values
+      newValues = newValues.filter(nv => !values[propertyName].find(v => nv['id'] === v['id'] && nv['entityName'] === v['entityName']));
+
+      if (!newValues.length) return; // No new value
+
+      // Update the cache
+      values[propertyName] = values[propertyName].concat(newValues);
+      this.apollo.getClient().writeQuery({
+        query: opts.query,
+        variables: opts.variables,
+        data: values
+      });
+    }
+
+    else {
+      if (this._debug) console.debug("[data-service] Unable to add entities to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+    }
+  }
+
   protected removeToQueryCacheById<V = R>(opts: {
     query: any,
     variables: V

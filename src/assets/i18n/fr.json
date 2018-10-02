@@ -128,11 +128,13 @@
     "FIRST_NAME": "Prénom",
     "LAST_NAME": "Nom",
     "DEPARTMENT": "Organisme",
-    "PROFILE": {
-      "PROFILE_ADMIN": "Administrateur",
-      "PROFILE_OBSERVER": "Observateur",
-      "PROFILE_USER": "Utilisateur"
-    },
+    "STATUS": "Etat",
+    "PUBKEY": "Clé publique",
+    "PROFILE": "Profil",
+    "PROFILE_ADMIN": "Administrateur",
+    "PROFILE_SUPERVISOR": "Superviseur",
+    "PROFILE_USER": "Observateur",
+    "PROFILE_GUEST": "Invité",
     "LIST": {
       "TITLE": "Utilisateurs",
       "FILTER": {
@@ -321,9 +323,11 @@
       "SAVE_REFERENTIALS_ERROR": "Erreur de sauvegarde des référentiels.",
       "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels.",
       "LOAD_REFERENTIAL_ENTITIES_ERROR": "Erreur de chargement des types de référentiel.",
-      "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression des référentiels",
+      "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression de référentiels",
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
-      "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme"
+      "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme",
+      "SAVE_PERSONS_ERROR": "Erreur de sauvegarde des utilisateurs",
+      "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs"
     },
     "LIST": {
       "TITLE": "Listes",
@@ -340,7 +344,7 @@
       "GEAR": "Engins",
       "GEAR_LEVEL": "Niveaux d'engin",
       "PARAMETER": "Paramètres",
-      "USER_PROFILE": "Profiles utilisateur",
+      "USER_PROFILE": "Profils utilisateur",
       "VESSEL_TYPE": "Types de navire",
       "PMFM": "Paramètres collectés",
       "MATRIX": "Supports de mesure",
@@ -374,6 +378,7 @@
     "FIELD_NOT_VALID_DATE_TIME": "Date/heure invalide",
     "FIELD_NOT_VALID_LATITUDE": "Latitude invalide",
     "FIELD_NOT_VALID_LONGITUDE": "Longitude invalide",
+    "FIELD_NOT_VALID_PUBKEY": "Clé publique invalide",
     "SPACE_NOT_ALLOW": "Espaces ou caractères spéciaux non autorisés",
     "SCRYPT_ERROR": "Erreur de generation des clefs d'ouverture du compte",
     "UNKNOWN_ACCOUNT_EMAIL": "Aucun compte ne correspond à cet email.",

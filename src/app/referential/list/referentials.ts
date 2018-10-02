@@ -3,8 +3,8 @@ import { Observable, Subject } from "rxjs";
 import { map } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AppFormUtils } from "../../core/core.module";
-import { ReferentialValidatorService } from "../validator/validators";
-import { ReferentialService, ReferentialFilter } from "../services/referential-service";
+import { ReferentialValidatorService } from "../services/referential.validator";
+import { ReferentialService, ReferentialFilter } from "../services/referential.service";
 import { Referential, StatusIds, ReferentialRef } from "../services/model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -33,8 +33,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   showLevelColumn = true;
   filterForm: FormGroup;
   entities: Observable<{ id: string, label: string, level?: string, levelLabel?: string }[]>;
-  levels = new Subject<ReferentialRef[]>();
-  levelsItems = this.levels.asObservable();
+  levels: Observable<ReferentialRef[]>;
   statusList: any[] = [
     {
       id: StatusIds.ENABLE,
@@ -156,22 +155,20 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.filter = this.filterForm.value;
     this.entityName = this.filter.entityName;
     if (this.entityName) {
-      // Load levels
-      this.loadLevels(this.entityName);
-      // Load items
-      console.info(`[referential] Loading ${this.entityName}...`);
-      this.onRefresh.emit();
+      // Load levels, then refresh
+      this.loadLevels(this.entityName)
+        .then(() => this.onRefresh.emit())
     }
   }
 
-  onEntityNameChange(entityName: string) {
+  async onEntityNameChange(entityName: string): Promise<any> {
     // No change: skip
     if (this.entityName === entityName) return;
 
     this.entityName = entityName || this.filterForm.controls['entityName'].value;
 
     // Load levels
-    this.loadLevels(entityName);
+    await this.loadLevels(entityName);
 
     console.info(`[referential] Loading ${entityName}...`);
     this.onRefresh.emit();
@@ -193,8 +190,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   }
 
   async loadLevels(entityName: string): Promise<Referential[]> {
-    const res = await this.referentialService.loadLevels(entityName);
-    this.levels.next(res);
+    const res = await this.referentialService.loadLevels(entityName, {
+      fetchPolicy: 'network-only'
+    });
+    this.levels = Observable.of(res);
     this.showLevelColumn = res && res.length > 0;
     return res
   }

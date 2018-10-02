@@ -1,9 +1,12 @@
 import { Injectable } from "@angular/core";
-import { sign, box } from "tweetnacl";
+import { sign, box, verify } from "tweetnacl";
 export const scrypt = require('scrypt-async')
+export const base58 = require('../../../lib/base58')
+
 const nacl = {
   sign: sign,
   box: box,
+  verify: verify,
   util: require('tweetnacl-util'),
   constants: {
     crypto_sign_BYTES: 64,
@@ -100,4 +103,16 @@ export class CryptoService {
     });
   };
 
+  /**
+  * Sign a message, from a key pair
+  */
+  public verify(message: string, signature: string, pubkey: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const m = nacl.util.decodeUTF8(message);
+      const sig = nacl.util.decodeBase64(signature);
+      const pub = base58.decode(pubkey);
+      const res = nacl.sign.detached.verify(m, sig, pub);
+      resolve(res);
+    });
+  };
 }

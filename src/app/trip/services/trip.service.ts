@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
-import { Observable, Subscription } from "rxjs-compat";
+import { Observable } from "rxjs-compat";
 import { Trip, Person, fillRankOrder } from "./trip.model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
@@ -10,7 +10,6 @@ import { Moment } from "moment";
 import { ErrorCodes } from "./trip.errors";
 import { AccountService } from "../../core/services/account.service";
 import { Fragments } from "./trip.queries";
-import { ServerErrorCodes } from "../../core/services/errors";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -348,7 +347,6 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
    */
   async deleteAll(entities: Trip[]): Promise<any> {
 
-
     let ids = entities && entities
       .map(t => t.id)
       .filter(id => (id > 0));
@@ -365,7 +363,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     // Update the cache
     if (this._lastVariables.loadAll) {
-      const list = this.removeToQueryCacheByIds({
+      this.removeToQueryCacheByIds({
         query: LoadAllQuery,
         variables: this._lastVariables.loadAll
       }, 'trips', ids);

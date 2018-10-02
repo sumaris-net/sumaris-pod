@@ -76,6 +76,7 @@ export class MenuComponent implements OnInit {
     this.isLogin = false;
     this.account = null;
     this.router.navigate(['']);
+    this.filteredItems = (this.items || []).filter(i => !i.requiredProfiles || i.requiredProfiles.indexOf('GUEST') != -1);
   }
 
   logout(): void {

@@ -1,6 +1,6 @@
 import { FormControl, ValidationErrors } from "@angular/forms";
 import * as moment from 'moment/moment';
-import { DATE_ISO_PATTERN } from "../constants";
+import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
 
 export class SharedValidators {
 
@@ -34,5 +34,11 @@ export class SharedValidators {
     const value = control.value;
     if (value && typeof value != 'object' && (value.id === undefined || value.id === null))
       return { entity: true };
+  }
+
+  static pubkey(control: FormControl): ValidationErrors | null {
+    const value = control.value;
+    if (value && (typeof value != 'string' || !PUBKEY_REGEXP.test(value)))
+      return { pubkey: true };
   }
 }

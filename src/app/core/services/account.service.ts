@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { KeyPair, CryptoService } from "./crypto.service";
-import { Account, Referential, UserSettings, toDateISOString, UserProfileLabel } from "./model";
+import { KeyPair, CryptoService, base58 } from "./crypto.service";
+import { Account, UserSettings, toDateISOString, getMainProfile } from "./model";
 import { Subject, Subscription } from "rxjs-compat";
 import gql from "graphql-tag";
 import { TranslateService } from "@ngx-translate/core";
@@ -14,8 +14,6 @@ import { environment } from "../../../environments/environment";
 
 import { Validators, ValidatorFn } from "@angular/forms";
 import { SharedValidators } from "../../shared/validator/validators";
-
-const base58 = require('../../../lib/base58')
 
 export declare interface AccountHolder {
   loaded: boolean;
@@ -41,10 +39,9 @@ export interface AccountFieldDef<T = any, F = { searchText?: string; }> {
   label: string;
   required: boolean;
   dataService?: DataService<T, F>,
+  dataFilter?: any,
   dataServiceOptions?: any
 }
-
-const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
 
 const TOKEN_STORAGE_KEY = "token"
 const PUBKEY_STORAGE_KEY = "pubkey"
@@ -283,7 +280,7 @@ export class AccountService extends BaseDataService {
 
       // Default values
       account.avatar = account.avatar || "../assets/img/person.png";
-      this.data.mainProfile = this.getMainProfile(account.profiles);
+      this.data.mainProfile = getMainProfile(account.profiles);
 
       this.data.account = account;
       this.data.pubkey = account.pubkey;
@@ -401,7 +398,7 @@ export class AccountService extends BaseDataService {
         account.settings.latLongFormat = account.settings.latLongFormat || 'DDMM';
 
         // Read main profile
-        this.data.mainProfile = this.getMainProfile(account.profiles);
+        this.data.mainProfile = getMainProfile(account.profiles);
 
         if (this.data.account) {
           account.copy(this.data.account);
@@ -464,7 +461,8 @@ export class AccountService extends BaseDataService {
     }
     catch (error) {
       console.error(error);
-      this.resetData();
+      // TODO: do not logout, but allow navigation on local data ?
+      this.logout();
       return
     }
 
@@ -478,7 +476,7 @@ export class AccountService extends BaseDataService {
     if (account.pubkey != pubkey) return;
 
     this.data.account = account;
-    this.data.mainProfile = this.getMainProfile(account.profiles);
+    this.data.mainProfile = getMainProfile(account.profiles);
     this.data.loaded = true;
 
     return account;
@@ -522,7 +520,7 @@ export class AccountService extends BaseDataService {
 
     // Set default values
     account.avatar = account.avatar || "../assets/img/person.png";
-    this.data.mainProfile = this.getMainProfile(account.profiles);
+    this.data.mainProfile = getMainProfile(account.profiles);
 
     this.data.account = account;
     this.data.loaded = true;
@@ -612,7 +610,10 @@ export class AccountService extends BaseDataService {
     }
 
     const json = account.asObject();
+
+    // User not allow to change his profiles
     delete json.profiles;
+    delete json.mainProfile; // Not known on server
 
     // Execute mutation
     const res = await this.mutate<{ saveAccount: any }>({
@@ -818,7 +819,7 @@ export class AccountService extends BaseDataService {
         return token; // return the token
       }
 
-      // Continue: retry with another challenge
+      // Continue (will retry with another challenge)
     }
 
     // Generate a new token
@@ -840,30 +841,29 @@ export class AccountService extends BaseDataService {
     });
 
     // Check challenge
-    if (!data || !data.authChallenge) throw challengeError; // should never occur
+    if (!data || !data.authChallenge) throw challengeError; // Should never occur
 
     // TODO: check server signature
+    const signatureOK = await this.cryptoService.verify(
+      data.authChallenge.challenge,
+      data.authChallenge.signature,
+      data.authChallenge.pubkey
+    );
+    if (!signatureOK) {
+      console.warn("FIXME: Bad server signature on auth challenge !", data.authChallenge);
+    }
+    // TODO: check server pubkey as a valid certificate
 
     // Do the challenge
     const signature = await this.cryptoService.sign(data.authChallenge.challenge, this.data.keypair);
     const newToken = `${this.data.pubkey}:${data.authChallenge.challenge}|${signature}`;
 
-    // iIerate with the new token
+    // iterate with the new token
     return await this.authenticateAndGetToken(newToken, (counter || 1) + 1 /* increment */);
   }
 
   /* -- Protected methods -- */
 
-  private getMainProfile(profiles?: string[]): UserProfileLabel {
-
-    if (this._debug) console.debug("[account] Retrieving user main profiles...", profiles);
-
-    const mainProfile = profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(pp => !!profiles.find(p => p == pp));
-    const mainProfileLabel = (mainProfile || 'GUEST') as UserProfileLabel;
-
-    if (this._debug) console.debug(`[account] Main user profile: ${mainProfileLabel}`);
-    return mainProfileLabel;
-  }
 
   private storeLocalSettings(): Promise<any> {
     console.debug("[account] Store local settings", this.data.localSettings);

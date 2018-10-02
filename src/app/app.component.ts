@@ -81,7 +81,7 @@ export class AppComponent {
       label: 'USER.DEPARTMENT',
       required: true,
       dataService: this.referentialService as DataService<any, any>,
-      dataServiceOptions: { entityName: 'Department' }
+      dataFilter: { entityName: 'Department' }
     });
   }
 }

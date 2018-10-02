@@ -128,11 +128,13 @@
     "FIRST_NAME": "First name",
     "LAST_NAME": "Last name",
     "DEPARTMENT": "Organization",
-    "PROFILE": {
-      "PROFILE_ADMIN": "Administrator",
-      "PROFILE_OBSERVER": "Observer",
-      "PROFILE_USER": "User"
-    },
+    "STATUS": "Status",
+    "PUBKEY": "Public key",
+    "PROFILE": "Profile",
+    "PROFILE_ADMIN": "Administrator",
+    "PROFILE_SUPERVISOR": "Manager",
+    "PROFILE_USER": "Observer",
+    "PROFILE_GUEST": "Invité",
     "LIST": {
       "TITLE": "Users",
       "FILTER": {
@@ -175,7 +177,8 @@
       "LOAD_TRIP_ERROR": "Error while loading the trip.",
       "LOAD_TRIPS_ERROR": "Error while loading trips.",
       "SAVE_TRIP_ERROR": "Error while saving the trip.",
-      "SAVE_TRIPS_ERROR": "Error while saving trips."
+      "SAVE_TRIPS_ERROR": "Error while saving trips.",
+      "SUBSCRIBE_TRIP_ERROR": "Error while listening trip's changes made on server."
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
@@ -322,7 +325,9 @@
       "LOAD_REFERENTIAL_ENTITIES_ERROR": "Error while loading referential types.",
       "DELETE_REFERENTIALS_ERROR": "Error while deleting referential data",
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Error while loading level for referential data.",
-      "LOAD_PROGRAM_PMFMS_ERROR": "error while loading parameters collected by the program"
+      "LOAD_PROGRAM_PMFMS_ERROR": "Error while loading parameters collected by the program",
+      "SAVE_PERSONS_ERROR": "Error while saving users",
+      "DELETE_PERSONS_ERROR": "Error while  deleting some users"
     },
     "LIST": {
       "TITLE": "Referentials",
@@ -360,8 +365,11 @@
     "FIELD_TOO_LONG": "Value is exceeding max length.",
     "FIELD_TOO_LONG_WITH_LENGTH": "Value is too long (max {{maxLength}} characters).",
     "FIELD_MIN": "Minimal value: {{min}}",
+    "FIELD_MIN_COMPACT": "Min value={{min}}",
     "FIELD_MAX": "Maximum value: {{max}}",
-    "FIELD_MAXIMUM_DECIMALS": "Invalid number of decimal ({{max}} max)",
+    "FIELD_MAX_COMPACT": "Max value={{max}}",
+    "FIELD_MAXIMUM_DECIMALS": "Invalid number of decimals ({{max}} max)",
+    "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb decimals max={{max}}",
     "FIELD_INVALID": "Invalid value",
     "FIELD_NOT_VALID_INTEGER": "Expected integer value",
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",
@@ -370,6 +378,7 @@
     "FIELD_NOT_VALID_DATE_TIME": "Invalid date/hour",
     "FIELD_NOT_VALID_LATITUDE": "Invalid latitude",
     "FIELD_NOT_VALID_LONGITUDE": "Invalid longitude",
+    "FIELD_NOT_VALID_PUBKEY": "Invalid public key",
     "SPACE_NOT_ALLOW": "Spaces or special characters not allowed",
     "SCRYPT_ERROR": "Unable to create account keys",
     "UNKNOWN_ACCOUNT_EMAIL": "No account matches this email.",
@@ -385,5 +394,10 @@
     "AUTH_SERVER_ERROR": "Error during authentication on the server",
     "AUTH_CHALLENGE_ERROR": "Error during authentication on the server (loading challenge failed)",
     "TABLE_INVALID_ROW_ERROR": "A row is invalid"
+  },
+  "CONFIRM": {
+    "ALERT_HEADER": "Confirmation",
+    "SAVE": "Do you want to save your changes?",
+    "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?"
   }
 }

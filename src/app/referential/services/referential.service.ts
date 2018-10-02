@@ -9,6 +9,8 @@ import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
 import { ReferentialRef } from "../../core/services/model";
 
+import { FetchPolicy } from "apollo-client";
+
 export declare class ReferentialFilter {
   entityName: string;
   label?: string;
@@ -34,6 +36,8 @@ const LoadAllQuery: any = gql`
       id
       label
       name
+      description
+      comments
       updateDate
       creationDate
       statusId
@@ -197,9 +201,8 @@ export class ReferentialService extends BaseDataService implements DataService<R
     const now = new Date();
     if (this._debug) console.debug(`[referential-service] Loading ${entityName}...`, variables);
 
-    if (options.full) {
-      this._lastVariables.loadAll = variables;
-    }
+    // Saving variables, to be able to update the cache when saving or deleting
+    this._lastVariables.loadAll = variables;
 
     return this.watchQuery<{ referentials: any[] }>({
       query: LoadAllQuery,
@@ -247,14 +250,24 @@ export class ReferentialService extends BaseDataService implements DataService<R
       error: { code: ErrorCodes.SAVE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIALS_ERROR" }
     });
 
-    // Update entites (id and update date)
-    (res && res.saveReferentials && entities || [])
-      .forEach(entity => {
+    if (res && res.saveReferentials) {
+      // Update entites (id and update date)
+      entities.forEach(entity => {
         const data = res.saveReferentials.find(res => (res.id == entity.id || res.label == entity.label));
         entity.id = data && data.id || entity.id;
         entity.updateDate = data && data.updateDate || entity.updateDate;
         entity.dirty = false;
       });
+
+      // Update the cache
+      if (this._lastVariables.loadAll) {
+        if (this._debug) console.debug(`[referential-service] Updating cache with saved ${entityName}...`);
+        this.addManyToQueryCache({
+          query: LoadAllQuery,
+          variables: this._lastVariables.loadAll
+        }, 'referentials', res.saveReferentials);
+      }
+    }
 
     if (this._debug) console.debug(`[referential-service] ${entityName} saved in ${new Date().getTime() - now.getTime()}ms`, entities);
 
@@ -374,17 +387,26 @@ export class ReferentialService extends BaseDataService implements DataService<R
   /**
    * Load entity levels
    */
-  async loadLevels(entityName: string): Promise<Referential[]> {
-    if (this._debug) console.debug(`[referential-service] Loading referential levels for ${entityName}...`);
+  async loadLevels(entityName: string, options?: {
+    fetchPolicy?: FetchPolicy
+  }): Promise<Referential[]> {
+    const now = new Date();
+    if (this._debug) console.debug(`[referential-service] Loading levels for ${entityName}...`);
+
     const data = await this.query<{ referentialLevels: Referential[] }>({
       query: LoadReferentialLevels,
       variables: {
         entityName: entityName
       },
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_LEVELS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_LEVELS_ERROR" }
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_LEVELS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_LEVELS_ERROR" },
+      fetchPolicy: options && options.fetchPolicy || 'cache-first'
     });
 
-    return (data && data.referentialLevels || []).map(Referential.fromObject);
+    const res = (data && data.referentialLevels || []).map(Referential.fromObject);
+
+    if (this._debug) console.debug(`[referential-service] Levels for ${entityName} loading in ${new Date().getTime() - now.getTime()}`, res);
+
+    return res;
   }
 
   /**

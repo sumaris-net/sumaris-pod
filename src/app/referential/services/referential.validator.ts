@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { Referential } from "../services/model";
+import { Referential } from "./model";
 
 @Injectable()
 export class ReferentialValidatorService implements ValidatorService {
@@ -22,7 +22,8 @@ export class ReferentialValidatorService implements ValidatorService {
       'levelId': [''],
       'label': ['', Validators.required],
       'name': ['', Validators.required],
-      'comments': ['', Validators.maxLength(2000)]
+      'comments': ['', Validators.maxLength(2000)],
+      'entityName': ['', Validators.required]
     });
   }
 }

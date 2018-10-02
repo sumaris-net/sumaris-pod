@@ -14,7 +14,7 @@
       </form>
 
       <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
-        class="hidden-xs hidden-sm" [class.hidden]="inlineEdition">
+        class="hidden-xs hidden-sm" [class.hidden]="!inlineEdition">
         <mat-icon>add</mat-icon>
       </button>
       <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
@@ -25,14 +25,14 @@
         <mat-icon>search</mat-icon>
       </button>
       <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
-        (click)="deleteSelection()" class="hidden-xs hidden-sm" [class.hidden]="inlineEdition">
+        (click)="deleteSelection()" class="hidden-xs hidden-sm" [class.hidden]="!inlineEdition">
         <mat-icon>delete</mat-icon>
       </button>
 
-      <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
+      <!-- <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
         class="hidden-xs hidden-sm" [disabled]="true" [checked]="true" #inlineEditionBtn>
         <mat-icon>edit</mat-icon>
-      </mat-button-toggle>
+      </mat-button-toggle> -->
 
       <!-- error -->
       <ion-item *ngIf="error" hidden-xs hidden-sm>
@@ -73,12 +73,12 @@
     matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
-      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef [class.hidden]="inlineEdition">
+      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef [class.hidden]="!inlineEdition">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
-      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.hidden]="inlineEdition">
+      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.hidden]="!inlineEdition">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </mat-cell>
@@ -116,7 +116,8 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['name']" [readonly]="!row.editing">
+          <input matInput [formControl]="row.validator.controls['name']" [placeholder]="'REFERENTIAL.NAME'|translate"
+            [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
         <!-- {{row.currentData.name}} -->
@@ -130,8 +131,8 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing" [class.hidden]="!showLevelColumn">
         <mat-form-field floatLabel="never">
-          <mat-select [formControl]="row.validator.controls['levelId']">
-            <mat-option *ngFor="let level of levelsItems | async" [value]="level.id">{{ level.label }} - {{ level.name
+          <mat-select [formControl]="row.validator.controls['levelId']" [placeholder]="'REFERENTIAL.LEVEL'|translate">
+            <mat-option *ngFor="let level of levels | async" [value]="level.id">{{ level.label }} - {{ level.name
               }}</mat-option>
           </mat-select>
           <mat-error *ngIf="row.validator.controls['levelId'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -146,11 +147,11 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <mat-select [formControl]="row.validator.controls['statusId']">
+          <mat-select [formControl]="row.validator.controls['statusId']" [placeholder]="'REFERENTIAL.STATUS'|translate">
             <mat-select-trigger>
-              <ion-icon *ngIf="row.currentData.statusId &gt;=0" [name]="statusById[row.currentData.statusId].icon"></ion-icon>
-              <span *ngIf="row.currentData.statusId &gt;=0">{{statusById[row.currentData?.statusId].label |
-                translate}}</span>
+              <ion-icon *ngIf="row.validator.controls['statusId'].value &gt;=0" [name]="statusById[row.validator.controls['statusId'].value]?.icon"></ion-icon>
+              <span *ngIf="row.validator.controls['statusId'].value &gt;=0">
+                {{ statusById[row.validator.controls['statusId'].value]?.label | translate}}</span>
             </mat-select-trigger>
             <mat-option *ngFor="let status of statusList" [value]="status.id">
               <ion-icon [name]="status.icon"></ion-icon>
@@ -169,17 +170,18 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['comments']" [readonly]="!row.editing">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+            [readonly]="!row.editing">
         </mat-form-field>
       </mat-cell>
     </ng-container>
 
     <!-- Actions buttons column -->
     <ng-container matColumnDef="actions">
-      <mat-header-cell *matHeaderCellDef [hidden]="inlineEdition">
+      <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
         <span></span>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [hidden]="inlineEdition">
+      <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
         <button mat-icon-button small color="light" *ngIf="row.editing && row.id != -1" [title]="'COMMON.BTN_UNDO'|translate"
           (click)="cancelOrDelete($event, row)">
           <mat-icon>undo</mat-icon>

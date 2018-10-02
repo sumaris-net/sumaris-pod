@@ -32,7 +32,9 @@ export class MatAutocompleteField implements OnInit {
 
     @Input() service: DataService<any, any>;
 
-    @Input() serviceOptions: any;
+    @Input() serviceOptions: any = undefined;
+
+    @Input() filter: any = undefined;
 
     @Input() required = false;
 
@@ -56,9 +58,9 @@ export class MatAutocompleteField implements OnInit {
                     if (this.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string") && value || undefined;
                     return this.service.loadAll(0, 10, undefined, undefined,
-                        {
+                        Object.assign({
                             searchText: value as string,
-                        },
+                        }, this.filter || {}),
                         this.serviceOptions);
                 })
             );

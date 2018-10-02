@@ -72,8 +72,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
         throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
       }
 
+      // Get row data
       let data: T[] = rows.map(row => row.currentData);
-      if (this._debug) console.log("[table-datasource] Data to save:", data);
 
       // Filter to keep only dirty row
       const dataToSave = (this.serviceOptions && this.serviceOptions.saveOnlyDirtyRows) ?
@@ -85,6 +85,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
         return false;
       }
 
+      if (this._debug) console.log("[table-datasource] Dirty data to save:", dataToSave);
 
       var savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
       if (this._debug) console.debug("[table-datasource] Data saved. Updated data received by service:", savedData);
