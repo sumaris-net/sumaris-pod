@@ -22,7 +22,7 @@ GITHUB_TOKEN=`cat ~/.config/sumaris/.github`
 if [[ "_$GITHUB_TOKEN" != "_" ]]; then
     GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
 else
-    echo "Unable to find github authentifcation token file: "
+    echo "Unable to find github authentication token file: "
     echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
     echo " - Then copy the token and paste it in the file '~/.config/sumaris/.github' using a valid token."
     exit 1
