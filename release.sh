@@ -8,12 +8,12 @@ failure=`echo "$result" | grep -m1 -P "\[INFO\] BUILD FAILURE"  | grep -oP "BUIL
 # prepare failed
 if [[ ! "_$failure" = "_" ]]; then
     echo "$result" | grep -P "\[ERROR\] "
-    exit
+    exit 1
 fi
 
 mvn release:prepare --quiet
 if [ $? -ne 0 ]; then
-    exit
+    exit 1
 fi
 
 echo "**********************************"
@@ -21,7 +21,7 @@ echo "* Performing release..."
 echo "**********************************"
 mvn release:perform --quiet
 if [ $? -ne 0 ]; then
-    exit
+    exit 1
 fi
 
 echo "**********************************"
@@ -34,14 +34,14 @@ version=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -o
 # Genrate the DB (run InitTest class)
 mvn -Prun,hsqldb -DskipTests --quiet
 if [ $? -ne 0 ]; then
-    exit
+    exit 1
 fi
 
 # Create ZIP
 cd target
 zip -q -r "sumaris-db-$version.zip" db
 if [ $? -ne 0 ]; then
-    exit
+    exit 1
 fi
 
 echo "**********************************"
@@ -50,7 +50,7 @@ echo "**********************************"
 cd $dirname/target/checkout
 ./github.sh pre
 if [ $? -ne 0 ]; then
-    exit
+    exit 1
 fi
 
 echo "RELEASE finished !"

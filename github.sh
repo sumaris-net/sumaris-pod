@@ -5,7 +5,7 @@ branch=`git rev-parse --abbrev-ref HEAD`
 if [[ "$branch" = "master" ]];
 then
   echo ">> This script must be run under a branch (tag)"
-  exit
+  exit 1
 fi
 
 ### Get version to release
@@ -25,7 +25,7 @@ else
     echo "Unable to find github authentifcation token file: "
     echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
     echo " - Then copy the token and paste it in the file '~/.config/sumaris/.github' using a valid token."
-    exit
+    exit 1
 fi
 
 case "$1" in
@@ -59,7 +59,7 @@ case "$1" in
         if [[ "_$result" != "_" ]]; then
             error_message=`echo "$result" | grep -P "\"message\": \"[^\"]+" | grep -oP ": \"[^\"]+\""`
             echo "Delete existing release failed with error$error_message"
-            exit
+            exit 1
         fi
     else
         echo "Release not exists yet on github."
@@ -95,6 +95,6 @@ case "$1" in
     echo " - del: delete existing release"
     echo " - pre: use for pre-release"
     echo " - rel: for full release"
-    exit
+    exit 1
     ;;
 esac
