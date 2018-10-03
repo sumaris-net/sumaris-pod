@@ -5,7 +5,7 @@ branch=`git rev-parse --abbrev-ref HEAD`
 if [[ ! "$branch" = "master" ]];
 then
   echo ">> This script must be run under \`master\` branch"
-  exit
+  exit 1
 fi
 
 ### Get version to release
@@ -24,10 +24,10 @@ GITHUB_TOKEN=`cat ~/.config/sumaris/.github`
 if [[ "_$GITHUB_TOKEN" != "_" ]]; then
     GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
 else
-    echo "Unable to find github authentifcation token file: "
+    echo "Unable to find github authentication token file: "
     echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
     echo " - Then copy the token and paste it in the file '~/.config/sumaris/.github' using a valid token."
-    exit
+    exit 1
 fi
 
 case "$1" in
@@ -76,7 +76,7 @@ case "$1" in
         echo "Failed to create new release for repo $REPO."
         echo "Server response:"
         echo "$result"
-        exit 1;
+        exit 1
       fi
 
       ###  Sending files
@@ -96,7 +96,7 @@ case "$1" in
       echo "With:"
       echo " - pre: use for pre-release"
       echo " - rel: for full release"
-      exit
+      exit 1
     fi
     ;;
   *)
