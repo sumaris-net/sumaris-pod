@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Observable, Subject } from "rxjs";
 import { map } from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
+import { ValidatorService } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AppFormUtils } from "../../core/core.module";
 import { ReferentialValidatorService } from "../services/referential.validator";
 import { ReferentialService, ReferentialFilter } from "../services/referential.service";
@@ -42,12 +42,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     },
     {
       id: StatusIds.DISABLE,
-      icon: 'warning',
+      icon: 'close',
       label: 'REFERENTIAL.STATUS_DISABLE'
     },
     {
       id: StatusIds.TEMPORARY,
-      icon: 'code-working',
+      icon: 'warning',
       label: 'REFERENTIAL.STATUS_TEMPORARY'
     }
   ];
@@ -87,7 +87,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.allowRowDetail = false;
 
     // Allow inline edition only if admin
-    this.inlineEdition = accountService.hasProfile('ADMIN');
+    this.inlineEdition = accountService.isAdmin();
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
 

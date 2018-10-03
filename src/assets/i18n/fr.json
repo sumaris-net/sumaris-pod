@@ -111,7 +111,10 @@
     "BTN_RESEND": "Renvoyer",
     "USER_DETAILS": {
       "TITLE": "Profile",
-      "DESCRIPTION": "Voici les données enregistrées concernant votre compte :"
+      "DESCRIPTION": "Voici les données enregistrées concernant votre compte :",
+      "TECHNICAL_DIVIDER": "Information techniques",
+      "PROFILE": "Profile utilisateur",
+      "PUBKEY": "Clé publique de chiffrement"
     },
     "SETTINGS": {
       "TITLE": "Préférences",

@@ -4,6 +4,7 @@ import { RegisterData, AccountService, AccountFieldDef } from "../../services/ac
 import { Account, referentialToString, Entity } from "../../services/model";
 import { MatHorizontalStepper } from "@angular/material";
 import { Observable, Subscription } from "rxjs";
+import { AccountValidatorService } from "../../services/account.validator";
 
 
 @Component({
@@ -32,10 +33,10 @@ export class RegisterForm implements OnInit {
 
   constructor(
     private accountService: AccountService,
+    private accountValidatorService: AccountValidatorService,
     public formBuilder: FormBuilder
   ) {
 
-    this.additionalFields = this.accountService.additionalAccountFields;
 
     this.forms = [];
     // Email form
@@ -55,9 +56,12 @@ export class RegisterForm implements OnInit {
       lastName: new FormControl(null, Validators.compose([Validators.required, Validators.minLength(2)])),
       firstName: new FormControl(null, Validators.compose([Validators.required, Validators.minLength(2)]))
     };
+
+    // Add additionnal fields to details form
+    this.additionalFields = this.accountService.additionalAccountFields.filter(field => field.updatable.registration);
     this.additionalFields.forEach(field => {
-      if (this.debug) console.debug("[register-form] Add additional field {" + field.name + "} to form", field);
-      formDetailDef[field.name] = new FormControl(null, this.accountService.getValidators(field));
+      //if (this.debug) console.debug("[register-form] Add additional field {" + field.name + "} to form", field);
+      formDetailDef[field.name] = new FormControl(null, this.accountValidatorService.getValidators(field));
     });
 
     this.forms.push(formBuilder.group(formDetailDef));
@@ -97,16 +101,6 @@ export class RegisterForm implements OnInit {
     };
     result.account.fromObject(this.form.value.detailsStep);
     result.account.email = result.username;
-
-    // this.additionalFields
-    //   .filter(f => !!f.dataService)
-    //   .forEach(f => {
-    //     const value = result.account[f.name];
-    //     if (value && value instanceof Entity && value.id !== undefined) {
-    //       result.account[f.name] = { id: value.id };
-    //     }
-
-    //   });
 
     return result;
   }

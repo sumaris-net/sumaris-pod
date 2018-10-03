@@ -7,4 +7,11 @@
     max-width: 200px;
     padding-right: 5px;
   }
+
+  mat-header-cell.hidden,
+  mat-cell.hidden,
+    {
+    visibility: hidden;
+    display: none;
+  }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { KeyPair, CryptoService, base58 } from "./crypto.service";
-import { Account, UserSettings, toDateISOString, getMainProfile } from "./model";
+import { Account, UserSettings, toDateISOString, getMainProfile, UserProfileLabel, hasUpperOrEqualsProfile, ReferentialRef, StatusIds } from "./model";
 import { Subject, Subscription } from "rxjs-compat";
 import gql from "graphql-tag";
 import { TranslateService } from "@ngx-translate/core";
@@ -12,8 +12,7 @@ import { BaseDataService, DataService } from "./data-service.class";
 import { ErrorCodes, ServerErrorCodes } from "./errors";
 import { environment } from "../../../environments/environment";
 
-import { Validators, ValidatorFn } from "@angular/forms";
-import { SharedValidators } from "../../shared/validator/validators";
+import { Referential } from "../../trip/services/trip.model";
 
 export declare interface AccountHolder {
   loaded: boolean;
@@ -34,13 +33,18 @@ export interface AuthData {
 export interface RegisterData extends AuthData {
   account: Account;
 }
+
 export interface AccountFieldDef<T = any, F = { searchText?: string; }> {
   name: string;
   label: string;
   required: boolean;
   dataService?: DataService<T, F>,
   dataFilter?: any,
-  dataServiceOptions?: any
+  dataServiceOptions?: any,
+  updatable: {
+    registration: boolean;
+    account: boolean;
+  };
 }
 
 const TOKEN_STORAGE_KEY = "token"
@@ -242,16 +246,60 @@ export class AccountService extends BaseDataService {
     return !!(this.data.pubkey && this.data.keypair && this.data.keypair.secretKey);
   }
 
-  public hasProfile(label: string): boolean {
-    if (!this.data.account || !this.data.account.pubkey) return false;
+  public hasProfile(label: UserProfileLabel): boolean {
+    // should be login, and status ENABLE or TEMPORARY
+    if (!this.data.account || !this.data.account.pubkey ||
+      (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
+      return false;
+    return hasUpperOrEqualsProfile(this.data.account.profiles, label as UserProfileLabel);
+  }
 
-    const res = this.data.account.profiles && !!this.data.account.profiles.find(p => p === label);
-    if (this._debug) console.debug(`[account] Has profile ${label} ? ${res}`);
-    return res;
+  public hasProfileAndIsEnable(label: UserProfileLabel): boolean {
+    // should be login, and status ENABLE
+    if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId != StatusIds.ENABLE) return false;
+    return hasUpperOrEqualsProfile(this.data.account.profiles, label as UserProfileLabel);
   }
 
   public isAdmin(): boolean {
-    return this.hasProfile("Administrator");
+    return this.hasProfileAndIsEnable('ADMIN');
+  }
+
+  public isSupervisor(): boolean {
+    return this.hasProfileAndIsEnable('SUPERVISOR');
+  }
+
+  public isUser(): boolean {
+    return this.hasProfileAndIsEnable('USER');
+  }
+
+  public isOnlyGuest(): boolean {
+    // Should be login, and status ENABLE or TEMPORARY
+    if (!this.data.account || !this.data.account.pubkey ||
+      (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
+      return false;
+    // Profile less then user
+    return !hasUpperOrEqualsProfile(this.data.account.profiles, 'USER');
+  }
+
+  public canUserWriteDataForDepartment(recorderDepartment: Referential | ReferentialRef): boolean {
+    if (!recorderDepartment || !recorderDepartment.id) {
+      console.warn("Unable to check if user has right: invalid recorderDepartment", recorderDepartment);
+      return false;
+    }
+
+    // Should be login, and status ENABLE
+    if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId != StatusIds.ENABLE) return false;
+
+    if (!this.data.account.department || !this.data.account.department.id) {
+      console.warn("User account has no department ! Unable to check write right against recorderDepartment");
+      return false;
+    }
+
+    // Same recorder department: OK, user can write
+    if (this.data.account.department.id === recorderDepartment.id) return true;
+
+    // Else, check if supervisor (or more)
+    return hasUpperOrEqualsProfile(this.data.account.profiles, 'SUPERVISOR');
   }
 
   public async register(data: RegisterData): Promise<Account> {
@@ -876,15 +924,5 @@ export class AccountService extends BaseDataService {
     }
   }
 
-  public getValidators(field: AccountFieldDef): ValidatorFn | ValidatorFn[] {
-    let validatorFns: ValidatorFn[] = [];
-    if (field.required) {
-      validatorFns.push(Validators.required);
-    }
-    if (!!field.dataService) {
-      validatorFns.push(SharedValidators.entity);
-    }
 
-    return validatorFns.length ? Validators.compose(validatorFns) : validatorFns.length == 1 ? validatorFns[0] : undefined;
-  }
 }

@@ -28,12 +28,12 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     },
     {
       id: StatusIds.DISABLE,
-      icon: 'warning',
+      icon: 'close',
       label: 'REFERENTIAL.STATUS_DISABLE'
     },
     {
       id: StatusIds.TEMPORARY,
-      icon: 'code-working',
+      icon: 'warning',
       label: 'REFERENTIAL.STATUS_TEMPORARY'
     }
   ];
@@ -63,11 +63,16 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
         ])
         .concat(accountService.additionalAccountFields.map(field => field.name))
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Person, PersonFilter>(Person, dataService, validatorService)
+      new AppTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
+        prependNewElements: false,
+        serviceOptions: {
+          saveOnlyDirtyRows: true
+        }
+      })
     );
 
     // Allow inline edition only if admin
-    this.inlineEdition = accountService.hasProfile('ADMIN');
+    this.inlineEdition = accountService.isAdmin();
 
     this.i18nColumnPrefix = 'USER.';
     this.filterForm = formBuilder.group({

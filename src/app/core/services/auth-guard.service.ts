@@ -34,6 +34,7 @@ export class AuthGuardService implements CanActivate {
           if (!res) {
             console.debug("[auth-gard] Authentication cancelled. Could not access to /" + next.url.join('/'));
             this.redirectToHome();
+            return false;
           }
           // Iterate
           return this.canActivate(next, state) as Promise<boolean>;

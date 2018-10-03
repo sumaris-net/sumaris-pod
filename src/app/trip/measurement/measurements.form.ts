@@ -7,7 +7,7 @@ import { Subject } from 'rxjs';
 import { switchMap } from "rxjs/operators";
 import { zip } from "rxjs/observable/zip";
 import { AppForm } from '../../core/core.module';
-import { ReferentialService } from "../../referential/referential.module";
+import { ProgramService } from "../../referential/referential.module";
 import { FormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/measurement.validator';
 import { TranslateService } from '@ngx-translate/core';
@@ -110,7 +110,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         protected platform: Platform,
         protected measurementValidatorService: MeasurementsValidatorService,
         protected formBuilder: FormBuilder,
-        protected referentialService: ReferentialService,
+        protected programService: ProgramService,
         protected translate: TranslateService
     ) {
         super(dateAdapter, platform, formBuilder.group({}));
@@ -131,11 +131,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
             .filter(() => !!this._program && !!this._acquisitionLevel)
             .pipe(
                 switchMap((event: any) => {
-                    //this.loading = true;
                     if (event) this.logDebug(`call _onRefreshPmfms.emit('${event}')`);
                     now = new Date();
                     this.logDebug(`Loading pmfms for '${this._program}' and gear '${this._gear}'...`);
-                    return this.referentialService.loadProgramPmfms(
+                    return this.programService.loadProgramPmfms(
                         this._program,
                         {
                             acquisitionLevel: this._acquisitionLevel,
@@ -154,11 +153,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
                 else {
                     this.logDebug(`Pmfms for '${this._program}' loaded in ${new Date().getTime() - now.getTime()}ms`, pmfms);
                     this.pmfms.next(pmfms);
-                    // Emit measurement because of zip(), that wait for measurement event
-                    if (this._measurements && this.cachedPmfms) {
+                    // If not first call: emit measurement (because of zip() will wait for measurement event)
+                    if (!this.loading) {
                         this._onMeasurementsChange.emit('_onRefreshPmfms.subscribe');
                     }
-
                 }
                 this.cachedPmfms = pmfms;
             });

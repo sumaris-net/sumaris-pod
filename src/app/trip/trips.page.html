@@ -5,7 +5,8 @@
 <ion-content no-padding>
 
   <mat-toolbar>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()" class="hidden-xs hidden-sm">
+    <button mat-icon-button *ngIf="canEdit && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
+      class="hidden-xs hidden-sm">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -15,7 +16,7 @@
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
       <mat-icon>search</mat-icon>
     </button>
-    <button mat-icon-button *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
+    <button mat-icon-button *ngIf="canEdit && selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
       class="hidden-xs hidden-sm">
       <mat-icon>delete</mat-icon>
     </button>
@@ -105,12 +106,12 @@
     matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
-      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef [class.hidden]="!inlineEdition">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
-      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.hidden]="!inlineEdition">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </mat-cell>

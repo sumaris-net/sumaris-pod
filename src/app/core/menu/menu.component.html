@@ -50,7 +50,7 @@
     <ion-content [class.has-profile-header]="isLogin" [class.no-profile-header]="!isLogin">
 
       <ion-list class="user-list" no-lines>
-        <ng-container *ngFor="let item of filteredItems">
+        <ng-container *ngFor="let item of filteredItems | async">
           <ion-item menuClose tappable class="text-1x" [routerLink]="item.path" routerDirection="root" routerLinkActive="selected"
             (click)="menu.close()" [routerLinkActiveOptions]="{exact: (item.path == '/')}" *ngIf="item.path">
             <ion-icon color="primary" slot="start" [name]="item.icon"></ion-icon>

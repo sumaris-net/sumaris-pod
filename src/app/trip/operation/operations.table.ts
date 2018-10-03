@@ -4,11 +4,11 @@ import { mergeMap } from "rxjs/operators";
 import { ValidatorService } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
 import { OperationValidatorService } from "../services/operation.validator";
-import { Referential, Operation, Trip, referentialToString, EntityUtils, ReferentialRef } from "../services/trip.model";
+import { Operation, Trip, referentialToString, EntityUtils, ReferentialRef } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
-import { ReferentialService } from "../../referential/referential.module";
+import { ReferentialRefService } from "../../referential/referential.module";
 import { OperationService, OperationFilter } from "../services/operation.service";
 import { PositionValidatorService } from "../services/position.validator";
 import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../../core/table/table.class";
@@ -42,7 +42,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected accountService: AccountService,
     protected validatorService: OperationValidatorService,
     protected dataService: OperationService,
-    protected referentialService: ReferentialService
+    protected referentialRefService: ReferentialRefService
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
       RESERVED_START_COLUMNS
@@ -75,7 +75,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+          return this.referentialRefService.loadAll(0, 10, undefined, undefined,
             {
               entityName: 'Metier',
               searchText: value as string

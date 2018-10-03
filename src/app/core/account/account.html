@@ -9,7 +9,7 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <form [formGroup]="form" novalidate (ngSubmit)="doSave($event, form.value)">
+  <form [formGroup]="form" novalidate (ngSubmit)="doSave($event, form.value)" class="form-container">
 
     <mat-tab-group>
 
@@ -23,8 +23,8 @@
         <ion-grid no-padding>
           <ion-row no-padding>
 
-            <ion-col hidden-xs hidden-sm size="2" size-lg="3">
-            </ion-col>
+            <!-- left  margin -->
+            <ion-col size="0" size-lg="3">&nbsp;</ion-col>
 
             <ion-col padding>
               <p [innerHTML]="'ACCOUNT.USER_DETAILS.DESCRIPTION'|translate"></p>
@@ -92,10 +92,41 @@
                 </mat-error>
               </mat-form-field>
 
+
+              <!-- Additional fields -->
+              <ng-container *ngFor="let field of additionalFields">
+                <mat-autocomplete-field [placeholder]="field.label|translate" [formControlName]="field.name" [service]="field.dataService"
+                  [filter]="field.dataFilter" [serviceOptions]="field.dataServiceOptions" [required]="field.required"
+                  [displayWith]="referentialToString">
+                </mat-autocomplete-field>
+              </ng-container>
+
+              <h3 translate>ACCOUNT.USER_DETAILS.TECHNICAL_DIVIDER</h3>
+
+              <!-- profile -->
+              <mat-form-field>
+                <input matInput hidden readonly="true" [placeholder]="'ACCOUNT.USER_DETAILS.PROFILE'|translate"
+                  formControlName="mainProfile" required>
+                <span>{{'USER.PROFILE_'+form.controls.mainProfile.value | translate}}</span>
+                <mat-error *ngIf="form.controls.firstName.hasError('mainProfile') && form.controls.mainProfile.dirty"
+                  translate>ERROR.FIELD_REQUIRED</mat-error>
+              </mat-form-field>
+
+              <!-- pubkey -->
+              <mat-form-field>
+                <input matInput readonly="true" [placeholder]="'ACCOUNT.USER_DETAILS.PUBKEY'|translate" formControlName="pubkey"
+                  required>
+                <mat-error *ngIf="form.controls.firstName.hasError('pubkey') && form.controls.firstName.dirty"
+                  translate>ERROR.FIELD_REQUIRED</mat-error>
+                <mat-error *ngIf="form.controls.firstName.hasError('pubkey') && form.controls.firstName.dirty">
+                  <span translate>ERROR.FIELD_NOT_VALID_PUBKEY</span>
+                </mat-error>
+              </mat-form-field>
+
             </ion-col>
 
-            <ion-col hidden-xs hidden-sm size="3" size-lg="4">
-            </ion-col>
+            <!-- right  margin -->
+            <ion-col size="0" size-lg="3">&nbsp;</ion-col>
           </ion-row>
         </ion-grid>
       </mat-tab>
@@ -107,12 +138,11 @@
           <ion-label translate>ACCOUNT.SETTINGS.TITLE</ion-label>
         </ng-template>
 
-
-
         <ion-grid no-padding>
           <ion-row no-padding>
 
-            <ion-col hidden-xs hidden-sm size="2" size-lg="3">
+            <!-- left  margin -->
+            <ion-col size="0" size-lg="3">&nbsp;
             </ion-col>
 
             <ion-col padding>
@@ -142,7 +172,8 @@
               </mat-form-field>
             </ion-col>
 
-            <ion-col hidden-xs hidden-sm size="3" size-lg="4">
+            <!-- right margin -->
+            <ion-col size="0" size-lg="3">&nbsp;
             </ion-col>
           </ion-row>
         </ion-grid>

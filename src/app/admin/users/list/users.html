@@ -97,6 +97,9 @@
           <input matInput [formControl]="row.validator.controls['lastName']" [placeholder]="'USER.LAST_NAME'|translate"
             [readonly]="!row.editing" [appAutofocus]="row == -1 && row.editing">
           <mat-error *ngIf="row.validator.controls['lastName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="row.validator.controls['lastName'].hasError('minlength')">
+            <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+          </mat-error>
         </mat-form-field>
 
       </mat-cell>
@@ -113,6 +116,9 @@
           <input matInput [formControl]="row.validator.controls['firstName']" [placeholder]="'USER.FIRST_NAME'|translate"
             [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['firstName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="row.validator.controls['firstName'].hasError('minlength')">
+            <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 2} }}</span>
+          </mat-error>
         </mat-form-field>
       </mat-cell>
     </ng-container>
@@ -171,9 +177,10 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
+          <ion-icon matPrefix *ngIf="row.validator.controls['statusId'].value &gt;=0" [name]="statusById[row.validator.controls['statusId'].value]?.icon"></ion-icon>
+
           <mat-select [formControl]="row.validator.controls['statusId']" [placeholder]="'REFERENTIAL.STATUS'|translate">
             <mat-select-trigger>
-              <ion-icon *ngIf="row.validator.controls['statusId'].value &gt;=0" [name]="statusById[row.validator.controls['statusId'].value]?.icon"></ion-icon>
               <span *ngIf="row.validator.controls['statusId'].value &gt;=0">
                 {{ statusById[row.validator.controls['statusId'].value]?.label | translate}}</span>
             </mat-select-trigger>

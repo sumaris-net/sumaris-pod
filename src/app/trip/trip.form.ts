@@ -5,10 +5,10 @@ import { ModalController, Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
-import { mergeMap, debounceTime, startWith } from 'rxjs/operators';
+import { mergeMap, debounceTime } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../core/core.module';
-import { VesselModal, ReferentialService, VesselService } from "../referential/referential.module";
+import { VesselModal, VesselService, ReferentialRefService } from "../referential/referential.module";
 import { referentialToString, EntityUtils, ReferentialRef } from '../referential/services/model';
 
 @Component({
@@ -30,7 +30,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     protected platform: Platform,
     protected tripValidatorService: TripValidatorService,
     protected vesselService: VesselService,
-    protected referentialService: ReferentialService,
+    protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController
   ) {
 
@@ -46,7 +46,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+          return this.referentialRefService.loadAll(0, 10, undefined, undefined,
             {
               entityName: 'Program',
               searchText: value as string
@@ -77,7 +77,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
           mergeMap(value => {
             if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
             value = (typeof value === "string") && value || undefined;
-            return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+            return this.referentialRefService.loadAll(0, 10, undefined, undefined,
               {
                 entityName: 'Location',
                 levelId: LocationLevelIds.PORT,

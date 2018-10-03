@@ -1,13 +1,13 @@
-import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { SaleValidatorService } from "../services/sale.validator";
-import { Sale, Referential, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString, EntityUtils, ReferentialRef } from "../services/trip.model";
+import { Sale, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString, EntityUtils, ReferentialRef } from "../services/trip.model";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { AppForm } from '../../core/core.module';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
 import { mergeMap, debounceTime } from 'rxjs/operators';
-import { VesselService, ReferentialService } from '../../referential/referential.module';
+import { VesselService, ReferentialRefService } from '../../referential/referential.module';
 
 @Component({
   selector: 'form-sale',
@@ -45,7 +45,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     protected platform: Platform,
     protected saleValidatorService: SaleValidatorService,
     protected vesselService: VesselService,
-    protected referentialService: ReferentialService
+    protected referentialRefService: ReferentialRefService
   ) {
     super(dateAdapter, platform, saleValidatorService.getFormGroup());
   }
@@ -76,7 +76,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+          return this.referentialRefService.loadAll(0, 10, undefined, undefined,
             {
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
@@ -92,7 +92,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+          return this.referentialRefService.loadAll(0, 10, undefined, undefined,
             {
               entityName: 'SaleType',
               searchText: value as string

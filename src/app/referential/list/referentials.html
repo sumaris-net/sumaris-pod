@@ -13,8 +13,8 @@
         </mat-form-field>
       </form>
 
-      <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
-        class="hidden-xs hidden-sm" [class.hidden]="!inlineEdition">
+      <button mat-icon-button *ngIf="inlineEdition && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate"
+        (click)="addRow()" class="hidden-xs hidden-sm">
         <mat-icon>add</mat-icon>
       </button>
       <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
@@ -24,8 +24,8 @@
       <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
         <mat-icon>search</mat-icon>
       </button>
-      <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
-        (click)="deleteSelection()" class="hidden-xs hidden-sm" [class.hidden]="!inlineEdition">
+      <button mat-icon-button small color="light" *ngIf="inlineEdition && selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
+        (click)="deleteSelection()" class="hidden-xs hidden-sm">
         <mat-icon>delete</mat-icon>
       </button>
 
@@ -147,15 +147,16 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
+          <ion-icon matPrefix *ngIf="row.validator.controls['statusId'].value &gt;=0" [name]="statusById[row.validator.controls['statusId'].value]?.icon"></ion-icon>
+
           <mat-select [formControl]="row.validator.controls['statusId']" [placeholder]="'REFERENTIAL.STATUS'|translate">
             <mat-select-trigger>
-              <ion-icon *ngIf="row.validator.controls['statusId'].value &gt;=0" [name]="statusById[row.validator.controls['statusId'].value]?.icon"></ion-icon>
               <span *ngIf="row.validator.controls['statusId'].value &gt;=0">
                 {{ statusById[row.validator.controls['statusId'].value]?.label | translate}}</span>
             </mat-select-trigger>
-            <mat-option *ngFor="let status of statusList" [value]="status.id">
-              <ion-icon [name]="status.icon"></ion-icon>
-              {{ status.label |translate }}
+            <mat-option *ngFor="let item of statusList" [value]="item.id">
+              <ion-icon [name]="item.icon"></ion-icon>
+              {{ item.label |translate }}
             </mat-option>
           </mat-select>
           <mat-error *ngIf="row.validator.controls['statusId'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

@@ -5,6 +5,10 @@ import { PersonService } from './services/person.service';
 import { PersonValidatorService } from './services/person.validator';
 import { UsersPage } from './users/list/users';
 
+export {
+    PersonService, PersonValidatorService, UsersPage
+}
+
 @NgModule({
     imports: [
         CommonModule,

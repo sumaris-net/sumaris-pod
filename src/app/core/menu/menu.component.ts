@@ -2,20 +2,20 @@ import { Component, OnInit, Input } from '@angular/core';
 import { MenuController, ModalController } from "@ionic/angular";
 
 import { Router } from "@angular/router";
-import { Account } from "../services/model";
+import { Account, UserProfileLabel } from "../services/model";
 import { AccountService } from "../services/account.service";
 import { AboutModal } from '../about/modal-about';
 
 import { environment } from '../../../environments/environment';
 import { HomePage } from '../home/home';
-
+import { Subject } from 'rxjs';
 
 export interface MenuItem {
   title: string;
   path?: string;
   page?: string | any;
   icon?: string;
-  requiredProfiles?: string[];
+  profile?: UserProfileLabel;
 }
 
 @Component({
@@ -28,7 +28,8 @@ export class MenuComponent implements OnInit {
   public isLogin: boolean;
   public account: Account;
 
-  filteredItems: Array<MenuItem> = [];
+  //filteredItems: Array<MenuItem> = [];
+  filteredItems = new Subject<MenuItem[]>();
 
   @Input()
   appVersion: String = environment.version;
@@ -49,34 +50,31 @@ export class MenuComponent implements OnInit {
     protected modalCtrl: ModalController
   ) {
 
-    this.isLogin = accountService.isLogin();
-    if (this.isLogin) {
-      this.onLogin(this.accountService.account);
-    }
+  }
 
+  ngOnInit() {
     // subscriptions
     this.accountService.onLogin.subscribe(account => this.onLogin(account));
     this.accountService.onLogout.subscribe(() => this.onLogout());
 
-  }
-
-  ngOnInit() {
-    this.filteredItems = (this.items || []).filter(i => !i.requiredProfiles || i.requiredProfiles.indexOf('GUEST') != -1);
+    if (this.accountService.isLogin()) {
+      this.onLogin(this.accountService.account);
+    }
   }
 
   onLogin(account: Account) {
-    //console.log('[app] Logged account: ', account);
+    console.debug('[menu] Logged account: ', account);
     this.account = account;
     this.isLogin = true;
-    this.filteredItems = (this.items || []).filter(i => !i.requiredProfiles || !!i.requiredProfiles.find(p => this.accountService.hasProfile(p)));
+    this.updateItems();
   }
 
   onLogout() {
-    console.debug("[app] logout");
+    //console.debug("[menu] logout");
     this.isLogin = false;
     this.account = null;
     this.router.navigate(['']);
-    this.filteredItems = (this.items || []).filter(i => !i.requiredProfiles || i.requiredProfiles.indexOf('GUEST') != -1);
+    this.updateItems();
   }
 
   logout(): void {
@@ -87,6 +85,22 @@ export class MenuComponent implements OnInit {
   async openAboutModal(event) {
     const modal = await this.modalCtrl.create({ component: AboutModal });
     return modal.present();
+  }
+
+  updateItems() {
+    if (!this.isLogin) {
+      this.filteredItems.next((this.items || []).filter(i => !i.profile || i.profile == 'GUEST'));
+    }
+    else {
+      this.filteredItems.next((this.items || []).filter(i => {
+        const res = !i.profile || this.accountService.hasProfile(i.profile);
+        if (!res) {
+          console.debug("[menu] User does not have profile '" + i.profile + "' need by ", (i.path || i.page));
+          this.accountService.hasProfile(i.profile);
+        }
+        return res;
+      }));
+    }
   }
 }
 

@@ -100,7 +100,8 @@ export class PersonService extends BaseDataService implements DataService<Person
     return this.watchQuery<{ persons: Person[] }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR" }
+      error: { code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR" },
+      fetchPolicy: 'network-only'
     })
       .pipe(
         map(data => (data && data.persons || []).map(Person.fromObject))

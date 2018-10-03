@@ -3,7 +3,7 @@ import { PmfmStrategy } from "../services/trip.model";
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
-import { ReferentialService } from "../../referential/referential.module";
+import { ProgramService } from "../../referential/referential.module";
 import { FormBuilder } from '@angular/forms'
 import { AcquisitionLevelCodes } from '../../core/services/model';
 import { MeasurementsValidatorService } from '../services/measurement.validator';
@@ -20,9 +20,9 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class CatchForm extends MeasurementsForm implements OnInit {
 
-    onDeckPmfms: Observable<PmfmStrategy[]>;
-    sortingPmfms: Observable<PmfmStrategy[]>;
-    weightPmfms: Observable<PmfmStrategy[]>;
+    onDeckPmfms: Subject<PmfmStrategy[]>;
+    sortingPmfms: Subject<PmfmStrategy[]>;
+    weightPmfms: Subject<PmfmStrategy[]>;
 
     @Input() showError: boolean = true;
 
@@ -31,35 +31,30 @@ export class CatchForm extends MeasurementsForm implements OnInit {
         protected platform: Platform,
         protected measurementsValidatorService: MeasurementsValidatorService,
         protected formBuilder: FormBuilder,
-        protected referentialService: ReferentialService,
+        protected programService: ProgramService,
         protected translate: TranslateService
     ) {
 
-        super(dateAdapter, platform, measurementsValidatorService, formBuilder, referentialService, translate);
+        super(dateAdapter, platform, measurementsValidatorService, formBuilder, programService, translate);
         this.acquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
     }
 
     ngOnInit() {
         super.ngOnInit();
 
-        const onDeckPmfms = new Subject<PmfmStrategy[]>();
-        const sortingPmfms = new Subject<PmfmStrategy[]>();
-        const weightPmfms = new Subject<PmfmStrategy[]>();
+        this.onDeckPmfms = new Subject<PmfmStrategy[]>();
+        this.sortingPmfms = new Subject<PmfmStrategy[]>();
+        this.weightPmfms = new Subject<PmfmStrategy[]>();
 
-        this.onDeckPmfms = onDeckPmfms.asObservable();
-        this.sortingPmfms = sortingPmfms.asObservable();
-        this.weightPmfms = weightPmfms.asObservable();
-
-        this.logDebug("[catch-form] Starting...");
-        //console.log("[catch-form] Starting...");
+        //this.logDebug("[catch-form] call ngOnInit()");
 
         // pmfm
         this.pmfms.subscribe(pmfms => {
             this.logDebug("[catch-form] Received pmfms:", pmfms);
             this.measurementsValidatorService.updateFormGroup(this.form, pmfms);
-            onDeckPmfms.next(pmfms.filter(p => p.label.indexOf('ON_DECK_') === 0));
-            sortingPmfms.next(pmfms.filter(p => p.label.indexOf('SORTING_') === 0));
-            weightPmfms.next(pmfms.filter(p => p.label.indexOf('_WEIGHT') > 0));
+            this.onDeckPmfms.next(pmfms.filter(p => p.label.indexOf('ON_DECK_') === 0));
+            this.sortingPmfms.next(pmfms.filter(p => p.label.indexOf('SORTING_') === 0));
+            this.weightPmfms.next(pmfms.filter(p => p.label.indexOf('_WEIGHT') > 0));
         });
     }
 }

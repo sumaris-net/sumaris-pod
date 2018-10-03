@@ -8,7 +8,7 @@ import { Trip } from './services/trip.model';
 import { SaleForm } from './sale/sale.form';
 import { OperationTable } from './operation/operations.table';
 import { MeasurementsForm } from './measurement/measurements.form';
-import { AppTabPage, AppFormUtils } from '../core/core.module';
+import { AppTabPage, AppFormUtils, AccountService } from '../core/core.module';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../environments/environment.prod';
@@ -207,5 +207,11 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }
   }
 
+  enable() {
+    // Enable only if as right
+    if (!this.data || !this.tripService.canUserWrite(this.data)) return;
+    if (this.debug) console.log("[trip] Can user write on trip ? yes");
+    super.enable();
+  }
 
 }

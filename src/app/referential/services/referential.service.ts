@@ -19,17 +19,6 @@ export declare class ReferentialFilter {
   searchText?: string;
   searchAttribute?: string;
 }
-const LoadAllRefQuery: any = gql`
-  query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      id
-      label
-      name
-      statusId
-      entityName
-    }
-  }
-`;
 const LoadAllQuery: any = gql`
   query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -70,35 +59,6 @@ const LoadReferentialLevels: any = gql`
   }
 `;
 
-const LoadProgramPmfms: any = gql`
-  query LoadProgramPmfms($program: String) {
-    programPmfms(program: $program){
-      id
-      label
-      name
-      unit
-      type
-      minValue
-      maxValue
-      maximumNumberDecimals
-      defaultValue
-      acquisitionNumber
-      isMandatory
-      rankOrder    
-      acquisitionLevel
-      updateDate
-      gears
-      qualitativeValues {
-        id
-        label
-        name
-        statusId
-        entityName
-      }
-    }
-  }
-`;
-
 const SaveReferentials: any = gql`
   mutation SaveReferentials($referentials:[ReferentialVOInput]){
     saveReferentials(referentials: $referentials){
@@ -131,48 +91,6 @@ export class ReferentialService extends BaseDataService implements DataService<R
     this._debug = true;
   }
 
-  loadAllRef(offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: ReferentialFilter,
-    options?: any): Observable<ReferentialRef[]> {
-
-    if (!filter || !filter.entityName) {
-      console.error("[referential-service] Missing filter.entityName");
-      throw { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" };
-    }
-
-    const entityName = filter.entityName;
-    filter = Object.assign({}, filter);
-    delete filter.entityName;
-
-    const variables: any = {
-      entityName: entityName,
-      offset: offset || 0,
-      size: size || 100,
-      sortBy: sortBy || 'label',
-      sortDirection: sortDirection || 'asc',
-      filter: filter
-    };
-
-    const now = new Date();
-    if (this._debug) console.debug(`[referential-service] Loading references on ${entityName}...`, variables);
-
-    return this.watchQuery<{ referentials: any[] }>({
-      query: LoadAllRefQuery,
-      variables: variables,
-      error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" }
-    })
-      .pipe(
-        map((data) => {
-          const res = (data && data.referentials || []).map(ReferentialRef.fromObject);
-          if (this._debug) console.debug(`[referential-service] References on ${entityName} loaded in ${new Date().getTime() - now.getTime()}ms`, res);
-          return res;
-        })
-      );
-  }
-
   loadAll(offset: number,
     size: number,
     sortBy?: string,
@@ -186,8 +104,6 @@ export class ReferentialService extends BaseDataService implements DataService<R
     }
 
     const entityName = filter.entityName;
-    filter = Object.assign({}, filter);
-    delete filter.entityName;
 
     const variables: any = {
       entityName: entityName,
@@ -195,7 +111,13 @@ export class ReferentialService extends BaseDataService implements DataService<R
       size: size || 100,
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: {
+        label: filter.label,
+        name: filter.name,
+        searchText: filter.searchText,
+        searchAttribute: filter.searchAttribute,
+        levelId: filter.levelId
+      }
     };
 
     const now = new Date();
@@ -407,36 +329,6 @@ export class ReferentialService extends BaseDataService implements DataService<R
     if (this._debug) console.debug(`[referential-service] Levels for ${entityName} loading in ${new Date().getTime() - now.getTime()}`, res);
 
     return res;
-  }
-
-  /**
-   * Load program pmfms
-   */
-  loadProgramPmfms(program: string, options?: {
-    acquisitionLevel: string,
-    gear?: string
-  }): Observable<PmfmStrategy[]> {
-    //console.debug("[referential-service] Getting pmfms for program {" + program + "}");
-    return this.watchQuery<{ programPmfms: PmfmStrategy[] }>({
-      query: LoadProgramPmfms,
-      variables: {
-        program: program
-      },
-      error: { code: ErrorCodes.LOAD_PROGRAM_PMFMS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_PMFMS_ERROR" }
-    })
-      .pipe(
-        map((data) => (data && data.programPmfms || [])
-          // Filter on acquisition level and gear
-          .filter(p => !options || (
-            (!options.acquisitionLevel || p.acquisitionLevel == options.acquisitionLevel)
-            && (!options.gear || p.gears && p.gears.findIndex(g => g == options.gear) !== -1)
-          ))
-          // Sort on rank order
-          .sort((p1, p2) => p1.rankOrder - p2.rankOrder)
-        )
-      );
-
-    // TODO: translate name/label using translate service
   }
 
   /* -- protected methods -- */

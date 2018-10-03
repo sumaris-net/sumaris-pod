@@ -1,17 +1,21 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { AccountService } from '../services/account.service';
-import { Account, StatusIds } from '../services/model';
-import { FormGroup, FormBuilder, Validators, AbstractControl } from '@angular/forms';
-
+import { AccountService, AccountFieldDef } from '../services/account.service';
+import { Account, StatusIds, referentialToString } from '../services/model';
+import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
+import { AccountValidatorService } from '../services/account.validator';
+import { AppForm } from '../form/form.class';
+import { Moment } from 'moment/moment';
+import { DateAdapter } from "@angular/material";
+import { Platform } from '@ionic/angular';
 
 @Component({
   selector: 'page-account',
   templateUrl: 'account.html',
   styleUrls: ['./account.scss']
 })
-export class AccountPage implements OnDestroy {
+export class AccountPage extends AppForm<Account> implements OnDestroy {
 
   isLogin: boolean;
   subscriptions: Subscription[] = [];
@@ -23,8 +27,7 @@ export class AccountPage implements OnDestroy {
     sending: false,
     error: undefined
   }
-  error: String;
-  form: FormGroup;
+  additionalFields: AccountFieldDef[];
   settingsForm: FormGroup;
   localeMap = {
     'fr': 'Français',
@@ -34,32 +37,41 @@ export class AccountPage implements OnDestroy {
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
   saving: boolean = false;
 
-
   constructor(
+    protected dateAdapter: DateAdapter<Moment>,
+    protected platform: Platform,
     public formBuilder: FormBuilder,
     public accountService: AccountService,
-    public activatedRoute: ActivatedRoute
+    public activatedRoute: ActivatedRoute,
+    protected validatorService: AccountValidatorService
   ) {
-    this.form = formBuilder.group({
-      email: ['', Validators.compose([Validators.required, Validators.email])],
-      firstName: ['', Validators.compose([Validators.required, Validators.minLength(2)])],
-      lastName: ['', Validators.compose([Validators.required, Validators.minLength(2)])],
-      settings: formBuilder.group({
-        locale: ['', Validators.required],
-        latLongFormat: ['', Validators.required]
-      })
-    });
-    this.settingsForm = this.form.controls.settings as FormGroup;
+    super(dateAdapter, platform, validatorService.getFormGroup(accountService.account));
 
-    this.locales;
+    // Add settings fo form 
+    this.settingsForm = formBuilder.group({
+      locale: ['', Validators.required],
+      latLongFormat: ['', Validators.required]
+    });
+    this.form.addControl('settings', this.settingsForm);
+
+    // Store additional fields
+    this.additionalFields = accountService.additionalAccountFields;
+
+    // Fill locales
     for (let locale in this.localeMap) {
       this.locales.push(locale);
     }
 
-    // Subscriptions
+    // By default, disable the form
+    this.disable();
+
+    // Observed some events
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
     this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
-
+    this.subscriptions.push(this.onCancel.subscribe(() => {
+      this.setValue(this.accountService.account);
+      this.markAsPristine();
+    }));
     if (accountService.isLogin()) {
       this.onLogin(this.accountService.account);
     }
@@ -74,13 +86,14 @@ export class AccountPage implements OnDestroy {
   onLogin(account: Account) {
     console.debug('[account] Logged account: ', account);
     this.isLogin = true;
-    this.account = account;
+
+    this.setValue(account);
+
     this.email.confirmed = account && account.email && (account.statusId != StatusIds.TEMPORARY);
     this.email.notConfirmed = account && account.email && (!account.statusId || account.statusId == StatusIds.TEMPORARY);
 
-    this.setValue(account);
-    this.form.controls.email.disable();
-    this.form.markAsPristine();
+    this.enable();
+    this.markAsPristine();
 
     this.startListenChanges();
   }
@@ -92,7 +105,7 @@ export class AccountPage implements OnDestroy {
     this.email.sending = false;
     this.email.error = undefined;
     this.form.reset();
-    this.form.controls.email.enable();
+    this.disable();
 
     this.stopListenChanges();
   }
@@ -106,25 +119,6 @@ export class AccountPage implements OnDestroy {
     if (!this.changesSubscription) return;
     this.changesSubscription.unsubscribe();
     this.changesSubscription = undefined;
-  }
-
-  setValue(data: any) {
-    let value = this.getValue(this.form, data);
-    this.form.setValue(value);
-  }
-
-  getValue(form: FormGroup, data: any) {
-    let value = {};
-    form = form || this.form;
-    for (let key in form.controls) {
-      if (form.controls[key] instanceof FormGroup) {
-        value[key] = this.getValue(form.controls[key] as FormGroup, data[key]);
-      }
-      else {
-        value[key] = data[key] || null;
-      }
-    }
-    return value;
   }
 
   sendConfirmationEmail(event: MouseEvent) {
@@ -181,20 +175,21 @@ export class AccountPage implements OnDestroy {
     }
   }
 
-  cancel() {
-    this.setValue(this.account);
-    this.form.markAsPristine();
-  }
-
-  disable() {
-    this.form.disable();
-  }
-
   enable() {
-    this.form.enable();
+    super.enable();
+
+    // Some fields are always disable
+    this.form.controls.email.disable();    
+    this.form.controls.mainProfile.disable();
+    this.form.controls.pubkey.disable();
+
+    // Always disable some additional fields
+    this.additionalFields
+      .filter(field => !field.updatable.account)
+      .forEach(field => {
+        this.form.controls[field.name].disable();
+      });
   }
 
-  markAsPristine() {
-    this.form.markAsPristine();
-  }
+  referentialToString = referentialToString;
 }

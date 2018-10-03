@@ -12,7 +12,7 @@
         </ion-text>
         <ion-text color="dark">
           <p>{{data.recorderPerson?.firstName}} {{data.recorderPerson?.lastName}}</p>
-          <p>{{data.recorderDepartment?.name}}</p>
+          <p>{{data.recorderDepartment?.label}}</p>
         </ion-text>
       </ion-label>
     </ion-item>
@@ -29,7 +29,7 @@
 
       <!-- update date -->
       <ng-container *ngIf="data.updateDate && data.updateDate != data.creationDate">
-        <br/>
+        <br />
         <ion-text color="primary">
           <ion-icon name="time"></ion-icon>&nbsp;
           <span translate>COMMON.UPDATED_ON</span>

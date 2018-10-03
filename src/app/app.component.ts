@@ -3,11 +3,10 @@ import { Platform } from "@ionic/angular";
 import { MenuItem } from './core/menu/menu.component';
 import { HomePage } from './core/home/home';
 import { AccountService, DataService } from './core/core.module';
-import { ReferentialService } from './referential/referential.module';
+import { ReferentialRefService } from './referential/referential.module';
 // import { StatusBar } from "@ionic-native/status-bar";
 // import { SplashScreen } from "@ionic-native/splash-screen";
 // import { Keyboard } from "@ionic-native/keyboard";
-// import { ReferentialService, ReferentialFilter } from './referential/referential.module';
 // import { AccountFieldDef, AccountService } from './core/core.module';
 // import { Referential } from './core/services/model';
 // import { DataService } from './core/services/data-service.class';
@@ -23,17 +22,17 @@ export class AppComponent {
   root: any = HomePage;
   menuItems: Array<MenuItem> = [
     { title: 'MENU.HOME', path: '/', icon: 'home' },
-    { title: 'MENU.TRIPS', path: '/trips', icon: 'pin' },
-    { title: 'MENU.ADMINISTRATION_DIVIDER', requiredProfiles: ['ADMIN', 'SUPERVISOR', 'USER'] },
-    { title: 'MENU.USERS', path: '/admin/users', icon: 'people', requiredProfiles: ['ADMIN'] },
-    { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', requiredProfiles: ['ADMIN', 'SUPERVISOR', 'USER'] },
-    { title: 'MENU.REFERENTIALS', path: '/referential/list', icon: 'list', requiredProfiles: ['ADMIN'] }
+    { title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'GUEST' },
+    { title: 'MENU.ADMINISTRATION_DIVIDER', profile: 'USER' },
+    { title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN' },
+    { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER' },
+    { title: 'MENU.REFERENTIALS', path: '/referential/list', icon: 'list', profile: 'ADMIN' }
   ];
 
   constructor(
     private platform: Platform,
     private accountService: AccountService,
-    private referentialService: ReferentialService
+    private referentialRefService: ReferentialRefService
     // TODO: waiting ionic-native release
     // private statusBar: StatusBar, 
     // private splashScreen: SplashScreen,
@@ -80,8 +79,12 @@ export class AppComponent {
       name: 'department',
       label: 'USER.DEPARTMENT',
       required: true,
-      dataService: this.referentialService as DataService<any, any>,
-      dataFilter: { entityName: 'Department' }
+      dataService: this.referentialRefService as DataService<any, any>,
+      dataFilter: { entityName: 'Department' },
+      updatable: {
+        registration: true,
+        account: false
+      }
     });
   }
 }

@@ -297,6 +297,10 @@ mat-table {
         width: 0;
         border: 0;
       }
+
+      .mat-form-field-label {
+        visibility: hidden;
+      }
     }
 
     .mat-form-field-underline {

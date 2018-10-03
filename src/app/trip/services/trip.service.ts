@@ -374,6 +374,14 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     return res;
   }
 
+  canUserWrite(trip: Trip): boolean {
+    if (!trip) return false;
+
+    // TODO: check rights on program (need a model upgrade ?)
+
+    return this.accountService.canUserWriteDataForDepartment(trip.recorderDepartment);
+  }
+
   /* -- protected methods -- */
 
   protected asObject(entity: Trip): any {

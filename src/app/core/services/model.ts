@@ -20,9 +20,18 @@ export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
 export const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
 
 export function getMainProfile(profiles?: string[]): UserProfileLabel {
-  const mainProfile = profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(pp => !!profiles.find(p => p == pp));
-  const mainProfileLabel = (mainProfile || 'GUEST') as UserProfileLabel;
-  return mainProfileLabel;
+  return profiles && profiles.length && PRIORITIZED_USER_PROFILES.find(pp => profiles.indexOf(pp) > -1) || 'GUEST';
+}
+
+export function getMainProfileIndex(profiles?: string[]): number {
+  if (!profiles && !profiles.length) return PRIORITIZED_USER_PROFILES.length - 1; // return last profile
+  const index = PRIORITIZED_USER_PROFILES.findIndex(pp => profiles.indexOf(pp) > -1);
+  return (index != -1) ? index : (PRIORITIZED_USER_PROFILES.length - 1);
+}
+
+export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfile: UserProfileLabel): boolean {
+  const expectedProfileIndex = PRIORITIZED_USER_PROFILES.indexOf(expectedProfile);
+  return expectedProfileIndex != -1 && getMainProfileIndex(actualProfiles) <= expectedProfileIndex;
 }
 
 export const AcquisitionLevelCodes = {

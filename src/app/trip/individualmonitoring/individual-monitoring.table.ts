@@ -1,14 +1,13 @@
 import { Component, OnInit, Input, OnDestroy } from "@angular/core";
 import { Observable } from 'rxjs';
-import { mergeMap } from "rxjs/operators";
 import { ValidatorService } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { Referential, Operation, referentialToString } from "../services/trip.model";
+import { Operation, referentialToString } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
-import { ReferentialService } from "../../referential/referential.module";
-import { OperationService, OperationFilter } from "../services/operation.service";
+import { ReferentialRefService } from "../../referential/referential.module";
+import { OperationService } from "../services/operation.service";
 import { IndividualMonitoringService } from "../services/individual-monitoring.validator";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 
@@ -46,7 +45,7 @@ export class IndividualMonitoringTable extends AppTable<any, { operationId?: num
         protected accountService: AccountService,
         protected validatorService: IndividualMonitoringService,
         protected operationService: OperationService,
-        protected referentialService: ReferentialService
+        protected referentialRefService: ReferentialRefService
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
             RESERVED_START_COLUMNS

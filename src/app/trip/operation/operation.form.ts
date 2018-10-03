@@ -1,15 +1,15 @@
 import { Component, OnInit, Input, EventEmitter } from '@angular/core';
 import { OperationValidatorService } from "../services/operation.validator";
-import { Operation, Referential, Trip, PhysicalGear } from "../services/trip.model";
+import { Operation, Trip, PhysicalGear } from "../services/trip.model";
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
-import { debounceTime, mergeMap, map, startWith } from 'rxjs/operators';
+import { debounceTime, mergeMap, map } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
 import { AppForm } from '../../core/core.module';
-import { ReferentialService } from "../../referential/referential.module";
 import { referentialToString, EntityUtils, ReferentialRef } from '../../referential/services/model';
+import { ReferentialRefService } from '../../referential/referential.module';
 
 @Component({
     selector: 'form-operation',
@@ -34,7 +34,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         protected dateAdapter: DateAdapter<Moment>,
         protected platform: Platform,
         protected physicalGearValidatorService: OperationValidatorService,
-        protected referentialService: ReferentialService
+        protected referentialRefService: ReferentialRefService
     ) {
 
         super(dateAdapter, platform, physicalGearValidatorService.getFormGroup());
@@ -81,7 +81,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string") && value || undefined;
                     const physicalGear = this.form.get('physicalGear').value;
-                    return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+                    return this.referentialRefService.loadAll(0, 10, undefined, undefined,
                         {
                             entityName: 'Metier',
                             levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null,

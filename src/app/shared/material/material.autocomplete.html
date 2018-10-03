@@ -2,10 +2,11 @@
 
   <!-- If required -->
   <input matInput [placeholder]="placeholder" [matAutocomplete]="autoCombo" [formControl]="formControl" *ngIf="required"
-    required>
+    [readonly]="readonly" required>
 
   <!-- If not required -->
-  <input matInput [placeholder]="placeholder" [matAutocomplete]="autoCombo" [formControl]="formControl" *ngIf="!required">
+  <input matInput [placeholder]="placeholder" [matAutocomplete]="autoCombo" [formControl]="formControl" *ngIf="!required"
+    [readonly]="readonly">
 
   <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>

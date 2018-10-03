@@ -58,8 +58,20 @@ const routes: Routes = [
       {
         path: 'vessels',
         children: [
-          { path: '', component: VesselsPage },
-          { path: ':id', component: VesselPage }
+          {
+            path: '',
+            component: VesselsPage,
+            data: {
+              profile: 'USER'
+            }
+          },
+          {
+            path: ':id',
+            component: VesselPage,
+            data: {
+              profile: 'USER'
+            }
+          }
         ]
       },
       {
@@ -68,9 +80,18 @@ const routes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: '/referential/list/Location'
+            redirectTo: '/referential/list/Location',
+            data: {
+              profile: 'ADMIN'
+            }
           },
-          { path: ':entityName', component: ReferentialsPage }
+          {
+            path: ':entityName',
+            component: ReferentialsPage,
+            data: {
+              profile: 'ADMIN'
+            }
+          }
         ]
       }
     ]
@@ -84,12 +105,18 @@ const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        component: TripsPage
+        component: TripsPage,
+        data: {
+          profile: 'USER'
+        }
       },
       {
         path: ':tripId',
         component: TripPage,
-        runGuardsAndResolvers: 'paramsOrQueryParamsChange'
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+        data: {
+          profile: 'USER'
+        }
       }
     ]
   },
@@ -101,7 +128,10 @@ const routes: Routes = [
       {
         path: ':tripId/:opeId',
         component: OperationPage,
-        runGuardsAndResolvers: 'paramsOrQueryParamsChange'
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+        data: {
+          profile: 'USER'
+        }
       }
     ]
   },

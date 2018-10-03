@@ -1,18 +1,18 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Observable } from 'rxjs';
 import { ValidatorService } from "angular4-material-table";
-import { AppTable, AppTableDataSource, AccountService, environment } from "../core/core.module";
+import { AppTable, AppTableDataSource, AccountService } from "../core/core.module";
 import { TripValidatorService } from "./services/trip.validator";
 import { TripService, TripFilter } from "./services/trip.service";
 import { TripModal } from "./trip.modal";
-import { Trip, Referential, VesselFeatures, LocationLevelIds, EntityUtils, ReferentialRef } from "./services/trip.model";
+import { Trip, VesselFeatures, LocationLevelIds, EntityUtils, ReferentialRef } from "./services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { FormGroup, FormBuilder } from "@angular/forms";
-import { VesselService, ReferentialService, vesselFeaturesToString, referentialToString } from "../referential/referential.module";
-import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../core/table/table.class";
-import { debounceTime, mergeMap, startWith } from "rxjs/operators";
+import { VesselService, vesselFeaturesToString, referentialToString, ReferentialRefService } from "../referential/referential.module";
+import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../core/core.module";
+import { debounceTime, mergeMap } from "rxjs/operators";
 @Component({
   selector: 'page-trips',
   templateUrl: 'trips.page.html',
@@ -23,6 +23,7 @@ import { debounceTime, mergeMap, startWith } from "rxjs/operators";
 })
 export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
+  canEdit: boolean;
   filterForm: FormGroup;
   programs: Observable<ReferentialRef[]>;
   locations: Observable<ReferentialRef[]>;
@@ -38,7 +39,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected validatorService: TripValidatorService,
     protected dataService: TripService,
     protected vesselService: VesselService,
-    protected referentialService: ReferentialService,
+    protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder
   ) {
 
@@ -52,7 +53,12 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
           'returnDateTime',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Trip, TripFilter>(Trip, dataService, validatorService)
+      new AppTableDataSource<Trip, TripFilter>(Trip, dataService, validatorService, {
+        prependNewElements: false,
+        serviceOptions: {
+          saveOnlyDirtyRows: true
+        }
+      })
     );
     this.i18nColumnPrefix = 'TRIP.';
     this.filterForm = formBuilder.group({
@@ -61,6 +67,9 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       'endDate': [null],
       'location': [null]
     });
+    this.canEdit = accountService.isUser();
+    if (!this.canEdit) console.debug("User cannot add/remove trips !");
+    this.inlineEdition = false;
   };
 
   ngOnInit() {
@@ -74,7 +83,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+          return this.referentialRefService.loadAll(0, 10, undefined, undefined,
             {
               entityName: 'Program',
               searchText: value as string
@@ -90,7 +99,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+          return this.referentialRefService.loadAll(0, 10, undefined, undefined,
             {
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
@@ -136,7 +145,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
 
-  programToString(item: Referential) {
+  programToString(item: ReferentialRef) {
     return referentialToString(item, ['label']);
   }
 }

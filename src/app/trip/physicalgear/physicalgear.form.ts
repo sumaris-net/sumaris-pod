@@ -1,13 +1,13 @@
 import { Component, OnInit, Input, EventEmitter, Output, ViewChild } from '@angular/core';
 import { PhysicalGearValidatorService } from "../services/physicalgear.validator";
-import { PhysicalGear, Referential, GearLevelIds, Trip, Measurement } from "../services/trip.model";
+import { PhysicalGear, GearLevelIds, Measurement } from "../services/trip.model";
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable, Subject } from 'rxjs';
 import { mergeMap, startWith, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { AppForm } from '../../core/core.module';
-import { ReferentialService } from "../../referential/referential.module";
+import { ReferentialRefService } from "../../referential/referential.module";
 import { referentialToString, ReferentialRef } from '../../referential/services/model';
 import { MeasurementsForm } from '../measurement/measurements.form';
 
@@ -47,7 +47,7 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
         protected dateAdapter: DateAdapter<Moment>,
         protected platform: Platform,
         protected physicalGearValidatorService: PhysicalGearValidatorService,
-        protected referentialService: ReferentialService
+        protected referentialRefService: ReferentialRefService
     ) {
 
         super(dateAdapter, platform, physicalGearValidatorService.getFormGroup());
@@ -73,7 +73,7 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
                     //this.gear = null;
                     if (!value || !value.length) return Observable.empty();
                     if (typeof value != "string") return Observable.empty();
-                    return this.referentialService.loadAllRef(0, 10, undefined, undefined,
+                    return this.referentialRefService.loadAll(0, 10, undefined, undefined,
                         {
                             entityName: 'Gear',
                             levelId: GearLevelIds.FAO,

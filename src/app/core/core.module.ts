@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { AccountService, AccountFieldDef } from './services/account.service';
+import { AccountValidatorService } from './services/account.validator';
 import { AuthGuardService } from './services/auth-guard.service';
 import { CryptoService } from './services/crypto.service';
 import { DataService } from './services/data-service.class';
@@ -17,7 +18,7 @@ import { AppForm } from './form/form.class';
 import { AppTabPage } from './form/page.class';
 import { FormMetadataComponent } from './form/form-metadata.component';
 import { FormButtonsBarComponent } from './form/form-buttons-bar.component';
-import { AppTable } from './table/table.class';
+import { AppTable, RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from './table/table.class';
 import { AppTableDataSource } from './table/table-datasource.class';
 import { TableSelectColumnsComponent } from './table/table-select-columns.component';
 import { MenuComponent } from './menu/menu.component';
@@ -43,8 +44,9 @@ import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common
 
 export {
     environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
-    AccountService, AccountFieldDef, DataService,
-    AuthGuardService, FormMetadataComponent, FormButtonsBarComponent
+    AccountService, AccountFieldDef, DataService, AccountValidatorService,
+    AuthGuardService, FormMetadataComponent, FormButtonsBarComponent,
+    RESERVED_START_COLUMNS, RESERVED_END_COLUMNS
 }
 
 export function HttpLoaderFactory(http: HttpClient) {
@@ -115,15 +117,16 @@ export function HttpLoaderFactory(http: HttpClient) {
         AuthGuardService,
         CryptoService,
         ProgressBarService,
+        AccountValidatorService,
         { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService] }
     ]
 })
 export class CoreModule {
 
     constructor(
-        private translate: TranslateService,
-        private accountService: AccountService,
-        private dateAdapter: DateAdapter<any>) {
+        translate: TranslateService,
+        accountService: AccountService,
+        dateAdapter: DateAdapter<any>) {
 
         console.info("[core] Starting module...");
 
@@ -155,7 +158,7 @@ export class CoreModule {
 
         accountService.onLogin.subscribe(account => {
             if (account.settings && account.settings.locale && account.settings.locale != translate.currentLang) {
-                this.translate.use(account.settings.locale);
+                translate.use(account.settings.locale);
             }
         });
     }

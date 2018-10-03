@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild, OnDestroy } from "@angular/core";
 import { Observable } from 'rxjs';
-import { map, debounceTime } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
 import { PhysicalGearValidatorService } from "../services/physicalgear.validator";
@@ -8,7 +7,6 @@ import { referentialToString, PhysicalGear } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
-import { ReferentialService } from "../../referential/referential.module";
 import { DataService } from "../../core/services/data-service.class";
 import { PhysicalGearForm } from "./physicalgear.form";
 import { RESERVED_START_COLUMNS } from "../../core/table/table.class";
@@ -59,8 +57,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
-    protected validatorService: PhysicalGearValidatorService,
-    protected referentialService: ReferentialService
+    protected validatorService: PhysicalGearValidatorService
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
       RESERVED_START_COLUMNS.concat(['gear', 'comments'])
