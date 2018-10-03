@@ -349,7 +349,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
         Root<T> tripRoot = query.from(entityClass);
-        query.select(tripRoot);
+        query.select(tripRoot).distinct(true);
 
         // Special case with level
         Predicate levelClause = null;

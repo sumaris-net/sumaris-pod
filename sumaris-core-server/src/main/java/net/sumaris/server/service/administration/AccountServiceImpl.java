@@ -329,6 +329,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public boolean isStoredToken(String token, String pubkey) {
+        return userTokenDao.existsByPubkey(token, pubkey);
+    }
+
+    @Override
     public void addToken(String token, String pubkey) {
         userTokenDao.add(token, pubkey);
     }

@@ -94,7 +94,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         ParameterExpression<String> emailParam = builder.parameter(String.class);
         ParameterExpression<String> searchTextParam = builder.parameter(String.class);
 
-        query.select(root)
+        query.select(root).distinct(true)
              .where(
                 builder.and(
                     // user profile Id

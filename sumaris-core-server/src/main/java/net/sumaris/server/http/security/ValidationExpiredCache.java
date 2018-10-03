@@ -55,8 +55,8 @@ public class ValidationExpiredCache {
         cache.invalidate(data);
     }
 
-    public void add(String token) {
-        cache.put(token, token);
+    public void add(String data) {
+        cache.put(data, data);
     }
 
     public void clean() {

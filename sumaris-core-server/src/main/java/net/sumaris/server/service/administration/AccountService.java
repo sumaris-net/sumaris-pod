@@ -52,7 +52,9 @@ public interface AccountService {
     @Transactional(readOnly = true)
     List<String> getAllTokensByPubkey(String pubkey);
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = true)
+    boolean isStoredToken(String token, String pubkey);
+
     void addToken(String token, String pubkey);
 
     @Transactional(readOnly = true)

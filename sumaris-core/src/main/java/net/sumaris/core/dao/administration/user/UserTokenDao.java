@@ -26,6 +26,8 @@ import java.util.List;
 
 public interface UserTokenDao {
 
+    boolean existsByPubkey(String token, String pubkey);
+
     List<String> getAllByPubkey(String pubkey);
 
     void add(String token, String pubkey);

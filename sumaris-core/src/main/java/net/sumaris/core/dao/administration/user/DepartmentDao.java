@@ -30,6 +30,7 @@ import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 
@@ -47,11 +48,17 @@ public interface DepartmentDao {
     @Cacheable(cacheNames = CacheNames.DEPARTMENT_BY_LABEL, key = "#label", unless="#result==null")
     Department getByLabelOrNull(String label);
 
-    @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id"),
+            @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_LABEL, allEntries = true)
+    })
     void delete(int id);
 
-    @CachePut(cacheNames= CacheNames.DEPARTMENT_BY_ID, key="#department.id", condition = "#department != null && #department.id != null")
-    DepartmentVO save(DepartmentVO department);
+    @Caching(put = {
+            @CachePut(cacheNames= CacheNames.DEPARTMENT_BY_ID, key="#source.id", condition = "#source != null && #source.id != null"),
+            @CachePut(cacheNames= CacheNames.DEPARTMENT_BY_LABEL, key="#source.label", condition = "#source != null && #source.id != null && #source.label != null")
+    })
+    DepartmentVO save(DepartmentVO source);
 
     DepartmentVO toDepartmentVO(Department department);
 }

@@ -51,14 +51,17 @@ public interface PersonDao  {
 
     boolean isExistsByEmailHash(String hash);
 
-    @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#id")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#id"),
+            @CacheEvict(cacheNames = CacheNames.PERSON_BY_PUBKEY, allEntries = true)
+    })
     void delete(int id);
 
     @Caching(put = {
-        @CachePut(cacheNames= CacheNames.PERSON_BY_ID, key="#person.id", condition = "#person != null && #person.id != null"),
-        @CachePut(cacheNames= CacheNames.PERSON_BY_PUBKEY, key="#person.pubkey", condition = "#person != null && #person.id != null && #person.pubkey != null")
+        @CachePut(cacheNames= CacheNames.PERSON_BY_ID, key="#source.id", condition = "#source != null && #source.id != null"),
+        @CachePut(cacheNames= CacheNames.PERSON_BY_PUBKEY, key="#source.pubkey", condition = "#source != null && #source.id != null && #source.pubkey != null")
     })
-    PersonVO save(PersonVO person);
+    PersonVO save(PersonVO source);
 
-    PersonVO toPersonVO(Person person);
+    PersonVO toPersonVO(Person source);
 }

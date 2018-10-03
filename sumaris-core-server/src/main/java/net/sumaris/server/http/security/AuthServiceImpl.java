@@ -1,16 +1,17 @@
 package net.sumaris.server.http.security;
 
 import com.google.common.collect.ImmutableList;
+import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.StatusId;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.crypto.CryptoUtils;
-import net.sumaris.core.vo.administration.user.AccountVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.crypto.ServerCryptoService;
 import net.sumaris.server.vo.security.AuthDataVO;
-import org.apache.commons.collections4.CollectionUtils;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private PersonDao personDao;
 
     @Autowired
     public AuthServiceImpl(Environment environment) {
@@ -83,19 +87,27 @@ public class AuthServiceImpl implements AuthService {
             return false;
         }
 
-        // Check challenge exists and not expired
-        if (!challenges.contains(authData.getChallenge())) {
-            if (debug) log.debug("Authentication failed. Challenge not found or expired: " + authData.getChallenge());
-            return false;
+        // Token exists on database: check as new challenge response
+        boolean isStoredToken = accountService.isStoredToken(authData.asToken(), authData.getPubkey());
+        if (!isStoredToken) {
+            log.debug("Unknown token. Check if response to new challenge...");
+
+            // Make sure the challenge exists and not expired
+            if (!challenges.contains(authData.getChallenge())) {
+                if (debug)
+                    log.debug("Authentication failed. Challenge not found or expired: " + authData.getChallenge());
+                return false;
+            }
         }
 
         // Check signature
         if (!cryptoService.verify(authData.getChallenge(), authData.getSignature(), authData.getPubkey())) {
-            if (debug) log.debug("Authentication failed. Bad challenge signature: " + authData.toString());
+            if (debug) log.debug("Authentication failed. Bad challenge signature in token: " + authData.toString());
             return false;
         }
 
-        // Success !
+        // Auth success !
+
         // Force challenge to expire
         challenges.remove(authData.getChallenge());
 
@@ -103,12 +115,14 @@ public class AuthServiceImpl implements AuthService {
         String token = authData.toString();
         checkedTokens.add(token);
 
-        // Add token to database
-        try {
-            accountService.addToken(token, authData.getPubkey());
-        } catch(RuntimeException e) {
-            // Log then continue
-            log.error("Could not save auth token.", e);
+        if(!isStoredToken) {
+            // Save this new token to database
+            try {
+                accountService.addToken(token, authData.getPubkey());
+            } catch (RuntimeException e) {
+                // Log then continue
+                log.error("Could not save auth token.", e);
+            }
         }
 
         if (debug) log.debug(String.format("Authentication succeed for user with pubkey {%s}", authData.getPubkey().substring(0, 6)));
@@ -117,10 +131,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public boolean canAuth(final String pubkey) throws DataNotFoundException {
-        AccountVO account = accountService.getByPubkey(pubkey);
+        PersonVO person = personDao.getByPubkeyOrNull(pubkey);
+        if (person == null) {
+            throw new DataRetrievalFailureException(I18n.t("sumaris.error.account.notFound"));
+        }
 
         // Cannot auth if user has been deleted or is disable
-        StatusId status = StatusId.valueOf(account.getStatusId());
+        StatusId status = StatusId.valueOf(person.getStatusId());
         if (StatusId.DISABLE.equals(status) || StatusId.DELETED.equals(status)) {
             return false;
         }

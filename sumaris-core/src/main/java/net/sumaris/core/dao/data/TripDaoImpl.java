@@ -93,7 +93,8 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Trip> query = builder.createQuery(Trip.class);
         Root<Trip> tripRoot = query.from(Trip.class);
-        query.select(tripRoot);
+        query.select(tripRoot)
+                .distinct(true);
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
@@ -104,7 +105,8 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
             );
         }
 
-        return toTripVOs(entityManager.createQuery(query).setFirstResult(offset)
+        return toTripVOs(entityManager.createQuery(query).
+                setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultList());
     }

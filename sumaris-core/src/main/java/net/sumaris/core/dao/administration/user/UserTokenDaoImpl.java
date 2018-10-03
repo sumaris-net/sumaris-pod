@@ -31,6 +31,7 @@ import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.administration.user.UserSettings;
 import net.sumaris.core.model.administration.user.UserToken;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import org.nuiton.i18n.I18n;
@@ -58,6 +59,34 @@ public class UserTokenDaoImpl extends HibernateDaoSupport implements UserTokenDa
     /** Logger. */
     private static final Logger log =
             LoggerFactory.getLogger(UserTokenDaoImpl.class);
+
+    @Override
+    public boolean existsByPubkey(String token, String pubkey) {
+
+        EntityManager session = getEntityManager();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        Root<UserToken> root = query.from(UserToken.class);
+
+        ParameterExpression<String> pubkeyParam = builder.parameter(String.class);
+        ParameterExpression<String> tokenParam = builder.parameter(String.class);
+
+        query.select(builder.count(root.get(IReferentialEntity.PROPERTY_ID)))
+                .where(builder.and(
+                        builder.equal(root.get(UserToken.PROPERTY_PUBKEY), pubkeyParam),
+                        builder.equal(root.get(UserToken.PROPERTY_TOKEN), tokenParam)
+                    )
+                );
+
+        try {
+            return session.createQuery(query)
+                    .setParameter(pubkeyParam, pubkey)
+                    .setParameter(tokenParam, token)
+                    .getSingleResult() > 0;
+        } catch (EmptyResultDataAccessException | NoResultException e) {
+            return false;
+        }
+    }
 
     @Override
     public List<String> getAllByPubkey(String pubkey) {
