@@ -24,6 +24,7 @@ import { debounceTime, mergeMap } from "rxjs/operators";
 export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
   canEdit: boolean;
+  isAdmin: boolean;
   filterForm: FormGroup;
   programs: Observable<ReferentialRef[]>;
   locations: Observable<ReferentialRef[]>;
@@ -67,8 +68,8 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       'endDate': [null],
       'location': [null]
     });
-    this.canEdit = accountService.isUser();
-    if (!this.canEdit) console.debug("User cannot add/remove trips !");
+    this.isAdmin = accountService.isAdmin();
+    this.canEdit = this.isAdmin || accountService.isUser();
     this.inlineEdition = false;
   };
 
