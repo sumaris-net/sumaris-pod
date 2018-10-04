@@ -112,7 +112,7 @@
     "BTN_RESEND": "Resend",
     "USER_DETAILS": {
       "TITLE": "Profile",
-      "DESCRIPTION": "Here are the registered data about your account:"
+      "DESCRIPTION": "Here are the registered data about your account:",
       "TECHNICAL_DIVIDER": "Technical information",
       "PROFILE": "User Profile",
       "PUBKEY": "Public key for digital signature"
