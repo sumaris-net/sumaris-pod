@@ -57,6 +57,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Locale;
@@ -114,8 +115,8 @@ public class AccountServiceImpl implements AccountService {
         }
         else {
             try {
-                this.mailFromAddress = new InternetAddress(mailFrom);
-            } catch (AddressException e) {
+                this.mailFromAddress = new InternetAddress(mailFrom, config.getAppName());
+            } catch (UnsupportedEncodingException e) {
                 throw new SumarisTechnicalException(I18n.t("sumaris.error.email.invalid", mailFrom, e.getMessage()), e);
             }
         }

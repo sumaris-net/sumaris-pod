@@ -38,7 +38,8 @@
     <jdbc.url>jdbc:hsqldb:file:data/db/sumaris</jdbc.url>
     <server.port>8080</server.port>
     <server.url>http://localhost:${server.port}</server.url>
-    <server.account.register.confirm.url>${server.url}/#/confirm/{email}/{code}</server.account.register.confirm.url>
+    <server.account.register.confirm.url>${server.url}/confirm/{email}/{code}</server.account.register.confirm.url>
+    <admin.email>sumaris.net@gmail.com</admin.email>
 
     <maven.jar.main.class>net.sumaris.server.config.Application</maven.jar.main.class>
   </properties>
@@ -316,7 +317,8 @@
         <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
         <server.url>https://www.sumaris.net</server.url>
         <server.port>8080</server.port>
-        <server.account.register.confirm.url>https://www.sumaris.net/#/confirm/{email}/{code}</server.account.register.confirm.url>
+        <server.account.register.confirm.url>https://www.sumaris.net/confirm/{email}/{code}</server.account.register.confirm.url>
+        <admin.email>sumaris.net@gmail.com</admin.email>
       </properties>
 
       <dependencies>
@@ -335,7 +337,8 @@
         <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
         <server.port>8080</server.port>
         <server.url>http://localhost:${server.port}</server.url>
-        <server.account.register.confirm.url>http://localhost:8100/#/confirm/{email}/{code}</server.account.register.confirm.url>
+        <server.account.register.confirm.url>http://localhost:8100/confirm/{email}/{code}</server.account.register.confirm.url>
+        <admin.email>root@localhost</admin.email>
       </properties>
     </profile>
   </profiles>
