@@ -36,7 +36,7 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Workaround need on Firefox Browser
-    const pageElements = document.getElementsByTagName('page-home');
+    const pageElements = document.getElementsByTagName('page-register-confirm');
     if (pageElements && pageElements.length == 1) {
       const pageElement: Element = pageElements[0];
       if (pageElement.classList.contains('ion-page-invisible')) {
