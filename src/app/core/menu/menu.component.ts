@@ -9,6 +9,7 @@ import { AboutModal } from '../about/modal-about';
 import { environment } from '../../../environments/environment';
 import { HomePage } from '../home/home';
 import { Subject } from 'rxjs';
+import { fadeInAnimation } from '../../shared/material/material.animations';
 
 export interface MenuItem {
   title: string;
@@ -21,11 +22,13 @@ export interface MenuItem {
 @Component({
   selector: 'app-menu',
   templateUrl: 'menu.component.html',
-  styleUrls: ['./menu.component.scss']
+  styleUrls: ['./menu.component.scss'],
+  animations: [fadeInAnimation]
 })
 export class MenuComponent implements OnInit {
 
-  public isLogin: boolean;
+  public loading = true;
+  public isLogin: boolean = false;
   public account: Account;
 
   //filteredItems: Array<MenuItem> = [];
@@ -59,6 +62,16 @@ export class MenuComponent implements OnInit {
 
     if (this.accountService.isLogin()) {
       this.onLogin(this.accountService.account);
+      setTimeout(() => {
+        this.loading = false;
+      }, 1000);
+    }
+    else {
+      this.isLogin = false;
+      setTimeout(() => {
+        this.updateItems();
+        this.loading = false;
+      }, 1000);
     }
   }
 
@@ -70,15 +83,19 @@ export class MenuComponent implements OnInit {
   }
 
   onLogout() {
-    //console.debug("[menu] logout");
-    this.isLogin = false;
-    this.account = null;
-    this.router.navigate(['']);
+    console.debug("[menu] logout");
     this.updateItems();
+    this.isLogin = false;
+
+    // Wait the end of fadeout, to reset the account
+    setTimeout(() => {
+      this.account = null;
+    }, 1000);
+
+    this.router.navigate(['']);
   }
 
   logout(): void {
-    this.account = null;
     this.accountService.logout();
   }
 
@@ -89,7 +106,7 @@ export class MenuComponent implements OnInit {
 
   updateItems() {
     if (!this.isLogin) {
-      this.filteredItems.next((this.items || []).filter(i => !i.profile || i.profile == 'GUEST'));
+      this.filteredItems.next((this.items || []).filter(i => !i.profile));
     }
     else {
       this.filteredItems.next((this.items || []).filter(i => {
@@ -101,6 +118,10 @@ export class MenuComponent implements OnInit {
         return res;
       }));
     }
+  }
+
+  trackByFn(index, item) {
+    return item.title;
   }
 }
 

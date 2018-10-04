@@ -16,6 +16,29 @@ export const fadeInAnimation =
         ]),
     ]);
 
+export const fadeInOutAnimation =
+    // trigger name for attaching this animation to an element using the [@triggerName] syntax
+    trigger('fadeInOutAnimation', [
+
+        // route 'enter' transition
+        transition(':enter', [
+
+            // css styles at start of transition
+            style({ opacity: 0 }),
+
+            // animation and styles at end of transition
+            animate('.3s', style({ opacity: 1 }))
+        ]),
+
+        // route 'leave' transition
+        transition(':leave', [
+            // animation and styles at end of transition
+            animate('.5s ease-in-out', style({
+                opacity: 0
+            }))
+        ]),
+    ]);
+
 export const slideInOutAnimation =
     // trigger name for attaching this animation to an element using the [@triggerName] syntax
     trigger('slideInOutAnimation', [

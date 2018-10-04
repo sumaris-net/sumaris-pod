@@ -1,24 +1,24 @@
 <ion-split-pane>
 
-  <ion-menu content="content">
+  <ion-menu side="start" content="content">
     <ion-header>
 
-      <mat-toolbar class=" user-profile" [hidden]="isLogin" padding>
+      <mat-toolbar padding *ngIf="!isLogin">
         <img src="./assets/img/logo-menu.png" [title]="'APP_NAME'|translate" />
       </mat-toolbar>
 
-      <ion-toolbar class="user-profile" [hidden]="!isLogin">
+      <ion-toolbar [@fadeInAnimation] *ngIf="isLogin" class="ion-toolbar-top">
         <ion-grid>
           <ion-row>
-            <ion-col col-4 [hidden]="!account" class="fade in">
-              <div class="user-avatar" *ngIf="account" [class.primary]="!account?.avatar" [ngStyle]="{'background-image':'url('+(account?.avatar||'./assets/img/person.png')+')'}">
+            <ion-col size="4">
+              <div class="user-avatar" [class.primary]="!account?.avatar" [ngStyle]="{'background-image':'url('+(account?.avatar||'./assets/img/person.png')+')'}">
               </div>
             </ion-col>
-            <ion-col col [class.align-right]="isLogin">
+            <ion-col size="8" class="user-logo">
               <img src="./assets/img/logo-menu.png" [title]="'APP_NAME'|translate" />
             </ion-col>
           </ion-row>
-          <ion-row [hidden]="!isLogin" no-padding>
+          <ion-row no-padding>
             <ion-text>
               <h4 full class="no-margin  bold text-white username">
                 {{account?.firstName}} {{account?.lastName}}
@@ -27,7 +27,7 @@
             </ion-text>
           </ion-row>
 
-          <ion-row no-padding class="other-data" [hidden]="!isLogin" class="fade in">
+          <ion-row no-padding class="other-data">
             <ion-col no-padding>
               <ion-button small expand="full" color="light" menuClose [routerLink]="['/account']">
                 <ion-icon name="contact" slot="start"></ion-icon>
@@ -47,16 +47,17 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content [class.has-profile-header]="isLogin" [class.no-profile-header]="!isLogin">
+    <ion-content [class.has-user-header]="isLogin">
 
-      <ion-list class="user-list" no-lines>
-        <ng-container *ngFor="let item of filteredItems | async">
+      <ion-list no-lines>
+        <ng-container *ngFor="let item of filteredItems | async; trackBy: trackByFn">
           <ion-item menuClose tappable class="text-1x" [routerLink]="item.path" routerDirection="root" routerLinkActive="selected"
-            (click)="menu.close()" [routerLinkActiveOptions]="{exact: (item.path == '/')}" *ngIf="item.path">
+            (click)="menu.close()" [routerLinkActiveOptions]="{exact: (item.path == '/')}" *ngIf="!loading && item.path"
+            [@fadeInAnimation]>
             <ion-icon color="primary" slot="start" [name]="item.icon"></ion-icon>
             <ion-label color="primary">{{item.title|translate}}</ion-label>
           </ion-item>
-          <ion-item-divider *ngIf="!item.path">
+          <ion-item-divider *ngIf="!loading && !item.path" [@fadeInAnimation]>
             <ion-label>
               {{item.title|translate}}
             </ion-label>
@@ -80,7 +81,5 @@
   <div no-padding main #content style="width:100%;">
     <ng-content></ng-content>
   </div>
-
-
 
 </ion-split-pane>
