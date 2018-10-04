@@ -94,11 +94,26 @@ export const DataFragments = {
       taxonGroup {
         ...ReferentialFragment
       }
-      measurements {
-        ...MeasurementFragment
-      } 
+      measurementValues      
     }
     ${Fragments.referential}
-    ${Fragments.measurement}
-  `
+  `,
+  batch: gql`fragment BatchFragment on BatchVO {
+    id
+    label
+    rankOrder
+    exhaustiveInventory
+    samplingRatio
+    samplingRatioText
+    individualCount
+    comments
+    updateDate
+    creationDate
+    taxonGroup {
+      ...ReferentialFragment
+    }
+    measurementValues      
+  }
+  ${Fragments.referential}
+`
 };

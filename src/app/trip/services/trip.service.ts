@@ -310,7 +310,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     // Transform into json
     const json = this.asObject(entity);
-    const isNew = !entity.id;
+    const isNew = !entity.id && entity.id !== 0;;
 
     const now = new Date();
     if (this._debug) console.debug("[trip-service] Saving trip...", json);
@@ -397,7 +397,10 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     // Clean vesselfeatures object, before saving
     copy.vesselFeatures = { vesselId: entity.vesselFeatures && entity.vesselFeatures.vesselId }
+
+    // Keep id only, on person and department
     copy.recorderPerson = { id: entity.recorderPerson && entity.recorderPerson.id }
+    copy.recorderDepartment = entity.recorderDepartment && { id: entity.recorderDepartment && entity.recorderDepartment.id } || undefined;
 
     return copy;
   }

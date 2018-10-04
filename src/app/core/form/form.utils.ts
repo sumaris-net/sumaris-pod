@@ -60,7 +60,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): Object {
         }
         else {
             if (source[key] && typeof source[key] == "object" && source[key]._isAMomentObject) {
-                console.warn("[form.utils] TODO: check if Moment should be converted ?" + source[key]);
+                //console.warn("[form.utils] TODO: check if Moment should be converted ?" + source[key]);
                 //value[key] = this.dateAdapter.format(data[key], DATE_ISO_PATTERN);
                 value[key] = source[key];
             }

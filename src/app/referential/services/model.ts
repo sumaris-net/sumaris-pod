@@ -93,6 +93,13 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
 
 
 export class PmfmStrategy extends Entity<PmfmStrategy>  {
+
+  static fromObject(source: any): PmfmStrategy {
+    const res = new PmfmStrategy();
+    res.fromObject(source);
+    return res;
+  }
+
   label: string;
   name: string;
   unit: string;

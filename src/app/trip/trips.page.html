@@ -144,8 +144,7 @@
       <mat-cell *matCellDef="let row">
         <mat-form-field floatLabel="never" [title]="vesselFeaturesToString(row.currentData.vesselFeatures)">
           <input matInput [formControl]="row.validator.controls['vesselFeatures']" [placeholder]="'TRIP.VESSEL'|translate"
-            [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [(ngModel)]="row.currentData.vesselFeatures"
-            [matAutocomplete]="autoVessel">
+            [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [matAutocomplete]="autoVessel">
           <mat-error *ngIf="row.validator.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
 
@@ -176,7 +175,7 @@
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
           <input matInput [formControl]="row.validator.controls['departureLocation']" [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
-            [matAutocomplete]="autoDepartureLocation" [readonly]="!row.editing" [(ngModel)]="row.currentData.departureLocation">
+            [matAutocomplete]="autoDepartureLocation" [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['departureLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
         </mat-form-field>
@@ -208,7 +207,7 @@
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
 
         <mat-date-time floatLabel="never" [formControl]="row.validator.controls['departureDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-          [(ngModel)]="row.currentData.departureDateTime" [readonly]="!row.editing" required>
+          [readonly]="!row.editing" required>
         </mat-date-time>
       </mat-cell>
 
@@ -221,7 +220,7 @@
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
         <mat-date-time floatLabel="never" [formControl]="row.validator.controls['returnDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-          [(ngModel)]="row.currentData.returnDateTime" [readonly]="!row.editing" required>
+          [readonly]="!row.editing" required>
         </mat-date-time>
       </mat-cell>
     </ng-container>

@@ -151,7 +151,8 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
   onRowClick(event: MouseEvent, row: TableElement<PhysicalGear>): boolean {
     if (!row.currentData || event.defaultPrevented) return false;
 
-    if (this.selectedRow && this.selectedRow.validator.invalid) {
+    // Avoid to change select row, if previous is not valid
+    if (this.selectedRow && (this.selectedRow.validator.invalid || this.gearForm.invalid)) {
       event.stopPropagation();
       return false;
     }

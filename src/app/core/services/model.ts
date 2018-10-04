@@ -87,7 +87,7 @@ export abstract class Entity<T> implements Cloneable<T> {
 
   abstract clone(): T;
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
     const target: any = Object.assign({}, this);
     delete target.dirty;
     delete target.__typename;
@@ -159,8 +159,8 @@ export class Referential extends Entity<Referential>  {
     return target;
   }
 
-  asObject(): any {
-    const target: any = super.asObject();
+  asObject(minify?: boolean): any {
+    const target: any = super.asObject(minify);
     target.creationDate = toDateISOString(this.creationDate);
     return target;
   }
@@ -217,7 +217,8 @@ export class ReferentialRef extends Entity<ReferentialRef>  {
     return target;
   }
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
+    if (minify) return { id: this.id }; // minify=keep id only
     const target: any = super.asObject();
     delete target.entityName;
     return target;
@@ -272,7 +273,8 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     target.profiles = this.profiles && this.profiles.slice(0) || undefined;
   }
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
+    if (minify) return { id: this.id }; // minify=keep id only
     const target: any = super.asObject();
     target.department = this.department && this.department.asObject() || undefined;
     target.profiles = this.profiles && this.profiles.slice(0) || [];
@@ -280,8 +282,9 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     if (this.mainProfile && !target.profiles.find(p => p === this.mainProfile)) {
       target.profiles = target.profiles.concat(this.mainProfile);
     }
-    target.mainProfile = getMainProfile(target.profiles);
     target.creationDate = toDateISOString(this.creationDate);
+
+    if (!minify) target.mainProfile = getMainProfile(target.profiles);
     return target;
   }
 
@@ -321,7 +324,8 @@ export class Department extends Referential implements Cloneable<Department>{
     return target;
   }
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
+    if (minify) return { id: this.id }; // minify=keep id only
     const target: any = super.asObject();
     delete target.entityName;
     return target;
@@ -347,7 +351,7 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
     return res;
   }
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
     const res: any = super.asObject();
     delete res.dirty;
     delete res.__typename;
@@ -394,7 +398,7 @@ export class Account extends Person {
     return target;
   }
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
     const target: any = super.asObject();
     target.settings = this.settings && this.settings.asObject() || undefined;
     return target;

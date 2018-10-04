@@ -265,8 +265,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
     this.fillDefaultProperties(entity, {});
 
     // Transform into json
-    const json = entity.asObject();
-    const isNew = !entity.id;
+    const json = entity.asObject(true/*minify*/);
+    const isNew = !entity.id && entity.id !== 0;
 
     const now = new Date();
     if (this._debug) console.debug("[operation-service] Saving operation...", json);

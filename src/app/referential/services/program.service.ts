@@ -68,6 +68,8 @@ export class ProgramService extends BaseDataService {
             (!options.acquisitionLevel || p.acquisitionLevel == options.acquisitionLevel)
             && (!options.gear || p.gears && p.gears.findIndex(g => g == options.gear) !== -1)
           ))
+          // Convert into model
+          .map(PmfmStrategy.fromObject)
           // Sort on rank order
           .sort((p1, p2) => p1.rankOrder - p2.rankOrder)
         )

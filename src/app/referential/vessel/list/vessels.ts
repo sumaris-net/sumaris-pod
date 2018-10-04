@@ -74,11 +74,6 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
       this.filterForm.markAsUntouched();
       this.filterForm.markAsPristine();
     });
-
-    // Copy data to validator
-    this.dataSource.connect().subscribe(rows => {
-      rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
-    });
   }
 
   async openNewRowDetail(): Promise<any> {

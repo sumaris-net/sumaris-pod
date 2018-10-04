@@ -208,9 +208,13 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   }
 
   enable() {
-    // Enable only if as right
-    if (!this.data || !this.tripService.canUserWrite(this.data)) return;
-    if (this.debug) console.log("[trip] Can user write on trip ? yes");
+    if (!this.data) return false;
+    // If not a new trip, check user can write
+    if ((this.data.id || this.data.id === 0) && !this.tripService.canUserWrite(this.data)) {
+      if (this.debug) console.warn("[trip] Leave form disable (User has NO write access)");
+      return;
+    }
+    if (this.debug) console.debug("[trip] Enabling form (User has write access)");
     super.enable();
   }
 

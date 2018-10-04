@@ -35,6 +35,12 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     super([], dataType, validatorService, config);
     this.serviceOptions = config && config.serviceOptions;
     this._debug = true;
+
+    // Copy data to validator
+    this.connect().subscribe(rows => {
+      console.debug("Copy currentData to validator");
+      rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
+    });
   };
 
   load(offset: number,

@@ -98,11 +98,6 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
       this.filterForm.markAsUntouched();
       this.filterForm.markAsPristine();
     });
-
-    // Copy data to validator
-    this.dataSource.connect().subscribe(rows => {
-      rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
-    });
   }
 
   referentialToString = referentialToString;

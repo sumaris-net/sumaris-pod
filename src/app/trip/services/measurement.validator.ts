@@ -16,18 +16,21 @@ export class MeasurementsValidatorService implements ValidatorService {
   }
 
   public getFormGroup(pmfms: PmfmStrategy[]): FormGroup {
-    const controlConfig: any = {};
-    pmfms.forEach(pmfm => {
-      controlConfig[pmfm.id] = this.getValidators(pmfm);
-    });
+    const config = this.getFormGroupConfig(pmfms);
+    return this.formBuilder.group(config);
+  }
 
-    return this.formBuilder.group(controlConfig);
+  public getFormGroupConfig(pmfms: PmfmStrategy[]): { [key: string]: any } {
+    return pmfms.reduce((res, pmfm) => {
+      res[pmfm.id] = this.getValidators(pmfm);
+      return res;
+    }, {});
   }
 
   public updateFormGroup(form: FormGroup, pmfms: PmfmStrategy[], options?: {
     protectedAttributes?: string[]
   }) {
-    options = options || { protectedAttributes: ['id', 'rankOrder', 'comments'] };
+    options = options || { protectedAttributes: ['id', 'rankOrder', 'comments', 'updateDate'] };
     let controlNamesToRemove: string[] = [];
     for (let controlName in form.controls) {
       controlNamesToRemove.push(controlName);

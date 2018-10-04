@@ -58,17 +58,6 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- scoring date time 
-  <ng-container matColumnDef="startDateTime">
-    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <ion-label translate>TRIP.SURVIVAL_TEST.TABLE.SCORING_DATE_TIME</ion-label>
-    </mat-header-cell>
-    <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['scoringDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-        [(ngModel)]="row.currentData.scoringDateTime" [readonly]="!row.editing" required>
-      </mat-date-time>
-    </mat-cell>
-  </ng-container> -->
 
   <!-- TODO -->
 

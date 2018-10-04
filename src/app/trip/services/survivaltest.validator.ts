@@ -20,8 +20,7 @@ export class SurvivalTestValidatorService implements ValidatorService {
       'rankOrder': ['', Validators.required],
       'label': ['', Validators.required],
       'sampleDate': ['', Validators.required],
-      'taxonGroup': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'measurementsMap': this.formBuilder.group({})
+      'taxonGroup': ['', Validators.compose([Validators.required, SharedValidators.entity])]
     });
   }
 }

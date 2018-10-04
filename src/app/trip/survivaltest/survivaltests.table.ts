@@ -42,6 +42,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
     started: boolean = false;
     pmfms: Observable<PmfmStrategy[]>;
     cachedPmfms: PmfmStrategy[];
+    cachedPmfmFormConfig: { [key: string]: any };
     data: Sample[];
     taxonGroups: Observable<ReferentialRef[]>;
 
@@ -94,6 +95,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
 
         this.pmfms.subscribe(pmfms => {
             this.cachedPmfms = pmfms;
+            this.cachedPmfmFormConfig = this.measurementsValidatorService.getFormGroupConfig(this.cachedPmfms);
             let displayedColumns = pmfms.reduce((res, pmfm) => {
                 return res.concat('' + pmfm.id);
             }, []);
@@ -132,11 +134,6 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         this.taxonGroups.subscribe(items => {
             this._implicitTaxonGroup = (items.length === 1) && items[0];
         });
-
-        // Copy data to validator
-        this.dataSource.connect().subscribe(rows => {
-            rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
-        });
     }
 
     getRowValidator(): FormGroup {
@@ -144,15 +141,20 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
     }
 
     getFormGroup(data?: any): FormGroup {
+        console.log("getFormGroup");
         let formGroup = this.validatorService.getFormGroup(data);
-        if (this.cachedPmfms) {
-            let measForm = formGroup.get('measurementsMap') as FormGroup;
-            if (!measForm) {
-                measForm = this.formBuilder.group({});
-                formGroup.addControl('measurementsMap', measForm);
-            }
-            this.measurementsValidatorService.updateFormGroup(measForm, this.cachedPmfms);
+        if (this.cachedPmfmFormConfig) {
+            //formGroup.removeControl('measurementValues');
+            formGroup.addControl('measurementValues', this.formBuilder.group(this.cachedPmfmFormConfig));
         }
+        // if (this.cachedPmfms) {
+        //     let measForm = formGroup.get('measurementValues') as FormGroup;
+        //     if (!measForm) {
+        //         measForm = this.formBuilder.group({});
+        //         formGroup.addControl('measurementValues', measForm);
+        //     }
+        //     this.measurementsValidatorService.updateFormGroup(measForm, this.cachedPmfms);
+        // }
         return formGroup;
     }
 
@@ -179,13 +181,13 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
 
             const res = {};
             this.cachedPmfms.forEach(pmfm => {
-                let value = sample.measurementsMap[pmfm.id.toString()];
+                let value = sample.measurementValues[pmfm.id.toString()];
                 if (value && pmfm.type === "qualitative_value") {
                     value = pmfm.qualitativeValues.find(qv => qv.id === value);
                 }
                 res[pmfm.id.toString()] = value || (value === 0 ? 0 : null);
             })
-            sample.measurementsMap = res;
+            sample.measurementValues = res;
         });
 
         // Sort by column

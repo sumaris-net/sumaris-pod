@@ -66,12 +66,9 @@
       <ion-label translate>TRIP.OPERATION.LIST.METIER</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <span [title]="row.currentData.metier && (row.currentData.metier.label + ' - ' + row.currentData.metier.name)">
-        {{row.currentData.metier && row.currentData.metier.label}}
-      </span>
-      <!-- <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['metier']" [placeholder]="'TRIP.OPERATION.METIER'|translate" [readonly]="!row.editing"
-          [(ngModel)]="row.currentData.metier">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls['metier']" [placeholder]="'TRIP.OPERATION.METIER'|translate"
+          [readonly]="!row.editing" [matAutocomplete]="autoMetier" [appAutofocus]="row.id == -1 && row.editing">
         <mat-error *ngIf="row.validator.controls['metier'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
 
@@ -90,7 +87,7 @@
             <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
           </ion-row>
         </mat-option>
-      </mat-autocomplete> -->
+      </mat-autocomplete>
     </mat-cell>
   </ng-container>
 
@@ -101,7 +98,7 @@
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
       <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-        [(ngModel)]="row.currentData.startDateTime" [readonly]="!row.editing" required>
+        [readonly]="!row.editing" required>
       </mat-date-time>
     </mat-cell>
   </ng-container>
@@ -113,13 +110,11 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <div [formGroup]="row.validator.controls['startPosition']">
-        <mat-latlong floatLabel="never" formControlName="latitude" [(ngModel)]="row.currentData.startPosition.latitude"
-          type="latitude" [latLongPattern]="latLongPattern" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate"
-          [readonly]="!row.editing" required>
+        <mat-latlong floatLabel="never" formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern"
+          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [readonly]="!row.editing" required>
         </mat-latlong>
-        <mat-latlong floatLabel="never" formControlName="longitude" [(ngModel)]="row.currentData.startPosition.longitude"
-          type="longitude" [latLongPattern]="latLongPattern" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)"
-          [readonly]="!row.editing" required>
+        <mat-latlong floatLabel="never" formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern"
+          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [readonly]="!row.editing" required>
         </mat-latlong>
       </div>
     </mat-cell>
@@ -132,7 +127,7 @@
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
       <mat-date-time floatLabel="never" [formControl]="row.validator.controls['endDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-        [(ngModel)]="row.currentData.endDateTime" [readonly]="!row.editing" required>
+        [readonly]="!row.editing" required>
       </mat-date-time>
     </mat-cell>
   </ng-container>
@@ -145,12 +140,10 @@
     <mat-cell *matCellDef="let row">
       <form [formGroup]="row.validator.controls['endPosition']">
         <mat-latlong floatLabel="never" formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [(ngModel)]="row.currentData.endPosition.latitude"
-          [readonly]="!row.editing" required>
+          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [readonly]="!row.editing" required>
         </mat-latlong>
         <mat-latlong floatLabel="never" formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [(ngModel)]="row.currentData.endPosition.longitude"
-          [readonly]="!row.editing" required>
+          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [readonly]="!row.editing" required>
         </mat-latlong>
       </form>
     </mat-cell>

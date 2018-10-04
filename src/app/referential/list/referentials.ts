@@ -146,11 +146,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       this.filterForm.markAsPristine();
     });
 
-    // Copy data to validator
-    this.dataSource.connect().subscribe(rows => {
-      rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
-    });
-
     // Only if entityName has been select:  load data
     this.filter = this.filterForm.value;
     this.entityName = this.filter.entityName;

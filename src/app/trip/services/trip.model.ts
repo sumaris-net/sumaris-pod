@@ -40,7 +40,7 @@ export abstract class DataEntity<T> extends Entity<T> {
     this.recorderDepartment = new Department();
   }
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
     const target = super.asObject();
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject() || undefined;
     return target;
@@ -64,10 +64,10 @@ export abstract class DataRootEntity<T> extends DataEntity<T> {
     this.recorderPerson = new Person();
   }
 
-  asObject(): any {
-    const target = super.asObject();
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
     target.creationDate = toDateISOString(this.creationDate);
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject() || undefined;
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
     return target;
   }
 
@@ -89,7 +89,7 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> {
     this.vesselFeatures = new VesselFeatures();
   }
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
     const target = super.asObject();
     target.vesselFeatures = this.vesselFeatures && this.vesselFeatures.asObject() || undefined;
     return target;
@@ -138,16 +138,16 @@ export class Trip extends DataRootVesselEntity<Trip> {
     target.fromObject(this);
   }
 
-  asObject(): any {
-    const target = super.asObject();
-    target.program = this.program && this.program.asObject() || undefined;
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
+    target.program = this.program && this.program.asObject(minify) || undefined;
     target.departureDateTime = toDateISOString(this.departureDateTime);
     target.returnDateTime = toDateISOString(this.returnDateTime);
-    target.departureLocation = this.departureLocation && this.departureLocation.asObject() || undefined;
-    target.returnLocation = this.returnLocation && this.returnLocation.asObject() || undefined;
-    target.sale = this.sale && this.sale.asObject() || undefined;
-    target.gears = this.gears && this.gears.map(p => p && p.asObject()) || undefined;
-    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
+    target.departureLocation = this.departureLocation && this.departureLocation.asObject(minify) || undefined;
+    target.returnLocation = this.returnLocation && this.returnLocation.asObject(minify) || undefined;
+    target.sale = this.sale && this.sale.asObject(minify) || undefined;
+    target.gears = this.gears && this.gears.map(p => p && p.asObject(minify)) || undefined;
+    target.measurements = this.measurements && this.measurements.map(m => m.asObject(minify)) || undefined;
     return target;
   }
 
@@ -207,12 +207,12 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
     target.fromObject(this);
   }
 
-  asObject(): any {
-    const target = super.asObject();
-    target.gear = this.gear && this.gear.asObject() || undefined;
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
+    target.gear = this.gear && this.gear.asObject(minify) || undefined;
 
     // Measurements
-    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
+    target.measurements = this.measurements && this.measurements.map(m => m.asObject(minify)) || undefined;
 
     return target;
   }
@@ -264,9 +264,9 @@ export class Measurement extends DataEntity<Measurement> {
     target.fromObject(this);
   }
 
-  asObject(): any {
-    const target = super.asObject();
-    target.qualitativeValue = this.qualitativeValue && this.qualitativeValue.id && { id: this.qualitativeValue.id };
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
+    target.qualitativeValue = this.qualitativeValue && this.qualitativeValue.asObject(minify) || undefined;
     return target;
   }
 
@@ -397,12 +397,12 @@ export class Sale extends DataRootVesselEntity<Sale> {
     target.fromObject(this);
   }
 
-  asObject(): any {
-    const target = super.asObject();
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
-    target.saleLocation = this.saleLocation && this.saleLocation.asObject() || undefined;
-    target.saleType = this.saleType && this.saleType.asObject() || undefined;
+    target.saleLocation = this.saleLocation && this.saleLocation.asObject(minify) || undefined;
+    target.saleType = this.saleType && this.saleType.asObject(minify) || undefined;
     return target;
   }
 
@@ -460,16 +460,16 @@ export class Operation extends DataEntity<Operation> {
     return target;
   }
 
-  asObject(): any {
-    const target = super.asObject();
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
-    target.metier = this.metier && this.metier.asObject() || undefined;
+    target.metier = this.metier && this.metier.asObject(minify) || undefined;
 
     // Create an array of position, instead of start/end
-    target.positions = [this.startPosition, this.endPosition].map(p => p && p.asObject()) || undefined;
+    target.positions = [this.startPosition, this.endPosition].map(p => p && p.asObject(minify)) || undefined;
     delete target.startPosition;
     delete target.endPosition;
 
@@ -478,10 +478,10 @@ export class Operation extends DataEntity<Operation> {
     delete target.physicalGear;
 
     // Measurements
-    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
+    target.measurements = this.measurements && this.measurements.map(m => m.asObject(minify)) || undefined;
 
     // Samples
-    target.samples = this.samples && this.samples.map(s => s.asObject()) || undefined;
+    target.samples = this.samples && this.samples.map(s => s.asObject(minify)) || undefined;
 
     // Batch
     //target.catchBatch  = this.catchBatch && this.catchBatch.asObject() || undefined;
@@ -558,8 +558,8 @@ export class VesselPosition extends DataEntity<Operation> {
     return target;
   }
 
-  asObject(): any {
-    const target = super.asObject();
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
     target.dateTime = toDateISOString(this.dateTime);
     return target;
   }
@@ -593,8 +593,7 @@ export class Sample extends DataRootEntity<Sample> {
   sampleDate: Moment;
   individualCount: number;
   taxonGroup: ReferentialRef;
-  //measurements: Measurement[];
-  measurementsMap: { [key: string]: any };
+  measurementValues: { [key: string]: any };
   matrixId: number;
   batchId: number;
   operationId: number;
@@ -602,8 +601,7 @@ export class Sample extends DataRootEntity<Sample> {
   constructor() {
     super();
     this.taxonGroup = new ReferentialRef();
-    //this.measurements = [];
-    this.measurementsMap = {};
+    this.measurementValues = {};
   }
 
   clone(): Sample {
@@ -612,21 +610,22 @@ export class Sample extends DataRootEntity<Sample> {
     return target;
   }
 
-  asObject(): any {
-    const target = super.asObject();
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
     target.sampleDate = toDateISOString(this.sampleDate);
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject() || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
 
     // Measurement: keep only the map
-    delete target.measurements;
-    target.measurementsMap = this.measurementsMap && Object.getOwnPropertyNames(this.measurementsMap)
-      .reduce((map, pmfmId) => {
-        const value = this.measurementsMap[pmfmId] && this.measurementsMap[pmfmId].id || this.measurementsMap[pmfmId];
-        if (value || value === 0) {
-          map[pmfmId] = value;
-        }
-        return map;
-      }, {}) || undefined;
+    if (minify) {
+      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
+        .reduce((map, pmfmId) => {
+          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
+          if (value || value === 0) {
+            map[pmfmId] = value;
+          }
+          return map;
+        }, {}) || undefined;
+    }
     return target;
   }
 
@@ -638,21 +637,22 @@ export class Sample extends DataRootEntity<Sample> {
     this.individualCount = source.individualCount;
     this.comments = source.comments;
     source.taxonGroup && this.taxonGroup.fromObject(source.taxonGroup);
+    this.matrixId = source.matrixId;
+    this.batchId = source.batchId;
+    this.operationId = source.operationId;
 
+    if (source.measurementValues) {
+      this.measurementValues = source.measurementValues;
+    }
     // Convert measurement to map
-    if (source.measurements) {
-      this.measurementsMap = source.measurements && source.measurements.reduce((map, m) => {
+    else if (source.measurements) {
+      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
         const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
         if (value) map[m.pmfmId.toString()] = value;
         return map;
       }, {}) || undefined;
     }
-    else {
-      this.measurementsMap = source.measurementsMap;
-    }
-    this.matrixId = source.matrixId;
-    this.batchId = source.batchId;
-    this.operationId = source.operationId;
+
     return this;
   }
 
@@ -681,14 +681,14 @@ export class Batch extends DataEntity<Batch> {
   comments: string;
   parentBatch: Batch;
   children: Batch[];
-  measurements: Measurement[];
+  measurementValues: { [key: string]: any };
   operationId: number;
 
   constructor() {
     super();
     this.parentBatch = null;
     this.taxonGroup = null;
-    this.measurements = [];
+    this.measurementValues = {};
     this.children = [];
   }
 
@@ -698,16 +698,28 @@ export class Batch extends DataEntity<Batch> {
     return target;
   }
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
     let parent = this.parentBatch; // avoid parent conversion
     this.parentBatch = null;
-    const target = super.asObject();
+    const target = super.asObject(minify);
     this.parentBatch = parent;
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject() || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
 
-    target.children = this.children && this.children.map(c => c.asObject()) || undefined;
-    target.measurements = this.measurements && this.measurements.map(m => m.asObject()) || undefined;
+    target.children = this.children && this.children.map(c => c.asObject(minify)) || undefined;
+
+    // Measurement: keep only the map
+    if (minify) {
+      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
+        .reduce((map, pmfmId) => {
+          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
+          if (value || value === 0) {
+            map[pmfmId] = value;
+          }
+          return map;
+        }, {}) || undefined;
+    }
+
     return target;
   }
 
@@ -723,7 +735,19 @@ export class Batch extends DataEntity<Batch> {
     this.operationId = source.operationId;
     this.children = source.children && source.children.filter(c => !!c).map(Batch.fromObject) || undefined;
     this.children && this.children.forEach(c => c.parentBatch = this); // link children to self
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
+
+    if (source.measurementValues) {
+      this.measurementValues = source.measurementValues;
+    }
+    // Convert measurement to map
+    else if (source.measurements) {
+      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
+        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
+        if (value) map[m.pmfmId.toString()] = value;
+        return map;
+      }, {}) || undefined;
+    }
+
     return this;
   }
 
