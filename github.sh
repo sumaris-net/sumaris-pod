@@ -41,7 +41,7 @@ case "$1" in
   ;;
 
   pre|rel)
-    if [[ $2 != "" ]]; then
+    if [[ "_$2" != "_" ]]; then
 
       if [[ $1 = "pre" ]]; then
         prerelease="true"
