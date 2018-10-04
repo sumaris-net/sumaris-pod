@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { AccountService } from '../../services/account.service';
@@ -7,9 +7,10 @@ import { getRandomImage } from '../../home/home';
 
 @Component({
   selector: 'page-registrer-confirm',
-  templateUrl: 'confirm.html'
+  templateUrl: 'confirm.html',
+  styleUrls: ['./confirm.scss']
 })
-export class RegisterConfirmPage implements OnDestroy {
+export class RegisterConfirmPage implements OnInit, OnDestroy {
 
   isLogin: boolean;
   subscriptions: Subscription[] = [];
@@ -32,6 +33,18 @@ export class RegisterConfirmPage implements OnDestroy {
     this.subscriptions.push(this.activatedRoute.paramMap.subscribe(params =>
       this.doConfirm(params.get("email"), params.get("code"))
     ));
+  }
+
+  ngOnInit(): void {
+    // Workaround need on Firefox Browser
+    const pageElements = document.getElementsByTagName('page-home');
+    if (pageElements && pageElements.length == 1) {
+      const pageElement: Element = pageElements[0];
+      if (pageElement.classList.contains('ion-page-invisible')) {
+        console.warn("[home] FIXME Applying workaround on page visibility (see issue #1)");
+        pageElement.classList.remove('ion-page-invisible');
+      }
+    }
   }
 
   ngOnDestroy() {

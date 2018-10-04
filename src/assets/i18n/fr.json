@@ -93,9 +93,10 @@
     "CONFIRM_EMAIL": "Email (confirmation)",
     "CONFIRM_PASSWORD": "Mot de passe (confirmation)",
     "CONFIRMED": {
-      "LOADING_TITLE": "Attente de la confirmation...",
-      "TITLE": "Inscription terminée !",
-      "SUCCESS_MESSAGE": "Votre adresse email <b>{{email}}</b> a bien été validée.<br/>Votre inscription est maintenant <b>terminée</b> !",
+      "TITLE": "Finalisation de l'inscription",
+      "LOADING": "Attente de la confirmation...",
+      "SUB_TITLE": "Inscription terminée !",
+      "SUCCESS": "Votre adresse email <b>{{email}}</b> a bien été validée.<br/>Votre inscription est maintenant <b>terminée</b> !",
       "LOGIN_HELP": "Pour vous connecter, <b>cliquez ci-dessous</b> :"
     },
     "ERROR": {
@@ -113,8 +114,8 @@
       "TITLE": "Profile",
       "DESCRIPTION": "Voici les données enregistrées concernant votre compte :",
       "TECHNICAL_DIVIDER": "Information techniques",
-      "PROFILE": "Profile utilisateur",
-      "PUBKEY": "Clé publique de chiffrement"
+      "PROFILE": "Profil utilisateur",
+      "PUBKEY": "Clé publique pour la signature numérique"
     },
     "SETTINGS": {
       "TITLE": "Préférences",

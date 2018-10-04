@@ -93,9 +93,10 @@
     "CONFIRM_EMAIL": "Email (confirmation)",
     "CONFIRM_PASSWORD": "Password (confirmation)",
     "CONFIRMED": {
-      "LOADING_TITLE": "Waiting confirmation...",
-      "TITLE": "Registration completed!",
-      "SUCCESS_MESSAGE": "Your email address <b>{{email}}</b> has been validated.<br/>Your registration is now <b>complete</b>!",
+      "TITLE": "Finalization of registration",
+      "LOADING": "Waiting confirmation...",
+      "SUB_TITLE": "Registration completed!",
+      "SUCCESS": "Your email address <b>{{email}}</b> has been validated.<br/>Your registration is now <b>complete</b>!",
       "LOGIN_HELP": "To login, <b>click below</b>:"
     },
     "ERROR": {
@@ -112,6 +113,9 @@
     "USER_DETAILS": {
       "TITLE": "Profile",
       "DESCRIPTION": "Here are the registered data about your account:"
+      "TECHNICAL_DIVIDER": "Technical information",
+      "PROFILE": "User Profile",
+      "PUBKEY": "Public key for digital signature"
     },
     "SETTINGS": {
       "TITLE": "Settings",
