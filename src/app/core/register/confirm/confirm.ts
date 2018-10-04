@@ -6,7 +6,7 @@ import { Location } from '@angular/common';
 import { getRandomImage } from '../../home/home';
 
 @Component({
-  selector: 'page-registrer-confirm',
+  selector: 'page-register-confirm',
   templateUrl: 'confirm.html',
   styleUrls: ['./confirm.scss']
 })
