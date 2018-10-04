@@ -85,8 +85,8 @@ git push
 # Pause (if propagation is need between hosted git server and github)
 sleep 10s
 
-DESCRIPTION = `echo $3`
-if [[ "_$3" == "_" ]]; then
+DESCRIPTION="$3"
+if [[ "_$DESCRIPTION" == "_" ]]; then
     DESCRIPTION = "Release v$2"
 fi 
 

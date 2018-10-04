@@ -21,8 +21,7 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
 
   constructor(
     private accountService: AccountService,
-    private activatedRoute: ActivatedRoute,
-    private location: Location) {
+    private activatedRoute: ActivatedRoute) {
 
     this.isLogin = accountService.isLogin();
     this.bgImage = getRandomImage();
