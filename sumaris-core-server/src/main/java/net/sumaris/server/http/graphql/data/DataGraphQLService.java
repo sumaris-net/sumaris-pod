@@ -23,7 +23,11 @@ package net.sumaris.server.http.graphql.data;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.generator.mapping.common.MapToListTypeAdapter;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.service.data.*;
@@ -152,11 +156,12 @@ public class DataGraphQLService {
         return result;
     }
 
-    @GraphQLQuery(name = "model_trip", description = "Get a trip, by id")
-    @Transactional(readOnly = true)
-    public Trip getTrip(@GraphQLArgument(name = "id") int id) {
-        return tripService.get(id, Trip.class);
-    }
+    // FOR DEV ONLY: Full access to database model
+    //@GraphQLQuery(name = "model_trip", description = "Get a trip, by id")
+    //@Transactional(readOnly = true)
+    //public Trip getTrip(@GraphQLArgument(name = "id") int id) {
+    //    return tripService.get(id, Trip.class);
+    //}
 
     @GraphQLQuery(name = "trip", description = "Get a trip, by id")
     @Transactional(readOnly = true)
@@ -331,19 +336,36 @@ public class DataGraphQLService {
         return measurementService.getSampleMeasurements(sample.getId());
     }
 
-    @GraphQLQuery(name = "measurementsValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
-    public Map<Integer, Object> getSampleMeasurementsMap(@GraphQLContext SampleVO sample) {
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, String> getSampleMeasurementValues(@GraphQLContext SampleVO sample) {
         return measurementService.getSampleMeasurementsMap(sample.getId());
     }
 
-    @GraphQLQuery(name = "sortingMeasurementsValues", description = "Get sorting measurement values (as a key/value map, using pmfmId as key)")
-    public Map<Integer, Object> getSortingMeasurementsMap(@GraphQLContext BatchVO sample) {
-        return measurementService.getBatchSortingMeasurementsMap(sample.getId());
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, String> getBatchMeasurementValues(@GraphQLContext BatchVO sample) {
+        Map<Integer, String> map = Maps.newHashMap();
+        map.putAll(measurementService.getBatchSortingMeasurementsMap(sample.getId()));
+        map.putAll(measurementService.getBatchQuantificationMeasurementsMap(sample.getId()));
+        return map;
     }
-    @GraphQLQuery(name = "quantificationMeasurementsValues", description = "Get quantification measurement values (as a key/value map, using pmfmId as key)")
-    public Map<Integer, Object> getQuantificationMeasurementsMap(@GraphQLContext BatchVO sample) {
-        return measurementService.getBatchQuantificationMeasurementsMap(sample.getId());
-    }
+
+//    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+//    public List<Map.Entry<Integer, Object>> getBatchMeasurementsValues(@GraphQLContext BatchVO sample) {
+//        Map<Integer, Object> map = Maps.newHashMap();
+//        map.putAll(measurementService.getBatchSortingMeasurementsMap(sample.getId()));
+//        map.putAll(measurementService.getBatchQuantificationMeasurementsMap(sample.getId()));
+//        return ImmutableList.copyOf(map.entrySet());
+//    }
+
+    // TODO: remove if not used
+//    @GraphQLQuery(name = "sortingMeasurementValues", description = "Get sorting measurement values (as a key/value map, using pmfmId as key)")
+//    public Map<Integer, Object> getSortingMeasurementsMap(@GraphQLContext BatchVO sample) {
+//        return measurementService.getBatchSortingMeasurementsMap(sample.getId());
+//    }
+//    @GraphQLQuery(name = "quantificationMeasurementValues", description = "Get quantification measurement values (as a key/value map, using pmfmId as key)")
+//    public Map<Integer, Object> getQuantificationMeasurementsMap(@GraphQLContext BatchVO sample) {
+//        return measurementService.getBatchQuantificationMeasurementsMap(sample.getId());
+//    }
 
     @GraphQLQuery(name = "pmfm", description = "Get measurement's pmfm")
     public PmfmVO getMeasurementPmfm(@GraphQLContext MeasurementVO measurement) {

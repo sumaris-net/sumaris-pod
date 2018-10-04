@@ -54,12 +54,12 @@ public interface MeasurementService {
     List<MeasurementVO> getSampleMeasurements(int sampleId);
 
     @Transactional(readOnly = true)
-    Map<Integer, Object> getSampleMeasurementsMap(int sampleId);
+    Map<Integer, String> getSampleMeasurementsMap(int sampleId);
 
     @Transactional(readOnly = true)
-    Map<Integer, Object> getBatchSortingMeasurementsMap(int batchId);
+    Map<Integer, String> getBatchSortingMeasurementsMap(int batchId);
 
     @Transactional(readOnly = true)
-    Map<Integer, Object> getBatchQuantificationMeasurementsMap(int batchId);
+    Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId);
 
 }

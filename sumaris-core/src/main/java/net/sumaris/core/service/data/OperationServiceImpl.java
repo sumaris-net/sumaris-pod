@@ -24,6 +24,8 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import liquibase.util.CollectionUtil;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.OperationDao;
@@ -34,12 +36,11 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.measure.GearUseMeasurement;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
+import net.sumaris.core.service.data.batch.BatchService;
 import net.sumaris.core.service.data.sample.SampleService;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.SampleVO;
-import net.sumaris.core.vo.data.VesselPositionVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +70,9 @@ public class OperationServiceImpl implements OperationService {
 
 	@Autowired
 	protected SampleService sampleService;
+
+	@Autowired
+	protected BatchService batchService;
 
 	@Override
 	public List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute,
@@ -126,6 +130,17 @@ public class OperationServiceImpl implements OperationService {
 			samples.forEach(s -> fillDefaultProperties(savedOperation, s));
 			samples = sampleService.saveByOperationId(savedOperation.getId(), samples);
 			savedOperation.setSamples(samples);
+		}
+
+		// Save batches
+		{
+
+			List<BatchVO> batches = getAllBatches(savedOperation);
+			if (CollectionUtils.isNotEmpty(batches)) {
+				batches.forEach(b -> fillDefaultProperties(savedOperation, b));
+				batches = batchService.saveByOperationId(savedOperation.getId(), batches);
+				savedOperation.setCatchBatch(batches.get(0));
+			}
 		}
 
 		return savedOperation;
@@ -200,5 +215,53 @@ public class OperationServiceImpl implements OperationService {
 		}
 
 		sample.setOperationId(parent.getId());
+	}
+
+	protected void fillDefaultProperties(OperationVO parent, BatchVO batch) {
+		if (batch == null) return;
+
+		// Copy recorder department from the parent
+		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		batch.setOperationId(parent.getId());
+	}
+
+	protected void fillDefaultProperties(BatchVO parent, BatchVO batch) {
+		if (batch == null) return;
+
+		// Copy recorder department from the parent
+		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		batch.setParentId(parent.getId());
+		batch.setOperationId(parent.getOperationId());
+	}
+
+	protected List<BatchVO> getAllBatches(OperationVO operation) {
+		BatchVO catchBatch = operation.getCatchBatch();
+		fillDefaultProperties(operation, catchBatch);
+		List<BatchVO> result = Lists.newArrayList();
+		addAllBatchesToList(catchBatch, result);
+		return result;
+	}
+
+	protected void addAllBatchesToList(final BatchVO batch, final List<BatchVO> result) {
+		if (batch == null) return;
+
+		// Add the batch itself
+		result.add(batch);
+
+		// Process children
+		if (CollectionUtils.isNotEmpty(batch.getChildren())) {
+			// Recursive call
+			batch.getChildren().forEach(child -> {
+				fillDefaultProperties(batch, child);
+				addAllBatchesToList(child, result);
+			});
+		}
+
 	}
 }

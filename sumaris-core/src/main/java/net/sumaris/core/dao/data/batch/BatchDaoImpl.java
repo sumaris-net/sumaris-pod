@@ -26,21 +26,29 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.batch.Batch;
+import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
@@ -58,10 +66,56 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
     private ReferentialDao referentialDao;
 
     @Override
+    public List<BatchVO> getAllByOperationId(int operationId) {
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Batch> query = cb.createQuery(Batch.class);
+        Root<Batch> root = query.from(Batch.class);
+
+        query.select(root);
+
+        ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
+
+        query.where(cb.equal(root.get(Batch.PROPERTY_OPERATION).get(Batch.PROPERTY_ID), tripIdParam));
+
+        // Sort by rank order
+        query.orderBy(cb.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
+
+        return toBatchVOs(getEntityManager().createQuery(query)
+                .setParameter(tripIdParam, operationId).getResultList(), false);
+    }
+
+    @Override
     public BatchVO get(int id) {
         Batch entity = get(Batch.class, id);
         return toBatchVO(entity, false);
     }
+
+    @Override
+    public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
+
+        // Load parent entity
+        Operation parent = get(Operation.class, operationId);
+
+        // Remember existing entities
+        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getBatches()));
+
+        // Save each gears
+        List<BatchVO> result = sources.stream().map(source -> {
+            source.setOperationId(operationId);
+            if (source.getId() != null) {
+                sourcesIdsToRemove.remove(source.getId());
+            }
+            return save(source);
+        }).collect(Collectors.toList());
+
+        // Remove unused entities
+        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
+            sourcesIdsToRemove.forEach(this::delete);
+        }
+
+        return result;
+    }
+
 
     @Override
     public BatchVO save(BatchVO source) {

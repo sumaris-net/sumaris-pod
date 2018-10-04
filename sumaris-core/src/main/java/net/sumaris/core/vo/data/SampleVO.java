@@ -41,7 +41,7 @@ public class SampleVO implements IUpdateDateEntityBean<Integer, Date> {
     private Integer operationId;
 
     private List<MeasurementVO> measurements; // sample_measurement
-    private Map<Integer, Object> measurementsMap; // sample_measurement
+    private Map<Integer, String> measurementValues; // sample_measurement
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

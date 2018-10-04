@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Beans;
@@ -31,6 +32,7 @@ import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.batch.Batch;
 import net.sumaris.core.model.data.batch.BatchQuantificationMeasurement;
 import net.sumaris.core.model.data.batch.BatchSortingMeasurement;
 import net.sumaris.core.model.data.measure.*;
@@ -138,7 +140,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     @Override
     @SuppressWarnings("unchecked")
-    public Map<Integer, Object> getSampleMeasurementsMap(int sampleId) {
+    public Map<Integer, String> getSampleMeasurementsMap(int sampleId) {
         return getMeasurementsMapByParentId(SampleMeasurement.class,
                 SampleMeasurement.PROPERTY_SAMPLE,
                 sampleId,
@@ -148,7 +150,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     @Override
     @SuppressWarnings("unchecked")
-    public Map<Integer, Object> getBatchSortingMeasurementsMap(int batchId) {
+    public Map<Integer, String> getBatchSortingMeasurementsMap(int batchId) {
         return getMeasurementsMapByParentId(BatchSortingMeasurement.class,
                 BatchSortingMeasurement.PROPERTY_BATCH,
                 batchId,
@@ -158,7 +160,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     @Override
     @SuppressWarnings("unchecked")
-    public Map<Integer, Object> getBatchQuantificationMeasurementsMap(int batchId) {
+    public Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId) {
         return getMeasurementsMapByParentId(BatchQuantificationMeasurement.class,
                 BatchQuantificationMeasurement.PROPERTY_BATCH,
                 batchId,
@@ -256,9 +258,33 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public Map<Integer, Object> saveSampleMeasurementsMap(final int sampleId, Map<Integer, Object> sources) {
+    public Map<Integer, String> saveSampleMeasurementsMap(final int sampleId, Map<Integer, String> sources) {
         Sample parent = get(Sample.class, sampleId);
         return saveMeasurementsMap(SampleMeasurement.class, sources, parent.getSampleMeasurements(), parent);
+    }
+
+    @Override
+    public List<MeasurementVO> saveBatchSortingMeasurements(int batchId, List<MeasurementVO> sources) {
+        Batch parent = get(Batch.class, batchId);
+        return saveMeasurements(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements());
+    }
+
+    @Override
+    public List<MeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<MeasurementVO> sources) {
+        Batch parent = get(Batch.class, batchId);
+        return saveMeasurements(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements());
+    }
+
+    @Override
+    public Map<Integer, String> saveBatchSortingMeasurementsMap(int batchId, Map<Integer, String> sources) {
+        Batch parent = get(Batch.class, batchId);
+        return saveMeasurementsMap(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveBatchQuantificationMeasurementsMap(int batchId, Map<Integer, String> sources) {
+        Batch parent = get(Batch.class, batchId);
+        return saveMeasurementsMap(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
     }
 
     @Override
@@ -291,9 +317,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     /* -- protected methods -- */
 
-    protected <T extends IMeasurementEntity> Map<Integer, Object> saveMeasurementsMap(
+    protected <T extends IMeasurementEntity> Map<Integer, String> saveMeasurementsMap(
             final Class<? extends T> entityClass,
-            Map<Integer, Object> sources,
+            Map<Integer, String> sources,
             List<T> target,
             final IDataEntity<?> parent) {
 
@@ -304,9 +330,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         final Map<Integer, T> sourceToRemove = Beans.splitByProperty(Beans.getList(target), IMeasurementEntity.PROPERTY_PMFM + "." + IMeasurementEntity.PROPERTY_ID);
 
         int rankOrder = 1;
-        for (Map.Entry<Integer, Object> source: sources.entrySet()) {
+        for (Map.Entry<Integer, String> source: sources.entrySet()) {
             Integer pmfmId = source.getKey();
-            Object value = source.getValue();
+            String value = source.getValue();
             // Get existing meas and remove it from list to remove
             IMeasurementEntity entity = sourceToRemove.remove(pmfmId);
 
@@ -417,7 +443,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         return toMeasurementVOs(query.getResultList());
     }
 
-    protected <T extends IMeasurementEntity> Map<Integer, Object> getMeasurementsMapByParentId(Class<T> entityClass,
+    protected <T extends IMeasurementEntity> Map<Integer, String> getMeasurementsMapByParentId(Class<T> entityClass,
                                                                                            String parentPropertyName,
                                                                                            int parentId,
                                                                                            String sortByPropertyName) {
@@ -455,10 +481,21 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 .collect(Collectors.toList());
     }
 
-    protected <T extends IMeasurementEntity> Map<Integer, Object> toMeasurementsMap(List<T> source) {
-        return source.stream()
+    protected <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(List<T> source) {
+        final Map<Integer, String> result = Maps.newIdentityHashMap();
+        source.stream()
                 .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null)
-                .collect(Collectors.toMap(m -> m.getPmfm().getId(), this::entityToValue));
+                .forEach(m -> {
+
+                    if (m.getPmfm() != null && m.getPmfm().getId() != null) {
+                        Object value = this.entityToValue(m);
+                        if (value != null) {
+                            result.put(m.getPmfm().getId(), value.toString());
+                        }
+                    }
+                });
+                //.collect(Collectors.toMap(m -> m.getPmfm().getId(), this::entityToValue))
+        return result;
     }
 
 
@@ -511,7 +548,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         linkToParent(target, Sample.class, source.getSampleId(), false);
     }
 
-    protected void valueToEntity(Object value, int pmfmId, IMeasurementEntity target) {
+    protected void valueToEntity(String value, int pmfmId, IMeasurementEntity target) {
 
         if (value == null) {
             throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to set value NULL value on a measurement");
@@ -526,24 +563,17 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 break;
             case QUALITATIVE_VALUE:
                 // If get a object structure (e.g. ReferentialVO), try to get the id
-                if (value instanceof Map) {
-                    Object valueId = ((Map)value).get(QualitativeValue.PROPERTY_ID);
-                    if (valueId != null) {
-                        target.setQualitativeValue(load(QualitativeValue.class, Integer.parseInt(valueId.toString())));
-                        break;
-                    }
-                }
-                target.setQualitativeValue(load(QualitativeValue.class, Integer.parseInt(value.toString())));
+                target.setQualitativeValue(load(QualitativeValue.class, Integer.parseInt(value)));
                 break;
             case STRING:
-                target.setAlphanumericalValue(value.toString());
+                target.setAlphanumericalValue(value);
                 break;
             case DATE:
-                target.setAlphanumericalValue(value.toString());
+                target.setAlphanumericalValue(value);
                 break;
             case INTEGER:
             case DOUBLE:
-                target.setNumericalValue(Double.parseDouble(value.toString()));
+                target.setNumericalValue(Double.parseDouble(value));
                 break;
             default:
                 // Unknown type

@@ -27,20 +27,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.data.batch.BatchService;
 import net.sumaris.core.service.data.sample.SampleService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 public class OperationServiceWriteTest extends AbstractServiceTest {
@@ -59,6 +57,9 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @Autowired
     private SampleService sampleService;
+
+    @Autowired
+    private BatchService batchService;
 
     @Autowired
     private PmfmService pmfmService;
@@ -148,13 +149,52 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
             sample.setComments("A survival test sample #1");
 
             // Measurements (as map)
-            sample.setMeasurementsMap(
-                ImmutableMap.<Integer, Object>builder()
-                    .put(60, new Integer(155))
-                    .put(80, new Integer(185))
+            sample.setMeasurementValues(
+                ImmutableMap.<Integer, String>builder()
+                    .put(60, "155")
+                    .put(80, "185")
                     .build());
 
             vo.setSamples(ImmutableList.of(sample));
+        }
+
+        // Batch / catch
+        int batchCount = 0;
+        {
+            BatchVO catchBatch = new BatchVO();
+            catchBatch.setLabel("batch #1");
+            catchBatch.setRankOrder(1);
+            catchBatch.setComments("Catch batch on OPE #1");
+
+            // Measurements (as map)
+            catchBatch.setSortingMeasurementValues(
+                    ImmutableMap.<Integer, String>builder()
+                            .put(60, "155")
+                            .put(80, "185")
+                            .build());
+
+            vo.setCatchBatch(catchBatch);
+            batchCount++;
+
+            // Children
+            List<BatchVO> children = Lists.newArrayList();
+            {
+                BatchVO batch = new BatchVO();
+                batch.setLabel("batch #1.1");
+                batch.setRankOrder(1);
+                batch.setComments("Batch 1.1 on OPE #1");
+                batch.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAO(0)));
+
+                // Measurements (as map)
+                batch.setSortingMeasurementValues(
+                        ImmutableMap.<Integer, String>builder()
+                                .put(60, "155") // TODO: change this
+                                .put(80, "185")
+                                .build());
+                children.add(batch);
+            }
+            catchBatch.setChildren(children);
+            batchCount+=children.size();
         }
 
         // Save
@@ -179,10 +219,18 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
         // Check samples
         {
-            // Should NOT be loaded in VO
+            // Should NOT be loaded in OperationVO
             Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getSamples()));
             List<SampleVO> reloadSamples = sampleService.getAllByOperationId(savedVo.getId());
             Assert.assertEquals(CollectionUtils.size(savedVo.getSamples()), CollectionUtils.size(reloadSamples));
+        }
+
+        // Check batches
+        {
+            // Should NOT be loaded in OperationVO
+            Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getCatchBatch()));
+            List<BatchVO> reloadBatches = batchService.getAllByOperationId(savedVo.getId());
+            Assert.assertEquals(batchCount, CollectionUtils.size(reloadBatches));
         }
     }
 

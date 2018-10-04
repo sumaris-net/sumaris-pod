@@ -41,6 +41,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,20 +108,20 @@ public class SampleDaoImpl extends HibernateDaoSupport implements SampleDao {
         Operation parent = get(Operation.class, operationId);
 
         // Remember existing entities
-        final Map<Integer, Sample> sourcesToRemove = Beans.splitById(Beans.getList(parent.getSamples()));
+        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getSamples()));
 
         // Save each gears
         List<SampleVO> result = sources.stream().map(source -> {
             source.setOperationId(operationId);
             if (source.getId() != null) {
-                sourcesToRemove.remove(source.getId());
+                sourcesIdsToRemove.remove(source.getId());
             }
             return save(source);
         }).collect(Collectors.toList());
 
         // Remove unused entities
-        if (MapUtils.isNotEmpty(sourcesToRemove)) {
-            sourcesToRemove.values().forEach(this::delete);
+        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
+            sourcesIdsToRemove.forEach(this::delete);
         }
 
         return result;

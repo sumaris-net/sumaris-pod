@@ -27,23 +27,16 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleDao;
 import net.sumaris.core.dao.technical.Beans;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.VesselPosition;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;
-import net.sumaris.core.model.data.measure.VesselUseMeasurement;
 import net.sumaris.core.model.data.sample.SampleMeasurement;
 import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SampleVO;
-import net.sumaris.core.vo.data.VesselPositionVO;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -74,9 +67,9 @@ public class SampleServiceImpl implements SampleService {
 		List<SampleVO> result = sampleDao.saveByOperationId(operationId, sources);
 
 		// Save measurements
-		result.stream().forEach(savedSample -> {
-			if (savedSample.getMeasurementsMap() != null) {
-				measurementDao.saveSampleMeasurementsMap(savedSample.getId(), savedSample.getMeasurementsMap());
+		result.forEach(savedSample -> {
+			if (savedSample.getMeasurementValues() != null) {
+				measurementDao.saveSampleMeasurementsMap(savedSample.getId(), savedSample.getMeasurementValues());
 			}
 			else {
 				List<MeasurementVO> measurements = Beans.getList(savedSample.getMeasurements());

@@ -152,6 +152,18 @@ public class Beans {
     }
 
     /**
+     * <p>splitByProperty.</p>
+     *
+     * @param list a {@link Iterable} object.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link Map} object.
+     */
+    public static <K extends Serializable, V extends IEntityBean<K>> List<K> collectIds(Collection<V> list) {
+        return transformCollection(list, IEntityBean::getId);
+    }
+
+    /**
      * <p>collectProperties.</p>
      *
      * @param collection a {@link Collection} object.

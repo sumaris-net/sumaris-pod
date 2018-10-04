@@ -1,4 +1,4 @@
-package net.sumaris.core.service.data.sample;
+package net.sumaris.core.service.data.batch;
 
 /*-
  * #%L
@@ -23,7 +23,7 @@ package net.sumaris.core.service.data.sample;
  */
 
 
-import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.data.BatchVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -33,20 +33,20 @@ import java.util.List;
  * 
  */
 @Transactional
-public interface SampleService {
+public interface BatchService {
 
 
 	@Transactional(readOnly = true)
-	List<SampleVO> getAllByOperationId(int operationId);
+	List<BatchVO> getAllByOperationId(int operationId);
 
-	List<SampleVO> saveByOperationId(int operationId, List<SampleVO> samples);
+	List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources);
 
 	@Transactional(readOnly = true)
-	SampleVO get(int id);
+	BatchVO get(int id);
 
-	SampleVO save(SampleVO sale);
+	BatchVO save(BatchVO sale);
 
-	List<SampleVO> save(List<SampleVO> samples);
+	List<BatchVO> save(List<BatchVO> sources);
 
 	void delete(int id);
 

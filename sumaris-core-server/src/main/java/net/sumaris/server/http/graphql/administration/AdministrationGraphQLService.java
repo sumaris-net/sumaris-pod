@@ -114,7 +114,7 @@ public class AdministrationGraphQLService {
         return result;
     }
 
-    @GraphQLQuery(name = "person", description = "Get a person")
+    /*@GraphQLQuery(name = "person", description = "Get a person")
     @Transactional(readOnly = true)
     public PersonVO getPersonById(@GraphQLArgument(name = "id") int id,
                                   @GraphQLEnvironment() Set<String> fields
@@ -127,7 +127,7 @@ public class AdministrationGraphQLService {
         }
 
         return result;
-    }
+    }*/
 
     @GraphQLMutation(name = "savePersons", description = "Create or update many persons")
     public List<PersonVO> savePersons(
@@ -135,11 +135,11 @@ public class AdministrationGraphQLService {
         return personService.save(persons);
     }
 
-    @GraphQLMutation(name = "deletePerson", description = "Delete a person (by id)")
+    /*@GraphQLMutation(name = "deletePerson", description = "Delete a person (by id)")
     public void deletePerson(
             @GraphQLArgument(name = "id") int id) {
         personService.delete(id);
-    }
+    }*/
 
     @GraphQLMutation(name = "deletePersons", description = "Delete many person (by ids)")
     public void deletePersons(
@@ -171,11 +171,12 @@ public class AdministrationGraphQLService {
         return result;
     }
 
+    /* TODO: enable when pagination will be manage in the client app
     @GraphQLQuery(name = "countPersons", description = "Search in persons")
     @Transactional(readOnly = true)
     public Long countPersonsByFilter(@GraphQLArgument(name = "filter") PersonFilterVO filter) {
         return personService.countByFilter(filter);
-    }
+    }*/
 
     @GraphQLQuery(name = "account", description = "Search a user account")
     @Transactional(readOnly = true)

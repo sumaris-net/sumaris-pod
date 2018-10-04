@@ -41,11 +41,11 @@ public interface MeasurementDao {
 
     List<MeasurementVO> getSampleMeasurements(int sampleId);
 
-    Map<Integer, Object> getSampleMeasurementsMap(int sampleId);
+    Map<Integer, String> getSampleMeasurementsMap(int sampleId);
 
-    Map<Integer, Object> getBatchSortingMeasurementsMap(int batchId);
+    Map<Integer, String> getBatchSortingMeasurementsMap(int batchId);
 
-    Map<Integer, Object> getBatchQuantificationMeasurementsMap(int batchId);
+    Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId);
 
 
     <T extends IMeasurementEntity> MeasurementVO toMeasurementVO(T measurement);
@@ -63,7 +63,17 @@ public interface MeasurementDao {
 
     List<MeasurementVO> saveGearUseMeasurementsByOperationId(int operationId, List<MeasurementVO> sources);
 
+    // Sample
     List<MeasurementVO> saveSampleMeasurements(int sampleId, List<MeasurementVO> sources);
 
-    Map<Integer, Object> saveSampleMeasurementsMap(final int sampleId, Map<Integer, Object> sources);
+    Map<Integer, String> saveSampleMeasurementsMap(final int sampleId, Map<Integer, String> sources);
+
+    // Batch
+    List<MeasurementVO> saveBatchSortingMeasurements(int sampleId, List<MeasurementVO> sources);
+
+    List<MeasurementVO> saveBatchQuantificationMeasurements(int sampleId, List<MeasurementVO> sources);
+
+    Map<Integer, String> saveBatchSortingMeasurementsMap(final int batchId, Map<Integer, String> sources);
+
+    Map<Integer, String> saveBatchQuantificationMeasurementsMap(final int batchId, Map<Integer, String> sources);
 }

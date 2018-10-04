@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
@@ -36,8 +37,14 @@ public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
     private OperationVO operation;
     private Integer operationId;
 
+    private Integer parentId;
+    private List<BatchVO> children;
+
     private List<MeasurementVO> sortingMeasurements;
     private List<MeasurementVO> quantificationMeasurements;
+
+    private Map<Integer, String> sortingMeasurementValues;
+    private Map<Integer, String> quantificationMeasurementValues;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

@@ -67,17 +67,17 @@ public class MeasurementServiceImpl implements MeasurementService {
 	}
 
 	@Override
-	public Map<Integer, Object> getSampleMeasurementsMap(int sampleId) {
+	public Map<Integer, String> getSampleMeasurementsMap(int sampleId) {
 		return measurementDao.getSampleMeasurementsMap(sampleId);
 	}
 
 	@Override
-	public Map<Integer, Object> getBatchSortingMeasurementsMap(int batchId) {
+	public Map<Integer, String> getBatchSortingMeasurementsMap(int batchId) {
 		return measurementDao.getBatchSortingMeasurementsMap(batchId);
 	}
 
 	@Override
-	public Map<Integer, Object> getBatchQuantificationMeasurementsMap(int batchId) {
+	public Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId) {
 		return measurementDao.getBatchQuantificationMeasurementsMap(batchId);
 	}
 }
