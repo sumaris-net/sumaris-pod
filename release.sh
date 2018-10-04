@@ -63,38 +63,47 @@ echo "----------------------------------"
 echo "- Compiling sources..."
 echo "----------------------------------"
 npm run build.prod
+if [ $? -ne 0 ]; then
+    exit
+fi
 
 echo "----------------------------------"
 echo "- Creating artefact..."
 echo "----------------------------------"
 cd $DIRNAME/dist 
 zip -q -r sumaris-app.zip sumaris-app
-cd $DIRNAME
+if [ $? -ne 0 ]; then
+    exit
+fi
 
 echo "----------------------------------"
 echo "- Executing git push, with tag: v$2"
 echo "----------------------------------"
 
 # Commit
+cd $DIRNAME
 git reset HEAD
 git add package.json config.xml src/manifest.json install.sh
 git commit -m "v$2"
 git tag "v$2"
 git push
+if [ $? -ne 0 ]; then
+    exit
+fi
 
 # Pause (if propagation is need between hosted git server and github)
 sleep 10s
 
-DESCRIPTION="$3"
-if [[ "_$DESCRIPTION" == "_" ]]; then
-    DESCRIPTION = "Release v$2"
+description="$3"
+if [[ "_$description" == "_" ]]; then
+    description="Release v$2"
 fi 
 
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
 
-./github.sh $1 ''"$DESCRIPTION"''
+./github.sh $1 ''"$description"''
 if [ $? -ne 0 ]; then
     exit
 fi
