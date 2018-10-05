@@ -179,15 +179,16 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         const res = this.data.slice(0); // copy
         res.forEach(sample => {
 
-            const res = {};
+            const values = {};
             this.cachedPmfms.forEach(pmfm => {
                 let value = sample.measurementValues[pmfm.id.toString()];
                 if (value && pmfm.type === "qualitative_value") {
-                    value = pmfm.qualitativeValues.find(qv => qv.id === value);
+                    const qvId = parseInt(value);
+                    value = pmfm.qualitativeValues.find(qv => qv.id == qvId);
                 }
-                res[pmfm.id.toString()] = value || (value === 0 ? 0 : null);
+                values[pmfm.id.toString()] = value || (value === 0 ? 0 : null);
             })
-            sample.measurementValues = res;
+            sample.measurementValues = values;
         });
 
         // Sort by column
