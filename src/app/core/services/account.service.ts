@@ -128,6 +128,8 @@ const SaveAccountMutation: any = gql`
       }
       department {
         id
+        label 
+        name
       }
     }
   }

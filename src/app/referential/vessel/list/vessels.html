@@ -83,8 +83,8 @@
         <span translate>VESSEL.START_DATE</span>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm mat-cell-date-time" *matCellDef="let row">
-        <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDate']" [readonly]="!row.editing"
-          [displayTime]="false" required>
+        <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDate']" [displayTime]="false"
+          required>
         </mat-date-time>
       </mat-cell>
     </ng-container>

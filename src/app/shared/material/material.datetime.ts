@@ -3,10 +3,10 @@ import { Platform } from '@ionic/angular';
 import { FloatLabelType, DateAdapter, MatDatepicker, MatDatepickerInputEvent } from '@angular/material';
 import { FormGroup, FormControl, FormBuilder, Validators, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
+import * as moment from "moment/moment";
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR } from '../constants';
 import { SharedValidators } from '../validator/validators';
-import { debounceTime } from 'rxjs/operators';
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
     provide: NG_VALUE_ACCESSOR,
@@ -26,6 +26,8 @@ const DateFormats = {
     }
 };
 
+const HOUR_TIME_PATTERN = /[0-2]\d:[0-5]\d/;
+
 const noop = () => {
 };
 
@@ -43,7 +45,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     touchUi: boolean = false;
     mobile: boolean = false;
-    requiredError: boolean = false;
     form: FormGroup;
     displayPattern: string;
     dayPattern: string;
@@ -52,8 +53,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     mask = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
     hourMask = [/[0-2]/, /\d/, ':', /[0-5]/, /\d/];
-    //hourMask = [/[0-2]/, /\d/];
-    //minuteMask = [/[0-5]/, /\d/];
 
     @Input() disabled: boolean = false
 
@@ -77,6 +76,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
     @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
+    @ViewChild('datePicker3') datePicker3: MatDatepicker<Moment>;
 
     constructor(
         platform: Platform,
@@ -92,16 +92,32 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     ngOnInit() {
 
-        this.form = this.formBuilder.group({
-            day: (this.required ? ['', Validators.required] : ['']),
-            hour: ['', this.required ? Validators.pattern(/[0-2]\d:[0-5]\d/) : Validators.compose([Validators.required, Validators.pattern(/[0-2]\d:[0-5]\d/)])]
-        });
-
         this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
         if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time>.");
 
+        const isRequired = this.required || this.formControl.validator === Validators.required;
+        if (this.displayTime) {
+            if (this.mobile) {
+                this.form = this.formBuilder.group({
+                    day: (isRequired ? ['', Validators.required] : [''])
+                });
+            }
+            else {
+                this.form = this.formBuilder.group({
+                    day: (isRequired ? ['', Validators.required] : ['']),
+                    hour: ['', isRequired ? Validators.compose([Validators.required, Validators.pattern(HOUR_TIME_PATTERN)]) : Validators.pattern(HOUR_TIME_PATTERN)]
+                });
+            }
+        }
+        else {
+            this.form = this.formBuilder.group({
+                day: (isRequired ? ['', Validators.required] : [''])
+            });
+        }
+
         // Add custom 'validDate' validator
-        this.formControl.setValidators(Validators.compose([this.formControl.validator, SharedValidators.validDate]));
+        this.formControl.setValidators(isRequired ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
+        this.formControl.updateValueAndValidity();
 
         // Get patterns to display date and date+time
         this.translate.get(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN'])
@@ -121,21 +137,67 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         if (this.writing) return;
 
         this.date = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
-        if (this.date) {
-            this.writing = true;
-            // Format hh
-            let hour: number | string = this.date.hour();
-            hour = hour < 10 ? ('0' + hour) : hour;
-            // Format mm
-            let minutes: number | string = this.date.minutes();
-            minutes = minutes < 10 ? ('0' + minutes) : minutes
-            // Set form value
-            this.form.setValue({
-                day: this.date.clone().startOf('day').format(this.dayPattern),
-                hour: `${hour}:${minutes}`
-            }, { emitEvent: false });
-            this.writing = false;
+        if (!this.date) return;
+
+        this.writing = true;
+
+        console.log("TODO set value !");
+
+        // If mobile (use ion-date-time component)
+        if (this.mobile) {
+            // With time
+            if (this.displayTime) {
+                this.form.setValue({
+                    day: {
+                        year: { value: this.date.year() },
+                        month: { value: this.date.month() },
+                        day: { value: this.date.day() },
+                        hour: { value: this.date.hour() },
+                        minute: { value: this.date.minute() }
+                    }
+                }, { emitEvent: false });
+            }
+            // Without time
+            else {
+                this.form.setValue({
+                    day: {
+                        year: { value: this.date.year() },
+                        month: { value: this.date.month() },
+                        day: { value: this.date.day() },
+                        hour: { value: 0 },
+                        minute: { value: 0 }
+                    }
+                }, { emitEvent: false });
+            }
         }
+        else {
+            // With time
+            if (this.displayTime) {
+
+                // Format hh
+                let hour: number | string = this.date.hour();
+                hour = hour < 10 ? ('0' + hour) : hour;
+                // Format mm
+                let minutes: number | string = this.date.minutes();
+                minutes = minutes < 10 ? ('0' + minutes) : minutes
+                // Set form value
+                this.form.setValue({
+                    day: this.date.clone().startOf('day').format(this.dayPattern),
+                    hour: `${hour}:${minutes}`
+                }, { emitEvent: false });
+            }
+
+            // Without time
+            else {
+                console.log("call writeValue()", this.date, this.formControl);
+                // Set form value
+                this.form.setValue({
+                    day: this.date.clone().startOf('day').format(this.dayPattern)
+                }, { emitEvent: false });
+                this.form.updateValueAndValidity();
+            }
+        }
+        this.writing = false;
     }
 
     registerOnChange(fn: any): void {
@@ -167,34 +229,79 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
         if (this.form.invalid) {
             this.formControl.markAsPending();
-            let errors = Object.assign({}, this.form.controls.day.errors, this.form.controls.hour.errors);
+            let errors = {};
+
+            if (this.mobile || !this.displayTime) {
+                Object.assign(errors, this.form.controls.day.errors);
+            }
+            else {
+                Object.assign(errors, this.form.controls.day.errors, this.form.controls.hour.errors);
+            }
             this.formControl.setErrors(errors);
             this.writing = false;
             return;
         }
 
         // Make to remove placeholder chars
-        while (json.day && json.day.indexOf(this.placeholderChar) != -1) {
-            json.day = json.day.replace(this.placeholderChar, '');
+        if (!this.mobile) {
+            while (json.day && json.day.indexOf(this.placeholderChar) != -1) {
+                json.day = json.day.replace(this.placeholderChar, '');
+            }
         }
 
-        // Parse day string
-        let date: Moment = json.day && this.dateAdapter.parse(json.day, this.dayPattern);
+        let date: Moment;
+        if (this.mobile && json.day && typeof json.day != "string") {
 
-        // If time
-        if (this.displayTime) {
-            const hourParts = (json.hour || '').split(':');
-            date = date && date
-                // set as time as locale time
-                .locale(this.locale)
-                .hour(parseInt(hourParts[0] || 0))
-                .minute(parseInt(hourParts[1] || 0))
-                .seconds(0).millisecond(0)
-                // then change in UTC, to avoid TZ offset in final string
-                .utc();
+            if (this.displayTime) {
+                json = json && json.day;
+                console.log("CHECK TODO ion-date-time result", json);
+                date = json && json.day && json.year && json.month && moment()
+                    // set as time as locale time
+                    .locale(this.locale)
+                    .year(json.year.value || 0)
+                    .month(json.month.value || 0)
+                    .day(json.day.value || 0)
+                    .hour(json.hour && json.hour.value || 0)
+                    .minute(json.minute && json.minute.value || 0)
+                    .seconds(0).millisecond(0)
+                    // then change in UTC, to avoid TZ offset in final string
+                    .utc();
+            }
+            else {
+                date = json && json.day && json.year && json.month && moment()
+                    // set as time as locale time
+                    .locale(this.locale)
+                    .year(json.year.value || 0)
+                    .month(json.month.value || 0)
+                    .day(json.day.value || 0)
+                    .hour(0).minute(0)
+                    .seconds(0).millisecond(0)
+                    // then change in UTC, to avoid TZ offset in final string
+                    .utc();
+            }
         }
         else {
-            date = date && date.utc(true).hour(0).minute(0).seconds(0).millisecond(0);
+
+            // Parse day string
+            date = json.day && this.dateAdapter.parse(json.day, this.dayPattern);
+
+            // If time
+            if (this.displayTime) {
+
+                const hourParts = (json.hour || '').split(':');
+                date = date && date
+                    // set as time as locale time
+                    .locale(this.locale)
+                    .hour(parseInt(hourParts[0] || 0))
+                    .minute(parseInt(hourParts[1] || 0))
+                    .seconds(0).millisecond(0)
+                    // then change in UTC, to avoid TZ offset in final string
+                    .utc();
+            }
+            else {
+                // Reset time
+                date = date && date.utc(true).hour(0).minute(0).seconds(0).millisecond(0);
+            }
         }
 
         // update date picker
@@ -216,15 +323,24 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         let date = event.value;
         date = typeof date === 'string' && this.dateAdapter.parse(date, DATE_ISO_PATTERN) || date;
         if (this.displayTime) {
-            const hourParts = (this.form.controls.hour.value || '').split(':');
-            date = date && date && date
-                // set as time as locale time
-                .locale(this.locale)
-                .hour(parseInt(hourParts[0] || 0))
-                .minute(parseInt(hourParts[1] || 0))
-                .seconds(0).millisecond(0)
-                // then change in UTC, to avoid TZ offset in final string
-                .utc();
+            if (this.mobile) {
+                date = date && date
+                    // set as time as locale time
+                    .locale(this.locale)
+                    // then change in UTC, to avoid TZ offset in final string
+                    .utc();
+            }
+            else {
+                const hourParts = (this.form.controls.hour.value || '').split(':');
+                date = date && date
+                    // set as time as locale time
+                    .locale(this.locale)
+                    .hour(parseInt(hourParts[0] || 0))
+                    .minute(parseInt(hourParts[1] || 0))
+                    .seconds(0).millisecond(0)
+                    // then change in UTC, to avoid TZ offset in final string
+                    .utc();
+            }
         }
         else {
             // avoid to have TZ offset
@@ -232,7 +348,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         }
 
         // update day value
-        this.form.controls.day.setValue(date && date.clone().startOf('day').format(this.dayPattern), { emitEvent: false });
+        this.form.controls.day.setValue(date && date.clone().startOf('day').format(this.mobile ? this.displayPattern : this.dayPattern), { emitEvent: false });
 
         // Get the model value
         const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
@@ -243,8 +359,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     }
 
     public markAsTouched() {
-        this.requiredError = this.formControl && this.formControl.hasError('required');
-        //console.log("has error ?", this.formControl.hasError('required'));
         if (this.form.touched) {
             this._onTouched();
         }
@@ -264,6 +378,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     public openDatePicker(event: UIEvent) {
         this.datePicker1 && this.datePicker1.open();
         this.datePicker2 && this.datePicker2.open();
+        this.datePicker3 && this.datePicker3.open();
         event.preventDefault();
     }
 

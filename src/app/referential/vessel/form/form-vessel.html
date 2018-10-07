@@ -13,12 +13,13 @@
       <ion-col>
         <mat-form-field>
           <input matInput [placeholder]="'VESSEL.EXTERIOR_MARKING'|translate" formControlName="exteriorMarking"
-            required>
+            autocomplete="off" required>
           <mat-error *ngIf="form.controls['exteriorMarking'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
       <ion-col size="auto">
-        <mat-date-time [placeholder]="'VESSEL.START_DATE'|translate" formControlName="startDate" [displayTime]="false">
+        <mat-date-time [placeholder]="'VESSEL.START_DATE'|translate" formControlName="startDate" [displayTime]="false"
+          [required]="true">
         </mat-date-time>
       </ion-col>
     </ion-row>
@@ -27,7 +28,7 @@
     <ion-row>
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.NAME'|translate" formControlName="name" required>
+          <input matInput [placeholder]="'VESSEL.NAME'|translate" formControlName="name" required autocomplete="off">
           <mat-error *ngIf="form.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>

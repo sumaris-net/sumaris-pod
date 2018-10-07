@@ -5,6 +5,7 @@ import { Account, referentialToString, Entity } from "../../services/model";
 import { MatHorizontalStepper } from "@angular/material";
 import { Observable, Subscription } from "rxjs";
 import { AccountValidatorService } from "../../services/account.validator";
+import { environment } from "../../../../environments/environment";
 
 
 @Component({
@@ -74,23 +75,24 @@ export class RegisterForm implements OnInit {
   }
 
   ngOnInit() {
-
-    // For DEV only
-    this.form.setValue({
-      emailStep: {
-        email: 'contact@e-is.pro',
-        confirmEmail: 'contact@e-is.pro'
-      },
-      passwordStep: {
-        password: 'contactera',
-        confirmPassword: 'contactera'
-      },
-      detailsStep: {
-        lastName: 'Lavenier 2',
-        firstName: 'Benoit',
-        department: null
-      }
-    });
+    // For DEV only ------------------------
+    if (environment.production === false) {
+      this.form.setValue({
+        emailStep: {
+          email: 'contact@e-is.pro',
+          confirmEmail: 'contact@e-is.pro'
+        },
+        passwordStep: {
+          password: 'contactera',
+          confirmPassword: 'contactera'
+        },
+        detailsStep: {
+          lastName: 'Lavenier 2',
+          firstName: 'Benoit',
+          department: null
+        }
+      });
+    }
   }
 
   public get value(): RegisterData {

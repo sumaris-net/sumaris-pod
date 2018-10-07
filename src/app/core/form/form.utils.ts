@@ -52,7 +52,7 @@ export function copyEntity2Form(source: any, target: FormGroup) {
  * @param source an entity (or subentity)
  * @param form 
  */
-export function getFormValueFromEntity(source: any, form: FormGroup): Object {
+export function getFormValueFromEntity(source: any, form: FormGroup): { [key: string]: any } {
     const value = {};
     for (let key in form.controls) {
         if (form.controls[key] instanceof FormGroup) {
@@ -73,7 +73,10 @@ export function getFormValueFromEntity(source: any, form: FormGroup): Object {
 }
 
 export function logFormErrors(form: FormGroup, logPrefix?: string, path?: string) {
+    if (form.valid) return;
+    logPrefix = logPrefix || "";
     const value = {};
+    console.warn(`${logPrefix} Form has errors:`);
     for (let key in form.controls) {
         let keyPath = (path ? `${path}/${key}` : key);
         if (form.controls[key] instanceof FormGroup) {
@@ -81,7 +84,7 @@ export function logFormErrors(form: FormGroup, logPrefix?: string, path?: string
         }
         else if (form.controls[key]) {
             for (let error in form.controls[key].errors) {
-                console.debug((logPrefix || '') + `field {${keyPath}}} error: ${error}`);
+                console.warn(`${logPrefix} Error in field {${keyPath}}: ${error}`);
             }
         }
     }

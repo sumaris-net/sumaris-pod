@@ -35,16 +35,16 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
   startDate: Date | Moment;
   endDate: Date | Moment;
   exteriorMarking: string;
-  basePortLocation: Referential;
+  basePortLocation: ReferentialRef;
   creationDate: Date | Moment;
-  recorderDepartment: Referential;
+  recorderDepartment: Department;
   recorderPerson: Person;
   comments: string;
 
   constructor() {
     super();
-    this.basePortLocation = new Referential();
-    this.recorderDepartment = new Referential();
+    this.basePortLocation = new ReferentialRef();
+    this.recorderDepartment = new Department();
     this.recorderPerson = new Person();
   }
 
@@ -62,14 +62,14 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
     return target;
   }
 
-  asObject(): any {
-    const target: any = super.asObject();
-    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject() || undefined;
+  asObject(minify?: boolean): any {
+    const target: any = super.asObject(minify);
+    target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject(minify) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.creationDate = toDateISOString(this.creationDate);
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject() || undefined;
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject() || undefined;
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(minify) || undefined;
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
 
     return target;
   }

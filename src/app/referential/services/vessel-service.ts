@@ -288,7 +288,7 @@ export class VesselService extends BaseDataService implements DataService<Vessel
   /* -- protected methods -- */
 
   protected asObject(vessel: VesselFeatures): any {
-    const copy: any = vessel.asObject();
+    const copy: any = vessel.asObject(true/*minify*/);
 
     // If no vessel: set the default vessel type
     copy.vesselTypeId = !copy.vesselId ? 1/*TODO ?*/ : undefined;

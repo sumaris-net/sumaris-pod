@@ -2,10 +2,10 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from "@angular/router";
 import { OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
-import { Operation, Trip } from '../services/trip.model';
+import { Operation, Trip, Batch } from '../services/trip.model';
 import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form';
-import { AppTabPage } from '../../core/core.module';
+import { AppTabPage, AppFormUtils } from '../../core/core.module';
 import { CatchForm } from '../catch/catch.form';
 import { SurvivalTestsTable } from '../survivaltest/survivaltests.table';
 import { IndividualMonitoringTable } from '../individualmonitoring/individual-monitoring.table';
@@ -67,10 +67,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     this.opeForm.form.controls['physicalGear'].valueChanges.subscribe((res) => {
       if (this.loading) return; // SKip during loading
-      const gearLabel = res && res.gear && res.gear.label;
-      if (gearLabel) {
-        this.catchForm.gear = gearLabel;
-      }
+      this.catchForm.gear = res && res.gear && res.gear.label || null;
     })
 
   }
@@ -138,10 +135,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.measurementsForm.value = data && data.measurements || [];
 
     // Set catch bacth
-    //this.catchForm.gear = gearLabel;
-    // TODO
-    // this.catchForm.value = data && data.catch && data.catch.measurements || [];
-    this.catchForm.value = this.catchForm.value || [];
+    this.catchForm.gear = gearLabel;
+    this.catchForm.value = data && data.catchBatch || Batch.fromObject({ rankOrder: 1 });
 
     // Set survival tests
     this.survivalTestsTable.value = data && data.samples || [];
@@ -165,7 +160,10 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
       if (this.opeForm.invalid) this.opeForm.markAsTouched();
       if (this.measurementsForm.invalid) this.measurementsForm.markAsTouched();
-      if (this.catchForm.invalid) this.catchForm.markAsTouched();
+      if (this.catchForm.invalid) {
+        this.catchForm.markAsTouched();
+        AppFormUtils.logFormErrors(this.catchForm.form, "[catch-form]");
+      }
 
       this.submitted = true;
       return;
@@ -185,9 +183,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.data.measurements = this.measurementsForm.value;
 
       // get catch batch
-      // TODO
-      //this.data.catch = this.catchForm.value;
-      if (this.debug) console.warn("TODO: get catch", this.catchForm.value);
+      this.data.catchBatch = this.catchForm.value;
+      if (this.debug) console.warn("TODO: check catchbatch", this.catchForm.value);
 
       // get survival tests
       await this.survivalTestsTable.save();

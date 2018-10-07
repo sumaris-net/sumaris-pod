@@ -4,7 +4,7 @@ import { zip } from "rxjs/observable/zip";
 import { mergeMap, debounceTime } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService, AppFormUtils } from "../../core/core.module";
-import { referentialToString, PmfmStrategy, Sample, TaxonGroupIds } from "../services/trip.model";
+import { referentialToString, PmfmStrategy, Sample, TaxonGroupIds, MeasurementUtils } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
@@ -141,20 +141,10 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
     }
 
     getFormGroup(data?: any): FormGroup {
-        console.log("getFormGroup");
         let formGroup = this.validatorService.getFormGroup(data);
         if (this.cachedPmfmFormConfig) {
-            //formGroup.removeControl('measurementValues');
             formGroup.addControl('measurementValues', this.formBuilder.group(this.cachedPmfmFormConfig));
         }
-        // if (this.cachedPmfms) {
-        //     let measForm = formGroup.get('measurementValues') as FormGroup;
-        //     if (!measForm) {
-        //         measForm = this.formBuilder.group({});
-        //         formGroup.addControl('measurementValues', measForm);
-        //     }
-        //     this.measurementsValidatorService.updateFormGroup(measForm, this.cachedPmfms);
-        // }
         return formGroup;
     }
 
@@ -167,52 +157,41 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         options?: any
     ): Observable<any[]> {
         if (!this.data || !this.started) {
-            if (this.debug) console.debug("[survivaltests-table] Unable to extracting rows from samples (no data)");
+            if (this.debug) console.debug("[survivaltests-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
         }
         sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
-        const now = new Date();
-        if (this.debug) console.debug("[survivaltests-table] Extracting rows from samples:", this.data);
+        const now = Date.now();
+        if (this.debug) console.debug("[survivaltests-table] Preparing measurementValues to form...", this.data);
 
         // Fill samples measurement map
-        const res = this.data.slice(0); // copy
-        res.forEach(sample => {
-
-            const values = {};
-            this.cachedPmfms.forEach(pmfm => {
-                let value = sample.measurementValues[pmfm.id.toString()];
-                if (value && pmfm.type === "qualitative_value") {
-                    const qvId = parseInt(value);
-                    value = pmfm.qualitativeValues.find(qv => qv.id == qvId);
-                }
-                values[pmfm.id.toString()] = value || (value === 0 ? 0 : null);
-            })
-            sample.measurementValues = values;
+        this.data.forEach(sample => {
+            sample.measurementValues = MeasurementUtils.toFormValues(sample.measurementValues, this.cachedPmfms);
         });
 
         // Sort by column
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-        res.sort((a, b) =>
+        this.data.sort((a, b) =>
             a[sortBy] === b[sortBy] ?
                 0 : (a[sortBy] > b[sortBy] ?
                     after : (-1 * after)
                 )
         );
-        if (this.debug) console.debug("[survivaltests-table] Rows extracted in " + (new Date().getTime() - now.getTime()) + "ms", res);
+        if (this.debug) console.debug("[survivaltests-table] Rows extracted in " + (Date.now() - now) + "ms", this.data);
 
-        return Observable.of(res);
+        return Observable.of(this.data);
     }
 
     async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
-        if (!this.data) throw new Error("[survivaltests-table] Could not save table: value not set yet");
+        if (!this.data || !this.started) throw new Error("[survivaltests-table] Could not save table: value not set (or not started)");
+
+        if (this.debug) console.debug("[survivaltests-table] Updating data from rows...");
 
         const rows = await this.dataSource.getRows();
-        if (this.debug) console.debug("[survivaltests-table] Saving data...");
-
         this.data = rows.map(row => row.currentData);
 
-        return Promise.resolve(this.data);
+        return this.data;
     }
 
     deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {

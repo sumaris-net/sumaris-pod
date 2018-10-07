@@ -76,6 +76,9 @@ const LoadQuery: any = gql`
       samples {
         ...SampleFragment
       }
+      batches {
+        ...BatchFragment
+      }
     }  
   }
   ${Fragments.department}
@@ -83,6 +86,7 @@ const LoadQuery: any = gql`
   ${Fragments.measurement}
   ${Fragments.referential}
   ${DataFragments.sample}  
+  ${DataFragments.batch}  
 `;
 const SaveOperations: any = gql`
   mutation saveOperations($operations:[OperationVOInput]){
@@ -228,7 +232,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
     const json = entities.map(t => {
       // Fill default properties (as recorder department and person)
       this.fillDefaultProperties(t, options);
-      return t.asObject();
+      return t.asObject(true/*minify*/);
     });
 
     const now = new Date();

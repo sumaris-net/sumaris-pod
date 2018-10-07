@@ -99,7 +99,7 @@
         </mat-autocomplete>
       </ion-col>
       <ion-col size="12" size-md="auto">
-        <mat-date-time [placeholder]="'SALE.DATE_TIME'|translate" formControlName="startDateTime" displayTime="true">
+        <mat-date-time [placeholder]="'SALE.DATE_TIME'|translate" formControlName="startDateTime" [displayTime]="true">
         </mat-date-time>
       </ion-col>
     </ion-row>
@@ -142,7 +142,7 @@
         <p ion-text translate>SALE.START</p>
       </ion-col>
       <ion-col *ngIf="showEndDateTime">
-        <mat-date-time [placeholder]="'SALE.START_DATE'|translate" formControlName="startDateTime" displayTime="true">
+        <mat-date-time [placeholder]="'SALE.START_DATE'|translate" formControlName="startDateTime" [displayTime]="true">
         </mat-date-time>
       </ion-col>
 
@@ -151,7 +151,7 @@
       </ion-col>
 
       <ion-col size="auto" *ngIf="showEndDateTime">
-        <mat-date-time [placeholder]="'SALE.END_DATE'|translate" formControlName="endDateTime" displayTime="true">
+        <mat-date-time [placeholder]="'SALE.END_DATE'|translate" formControlName="endDateTime" [displayTime]="true">
         </mat-date-time>
       </ion-col>
     </ion-row>

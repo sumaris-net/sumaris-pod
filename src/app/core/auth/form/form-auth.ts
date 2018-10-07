@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ModalController } from "@ionic/angular";
 import { RegisterModal } from '../../register/modal/modal-register';
 import { AuthData } from "../../services/account.service";
-
+import { environment } from "../../../../environments/environment";
 
 
 @Component({
@@ -47,11 +47,13 @@ export class AuthForm implements OnInit {
 
 
   ngOnInit() {
-    /* For DEV only*/
-    this.form.setValue({
-      username: 'benoit.lavenier@e-is.pro',
-      password: 'priezPourMoi!'
-    });
+    // For DEV only
+    if (environment.production === false) {
+      this.form.setValue({
+        username: 'benoit.lavenier@e-is.pro',
+        password: 'priezPourMoi!'
+      });
+    }
   }
 
   cancel() {

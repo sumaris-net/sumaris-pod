@@ -10,7 +10,6 @@ export class SurvivalTestValidatorService implements ValidatorService {
   }
 
   getRowValidator(): FormGroup {
-    console.debug("SurvivalTestValidatorService getRowValidator");
     return this.getFormGroup();
   }
 

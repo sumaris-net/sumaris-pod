@@ -26,7 +26,6 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
     protected touchUi: boolean = false;
 
     mobile: boolean;
-    requiredError: boolean = false;
     _value: boolean;
     showInput: boolean = true;
     showRadio: boolean = false;
@@ -137,8 +136,6 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
 
 
     public markAsTouched() {
-        this.requiredError = this.formControl && this.formControl.hasError('required');
-        //console.log("has error ?", this.formControl.hasError('required'));
         if (this.formControl.touched) {
             this._onTouched();
         }

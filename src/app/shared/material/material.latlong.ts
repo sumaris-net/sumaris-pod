@@ -42,7 +42,6 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     protected touchUi: boolean = false;
 
     mobile: boolean;
-    requiredError: boolean = false;
     textFormControl: FormControl;
     mask: (string | RegExp)[];
     value: number;
@@ -194,8 +193,6 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
 
 
     public markAsTouched() {
-        this.requiredError = this.formControl && this.formControl.hasError('required');
-        //console.log("has error ?", this.formControl.hasError('required'));
         if (this.textFormControl.touched) {
             this._onTouched();
         }

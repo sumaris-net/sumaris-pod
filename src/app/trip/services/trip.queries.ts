@@ -108,7 +108,6 @@ export const DataFragments = {
     individualCount
     comments
     updateDate
-    creationDate
     taxonGroup {
       ...ReferentialFragment
     }

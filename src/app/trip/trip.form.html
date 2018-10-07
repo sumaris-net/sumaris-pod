@@ -123,7 +123,7 @@
       </ion-col>
       <ion-col size="auto">
         <mat-date-time [placeholder]="'TRIP.DEPARTURE_DATE_TIME'|translate" formControlName="departureDateTime"
-          displayTime="true">
+          [displayTime]="true" [required]="true">
         </mat-date-time>
       </ion-col>
     </ion-row>
@@ -162,7 +162,7 @@
         </mat-autocomplete>
       </ion-col>
       <ion-col size="auto">
-        <mat-date-time [placeholder]="'TRIP.RETURN_DATE_TIME'|translate" formControlName="returnDateTime">
+        <mat-date-time [placeholder]="'TRIP.RETURN_DATE_TIME'|translate" formControlName="returnDateTime" [required]="true">
         </mat-date-time>
       </ion-col>
     </ion-row>

@@ -6,8 +6,6 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
   </ion-item>
 
-
-
   <ion-grid no-padding>
 
     <!-- on deck -->
@@ -18,9 +16,13 @@
         </ion-label>
       </ion-col>
 
+      <!-- FIXME <ion-col size="6" size-md="auto" *ngIf="loading">
+        <ion-spinner></ion-spinner>
+      </ion-col> -->
+
       <ion-col size="6" size-md="auto" *ngFor="let pmfm of onDeckPmfms | async">
-        <ion-spinner *ngIf="loading"></ion-spinner>
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls[pmfm.id]" *ngIf="form.controls[pmfm.id]">
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues']?.controls[pmfm.id]"
+          *ngIf="form.controls['measurementValues']?.controls[pmfm.id]">
         </mat-form-field-measurement>
       </ion-col>
 
@@ -35,7 +37,8 @@
       </ion-col>
 
       <ion-col size="12" size-md="3" *ngFor="let pmfm of sortingPmfms | async">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls[pmfm.id]" *ngIf="form.controls[pmfm.id]">
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues']?.controls[pmfm.id]"
+          *ngIf="form.controls['measurementValues']?.controls[pmfm.id]">
         </mat-form-field-measurement>
       </ion-col>
 
@@ -50,7 +53,8 @@
       </ion-col>
 
       <ion-col size="12" size-md="3" *ngFor="let pmfm of weightPmfms | async">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls[pmfm.id]" *ngIf="form.controls[pmfm.id]">
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues'].controls[pmfm.id]"
+          *ngIf="form.controls['measurementValues']?.controls[pmfm.id]">
         </mat-form-field-measurement>
       </ion-col>
 

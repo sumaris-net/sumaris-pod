@@ -207,7 +207,7 @@
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
 
         <mat-date-time floatLabel="never" [formControl]="row.validator.controls['departureDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-          [readonly]="!row.editing" required>
+          [readonly]="!row.editing" [required]="true">
         </mat-date-time>
       </mat-cell>
 
@@ -220,7 +220,7 @@
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
         <mat-date-time floatLabel="never" [formControl]="row.validator.controls['returnDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-          [readonly]="!row.editing" required>
+          [readonly]="!row.editing" [required]="true">
         </mat-date-time>
       </mat-cell>
     </ng-container>

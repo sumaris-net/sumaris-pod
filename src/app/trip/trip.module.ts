@@ -23,7 +23,7 @@ import { TripService, OperationService } from './services/trip.services';
 
 import {
     TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService,
-    MeasurementsValidatorService, CatchValidatorService, SurvivalTestValidatorService,
+    MeasurementsValidatorService, BatchValidatorService, SurvivalTestValidatorService,
     IndividualMonitoringService
 } from './services/trip.validators';
 
@@ -87,7 +87,7 @@ export { TripsPage, TripPage }
         OperationValidatorService,
         PositionValidatorService,
         MeasurementsValidatorService,
-        CatchValidatorService,
+        BatchValidatorService,
         SurvivalTestValidatorService,
         IndividualMonitoringService
     ]

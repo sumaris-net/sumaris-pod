@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CoreModule } from '../core/core.module';
 import { VesselService } from './services/vessel-service';
-import { VesselValidatorService } from './vessel/validator/validators';
+import { VesselValidatorService } from './services/vessel.validator';
 import { ReferentialRefService } from './services/referential-ref.service';
 import { ReferentialService } from './services/referential.service';
 import { ReferentialValidatorService } from './services/referential.validator';

@@ -66,7 +66,8 @@ export class ProgramService extends BaseDataService {
           // Filter on acquisition level and gear
           .filter(p => !options || (
             (!options.acquisitionLevel || p.acquisitionLevel == options.acquisitionLevel)
-            && (!options.gear || p.gears && p.gears.findIndex(g => g == options.gear) !== -1)
+            // Filter on gear (if PMFM has gears = compatible with all gears)
+            && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g == options.gear) !== -1)
           ))
           // Convert into model
           .map(PmfmStrategy.fromObject)

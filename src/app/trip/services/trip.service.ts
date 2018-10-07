@@ -385,7 +385,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
   /* -- protected methods -- */
 
   protected asObject(entity: Trip): any {
-    const copy: any = entity.asObject();
+    const copy: any = entity.asObject(true/*minify*/);
 
     // Fill return date using departure date
     copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;

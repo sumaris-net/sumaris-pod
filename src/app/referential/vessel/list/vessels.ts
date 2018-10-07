@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AppFormUtils } from "../../../core/core.module";
-import { VesselValidatorService } from "../validator/validators";
+import { VesselValidatorService } from "../../services/vessel.validator";
 import { VesselService, VesselFilter } from "../../services/vessel-service";
 import { VesselModal } from "../modal/modal-vessel";
 import { VesselFeatures, Referential, toDateISOString, fromDateISOString, referentialToString, ReferentialRef } from "../../services/model";

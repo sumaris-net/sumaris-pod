@@ -41,8 +41,8 @@ export abstract class DataEntity<T> extends Entity<T> {
   }
 
   asObject(minify?: boolean): any {
-    const target = super.asObject();
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject() || undefined;
+    const target = super.asObject(minify);
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(minify) || undefined;
     return target;
   }
 
@@ -91,7 +91,7 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> {
 
   asObject(minify?: boolean): any {
     const target = super.asObject();
-    target.vesselFeatures = this.vesselFeatures && this.vesselFeatures.asObject() || undefined;
+    target.vesselFeatures = this.vesselFeatures && this.vesselFeatures.asObject(minify) || undefined;
     return target;
   }
 
@@ -350,6 +350,7 @@ export class MeasurementUtils {
     }
   }
 
+
   static setValue(value: any, target: Measurement, pmfm: PmfmStrategy) {
     if (value === null || value === undefined) return;
     switch (pmfm.type) {
@@ -370,9 +371,71 @@ export class MeasurementUtils {
         target.alphanumericalValue = toDateISOString(value);
         break;
       default:
-        throw new Error("Unknown pmfm.type, to fill measurement value: " + pmfm.type);
+        throw new Error("Unknown pmfm.type: " + pmfm.type);
     }
   }
+
+
+  static toFormValue(value: any, pmfm: PmfmStrategy): any {
+    switch (pmfm.type) {
+      case "qualitative_value":
+        if (value && typeof value != "object") {
+          const qvId = parseInt(value);
+          return pmfm.qualitativeValues.find(qv => qv.id == qvId);
+        }
+        return value || null;
+      case "integer":
+        return value || value == 0 ? parseInt(value) : null;
+      case "double":
+        return value || value == 0 ? parseFloat(value) : null;
+      case "string":
+        return value || null;
+      case "boolean":
+        return value == "1" ? true : (value == "0" ? false : null);
+      case "date":
+        return fromDateISOString(value) || null;
+      default:
+        throw new Error("Unknown pmfm.type: " + pmfm.type);
+    }
+  }
+
+  static fromFormValue(value, pmfm: PmfmStrategy): string {
+    if (value === null || value === undefined) return;
+    switch (pmfm.type) {
+      case "qualitative_value":
+        return value && value.id && value.id.toString() || undefined;
+      case "integer":
+      case "double":
+        return value && value.toString() || undefined;
+        break;
+      case "string":
+        return value;
+      case "boolean":
+        return (value === true || value === "true") ? "1" : "0";
+      case "date":
+        return toDateISOString(value);
+      default:
+        throw new Error("Unknown pmfm.type: " + pmfm.type);
+    }
+  }
+
+  static toFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]): any {
+    const target = {};
+    pmfms.forEach(pmfm => {
+      target[pmfm.id.toString()] = MeasurementUtils.toFormValue(source[pmfm.id.toString()], pmfm);
+    });
+    return target;
+  }
+
+
+  static fromFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]) {
+    const target = {};
+    pmfms.forEach(pmfm => {
+      target[pmfm.id.toString()] = MeasurementUtils.fromFormValue(source[pmfm.id.toString()], pmfm);
+    });
+    return target;
+  }
+
 }
 
 export class Sale extends DataRootVesselEntity<Sale> {
@@ -441,7 +504,7 @@ export class Operation extends DataEntity<Operation> {
 
   measurements: Measurement[];
   samples: Sample[];
-  //catchBatch: Batch;
+  catchBatch: Batch;
 
   constructor() {
     super();
@@ -451,7 +514,7 @@ export class Operation extends DataEntity<Operation> {
     this.physicalGear = new PhysicalGear();
     this.measurements = [];
     this.samples = [];
-    //this.catchBatch = null;
+    this.catchBatch = null;
   }
 
   clone(): Operation {
@@ -484,7 +547,7 @@ export class Operation extends DataEntity<Operation> {
     target.samples = this.samples && this.samples.map(s => s.asObject(minify)) || undefined;
 
     // Batch
-    //target.catchBatch  = this.catchBatch && this.catchBatch.asObject() || undefined;
+    target.catchBatch = this.catchBatch && this.catchBatch.asObject(minify) || undefined;
 
     return target;
   }
@@ -522,7 +585,13 @@ export class Operation extends DataEntity<Operation> {
     }
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
-    // TODO: batch
+
+    // Batches
+    if (source.batches) {
+      const catchBatch = source.batches.find(b => !b.parentId);
+      this.catchBatch = catchBatch && Batch.fromObject(catchBatch) || undefined;
+      if (this.catchBatch) console.log("[batch]", this.catchBatch);
+    }
     return this;
   }
 
@@ -702,6 +771,7 @@ export class Batch extends DataEntity<Batch> {
     let parent = this.parentBatch; // avoid parent conversion
     this.parentBatch = null;
     const target = super.asObject(minify);
+    delete target.parentBatch;
     this.parentBatch = parent;
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;

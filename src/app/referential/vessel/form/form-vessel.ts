@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { VesselValidatorService } from "../validator/validators";
+import { VesselValidatorService } from "../../services/vessel.validator";
 import { FormGroup } from "@angular/forms";
 import { VesselFeatures, LocationLevelIds, referentialToString, EntityUtils, ReferentialRef } from "../../services/model";
 import { Platform } from '@ionic/angular';

@@ -161,11 +161,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   /* -- private method -- */
 
   public getRows(): Promise<TableElement<T>[]> {
-    return new Promise((resolve) => {
-      this.connect().first().subscribe(rows => {
-        resolve(rows);
-      });
-    });
+    return this.connect().first().toPromise();
   }
 
   private logRowErrors(row: TableElement<T>): void {

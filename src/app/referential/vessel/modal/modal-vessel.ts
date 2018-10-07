@@ -3,6 +3,7 @@ import { VesselFeatures } from "../../services/model";
 import { ModalController } from "@ionic/angular";
 import { VesselForm } from '../form/form-vessel';
 import { VesselService } from '../../services/vessel-service';
+import { AppFormUtils } from '../../../core/core.module';
 
 
 @Component({
@@ -25,7 +26,12 @@ export class VesselModal {
     console.debug("[vessel-modal] Saving new vessel...");
 
     // Avoid multiple call    
-    if (this.form.invalid || this.form.form.disabled) return;
+    if (this.form.form.disabled) return;
+
+    if (this.form.invalid) {
+      AppFormUtils.logFormErrors(this.form.form);
+      return;
+    }
 
     this.loading = true;
 
