@@ -59,7 +59,6 @@ export { TripsPage, TripPage }
         TripForm,
         TripModal,
         SaleForm,
-        MeasurementValuesForm,
         PhysicalGearForm,
         PhysicalGearTable,
         OperationForm,

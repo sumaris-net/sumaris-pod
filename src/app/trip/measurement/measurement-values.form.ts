@@ -13,12 +13,7 @@ import { MeasurementsValidatorService } from '../services/measurement.validator'
 import { FormGroup } from "@angular/forms";
 import { environment } from '../../../environments/environment';
 
-@Component({
-    selector: 'form-measurements',
-    templateUrl: './measurements.form.html',
-    styleUrls: ['./measurements.form.scss']
-})
-export class MeasurementValuesForm<T extends { measurementValues: { [key: string]: any } }> extends AppForm<T> {
+export abstract class MeasurementValuesForm<T extends { measurementValues: { [key: string]: any } }> extends AppForm<T> {
 
     protected _onValueChange = new EventEmitter<any>();
     protected _onRefreshPmfms = new EventEmitter<any>();
