@@ -32,6 +32,7 @@ import net.sumaris.core.model.data.batch.BatchSortingMeasurement;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,26 +70,31 @@ public class BatchServiceImpl implements BatchService {
 
 		// Save measurements
 		result.stream().forEach(savedBatch -> {
-			// Sorting measurement
-			if (savedBatch.getSortingMeasurements() != null) {
-				measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), savedBatch.getSortingMeasurementValues());
+			// FIXME: use 2 maps, instead of one
+			// Sorting+Quantification measurements
+			if (savedBatch.getMeasurementValues() != null) {
+				measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), savedBatch.getMeasurementValues());
 			}
 			else {
-				List<MeasurementVO> measurements = Beans.getList(savedBatch.getSortingMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchSortingMeasurement.class));
-				measurements = measurementDao.saveBatchSortingMeasurements(savedBatch.getId(), measurements);
-				savedBatch.setSortingMeasurements(measurements);
-			}
+				// Sorting measurement
+				if (savedBatch.getSortingMeasurements() != null) {
+					measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), savedBatch.getSortingMeasurementValues());
+				} else {
+					List<MeasurementVO> measurements = Beans.getList(savedBatch.getSortingMeasurements());
+					measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchSortingMeasurement.class));
+					measurements = measurementDao.saveBatchSortingMeasurements(savedBatch.getId(), measurements);
+					savedBatch.setSortingMeasurements(measurements);
+				}
 
-			// Quantification measurement
-			if (savedBatch.getQuantificationMeasurements() != null) {
-				measurementDao.saveBatchQuantificationMeasurementsMap(savedBatch.getId(), savedBatch.getQuantificationMeasurementValues());
-			}
-			else {
-				List<MeasurementVO> measurements = Beans.getList(savedBatch.getQuantificationMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchQuantificationMeasurement.class));
-				measurements = measurementDao.saveBatchQuantificationMeasurements(savedBatch.getId(), measurements);
-				savedBatch.setQuantificationMeasurements(measurements);
+				// Quantification measurement
+				if (savedBatch.getQuantificationMeasurements() != null) {
+					measurementDao.saveBatchQuantificationMeasurementsMap(savedBatch.getId(), savedBatch.getQuantificationMeasurementValues());
+				} else {
+					List<MeasurementVO> measurements = Beans.getList(savedBatch.getQuantificationMeasurements());
+					measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchQuantificationMeasurement.class));
+					measurements = measurementDao.saveBatchQuantificationMeasurements(savedBatch.getId(), measurements);
+					savedBatch.setQuantificationMeasurements(measurements);
+				}
 			}
 		});
 

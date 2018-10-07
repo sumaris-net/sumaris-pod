@@ -162,21 +162,23 @@
     <jreVersion>1.8.77</jreVersion>
 
     <!-- nuiton maven plugins version -->
-    <jrstPluginVersion>2.1</jrstPluginVersion>
     <helperPluginVersion>2.3.2</helperPluginVersion>
 
     <!-- apache maven plugins version -->
     <jarPluginVersion>3.0.2</jarPluginVersion>
-    <sitePluginVersion>3.4</sitePluginVersion>
+    <sitePluginVersion>3.7.1</sitePluginVersion>
     <changesPluginVersion>2.12.1</changesPluginVersion>
     <changelogPluginVersion>2.3</changelogPluginVersion>
-    <projectInfoReportsPluginVersion>2.9</projectInfoReportsPluginVersion>
+    <projectInfoReportsPluginVersion>3.0.0</projectInfoReportsPluginVersion>
     <jrxPluginVersion>2.5</jrxPluginVersion>
     <surefirePluginVersion>2.20.1</surefirePluginVersion>
-    <markdownPluginVersion>1.6</markdownPluginVersion>
+    <markdownPluginVersion>1.8</markdownPluginVersion>
     <enforcerPluginVersion>1.4.1</enforcerPluginVersion>
     <sourcePluginVersion>3.0.1</sourcePluginVersion>
     <releasePluginVersion>2.5.3</releasePluginVersion>
+    <jaxbApiVersion>2.3.0</jaxbApiVersion>
+    <jaxbSiteVersion>2.2.8-b01</jaxbSiteVersion>
+    <activationVersion>1.1.1</activationVersion>
 
     <!-- codehaus mojo plugins -->
     <licensePluginVersion>1.13</licensePluginVersion>
@@ -301,7 +303,7 @@
       <dependency>
         <groupId>javax.xml.bind</groupId>
         <artifactId>jaxb-api</artifactId>
-        <version>2.3.0</version>
+        <version>${jaxbApiVersion}</version>
       </dependency>
 
       <dependency>
@@ -983,16 +985,6 @@
               <version>${markdownPluginVersion}</version>
             </dependency>
             <dependency>
-              <groupId>org.nuiton.jrst</groupId>
-              <artifactId>doxia-module-jrst</artifactId>
-              <version>${jrstPluginVersion}</version>
-            </dependency>
-           <!-- <dependency>
-              <groupId>org.codehaus.plexus</groupId>
-              <artifactId>plexus-velocity</artifactId>
-              <version>1.2</version>
-            </dependency>-->
-            <dependency>
               <groupId>org.hsqldb</groupId>
               <artifactId>hsqldb</artifactId>
               <version>${hsqldb.version}</version>
@@ -1371,9 +1363,9 @@
             <reportSets>
               <reportSet>
                 <reports>
-                  <report>project-team</report>
-                  <report>mailing-list</report>
-                  <!--<report>cim</report>-->
+                  <!--<report>project-team</report>-->
+                  <!--<report>mailing-list</report>-->
+                  <!--<report>cim</report>
                   <report>issue-tracking</report>
                   <report>license</report>
                   <report>scm</report>
@@ -1383,7 +1375,7 @@
                   <report>plugin-management</report>
                   <report>plugins</report>
                   <report>dependency-management</report>
-                  <report>summary</report>
+                  <report>summary</report>-->
                 </reports>
               </reportSet>
             </reportSets>

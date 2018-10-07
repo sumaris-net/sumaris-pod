@@ -43,6 +43,8 @@ public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
     private List<MeasurementVO> sortingMeasurements;
     private List<MeasurementVO> quantificationMeasurements;
 
+    private Map<Integer, String> measurementValues;
+
     private Map<Integer, String> sortingMeasurementValues;
     private Map<Integer, String> quantificationMeasurementValues;
 

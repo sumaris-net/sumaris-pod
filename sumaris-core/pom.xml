@@ -488,6 +488,26 @@
                 <artifactId>log4j-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
               </dependency>
+              <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxbApiVersion}</version>
+              </dependency>
+              <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-core</artifactId>
+                <version>${jaxbSiteVersion}</version>
+              </dependency>
+              <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>${jaxbSiteVersion}</version>
+              </dependency>
+              <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>${activationVersion}</version>
+              </dependency>
             </dependencies>
             <executions>
               <execution>
@@ -507,13 +527,16 @@
                       <fileset file="${hibernate.generated.cfg.path}" />
                     </replaceregexp>
 
-                    <hibernatetool destdir="${project.reporting.outputDirectory}/hibernate">
+
+                    <hibernatetool>
                       <classpath>
-                       <!-- <path location="${project.build.sourceDirectory}" />-->
-                        <path location="${project.build.outputDirectory}" />
+                        <path location="${project.build.outputDirectory}"/>
                       </classpath>
-                      <configuration configurationfile="${hibernate.generated.cfg.path}" />
-                      <hbm2doc />
+
+                      <jpaconfiguration persistenceunit="sumaris" />
+                      <!--<configuration configurationfile="${hibernate.generated.cfg.path}" />-->
+                      <!--<hbm2ddl destdir="${project.reporting.outputDirectory}/hibernate/sql" outputfilename="sumaris-ddl.sql" drop="true" export="false" delimiter=";" format="true" />-->
+                      <hbm2doc destdir="${project.reporting.outputDirectory}/hibernate"/>
                     </hibernatetool>
 
                     <!-- restore the hibernate.cfg.xml -->

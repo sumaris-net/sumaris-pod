@@ -1,12 +1,9 @@
 
 
 
-==========
-Client API
-==========
+# Client API
 
-Introduction
-------------
+## Introduction
 
 **SUMARiS :: Client** is a software connecting to a SUMARiS server:
 
@@ -14,8 +11,7 @@ Introduction
 
 - Web forms used for referential administration;
 
-Documentation
--------------
+## Documentation
 
 Available documentation on client database:
 

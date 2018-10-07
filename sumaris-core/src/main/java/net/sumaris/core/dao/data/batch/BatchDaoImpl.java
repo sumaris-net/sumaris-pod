@@ -133,7 +133,8 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
 
         if (!isNew) {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            // FIXME: Cliant app: update entity from the save() result
+            //checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             //lockForUpdate(entity);
@@ -197,6 +198,11 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
         // Operation
         if (source.getOperation() != null) {
             target.setOperationId(source.getOperation().getId());
+        }
+
+        // Parent batch
+        if (source.getParent() != null) {
+            target.setParentId(source.getParent().getId());
         }
 
         // If full export

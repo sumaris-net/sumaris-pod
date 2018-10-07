@@ -23,14 +23,12 @@ package net.sumaris.server.http.graphql.data;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
-import io.leangen.graphql.generator.mapping.common.MapToListTypeAdapter;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.service.data.*;
+import net.sumaris.core.service.data.batch.BatchService;
 import net.sumaris.core.service.data.sample.SampleService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -40,9 +38,10 @@ import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.server.service.technical.ChangesPublisherService;
 import net.sumaris.server.service.administration.ImageService;
+import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
@@ -50,7 +49,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -75,6 +76,9 @@ public class DataGraphQLService {
 
     @Autowired
     private SampleService sampleService;
+
+    @Autowired
+    private BatchService batchService;
 
     @Autowired
     private MeasurementService measurementService;
@@ -309,6 +313,13 @@ public class DataGraphQLService {
         return sampleService.getAllByOperationId(operation.getId());
     }
 
+    /* -- Batch -- */
+
+    @GraphQLQuery(name = "batches", description = "Get operation's batches")
+    public List<BatchVO> getBatchesByOperation(@GraphQLContext OperationVO operation) {
+        return batchService.getAllByOperationId(operation.getId());
+    }
+
     /* -- Measurements -- */
 
     @GraphQLQuery(name = "measurements", description = "Get trip's measurements")
@@ -338,15 +349,21 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getSampleMeasurementValues(@GraphQLContext SampleVO sample) {
-        return measurementService.getSampleMeasurementsMap(sample.getId());
+        if (MapUtils.isEmpty(sample.getMeasurementValues())) {
+            return measurementService.getSampleMeasurementsMap(sample.getId());
+        }
+        return sample.getMeasurementValues();
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
-    public Map<Integer, String> getBatchMeasurementValues(@GraphQLContext BatchVO sample) {
-        Map<Integer, String> map = Maps.newHashMap();
-        map.putAll(measurementService.getBatchSortingMeasurementsMap(sample.getId()));
-        map.putAll(measurementService.getBatchQuantificationMeasurementsMap(sample.getId()));
-        return map;
+    public Map<Integer, String> getBatchMeasurementValues(@GraphQLContext BatchVO batch) {
+        if (MapUtils.isEmpty(batch.getMeasurementValues())) {
+            Map<Integer, String> map = Maps.newHashMap();
+            map.putAll(measurementService.getBatchSortingMeasurementsMap(batch.getId()));
+            map.putAll(measurementService.getBatchQuantificationMeasurementsMap(batch.getId()));
+            return map;
+        }
+        return batch.getMeasurementValues();
     }
 
 //    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")

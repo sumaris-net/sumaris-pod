@@ -685,6 +685,24 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             }
         }
 
+        // Batch quantification measurement
+        else if (target instanceof BatchQuantificationMeasurement) {
+            if (parentId == null) {
+                ((BatchQuantificationMeasurement) target).setBatch(null);
+            } else {
+                ((BatchQuantificationMeasurement) target).setBatch(load(Batch.class, parentId));
+            }
+        }
+
+        // Batch sorting measurement
+        else if (target instanceof BatchSortingMeasurement) {
+            if (parentId == null) {
+                ((BatchSortingMeasurement) target).setBatch(null);
+            } else {
+                ((BatchSortingMeasurement) target).setBatch(load(Batch.class, parentId));
+            }
+        }
+
         // Unknown measurement class
         else {
             throw new IllegalArgumentException(String.format("Class {%s} not manage yet in this method", target.getClass().getSimpleName()));
