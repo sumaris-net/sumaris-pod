@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris</artifactId>
-    <version>0.5.4-SNAPSHOT</version>
+    <version>0.5.4</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -530,13 +530,13 @@
 
                     <hibernatetool>
                       <classpath>
-                        <path location="${project.build.outputDirectory}"/>
+                        <path location="${project.build.outputDirectory}" />
                       </classpath>
 
                       <jpaconfiguration persistenceunit="sumaris" />
                       <!--<configuration configurationfile="${hibernate.generated.cfg.path}" />-->
                       <!--<hbm2ddl destdir="${project.reporting.outputDirectory}/hibernate/sql" outputfilename="sumaris-ddl.sql" drop="true" export="false" delimiter=";" format="true" />-->
-                      <hbm2doc destdir="${project.reporting.outputDirectory}/hibernate"/>
+                      <hbm2doc destdir="${project.reporting.outputDirectory}/hibernate" />
                     </hibernatetool>
 
                     <!-- restore the hibernate.cfg.xml -->
