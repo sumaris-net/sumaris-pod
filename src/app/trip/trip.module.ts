@@ -17,7 +17,7 @@ import { OperationTable } from './operation/operations.table';
 import { TripModal } from './trip.modal';
 import { SurvivalTestsTable } from './survivaltest/survivaltests.table';
 import { IndividualMonitoringTable } from './individualmonitoring/individual-monitoring.table';
-
+import { MeasurementValuesForm } from './measurement/measurement-values.form';
 
 import { TripService, OperationService } from './services/trip.services';
 
@@ -59,6 +59,7 @@ export { TripsPage, TripPage }
         TripForm,
         TripModal,
         SaleForm,
+        MeasurementValuesForm,
         PhysicalGearForm,
         PhysicalGearTable,
         OperationForm,
