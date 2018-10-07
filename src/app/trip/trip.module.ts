@@ -27,7 +27,7 @@ import {
     IndividualMonitoringService
 } from './services/trip.validators';
 
-export { TripsPage, TripPage }
+export { TripsPage, TripPage, MeasurementValuesForm }
 
 @NgModule({
     imports: [
