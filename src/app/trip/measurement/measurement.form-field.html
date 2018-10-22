@@ -45,6 +45,13 @@
       [compact]="compact"></mat-form-field-measurement-qv>
   </ng-container>
 
+  <!-- string -->
+  <ng-container *ngSwitchCase="'string'">
+    <mat-form-field [floatLabel]="floatLabel">
+      <input matInput autocomplete="off" [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory">
+    </mat-form-field>
+  </ng-container>
+
   <!-- other -->
   <ng-container *ngSwitchDefault>
     <div>Unknown PMFM type {{pmfm.type}}! Please report this error.</div>
