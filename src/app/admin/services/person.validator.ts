@@ -1,18 +1,18 @@
 import { Injectable } from "@angular/core";
 import { ValidatorService } from "angular4-material-table";
-import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { FormGroup, FormBuilder } from "@angular/forms";
 import { Person } from "./model";
-import { AccountService, AccountValidatorService } from "../../core/core.module";
-import { getMainProfile, StatusIds } from "../../core/services/model";
+import { AccountValidatorService } from "../../core/core.module";
+import { Account } from "../../core/services/model";
 import { SharedValidators } from "../../shared/validator/validators";
 
 @Injectable()
-export class PersonValidatorService extends AccountValidatorService {
+export class PersonValidatorService implements ValidatorService {
 
   constructor(
-    accountService: AccountService
+    protected formBuilder: FormBuilder,
+    protected accountValitatorService: AccountValidatorService
   ) {
-    super(accountService);
   }
 
   getRowValidator(): FormGroup {
@@ -21,26 +21,14 @@ export class PersonValidatorService extends AccountValidatorService {
 
   getFormGroup(data?: Person): FormGroup {
 
-    // note: Person validator is more FLEXIBLE than AccountValidator
-    // Optional fields are: pubkey, profile...  
-    // This is need to be able to store person that are not using SUMARiS tool (e.g. onboard obsevers)
+    // Use account validator as base form group definition
+    const formDef = this.accountValitatorService.getFormGroupDefinition(data && Account.fromObject(data.asObject));
 
-    const formDef = {
-      'id': new FormControl(),
-      'lastName': new FormControl(data && data.lastName || null, Validators.compose([Validators.required, Validators.minLength(2)])),
-      'firstName': new FormControl(data && data.firstName || null, Validators.compose([Validators.required, Validators.minLength(2)])),
-      'email': new FormControl(data && data.email || null, Validators.compose([Validators.required, Validators.email])),
-      'mainProfile': new FormControl(data && (data.mainProfile || getMainProfile(data.profiles)) || 'GUEST', Validators.required),
-      'statusId': new FormControl(data && data.statusId || StatusIds.TEMPORARY, Validators.required),
-      'pubkey': new FormControl(data && data.pubkey || null, SharedValidators.pubkey)
-    };
+    // BUT add more flexibility (set pubkey as optional)
+    // This is need to be able to store person that are not using SUMARiS tools (e.g. onboard obsevers)
+    formDef.pubkey = [data && data.pubkey || null, SharedValidators.pubkey];
 
-    // Add additional fields (department, etc.)
-    this.accountService.additionalAccountFields.forEach(field => {
-      formDef[field.name] = new FormControl(data && data[field.name] || null, this.getValidators(field));
-    });
-
-    return new FormGroup(formDef);
+    return this.formBuilder.group(formDef);
   }
 
 

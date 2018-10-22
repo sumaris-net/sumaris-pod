@@ -3,12 +3,14 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AccountService, AccountFieldDef } from '../services/account.service';
 import { Account, StatusIds, referentialToString } from '../services/model';
-import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
+import { UserSettingsValidatorService } from '../services/user-settings.validator';
+import { FormGroup, FormBuilder } from '@angular/forms';
 import { AccountValidatorService } from '../services/account.validator';
 import { AppForm } from '../form/form.class';
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Platform } from '@ionic/angular';
+import { AppFormUtils } from '../form/form.utils';
 
 @Component({
   selector: 'page-account',
@@ -43,15 +45,13 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     public formBuilder: FormBuilder,
     public accountService: AccountService,
     public activatedRoute: ActivatedRoute,
-    protected validatorService: AccountValidatorService
+    protected validatorService: AccountValidatorService,
+    protected settingsValidatorService: UserSettingsValidatorService
   ) {
     super(dateAdapter, platform, validatorService.getFormGroup(accountService.account));
 
     // Add settings fo form 
-    this.settingsForm = formBuilder.group({
-      locale: ['', Validators.required],
-      latLongFormat: ['', Validators.required]
-    });
+    this.settingsForm = settingsValidatorService.getFormGroup(accountService.account && accountService.account.settings);
     this.form.addControl('settings', this.settingsForm);
 
     // Store additional fields
@@ -143,19 +143,17 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
       });
   }
 
-  async doSave(event: MouseEvent, data: any) {
-    if (this.form.invalid) return;
+  async save(event: MouseEvent) {
+    if (this.form.invalid) {
+      AppFormUtils.logFormErrors(this.form);
+      return;
+    }
 
     this.saving = true;
     this.error = undefined;
 
-    let newAccount = this.account.clone();
-    let json = newAccount.asObject();
-
-    let settings = Object.assign({}, data.settings); // Need to be copied first
-    Object.assign(json, data);
-    json.settings = Object.assign(this.account.settings.asObject(), settings);
-    newAccount.fromObject(json);
+    let json = Object.assign(this.accountService.account.asObject(), this.form.value);
+    let newAccount = Account.fromObject(json);
 
     console.debug("[account] Saving account...", newAccount);
     try {
@@ -179,7 +177,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     super.enable();
 
     // Some fields are always disable
-    this.form.controls.email.disable();    
+    this.form.controls.email.disable();
     this.form.controls.mainProfile.disable();
     this.form.controls.pubkey.disable();
 

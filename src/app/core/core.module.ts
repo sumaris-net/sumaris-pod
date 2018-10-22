@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 
 import { AccountService, AccountFieldDef } from './services/account.service';
 import { AccountValidatorService } from './services/account.validator';
+import { UserSettingsValidatorService } from './services/user-settings.validator';
 import { AuthGuardService } from './services/auth-guard.service';
 import { CryptoService } from './services/crypto.service';
 import { DataService } from './services/data-service.class';
@@ -44,7 +45,7 @@ import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common
 
 export {
     environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
-    AccountService, AccountFieldDef, DataService, AccountValidatorService,
+    AccountService, AccountFieldDef, DataService, AccountValidatorService, UserSettingsValidatorService,
     AuthGuardService, FormMetadataComponent, FormButtonsBarComponent,
     RESERVED_START_COLUMNS, RESERVED_END_COLUMNS
 }
@@ -118,6 +119,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         CryptoService,
         ProgressBarService,
         AccountValidatorService,
+        UserSettingsValidatorService,
         { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService] }
     ]
 })

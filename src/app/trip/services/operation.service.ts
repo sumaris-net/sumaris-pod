@@ -33,14 +33,14 @@ const LoadAllQuery: any = gql`
         ...ReferentialFragment
       }
       recorderDepartment {
-        ...DepartmentFragment
+        ...RecorderDepartmentFragment
       }
       positions {
         ...PositionFragment
       }
     }
   }
-  ${Fragments.department}
+  ${Fragments.recorderDepartment}
   ${Fragments.position}
   ${Fragments.referential}
 `;
@@ -62,7 +62,7 @@ const LoadQuery: any = gql`
         ...ReferentialFragment
       }
       recorderDepartment {
-        ...DepartmentFragment
+        ...RecorderDepartmentFragment
       }
       positions {
         ...PositionFragment
@@ -81,7 +81,7 @@ const LoadQuery: any = gql`
       }
     }  
   }
-  ${Fragments.department}
+  ${Fragments.recorderDepartment}
   ${Fragments.position}
   ${Fragments.measurement}
   ${Fragments.referential}
@@ -106,7 +106,7 @@ const SaveOperations: any = gql`
         ...ReferentialFragment
       }
       recorderDepartment {
-        ...DepartmentFragment
+        ...RecorderDepartmentFragment
       }
       positions {
         ...PositionFragment
@@ -122,7 +122,7 @@ const SaveOperations: any = gql`
       }
     }
   }
-  ${Fragments.department}
+  ${Fragments.recorderDepartment}
   ${Fragments.position}
   ${Fragments.measurement}
   ${DataFragments.sample}

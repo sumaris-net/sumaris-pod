@@ -193,9 +193,9 @@ export class AccountService extends BaseDataService {
   private _started: boolean = false;
   private _additionalAccountFields: AccountFieldDef[] = [];
 
-  public onLogin: Subject<Account> = new Subject<Account>();
-  public onLogout: Subject<any> = new Subject<any>();
-  public onAuthTokenChange: Subject<any> = new Subject<string | undefined>();
+  public onLogin = new Subject<Account>();
+  public onLogout = new Subject<any>();
+  public onAuthTokenChange = new Subject<string | undefined>();
 
   public get account(): Account {
     return this.data.loaded ? this.data.account : undefined;
@@ -415,60 +415,59 @@ export class AccountService extends BaseDataService {
     return this.data.account;
   }
 
-  public refresh(): Promise<Account> {
-    if (!this.data.pubkey) return Promise.reject("User not logged");
+  public async refresh(): Promise<Account> {
+    if (!this.data.pubkey) throw new Error("User not logged");
 
     const locale = this.translate.currentLang;
 
-    return this.loadData()
-      .then(() => {
-        return this.saveLocally();
-      })
-      .then(() => {
-        console.debug("[account] Sucessfully reload account");
-        this.onLogin.next(this.data.account);
-        return this.data.account;
-      });
+    await this.loadData({ fetchPolicy: 'network-only' });
+
+    await this.saveLocally();
+
+    console.debug("[account] Sucessfully reload account");
+
+    // Emit login event to subscribers
+    this.onLogin.next(this.data.account);
+
+    return this.data.account;
   }
 
-  loadData(): Promise<Account> {
-    if (!this.data.pubkey) return Promise.reject("User not logged");
+  async loadData(opts?: { fetchPolicy?: FetchPolicy }): Promise<Account> {
+    if (!this.data.pubkey) throw new Error("User not logged");
 
     this.data.loaded = false;
 
+    try {
+      const account = (await this.loadAccount(this.data.pubkey, opts)) || new Account();
 
-    return this.loadAccount(this.data.pubkey)
-      .then((account) => {
-        account = account || new Account();
+      // Fill default values
+      account.avatar = account.avatar || "../assets/img/person.png";
+      account.settings = account.settings || new UserSettings();
+      account.settings.locale = account.settings.locale || this.translate.currentLang;
+      account.settings.latLongFormat = account.settings.latLongFormat || 'DDMM';
 
-        // Default values
-        account.avatar = account.avatar || "../assets/img/person.png";
-        account.settings = account.settings || new UserSettings();
-        account.settings.locale = account.settings.locale || this.translate.currentLang;
-        account.settings.latLongFormat = account.settings.latLongFormat || 'DDMM';
+      // Read main profile
+      this.data.mainProfile = getMainProfile(account.profiles);
 
-        // Read main profile
-        this.data.mainProfile = getMainProfile(account.profiles);
+      if (this.data.account) {
+        account.copy(this.data.account);
+      }
+      else {
+        this.data.account = account;
+      }
+      this.data.loaded = true;
+      return this.data.account;
+    }
+    catch (error) {
+      this.resetData();
+      if (error.code && error.message) throw error;
 
-        if (this.data.account) {
-          account.copy(this.data.account);
-        }
-        else {
-          this.data.account = account;
-        }
-        this.data.loaded = true;
-        return this.data.account;
-      })
-      .catch((error) => {
-        this.resetData();
-        if (error.code && error.message) throw error;
-
-        console.error(error);
-        throw {
-          code: ErrorCodes.LOAD_ACCOUNT_ERROR,
-          message: 'ERROR.LOAD_ACCOUNT_ERROR'
-        };
-      });
+      console.error(error);
+      throw {
+        code: ErrorCodes.LOAD_ACCOUNT_ERROR,
+        message: 'ERROR.LOAD_ACCOUNT_ERROR'
+      };
+    };
   }
 
   public async restoreLocally(): Promise<Account | undefined> {

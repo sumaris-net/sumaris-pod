@@ -2,26 +2,34 @@ import gql from "graphql-tag";
 
 export const Fragments = {
   department: gql`
-      fragment DepartmentFragment on DepartmentVO {
+    fragment DepartmentFragment on DepartmentVO {
+      id
+      label
+      name
+      logo
+    }
+  `,
+  recorderDepartment: gql`
+    fragment RecorderDepartmentFragment on DepartmentVO {
+      id
+      label
+      name
+      logo
+    }
+  `,
+  recorderPerson: gql`
+    fragment RecorderPersonFragment on PersonVO {
+      id
+      firstName
+      lastName
+      avatar
+      department {
         id
         label
         name
-        logo
       }
-    `,
-  person: gql`
-      fragment PersonFragment on PersonVO {
-        id
-        firstName
-        lastName
-        avatar
-        department {
-          id
-          label
-          name
-        }
-      }
-    `,
+    }
+  `,
   location: gql`
       fragment LocationFragment on LocationVO {
         id

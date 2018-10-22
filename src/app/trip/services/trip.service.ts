@@ -30,10 +30,10 @@ export const TripFragments = {
       ...LocationFragment
     }
     recorderDepartment {
-      ...DepartmentFragment
+      ...RecorderDepartmentFragment
     }
     recorderPerson {
-      ...PersonFragment
+      ...RecorderPersonFragment
     }
     vesselFeatures {
       vesselId,
@@ -42,8 +42,8 @@ export const TripFragments = {
     }
   }
   ${Fragments.location}
-  ${Fragments.department}
-  ${Fragments.person}
+  ${Fragments.recorderDepartment}
+  ${Fragments.recorderPerson}
   `,
   trip: gql`fragment TripFragment on TripVO {
     id
@@ -63,10 +63,10 @@ export const TripFragments = {
       ...LocationFragment
     }
     recorderDepartment {
-      ...DepartmentFragment
+      ...RecorderDepartmentFragment
     }
     recorderPerson {
-      ...PersonFragment
+      ...RecorderPersonFragment
     }
     vesselFeatures {
       vesselId
@@ -96,7 +96,7 @@ export const TripFragments = {
         ...ReferentialFragment
       }
       recorderDepartment {
-        ...DepartmentFragment
+        ...RecorderDepartmentFragment
       }
       measurements {
         ...MeasurementFragment
@@ -106,8 +106,8 @@ export const TripFragments = {
       ...MeasurementFragment
     }
   }
-  ${Fragments.department}
-  ${Fragments.person}
+  ${Fragments.recorderDepartment}
+  ${Fragments.recorderPerson}
   ${Fragments.measurement}
   ${Fragments.referential}
   ${Fragments.location}

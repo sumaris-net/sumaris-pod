@@ -9,7 +9,7 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <form [formGroup]="form" novalidate (ngSubmit)="doSave($event, form.value)" class="form-container">
+  <form [formGroup]="form" novalidate (ngSubmit)="save($event)" class="form-container">
 
     <mat-tab-group>
 
@@ -185,5 +185,5 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="doSave($event, form.value)" [disabled]="!form.dirty || saving"></form-buttons-bar>
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!form.dirty || saving"></form-buttons-bar>
 </ion-footer>
