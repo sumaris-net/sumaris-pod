@@ -55,6 +55,10 @@ public class PersonVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private List<String> profiles;
 
+    // Workaround for issue see https://github.com/sumaris-net/sumaris-app/issues/3
+    // TODO: remove this, later
+    private String mainProfile;
+
     private boolean hasAvatar;
 
     private String avatar;

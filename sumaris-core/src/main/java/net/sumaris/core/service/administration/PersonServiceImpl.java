@@ -24,9 +24,11 @@ package net.sumaris.core.service.administration;
 
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
@@ -47,6 +49,9 @@ public class PersonServiceImpl implements PersonService {
 
 	@Autowired
 	protected PersonDao personDao;
+
+	@Autowired
+	protected DepartmentDao departmentDao;
 
 	@Override
 	public List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
@@ -89,6 +94,13 @@ public class PersonServiceImpl implements PersonService {
 	@Override
 	public PersonVO save(PersonVO person) {
 		checkValid(person);
+
+		// Make sure to fill department, before saving, because of cache
+		if (person.getDepartment().getLabel() == null) {
+			DepartmentVO department = departmentDao.get(person.getDepartment().getId());
+			person.setDepartment(department);
+		}
+
 		return personDao.save(person);
 	}
 
