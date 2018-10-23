@@ -141,8 +141,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
         this.writing = true;
 
-        console.log("TODO set value !");
-
         // If mobile (use ion-date-time component)
         if (this.mobile) {
             // With time
@@ -189,7 +187,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
             // Without time
             else {
-                console.log("call writeValue()", this.date, this.formControl);
+                //console.log("call writeValue()", this.date, this.formControl);
                 // Set form value
                 this.form.setValue({
                     day: this.date.clone().startOf('day').format(this.dayPattern)
@@ -254,7 +252,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
             if (this.displayTime) {
                 json = json && json.day;
-                console.log("CHECK TODO ion-date-time result", json);
+                //console.log("ion-date-time result", json);
                 date = json && json.day && json.year && json.month && moment()
                     // set as time as locale time
                     .locale(this.locale)
@@ -268,6 +266,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
                     .utc();
             }
             else {
+                json = json && json.day;
+                //console.log("ion-date-time result", json);
                 date = json && json.day && json.year && json.month && moment()
                     // set as time as locale time
                     .locale(this.locale)
