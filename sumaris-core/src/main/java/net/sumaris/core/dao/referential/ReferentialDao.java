@@ -55,6 +55,8 @@ public interface ReferentialDao {
                                      String sortAttribute,
                                      SortDirection sortDirection);
 
+    ReferentialVO findByUniqueLabel(String entityName, String label);
+
     <T extends IReferentialEntity> ReferentialVO toReferentialVO(T source);
 
     <T extends IReferentialVO, S extends IReferentialEntity> T toTypedVO(S source, Class<T> targetClazz);

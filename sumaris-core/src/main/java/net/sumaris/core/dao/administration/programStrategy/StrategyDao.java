@@ -37,6 +37,8 @@ public interface StrategyDao {
     @Cacheable(cacheNames = CacheNames.PMFM_BY_PROGRAM_ID, key = "#programId", unless = "#result == null")
     List<PmfmStrategyVO> getPmfmStrategies(int programId);
 
+    List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId);
+
     PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source);
 
 }

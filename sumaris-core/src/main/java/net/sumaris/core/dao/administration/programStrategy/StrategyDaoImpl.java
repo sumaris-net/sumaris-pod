@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
@@ -87,6 +88,36 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         return getEntityManager()
                 .createQuery(query)
                 .setParameter(programIdParam, programId)
+                .getResultStream()
+                .map(this::toPmfmStrategyVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId) {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<PmfmStrategy> query = builder.createQuery(PmfmStrategy.class);
+        Root<PmfmStrategy> root = query.from(PmfmStrategy.class);
+
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+        ParameterExpression<Integer> acquisitionLevelIdParam = builder.parameter(Integer.class);
+
+        Join<PmfmStrategy, Strategy> strategyInnerJoin = root.join(PmfmStrategy.PROPERTY_STRATEGY, JoinType.INNER);
+
+        query.select(root)
+                .where(
+                        builder.and(
+                            builder.equal(strategyInnerJoin.get(Strategy.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam),
+                            builder.equal(root.get(PmfmStrategy.PROPERTY_ACQUISITION_LEVEL).get(AcquisitionLevel.PROPERTY_ID), acquisitionLevelIdParam)
+                    ));
+
+        // Sort by rank order
+        query.orderBy(builder.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
+
+        return getEntityManager()
+                .createQuery(query)
+                .setParameter(programIdParam, programId)
+                .setParameter(acquisitionLevelIdParam, acquisitionLevelId)
                 .getResultStream()
                 .map(this::toPmfmStrategyVO)
                 .collect(Collectors.toList());

@@ -26,11 +26,13 @@ import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -80,6 +82,9 @@ public class AdministrationGraphQLService {
 
     @Autowired
     private StrategyService strategyService;
+
+    @Autowired
+    private ReferentialService referentialService;
 
     @Autowired
     private ChangesPublisherService changesPublisherService;
@@ -278,13 +283,21 @@ public class AdministrationGraphQLService {
     @GraphQLQuery(name = "programPmfms", description = "Get program's pmfm")
     @Transactional(readOnly = true)
     public List<PmfmStrategyVO> getPmfmStratgies(
-            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel
-            //@GraphQLArgument(name = "acquisitionLevel", description = "A valid acquisition level (e.g. 'TRIP', 'OPERATION', 'PHYSICAL_GEAR')") String acquisitionLevel
+            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel,
+            @GraphQLArgument(name = "acquisitionLevel", description = "A valid acquisition level (e.g. 'TRIP', 'OPERATION', 'PHYSICAL_GEAR')") String acquisitionLevel
             ) {
         Preconditions.checkNotNull(programLabel, "Missing program");
         ProgramVO program = programService.getByLabel(programLabel);
 
-        return strategyService.getPmfmStrategies(program.getId());
+        // ALl pmfm from the program
+        if (StringUtils.isBlank(acquisitionLevel)) {
+            List<PmfmStrategyVO> res = strategyService.getPmfmStrategies(program.getId());
+            return res;
+        }
+
+        ReferentialVO acquisitionLevelVO = referentialService.findByUniqueLabel(AcquisitionLevel.class.getSimpleName(), acquisitionLevel);
+        return strategyService.getPmfmStrategiesByAcquisitionLevel(program.getId(), acquisitionLevelVO.getId());
+
     }
 
 

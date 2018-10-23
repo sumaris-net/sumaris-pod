@@ -38,6 +38,7 @@ import java.util.Set;
 public class PmfmStrategy implements IEntityBean<Integer> {
 
     public static final String PROPERTY_STRATEGY = "strategy";
+    public static final String PROPERTY_ACQUISITION_LEVEL = "acquisitionLevel";
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
@@ -50,11 +51,14 @@ public class PmfmStrategy implements IEntityBean<Integer> {
     @Column(name = "is_mandatory", nullable = false)
     private Boolean isMandatory;
 
+    @Column(name = "min_value")
+    private Double minValue;
+
     @Column(name = "max_value")
     private Double maxValue;
 
-    @Column(name = "min_value")
-    private Double minValue;
+    @Column(name = "default_value")
+    private Double defaultValue;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pmfm_fk", nullable = false)

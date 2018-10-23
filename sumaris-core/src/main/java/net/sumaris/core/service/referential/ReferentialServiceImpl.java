@@ -26,10 +26,12 @@ package net.sumaris.core.service.referential;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +74,13 @@ public class ReferentialServiceImpl implements ReferentialService {
 		return referentialDao.findByFilter(entityName, filter, offset, size,
 				IItemReferentialEntity.PROPERTY_LABEL,
 				SortDirection.ASC);
+	}
+
+	@Override
+	public ReferentialVO findByUniqueLabel(String entityName, String label) {
+		Preconditions.checkNotNull(entityName);
+		Preconditions.checkNotNull(label);
+		return referentialDao.findByUniqueLabel(entityName, label);
 	}
 
 	@Override

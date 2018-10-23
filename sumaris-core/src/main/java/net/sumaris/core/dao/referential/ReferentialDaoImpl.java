@@ -163,6 +163,17 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
     }
 
     @Override
+    public ReferentialVO findByUniqueLabel(String entityName, String label) {
+        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+        Preconditions.checkNotNull(label);
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+        return toReferentialVO(entityName, createFindByUniqueLabelQuery(entityClass, label).getSingleResult());
+    }
+
+    @Override
     public List<ReferentialTypeVO> getAllTypes() {
 
         return entityClassMap.keySet().stream()
@@ -464,6 +475,20 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         }
 
         return typedQuery;
+    }
+
+    private <T> TypedQuery<T> createFindByUniqueLabelQuery(Class<T> entityClass, String label) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<T> query = builder.createQuery(entityClass);
+        Root<T> tripRoot = query.from(entityClass);
+        query.select(tripRoot).distinct(true);
+
+        // Filter on text
+        ParameterExpression<String> labelParam = builder.parameter(String.class);
+        query.where(builder.equal(tripRoot.get(IItemReferentialEntity.PROPERTY_LABEL), labelParam));
+
+        return getEntityManager().createQuery(query)
+                .setParameter(labelParam, label);
     }
 
     protected Class<? extends IReferentialEntity> getEntityClass(String entityName) {

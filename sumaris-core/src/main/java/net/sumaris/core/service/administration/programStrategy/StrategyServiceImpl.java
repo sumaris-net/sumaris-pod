@@ -45,4 +45,9 @@ public class StrategyServiceImpl implements StrategyService {
 	public List<PmfmStrategyVO> getPmfmStrategies(int programId) {
 		return strategyDao.getPmfmStrategies(programId);
 	}
+
+	@Override
+	public List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId) {
+		return strategyDao.getPmfmStrategiesByAcquisitionLevel(programId, acquisitionLevelId);
+	}
 }

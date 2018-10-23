@@ -43,6 +43,9 @@ public interface ReferentialService {
     List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
     @Transactional(readOnly = true)
+    ReferentialVO findByUniqueLabel(String entityName, String label);
+
+    @Transactional(readOnly = true)
     List<ReferentialVO> getAllLevels(String entityName);
 
     @Transactional(readOnly = true)
