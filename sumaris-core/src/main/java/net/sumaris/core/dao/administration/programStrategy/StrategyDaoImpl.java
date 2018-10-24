@@ -137,7 +137,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         Beans.copyProperties(source, target);
 
         // Override pmfm id
-        target.setId(pmfm.getId());
+        target.setPmfmId(pmfm.getId());
 
         // Set default value from Pmfm
         if (target.getMinValue() == null) {

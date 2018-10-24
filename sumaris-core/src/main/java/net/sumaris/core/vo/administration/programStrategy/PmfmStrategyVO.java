@@ -37,6 +37,7 @@ import java.util.List;
 public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private Integer id;
+    private Integer pmfmId;
 
     private String label;
     private String name;
