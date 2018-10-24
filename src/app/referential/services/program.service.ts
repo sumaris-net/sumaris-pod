@@ -11,6 +11,7 @@ const LoadProgramPmfms: any = gql`
   query LoadProgramPmfms($program: String) {
     programPmfms(program: $program){
       id
+      pmfmId
       label
       name
       unit
@@ -44,6 +45,7 @@ export class ProgramService extends BaseDataService {
     protected apollo: Apollo
   ) {
     super(apollo);
+    this._debug = true;
   }
 
   /**
@@ -62,18 +64,30 @@ export class ProgramService extends BaseDataService {
       error: { code: ErrorCodes.LOAD_PROGRAM_PMFMS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_PMFMS_ERROR" }
     })
       .pipe(
-        map((data) => (data && data.programPmfms || [])
-          // Filter on acquisition level and gear
-          .filter(p => !options || (
-            (!options.acquisitionLevel || p.acquisitionLevel == options.acquisitionLevel)
-            // Filter on gear (if PMFM has gears = compatible with all gears)
-            && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g == options.gear) !== -1)
-          ))
-          // Convert into model
-          .map(PmfmStrategy.fromObject)
+        map((data) => {
+          const pmfmIds = []; // used to avoid duplicated pmfms
+          if (options.acquisitionLevel == "SURVIVAL_TEST") console.debug("data.programPmfms:", data && data.programPmfms);
+          const res = (data && data.programPmfms || [])
+            // Filter on acquisition level and gear
+            .filter(p =>
+              pmfmIds.indexOf(p.pmfmId) == -1
+              && (
+                !options || (
+                  (!options.acquisitionLevel || p.acquisitionLevel == options.acquisitionLevel)
+                  // Filter on gear (if PMFM has gears = compatible with all gears)
+                  && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g == options.gear) !== -1)
+                  // Add to list of IDs
+                  && pmfmIds.push(p.pmfmId)
+                )
+              ))
+            // Convert into model
+            .map(PmfmStrategy.fromObject);
           // Sort on rank order
-          .sort((p1, p2) => p1.rankOrder - p2.rankOrder)
-        )
+          res.sort((p1, p2) => p1.rankOrder - p2.rankOrder);
+          if (options.acquisitionLevel == "SURVIVAL_TEST") console.debug("PMFM for " + options.acquisitionLevel, res);
+
+          return res;
+        })
       );
 
     // TODO: translate name/label using translate service ?

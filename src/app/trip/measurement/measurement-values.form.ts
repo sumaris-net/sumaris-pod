@@ -81,7 +81,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
         if (this.form.controls['measurementvalues']) {
             const pmfmForm = this.form.controls['measurementvalues'] as FormGroup;
             // Find dirty pmfms, to avoid full update
-            const dirtyPmfms = (this.cachedPmfms || []).filter(pmfm => pmfmForm.controls[pmfm.id.toString()].dirty);
+            const dirtyPmfms = (this.cachedPmfms || []).filter(pmfm => pmfmForm.controls[pmfm.pmfmId].dirty);
             if (dirtyPmfms.length) {
                 Object.assign(this.data.measurementValues, MeasurementUtils.fromFormValues(pmfmForm.value, dirtyPmfms));
                 this.logDebug("Update data: ", this.data);
@@ -195,7 +195,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
         if (this.cachedPmfms && this.form && this.form.controls['measurementValues']) {
             const pmfmForm = this.form.controls['measurementValues'] as FormGroup;
             this.cachedPmfms.forEach(pmfm => {
-                pmfmForm.controls[pmfm.id.toString()].markAsTouched();
+                pmfmForm.controls[pmfm.pmfmId].markAsTouched();
             });
         }
     }

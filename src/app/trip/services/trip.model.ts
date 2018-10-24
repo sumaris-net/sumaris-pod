@@ -3,14 +3,14 @@ import {
   toDateISOString, fromDateISOString,
   vesselFeaturesToString, entityToString, referentialToString,
   StatusIds, Cloneable, Entity, LocationLevelIds, VesselFeatures, GearLevelIds, TaxonGroupIds,
-  PmfmStrategy
+  PmfmStrategy, getPmfmName
 } from "../../referential/services/model";
 import { Moment } from "moment/moment";
 
 export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
   toDateISOString, fromDateISOString,
-  vesselFeaturesToString, entityToString, referentialToString,
+  vesselFeaturesToString, entityToString, referentialToString, getPmfmName,
   StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds,
   PmfmStrategy
 };
@@ -302,8 +302,8 @@ export class MeasurementUtils {
   static getMeasurementValuesMap(measurements: Measurement[], pmfms: PmfmStrategy[]): any {
     const res: any = {};
     pmfms.forEach(pmfm => {
-      const m = (measurements || []).find(m => m.pmfmId === pmfm.id);
-      res[pmfm.id.toString()] = m && MeasurementUtils.getValue(m, pmfm) || null;
+      const m = (measurements || []).find(m => m.pmfmId === pmfm.pmfmId);
+      res[pmfm.pmfmId] = m && MeasurementUtils.getValue(m, pmfm) || null;
     });
     return res;
   }
@@ -312,8 +312,8 @@ export class MeasurementUtils {
     // Work on a copy, to be able to reduce the array
     let rankOrder = 1;
     return (pmfms || []).map(pmfm => {
-      const m = (measurements || []).find(m => m.pmfmId === pmfm.id) || new Measurement();
-      m.pmfmId = pmfm.id; // apply the pmfm (need for new object)
+      const m = (measurements || []).find(m => m.pmfmId === pmfm.pmfmId) || new Measurement();
+      m.pmfmId = pmfm.pmfmId; // apply the pmfm (need for new object)
       m.rankOrder = rankOrder++;
       return m;
     });
@@ -322,9 +322,9 @@ export class MeasurementUtils {
   // Update measurement values
   static updateMeasurementValues(valuesMap: { [key: number]: any }, measurements: Measurement[], pmfms: PmfmStrategy[]) {
     (measurements || []).forEach(m => {
-      let pmfm = (pmfms || []).find(pmfm => pmfm.id === m.pmfmId);
+      let pmfm = (pmfms || []).find(pmfm => pmfm.pmfmId === m.pmfmId);
       if (pmfm) {
-        MeasurementUtils.setValue(valuesMap[pmfm.id.toString()] || null, m, pmfm);
+        MeasurementUtils.setValue(valuesMap[pmfm.pmfmId.toString()] || null, m, pmfm);
       }
     });
   }
@@ -422,7 +422,7 @@ export class MeasurementUtils {
   static toFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]): any {
     const target = {};
     pmfms.forEach(pmfm => {
-      target[pmfm.id.toString()] = MeasurementUtils.toFormValue(source[pmfm.id.toString()], pmfm);
+      target[pmfm.pmfmId] = MeasurementUtils.toFormValue(source[pmfm.pmfmId], pmfm);
     });
     return target;
   }
@@ -431,7 +431,7 @@ export class MeasurementUtils {
   static fromFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]) {
     const target = {};
     pmfms.forEach(pmfm => {
-      target[pmfm.id.toString()] = MeasurementUtils.fromFormValue(source[pmfm.id.toString()], pmfm);
+      target[pmfm.pmfmId] = MeasurementUtils.fromFormValue(source[pmfm.pmfmId], pmfm);
     });
     return target;
   }
@@ -717,7 +717,7 @@ export class Sample extends DataRootEntity<Sample> {
     else if (source.measurements) {
       this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
         const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-        if (value) map[m.pmfmId.toString()] = value;
+        if (value) map[m.pmfmId] = value;
         return map;
       }, {}) || undefined;
     }
@@ -813,7 +813,7 @@ export class Batch extends DataEntity<Batch> {
     else if (source.measurements) {
       this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
         const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-        if (value) map[m.pmfmId.toString()] = value;
+        if (value) map[m.pmfmId] = value;
         return map;
       }, {}) || undefined;
     }

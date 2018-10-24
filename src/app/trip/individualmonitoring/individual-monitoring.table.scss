@@ -1,7 +1,29 @@
-/* .mat-header-row,
+.mat-header-row,
 .mat-row {
-  .mat-column-XXX {
-    max-width: XXXpx;
+  .mat-column-id {
+    max-width: 30px;
+  }
+
+  .mat-column-parentSample {
+    min-width: 150px;
+  }
+
+  // Y/N
+  .mat-column-100 {
+    min-width: 30px;
+  }
+
+  .mat-column-102 {
+    min-width: 75px;
+  }
+
+  .mat-column-100,
+  .mat-column-102,
+  .mat-column-104,
+  .mat-column-105,
+  .mat-column-106,
+  .mat-column-107,
+  .mat-column-108 {
+    max-width: 100px;
   }
 }
- */

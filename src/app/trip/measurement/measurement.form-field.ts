@@ -1,5 +1,5 @@
 import { Component, Optional, OnInit, Input, forwardRef } from '@angular/core';
-import { PmfmStrategy } from "../services/trip.model";
+import { PmfmStrategy, getPmfmName } from "../services/trip.model";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, FormControl, FormGroupDirective } from '@angular/forms';
 import { FloatLabelType } from "@angular/material";
 import { MeasurementsValidatorService } from '../services/measurement.validator';
@@ -47,9 +47,12 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     writeValue(obj: any): void {
 
         if (obj !== this.formControl.value) {
-            console.debug("[mat-form-field-measurement] Replace value", obj);
+            if (this.pmfm.type == 'boolean') console.debug("[mat-form-field-measurement] Replace value", obj);
             this.formControl.setValue(obj);
             this._onChange(this.value);
+        }
+        else {
+            if (this.pmfm.type == 'boolean') console.debug("[mat-form-field-measurement] Same value, skipping", obj);
         }
     }
 
@@ -69,7 +72,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
         if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement>.");
 
         this.formControl.setValidators(this.measurementValidatorService.getValidators(this.pmfm));
-        this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm);
+        this.placeholder = this.placeholder || getPmfmName(this.pmfm, { withUnit: !this.compact });
 
         if (this.model) {
             console.warn("[mat-form-field-measurement] Replace value (by ngModel)", this.formControl.value, this.model);
@@ -122,13 +125,4 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
             return "1";
         }
     }
-
-    computePlaceholder(pmfm: PmfmStrategy): string {
-        if (!pmfm) return undefined;
-        if (pmfm.type == 'integer' || pmfm.type == 'double') {
-            return pmfm.name + (pmfm.unit ? (' (' + pmfm.unit + ')') : '')
-        }
-        return pmfm.name;
-    }
-
 }

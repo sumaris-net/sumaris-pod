@@ -42,7 +42,7 @@
   <ng-container matColumnDef="rankOrder">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
-  <ng-container *ngFor="let pmfm of pmfmHeaders | async" matColumnDef="{{pmfm.id}}">
+  <ng-container *ngFor="let pmfm of pmfmHeaders | async" matColumnDef="{{pmfm.pmfmId}}">
     <mat-header-cell *matHeaderCellDef class="col-{{pmfm.count}}">
       <ion-label>{{pmfm.name | translate}}</ion-label>
     </mat-header-cell>
@@ -193,12 +193,14 @@
 
   <ng-container *ngIf="started">
     <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of cachedPmfms" matColumnDef="{{pmfm.id}}">
+    <ng-container *ngFor="let pmfm of cachedPmfms" matColumnDef="{{pmfm.pmfmId}}">
       <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.type=='date'">
-        <ion-label>{{getPmfmColumnHeader(pmfm)}}</ion-label>
+        <ion-label>{{getPmfmColumnHeader(pmfm)}}
+          <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
+        </ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.type=='date'">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.id]"
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
           [compact]="true" floatLabel="never"></mat-form-field-measurement>
       </mat-cell>
     </ng-container>

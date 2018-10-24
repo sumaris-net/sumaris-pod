@@ -254,6 +254,8 @@
     },
     "INDIVIDUAL_MONITORING": {
       "TABLE": {
+        "PARENT_SAMPLE": "Parent sample",
+        "TAXON_GROUP": "Espèce",
         "COMMENTS": "Commentaires"
       }
     }

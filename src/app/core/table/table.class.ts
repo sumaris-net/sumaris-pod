@@ -96,6 +96,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this._dirty = false;
     }
 
+    markAsTouched() {
+        if (this.selectedRow && this.selectedRow.editing) {
+            this.selectedRow.validator.markAsTouched();
+        }
+    }
+
     constructor(
         protected route: ActivatedRoute,
         protected router: Router,
@@ -114,7 +120,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         if (this._initialized) return; // Init only once
         this._initialized = true;
 
-        if (!this.table) throw new Error("[table] Missing 'table' component in template !");
+        //if (!this.table) throw new Error("[table] Missing 'table' component in template !");
 
         // Defined unique id for settings
         this.settingsId = this.generateTableId();
@@ -161,7 +167,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 if (data) {
                     this.isRateLimitReached = !this.paginator || (data.length < this.paginator.pageSize);
                     this.resultsLength = (this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + data.length;
-                    if (this.debug) console.debug('[table] ' + data.length + ' rows loaded');
+                    if (this.debug) console.debug(`[table] ${data.length} rows loaded`);
                 }
                 else {
                     if (this.debug) console.debug('[table] NO rows loaded');
@@ -190,11 +196,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     setDatasource(datasource: AppTableDataSource<T, F>) {
         if (this.dataSource) throw new Error("[table] dataSource already set !");
         this.dataSource = datasource;
-        this.listenDatasource(datasource);
+        if (this._initialized) this.listenDatasource(datasource);
     }
 
     listenDatasource(dataSource: AppTableDataSource<T, F>) {
         if (!dataSource) throw new Error("[table] dataSource not set !");
+        if (this._subscriptions.length) console.warn("listenDatasource (2/2)", new Error());
         this._subscriptions.push(dataSource.onLoading.subscribe(loading => this.loading = loading));
         this._subscriptions.push(dataSource.datasourceSubject.subscribe(data => {
             this.error = undefined;
@@ -409,7 +416,11 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     private generateTableId() {
-        return this.location.path(true).replace(/[?].*$/g, '') + "_" + this.constructor.name;
+        const id = this.location.path(true).replace(/[?].*$/g, '') + "_" + this.constructor.name;
+        if (this.debug) {
+            console.debug("table id = " + id);
+        }
+        return id;
     }
 
     private logRowErrors(row: TableElement<T>): void {

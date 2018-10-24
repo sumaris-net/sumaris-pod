@@ -94,7 +94,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     public get value(): Measurement[] {
 
         // Find dirty pmfms, to avoid full update
-        const dirtyPmfms = (this.cachedPmfms || []).filter(pmfm => this.form.controls[pmfm.id.toString()].dirty);
+        const dirtyPmfms = (this.cachedPmfms || []).filter(pmfm => this.form.controls[pmfm.pmfmId].dirty);
         if (dirtyPmfms.length) {
 
             // Update measurements value

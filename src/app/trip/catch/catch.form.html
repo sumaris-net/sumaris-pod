@@ -21,8 +21,8 @@
       </ion-col> -->
 
       <ion-col size="6" size-md="auto" *ngFor="let pmfm of onDeckPmfms | async">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues']?.controls[pmfm.id]"
-          *ngIf="form.controls['measurementValues']?.controls[pmfm.id]">
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues']?.controls[pmfm.pmfmId]"
+          *ngIf="form.controls['measurementValues']?.controls[pmfm.pmfmId]">
         </mat-form-field-measurement>
       </ion-col>
 
@@ -37,8 +37,8 @@
       </ion-col>
 
       <ion-col size="12" size-md="3" *ngFor="let pmfm of sortingPmfms | async">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues']?.controls[pmfm.id]"
-          *ngIf="form.controls['measurementValues']?.controls[pmfm.id]">
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues']?.controls[pmfm.pmfmId]"
+          *ngIf="form.controls['measurementValues']?.controls[pmfm.pmfmId]">
         </mat-form-field-measurement>
       </ion-col>
 
@@ -53,8 +53,8 @@
       </ion-col>
 
       <ion-col size="12" size-md="3" *ngFor="let pmfm of weightPmfms | async">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues'].controls[pmfm.id]"
-          *ngIf="form.controls['measurementValues']?.controls[pmfm.id]">
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues'].controls[pmfm.pmfmId]"
+          *ngIf="form.controls['measurementValues']?.controls[pmfm.pmfmId]">
         </mat-form-field-measurement>
       </ion-col>
 

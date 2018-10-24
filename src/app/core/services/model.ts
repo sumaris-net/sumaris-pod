@@ -42,6 +42,7 @@ export const AcquisitionLevelCodes = {
   SORTING_BATCH: 'SORTING_BATCH',
   SAMPLE: 'SAMPLE',
   SURVIVAL_TEST: 'SURVIVAL_TEST',
+  INDIVIDUAL_MONITORING: 'INDIVIDUAL_MONITORING'
 }
 
 export declare interface Cloneable<T> {

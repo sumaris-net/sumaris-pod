@@ -3,8 +3,8 @@ import { Observable } from 'rxjs';
 import { zip } from "rxjs/observable/zip";
 import { mergeMap, debounceTime } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService, AppFormUtils } from "../../core/core.module";
-import { referentialToString, PmfmStrategy, Sample, TaxonGroupIds, MeasurementUtils } from "../services/trip.model";
+import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
+import { referentialToString, PmfmStrategy, Sample, TaxonGroupIds, MeasurementUtils, getPmfmName } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
@@ -14,8 +14,6 @@ import { FormBuilder } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
 import { AcquisitionLevelCodes, EntityUtils, ReferentialRef } from "../../core/services/model";
-
-const PMFM_NAME_REGEXP = new RegExp(/^(([A-Z]+)([0-9]+))\s*[/]\s*(.*)$/);
 
 const PMFM_ID_REGEXP = new RegExp(/\d+/);
 
@@ -94,11 +92,10 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
             }).first();
 
         this.pmfms.subscribe(pmfms => {
-            this.cachedPmfms = pmfms;
+            console.log(pmfms);
+            this.cachedPmfms = pmfms || [];
             this.cachedPmfmFormConfig = this.measurementsValidatorService.getFormGroupConfig(this.cachedPmfms);
-            let displayedColumns = pmfms.reduce((res, pmfm) => {
-                return res.concat('' + pmfm.id);
-            }, []);
+            let displayedColumns = this.cachedPmfms.map(p => p.pmfmId.toString());
 
             this.displayedColumns = RESERVED_START_COLUMNS
                 .concat(RESERVED_SAMPLE_COLUMNS)
@@ -234,21 +231,14 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         // Try to resolve PMFM column, using the cached pmfm list
         if (PMFM_ID_REGEXP.test(columnName)) {
             const pmfmId = parseInt(columnName);
-            const pmfm = this.cachedPmfms.find(p => p.id === pmfmId);
+            const pmfm = this.cachedPmfms.find(p => p.pmfmId === pmfmId);
             if (pmfm) return pmfm.name;
         }
 
         return super.getI18nColumnName(columnName);
     }
 
-    getPmfmColumnHeader(pmfm: PmfmStrategy): string {
-
-        var matches = PMFM_NAME_REGEXP.exec(pmfm.name);
-        if (matches) {
-            return matches[1];
-        }
-        return pmfm.name;
-    }
+    getPmfmColumnHeader = getPmfmName;
 
     public trackByFn(index: number, row: TableElement<Sample>) {
         return row.currentData.rankOrder;

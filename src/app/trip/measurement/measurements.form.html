@@ -13,7 +13,7 @@
   <ion-spinner *ngIf="loading"></ion-spinner>
 
   <ng-container *ngFor="let pmfm of pmfms | async">
-    <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls[pmfm.id]" *ngIf="form.controls[pmfm.id]"
+    <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls[pmfm.pmfmId]" *ngIf="form.controls[pmfm.pmfmId]"
       [compact]="compact" [floatLabel]="floatLabel"></mat-form-field-measurement>
   </ng-container>
 </form>

@@ -136,8 +136,22 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     writeValue(obj: any): void {
         if (this.writing) return;
 
+        if (obj === null) {
+            this.writing = true;
+            if (this.displayTime) {
+                this.form.setValue({ day: null, hour: null }, { emitEvent: false });
+            }
+            else {
+                this.form.setValue({ day: null }, { emitEvent: false });
+            }
+            this.form.updateValueAndValidity();
+            this.date = undefined;
+            this.writing = false;
+            return;
+        }
+
         this.date = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
-        if (!this.date) return;
+        if (!this.date) return; // invalid date
 
         this.writing = true;
 

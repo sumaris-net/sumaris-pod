@@ -15,10 +15,30 @@ export const TaxonGroupIds = {
   METIER: 3
 }
 
+export const PmfmIds = {
+  TAG_ID: 82,
+  IS_DEAD: 100,
+  DEATH_TIME: 101,
+  VERTEBRAL_COLUMN_ANALYSIS: 102
+}
+
+const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
+
 export { Referential, ReferentialRef, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department, entityToString, referentialToString };
 
 export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
   return obj && obj.vesselId && joinProperties(obj, ['exteriorMarking', 'name']) || undefined;
+}
+
+export function getPmfmName(pmfm: PmfmStrategy, opts?: {
+  withUnit: boolean
+}): string {
+  var matches = PMFM_NAME_REGEXP.exec(pmfm.name);
+  const name = matches && matches[1] || pmfm.name;
+  if (opts && opts.withUnit && pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')) {
+    return `${name} (${pmfm.unit})`;
+  }
+  return name;
 }
 
 export class VesselFeatures extends Entity<VesselFeatures>  {
@@ -99,7 +119,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy>  {
     res.fromObject(source);
     return res;
   }
-
+  pmfmId: number;
   label: string;
   name: string;
   unit: string;
@@ -141,6 +161,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy>  {
   fromObject(source: any): PmfmStrategy {
     super.fromObject(source);
 
+    this.pmfmId = source.pmfmId;
     this.label = source.label;
     this.name = source.name;
     this.unit = source.unit;

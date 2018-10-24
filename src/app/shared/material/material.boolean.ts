@@ -81,7 +81,9 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
         this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
         if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-boolean-field>.");
 
-        this.showRadio = this.formControl.value != null;
+        this._value = this.formControl.value;
+        this.showRadio = this._value != null;
+        if (this.compact) console.debug("[mat-boolean-field] ngOnInit value:", this._value);
     }
 
     writeValue(value: any): void {
@@ -89,8 +91,9 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
 
         this.writing = true;
         if (value !== this._value) {
-            //console.debug("[mat-boolean-field] Setting value:", value);
+            if (this.compact) console.debug("[mat-boolean-field] Setting value:", value);
             this._value = value;
+            this.showRadio = this._value != null;
         }
         this.writing = false;
     }

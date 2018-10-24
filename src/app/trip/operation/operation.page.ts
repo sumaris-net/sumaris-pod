@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from "@angular/router";
 import { OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
-import { Operation, Trip, Batch } from '../services/trip.model';
+import { Operation, Trip, Batch, Sample } from '../services/trip.model';
 import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form';
 import { AppTabPage, AppFormUtils } from '../../core/core.module';
@@ -11,6 +11,8 @@ import { SurvivalTestsTable } from '../survivaltest/survivaltests.table';
 import { IndividualMonitoringTable } from '../individualmonitoring/individual-monitoring.table';
 import { AlertController } from "@ionic/angular";
 import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '../../core/services/model';
+import { PmfmIds } from '../../referential/services/model';
 @Component({
   selector: 'page-operation',
   templateUrl: './operation.page.html',
@@ -70,6 +72,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.catchForm.gear = res && res.gear && res.gear.label || null;
     })
 
+    this.survivalTestsTable.listChange.subscribe(samples => {
+      const parentSamples = (samples || [])
+        .map(s => s as Sample)
+        .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
+
+      if (this.debug) console.debug("[page-operation] [survivaltests-table] Samples with Tag-ID:", parentSamples);
+      this.individualMonitoringTable.parentSamples = parentSamples;
+    });
   }
 
   async load(id?: number, options?: { tripId: number }) {
@@ -139,13 +149,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.catchForm.value = data && data.catchBatch || Batch.fromObject({ rankOrder: 1 });
 
     // Set survival tests
-    this.survivalTestsTable.value = data && data.samples || [];
+    this.survivalTestsTable.value = data && data.samples && data.samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.SURVIVAL_TEST + "#")) || [];
 
-    // Set indiv monitoring
-    // TODO
-    //this.individualMonitoringTable.value = data && data.individualMonitoring || [];
-    this.individualMonitoringTable.value = [{ rankOrder: 1, comments: 'A comment' }];
-
+    // Set individual monitoring
+    this.individualMonitoringTable.parentSamples = (data && data.samples || [])
+      .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
+    this.individualMonitoringTable.value = data && data.samples && data.samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#")) || [];
 
     this.markAsPristine();
     this.markAsUntouched();
@@ -156,13 +165,25 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Not valid
     if (!this.valid) {
-      if (this.debug) console.warn("[page-operation] Validation errors: check forms or tables validity");
+      if (this.debug) console.warn("[page-operation] Validation errors !");
 
       if (this.opeForm.invalid) this.opeForm.markAsTouched();
       if (this.measurementsForm.invalid) this.measurementsForm.markAsTouched();
       if (this.catchForm.invalid) {
         this.catchForm.markAsTouched();
         AppFormUtils.logFormErrors(this.catchForm.form, "[catch-form]");
+      }
+      if (this.survivalTestsTable.invalid) {
+        this.survivalTestsTable.markAsTouched();
+        if (this.survivalTestsTable.selectedRow && this.survivalTestsTable.selectedRow.editing) {
+          AppFormUtils.logFormErrors(this.survivalTestsTable.selectedRow.validator, "[survivaltests-table]")
+        }
+      }
+      if (this.individualMonitoringTable.invalid) {
+        this.individualMonitoringTable.markAsTouched();
+        if (this.individualMonitoringTable.selectedRow && this.individualMonitoringTable.selectedRow.editing) {
+          AppFormUtils.logFormErrors(this.individualMonitoringTable.selectedRow.validator, "[monitoring-table]")
+        }
       }
 
       this.submitted = true;
@@ -175,33 +196,48 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     if (this.debug) console.debug("[page-operation] Saving...");
 
+    // Update entity from JSON
+    let json = this.opeForm.value;
+    this.data.fromObject(json);
+    this.data.tripId = this.trip.id;
+    this.data.measurements = this.measurementsForm.value;
+
+    // get catch batch
+    this.data.catchBatch = this.catchForm.value;
+    if (this.debug) console.warn("TODO: check catchbatch", this.catchForm.value);
+
+    // get survival tests
+    await this.survivalTestsTable.save();
+    const survivalTests = this.survivalTestsTable.value;
+
+    // get indiv monitoring
+    //samples = samples.concat(this.individualMonitoringTable.value);
+
+    this.data.samples = (survivalTests || []);
+
+    const isNew = this.isNewData();
+    this.disable();
+
+
     try {
-      // Update entity from JSON
-      let json = this.opeForm.value;
-      this.data.fromObject(json);
-      this.data.tripId = this.trip.id;
-      this.data.measurements = this.measurementsForm.value;
-
-      // get catch batch
-      this.data.catchBatch = this.catchForm.value;
-      if (this.debug) console.warn("TODO: check catchbatch", this.catchForm.value);
-
-      // get survival tests
-      await this.survivalTestsTable.save();
-      const survivalTests = this.survivalTestsTable.value;
-
-      // get indiv monitoring
-      //samples = samples.concat(this.individualMonitoringTable.value);
-
-      this.data.samples = (survivalTests || []);
-
-      this.disable();
 
       // Save trip form (with sale) 
       const updatedData = await this.operationService.save(this.data);
 
       // Update the view (e.g metadata)
       this.updateView(updatedData);
+
+      // Update route location
+      if (isNew) {
+        this.router.navigate(['../' + updatedData.id], {
+          relativeTo: this.route,
+          queryParams: this.route.snapshot.queryParams
+        });
+
+        // Subscription to changes
+        //this.startListenChanges();
+      }
+
       this.submitted = false;
 
       return updatedData;

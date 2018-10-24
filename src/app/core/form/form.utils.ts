@@ -25,8 +25,6 @@ export function copyForm2Entity(source: FormGroup, target: any): Object {
             const value = control.value;
             // Set target attribute
             if (value && typeof value == "object" && value._isAMomentObject) {
-                console.warn("[form.utils] TODO: check if Moment should be converted ?" + value);
-                //data[key] = this.dateAdapter.format(value, DATE_ISO_PATTERN);
                 target[key] = value;
             }
             else {
@@ -60,8 +58,6 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
         }
         else {
             if (source[key] && typeof source[key] == "object" && source[key]._isAMomentObject) {
-                //console.warn("[form.utils] TODO: check if Moment should be converted ?" + source[key]);
-                //value[key] = this.dateAdapter.format(data[key], DATE_ISO_PATTERN);
                 value[key] = source[key];
             }
             else {
@@ -76,7 +72,7 @@ export function logFormErrors(form: FormGroup, logPrefix?: string, path?: string
     if (form.valid) return;
     logPrefix = logPrefix || "";
     const value = {};
-    console.warn(`${logPrefix} Form has errors:`);
+    if (!path) console.warn(`${logPrefix} Form errors:`);
     for (let key in form.controls) {
         let keyPath = (path ? `${path}/${key}` : key);
         if (form.controls[key] instanceof FormGroup) {
@@ -84,7 +80,7 @@ export function logFormErrors(form: FormGroup, logPrefix?: string, path?: string
         }
         else if (form.controls[key]) {
             for (let error in form.controls[key].errors) {
-                console.warn(`${logPrefix} Error in field {${keyPath}}: ${error}`);
+                console.warn(` -> '${keyPath}' (${error})`);
             }
         }
     }

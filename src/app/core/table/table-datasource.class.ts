@@ -38,7 +38,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     // Copy data to validator
     this.connect().subscribe(rows => {
-      console.debug("Copy currentData to validator");
+      if (this._debug) console.debug("Copy currentData to validator");
       rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
     });
   };
@@ -126,7 +126,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   };
 
   startEdit(row) {
-    if (this._debug) console.warn("[table-datasource] Start to edit row", row);
+    if (this._debug) console.debug("[table-datasource] Start to edit row", row);
     row.startEdit();
     AppFormUtils.copyEntity2Form(row.currentData, row.validator);
   };

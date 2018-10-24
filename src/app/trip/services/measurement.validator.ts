@@ -22,7 +22,7 @@ export class MeasurementsValidatorService implements ValidatorService {
 
   public getFormGroupConfig(pmfms: PmfmStrategy[]): { [key: string]: any } {
     return pmfms.reduce((res, pmfm) => {
-      res[pmfm.id] = this.getValidators(pmfm);
+      res[pmfm.pmfmId] = this.getValidators(pmfm);
       return res;
     }, {});
   }
@@ -37,12 +37,12 @@ export class MeasurementsValidatorService implements ValidatorService {
     }
     const controlConfig: any = {};
     pmfms.forEach(pmfm => {
-      const controlName = pmfm.id.toString();
+      const controlName = pmfm.pmfmId.toString();
       let formControl: AbstractControl = form.get(controlName);
       // If new pmfm: add as control
       if (!formControl) {
 
-        formControl = this.formBuilder.control('', this.getValidators(pmfm));
+        formControl = this.formBuilder.control(pmfm.defaultValue || '', this.getValidators(pmfm));
         //console.log(formControl);
         form.addControl(controlName, formControl);
       }

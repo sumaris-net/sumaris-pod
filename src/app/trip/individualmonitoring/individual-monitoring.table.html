@@ -49,7 +49,7 @@
     </mat-cell>
   </ng-container>
 
-  <!-- rankOrder Column -->
+  <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label *ngIf="!loading">#</ion-label>
@@ -58,8 +58,99 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
+  <!-- parent sample -->
+  <ng-container matColumnDef="parentSample">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label>{{displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
+        ('TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE'|translate) }}</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls['parentSample']" [matAutocomplete]="autoParentSample"
+          [appAutofocus]="row.id == -1 && row.editing" [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE'|translate)"
+          (focus)="onParentSampleCellFocus($event, row)" (click)="$event.target.select()" (blur)="onParentSampleCellBlur($event, row)"
+          required>
+        <mat-error *ngIf="row.validator.controls['parentSample'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+      </mat-form-field>
 
-  <!-- TODO -->
+      <mat-autocomplete autoActiveFirstOption #autoParentSample="matAutocomplete" [displayWith]="parentSampleToString">
+        <ion-row class="mat-autocomplete-header">
+          <ion-col size="2">
+            <ion-text>{{displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || '#'}}</ion-text>
+          </ion-col>
+          <ion-col>
+            <ion-text translate>TRIP.INDIVIDUAL_MONITORING.TABLE.TAXON_GROUP</ion-text>
+          </ion-col>
+        </ion-row>
+        <mat-option *ngFor="let sample of filteredParentSamples | async" [value]="sample">
+          <ion-row>
+            <ion-col size="2" [innerHTML]="(displayParentPmfm && sample.measurementValues[displayParentPmfm.pmfmId] || sample.rankOrder) | highlight: {search: row.validator.controls['parentSample'].value }"></ion-col>
+            <ion-col [innerHTML]="sample.taxonGroup.label | highlight: {search: row.validator.controls['parentSample'].value }"></ion-col>
+          </ion-row>
+        </mat-option>
+      </mat-autocomplete>
+    </mat-cell>
+
+  </ng-container>
+
+  <!-- Pmfms columns -->
+  <ng-container *ngIf="!started">
+    <ng-container matColumnDef="100">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="101">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="102">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="103">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="104">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="105">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="106">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="107">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="108">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+  </ng-container>
+
+  <ng-container *ngIf="started">
+    <!-- Pmfm columns -->
+    <ng-container *ngFor="let pmfm of cachedPmfms" matColumnDef="{{pmfm.pmfmId}}">
+      <!-- Skip Tag-ID (already used in parent sample) -->
+      <ng-container *ngIf="pmfm.pmfmId!=82">
+        <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.type=='date'">
+          <ion-label>{{getPmfmColumnHeader(pmfm)}}
+            <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
+          </ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.type=='date'">
+          <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
+            [compact]="true" floatLabel="never"></mat-form-field-measurement>
+        </mat-cell>
+      </ng-container>
+    </ng-container>
+
+  </ng-container>
 
   <!-- Comments column -->
   <ng-container matColumnDef="comments">
@@ -75,6 +166,9 @@
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+      <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_ADD'|translate" (click)="confirmAndAddRow($event, row)">
+        <mat-icon>add</mat-icon>
+      </button>
       <button mat-icon-button small color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
         <mat-icon>undo</mat-icon>
       </button>
@@ -83,7 +177,7 @@
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-    [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)" (onblur)="confirmAndAddRow($event,row)"></mat-row>
+    [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>
 
 <ion-row no-padding>
@@ -94,27 +188,11 @@
   </ion-col>
 </ion-row>
 
-<!-- Bottom buttons
-<ion-row no-padding>
-  <ion-col col-6 padding>
-    <ion-buttons left start *ngIf="!loading">
-      <button mat-raised-button *ngIf="dirty" (click)="onRefresh.emit()">
-        <ion-icon name="md-close"></ion-icon>
-        <span translate>COMMON.BTN_CANCEL</span>
-      </button>
-      <button mat-raised-button color="primary" *ngIf="dirty" (click)="save()">
-        <ion-icon name="md-checkmark"></ion-icon>
-        <span translate>COMMON.BTN_SAVE</span>
-      </button>
-    </ion-buttons>
+<!-- <ion-row>
+  <ion-col *ngFor="let pmfm of pmfms | async">
+    {{pmfm.label}}
   </ion-col>
-
-  <ion-col no-padding col-6>
-    <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]">
-    </mat-paginator>
-  </ion-col>
-</ion-row>-->
-
+</ion-row> -->
 <ion-fab right bottom visible-xs visible-sm>
   <button ion-fab color="light" (click)="addRow()">
     <ion-icon name="md-add"></ion-icon>
