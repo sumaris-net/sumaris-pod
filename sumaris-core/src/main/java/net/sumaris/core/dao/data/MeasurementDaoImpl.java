@@ -278,7 +278,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     @Override
     public Map<Integer, String> saveBatchSortingMeasurementsMap(int batchId, Map<Integer, String> sources) {
         Batch parent = get(Batch.class, batchId);
-        return saveMeasurementsMap(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
+        return saveMeasurementsMap(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
     }
 
     @Override
@@ -354,6 +354,11 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             // Rank order
             if (entity instanceof ISortedMeasurementEntity) {
                 ((ISortedMeasurementEntity) entity).setRankOrder(rankOrder++);
+            }
+
+            // Is reference ?
+            if (entity instanceof BatchQuantificationMeasurement) {
+                ((BatchQuantificationMeasurement) entity).setIsReferenceQuantification(rankOrder==1);
             }
 
             // Fill default properties

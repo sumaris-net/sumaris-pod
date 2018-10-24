@@ -99,7 +99,7 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getBatches()));
 
-        // Save each gears
+        // Save each batches
         List<BatchVO> result = sources.stream().map(source -> {
             source.setOperationId(operationId);
             if (source.getId() != null) {
@@ -195,6 +195,11 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             target.setTaxonGroup(taxonGroup);
         }
 
+        // Parent batch
+        if (source.getParent() != null) {
+            target.setParentId(source.getParent().getId());
+        }
+
         // Operation
         if (source.getOperation() != null) {
             target.setOperationId(source.getOperation().getId());
@@ -247,8 +252,25 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             }
         }
 
-        // Operation
+        Integer parentId = source.getParentId() != null ? source.getParentId() : (source.getParent() != null ? source.getParent().getId() : null);
         Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
+
+        // Parent batch
+        if (copyIfNull || (parentId != null)) {
+            if (parentId == null) {
+                target.setParent(null);
+            }
+            else {
+                Batch parent = load(Batch.class, parentId);
+                target.setParent(parent);
+
+                // Force same operation as parent
+                opeId = parent.getOperation().getId();
+            }
+        }
+
+
+        // Operation
         if (copyIfNull || (opeId != null)) {
             if (opeId == null) {
                 target.setOperation(null);

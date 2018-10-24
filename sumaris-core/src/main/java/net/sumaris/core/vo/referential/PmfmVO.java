@@ -17,5 +17,8 @@ public class PmfmVO extends ReferentialVO {
     private Integer maximumNumberDecimals;
     private Double defaultValue;
 
+    private Boolean isEstimated; // from the method
+    private Boolean isCalculated; // from the method
+
     List<ReferentialVO> qualitativeValues;
 }

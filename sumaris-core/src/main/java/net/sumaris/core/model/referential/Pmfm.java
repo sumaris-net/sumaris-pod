@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import net.sumaris.core.model.referential.pmfm.Method;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -92,10 +93,6 @@ public class Pmfm implements IReferentialEntity {
     @JoinColumn(name = "parameter_fk", nullable = false)
     private Parameter parameter;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Unit.class)
-    @JoinColumn(name = "unit_fk", nullable = false)
-    private Unit unit;
-
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Matrix.class)
     @JoinColumn(name = "matrix_fk")
     private Matrix matrix;
@@ -103,6 +100,14 @@ public class Pmfm implements IReferentialEntity {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Fraction.class)
     @JoinColumn(name = "fraction_fk")
     private Fraction fraction;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Method.class)
+    @JoinColumn(name = "method_fk")
+    private Method method;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Unit.class)
+    @JoinColumn(name = "unit_fk", nullable = false)
+    private Unit unit;
 
     public String toString() {
         return new StringBuilder().append("id=").append(getId()).toString();

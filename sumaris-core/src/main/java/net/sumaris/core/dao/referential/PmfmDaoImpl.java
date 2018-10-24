@@ -22,9 +22,11 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.*;
+import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -35,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.*;
@@ -90,9 +93,16 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
         Parameter parameter = source.getParameter();
         target.setName(parameter.getName());
 
-        // Parameter Type
+        // Parameter type
         ParameterValueType type = ParameterValueType.fromPmfm(source);
         target.setType(type.name().toLowerCase());
+
+        // Method: copy isEstimated, isCalculated
+        Method method = source.getMethod();
+        if (method != null) {
+            target.setIsCalculated(method.getIsCalculated());
+            target.setIsEstimated(method.getIsEstimated());
+        }
 
         // Unit symbol
         if (source.getUnit() != null && source.getUnit().getId().intValue() != unitIdNone) {

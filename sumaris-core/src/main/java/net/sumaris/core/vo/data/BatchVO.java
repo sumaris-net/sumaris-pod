@@ -37,6 +37,7 @@ public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
     private OperationVO operation;
     private Integer operationId;
 
+    private BatchVO parent;
     private Integer parentId;
     private List<BatchVO> children;
 

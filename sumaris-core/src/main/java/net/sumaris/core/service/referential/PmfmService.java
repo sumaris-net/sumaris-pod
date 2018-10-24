@@ -34,4 +34,6 @@ public interface PmfmService {
     @Transactional(readOnly = true)
     PmfmVO get(int pmfmId);
 
+    @Transactional(readOnly = true)
+    boolean isWeightPmfm(int pmfmId);
 }

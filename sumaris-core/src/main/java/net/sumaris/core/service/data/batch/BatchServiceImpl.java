@@ -24,14 +24,19 @@ package net.sumaris.core.service.data.batch;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import net.sumaris.core.dao.administration.programStrategy.StrategyDao;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.batch.BatchDao;
+import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.model.data.batch.BatchQuantificationMeasurement;
 import net.sumaris.core.model.data.batch.BatchSortingMeasurement;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;
+import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,7 +44,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service("batchService")
@@ -52,6 +59,9 @@ public class BatchServiceImpl implements BatchService {
 
 	@Autowired
 	protected MeasurementDao measurementDao;
+
+	@Autowired
+	protected PmfmService pmfmService;
 
 	@Override
 	public List<BatchVO> getAllByOperationId(int operationId) {
@@ -68,12 +78,26 @@ public class BatchServiceImpl implements BatchService {
 
 		List<BatchVO> result = batchDao.saveByOperationId(operationId, sources);
 
+
+
+
 		// Save measurements
 		result.stream().forEach(savedBatch -> {
-			// FIXME: use 2 maps, instead of one
-			// Sorting+Quantification measurements
+			// If only one maps: distinguish each item
 			if (savedBatch.getMeasurementValues() != null) {
-				measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), savedBatch.getMeasurementValues());
+
+				Map<Integer, String> quantificationMeasurements = Maps.newLinkedHashMap();
+				Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
+				savedBatch.getMeasurementValues().forEach((pmfmId, value) -> {
+					if (pmfmService.isWeightPmfm(pmfmId)) {
+						quantificationMeasurements.put(pmfmId, value);
+					}
+					else {
+						sortingMeasurements.put(pmfmId, value);
+					}
+				});
+				measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), sortingMeasurements);
+				measurementDao.saveBatchQuantificationMeasurementsMap(savedBatch.getId(), quantificationMeasurements);
 			}
 			else {
 				// Sorting measurement

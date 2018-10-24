@@ -57,4 +57,10 @@ public class PmfmServiceImpl implements PmfmService {
 	public PmfmVO get(int pmfmId) {
 		return pmfmDao.get(pmfmId);
 	}
+
+	@Override
+	public boolean isWeightPmfm(int pmfmId) {
+		PmfmVO pmfm = pmfmDao.get(pmfmId);
+		return pmfm.getLabel() != null && pmfm.getLabel().endsWith("WEIGHT");
+	}
 }
