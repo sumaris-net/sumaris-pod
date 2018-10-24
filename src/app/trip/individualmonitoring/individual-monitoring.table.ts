@@ -33,18 +33,18 @@ const RESERVED_SAMPLE_COLUMNS: string[] = ['parentSample'];
 export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
 
     private _onDataChange = new EventEmitter<any>();
-    private _onParentSamplesChange = new EventEmitter<any>();
+    private _onAvailableParentSamplesChange = new EventEmitter<any>();
     private _acquisitionLevel: string = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
     private _implicitParentSample: Sample;
-    private _parentSamples: Sample[] = [];
+    private _availableParentSamples: Sample[] = [];
 
     started: boolean = false;
     pmfms: Observable<PmfmStrategy[]>;
     displayParentPmfm: PmfmStrategy;
     cachedPmfms: PmfmStrategy[];
-    cachedPmfmFormConfig: { [key: string]: any };
+    measurementValuesFormGroupConfig: { [key: string]: any };
     data: Sample[];
-    filteredParentSamples: Observable<Sample[]>;
+    parentSamples: Observable<Sample[]>;
 
     @Input() program: string = environment.defaultProgram;
 
@@ -60,10 +60,10 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         return this.data;
     }
 
-    set parentSamples(parentSamples: Sample[]) {
-        if (this._parentSamples !== parentSamples) {
-            this._parentSamples = parentSamples;
-            this._onParentSamplesChange.emit();
+    set availableParentSamples(parentSamples: Sample[]) {
+        if (this._availableParentSamples !== parentSamples) {
+            this._availableParentSamples = parentSamples;
+            this._onAvailableParentSamplesChange.emit();
         }
     }
 
@@ -103,7 +103,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         this.pmfms.subscribe(pmfms => {
             this.displayParentPmfm = (pmfms || []).find(p => p.pmfmId == PmfmIds.TAG_ID);
             this.cachedPmfms = (pmfms || []).filter(p => p.pmfmId != PmfmIds.TAG_ID);
-            this.cachedPmfmFormConfig = this.measurementsValidatorService.getFormGroupConfig(this.cachedPmfms);
+            this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(this.cachedPmfms);
             let displayedColumns = this.cachedPmfms.map(p => p.pmfmId.toString());
 
             this.displayedColumns = RESERVED_START_COLUMNS
@@ -118,12 +118,12 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                 this.pmfms,
                 this._onDataChange
             ),
-            this._onParentSamplesChange
+            this._onAvailableParentSamplesChange
         )
             .subscribe(() => this.onRefresh.emit());
 
         // Tag IDs combo
-        this.filteredParentSamples = this.registerColumnValueChanges('parentSample')
+        this.parentSamples = this.registerColumnValueChanges('parentSample')
             .pipe(
                 debounceTime(250),
                 mergeMap((value) => {
@@ -131,12 +131,12 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                     value = (typeof value === "string") && value || undefined;
                     if (this.debug) console.debug("[monitoring-table] Searching tag id {" + (value || '*') + "}...");
                     // TODO filter
-                    return Observable.of(this._parentSamples);
+                    return Observable.of(this._availableParentSamples);
                 })
             );
 
         // add implicit value
-        this.filteredParentSamples.subscribe(items => {
+        this.parentSamples.subscribe(items => {
             this._implicitParentSample = (items.length === 1) && items[0];
         });
     }
@@ -147,8 +147,8 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
 
     getFormGroup(data?: any): FormGroup {
         let formGroup = this.validatorService.getFormGroup(data);
-        if (this.cachedPmfmFormConfig) {
-            formGroup.addControl('measurementValues', this.formBuilder.group(this.cachedPmfmFormConfig));
+        if (this.measurementValuesFormGroupConfig) {
+            formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
         }
         return formGroup;
     }

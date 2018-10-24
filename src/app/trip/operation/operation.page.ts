@@ -72,13 +72,10 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.catchForm.gear = res && res.gear && res.gear.label || null;
     })
 
+    // Update available parent on individual table, when survival tests changes
     this.survivalTestsTable.listChange.subscribe(samples => {
-      const parentSamples = (samples || [])
-        .map(s => s as Sample)
+      this.individualMonitoringTable.availableParentSamples = (samples || [])
         .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
-
-      if (this.debug) console.debug("[page-operation] [survivaltests-table] Samples with Tag-ID:", parentSamples);
-      this.individualMonitoringTable.parentSamples = parentSamples;
     });
   }
 

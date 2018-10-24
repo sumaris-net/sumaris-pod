@@ -669,7 +669,7 @@ export class Sample extends DataRootEntity<Sample> {
 
   constructor() {
     super();
-    this.taxonGroup = new ReferentialRef();
+    this.taxonGroup = null;
     this.measurementValues = {};
   }
 
@@ -705,7 +705,7 @@ export class Sample extends DataRootEntity<Sample> {
     this.sampleDate = fromDateISOString(source.sampleDate);
     this.individualCount = source.individualCount;
     this.comments = source.comments;
-    source.taxonGroup && this.taxonGroup.fromObject(source.taxonGroup);
+    this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.matrixId = source.matrixId;
     this.batchId = source.batchId;
     this.operationId = source.operationId;

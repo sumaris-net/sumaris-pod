@@ -40,7 +40,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
     started: boolean = false;
     pmfms: Observable<PmfmStrategy[]>;
     cachedPmfms: PmfmStrategy[];
-    cachedPmfmFormConfig: { [key: string]: any };
+    measurementValuesFormGroupConfig: { [key: string]: any };
     data: Sample[];
     taxonGroups: Observable<ReferentialRef[]>;
 
@@ -94,7 +94,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         this.pmfms.subscribe(pmfms => {
             console.log(pmfms);
             this.cachedPmfms = pmfms || [];
-            this.cachedPmfmFormConfig = this.measurementsValidatorService.getFormGroupConfig(this.cachedPmfms);
+            this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(this.cachedPmfms);
             let displayedColumns = this.cachedPmfms.map(p => p.pmfmId.toString());
 
             this.displayedColumns = RESERVED_START_COLUMNS
@@ -139,8 +139,8 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
 
     getFormGroup(data?: any): FormGroup {
         let formGroup = this.validatorService.getFormGroup(data);
-        if (this.cachedPmfmFormConfig) {
-            formGroup.addControl('measurementValues', this.formBuilder.group(this.cachedPmfmFormConfig));
+        if (this.measurementValuesFormGroupConfig) {
+            formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
         }
         return formGroup;
     }
