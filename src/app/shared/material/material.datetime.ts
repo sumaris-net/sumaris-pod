@@ -144,7 +144,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
             else {
                 this.form.setValue({ day: null }, { emitEvent: false });
             }
-            this.form.updateValueAndValidity();
+            //this.form.updateValueAndValidity();
             this.date = undefined;
             this.writing = false;
             return;
@@ -206,7 +206,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
                 this.form.setValue({
                     day: this.date.clone().startOf('day').format(this.dayPattern)
                 }, { emitEvent: false });
-                this.form.updateValueAndValidity();
+                //this.form.updateValueAndValidity();
             }
         }
         this.writing = false;

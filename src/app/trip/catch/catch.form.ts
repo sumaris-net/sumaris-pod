@@ -47,7 +47,6 @@ export class CatchForm extends MeasurementValuesForm<Batch> implements OnInit {
         // pmfm
         this.pmfms.subscribe(pmfms => {
             this.logDebug("[catch-form] Received pmfms:", pmfms);
-            //this.measurementsValidatorService.updateFormGroup(this.form, pmfms);
             this.onDeckPmfms.next(pmfms.filter(p => p.label.indexOf('ON_DECK_') === 0));
             this.sortingPmfms.next(pmfms.filter(p => p.label.indexOf('SORTING_') === 0));
             this.weightPmfms.next(pmfms.filter(p => p.label.indexOf('_WEIGHT') > 0));

@@ -123,7 +123,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       this._creating = false;
       return;
     }
-    else if (!this._config.onCreateNew) {
+    else if (!this._config || !this._config.onCreateNew) {
       AppFormUtils.copyEntity2Form(row.currentData, row.validator);
       this._creating = false;
     }

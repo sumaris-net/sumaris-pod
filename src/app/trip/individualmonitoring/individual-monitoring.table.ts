@@ -9,9 +9,7 @@ import { Location } from '@angular/common';
 import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
 import { IndividualMonitoringService } from "../services/individual-monitoring.validator";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import { zip } from "rxjs/observable/zip";
-import { merge } from "rxjs/observable/merge";
-import { mergeMap, debounceTime } from "rxjs/operators";
+import { debounceTime, map } from "rxjs/operators";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
@@ -32,8 +30,6 @@ const RESERVED_COLUMNS: string[] = ['parent'];
 })
 export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
 
-    private _onDataChange = new EventEmitter<any>();
-    private _onAvailableParentsChange = new EventEmitter<any>();
     private _acquisitionLevel: string = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
     private _implicitParent: Sample;
     private _availableParents: Sample[] = [];
@@ -52,7 +48,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     set value(data: Sample[]) {
         if (this.data !== data) {
             this.data = data;
-            this._onDataChange.emit();
+            if (this.started) this.onRefresh.emit();
         }
     }
 
@@ -63,7 +59,16 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     set availableParents(parents: Sample[]) {
         if (this._availableParents !== parents) {
             this._availableParents = parents;
-            this._onAvailableParentsChange.emit();
+
+            // Check if need to delete some rows
+            let hasMissingParent = false;
+            this.data = (this.data || []).filter(s => {
+                s.parent = s.parent && parents.find(p => p.id == s.parent.id);
+                hasMissingParent = hasMissingParent || !s.parent;
+                return s.parent;
+            });
+
+            if (hasMissingParent) this.dataSource.updateDatasource(this.data);
         }
     }
 
@@ -116,29 +121,26 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                 .concat(displayedColumns)
                 .concat(RESERVED_END_COLUMNS);
             this.started = true;
+            if (this.data) this.onRefresh.emit();
         });
 
-        merge(
-            zip(
-                this.pmfms,
-                this._onDataChange
-            ),
-            this._onAvailableParentsChange
-        )
-            .subscribe(() => this.onRefresh.emit());
-
-        // Tag IDs combo
+        // Parent combo
         this.filteredParents = this.registerCellValueChanges('parent')
             .pipe(
                 debounceTime(250),
-                mergeMap((value) => {
-                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string") && value || undefined;
-                    if (this.debug) console.debug("[monitoring-table] Searching tag id {" + (value || '*') + "}...");
-                    // TODO filter
-                    return Observable.of(this._availableParents);
+                map((value) => {
+                    if (EntityUtils.isNotEmpty(value)) return [value];
+                    value = (typeof value === "string" && value !== "*") && value || undefined;
+                    if (this.debug) console.debug("[monitoring-table] Searching parent {" + (value || '*') + "}...");
+                    if (!value) return this._availableParents; // All
+                    if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
+                        return this._availableParents.filter(p => p.measurementValues && (p.measurementValues[this.displayParentPmfm.pmfmId] || '').startsWith(value))
+                    }
+                    // Search on rankOrder
+                    return this._availableParents.filter(p => p.rankOrder && p.rankOrder.toString().startsWith(value));
                 })
-            );
+            )
+            ;
 
         // add implicit value
         this.filteredParents.subscribe(items => {

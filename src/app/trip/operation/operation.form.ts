@@ -7,7 +7,7 @@ import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
 import { debounceTime, mergeMap, map } from 'rxjs/operators';
 import { merge } from "rxjs/observable/merge";
-import { AppForm } from '../../core/core.module';
+import { AppForm, AppFormUtils } from '../../core/core.module';
 import { referentialToString, EntityUtils, ReferentialRef } from '../../referential/services/model';
 import { ReferentialRefService } from '../../referential/referential.module';
 
@@ -49,26 +49,26 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                 this.onFocusPhysicalGear.pipe(map(any => this.form.get('physicalGear').value))
             )
                 .pipe(
-                    mergeMap(value => {
+                    map(value => {
                         // Display the selected object
-                        if (value && typeof value == "object" && value['id']) {
+                        if (EntityUtils.isNotEmpty(value)) {
                             this.form.controls["metier"].enable();
-                            return Observable.of([value]);
+                            return [value];
                         }
                         // Skip if no trip (or no physical gears)
                         if (!this.trip || !this.trip.gears || !this.trip.gears.length) {
                             this.form.controls["metier"].disable();
-                            return Observable.empty();
+                            return [];
                         }
+                        value = (typeof value === "string" && value !== "*") && value || undefined;
                         // Display all trip gears
-                        if (!value || typeof value != "string") return Observable.of(this.trip.gears || []);
-
+                        if (!value) return this.trip.gears;
+                        // Search on label or name
                         const ucValue = value.toUpperCase();
-                        return Observable.of((this.trip.gears || [])
-                            .filter(g => !!g.gear &&
-                                (g.gear.label && g.gear.label.toUpperCase().indexOf(ucValue) != -1)
-                                || (g.gear.name && g.gear.name.toUpperCase().indexOf(ucValue) != -1)
-                            ));
+                        return this.trip.gears.filter(g => g.gear &&
+                            (g.gear.label && g.gear.label.toUpperCase().indexOf(ucValue) != -1)
+                            || (g.gear.name && g.gear.name.toUpperCase().indexOf(ucValue) != -1)
+                        );
                     }));
 
         // Combo: metiers
@@ -79,7 +79,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
             .pipe(
                 mergeMap(value => {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string") && value || undefined;
+                    value = (typeof value === "string" && value !== "*") && value || undefined;
                     const physicalGear = this.form.get('physicalGear').value;
                     return this.referentialRefService.loadAll(0, 10, undefined, undefined,
                         {

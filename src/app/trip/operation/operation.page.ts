@@ -73,9 +73,10 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     })
 
     // Update available parent on individual table, when survival tests changes
-    this.survivalTestsTable.listChange.subscribe(samples => {
-      this.individualMonitoringTable.availableParents = (samples || [])
+    this.survivalTestsTable.listChange.debounceTime(400).subscribe(samples => {
+      const availableParents = (samples || [])
         .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
+      this.individualMonitoringTable.availableParents = availableParents; // Will refresh the table
     });
   }
 
@@ -143,19 +144,16 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Set catch bacth
     this.catchForm.gear = gearLabel;
-    this.catchForm.value = data && data.catchBatch.clone() || Batch.fromObject({ rankOrder: 1 });
+    this.catchForm.value = data && data.catchBatch || Batch.fromObject({ rankOrder: 1 });
 
     // Set survival tests
     const samples = data && data.samples || [];
-    this.survivalTestsTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.SURVIVAL_TEST + "#"));
+    const survivalTestSamples = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.SURVIVAL_TEST + "#"));
+    this.survivalTestsTable.value = survivalTestSamples;
 
     // Set individual monitoring
-    this.individualMonitoringTable.availableParents = samples.filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
-    const individualMonitoringSamples = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"));
-    individualMonitoringSamples.forEach(s => {
-      s.parent = samples.find(p => p.id === s.parentId) || s.parent;
-    });
-    this.individualMonitoringTable.value = individualMonitoringSamples;
+    this.individualMonitoringTable.availableParents = survivalTestSamples.filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
+    this.individualMonitoringTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"));
 
     this.markAsPristine();
     this.markAsUntouched();

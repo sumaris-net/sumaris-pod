@@ -590,9 +590,10 @@ export class Operation extends DataEntity<Operation> {
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
     (this.samples || [])
-      .filter(s => !!s.parentId)
       .forEach(s => {
-        s.parent = this.samples.find(p => p.id === s.parentId) || s.parent;
+        // Link to parent
+        s.parent = s.parentId && this.samples.find(p => p.id === s.parentId) || undefined;
+        s.parentId = undefined; // Avoid redundant info on parent
       });
 
     // Batches
@@ -600,12 +601,13 @@ export class Operation extends DataEntity<Operation> {
       let batches = (source.batches || []).map(Batch.fromObject);
       this.catchBatch = batches.find(b => !b.parentId) || undefined;
       if (this.catchBatch) {
-        // Link batches to parent
-        batches.filter(b => !!b.parentId).forEach(s => {
-          s.parent = batches.find(p => p.id === s.parentId) || s.parent;
+        batches.forEach(s => {
+          // Link to parent
+          s.parent = s.parentId && batches.find(p => p.id === s.parentId) || undefined;
+          s.parentId = undefined; // Avoid redundant info on parent
         });
         this.catchBatch.children = batches.filter(b => b.parentId === this.catchBatch.id);
-        console.log("[trip-model] Operation.catchBatch:", this.catchBatch);
+        //console.log("[trip-model] Operation.catchBatch:", this.catchBatch);
       }
     }
     else {
@@ -730,6 +732,7 @@ export class Sample extends DataRootEntity<Sample> {
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.matrixId = source.matrixId;
     this.parentId = source.parentId;
+    this.parent = source.parent;
     this.batchId = source.batchId;
     this.operationId = source.operationId;
 

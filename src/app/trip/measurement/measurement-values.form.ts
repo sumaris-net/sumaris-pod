@@ -1,10 +1,10 @@
-import { Component, Input, EventEmitter, Output } from '@angular/core';
+import { Input, EventEmitter } from '@angular/core';
 import { PmfmStrategy, MeasurementUtils } from "../services/trip.model";
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter, FloatLabelType } from "@angular/material";
 import { Subject } from 'rxjs';
-import { switchMap } from "rxjs/operators";
+import { mergeMap } from "rxjs/operators";
 import { zip } from "rxjs/observable/zip";
 import { AppForm, AppFormUtils } from '../../core/core.module';
 import { ProgramService } from "../../referential/referential.module";
@@ -104,12 +104,12 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
     ngOnInit() {
         super.ngOnInit();
 
-        let now;
+        let now: number;
         this._onRefreshPmfms.asObservable()
             // refresh only if program + acquisition has been set
             .filter(() => !!this._program && !!this._acquisitionLevel)
             .pipe(
-                switchMap((event: any) => {
+                mergeMap((event: any) => {
                     if (event) this.logDebug(`call _onRefreshPmfms.emit('${event}')`);
                     now = Date.now();
                     this.logDebug(`Loading pmfms for '${this._program}' and gear '${this._gear}'...`);
@@ -118,7 +118,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
                         {
                             acquisitionLevel: this._acquisitionLevel,
                             gear: this._gear
-                        });
+                        }).first();
                 })
             )
             .subscribe(pmfms => {
@@ -154,12 +154,10 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
                 const now = Date.now();
                 this.logDebug("Updating form, using pmfms:", pmfms);
 
-
                 if (!this.form.controls['measurementValues']) {
                     this.form.addControl('measurementValues', this.measurementValidatorService.getFormGroup(pmfms));
                 }
                 else {
-                    console.log("[meas-form-catch-batch] Updating form !!");
                     const form = this.form.controls['measurementValues'] as FormGroup;
                     this.measurementValidatorService.updateFormGroup(form, pmfms);
                     form.markAsPristine();

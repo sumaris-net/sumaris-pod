@@ -118,8 +118,9 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
     };
 
     public async reload(confirm?: boolean) {
+        const needConfirm = this.dirty;
         // if not confirm yet: ask confirmation
-        if (!confirm) {
+        if (!confirm && needConfirm) {
             const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.CANCEL_CHANGES', 'CONFIRM.ALERT_HEADER']);
             const alert = await this.alertCtrl.create({
                 header: translations['CONFIRM.ALERT_HEADER'],
@@ -144,7 +145,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
         }
 
         // If confirm: execute the reload
-        if (confirm) {
+        if (confirm || !needConfirm) {
             this.scrollToTop();
             this.disable();
             return await this.doReload();

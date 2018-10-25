@@ -10,6 +10,10 @@
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
+  <!-- <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+    (click)="onRefresh.emit()">
+    <mat-icon>build</mat-icon>
+  </button> -->
 
   <!-- <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
     [disabled]="dirty" #inlineEditionBtn>
@@ -33,9 +37,9 @@
   <ion-icon color="danger" slot="start" name="alert"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
-<ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
-<mat-table *ngIf="started" [dataSource]="dataSource" class="table-operations" matSort matSortActive="rankOrder"
-  matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
+
+<mat-table [dataSource]="dataSource" class="table-operations" matSort matSortActive="rankOrder" matSortDirection="asc"
+  matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -61,13 +65,13 @@
   <!-- parent sample -->
   <ng-container matColumnDef="parent">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label>{{displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
-        ('TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE'|translate) }}</ion-label>
+      <ion-label>{{ (displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
+        'TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE') | translate }}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent" [appAutofocus]="row.id == -1 && row.editing"
-          [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE'|translate)"
+          [placeholder]="(displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || 'TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE') |translate"
           (focus)="onParentCellFocus($event, row)" (click)="$event.target.select()" (blur)="onParentCellBlur($event, row)"
           required>
         <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -75,7 +79,7 @@
 
       <mat-autocomplete autoActiveFirstOption #autoParent="matAutocomplete" [displayWith]="parentSampleToString">
         <ion-row class="mat-autocomplete-header">
-          <ion-col size="2">
+          <ion-col>
             <ion-text>{{displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || '#'}}</ion-text>
           </ion-col>
           <ion-col>
@@ -84,7 +88,7 @@
         </ion-row>
         <mat-option *ngFor="let sample of filteredParents | async" [value]="sample">
           <ion-row>
-            <ion-col size="2" [innerHTML]="(displayParentPmfm && sample.measurementValues[displayParentPmfm.pmfmId] || sample.rankOrder) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
+            <ion-col [innerHTML]="(displayParentPmfm && sample.measurementValues[displayParentPmfm.pmfmId] || sample.rankOrder) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
             <ion-col [innerHTML]="sample.taxonGroup.label | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
           </ion-row>
         </mat-option>
@@ -142,7 +146,7 @@
         </ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.type=='date'">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
           [compact]="true" floatLabel="never"></mat-form-field-measurement>
       </mat-cell>
     </ng-container>

@@ -100,6 +100,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     markAsTouched() {
         if (this.selectedRow && this.selectedRow.editing) {
             this.selectedRow.validator.markAsTouched();
+            this.selectedRow.validator.updateValueAndValidity();
         }
     }
 

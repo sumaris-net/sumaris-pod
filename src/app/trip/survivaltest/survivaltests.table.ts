@@ -78,7 +78,12 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         this.i18nColumnPrefix = 'TRIP.SURVIVAL_TEST.TABLE.';
         this.autoLoad = false;
         this.inlineEdition = true;
-        this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(Sample, this, this))
+        this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
+            Sample, this, this,
+            {
+                prependNewElements: false,
+                onCreateNew: (row) => this.onCreateNewSample(row)
+            }));
         //this.debug = true;
     };
 
@@ -145,6 +150,18 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         return formGroup;
     }
 
+    async getMaxRankOrder(): Promise<number> {
+
+        const rows = await this.dataSource.getRows();
+        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+    }
+
+    async onCreateNewSample(row: TableElement<Sample>): Promise<void> {
+        // Set computed values
+        row.currentData.rankOrder = (await this.getMaxRankOrder()) + 1;
+        row.currentData.label = this._acquisitionLevel + "#" + row.currentData.rankOrder;
+    }
+
     loadAll(
         offset: number,
         size: number,
@@ -191,10 +208,9 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         return this.data;
     }
 
-    deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
+    async deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
         console.debug("[table-survival-tests] Remove data", dataToRemove);
-        this.data = this.data.filter(item => !dataToRemove.find(g => g === item || g.id === item.id))
-        return Promise.resolve();
+        this.data = this.data.filter(item => !dataToRemove.find(g => g.equals(item)));
     }
 
     addRow(): boolean {
@@ -207,8 +223,6 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         const row = this.dataSource.getRow(-1);
         this.data.push(row.currentData);
         this.selectedRow = row;
-        row.validator.controls['rankOrder'].setValue(this.resultsLength);
-        row.validator.controls['label'].setValue(this._acquisitionLevel + "#" + this.resultsLength);
         return true;
     }
 

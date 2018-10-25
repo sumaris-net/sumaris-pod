@@ -4,7 +4,7 @@ import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
 import { DateAdapter, FloatLabelType } from "@angular/material";
 import { Subject } from 'rxjs';
-import { switchMap } from "rxjs/operators";
+import { mergeMap } from "rxjs/operators";
 import { zip } from "rxjs/observable/zip";
 import { AppForm } from '../../core/core.module';
 import { ProgramService } from "../../referential/referential.module";
@@ -41,7 +41,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     @Output()
     valueChanges: EventEmitter<any> = new EventEmitter<any>();
 
-
     get program(): string {
         return this._program;
     }
@@ -50,7 +49,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     set program(value: string) {
         if (this._program === value) return; // Skip if same
         this._program = value;
-        if (!this.loading && this.canRefreshPmfms()) {
+        if (!this.loading) {
             this._onRefreshPmfms.emit('set program');
         }
     }
@@ -64,7 +63,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     set acquisitionLevel(value: string) {
         if (this._acquisitionLevel == value) return; // Skip if same
         this._acquisitionLevel = value;
-        if (!this.loading && this.canRefreshPmfms()) {
+        if (!this.loading) {
             this._onRefreshPmfms.emit('set acquisitionLevel');
         }
     }
@@ -77,7 +76,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     set gear(value: string) {
         if (this._gear == value) return; // Skip if same
         this._gear = value;
-        if (!this.loading && this.canRefreshPmfms()) {
+        if (!this.loading) {
             this._onRefreshPmfms.emit('set gear');
         }
     }
@@ -86,9 +85,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         this.logDebug("Set form value", value);
         if (this._measurements === value) return;
         this._measurements = value;
-        //if (!this.loading) {
         this._onMeasurementsChange.emit('set value');
-        //}
     }
 
     public get value(): Measurement[] {
@@ -98,7 +95,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         if (dirtyPmfms.length) {
 
             // Update measurements value
-            this.logDebug("Updating measurements from the form value, on dirty pmfms: ", dirtyPmfms);
+            this.logDebug("Updating measurements using form value...");
             MeasurementUtils.updateMeasurementValues(this.form.value, this._measurements, dirtyPmfms);
             this.logDebug("Measurements updated !", this._measurements);
         }
@@ -125,21 +122,21 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
 
         this.logDebug("ngOnInit");
 
-        let now;
+        let now: number;
         this._onRefreshPmfms.asObservable()
             // refresh only if program + acquisition has been set
             .filter(() => !!this._program && !!this._acquisitionLevel)
             .pipe(
-                switchMap((event: any) => {
+                mergeMap((event: any) => {
                     if (event) this.logDebug(`call _onRefreshPmfms.emit('${event}')`);
-                    now = new Date();
+                    now = Date.now();
                     this.logDebug(`Loading pmfms for '${this._program}' and gear '${this._gear}'...`);
                     return this.programService.loadProgramPmfms(
                         this._program,
                         {
                             acquisitionLevel: this._acquisitionLevel,
                             gear: this._gear
-                        });
+                        }).first();
                 })
             )
             .subscribe(pmfms => {
@@ -151,7 +148,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
                     this.loading = false; // mark as loaded
                 }
                 else {
-                    this.logDebug(`Pmfms for '${this._program}' loaded in ${new Date().getTime() - now.getTime()}ms`, pmfms);
+                    this.logDebug(`Pmfms for '${this._program}' loaded in ${Date.now() - now}ms`, pmfms);
                     this.pmfms.next(pmfms);
                     // If not first call: emit measurement (because of zip() will wait for measurement event)
                     if (!this.loading) {
@@ -175,14 +172,14 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
                 this.logDebug("Updating form, using pmfms:", pmfms);
 
                 this.measurementValidatorService.updateFormGroup(this.form, pmfms);
-                const formValue = MeasurementUtils.toFormValues(this._measurements, pmfms);
+                const json = MeasurementUtils.toFormValues(this._measurements, pmfms);
                 this._measurements = MeasurementUtils.initAllMeasurements(this._measurements, pmfms);
-                this.form.setValue(formValue, {
+                this.form.setValue(json, {
                     onlySelf: true,
                     emitEvent: false
                 });
 
-                this.logDebug(`Form updated in ${new Date().getTime() - now.getTime()}ms`, formValue);
+                this.logDebug(`Form updated in ${new Date().getTime() - now.getTime()}ms`, json);
 
                 this.markAsUntouched();
                 this.markAsPristine();
@@ -190,9 +187,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
                 this.loading = false;
             });
 
-        if (this.canRefreshPmfms()) {
-            this._onRefreshPmfms.next('ngOnInit');
-        }
+        this._onRefreshPmfms.next('ngOnInit');
+
         if (this._measurements) {
             this._onMeasurementsChange.next('ngOnInit');
         }
@@ -215,9 +211,5 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
             if (!args) console.debug(`[meas-form-${acquisitionLevel}] ${message}`)
             else console.debug(`[meas-form-${acquisitionLevel}] ${message}`, args);
         }
-    }
-
-    protected canRefreshPmfms(): boolean {
-        return true; //!!this._program && !!this._acquisitionLevel;
     }
 }
