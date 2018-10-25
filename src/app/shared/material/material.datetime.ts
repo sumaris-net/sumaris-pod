@@ -38,8 +38,8 @@ const noop = () => {
     providers: [DEFAULT_VALUE_ACCESSOR]
 })
 export class MatDateTime implements OnInit, ControlValueAccessor {
-    private _onChange: (_: any) => void = noop;
-    private _onTouched: () => void = noop;
+    private _onChangeCallback: (_: any) => void = noop;
+    private _onTouchedCallback: () => void = noop;
     protected writing: boolean = true;
     protected disabling = false;
 
@@ -213,10 +213,10 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     }
 
     registerOnChange(fn: any): void {
-        this._onChange = fn;
+        this._onChangeCallback = fn;
     }
     registerOnTouched(fn: any): void {
-        this._onTouched = fn;
+        this._onTouchedCallback = fn;
     }
 
     setDisabledState(isDisabled: boolean): void {
@@ -327,7 +327,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.formControl.setValue(dateStr);
         this.writing = false;
 
-        this._onChange(dateStr);
+        this._onChangeCallback(dateStr);
     }
 
     private onDatePickerChange(event: MatDatepickerInputEvent<Moment>): void {
@@ -369,12 +369,12 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.formControl.setValue(dateStr);
         this.writing = false;
 
-        this._onChange(dateStr);
+        this._onChangeCallback(dateStr);
     }
 
     public markAsTouched() {
         if (this.form.touched) {
-            this._onTouched();
+            this._onTouchedCallback();
         }
     }
 

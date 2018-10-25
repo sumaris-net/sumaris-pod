@@ -175,8 +175,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
                 this.logDebug("Updating form, using pmfms:", pmfms);
 
                 this.measurementValidatorService.updateFormGroup(this.form, pmfms);
-                this._measurements = MeasurementUtils.getMeasurements(this._measurements, pmfms);
-                const formValue = MeasurementUtils.getMeasurementValuesMap(this._measurements, pmfms);
+                const formValue = MeasurementUtils.toFormValues(this._measurements, pmfms);
+                this._measurements = MeasurementUtils.initAllMeasurements(this._measurements, pmfms);
                 this.form.setValue(formValue, {
                     onlySelf: true,
                     emitEvent: false
@@ -202,7 +202,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     public markAsTouched() {
         this.form.markAsTouched();
         this._measurements.forEach(m => {
-            this.form.controls[m.pmfmId].markAsTouched();
+            const control = this.form.controls[m.pmfmId];
+            if (control) control.markAsTouched();
         });
     }
 

@@ -78,12 +78,12 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
 
     public get value(): T {
 
-        if (this.form.controls['measurementvalues']) {
-            const pmfmForm = this.form.controls['measurementvalues'] as FormGroup;
+        if (this.form.controls.measurementValues) {
+            const pmfmForm = this.form.controls.measurementValues as FormGroup;
             // Find dirty pmfms, to avoid full update
             const dirtyPmfms = (this.cachedPmfms || []).filter(pmfm => pmfmForm.controls[pmfm.pmfmId].dirty);
             if (dirtyPmfms.length) {
-                Object.assign(this.data.measurementValues, MeasurementUtils.fromFormValues(pmfmForm.value, dirtyPmfms));
+                this.data.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementUtils.toEntityValues(pmfmForm.value, dirtyPmfms));
                 this.logDebug("Update data: ", this.data);
             }
         }
@@ -166,7 +166,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
                     form.markAsUntouched();
                 }
                 const json = AppFormUtils.getFormValueFromEntity(this.data, this.form);
-                json.measurementValues = MeasurementUtils.toFormValues(json.measurementValues, pmfms);
+                json.measurementValues = MeasurementUtils.normalizeFormValues(json.measurementValues, pmfms);
                 this.form.setValue(json, {
                     onlySelf: true,
                     emitEvent: false

@@ -81,7 +81,7 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
                     if (EntityUtils.isNotEmpty(value)) return [value];
                     if (!this.pmfm.qualitativeValues) return [];
                     value = (typeof value == "string") && (value as string).toUpperCase() || undefined;
-                    if (!value) return this.pmfm.qualitativeValues;
+                    if (!value || value === '*') return this.pmfm.qualitativeValues;
 
                     // Filter by label and name
                     //console.debug(`[mat-qv-field] Searching on text '${value}'...`);
@@ -100,7 +100,7 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 
     writeValue(obj: any): void {
         if (obj !== this.formControl.value) {
-            this.formControl.setValue(obj);
+            this.formControl.setValue(obj, { emitEvent: false });
             this._onChangeCallback(this.value);
         }
     }

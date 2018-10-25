@@ -66,7 +66,7 @@ export class ProgramService extends BaseDataService {
       .pipe(
         map((data) => {
           const pmfmIds = []; // used to avoid duplicated pmfms
-          if (options.acquisitionLevel == "SURVIVAL_TEST") console.debug("data.programPmfms:", data && data.programPmfms);
+          //if (options.acquisitionLevel == "SURVIVAL_TEST") console.debug("data.programPmfms:", data && data.programPmfms);
           const res = (data && data.programPmfms || [])
             // Filter on acquisition level and gear
             .filter(p =>
@@ -84,7 +84,7 @@ export class ProgramService extends BaseDataService {
             .map(PmfmStrategy.fromObject);
           // Sort on rank order
           res.sort((p1, p2) => p1.rankOrder - p2.rankOrder);
-          if (options.acquisitionLevel == "SURVIVAL_TEST") console.debug("PMFM for " + options.acquisitionLevel, res);
+          //if (options.acquisitionLevel == "SURVIVAL_TEST") console.debug("PMFM for " + options.acquisitionLevel, res);
 
           return res;
         })

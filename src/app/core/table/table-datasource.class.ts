@@ -1,6 +1,5 @@
 import { TableDataSource, ValidatorService } from "angular4-material-table";
 import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
 import { DataService } from "../services/data-service.class";
 import { EventEmitter } from "@angular/core";
 import { Entity } from "../services/model";
@@ -11,6 +10,8 @@ import { AppFormUtils } from "../form/form.utils";
 export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
 
   protected _debug = false;
+  protected _config: any;
+  protected _creating = false;
 
   public serviceOptions: any;
   public onLoading = new EventEmitter<boolean>();
@@ -28,19 +29,23 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     validatorService?: ValidatorService,
     config?: {
       prependNewElements: boolean;
+      onCreateNew?: (row: TableElement<T>) => Promise<void> | void;
       serviceOptions?: {
         saveOnlyDirtyRows?: boolean;
-      } | any
+      }
     }) {
     super([], dataType, validatorService, config);
     this.serviceOptions = config && config.serviceOptions;
-    this._debug = true;
+    this._config = config;
 
     // Copy data to validator
     this.connect().subscribe(rows => {
-      if (this._debug) console.debug("Copy currentData to validator");
+      if (this._creating) return;
+      if (this._debug) console.debug("[table-datasource] Copying rows currentData -> validator");
       rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
     });
+
+    //this._debug = true;
   };
 
   load(offset: number,
@@ -109,8 +114,40 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     }
   }
 
+  createNew(): void {
+    this._creating = true;
+    super.createNew();
+    const row = this.getRow(-1);
+
+    if (!row) { // Should never occur
+      this._creating = false;
+      return;
+    }
+    else if (!this._config.onCreateNew) {
+      AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+      this._creating = false;
+    }
+    else {
+      const res = this._config.onCreateNew(row);
+      // Async way
+      if (res.then) {
+        res.then(() => {
+          AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+          this._creating = false;
+        });
+      }
+
+      // Sync way
+      else {
+        AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+        this._creating = false;
+      }
+    }
+  }
+
   confirmCreate(row) {
     if (row.validator.valid && row.validator.dirty) {
+      if (this._debug) console.debug("[table-datasource] confirmCreate(): Copy validator -> currentData...");
       AppFormUtils.copyForm2Entity(row.validator, row.currentData);
       row.currentData.dirty = true;
     }

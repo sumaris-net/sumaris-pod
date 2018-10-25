@@ -91,6 +91,7 @@ export const DataFragments = {
       id
       label
       rankOrder
+      parentId
       sampleDate
       individualCount
       comments
@@ -110,6 +111,7 @@ export const DataFragments = {
     id
     label
     rankOrder
+    parentId
     exhaustiveInventory
     samplingRatio
     samplingRatioText

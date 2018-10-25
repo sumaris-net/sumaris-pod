@@ -6,6 +6,7 @@ import {
   PmfmStrategy, getPmfmName
 } from "../../referential/services/model";
 import { Moment } from "moment/moment";
+import { isNotNil } from "../../core/services/model";
 
 export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
@@ -299,20 +300,25 @@ export class Measurement extends DataEntity<Measurement> {
 
 export class MeasurementUtils {
 
-  static getMeasurementValuesMap(measurements: Measurement[], pmfms: PmfmStrategy[]): any {
+  static toFormValues(source: Measurement[], pmfms: PmfmStrategy[]): any {
     const res: any = {};
-    pmfms.forEach(pmfm => {
-      const m = (measurements || []).find(m => m.pmfmId === pmfm.pmfmId);
-      res[pmfm.pmfmId] = m && MeasurementUtils.getValue(m, pmfm) || null;
+    pmfms.forEach(p => {
+      const m = source && source.find(m => m.pmfmId === p.pmfmId);
+      if (m) {
+        res[p.pmfmId] = MeasurementUtils.normalizeFormValue(MeasurementUtils.getMeasurementEntityValue(m, p), p);
+      }
+      else {
+        res[p.pmfmId] = null;
+      }
     });
     return res;
   }
 
-  static getMeasurements(measurements: Measurement[], pmfms: PmfmStrategy[]): Measurement[] {
+  static initAllMeasurements(source: Measurement[], pmfms: PmfmStrategy[]): Measurement[] {
     // Work on a copy, to be able to reduce the array
     let rankOrder = 1;
     return (pmfms || []).map(pmfm => {
-      const m = (measurements || []).find(m => m.pmfmId === pmfm.pmfmId) || new Measurement();
+      const m = (source || []).find(m => m.pmfmId === pmfm.pmfmId) || new Measurement();
       m.pmfmId = pmfm.pmfmId; // apply the pmfm (need for new object)
       m.rankOrder = rankOrder++;
       return m;
@@ -322,14 +328,12 @@ export class MeasurementUtils {
   // Update measurement values
   static updateMeasurementValues(valuesMap: { [key: number]: any }, measurements: Measurement[], pmfms: PmfmStrategy[]) {
     (measurements || []).forEach(m => {
-      let pmfm = (pmfms || []).find(pmfm => pmfm.pmfmId === m.pmfmId);
-      if (pmfm) {
-        MeasurementUtils.setValue(valuesMap[pmfm.pmfmId.toString()] || null, m, pmfm);
-      }
+      const pmfm = pmfms && pmfms.find(pmfm => pmfm.pmfmId === m.pmfmId);
+      if (pmfm) MeasurementUtils.setMeasurementValue(valuesMap[pmfm.pmfmId], m, pmfm);
     });
   }
 
-  static getValue(source: Measurement, pmfm: PmfmStrategy): any {
+  static getMeasurementEntityValue(source: Measurement, pmfm: PmfmStrategy): any {
     switch (pmfm.type) {
       case "qualitative_value":
         if (source.qualitativeValue && source.qualitativeValue.id) {
@@ -342,7 +346,7 @@ export class MeasurementUtils {
       case "string":
         return source.alphanumericalValue;
       case "boolean":
-        return source.numericalValue === 1 ? true : (source.numericalValue === 0 ? false : null);
+        return source.numericalValue === 1 ? true : (source.numericalValue === 0 ? false : undefined);
       case "date":
         return fromDateISOString(source.alphanumericalValue);
       default:
@@ -351,8 +355,8 @@ export class MeasurementUtils {
   }
 
 
-  static setValue(value: any, target: Measurement, pmfm: PmfmStrategy) {
-    if (value === null || value === undefined) return;
+  static setMeasurementValue(value: any, target: Measurement, pmfm: PmfmStrategy) {
+    value = (value === null || value === undefined) ? undefined : value;
     switch (pmfm.type) {
       case "qualitative_value":
         target.qualitativeValue = value;
@@ -365,7 +369,7 @@ export class MeasurementUtils {
         target.alphanumericalValue = value;
         break;
       case "boolean":
-        target.numericalValue = (value === true || value === "true") ? 1 : 0;
+        target.numericalValue = (value === true || value === "true") ? 1 : ((value === false || value === "false") ? 0 : undefined);
         break;
       case "date":
         target.alphanumericalValue = toDateISOString(value);
@@ -375,23 +379,22 @@ export class MeasurementUtils {
     }
   }
 
-
-  static toFormValue(value: any, pmfm: PmfmStrategy): any {
+  static normalizeFormValue(value: any, pmfm: PmfmStrategy): any {
     switch (pmfm.type) {
       case "qualitative_value":
         if (value && typeof value != "object") {
           const qvId = parseInt(value);
-          return pmfm.qualitativeValues.find(qv => qv.id == qvId);
+          return pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id == qvId) || null;
         }
         return value || null;
       case "integer":
-        return value || value == 0 ? parseInt(value) : null;
+        return isNotNil(value) ? parseInt(value) : null;
       case "double":
-        return value || value == 0 ? parseFloat(value) : null;
+        return isNotNil(value) ? parseFloat(value) : null;
       case "string":
         return value || null;
       case "boolean":
-        return value == "1" ? true : (value == "0" ? false : null);
+        return (value === "true" || value === true) ? true : ((value === "false" || value === false) ? false : null);
       case "date":
         return fromDateISOString(value) || null;
       default:
@@ -399,7 +402,15 @@ export class MeasurementUtils {
     }
   }
 
-  static fromFormValue(value, pmfm: PmfmStrategy): string {
+  static normalizeFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]): any {
+    const target = {};
+    pmfms.forEach(pmfm => {
+      target[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(source[pmfm.pmfmId], pmfm);
+    });
+    return target;
+  }
+
+  static toEntityValue(value: any, pmfm: PmfmStrategy): string {
     if (value === null || value === undefined) return;
     switch (pmfm.type) {
       case "qualitative_value":
@@ -407,11 +418,11 @@ export class MeasurementUtils {
       case "integer":
       case "double":
         return value && value.toString() || undefined;
-        break;
       case "string":
         return value;
       case "boolean":
-        return (value === true || value === "true") ? "1" : "0";
+        console.log("toEntityValue on boolean", value);
+        return (value === true || value === "true") ? "true" : ((value === false || value === "false") ? "false" : undefined);
       case "date":
         return toDateISOString(value);
       default:
@@ -419,19 +430,10 @@ export class MeasurementUtils {
     }
   }
 
-  static toFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]): any {
+  static toEntityValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]): { [key: string]: any } {
     const target = {};
     pmfms.forEach(pmfm => {
-      target[pmfm.pmfmId] = MeasurementUtils.toFormValue(source[pmfm.pmfmId], pmfm);
-    });
-    return target;
-  }
-
-
-  static fromFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]) {
-    const target = {};
-    pmfms.forEach(pmfm => {
-      target[pmfm.pmfmId] = MeasurementUtils.fromFormValue(source[pmfm.pmfmId], pmfm);
+      target[pmfm.pmfmId] = MeasurementUtils.toEntityValue(source[pmfm.pmfmId], pmfm);
     });
     return target;
   }
@@ -584,13 +586,30 @@ export class Operation extends DataEntity<Operation> {
       }
     }
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
+
+    // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
+    (this.samples || [])
+      .filter(s => !!s.parentId)
+      .forEach(s => {
+        s.parent = this.samples.find(p => p.id === s.parentId) || s.parent;
+      });
 
     // Batches
     if (source.batches) {
-      const catchBatch = source.batches.find(b => !b.parentId);
-      this.catchBatch = catchBatch && Batch.fromObject(catchBatch) || undefined;
-      if (this.catchBatch) console.log("[batch]", this.catchBatch);
+      let batches = (source.batches || []).map(Batch.fromObject);
+      this.catchBatch = batches.find(b => !b.parentId) || undefined;
+      if (this.catchBatch) {
+        // Link batches to parent
+        batches.filter(b => !!b.parentId).forEach(s => {
+          s.parent = batches.find(p => p.id === s.parentId) || s.parent;
+        });
+        this.catchBatch.children = batches.filter(b => b.parentId === this.catchBatch.id);
+        console.log("[trip-model] Operation.catchBatch:", this.catchBatch);
+      }
+    }
+    else {
+      this.catchBatch = null;
     }
     return this;
   }
@@ -666,6 +685,8 @@ export class Sample extends DataRootEntity<Sample> {
   matrixId: number;
   batchId: number;
   operationId: number;
+  parentId: number;
+  parent: Sample;
 
   constructor() {
     super();
@@ -684,14 +705,15 @@ export class Sample extends DataRootEntity<Sample> {
     target.sampleDate = toDateISOString(this.sampleDate);
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
 
+    target.parentId = this.parentId || this.parent && this.parent.id || undefined;
+    delete target.parent;
+
     // Measurement: keep only the map
     if (minify) {
       target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
         .reduce((map, pmfmId) => {
           const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
-          if (value || value === 0) {
-            map[pmfmId] = value;
-          }
+          if (isNotNil(value)) map[pmfmId] = '' + value;
           return map;
         }, {}) || undefined;
     }
@@ -707,6 +729,7 @@ export class Sample extends DataRootEntity<Sample> {
     this.comments = source.comments;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.matrixId = source.matrixId;
+    this.parentId = source.parentId;
     this.batchId = source.batchId;
     this.operationId = source.operationId;
 
@@ -728,7 +751,11 @@ export class Sample extends DataRootEntity<Sample> {
   equals(other: Sample): boolean {
     return super.equals(other)
       || (this.rankOrder === other.rankOrder
-        && (!this.operationId && !other.operationId || this.operationId === other.operationId)
+        // same operation
+        && ((!this.operationId && !other.operationId) || this.operationId === other.operationId)
+        // same label
+        && ((!this.label && !other.label) || this.label === other.label)
+        // Warn: compare using the parent ID is complicated
       );
   }
 }
@@ -748,14 +775,15 @@ export class Batch extends DataEntity<Batch> {
   individualCount: number;
   taxonGroup: ReferentialRef;
   comments: string;
-  parentBatch: Batch;
   children: Batch[];
-  measurementValues: { [key: string]: any };
+  measurementValues: { [key: number]: any };
   operationId: number;
+  parentId: number;
+  parent: Batch;
 
   constructor() {
     super();
-    this.parentBatch = null;
+    this.parent = null;
     this.taxonGroup = null;
     this.measurementValues = {};
     this.children = [];
@@ -768,13 +796,16 @@ export class Batch extends DataEntity<Batch> {
   }
 
   asObject(minify?: boolean): any {
-    let parent = this.parentBatch; // avoid parent conversion
-    this.parentBatch = null;
+    let parent = this.parent; // avoid parent conversion
+    this.parent = null;
     const target = super.asObject(minify);
     delete target.parentBatch;
-    this.parentBatch = parent;
+    this.parent = parent;
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
+
+    target.parentId = this.parentId || this.parent && this.parent.id || undefined;
+    delete target.parent;
 
     target.children = this.children && this.children.map(c => c.asObject(minify)) || undefined;
 
@@ -803,8 +834,9 @@ export class Batch extends DataEntity<Batch> {
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.comments = source.comments;
     this.operationId = source.operationId;
+    this.parentId = source.parentId;
     this.children = source.children && source.children.filter(c => !!c).map(Batch.fromObject) || undefined;
-    this.children && this.children.forEach(c => c.parentBatch = this); // link children to self
+    this.children && this.children.forEach(c => c.parent = this); // link children to self
 
     if (source.measurementValues) {
       this.measurementValues = source.measurementValues;
@@ -826,7 +858,11 @@ export class Batch extends DataEntity<Batch> {
     return super.equals(other)
       // Or by functional attributes
       || (this.rankOrder === other.rankOrder
-        && (!this.parentBatch && !other.parentBatch || this.parentBatch.equals(other.parentBatch)) // same parent
-        && (!this.operationId && !other.operationId || this.operationId === other.operationId)); // same operation
+        // same operation
+        && ((!this.operationId && !other.operationId) || this.operationId === other.operationId)
+        // same parent
+        && ((!this.parentId && !other.parentId) || this.parentId === other.parentId)
+        // TODO: same label ??
+      );
   }
 }

@@ -22,27 +22,32 @@ export class MeasurementsValidatorService implements ValidatorService {
 
   public getFormGroupConfig(pmfms: PmfmStrategy[]): { [key: string]: any } {
     return pmfms.reduce((res, pmfm) => {
-      res[pmfm.pmfmId] = this.getValidators(pmfm);
+      const validator = this.getValidator(pmfm);
+      if (validator) {
+        res[pmfm.pmfmId] = ['', validator];
+      }
+      else {
+        res[pmfm.pmfmId] = [''];
+      }
       return res;
     }, {});
   }
 
   public updateFormGroup(form: FormGroup, pmfms: PmfmStrategy[], options?: {
-    protectedAttributes?: string[]
+    protectedAttributes?: string[];
   }) {
     options = options || { protectedAttributes: ['id', 'rankOrder', 'comments', 'updateDate'] };
     let controlNamesToRemove: string[] = [];
     for (let controlName in form.controls) {
       controlNamesToRemove.push(controlName);
     }
-    const controlConfig: any = {};
     pmfms.forEach(pmfm => {
       const controlName = pmfm.pmfmId.toString();
       let formControl: AbstractControl = form.get(controlName);
       // If new pmfm: add as control
       if (!formControl) {
 
-        formControl = this.formBuilder.control(pmfm.defaultValue || '', this.getValidators(pmfm));
+        formControl = this.formBuilder.control(pmfm.defaultValue || '', this.getValidator(pmfm));
         //console.log(formControl);
         form.addControl(controlName, formControl);
       }
@@ -59,8 +64,8 @@ export class MeasurementsValidatorService implements ValidatorService {
       .forEach(controlName => form.removeControl(controlName));
   }
 
-  public getValidators(pmfm: PmfmStrategy): ValidatorFn | ValidatorFn[] {
-    let validatorFns: ValidatorFn[] = [];
+  public getValidator(pmfm: PmfmStrategy): ValidatorFn {
+    const validatorFns: ValidatorFn[] = [];
     if (pmfm.isMandatory) {
       validatorFns.push(Validators.required);
     }
@@ -90,6 +95,6 @@ export class MeasurementsValidatorService implements ValidatorService {
       validatorFns.push(SharedValidators.entity);
     }
 
-    return validatorFns.length ? Validators.compose(validatorFns) : validatorFns.length == 1 ? validatorFns[0] : undefined;
+    return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length == 1 ? validatorFns[0] : undefined);
   }
 }

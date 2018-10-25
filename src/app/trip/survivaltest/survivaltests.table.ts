@@ -21,7 +21,7 @@ import { FormGroup } from "@angular/forms";
 import { MeasurementsValidatorService } from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 
-const RESERVED_SAMPLE_COLUMNS: string[] = ['taxonGroup', 'sampleDate'];
+const RESERVED_COLUMNS: string[] = ['taxonGroup', 'sampleDate'];
 
 @Component({
     selector: 'table-survival-tests',
@@ -73,7 +73,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         protected formBuilder: FormBuilder
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            RESERVED_START_COLUMNS.concat(RESERVED_SAMPLE_COLUMNS).concat(RESERVED_END_COLUMNS)
+            RESERVED_START_COLUMNS.concat(RESERVED_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
         this.i18nColumnPrefix = 'TRIP.SURVIVAL_TEST.TABLE.';
         this.autoLoad = false;
@@ -98,7 +98,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
             let displayedColumns = this.cachedPmfms.map(p => p.pmfmId.toString());
 
             this.displayedColumns = RESERVED_START_COLUMNS
-                .concat(RESERVED_SAMPLE_COLUMNS)
+                .concat(RESERVED_COLUMNS)
                 .concat(displayedColumns)
                 .concat(RESERVED_END_COLUMNS);
             this.started = true;
@@ -111,7 +111,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
             .subscribe(() => this.onRefresh.emit());
 
         // Taxon group combo
-        this.taxonGroups = this.registerColumnValueChanges('taxonGroup')
+        this.taxonGroups = this.registerCellValueChanges('taxonGroup')
             .pipe(
                 debounceTime(250),
                 mergeMap((value) => {
@@ -164,7 +164,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
 
         // Fill samples measurement map
         this.data.forEach(sample => {
-            sample.measurementValues = MeasurementUtils.toFormValues(sample.measurementValues, this.cachedPmfms);
+            sample.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, this.cachedPmfms);
         });
 
         // Sort by column
@@ -215,15 +215,16 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
     referentialToString = referentialToString;
 
     onTaxonGroupCellFocus(event: any, row: TableElement<any>) {
-        this.subscribeCellValueChanges('taxonGroup', row);
+        this.startCellValueChanges('taxonGroup', row);
     }
 
     onTaxonGroupCellBlur(event: FocusEvent, row: TableElement<any>) {
-        this.unsubscribeCellValueChanges('taxonGroup');
+        this.stopCellValueChanges('taxonGroup');
         // Apply last implicit value
         if (row.validator.controls.taxonGroup.hasError('entity') && this._implicitTaxonGroup) {
             row.validator.controls.taxonGroup.setValue(this._implicitTaxonGroup);
         }
+        this._implicitTaxonGroup = undefined;
     }
 
     protected getI18nColumnName(columnName: string): string {

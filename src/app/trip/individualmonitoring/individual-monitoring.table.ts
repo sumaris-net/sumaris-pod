@@ -20,7 +20,7 @@ import { MeasurementsValidatorService } from "../services/trip.validators";
 import { PmfmIds } from "../../referential/services/model";
 
 const PMFM_ID_REGEXP = new RegExp(/\d+/);
-const RESERVED_SAMPLE_COLUMNS: string[] = ['parentSample'];
+const RESERVED_COLUMNS: string[] = ['parent'];
 
 @Component({
     selector: 'table-individual-monitoring',
@@ -33,10 +33,10 @@ const RESERVED_SAMPLE_COLUMNS: string[] = ['parentSample'];
 export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
 
     private _onDataChange = new EventEmitter<any>();
-    private _onAvailableParentSamplesChange = new EventEmitter<any>();
+    private _onAvailableParentsChange = new EventEmitter<any>();
     private _acquisitionLevel: string = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
-    private _implicitParentSample: Sample;
-    private _availableParentSamples: Sample[] = [];
+    private _implicitParent: Sample;
+    private _availableParents: Sample[] = [];
 
     started: boolean = false;
     pmfms: Observable<PmfmStrategy[]>;
@@ -44,7 +44,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     cachedPmfms: PmfmStrategy[];
     measurementValuesFormGroupConfig: { [key: string]: any };
     data: Sample[];
-    parentSamples: Observable<Sample[]>;
+    filteredParents: Observable<Sample[]>;
 
     @Input() program: string = environment.defaultProgram;
 
@@ -60,10 +60,10 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         return this.data;
     }
 
-    set availableParentSamples(parentSamples: Sample[]) {
-        if (this._availableParentSamples !== parentSamples) {
-            this._availableParentSamples = parentSamples;
-            this._onAvailableParentSamplesChange.emit();
+    set availableParents(parents: Sample[]) {
+        if (this._availableParents !== parents) {
+            this._availableParents = parents;
+            this._onAvailableParentsChange.emit();
         }
     }
 
@@ -82,12 +82,17 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         protected formBuilder: FormBuilder
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            RESERVED_START_COLUMNS.concat(RESERVED_SAMPLE_COLUMNS).concat(RESERVED_END_COLUMNS)
+            RESERVED_START_COLUMNS.concat(RESERVED_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
         this.i18nColumnPrefix = 'TRIP.INDIVIDUAL_MONITORING.TABLE.';
         this.autoLoad = false;
         this.inlineEdition = true;
-        this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(Sample, this, this))
+        this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
+            Sample, this, this, {
+                prependNewElements: false,
+                onCreateNew: (row) => this.onCreateNewSample(row)
+            }
+        ));
         //this.debug = true;
     };
 
@@ -107,7 +112,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
             let displayedColumns = this.cachedPmfms.map(p => p.pmfmId.toString());
 
             this.displayedColumns = RESERVED_START_COLUMNS
-                .concat(RESERVED_SAMPLE_COLUMNS)
+                .concat(RESERVED_COLUMNS)
                 .concat(displayedColumns)
                 .concat(RESERVED_END_COLUMNS);
             this.started = true;
@@ -118,12 +123,12 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                 this.pmfms,
                 this._onDataChange
             ),
-            this._onAvailableParentSamplesChange
+            this._onAvailableParentsChange
         )
             .subscribe(() => this.onRefresh.emit());
 
         // Tag IDs combo
-        this.parentSamples = this.registerColumnValueChanges('parentSample')
+        this.filteredParents = this.registerCellValueChanges('parent')
             .pipe(
                 debounceTime(250),
                 mergeMap((value) => {
@@ -131,14 +136,55 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                     value = (typeof value === "string") && value || undefined;
                     if (this.debug) console.debug("[monitoring-table] Searching tag id {" + (value || '*') + "}...");
                     // TODO filter
-                    return Observable.of(this._availableParentSamples);
+                    return Observable.of(this._availableParents);
                 })
             );
 
         // add implicit value
-        this.parentSamples.subscribe(items => {
-            this._implicitParentSample = (items.length === 1) && items[0];
+        this.filteredParents.subscribe(items => {
+            this._implicitParent = (items.length === 1) && items[0];
         });
+
+        // Listenning on column 'IS_DEAD' value changes
+        this.registerCellValueChanges('isDead', "measurementValues." + PmfmIds.IS_DEAD.toString())
+            .subscribe((isDead) => {
+                if (!this.selectedRow) return; // Should never occur
+                const row = this.selectedRow
+                const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+                if (isDead) {
+                    if (row.validator.enabled) {
+                        controls[PmfmIds.DEATH_TIME].enable();
+                    }
+                    controls[PmfmIds.DEATH_TIME].setValidators(Validators.required);
+                    if (row.validator.enabled) {
+                        controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].enable();
+                    }
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators(Validators.required);
+                }
+                else {
+                    controls[PmfmIds.DEATH_TIME].disable();
+                    controls[PmfmIds.DEATH_TIME].setValue(null);
+                    controls[PmfmIds.DEATH_TIME].setValidators([]);
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValue(null);
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators([]);
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
+                }
+            });
+    }
+
+    async getMaxRankOrder(): Promise<number> {
+
+        const rows = await this.dataSource.getRows();
+        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+    }
+
+    async onCreateNewSample(row: TableElement<Sample>): Promise<void> {
+        // Set computed values
+        row.currentData.rankOrder = (await this.getMaxRankOrder()) + 1;
+        row.currentData.label = this._acquisitionLevel + "#" + row.currentData.rankOrder;
+
+        // Set default values
+        row.currentData.measurementValues[PmfmIds.IS_DEAD] = false;
     }
 
     getRowValidator(): FormGroup {
@@ -172,7 +218,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
 
         // Fill samples measurement map
         this.data.forEach(sample => {
-            sample.measurementValues = MeasurementUtils.toFormValues(sample.measurementValues, this.cachedPmfms);
+            sample.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, this.cachedPmfms);
         });
 
         // Sort by column
@@ -215,37 +261,21 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         const row = this.dataSource.getRow(-1);
         this.data.push(row.currentData);
         this.selectedRow = row;
-        row.validator.controls['rankOrder'].setValue(this.resultsLength);
-        row.validator.controls['label'].setValue(this._acquisitionLevel + "#" + this.resultsLength);
-        const measurementValuesControls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-        // Set default values to IS_DEAD pmfm
-        measurementValuesControls[PmfmIds.IS_DEAD].setValue(false);
-        measurementValuesControls[PmfmIds.DEATH_TIME].disable();
-        measurementValuesControls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
 
-        // Enable some pmfms if IS_DEAD change
-        measurementValuesControls[PmfmIds.IS_DEAD].valueChanges.subscribe((isDead) => {
-            if (isDead) {
-                if (row.validator.enabled) {
-                    measurementValuesControls[PmfmIds.DEATH_TIME].enable();
-                }
-                measurementValuesControls[PmfmIds.DEATH_TIME].setValidators(Validators.required);
-                if (row.validator.enabled) {
-                    measurementValuesControls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].enable();
-                }
-                measurementValuesControls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators(Validators.required);
-            }
-            else {
-                measurementValuesControls[PmfmIds.DEATH_TIME].disable();
-                measurementValuesControls[PmfmIds.DEATH_TIME].setValue(null);
-                measurementValuesControls[PmfmIds.DEATH_TIME].setValidators([]);
-                measurementValuesControls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValue(null);
-                measurementValuesControls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators([]);
-                measurementValuesControls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
-            }
-        });
+        // Listen row value changes
+        this.startListenRow(row);
 
         return true;
+    }
+
+    onRowClick(event: MouseEvent, row: TableElement<Sample>): boolean {
+        const canEdit = super.onRowClick(event, row)
+        if (canEdit) this.startListenRow(row);
+        return canEdit;
+    }
+
+    startListenRow(row: TableElement<Sample>) {
+        this.startCellValueChanges('isDead', row);
     }
 
     parentSampleToString(sample: Sample) {
@@ -253,16 +283,17 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         return sample.measurementValues && sample.measurementValues[PmfmIds.TAG_ID] || `#${sample.rankOrder}`;
     }
 
-    onParentSampleCellFocus(event: any, row: TableElement<any>) {
-        this.subscribeCellValueChanges('parentSample', row);
+    onParentCellFocus(event: any, row: TableElement<any>) {
+        this.startCellValueChanges('parent', row);
     }
 
-    onParentSampleCellBlur(event: FocusEvent, row: TableElement<any>) {
-        this.unsubscribeCellValueChanges('parentSample');
+    onParentCellBlur(event: FocusEvent, row: TableElement<any>) {
+        this.stopCellValueChanges('parent');
         // Apply last implicit value
-        if (row.validator.controls.parentSample.hasError('entity') && this._implicitParentSample) {
-            row.validator.controls.parentSample.setValue(this._implicitParentSample);
+        if (row.validator.controls.parent.hasError('entity') && this._implicitParent) {
+            row.validator.controls.parent.setValue(this._implicitParent);
         }
+        this._implicitParent = undefined;
     }
 
     protected getI18nColumnName(columnName: string): string {

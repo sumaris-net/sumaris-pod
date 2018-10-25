@@ -3,6 +3,7 @@ import { Platform } from '@ionic/angular';
 import { MatRadioButton, MatRadioChange, MatCheckbox, MatCheckboxChange, FloatLabelType } from '@angular/material';
 import { FormControl, FormBuilder, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
+import { isNotNil } from '../../core/services/model';
 
 const noop = () => {
 };
@@ -80,10 +81,6 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
     ngOnInit() {
         this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
         if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-boolean-field>.");
-
-        this._value = this.formControl.value;
-        this.showRadio = this._value != null;
-        if (this.compact) console.debug("[mat-boolean-field] ngOnInit value:", this._value);
     }
 
     writeValue(value: any): void {
@@ -91,9 +88,8 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
 
         this.writing = true;
         if (value !== this._value) {
-            if (this.compact) console.debug("[mat-boolean-field] Setting value:", value);
             this._value = value;
-            this.showRadio = this._value != null;
+            this.showRadio = isNotNil(this._value);
         }
         this.writing = false;
     }

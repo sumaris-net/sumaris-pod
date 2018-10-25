@@ -20,8 +20,8 @@ const noop = () => {
 })
 export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
-    private _onChange: (_: any) => void = noop;
-    private _onTouched: () => void = noop;
+    private _onChangeCallback: (_: any) => void = noop;
+    private _onTouchedCallback: () => void = noop;
     protected disabling: boolean = false;
 
     @Input() pmfm: PmfmStrategy;
@@ -38,21 +38,14 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
     @Input() floatLabel: FloatLabelType = "auto";
 
-    @Input('ngModel') model: any;
-
     get value(): any {
         return this.formControl.value;
     }
 
     writeValue(obj: any): void {
-
         if (obj !== this.formControl.value) {
-            if (this.pmfm.type == 'boolean') console.debug("[mat-form-field-measurement] Replace value", obj);
-            this.formControl.setValue(obj);
-            this._onChange(this.value);
-        }
-        else {
-            if (this.pmfm.type == 'boolean') console.debug("[mat-form-field-measurement] Same value, skipping", obj);
+            this.formControl.setValue(obj, { emitEvent: false });
+            this._onChangeCallback(this.value);
         }
     }
 
@@ -71,21 +64,15 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
         this.formControl = this.formControl || (this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl);
         if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement>.");
 
-        this.formControl.setValidators(this.measurementValidatorService.getValidators(this.pmfm));
+        this.formControl.setValidators(this.measurementValidatorService.getValidator(this.pmfm));
         this.placeholder = this.placeholder || getPmfmName(this.pmfm, { withUnit: !this.compact });
-
-        if (this.model) {
-            console.warn("[mat-form-field-measurement] Replace value (by ngModel)", this.formControl.value, this.model);
-            this.formControl.setValue(this.model);
-            //this.writeValue(this.model);
-        }
     }
 
     registerOnChange(fn: any): void {
-        this._onChange = fn;
+        this._onChangeCallback = fn;
     }
     registerOnTouched(fn: any): void {
-        this._onTouched = fn;
+        this._onTouchedCallback = fn;
     }
 
     setDisabledState(isDisabled: boolean): void {
@@ -105,7 +92,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
     public markAsTouched() {
         if (this.formControl.touched) {
-            this._onTouched();
+            this._onTouchedCallback();
         }
     }
 

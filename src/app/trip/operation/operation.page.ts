@@ -74,7 +74,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Update available parent on individual table, when survival tests changes
     this.survivalTestsTable.listChange.subscribe(samples => {
-      this.individualMonitoringTable.availableParentSamples = (samples || [])
+      this.individualMonitoringTable.availableParents = (samples || [])
         .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
     });
   }
@@ -143,15 +143,19 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Set catch bacth
     this.catchForm.gear = gearLabel;
-    this.catchForm.value = data && data.catchBatch || Batch.fromObject({ rankOrder: 1 });
+    this.catchForm.value = data && data.catchBatch.clone() || Batch.fromObject({ rankOrder: 1 });
 
     // Set survival tests
-    this.survivalTestsTable.value = data && data.samples && data.samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.SURVIVAL_TEST + "#")) || [];
+    const samples = data && data.samples || [];
+    this.survivalTestsTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.SURVIVAL_TEST + "#"));
 
     // Set individual monitoring
-    this.individualMonitoringTable.parentSamples = (data && data.samples || [])
-      .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
-    this.individualMonitoringTable.value = data && data.samples && data.samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#")) || [];
+    this.individualMonitoringTable.availableParents = samples.filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
+    const individualMonitoringSamples = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"));
+    individualMonitoringSamples.forEach(s => {
+      s.parent = samples.find(p => p.id === s.parentId) || s.parent;
+    });
+    this.individualMonitoringTable.value = individualMonitoringSamples;
 
     this.markAsPristine();
     this.markAsUntouched();
@@ -201,20 +205,15 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // get catch batch
     this.data.catchBatch = this.catchForm.value;
-    if (this.debug) console.warn("TODO: check catchbatch", this.catchForm.value);
+    console.warn("TODO: check catchbatch", this.catchForm.value);
 
-    // get survival tests
+    // get samples, from tables
     await this.survivalTestsTable.save();
-    const survivalTests = this.survivalTestsTable.value;
-
-    // get indiv monitoring
-    //samples = samples.concat(this.individualMonitoringTable.value);
-
-    this.data.samples = (survivalTests || []);
+    await this.individualMonitoringTable.save();
+    this.data.samples = (this.survivalTestsTable.value || []).concat(this.individualMonitoringTable.value);
 
     const isNew = this.isNewData();
     this.disable();
-
 
     try {
 

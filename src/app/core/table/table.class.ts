@@ -25,10 +25,11 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     private _initialized = false;
     private _subscriptions: Subscription[] = [];
-    private _columnValueChangesConfig: {
+    private _cellValueChangesDefs: {
         [key: string]: {
             eventEmitter: EventEmitter<any>;
-            subscription: Subscription
+            subscription: Subscription,
+            formPath?: string;
         }
     } = {};
     protected _dirty = false;
@@ -187,10 +188,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this._subscriptions = [];
 
         // Unsubcribe column value changes
-        Object.getOwnPropertyNames(this._columnValueChangesConfig).forEach(columnName => {
-            this.unsubscribeCellValueChanges(columnName);
+        Object.getOwnPropertyNames(this._cellValueChangesDefs).forEach(columnName => {
+            this.stopCellValueChanges(columnName);
         });
-        this._columnValueChangesConfig = {};
+        this._cellValueChangesDefs = {};
     }
 
     setDatasource(datasource: AppTableDataSource<T, F>) {
@@ -441,49 +442,50 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         }
     }
 
-    protected registerColumnValueChanges(columnName: string): Observable<any> {
-        if (this.debug) console.debug("[table] Register column {" + columnName + "} for value changes");
-        this._columnValueChangesConfig[columnName] = this._columnValueChangesConfig[columnName] || {
+    protected registerCellValueChanges(name: string, formPath?: string): Observable<any> {
+        formPath = formPath || name;
+        if (this.debug) console.debug(`[table] New listener {${name}} for value changes on path ${formPath}`);
+        this._cellValueChangesDefs[name] = this._cellValueChangesDefs[name] || {
             eventEmitter: new EventEmitter<any>(),
-            subscription: null
+            subscription: null,
+            formPath: formPath
         };
 
-        return this._columnValueChangesConfig[columnName].eventEmitter;
+        return this._cellValueChangesDefs[name].eventEmitter;
     }
 
-    public subscribeCellValueChanges(columnName: string, row: TableElement<any>) {
-        if (this._columnValueChangesConfig[columnName] && this._columnValueChangesConfig[columnName].subscription) {
-            this._columnValueChangesConfig[columnName].subscription.unsubscribe();
-            this._columnValueChangesConfig[columnName].subscription = null;
-        }
-
-        const columnConfig = this._columnValueChangesConfig[columnName];
-        if (!columnConfig) {
-            console.warn("[table] Column {" + columnName + "} not resgistered for value changes. Please call registerColumnValueChanges() first;");
+    public startCellValueChanges(name: string, row: TableElement<any>) {
+        const def = this._cellValueChangesDefs[name];
+        if (!def) {
+            console.warn("[table] Listener with name {" + name + "} not registered! Please call registerCellValueChanges() before;");
             return;
         }
-
-        if (this.debug) console.debug("[table] Subscribe to cell changes, on column {" + columnName + "}");
+        // Stop previous subscription
+        if (def.subscription) {
+            def.subscription.unsubscribe();
+            def.subscription = null;
+        }
+        else {
+            if (this.debug) console.debug(`[table] Start values changes on row path {${def.formPath}}`);
+        }
 
         // Listen value changes, and redirect to event emitter
-        this._columnValueChangesConfig[columnName].subscription = row.validator.controls[columnName].valueChanges
-
-            //TODO check if working 
-            //.debounceTime(250)
-
+        const control = AppFormUtils.getControlFromPath(row.validator, def.formPath);
+        def.subscription = control.valueChanges
             .subscribe((value) => {
-                this._columnValueChangesConfig[columnName].eventEmitter.emit(value);
+                def.eventEmitter.emit(value);
             });
 
-        // Emit actual value
-        this._columnValueChangesConfig[columnName].eventEmitter.emit(row.validator.controls[columnName].value);
+        // Emit the actual value
+        def.eventEmitter.emit(control.value);
     }
 
-    public unsubscribeCellValueChanges(columnName: string) {
-        if (this._columnValueChangesConfig[columnName] && this._columnValueChangesConfig[columnName].subscription) {
-            if (this.debug) console.debug("[table] Unsubcribe cell changes, on column {" + columnName + "}");
-            this._columnValueChangesConfig[columnName].subscription.unsubscribe();
-            this._columnValueChangesConfig[columnName].subscription = null;
+    public stopCellValueChanges(name: string) {
+        const def = this._cellValueChangesDefs[name];
+        if (def && def.subscription) {
+            if (this.debug) console.debug("[table] Stop value changes on row path {" + def.formPath + "}");
+            def.subscription.unsubscribe();
+            def.subscription = null;
         }
     }
 }

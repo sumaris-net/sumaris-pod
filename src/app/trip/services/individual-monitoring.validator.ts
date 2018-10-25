@@ -16,7 +16,7 @@ export class IndividualMonitoringService implements ValidatorService {
   getFormGroup(data?: any): FormGroup {
     return this.formBuilder.group({
       'id': [''],
-      'parentSample': ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      'parent': ['', Validators.compose([Validators.required, SharedValidators.entity])],
       'rankOrder': ['', Validators.required],
       'label': ['', Validators.required]
     });

@@ -45,6 +45,16 @@ export const AcquisitionLevelCodes = {
   INDIVIDUAL_MONITORING: 'INDIVIDUAL_MONITORING'
 }
 
+export function isNil<T>(obj: T | null | undefined): boolean {
+  return obj === undefined || obj === null;
+}
+
+export function isNotNil<T>(obj: T | null | undefined): boolean {
+  return obj !== undefined && obj !== null;
+}
+export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
+  return obj === undefined ? null : obj;
+}
 export declare interface Cloneable<T> {
   clone(): T;
 }

@@ -54,7 +54,14 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
             'endPosition',
             'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Operation, OperationFilter>(Operation, dataService, validatorService)
+      new AppTableDataSource<Operation, OperationFilter>(Operation, dataService, validatorService,
+        // DataSource options
+        {
+          prependNewElements: false,
+          serviceOptions: {
+            saveOnlyDirtyRows: true
+          }
+        })
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false;

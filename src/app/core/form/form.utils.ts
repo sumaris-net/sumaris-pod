@@ -1,11 +1,13 @@
 
 import { FormGroup, AbstractControl } from "@angular/forms";
+import { isNotNil, nullIfUndefined } from "../services/model";
 
 export class AppFormUtils {
     static copyForm2Entity = copyForm2Entity;
     static copyEntity2Form = copyEntity2Form;
     static getFormValueFromEntity = getFormValueFromEntity;
     static logFormErrors = logFormErrors;
+    static getControlFromPath = getControlFromPath;
 }
 
 /**
@@ -22,14 +24,7 @@ export function copyForm2Entity(source: FormGroup, target: any): Object {
         }
         else {
             // Read the form value
-            const value = control.value;
-            // Set target attribute
-            if (value && typeof value == "object" && value._isAMomentObject) {
-                target[key] = value;
-            }
-            else {
-                target[key] = value || (value === 0 ? 0 : null); // Do NOT replace 0 by null
-            }
+            target[key] = control.value;
         }
     }
     return target;
@@ -57,12 +52,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
             value[key] = getFormValueFromEntity(source[key] || {}, form.controls[key] as FormGroup);
         }
         else {
-            if (source[key] && typeof source[key] == "object" && source[key]._isAMomentObject) {
-                value[key] = source[key];
-            }
-            else {
-                value[key] = source[key] || (source[key] === 0 ? 0 : null); // Do NOT replace 0 by null
-            }
+            value[key] = nullIfUndefined(source[key]); // undefined not authorized as control value
         }
     }
     return value;
@@ -84,4 +74,16 @@ export function logFormErrors(form: FormGroup, logPrefix?: string, path?: string
             }
         }
     }
+}
+
+export function getControlFromPath(form: FormGroup, path: string): AbstractControl {
+    const i = path.indexOf('.');
+    if (i == -1) {
+        return form.controls[path];
+    }
+    const key = path.substring(0, i);
+    if (form.controls[key] instanceof FormGroup) {
+        return getControlFromPath((form.controls[key] as FormGroup), path.substring(i + 1));
+    }
+    throw new Error(`Invalid form path: '${key}' should be a form group.`);
 }
