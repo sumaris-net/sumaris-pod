@@ -71,7 +71,7 @@
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent" [appAutofocus]="row.id == -1 && row.editing"
-          [placeholder]="(displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || 'TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE') |translate"
+          [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE') | translate)"
           (focus)="onParentCellFocus($event, row)" (click)="$event.target.select()" (blur)="onParentCellBlur($event, row)"
           required>
         <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
