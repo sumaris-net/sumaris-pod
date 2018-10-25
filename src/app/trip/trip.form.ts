@@ -41,8 +41,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Combo: vessels
     this.programs = this.form.controls['program']
       .valueChanges
+      .startWith('')
       .pipe(
-        startWith(''),
         debounceTime(250),
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
