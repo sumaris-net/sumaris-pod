@@ -298,6 +298,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         final Map<Integer, T> sourceToRemove = Beans.splitById(Beans.getList(target));
 
         List<MeasurementVO> result = sources.stream()
+                .filter(this::isNotEmpty) // Workaround, but should never occur !?
                 .map(source -> {
                     // Remove from the existing list
                     if (source.getId() != null) sourceToRemove.remove(source.getId());
@@ -333,52 +334,55 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         for (Map.Entry<Integer, String> source: sources.entrySet()) {
             Integer pmfmId = source.getKey();
             String value = source.getValue();
-            // Get existing meas and remove it from list to remove
-            IMeasurementEntity entity = sourceToRemove.remove(pmfmId);
 
-            // Exists
-            boolean isNew = (entity == null);
-            if (isNew) {
-                try {
-                    entity = entityClass.newInstance();
-                } catch (IllegalAccessException | InstantiationException e) {
-                    throw new SumarisTechnicalException(e);
+            if (StringUtils.isNotBlank(value)) {
+                // Get existing meas and remove it from list to remove
+                IMeasurementEntity entity = sourceToRemove.remove(pmfmId);
+
+                // Exists ?
+                boolean isNew = (entity == null);
+                if (isNew) {
+                    try {
+                        entity = entityClass.newInstance();
+                    } catch (IllegalAccessException | InstantiationException e) {
+                        throw new SumarisTechnicalException(e);
+                    }
                 }
-            }
 
-            // Make sure to set pmfm
-            if (entity.getPmfm() == null) {
-                entity.setPmfm(load(Pmfm.class, pmfmId));
-            }
+                // Make sure to set pmfm
+                if (entity.getPmfm() == null) {
+                    entity.setPmfm(load(Pmfm.class, pmfmId));
+                }
 
-            // Rank order
-            if (entity instanceof ISortedMeasurementEntity) {
-                ((ISortedMeasurementEntity) entity).setRankOrder(rankOrder++);
-            }
+                // Rank order
+                if (entity instanceof ISortedMeasurementEntity) {
+                    ((ISortedMeasurementEntity) entity).setRankOrder(rankOrder++);
+                }
 
-            // Is reference ?
-            if (entity instanceof BatchQuantificationMeasurement) {
-                ((BatchQuantificationMeasurement) entity).setIsReferenceQuantification(rankOrder==1);
-            }
+                // Is reference ?
+                if (entity instanceof BatchQuantificationMeasurement) {
+                    ((BatchQuantificationMeasurement) entity).setIsReferenceQuantification(rankOrder == 1);
+                }
 
-            // Fill default properties
-            fillDefaultProperties(parent, entity);
+                // Fill default properties
+                fillDefaultProperties(parent, entity);
 
-            // Set value to entity
-            valueToEntity(value, pmfmId, entity);
+                // Set value to entity
+                valueToEntity(value, pmfmId, entity);
 
-            // Link to parent
-            linkToParent(entity, parent.getClass(), parent.getId(), false);
+                // Link to parent
+                linkToParent(entity, parent.getClass(), parent.getId(), false);
 
-            // Update update_dt
-            Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-            entity.setUpdateDate(newUpdateDate);
+                // Update update_dt
+                Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+                entity.setUpdateDate(newUpdateDate);
 
-            // Save entity
-            if (isNew) {
-                session.persist(entity);
-            } else {
-                session.merge(entity);
+                // Save entity
+                if (isNew) {
+                    session.persist(entity);
+                } else {
+                    session.merge(entity);
+                }
             }
         }
 
@@ -564,7 +568,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         ParameterValueType type = ParameterValueType.fromPmfm(pmfm);
         switch (type) {
             case BOOLEAN:
-                target.setNumericalValue(Boolean.TRUE.equals(value) ? 1d : 0d);
+                target.setNumericalValue(Boolean.parseBoolean(value) || "1".equals(value) ? 1d : 0d);
                 break;
             case QUALITATIVE_VALUE:
                 // If get a object structure (e.g. ReferentialVO), try to get the id
@@ -713,5 +717,13 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             throw new IllegalArgumentException(String.format("Class {%s} not manage yet in this method", target.getClass().getSimpleName()));
         }
 
+    }
+
+    protected boolean isEmpty(MeasurementVO source) {
+        return StringUtils.isBlank(source.getAlphanumericalValue()) && source.getNumericalValue() == null
+                && (source.getQualitativeValue() == null || source.getQualitativeValue().getId() == null);
+    }
+    protected boolean isNotEmpty(MeasurementVO source) {
+        return !isEmpty(source);
     }
 }
