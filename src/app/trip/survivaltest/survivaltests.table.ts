@@ -82,7 +82,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
             Sample, this, this,
             {
                 prependNewElements: false,
-                onCreateNew: (row) => this.onCreateNewSample(row)
+                onNewRow: (row) => this.onCreateNewSample(row)
             }));
         //this.debug = true;
     };

@@ -589,12 +589,12 @@ export class Operation extends DataEntity<Operation> {
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
-    (this.samples || [])
-      .forEach(s => {
-        // Link to parent
-        s.parent = s.parentId && this.samples.find(p => p.id === s.parentId) || undefined;
-        s.parentId = undefined; // Avoid redundant info on parent
-      });
+    // (this.samples || [])
+    //   .forEach(s => {
+    //     // Link to parent
+    //     s.parent = s.parentId && this.samples.find(p => p.id === s.parentId) || undefined;
+    //     s.parentId = undefined; // Avoid redundant info on parent
+    //   });
 
     // Batches
     if (source.batches) {

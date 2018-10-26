@@ -256,7 +256,8 @@
       "TABLE": {
         "PARENT_SAMPLE": "Parent sample",
         "TAXON_GROUP": "Espèce",
-        "COMMENTS": "Commentaires"
+        "COMMENTS": "Commentaires",
+        "BTN_AUTO_FILL": "Remplir automatiquement"
       }
     }
   },

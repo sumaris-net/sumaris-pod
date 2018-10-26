@@ -212,9 +212,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     confirmAndAddRow(event?: any, row?: TableElement<T>): boolean {
-        // create
-        if (row && row.editing && !row.confirmEditCreate()) {
-            if (this.debug) console.warn("[table] Row not valid: unable to add new row", row);
+        if (!this.confirmEditCreate(event, row)) {
             return false;
         }
 
@@ -222,13 +220,27 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         return this.addRow(event);
     }
 
+    confirmEditCreate(event?: any, row?: TableElement<T>): boolean {
+        row = row || this.selectedRow;
+        if (row && row.editing) {
+            event.stopPropagation();
+            // confirmation edition or creation
+            if (!row.confirmEditCreate()) {
+                if (this.debug) console.warn("[table] Row not valid: unable to confirm", row);
+                return false;
+            }
+            this.selectedRow = null; // unselect row
+        }
+        return true;
+    }
+
     cancelOrDelete(event: any, row: TableElement<T>) {
         this.selectedRow = null; // unselect row
         event.stopPropagation();
-        row.cancelOrDelete();
+        this.dataSource.cancelOrDelete(row);
 
-        // If row never saved: this is a delete, else a cancel
-        if (row.id == -1) {
+        // If delete (if new row): update counter
+        if (row.id === -1) {
             this.resultsLength--;
         }
     }
@@ -307,13 +319,16 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     deleteSelection() {
         if (this.loading) return;
-        this.selection.selected.forEach(row => {
-            row.delete();
-            this.selection.deselect(row);
-            //if (row.currentData && row.currentData.id >= 0) {
-            this.resultsLength--;
-            //}
-        });
+        this.selection.selected
+            // Reverse row order
+            // This is a workaround, need because row.delete() has async execution
+            // and index cache is updated with a delay)
+            .sort((a, b) => a.id > b.id ? -1 : 1)
+            .forEach(row => {
+                row.delete();
+                this.selection.deselect(row);
+                this.resultsLength--;
+            });
         this.selection.clear();
         this.selectedRow = null;
     }

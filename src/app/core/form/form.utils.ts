@@ -36,8 +36,7 @@ export function copyForm2Entity(source: FormGroup, target: any): Object {
  * @param source 
  */
 export function copyEntity2Form(source: any, target: FormGroup) {
-    const json = getFormValueFromEntity(source, target);
-    target.setValue(json);
+    target.setValue(getFormValueFromEntity(source, target));
 }
 
 /**

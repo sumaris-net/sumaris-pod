@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable } from 'rxjs';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
+import { AppTableDataSource, AppTable, AccountService, AppFormUtils } from "../../core/core.module";
 import { getPmfmName, PmfmStrategy, Sample, MeasurementUtils } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -13,7 +13,7 @@ import { debounceTime, map } from "rxjs/operators";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
-import { AcquisitionLevelCodes, EntityUtils } from "../../core/services/model";
+import { AcquisitionLevelCodes, EntityUtils, isNil, isNotNil } from "../../core/services/model";
 import { MeasurementsValidatorService } from "../services/trip.validators";
 import { PmfmIds } from "../../referential/services/model";
 
@@ -33,6 +33,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     private _acquisitionLevel: string = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
     private _implicitParent: Sample;
     private _availableParents: Sample[] = [];
+    private _dataSubject = new BehaviorSubject<Sample[]>([]);
 
     started: boolean = false;
     pmfms: Observable<PmfmStrategy[]>;
@@ -58,18 +59,16 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
 
     set availableParents(parents: Sample[]) {
         if (this._availableParents !== parents) {
-            this._availableParents = parents;
+            // Sort parents by by Tag-ID
+            this._availableParents = this.sortSamples(parents, PmfmIds.TAG_ID.toString());
 
-            // Check if need to delete some rows
-            let hasMissingParent = false;
-            this.data = (this.data || []).filter(s => {
-                s.parent = s.parent && parents.find(p => p.id == s.parent.id);
-                hasMissingParent = hasMissingParent || !s.parent;
-                return s.parent;
-            });
-
-            if (hasMissingParent) this.dataSource.updateDatasource(this.data);
+            // Link samples to parent, and delete orphan
+            this.linkSamplesToParentAndDeleteOrphan();
         }
+    }
+
+    get availableParents(): Sample[] {
+        return this._availableParents;
     }
 
     constructor(
@@ -95,7 +94,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
             Sample, this, this, {
                 prependNewElements: false,
-                onCreateNew: (row) => this.onCreateNewSample(row)
+                onNewRow: (row) => this.onNewSample(row.currentData)
             }
         ));
         //this.debug = true;
@@ -180,13 +179,13 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
     }
 
-    async onCreateNewSample(row: TableElement<Sample>): Promise<void> {
+    async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
         // Set computed values
-        row.currentData.rankOrder = (await this.getMaxRankOrder()) + 1;
-        row.currentData.label = this._acquisitionLevel + "#" + row.currentData.rankOrder;
+        sample.rankOrder = rankOrder || ((await this.getMaxRankOrder()) + 1);
+        sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
 
         // Set default values
-        row.currentData.measurementValues[PmfmIds.IS_DEAD] = false;
+        sample.measurementValues[PmfmIds.IS_DEAD] = false;
     }
 
     getRowValidator(): FormGroup {
@@ -208,32 +207,34 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<any[]> {
+    ): Observable<Sample[]> {
         if (!this.data || !this.started) {
             if (this.debug) console.debug("[monitoring-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
         }
-        sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
         const now = Date.now();
-        if (this.debug) console.debug("[monitoring-table] Preparing measurementValues to form...", this.data);
+        if (this.debug) console.debug("[monitoring-table] Loading rows...", this.data);
 
-        // Fill samples measurement map
-        this.data.forEach(sample => {
-            sample.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, this.cachedPmfms);
+        setTimeout(() => {
+            // Fill samples measurement map
+            const data = this.data.map(data => {
+                const sample = data.asObject();
+                sample.measurementValues = MeasurementUtils.normalizeFormValues(data.measurementValues, this.cachedPmfms);
+                return sample;
+            });
+
+            // Link to parent
+            this.linkSamplesToParent(data);
+
+            // Sort 
+            this.sortSamples(data, sortBy, sortDirection);
+            if (this.debug) console.debug(`[monitoring-table] Rows loaded in ${Date.now() - now}ms`, this.data);
+
+            this._dataSubject.next(data);
         });
 
-        // Sort by column
-        const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-        this.data.sort((a, b) =>
-            a[sortBy] === b[sortBy] ?
-                0 : (a[sortBy] > b[sortBy] ?
-                    after : (-1 * after)
-                )
-        );
-        if (this.debug) console.debug("[monitoring-table] Rows extracted in " + (Date.now() - now) + "ms", this.data);
-
-        return Observable.of(this.data);
+        return this._dataSubject.asObservable();
     }
 
     async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
@@ -241,15 +242,19 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
 
         if (this.debug) console.debug("[monitoring-table] Updating data from rows...");
 
-        const rows = await this.dataSource.getRows();
-        this.data = rows.map(row => row.currentData);
+        this.data = data.map(json => {
+            const sample = Sample.fromObject(json);
+            sample.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, this.cachedPmfms);
+            sample.parentId = json.parent && json.parent.id;
+            return sample;
+        });
 
         return this.data;
     }
 
     deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
-        console.debug("[table-survival-tests] Remove data", dataToRemove);
-        this.data = this.data.filter(item => !dataToRemove.find(g => g === item || g.id === item.id))
+        //console.debug("[table-survival-tests] Remove data", dataToRemove);
+        //this.data = this.data.filter(item => !dataToRemove.find(g => g === item || g.id === item.id))
         return Promise.resolve();
     }
 
@@ -298,6 +303,29 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         this._implicitParent = undefined;
     }
 
+    async autoFillTable() {
+        if (!this.started) return;
+        if (!this.confirmEditCreateSelectedRow()) return;
+
+        const rows = await this.dataSource.getRows();
+        const data = rows.map(r => r.currentData);
+
+        let rankOrder = await this.getMaxRankOrder();
+        await this._availableParents
+            .filter(p => !data.find(s => s.parent && s.parent.id === p.id))
+            .map(async p => {
+                const sample = new Sample();
+                sample.parent = p;
+                await this.onNewSample(sample, ++rankOrder);
+                data.push(sample);
+            });
+
+        this._dataSubject.next(data);
+    }
+
+    /* -- protected methods -- */
+
+
     protected getI18nColumnName(columnName: string): string {
 
         // Try to resolve PMFM column, using the cached pmfm list
@@ -312,6 +340,73 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
 
     public trackByFn(index: number, row: TableElement<Sample>) {
         return row.currentData.rankOrder;
+    }
+
+    protected linkSamplesToParent(data: Sample[]) {
+        if (!this._availableParents || !data) return;
+
+        data.forEach(s => {
+            const parentId = s.parentId || (s.parent && s.parent.id);
+            s.parent = isNotNil(parentId) ? this.availableParents.find(p => p.id === parentId) : null;
+        });
+    }
+
+    /**
+     * Remove samples in table, if there have no more parent
+     */
+    protected async linkSamplesToParentAndDeleteOrphan() {
+
+        const rows = await this.dataSource.getRows();
+
+        // Check if need to delete some rows
+        let hasRemovedSample = false;
+        const data = rows
+            .filter(row => {
+                const s = row.currentData;
+                const parentId = s.parentId || (s.parent && s.parent.id);
+
+                if (isNil(parentId)) {
+                    const parentTagId = s.parent && s.parent.measurementValues && s.parent.measurementValues[PmfmIds.TAG_ID];
+                    if (isNil(parentTagId)) {
+                        s.parent = undefined; // remove link to parent
+                        return true; // not yet a parent: keep (.e.g new row)
+                    }
+                    // Update the parent, by tagId
+                    s.parent = this.availableParents.find(p => (p && p.measurementValues && p.measurementValues[PmfmIds.TAG_ID]) === parentTagId);
+
+                }
+                else {
+                    // Update the parent, by id
+                    s.parent = this.availableParents.find(p => p.id == s.parent.id);
+                }
+
+                // Could not found the parent anymore (parent has been delete)
+                if (!s.parent) {
+                    hasRemovedSample = true;
+                    return false;
+                }
+
+                if (!row.editing) this.dataSource.refreshValidator(row);
+
+                return true; // Keep only if sample still have a parent
+            })
+            .map(r => r.currentData);
+
+        if (hasRemovedSample) this._dataSubject.next(data);
+    }
+
+    protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
+        if (sortBy === "parent") {
+            sortBy = 'parent.measurementvalues.' + PmfmIds.TAG_ID;
+        }
+        sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
+        const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+        return data.sort((a, b) => {
+            const valueA = EntityUtils.getPropertyByPath(a, sortBy);
+            const valueB = EntityUtils.getPropertyByPath(b, sortBy);
+            return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+        }
+        );
     }
 
     getPmfmColumnHeader = getPmfmName;

@@ -125,6 +125,20 @@ export class EntityUtils {
   static isEmpty(obj: any | Entity<any>): boolean {
     return !obj || !obj['id'];
   }
+
+  static getPropertyByPath(obj: any | Entity<any>, path: string): any {
+    if (isNil(obj)) return undefined;
+    const i = path.indexOf('.');
+    if (i == -1) {
+      return obj[path];
+    }
+    const key = path.substring(0, i);
+    if (isNil(obj[key])) return undefined;
+    if (obj[key] && typeof obj[key] === "object") {
+      return EntityUtils.getPropertyByPath(obj[key], path.substring(i + 1));
+    }
+    throw new Error(`Invalid form path: '${key}' is not an valid object.`);
+  }
 }
 export class Referential extends Entity<Referential>  {
 
