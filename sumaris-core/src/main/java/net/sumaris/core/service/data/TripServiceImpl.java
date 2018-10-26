@@ -102,6 +102,8 @@ public class TripServiceImpl implements TripService {
 	@Override
 	public TripVO save(final TripVO source) {
 		Preconditions.checkNotNull(source);
+		Preconditions.checkNotNull(source.getProgram(), "Missing program");
+		Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
 		Preconditions.checkNotNull(source.getDepartureDateTime(), "Missing departureDateTime");
 		Preconditions.checkNotNull(source.getDepartureLocation(), "Missing departureLocation");
 		Preconditions.checkNotNull(source.getDepartureLocation().getId(), "Missing departureLocation.id");
@@ -145,7 +147,7 @@ public class TripServiceImpl implements TripService {
 
 		// Save measurements
 		List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-		source.getMeasurements().forEach(m -> fillDefaultProperties(savedTrip, m));
+		measurements.forEach(m -> fillDefaultProperties(savedTrip, m));
 		measurements = measurementDao.saveVesselUseMeasurementsByTripId(savedTrip.getId(), measurements);
 		savedTrip.setMeasurements(measurements);
 

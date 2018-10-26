@@ -45,6 +45,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +73,9 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
     @Autowired
     private LocationDao locationDao;
+
+    @Autowired
+    private OperationDao operationDao;
 
     @Autowired
     private PersonDao personDao;

@@ -22,12 +22,19 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableMap;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +51,38 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void save() {
+        TripVO vo = createTrip();
+        TripVO savedVO = service.save(vo);
+
+        Assert.assertNotNull(savedVO);
+        Assert.assertNotNull(savedVO.getId());
+    }
+
+    @Test
+    public void delete() {
+        service.delete(dbResource.getFixtures().getTripId(0));
+    }
+
+    @Test
+    public void deleteAfterCreate() {
+        TripVO savedVO = null;
+        try {
+            savedVO = service.save(createTrip());
+            Assume.assumeNotNull(savedVO);
+            Assume.assumeNotNull(savedVO.getId());
+        }
+        catch(Exception e) {
+            Assume.assumeNoException(e);
+        }
+
+        service.delete(savedVO.getId());
+    }
+
+    /* -- Protected -- */
+
+    protected TripVO createTrip() {
         TripVO vo = new TripVO();
+        vo.setProgram(dbResource.getFixtures().getDefaultProgram());
         vo.setDepartureDateTime(new Date());
         vo.setReturnDateTime(new Date());
 
@@ -66,15 +104,6 @@ public class TripServiceWriteTest extends AbstractServiceTest{
         recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
         vo.setRecorderDepartment(recorderDepartment);
 
-        // Physical gear
-        //PhysicalGear
-
-
-        service.save(vo);
-    }
-
-    @Test
-    public void delete() {
-        service.delete(dbResource.getFixtures().getTripId(0));
+        return vo;
     }
 }

@@ -25,6 +25,7 @@ package net.sumaris.core.dao;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assume;
 
@@ -157,14 +158,28 @@ public class DatabaseFixtures {
 		return 2; // INDIV
 	}
 
-	public Integer getTaxonGroupFAO(int index) {
+	public Integer getTaxonGroupFAOId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		return 1001 + index;
 	}
 
-	public Integer getPmfmBatchWeight() {
-	    return 50;
-    }
 
+
+    public ProgramVO getDefaultProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(1);
+		program.setLabel("SUMARiS");
+		return program;
+	}
+
+	/* -- PMFM -- */
+
+	public Integer getPmfmBatchWeight() {
+		return 50;
+	}
+
+	public Integer getPmfmSampleTagId() {
+		return 82;
+	}
 
 }

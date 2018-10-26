@@ -37,6 +37,8 @@ public class SampleVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private SampleVO parent;
     private Integer parentId;
+    private List<SampleVO> children;
+
     private BatchVO batch;
     private Integer batchId;
     private OperationVO operation;

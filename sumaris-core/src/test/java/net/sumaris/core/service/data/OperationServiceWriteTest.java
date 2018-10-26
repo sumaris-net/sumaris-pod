@@ -27,18 +27,22 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.batch.BatchService;
 import net.sumaris.core.service.data.sample.SampleService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class OperationServiceWriteTest extends AbstractServiceTest {
@@ -85,6 +89,72 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @Test
     public void save() {
+        OperationVO vo = createOperation();
+        int batchCount = countBatches(vo);
+        int sampleCount = countSamples(vo);
+
+        // Save
+        OperationVO savedVo = service.save(vo);
+        Assert.assertNotNull(savedVo.getId());
+        Assert.assertNotNull(savedVo.getQualityFlagId());
+
+        // Full reload
+        OperationVO reloadedVo = service.get(savedVo.getId());
+        Assert.assertNotNull(reloadedVo);
+
+        // Check vessel position: Should NOT be loaded in VO
+        Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getPositions()));
+
+        // Check measurements
+        {
+            // Should NOT be loaded in VO
+            Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getMeasurements()));
+            List<MeasurementVO> reloadMeasurements = measurementService.getVesselUseMeasurementsByOperationId(savedVo.getId());
+            Assert.assertEquals(CollectionUtils.size(savedVo.getMeasurements()), CollectionUtils.size(reloadMeasurements));
+        }
+
+        // Check samples
+        {
+            // Should NOT be loaded in OperationVO
+            Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getSamples()));
+            List<SampleVO> reloadSamples = sampleService.getAllByOperationId(savedVo.getId());
+            Assert.assertEquals(sampleCount, CollectionUtils.size(reloadSamples));
+        }
+
+        // Check batches
+        {
+            // Should NOT be loaded in OperationVO
+            Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getCatchBatch()));
+            List<BatchVO> reloadBatches = batchService.getAllByOperationId(savedVo.getId());
+            Assert.assertEquals(batchCount, CollectionUtils.size(reloadBatches));
+        }
+    }
+
+    @Test
+    public void delete() {
+        service.delete(fixtures.getTripId(0));
+    }
+
+
+    @Test
+    public void deleteAfterCreate() {
+        OperationVO savedVO = null;
+        try {
+            savedVO = service.save(createOperation());
+            Assume.assumeNotNull(savedVO);
+            Assume.assumeNotNull(savedVO.getId());
+        }
+        catch(Exception e) {
+            Assume.assumeNoException(e);
+        }
+
+        service.delete(savedVO.getId());
+    }
+
+
+    /* -- Protected -- */
+
+    protected OperationVO createOperation() {
         OperationVO vo = new OperationVO();
         vo.setTripId(parent.getId());
 
@@ -128,7 +198,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         vo.setMetier(createReferentialVO(fixtures.getMetierIdForOTB(0)));
 
         // Measurements (= vessel use measurements)
-        PmfmVO bottomDepthPmfm = pmfmService.getByLabel("FISHING_DEPTH_M");
+        PmfmVO bottomDepthPmfm = pmfmService.getByLabel("BOTTOM_DEPTH_M");
         MeasurementVO meas1 = new MeasurementVO();
         meas1.setNumericalValue(15.0);
         meas1.setPmfmId(bottomDepthPmfm.getId());
@@ -136,30 +206,53 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
         vo.setMeasurements(ImmutableList.of(meas1));
 
+        List<SampleVO> samples = Lists.newArrayList();
+        vo.setSamples(samples);
+
         // Sample / Survival tests
         {
             SampleVO sample = new SampleVO();
-            sample.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAO(0)));
+            sample.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(0)));
             date.add(Calendar.MINUTE, 5);
             sample.setSampleDate(date.getTime());
-            sample.setLabel("Survival test #1");
-
-            sample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
             sample.setRankOrder(1);
+            sample.setLabel(AcquisitionLevelEnum.SURVIVAL_TEST.label + "#1");
+            sample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
             sample.setComments("A survival test sample #1");
 
             // Measurements (as map)
             sample.setMeasurementValues(
-                ImmutableMap.<Integer, String>builder()
-                    .put(60, "155")
-                    .put(80, "185")
-                    .build());
+                    ImmutableMap.<Integer, String>builder()
+                            .put(60, "155")
+                            .put(80, "185")
+                            .put(dbResource.getFixtures().getPmfmSampleTagId(), "TAG-1")
+                            .build());
+            samples.add(sample);
 
-            vo.setSamples(ImmutableList.of(sample));
+            // Individual monitoring, as children
+            List<SampleVO> children = Lists.newArrayList();
+            sample.setChildren(children);
+            {
+                SampleVO childSample = new SampleVO();
+                childSample.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(0)));
+                childSample.setRankOrder(1);
+                childSample.setLabel(AcquisitionLevelEnum.INDIVIDUAL_MONITORING.label + "#1");
+                childSample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
+                childSample.setComments("A individual monitoring test sample #1");
+
+                // Measurements (as map)
+                childSample.setMeasurementValues(
+                        ImmutableMap.<Integer, String>builder()
+                                .put(100, "0")
+                                .build());
+                children.add(childSample);
+            }
         }
 
+
+
+
         // Batch / catch
-        int batchCount = 0;
         {
             BatchVO catchBatch = new BatchVO();
             catchBatch.setLabel("batch #1");
@@ -174,7 +267,6 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
                             .build());
 
             vo.setCatchBatch(catchBatch);
-            batchCount++;
 
             // Children
             List<BatchVO> children = Lists.newArrayList();
@@ -183,7 +275,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
                 batch.setLabel("batch #1.1");
                 batch.setRankOrder(1);
                 batch.setComments("Batch 1.1 on OPE #1");
-                batch.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAO(0)));
+                batch.setTaxonGroup(createReferentialVO(fixtures.getTaxonGroupFAOId(0)));
 
                 // Measurements (as map)
                 batch.setSortingMeasurementValues(
@@ -194,48 +286,37 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
                 children.add(batch);
             }
             catchBatch.setChildren(children);
-            batchCount+=children.size();
         }
 
-        // Save
-        OperationVO savedVo = service.save(vo);
-        Assert.assertNotNull(savedVo.getId());
-        Assert.assertNotNull(savedVo.getQualityFlagId());
-
-        // Full reload
-        OperationVO reloadedVo = service.get(savedVo.getId());
-        Assert.assertNotNull(reloadedVo);
-
-        // Check vessel position: Should NOT be loaded in VO
-        Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getPositions()));
-
-        // Check measurements
-        {
-            // Should NOT be loaded in VO
-            Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getMeasurements()));
-            List<MeasurementVO> reloadMeasurements = measurementService.getVesselUseMeasurementsByOperationId(savedVo.getId());
-            Assert.assertEquals(CollectionUtils.size(savedVo.getMeasurements()), CollectionUtils.size(reloadMeasurements));
-        }
-
-        // Check samples
-        {
-            // Should NOT be loaded in OperationVO
-            Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getSamples()));
-            List<SampleVO> reloadSamples = sampleService.getAllByOperationId(savedVo.getId());
-            Assert.assertEquals(CollectionUtils.size(savedVo.getSamples()), CollectionUtils.size(reloadSamples));
-        }
-
-        // Check batches
-        {
-            // Should NOT be loaded in OperationVO
-            Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getCatchBatch()));
-            List<BatchVO> reloadBatches = batchService.getAllByOperationId(savedVo.getId());
-            Assert.assertEquals(batchCount, CollectionUtils.size(reloadBatches));
-        }
+        return vo;
     }
 
-    @Test
-    public void delete() {
-        service.delete(fixtures.getTripId(0));
+    protected int countBatches(OperationVO vo) {
+        if (vo.getCatchBatch() == null) return 0;
+        return countBatches(vo.getCatchBatch().getChildren()) + 1;
+    }
+
+    protected int countBatches(List<BatchVO> vos) {
+        if (CollectionUtils.isEmpty(vos)) return 0;
+
+        int count = CollectionUtils.size(vos);
+        for (BatchVO b : vos) {
+            count += countBatches(b.getChildren());
+        }
+        return count;
+    }
+
+    protected int countSamples(OperationVO vo) {
+        return countSamples(vo.getSamples());
+    }
+
+    protected int countSamples(List<SampleVO> vos) {
+        if (CollectionUtils.isEmpty(vos)) return 0;
+
+        int count = CollectionUtils.size(vos);
+        for (SampleVO b : vos) {
+            count += countSamples(b.getChildren());
+        }
+        return count;
     }
 }

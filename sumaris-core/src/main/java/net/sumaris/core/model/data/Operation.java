@@ -106,7 +106,7 @@ public class Operation implements IDataEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "physical_gear_fk", nullable = false)
-    @Cascade(org.hibernate.annotations.CascadeType.REMOVE)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private PhysicalGear physicalGear;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPosition.class, mappedBy = VesselPosition.PROPERTY_OPERATION)
@@ -123,7 +123,7 @@ public class Operation implements IDataEntity<Integer> {
     private List<GearUseMeasurement> gearUseMeasurements = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.PROPERTY_OPERATION)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @Cascade({org.hibernate.annotations.CascadeType.DELETE})
     private List<Sample> samples = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = Batch.PROPERTY_OPERATION)

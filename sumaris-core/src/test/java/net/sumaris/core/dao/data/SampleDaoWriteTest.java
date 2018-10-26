@@ -58,7 +58,7 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
 
         // Taxon group
         ReferentialVO taxonGroup= new ReferentialVO();
-        taxonGroup.setId(dbResource.getFixtures().getTaxonGroupFAO(0));
+        taxonGroup.setId(dbResource.getFixtures().getTaxonGroupFAOId(0));
         sample.setTaxonGroup(taxonGroup);
 
         // Recorder department

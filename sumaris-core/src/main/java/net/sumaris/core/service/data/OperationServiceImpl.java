@@ -126,7 +126,7 @@ public class OperationServiceImpl implements OperationService {
 
 		// Save samples
 		{
-			List<SampleVO> samples = Beans.getList(source.getSamples());
+			List<SampleVO> samples = getAllSamples(savedOperation);
 			samples.forEach(s -> fillDefaultProperties(savedOperation, s));
 			samples = sampleService.saveByOperationId(savedOperation.getId(), samples);
 			savedOperation.setSamples(samples);
@@ -193,6 +193,29 @@ public class OperationServiceImpl implements OperationService {
 		measurement.setEntityName(entityClass.getSimpleName());
 	}
 
+	protected void fillDefaultProperties(OperationVO parent, BatchVO batch) {
+		if (batch == null) return;
+
+		// Copy recorder department from the parent
+		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		batch.setOperationId(parent.getId());
+	}
+
+	protected void fillDefaultProperties(BatchVO parent, BatchVO batch) {
+		if (batch == null) return;
+
+		// Copy recorder department from the parent
+		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		batch.setParentId(parent.getId());
+		batch.setOperationId(parent.getOperationId());
+	}
+
 	protected void fillDefaultProperties(OperationVO parent, SampleVO sample) {
 		if (sample == null) return;
 
@@ -217,27 +240,28 @@ public class OperationServiceImpl implements OperationService {
 		sample.setOperationId(parent.getId());
 	}
 
-	protected void fillDefaultProperties(OperationVO parent, BatchVO batch) {
-		if (batch == null) return;
+	protected void fillDefaultProperties(SampleVO parent, SampleVO sample) {
+		if (sample == null) return;
 
 		// Copy recorder department from the parent
-		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
-			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
+			sample.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		batch.setOperationId(parent.getId());
-	}
-
-	protected void fillDefaultProperties(BatchVO parent, BatchVO batch) {
-		if (batch == null) return;
-
-		// Copy recorder department from the parent
-		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
-			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		// Fill matrix
+		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
+			ReferentialVO matrix = new ReferentialVO();
+			matrix.setId(config.getMatrixIdIndividual());
+			sample.setMatrix(matrix);
 		}
 
-		batch.setParentId(parent.getId());
-		batch.setOperationId(parent.getOperationId());
+		// Fill sample (use operation end date time)
+		if (sample.getSampleDate() == null) {
+			sample.setSampleDate(parent.getSampleDate());
+		}
+
+		sample.setParentId(parent.getId());
+		sample.setOperationId(parent.getOperationId());
 	}
 
 	protected List<BatchVO> getAllBatches(OperationVO operation) {
@@ -252,7 +276,7 @@ public class OperationServiceImpl implements OperationService {
 		if (batch == null) return;
 
 		// Add the batch itself
-		result.add(batch);
+		if (!result.contains(batch)) result.add(batch);
 
 		// Process children
 		if (CollectionUtils.isNotEmpty(batch.getChildren())) {
@@ -260,6 +284,39 @@ public class OperationServiceImpl implements OperationService {
 			batch.getChildren().forEach(child -> {
 				fillDefaultProperties(batch, child);
 				addAllBatchesToList(child, result);
+			});
+		}
+	}
+
+	/**
+	 * Get all samples, in the sample tree parent/children
+	 * @param parent
+	 * @return
+	 */
+	protected List<SampleVO> getAllSamples(final OperationVO parent) {
+		final List<SampleVO> result = Lists.newArrayList();
+		if (CollectionUtils.isNotEmpty(parent.getSamples())) {
+			parent.getSamples().forEach(sample -> {
+				fillDefaultProperties(parent, sample);
+				addAllSamplesToList(sample, result);
+			});
+		}
+		return result;
+	}
+
+
+	protected void addAllSamplesToList(final SampleVO sample, final List<SampleVO> result) {
+		if (sample == null) return;
+
+		// Add the batch itself
+		if (!result.contains(sample)) result.add(sample);
+
+		// Process children
+		if (CollectionUtils.isNotEmpty(sample.getChildren())) {
+			// Recursive call
+			sample.getChildren().forEach(child -> {
+				fillDefaultProperties(sample, child);
+				addAllSamplesToList(child, result);
 			});
 		}
 

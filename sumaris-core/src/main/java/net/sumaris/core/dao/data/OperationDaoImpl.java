@@ -23,6 +23,8 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.data.batch.BatchDao;
+import net.sumaris.core.dao.data.sample.SampleDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.Dates;
@@ -39,6 +41,7 @@ import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
@@ -65,7 +68,10 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
     private ReferentialDao referentialDao;
 
     @Autowired
-    private VesselPositionDao vesselPositionDao;
+    private SampleDao sampleDao;
+
+    @Autowired
+    private BatchDao batchDao;
 
 
     @Autowired

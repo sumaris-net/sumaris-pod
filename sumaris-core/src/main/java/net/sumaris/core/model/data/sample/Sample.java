@@ -84,8 +84,6 @@ public class Sample implements IRootDataEntity<Integer> {
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-
-
     /* -- Tree link -- */
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = PROPERTY_PARENT)

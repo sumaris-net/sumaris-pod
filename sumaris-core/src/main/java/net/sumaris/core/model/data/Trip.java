@@ -33,6 +33,7 @@ import net.sumaris.core.model.referential.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.hibernate.action.internal.OrphanRemovalAction;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.FetchProfile;
@@ -123,7 +124,7 @@ public class Trip implements IRootDataEntity<Integer> {
     private Program program;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Operation.PROPERTY_TRIP)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @Cascade({org.hibernate.annotations.CascadeType.DELETE})
     private List<Operation> operations = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.PROPERTY_TRIP)

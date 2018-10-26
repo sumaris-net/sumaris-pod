@@ -55,7 +55,7 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
 
         // Taxon group
         ReferentialVO taxonGroup= new ReferentialVO();
-        taxonGroup.setId(dbResource.getFixtures().getTaxonGroupFAO(0));
+        taxonGroup.setId(dbResource.getFixtures().getTaxonGroupFAOId(0));
         batch.setTaxonGroup(taxonGroup);
 
         // Recorder department
