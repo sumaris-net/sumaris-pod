@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable, Subject } from "rxjs-compat";
-import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement } from "./trip.model";
+import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement, Sample } from "./trip.model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { TripService } from "../services/trip.service";
@@ -397,23 +397,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
     // Update samples
     if (target.samples && source.samples) {
-      target.samples.forEach(targetSample => {
-        const sourceSample = source.samples.find(json => targetSample.equals(json));
-        targetSample.id = sourceSample && sourceSample.id || targetSample.id;
-        targetSample.updateDate = sourceSample && sourceSample.updateDate || targetSample.updateDate;
-        targetSample.creationDate = sourceSample && sourceSample.creationDate || targetSample.creationDate;
-        targetSample.dirty = false;
-
-        // Update sample measurements
-        /*if (sourceSample && targetSample.measurements && sourceSample.measurements) {
-          targetSample.measurements.forEach(targetMeas => {
-            const sourceMeas = sourceSample.measurements.find(m => targetMeas.equals(m));
-            targetMeas.id = sourceMeas && sourceMeas.id || targetMeas.id;
-            targetMeas.updateDate = sourceMeas && sourceMeas.updateDate || targetMeas.updateDate;
-            targetMeas.dirty = false;
-          });
-        }*/
-      });
+      target.samples = source.samples.map(Sample.fromObject);
     }
   }
 }

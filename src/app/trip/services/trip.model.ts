@@ -589,12 +589,6 @@ export class Operation extends DataEntity<Operation> {
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
-    // (this.samples || [])
-    //   .forEach(s => {
-    //     // Link to parent
-    //     s.parent = s.parentId && this.samples.find(p => p.id === s.parentId) || undefined;
-    //     s.parentId = undefined; // Avoid redundant info on parent
-    //   });
 
     // Batches
     if (source.batches) {
@@ -686,14 +680,17 @@ export class Sample extends DataRootEntity<Sample> {
   measurementValues: { [key: string]: any };
   matrixId: number;
   batchId: number;
+
   operationId: number;
   parentId: number;
   parent: Sample;
+  children: Sample[];
 
   constructor() {
     super();
     this.taxonGroup = null;
     this.measurementValues = {};
+    this.children = [];
   }
 
   clone(): Sample {
@@ -709,6 +706,8 @@ export class Sample extends DataRootEntity<Sample> {
 
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     delete target.parent;
+
+    target.children = this.children.map(s => s.asObject(minify));
 
     // Measurement: keep only the map
     if (minify) {
@@ -778,11 +777,12 @@ export class Batch extends DataEntity<Batch> {
   individualCount: number;
   taxonGroup: ReferentialRef;
   comments: string;
-  children: Batch[];
   measurementValues: { [key: number]: any };
+
   operationId: number;
   parentId: number;
   parent: Batch;
+  children: Batch[];
 
   constructor() {
     super();

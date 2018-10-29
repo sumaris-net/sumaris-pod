@@ -2,7 +2,7 @@ import { Observable, Subscription } from "rxjs-compat";
 import { Apollo } from "apollo-angular";
 import { ApolloQueryResult, ApolloError, FetchPolicy } from "apollo-client";
 import { R } from "apollo-angular/types";
-import { ErrorCodes, ServiceError } from "./errors";
+import { ErrorCodes, ServiceError, ServerErrorCodes } from "./errors";
 import { map } from "rxjs/operators";
 
 import { environment } from '../../../environments/environment';
@@ -118,6 +118,19 @@ export class BaseDataService {
           if (errors) {
             if (errors[0].message == "ERROR.UNKNOWN_NETWORK_ERROR") {
               reject(errors[0]);
+            }
+            else if (errors[0].message.indexOf('"{code:"')) {
+              const error = JSON.parse(errors[0].message);
+              console.error("[data-service] " + error.message || error);
+              if (error && error.code == ServerErrorCodes.BAD_UPDATE_DATE) {
+                reject({ code: ServerErrorCodes.BAD_UPDATE_DATE, message: "ERROR.BAD_UPDATE_DATE" });
+              }
+              else if (error && error.code == ServerErrorCodes.DATA_LOCKED) {
+                reject({ code: ServerErrorCodes.DATA_LOCKED, message: "ERROR.DATA_LOCKED" });
+              }
+              else {
+                reject(error.message ? error.message : (opts.error ? opts.error : errors[0].message));
+              }
             }
             else {
               console.error("[data-service] " + errors[0].message);

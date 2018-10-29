@@ -13,6 +13,7 @@ import { AlertController } from "@ionic/angular";
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '../../core/services/model';
 import { PmfmIds } from '../../referential/services/model';
+import { ServerErrorCodes } from '../../core/services/errors';
 @Component({
   selector: 'page-operation',
   templateUrl: './operation.page.html',
@@ -148,12 +149,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Set survival tests
     const samples = data && data.samples || [];
+    console.log("TODO: check this (1/2)", data && data.samples);
     const survivalTestSamples = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.SURVIVAL_TEST + "#"));
     this.survivalTestsTable.value = survivalTestSamples;
 
     // Set individual monitoring
     this.individualMonitoringTable.availableParents = survivalTestSamples.filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
     this.individualMonitoringTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"));
+    console.log("TODO: check this (2/2)", this.individualMonitoringTable.value);
 
     this.markAsPristine();
     this.markAsUntouched();
@@ -203,12 +206,19 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // get catch batch
     this.data.catchBatch = this.catchForm.value;
-    console.warn("TODO: check catchbatch", this.catchForm.value);
+
+    // update table 'value'
+    await this.survivalTestsTable.save(); // will  update 'value'
+    await this.individualMonitoringTable.save(); // will  update 'value'
 
     // get samples, from tables
-    await this.survivalTestsTable.save();
-    await this.individualMonitoringTable.save();
-    this.data.samples = (this.survivalTestsTable.value || []).concat(this.individualMonitoringTable.value);
+    const individualMonitoringSamples = this.individualMonitoringTable.value || []; // sub level
+    this.data.samples = (this.survivalTestsTable.value || [])
+      .map(sample => {
+        // Add individual monitoring as children
+        sample.children = individualMonitoringSamples.filter(childSample => sample.equals(childSample.parent));
+        return sample;
+      });
 
     const isNew = this.isNewData();
     this.disable();
@@ -237,7 +247,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       return updatedData;
     }
     catch (err) {
-      console.error(err);
+      console.error(err && err.message || err);
       this.error = err && err.message || err;
       this.submitted = true;
     }

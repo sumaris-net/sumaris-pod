@@ -5,13 +5,14 @@ import { ValidatorService } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
 import { OperationValidatorService } from "../services/operation.validator";
 import { Operation, Trip, referentialToString, EntityUtils, ReferentialRef } from "../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
+import { ModalController, Platform, AlertController } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { ReferentialRefService } from "../../referential/referential.module";
 import { OperationService, OperationFilter } from "../services/operation.service";
 import { PositionValidatorService } from "../services/position.validator";
 import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../../core/table/table.class";
+import { TranslateService } from "@ngx-translate/core";
 
 
 @Component({
@@ -42,7 +43,9 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected accountService: AccountService,
     protected validatorService: OperationValidatorService,
     protected dataService: OperationService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    protected alertCtrl: AlertController,
+    protected translate: TranslateService
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
       RESERVED_START_COLUMNS
@@ -104,6 +107,36 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     if (tripId) {
       this.onRefresh.emit();
     }
+  }
+
+  async deleteSelection(confirm?: boolean) {
+    if (this.loading) return;
+
+    if (!confirm) {
+      const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE', 'CONFIRM.ALERT_HEADER']);
+      const alert = await this.alertCtrl.create({
+        header: translations['CONFIRM.ALERT_HEADER'],
+        message: translations['CONFIRM.DELETE'],
+        buttons: [
+          {
+            text: translations['COMMON.NO'],
+            role: 'cancel',
+            cssClass: 'secondary',
+            handler: () => { }
+          },
+          {
+            text: translations['COMMON.YES'],
+            handler: () => {
+              confirm = true; // update upper value
+            }
+          }
+        ]
+      });
+      await alert.present();
+      await alert.onDidDismiss();
+    }
+
+    super.deleteSelection();
   }
 
   protected openEditRowDetail(id: number): Promise<boolean> {

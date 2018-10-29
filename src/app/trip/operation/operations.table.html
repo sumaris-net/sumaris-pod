@@ -111,10 +111,10 @@
     <mat-cell *matCellDef="let row">
       <div [formGroup]="row.validator.controls['startPosition']">
         <mat-latlong floatLabel="never" formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [required]="true">
+          [readonly]="!row.editing" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [required]="true">
         </mat-latlong>
         <mat-latlong floatLabel="never" formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [required]="true">
+          [readonly]="!row.editing" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [required]="true">
         </mat-latlong>
       </div>
     </mat-cell>
@@ -140,10 +140,12 @@
     <mat-cell *matCellDef="let row">
       <form [formGroup]="row.validator.controls['endPosition']">
         <mat-latlong floatLabel="never" formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [readonly]="!row.editing" [required]="true">
+          [readonly]="!row.editing" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [readonly]="!row.editing"
+          [required]="true">
         </mat-latlong>
         <mat-latlong floatLabel="never" formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [readonly]="!row.editing" [required]="true">
+          [readonly]="!row.editing" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [readonly]="!row.editing"
+          [required]="true">
         </mat-latlong>
       </form>
     </mat-cell>

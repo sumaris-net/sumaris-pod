@@ -1,7 +1,7 @@
 import { Pipe, Injectable, PipeTransform } from '@angular/core';
 import { DEFAULT_PLACEHOLDER_CHAR } from '../constants';
 
-const DEFAULT_MAX_DECIMALS = 7;
+const DEFAULT_MAX_DECIMALS = 3;
 
 declare class LatLongFormatOptions {
     pattern: 'DDMMSS' | 'DDMM' | 'DD'

@@ -6,13 +6,14 @@ import { TripValidatorService } from "./services/trip.validator";
 import { TripService, TripFilter } from "./services/trip.service";
 import { TripModal } from "./trip.modal";
 import { Trip, VesselFeatures, LocationLevelIds, EntityUtils, ReferentialRef } from "./services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
+import { ModalController, Platform, AlertController } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { VesselService, vesselFeaturesToString, referentialToString, ReferentialRefService } from "../referential/referential.module";
 import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../core/core.module";
 import { debounceTime, mergeMap } from "rxjs/operators";
+import { TranslateService } from "@ngx-translate/core";
 @Component({
   selector: 'page-trips',
   templateUrl: 'trips.page.html',
@@ -24,6 +25,7 @@ import { debounceTime, mergeMap } from "rxjs/operators";
 export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
   canEdit: boolean;
+  canDelete: boolean;
   isAdmin: boolean;
   filterForm: FormGroup;
   programs: Observable<ReferentialRef[]>;
@@ -41,7 +43,9 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected dataService: TripService,
     protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService,
-    protected formBuilder: FormBuilder
+    protected formBuilder: FormBuilder,
+    protected alertCtrl: AlertController,
+    protected translate: TranslateService
   ) {
 
     super(route, router, platform, location, modalCtrl, accountService,
@@ -70,6 +74,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     });
     this.isAdmin = accountService.isAdmin();
     this.canEdit = this.isAdmin || accountService.isUser();
+    this.canDelete = this.isAdmin;
     this.inlineEdition = false;
   };
 
@@ -141,6 +146,36 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     // if new trip added, refresh the table
     modal.onDidDismiss().then(res => res && this.onRefresh.emit());
     return modal.present();
+  }
+
+  async deleteSelection(confirm?: boolean) {
+    if (this.loading) return;
+
+    if (!confirm) {
+      const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE', 'CONFIRM.ALERT_HEADER']);
+      const alert = await this.alertCtrl.create({
+        header: translations['CONFIRM.ALERT_HEADER'],
+        message: translations['CONFIRM.DELETE'],
+        buttons: [
+          {
+            text: translations['COMMON.NO'],
+            role: 'cancel',
+            cssClass: 'secondary',
+            handler: () => { }
+          },
+          {
+            text: translations['COMMON.YES'],
+            handler: () => {
+              confirm = true; // update upper value
+            }
+          }
+        ]
+      });
+      await alert.present();
+      await alert.onDidDismiss();
+    }
+
+    super.deleteSelection();
   }
 
   vesselFeaturesToString = vesselFeaturesToString;

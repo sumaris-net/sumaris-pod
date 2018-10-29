@@ -30,11 +30,11 @@
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
 
     "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
-    "DDMM_PLACEHOLDER": "DD° MM.MMMMMM' N|S",
-    "DD_PLACEHOLDER": "+DD.DDDDDD°",
+    "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
+    "DD_PLACEHOLDER": "+DD.DDD°",
     "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\" E|W",
-    "DDDMM_PLACEHOLDER": "DDD° MM.MMMMMM' E|W",
-    "DDD_PLACEHOLDER": "+DDD.DDDDDD°",
+    "DDDMM_PLACEHOLDER": "DDD° MM.MMM' E|W",
+    "DDD_PLACEHOLDER": "+DDD.DDD°",
 
     "METADATA": "Métadonnées :",
 
@@ -392,6 +392,8 @@
     "BAD_PASSWORD": "Mot de passe incorrect.",
     "EMAIL_ALREADY_REGISTERED": "Email déjà enregistrée",
     "UNKNOWN_NETWORK_ERROR": "Erreur de communication avec le serveur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "BAD_UPDATE_DATE": "Sauvegarde impossible (modification concurrente détectée).",
+    "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "ACCOUNT_NOT_EXISTS": "Votre compte semble inexistant, et ne peut donc être sauvegardé.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
@@ -405,6 +407,7 @@
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
     "SAVE": "Voulez-vous sauvegarder vos modifications ?",
-    "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?"
+    "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
+    "DELETE": "Cette opération est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?"
   }
 }
