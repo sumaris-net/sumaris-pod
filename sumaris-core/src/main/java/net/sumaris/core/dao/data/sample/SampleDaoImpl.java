@@ -144,7 +144,8 @@ public class SampleDaoImpl extends HibernateDaoSupport implements SampleDao {
 
         if (!isNew) {
             // Check update date
-            checkUpdateDateForUpdate(source, entity);
+            // TODO: check why SUMARiS app did not refresh sample's updateDate after a first save
+            //checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             //lockForUpdate(entity);

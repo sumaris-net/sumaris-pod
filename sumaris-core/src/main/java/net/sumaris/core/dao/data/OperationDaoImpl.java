@@ -40,10 +40,8 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.PhysicalGearVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,6 +114,31 @@ public class OperationDaoImpl extends HibernateDaoSupport implements OperationDa
     public OperationVO get(int id) {
         Operation entity = get(Operation.class, id);
         return toOperationVO(entity);
+    }
+
+    @Override
+    public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> sources) {
+        // Load parent entity
+        Trip parent = get(Trip.class, tripId);
+
+        // Remember existing entities
+        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getOperations()));
+
+        // Save each gears
+        List<OperationVO> result = sources.stream().map(source -> {
+            source.setTripId(tripId);
+            if (source.getId() != null) {
+                sourcesIdsToRemove.remove(source.getId());
+            }
+            return save(source);
+        }).collect(Collectors.toList());
+
+        // Remove unused entities
+        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
+            sourcesIdsToRemove.forEach(this::delete);
+        }
+
+        return result;
     }
 
     @Override

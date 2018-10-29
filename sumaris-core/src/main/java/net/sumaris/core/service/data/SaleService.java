@@ -47,6 +47,8 @@ public interface SaleService {
 	@Transactional(readOnly = true)
 	SaleVO get(int id);
 
+	List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources);
+
 	SaleVO save(SaleVO sale);
 
 	List<SaleVO> save(List<SaleVO> sales);

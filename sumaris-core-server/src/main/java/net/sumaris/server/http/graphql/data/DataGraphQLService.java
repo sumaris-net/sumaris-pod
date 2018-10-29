@@ -186,7 +186,7 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
-        final TripVO result = tripService.save(trip);
+        final TripVO result = tripService.save(trip, false);
 
         // Add image if need
         if (hasImageField(fields)) fillImages(result);
@@ -201,7 +201,7 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "saveTrips", description = "Create or update many trips")
     public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips, @GraphQLEnvironment() Set<String> fields) {
-        final List<TripVO> result = tripService.save(trips);
+        final List<TripVO> result = tripService.save(trips, false);
 
         // Add image if need
         if (hasImageField(fields)) fillImages(result);
@@ -310,6 +310,11 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "samples", description = "Get operation's samples")
     public List<SampleVO> getSamplesByOperation(@GraphQLContext OperationVO operation) {
+        // Avoid a reloading (e.g. when saving)
+        if (CollectionUtils.isNotEmpty(operation.getSamples())) {
+            return operation.getSamples();
+        }
+
         return sampleService.getAllByOperationId(operation.getId());
     }
 
@@ -317,6 +322,13 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "batches", description = "Get operation's batches")
     public List<BatchVO> getBatchesByOperation(@GraphQLContext OperationVO operation) {
+        // Avoid a reloading (e.g. when saving)
+        if (operation.getCatchBatch() != null) {
+            log.warn("TODO: do not reload batches after saving it, but reuse updated VO !");
+            // TODO
+            // => flat tree as list
+        }
+
         return batchService.getAllByOperationId(operation.getId());
     }
 

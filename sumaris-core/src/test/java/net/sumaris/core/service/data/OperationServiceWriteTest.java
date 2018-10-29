@@ -249,9 +249,6 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
             }
         }
 
-
-
-
         // Batch / catch
         {
             BatchVO catchBatch = new BatchVO();

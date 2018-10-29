@@ -42,12 +42,15 @@ public interface OperationService {
 	@Transactional(readOnly = true)
 	List<OperationVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
+
 	@Transactional(readOnly = true)
 	OperationVO get(int id);
 
 	OperationVO save(OperationVO operation);
 
 	List<OperationVO> save(List<OperationVO> operations);
+
+	List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);
 
 	void delete(int id);
 

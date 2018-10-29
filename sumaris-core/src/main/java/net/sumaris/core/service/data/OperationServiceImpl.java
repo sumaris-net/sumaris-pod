@@ -25,12 +25,10 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import liquibase.util.CollectionUtil;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.OperationDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
-import net.sumaris.core.dao.data.sample.SampleDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.measure.GearUseMeasurement;
@@ -81,6 +79,11 @@ public class OperationServiceImpl implements OperationService {
 	}
 
 	@Override
+	public List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations) {
+		return operationDao.saveAllByTripId(tripId, operations);
+	}
+
+	@Override
 	public OperationVO get(int operationId) {
 		return operationDao.get(operationId);
 	}
@@ -126,9 +129,21 @@ public class OperationServiceImpl implements OperationService {
 
 		// Save samples
 		{
-			List<SampleVO> samples = getAllSamples(savedOperation);
+			List<SampleVO> samples = getOperationSamplesAsList(savedOperation);
 			samples.forEach(s -> fillDefaultProperties(savedOperation, s));
 			samples = sampleService.saveByOperationId(savedOperation.getId(), samples);
+
+			// Prepare saved samples (e.g. to be used as graphQL query response)
+			samples.forEach(sample -> {
+				// Set parentId (instead of parent object)
+				if (sample.getParent() != null) {
+					sample.setParentId(sample.getParent().getId());
+					sample.setParent(null);
+				}
+				// Remove link to children
+				sample.setChildren(null);
+			});
+			
 			savedOperation.setSamples(samples);
 		}
 
@@ -293,19 +308,24 @@ public class OperationServiceImpl implements OperationService {
 	 * @param parent
 	 * @return
 	 */
-	protected List<SampleVO> getAllSamples(final OperationVO parent) {
+	protected List<SampleVO> getOperationSamplesAsList(final OperationVO parent) {
 		final List<SampleVO> result = Lists.newArrayList();
 		if (CollectionUtils.isNotEmpty(parent.getSamples())) {
 			parent.getSamples().forEach(sample -> {
 				fillDefaultProperties(parent, sample);
-				addAllSamplesToList(sample, result);
+				transformSampleTreeToList(sample, result);
 			});
 		}
 		return result;
 	}
 
 
-	protected void addAllSamplesToList(final SampleVO sample, final List<SampleVO> result) {
+	/**
+	 * Transform a samples (with children) into a falt list, sorted with parent always before children
+	 * @param sample
+	 * @param result
+	 */
+	protected void transformSampleTreeToList(final SampleVO sample, final List<SampleVO> result) {
 		if (sample == null) return;
 
 		// Add the batch itself
@@ -316,7 +336,9 @@ public class OperationServiceImpl implements OperationService {
 			// Recursive call
 			sample.getChildren().forEach(child -> {
 				fillDefaultProperties(sample, child);
-				addAllSamplesToList(child, result);
+				// Link to parent
+				child.setParent(sample);
+				transformSampleTreeToList(child, result);
 			});
 		}
 

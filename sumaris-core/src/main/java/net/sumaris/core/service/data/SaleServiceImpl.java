@@ -54,6 +54,11 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	@Override
+	public List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources) {
+		return saleDao.saveAllByTripId(tripId, sources);
+	}
+
+	@Override
 	public SaleVO save(SaleVO sale) {
 		Preconditions.checkNotNull(sale);
 		Preconditions.checkNotNull(sale.getStartDateTime(), "Missing startDateTime");

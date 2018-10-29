@@ -24,16 +24,14 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.SaleDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.data.TripDao;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.PhysicalGearVO;
-import net.sumaris.core.vo.data.SaleVO;
-import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.logging.Log;
@@ -100,7 +98,7 @@ public class TripServiceImpl implements TripService {
 	}
 
 	@Override
-	public TripVO save(final TripVO source) {
+	public TripVO save(final TripVO source, final boolean withOperation) {
 		Preconditions.checkNotNull(source);
 		Preconditions.checkNotNull(source.getProgram(), "Missing program");
 		Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
@@ -117,17 +115,21 @@ public class TripServiceImpl implements TripService {
 
 		// Save sales
 		if (CollectionUtils.isNotEmpty(source.getSales())) {
-            // TODO: manage removed sales ??
-			savedTrip.setSales(source.getSales().stream()
-					.map((sale) -> saveSale(savedTrip, sale))
-					.collect(Collectors.toList()));
+			List<SaleVO> sales = Beans.getList(source.getSales());
+			sales.forEach(g -> fillDefaultProperties(savedTrip, g));
+			sales = saleService.saveAllByTripId(savedTrip.getId(), sales);
+			savedTrip.setSales(sales);
 		}
 		else if (source.getSale() != null) {
-			savedTrip.setSale(saveSale(savedTrip, source.getSale()));
+			SaleVO sale = source.getSale();
+			fillDefaultProperties(savedTrip, sale);
+			List<SaleVO> sales = saleService.saveAllByTripId(savedTrip.getId(), ImmutableList.of(sale));
+			savedTrip.setSale(sales.get(0));
 		}
-        else {
-            // TODO: manage removed sales ??
-        }
+		else {
+			// Remove all
+			saleService.saveAllByTripId(savedTrip.getId(), ImmutableList.of());
+		}
 
 		// Save physical gears
 		List<PhysicalGearVO> gears = Beans.getList(source.getGears());
@@ -135,14 +137,11 @@ public class TripServiceImpl implements TripService {
 		gears = physicalGearService.save(savedTrip.getId(), gears);
 		savedTrip.setGears(gears);
 
-		// Save operations
-		if (CollectionUtils.isNotEmpty(source.getOperations())) {
-			savedTrip.setOperations(source.getOperations().stream()
-					.map((o) -> {
-						o.setTripId(savedTrip.getId());
-						return operationService.save(o);
-					})
-					.collect(Collectors.toList()));
+		// Save operations (only if asked)
+		if (withOperation) {
+			List<OperationVO> operations = Beans.getList(source.getOperations());
+			operations = operationService.saveAllByTripId(savedTrip.getId(), operations);
+			savedTrip.setOperations(operations);
 		}
 
 		// Save measurements
@@ -155,11 +154,11 @@ public class TripServiceImpl implements TripService {
 	}
 
 	@Override
-	public List<TripVO> save(List<TripVO> trips) {
+	public List<TripVO> save(List<TripVO> trips, final boolean withOperation) {
 		Preconditions.checkNotNull(trips);
 
 		return trips.stream()
-				.map(this::save)
+				.map(t -> save(t, withOperation))
 				.collect(Collectors.toList());
 	}
 
@@ -178,8 +177,8 @@ public class TripServiceImpl implements TripService {
 
 	/* protected methods */
 
-	SaleVO saveSale(TripVO parent, SaleVO sale) {
-		if (sale == null) return null;
+	void fillDefaultProperties(TripVO parent, SaleVO sale) {
+		if (sale == null) return;
 
 		// Copy recorder department from the parent trip
 		if (sale.getRecorderDepartment() == null || sale.getRecorderDepartment().getId() == null) {
@@ -195,8 +194,6 @@ public class TripServiceImpl implements TripService {
         }
 
         sale.setTripId(parent.getId());
-
-        return saleService.save(sale);
 	}
 
     void fillDefaultProperties(TripVO parent, PhysicalGearVO gear) {

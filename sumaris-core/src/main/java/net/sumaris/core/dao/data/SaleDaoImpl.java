@@ -41,6 +41,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +100,31 @@ public class SaleDaoImpl extends HibernateDaoSupport implements SaleDao {
     public SaleVO get(int id) {
         Sale entity = get(Sale.class, id);
         return toSaleVO(entity, false);
+    }
+
+    @Override
+    public List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources) {
+        // Load parent entity
+        Trip parent = get(Trip.class, tripId);
+
+        // Remember existing entities
+        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getOperations()));
+
+        // Save each gears
+        List<SaleVO> result = sources.stream().map(source -> {
+            source.setTripId(tripId);
+            if (source.getId() != null) {
+                sourcesIdsToRemove.remove(source.getId());
+            }
+            return save(source);
+        }).collect(Collectors.toList());
+
+        // Remove unused entities
+        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
+            sourcesIdsToRemove.forEach(this::delete);
+        }
+
+        return result;
     }
 
     @Override

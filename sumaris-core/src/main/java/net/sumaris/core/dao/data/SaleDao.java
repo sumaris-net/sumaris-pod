@@ -35,6 +35,8 @@ public interface SaleDao {
 
     void delete(int id);
 
+    List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources);
+
     SaleVO save(SaleVO sale);
 
     SaleVO toSaleVO(Sale sale);
