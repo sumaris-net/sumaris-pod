@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential.gear;
  */
 
 import lombok.Data;
+import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
@@ -40,6 +41,7 @@ public class Gear implements IItemReferentialEntity {
     public static final String PROPERTY_GEAR_LEVEL = "gearLevel";
     public static final String PROPERTY_PARENT = "parent";
     public static final String PROPERTY_CHILDREN = "children";
+    public static final String PROPERTY_STRATEGIES = "strategies";
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -99,4 +101,8 @@ public class Gear implements IItemReferentialEntity {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Gear.class, mappedBy = "parent")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Gear> children;
+
+    @ManyToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = "gears")
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    private List<Strategy> strategies;
 }

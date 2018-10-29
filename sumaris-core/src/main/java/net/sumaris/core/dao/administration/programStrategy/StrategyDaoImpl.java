@@ -23,6 +23,7 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -120,6 +121,36 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                 .setParameter(acquisitionLevelIdParam, acquisitionLevelId)
                 .getResultStream()
                 .map(this::toPmfmStrategyVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ReferentialVO> getGears(int programId) {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Gear> query = builder.createQuery(Gear.class);
+        Root<Gear> root = query.from(Gear.class);
+
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+
+        Join<Gear, Strategy> gearInnerJoin = root.joinList(Gear.PROPERTY_STRATEGIES, JoinType.INNER);
+
+        query.select(root)
+                .where(
+                        builder.and(
+                                // program
+                                builder.equal(gearInnerJoin.get(Strategy.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam),
+                                // Status (temporary or valid)
+                                builder.in(gearInnerJoin.get(Gear.PROPERTY_STATUS).get(Status.PROPERTY_ID)).value(ImmutableList.of(StatusId.ENABLE.getId(), StatusId.TEMPORARY.getId()))
+                        ));
+
+        // Sort by rank order
+        query.orderBy(builder.asc(root.get(Gear.PROPERTY_LABEL)));
+
+        return getEntityManager()
+                .createQuery(query)
+                .setParameter(programIdParam, programId)
+                .getResultStream()
+                .map(referentialDao::toReferentialVO)
                 .collect(Collectors.toList());
     }
 

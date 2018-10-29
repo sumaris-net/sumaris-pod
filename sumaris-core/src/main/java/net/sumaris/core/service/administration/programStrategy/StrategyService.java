@@ -25,6 +25,7 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,4 +47,8 @@ public interface StrategyService {
 
 	@Transactional(readOnly = true)
 	List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId);
+
+	@Transactional(readOnly = true)
+	List<ReferentialVO> getGears(int programId);
+
 }

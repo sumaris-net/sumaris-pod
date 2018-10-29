@@ -22,11 +22,13 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
+import com.google.common.collect.Sets;
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.service.referential.PmfmService;
 import org.hibernate.annotations.Cascade;
 
@@ -35,12 +37,14 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
 public class Strategy implements IItemReferentialEntity {
 
     public static final String PROPERTY_PROGRAM = "program";
+    public static final String PROPERTY_GEARS = "gears";
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -76,4 +80,11 @@ public class Strategy implements IItemReferentialEntity {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PmfmStrategy.class, mappedBy = PmfmStrategy.PROPERTY_STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PmfmStrategy> pmfmStrategies = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "strategy2gear", joinColumns = {
+            @JoinColumn(name = "strategy_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
+    private Set<Gear> gears = Sets.newHashSet();
 }

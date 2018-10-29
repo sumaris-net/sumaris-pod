@@ -282,7 +282,7 @@ public class AdministrationGraphQLService {
 
     @GraphQLQuery(name = "programPmfms", description = "Get program's pmfm")
     @Transactional(readOnly = true)
-    public List<PmfmStrategyVO> getPmfmStratgies(
+    public List<PmfmStrategyVO> getProgramPmfms(
             @GraphQLArgument(name = "program", description = "A valid program code") String programLabel,
             @GraphQLArgument(name = "acquisitionLevel", description = "A valid acquisition level (e.g. 'TRIP', 'OPERATION', 'PHYSICAL_GEAR')") String acquisitionLevel
             ) {
@@ -297,6 +297,17 @@ public class AdministrationGraphQLService {
 
         ReferentialVO acquisitionLevelVO = referentialService.findByUniqueLabel(AcquisitionLevel.class.getSimpleName(), acquisitionLevel);
         return strategyService.getPmfmStrategiesByAcquisitionLevel(program.getId(), acquisitionLevelVO.getId());
+
+    }
+
+    @GraphQLQuery(name = "programGears", description = "Get program's gears")
+    @Transactional(readOnly = true)
+    public List<ReferentialVO> getProgramGears(
+            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel) {
+        Preconditions.checkNotNull(programLabel, "Missing program");
+        ProgramVO program = programService.getByLabel(programLabel);
+
+        return strategyService.getGears(program.getId());
 
     }
 

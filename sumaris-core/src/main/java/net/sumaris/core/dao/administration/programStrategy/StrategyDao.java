@@ -27,6 +27,7 @@ import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.Date;
@@ -38,6 +39,8 @@ public interface StrategyDao {
     List<PmfmStrategyVO> getPmfmStrategies(int programId);
 
     List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId);
+
+    List<ReferentialVO> getGears(int programId);
 
     PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source);
 

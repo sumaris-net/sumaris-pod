@@ -25,6 +25,7 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import net.sumaris.core.dao.administration.programStrategy.StrategyDao;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,5 +50,10 @@ public class StrategyServiceImpl implements StrategyService {
 	@Override
 	public List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId) {
 		return strategyDao.getPmfmStrategiesByAcquisitionLevel(programId, acquisitionLevelId);
+	}
+
+	@Override
+	public List<ReferentialVO> getGears(int programId) {
+		return strategyDao.getGears(programId);
 	}
 }
