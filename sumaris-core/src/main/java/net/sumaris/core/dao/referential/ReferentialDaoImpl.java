@@ -213,9 +213,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
     @Override
     public <T extends IReferentialEntity> ReferentialVO toReferentialVO(T source) {
-        Preconditions.checkNotNull(source);
-        String entityName = source.getClass().getSimpleName();
-        return toReferentialVO(entityName, source);
+        return toReferentialVO(getEntityName(source), source);
     }
 
     @Override
@@ -505,6 +503,15 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
     protected String getTableName(String entityName) {
 
         return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
+    }
+
+    protected <T extends IReferentialEntity> String getEntityName(T source) {
+        String classname = source.getClass().getSimpleName();
+        int index = classname.indexOf("$HibernateProxy");
+        if (index > 0) {
+            return classname.substring(0, index);
+        }
+        return classname;
     }
 
     protected void referentialVOToEntity(final ReferentialVO source, IReferentialEntity target, boolean copyIfNull) {

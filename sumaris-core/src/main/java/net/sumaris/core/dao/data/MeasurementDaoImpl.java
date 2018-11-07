@@ -38,6 +38,7 @@ import net.sumaris.core.model.data.batch.BatchSortingMeasurement;
 import net.sumaris.core.model.data.measure.*;
 import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.data.sample.SampleMeasurement;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -195,7 +196,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         target.setRecorderDepartment(recorderDepartment);
 
         // Entity Name
-        target.setEntityName(source.getClass().getSimpleName());
+        target.setEntityName(getEntityName(source));
 
         // If vessel use measurement
         if (source instanceof VesselUseMeasurement) {
@@ -318,6 +319,15 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     /* -- protected methods -- */
 
+    protected <T extends IMeasurementEntity> String getEntityName(T source) {
+        String classname = source.getClass().getSimpleName();
+        int index = classname.indexOf("$HibernateProxy");
+        if (index > 0) {
+            return classname.substring(0, index);
+        }
+        return classname;
+    }
+
     protected <T extends IMeasurementEntity> Map<Integer, String> saveMeasurementsMap(
             final Class<? extends T> entityClass,
             Map<Integer, String> sources,
@@ -434,7 +444,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
 
         source.setUpdateDate(newUpdateDate);
-        source.setEntityName(entity.getClass().getSimpleName());
+        source.setEntityName(getEntityName(entity));
 
         //session.flush();
         //session.clear();

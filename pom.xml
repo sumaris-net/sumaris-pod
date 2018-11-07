@@ -85,7 +85,7 @@
     <signatureVersion>1.0</signatureVersion>
 
     <!-- Commons versions -->
-    <hsqldb.version>2.4.0</hsqldb.version>
+    <hsqldb.version>2.4.1</hsqldb.version>
     <ojdbc7.version>12.1.0.2.0</ojdbc7.version>
     <pgsql.version>42.2.1</pgsql.version>
 
