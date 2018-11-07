@@ -385,10 +385,8 @@ mat-table {
     background-color: ion-color(light100, base);
   }
 
-  .mat-row.mat-row-dirty:before {
-    content: "*";
-    position: absolute;
-    padding-left: 8px;
+  .mat-row.mat-row-dirty {
+    border-left: 2px solid ion-color(primary100, base);
   }
 
   .mat-row.mat-row-error {

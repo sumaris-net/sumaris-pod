@@ -332,7 +332,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         const list = this.addToQueryCache({
           query: LoadAllQuery,
           variables: this._lastVariables.loadAll
-        }, 'trips', savedTrip);
+        }, 'trips', entity.asObject());
       }
     }
 

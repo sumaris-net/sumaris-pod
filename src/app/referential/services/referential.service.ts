@@ -234,7 +234,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
       this.addToQueryCache({
         query: LoadAllQuery,
         variables: this._lastVariables.loadAll
-      }, 'referentials', res);
+      }, 'referentials', entity.asObject());
     }
 
     if (this._debug) console.debug(`[referential-service] ${entity.entityName} saved in ${new Date().getTime() - now.getTime()}ms`, entity);

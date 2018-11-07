@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from "@angular/router";
 import { OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
-import { Operation, Trip, Batch, Sample } from '../services/trip.model';
+import { Operation, Trip, Batch } from '../services/trip.model';
 import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form';
 import { AppTabPage, AppFormUtils } from '../../core/core.module';
@@ -11,9 +11,11 @@ import { SurvivalTestsTable } from '../survivaltest/survivaltests.table';
 import { IndividualMonitoringTable } from '../individualmonitoring/individual-monitoring.table';
 import { AlertController } from "@ionic/angular";
 import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes } from '../../core/services/model';
+import { AcquisitionLevelCodes, isNotNil, isNil } from '../../core/services/model';
 import { PmfmIds } from '../../referential/services/model';
-import { ServerErrorCodes } from '../../core/services/errors';
+import { environment } from 'src/environments/environment';
+import { Subject } from 'rxjs';
+import { DateFormatPipe } from 'src/app/shared/pipes/date-format.pipe';
 @Component({
   selector: 'page-operation',
   templateUrl: './operation.page.html',
@@ -21,8 +23,10 @@ import { ServerErrorCodes } from '../../core/services/errors';
 })
 export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {
 
+  title = new Subject<string>();
   trip: Trip;
   saving: boolean = false;
+  rankOrder: number;
 
   @ViewChild('opeForm') opeForm: OperationForm;
 
@@ -39,11 +43,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     router: Router,
     alterCtrl: AlertController,
     translate: TranslateService,
+    protected dateFormat: DateFormatPipe,
     protected operationService: OperationService,
     protected tripService: TripService
   ) {
     super(route, router, alterCtrl, translate);
-    //this.debug = true;
+
+    // FOR DEV ONLY ----
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -89,40 +96,37 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
       if (this.debug) console.debug("[page-operation] Loading operation...");
 
-      this.operationService.load(id).first().subscribe(data => {
-        if (!data || !data.tripId) {
-          console.error("Unable to load operation with id:" + id);
-          this.error = "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR";
-          this.loading = false;
-          return;
-        }
+      const data = await this.operationService.load(id).first().toPromise();
+      if (!data || !data.tripId) {
+        console.error("Unable to load operation with id:" + id);
+        this.error = "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR";
+        this.loading = false;
+        return;
+      }
 
-        if (this.debug) console.debug("[page-operation] Operation loaded", data);
+      if (this.debug) console.debug("[page-operation] Operation loaded", data);
 
-        this.tripService.load(data.tripId).first().subscribe(trip => {
-          this.updateView(data, trip);
-          this.enable();
-          this.loading = false;
-        });
-      });
+      const trip = await this.tripService.load(data.tripId).first().toPromise();
+      this.updateView(data, trip);
+      this.enable();
+      this.loading = false;
     }
 
     // New operation
     else if (options && options.tripId) {
       if (this.debug) console.debug("[page-operation] Creating new operation...");
-      this.tripService.load(options.tripId).first()
-        .subscribe(trip => {
+      const trip = await this.tripService.load(options.tripId).toPromise();
 
-          const operation = new Operation();
-          // Use the default gear, if only one
-          if (trip.gears.length == 1) {
-            operation.physicalGear = Object.assign({}, trip.gears[0]);
-          }
+      const operation = new Operation();
 
-          this.updateView(operation, trip);
-          this.enable();
-          this.loading = false;
-        });
+      // Use the default gear, if only one
+      if (trip.gears.length == 1) {
+        operation.physicalGear = Object.assign({}, trip.gears[0]);
+      }
+
+      this.updateView(operation, trip);
+      this.enable();
+      this.loading = false;
     }
     else {
       throw new Error("Missing argument 'id' or 'options.tripId'!");
@@ -155,8 +159,16 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.survivalTestsTable.value = survivalTestSamples;
 
     // Set individual monitoring
-    this.individualMonitoringTable.availableParents = survivalTestSamples.filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
-    this.individualMonitoringTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"));
+    this.individualMonitoringTable.availableParents = survivalTestSamples.filter(s => s.measurementValues && isNotNil(s.measurementValues[PmfmIds.TAG_ID]));
+    const individualMonitoringSamples = samples
+      // Get from samples (if not yet a tree - first load)
+      .filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"))
+      // Get from survivalSamples (if is a tree - second load after a save)
+      .concat(survivalTestSamples.reduce((res, sample) => sample.children ? res.concat(sample.children) : res, []));
+    this.individualMonitoringTable.value = individualMonitoringSamples;
+
+    // Update title
+    this.updateTitle();
 
     this.markAsPristine();
     this.markAsUntouched();
@@ -263,6 +275,29 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.loading = true;
     await this.load(this.data && this.data.id,
       { tripId: this.trip && this.trip.id });
+  }
+
+  /**
+   * Compute the title
+   * @param data 
+   */
+  async updateTitle(data?: Operation) {
+    data = data || this.data;
+
+    // new ope
+    let title;
+    if (!data || isNil(data.id)) {
+      title = await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise();
+    }
+    // Existing ope
+    else {
+      title = await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
+        startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, { time: true }) as string
+      }).toPromise();
+    }
+
+    // Emit the title
+    this.title.next(title);
   }
 
 }

@@ -166,7 +166,7 @@
       "TITLE": "Nouvelle marée"
     },
     "EDIT": {
-      "TITLE": "Modifier la marée",
+      "TITLE": "{{vessel}} - Marée du {{departureDateTime}}",
       "OTHER_FEATURES": "Autres caractéristiques :"
     },
     "LIST": {
@@ -201,8 +201,11 @@
     },
     "OPERATION": {
       "COMMENTS": "Commentaires",
+      "NEW": {
+        "TITLE": "Nouvelle opération"
+      },
       "EDIT": {
-        "TITLE": "Opération",
+        "TITLE": "Operation - {{startDateTime}}",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",
@@ -255,7 +258,7 @@
     },
     "INDIVIDUAL_MONITORING": {
       "TABLE": {
-        "PARENT_SAMPLE": "Parent sample",
+        "PARENT_SAMPLE": "Ehcnatillon parent",
         "TAXON_GROUP": "Espèce",
         "COMMENTS": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement"

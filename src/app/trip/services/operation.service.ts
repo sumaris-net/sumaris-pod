@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable, Subject } from "rxjs-compat";
-import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement, Sample } from "./trip.model";
+import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement, Sample, Batch } from "./trip.model";
 import { DataService, BaseDataService } from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { TripService } from "../services/trip.service";
@@ -120,12 +120,17 @@ const SaveOperations: any = gql`
       samples {
         ...SampleFragment
       }
+      batches {
+        ...BatchFragment
+      }
     }
   }
   ${Fragments.recorderDepartment}
   ${Fragments.position}
   ${Fragments.measurement}
-  ${DataFragments.sample}
+  ${Fragments.referential}
+  ${DataFragments.sample} 
+  ${DataFragments.batch}  
 `;
 const DeleteOperations: any = gql`
   mutation deleteOperations($ids:[Int]){
@@ -293,7 +298,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
         const list = this.addToQueryCache({
           query: LoadAllQuery,
           variables: this._lastVariables.loadAll
-        }, 'operations', savedOperation);
+        }, 'operations', entity.asObject());
       }
     }
 
@@ -365,8 +370,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
     }
   }
 
-  copyIdAndUpdateDate(source: Operation | undefined, target: Operation) {
-    if (!source) return
+  copyIdAndUpdateDate(source: Operation | undefined | any, target: Operation) {
+    if (!source) return;
 
     // Update (id and updateDate)
     target.id = source.id || target.id;
@@ -395,9 +400,57 @@ export class OperationService extends BaseDataService implements DataService<Ope
       });
     }
 
-    // Update samples
+    // Update samples (recursively)
     if (target.samples && source.samples) {
-      target.samples = source.samples.map(Sample.fromObject);
+      this.copyIdAndUpdateDateOnSamples(source.samples, target.samples);
+    }
+
+    // Update batches (recursively)
+    if (target.catchBatch && source.batches) {
+      this.copyIdAndUpdateDateOnBatch(source.batches, [target.catchBatch]);
+    }
+  }
+
+  /**
+   * Copy Id and update, in sample tree (recursively)
+   * @param sources 
+   * @param targets 
+   */
+  copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
+    // Update samples
+    if (sources && targets) {
+      targets.forEach(target => {
+        const source = sources.find(json => target.equals(json));
+        target.id = source && source.id || target.id;
+        target.updateDate = source && source.updateDate || target.updateDate;
+        target.dirty = false;
+
+        // Apply to children
+        if (target.children) {
+          this.copyIdAndUpdateDateOnSamples(sources, target.children);
+        }
+      });
+    }
+  }
+
+  /**
+   * Copy Id and update, in batch tree (recursively)
+   * @param sources 
+   * @param targets 
+   */
+  copyIdAndUpdateDateOnBatch(sources: (Batch | any)[], targets: Batch[]) {
+    if (sources && targets) {
+      targets.forEach(target => {
+        const source = sources.find(json => target.equals(json));
+        target.id = source && source.id || target.id;
+        target.updateDate = source && source.updateDate || target.updateDate;
+        target.dirty = false;
+
+        // Apply to children
+        if (target.children) {
+          this.copyIdAndUpdateDateOnBatch(sources, target.children);
+        }
+      });
     }
   }
 }

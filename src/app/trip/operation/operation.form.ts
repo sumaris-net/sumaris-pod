@@ -79,8 +79,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
             .pipe(
                 mergeMap(value => {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string" && value !== "*") && value || undefined;
                     const physicalGear = this.form.get('physicalGear').value;
+                    if (!physicalGear || !physicalGear.gear) return Observable.of([]);
+                    value = (typeof value === "string" && value !== "*") && value || undefined;
                     return this.referentialRefService.loadAll(0, 10, undefined, undefined,
                         {
                             entityName: 'Metier',

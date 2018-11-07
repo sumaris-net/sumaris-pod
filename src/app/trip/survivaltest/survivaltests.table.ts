@@ -177,7 +177,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
             .filter(pmfms => pmfms && pmfms.length > 0)
             .first()
             .subscribe(pmfms => {
-                // Fill samples measurement map
+                // Transform entities into object array
                 const data = this.data.map(sample => {
                     const json = sample.asObject();
                     json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);

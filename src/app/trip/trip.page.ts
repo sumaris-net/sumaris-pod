@@ -12,7 +12,9 @@ import { AppTabPage, AppFormUtils, AccountService } from '../core/core.module';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../environments/environment';
-import { Subscription } from 'rxjs-compat';
+import { Subscription, Subject } from 'rxjs';
+import { DateFormatPipe } from '../shared/pipes/date-format.pipe';
+import { isNil } from '../core/services/model';
 @Component({
   selector: 'page-trip',
   templateUrl: './trip.page.html',
@@ -23,6 +25,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   protected _enableListenChanges: boolean = false;
 
+  title = new Subject<string>();
   saving: boolean = false;
 
   @ViewChild('tripForm') tripForm: TripForm;
@@ -40,6 +43,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     router: Router,
     alertCtrl: AlertController,
     translate: TranslateService,
+    protected dateFormat: DateFormatPipe,
     protected tripService: TripService
   ) {
     super(route, router, alertCtrl, translate);
@@ -84,13 +88,11 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     // Load
     else {
-      this.tripService.load(id).first()
-        .subscribe(data => {
-          this.updateView(data, true);
-          this.enable();
-          this.loading = false;
-          this.startListenChanges();
-        });
+      const data = await this.tripService.load(id).first().toPromise();
+      this.updateView(data, true);
+      this.enable();
+      this.loading = false;
+      this.startListenChanges();
     }
   }
 
@@ -123,6 +125,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     if (updateOperations) {
       this.operationTable && this.operationTable.setTrip(data);
     }
+
+    this.updateTitle();
 
     this.markAsPristine();
     this.markAsUntouched();
@@ -281,5 +285,29 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     const saved = await this.save(event);
     return saved;
+  }
+
+  /**
+   * Compute the title
+   * @param data 
+   */
+  async updateTitle(data?: Trip) {
+    data = data || this.data;
+
+    // new trip
+    let title;
+    if (!data || isNil(data.id)) {
+      title = await this.translate.get('TRIP.NEW.TITLE').toPromise();
+    }
+    // Existing trip
+    else {
+      title = await this.translate.get('TRIP.EDIT.TITLE', {
+        vessel: data.vesselFeatures && (data.vesselFeatures.exteriorMarking || data.vesselFeatures.name),
+        departureDateTime: data.departureDateTime && this.dateFormat.transform(data.departureDateTime) as string
+      }).toPromise();
+    }
+
+    // Emit the title
+    this.title.next(title);
   }
 }

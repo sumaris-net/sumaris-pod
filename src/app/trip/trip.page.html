@@ -1,4 +1,4 @@
-<app-toolbar [title]="'TRIP.TITLE'|translate" color="primary" [hasValidate]="dirty && !loading" (onValidate)="save($event)">
+<app-toolbar [title]="title | async" color="primary" [hasValidate]="dirty && !loading" (onValidate)="save($event)">
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 

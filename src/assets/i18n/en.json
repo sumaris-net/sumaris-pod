@@ -9,6 +9,7 @@
     "BTN_DONE": "Done",
     "BTN_DELETE": "Delete",
     "BTN_VALIDATE": "Validate",
+    "BTN_NOT_SAVE": "do NOT save",
     "BTN_SAVE": "Save",
     "BTN_FILTER": "Filter",
     "BTN_RELOAD": "Reload",
@@ -162,10 +163,10 @@
     "TAB_PHYSICAL_GEAR": "Gears",
     "TAB_OPERATIONS": "Operations",
     "NEW": {
-      "TITLE": "New fishing trip"
+      "TITLE": "New trip"
     },
     "EDIT": {
-      "TITLE": "Edit fishing trip",
+      "TITLE": "{{vessel}} - Trip of {{departureDateTime}}",
       "OTHER_FEATURES": "Other features:"
     },
     "LIST": {
@@ -200,8 +201,11 @@
     },
     "OPERATION": {
       "COMMENTS": "Comments",
+      "NEW": {
+        "TITLE": "New operation"
+      },
       "EDIT": {
-        "TITLE": "Operation",
+        "TITLE": "Operation - {{startDateTime}}",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
         "TAB_CATCH": "Catch",
@@ -247,14 +251,17 @@
     },
     "SURVIVAL_TEST": {
       "TABLE": {
-        "TAXON_GROUP": "FAO species",
+        "TAXON_GROUP": "Species",
         "TAXON_GROUP_PLACEHOLDER": "FAO code",
         "SAMPLE_DATE": "Time of scoring"
       }
     },
     "INDIVIDUAL_MONITORING": {
       "TABLE": {
-        "COMMENTS": "Comments"
+        "PARENT_SAMPLE": "Parent sample",
+        "TAXON_GROUP": "Species",
+        "COMMENTS": "Comments",
+        "BTN_AUTO_FILL": "Automatically fill"
       }
     }
   },
@@ -330,6 +337,7 @@
       "DELETE_REFERENTIALS_ERROR": "Error while deleting referential data",
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Error while loading level for referential data.",
       "LOAD_PROGRAM_PMFMS_ERROR": "Error while loading parameters collected by the program",
+      "LOAD_PROGRAM_GEARS_ERROR": "Error while loading gears of the program",
       "SAVE_PERSONS_ERROR": "Error while saving users",
       "DELETE_PERSONS_ERROR": "Error while  deleting some users"
     },
@@ -404,6 +412,7 @@
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
     "SAVE": "Do you want to save your changes?",
-    "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?"
+    "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?",
+    "DELETE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?"
   }
 }

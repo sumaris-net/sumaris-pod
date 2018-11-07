@@ -6,6 +6,7 @@ import { MatHorizontalStepper } from "@angular/material";
 import { TripPage } from "./trip.page";
 import { AlertController } from "@ionic/angular";
 import { TranslateService } from '@ngx-translate/core';
+import { DateFormatPipe } from "../shared/pipes/date-format.pipe";
 
 @Component({
   selector: 'modal-trip',
@@ -21,9 +22,10 @@ export class TripModal extends TripPage {
     router: Router,
     alterCtrl: AlertController,
     translate: TranslateService,
+    protected dateFormat: DateFormatPipe,
     protected tripService: TripService,
     protected viewCtrl: ModalController) {
-    super(route, router, alterCtrl, translate, tripService);
+    super(route, router, alterCtrl, translate, dateFormat, tripService);
   }
 
   async save(event: any): Promise<boolean> {

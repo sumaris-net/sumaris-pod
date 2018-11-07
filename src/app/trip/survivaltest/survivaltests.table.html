@@ -2,19 +2,16 @@
   <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-    (click)="onRefresh.emit()">
-    <mat-icon>refresh</mat-icon>
-  </button>
   <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
 
-  <!-- <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
-    [disabled]="dirty" #inlineEditionBtn>
-    <mat-icon>edit</mat-icon>
-  </mat-button-toggle> -->
+  <!-- refresh (debug only) -->
+  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+    (click)="onRefresh.emit()">
+    <mat-icon>refresh</mat-icon>
+  </button>
 
   <ion-item *ngIf="error" hidden-xs hidden-sm>
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
@@ -233,7 +230,7 @@
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-    [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
+    [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>
 
 <ion-row no-padding>
