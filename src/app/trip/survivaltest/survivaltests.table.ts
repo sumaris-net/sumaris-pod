@@ -245,7 +245,6 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
 
     protected getI18nColumnName(columnName: string): string {
 
-
         // Try to resolve PMFM column, using the cached pmfm list
         if (PMFM_ID_REGEXP.test(columnName)) {
             const pmfmId = parseInt(columnName);

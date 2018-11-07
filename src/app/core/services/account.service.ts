@@ -781,11 +781,11 @@ export class AccountService extends BaseDataService {
       },
       error(err) {
         if (err && err.code == ServerErrorCodes.NOT_FOUND) {
-          console.log("[account] Account not exists anymore: force user to logout...", err);
+          console.info("[account] Account not exists anymore: force user to logout...", err);
           this.logout();
         }
         else {
-          console.log("[account] [WS] Received error:", err);
+          console.warn("[account] [WS] Received error:", err);
         }
       },
       complete() {

@@ -194,7 +194,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       if (isNew) {
         this.router.navigate(['../' + updatedData.id], {
           relativeTo: this.route,
-          queryParams: this.route.snapshot.queryParams
+          queryParams: this.route.snapshot.queryParams,
+          replaceUrl: true // replace the current satte in history
         });
 
         // SUbscription to changes

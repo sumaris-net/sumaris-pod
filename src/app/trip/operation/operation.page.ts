@@ -219,7 +219,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         sample.children = individualMonitoringSamples.filter(childSample => sample.equals(childSample.parent));
         return sample;
       });
-    console.log(this.data.samples);
 
     const isNew = this.isNewData();
     this.disable();
@@ -236,7 +235,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       if (isNew) {
         this.router.navigate(['../' + updatedData.id], {
           relativeTo: this.route,
-          queryParams: this.route.snapshot.queryParams
+          queryParams: this.route.snapshot.queryParams,
+          replaceUrl: true // replace the current satte in history
         });
 
         // Subscription to changes

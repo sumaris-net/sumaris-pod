@@ -44,7 +44,7 @@ export class ToolbarComponent implements OnInit {
   }
 
   enableSearchBar() {
-    console.log('TODO: add search toolbar');
+    console.warn('[app-toolbar] TODO: implement enableSearchBar()');
   }
 
 }
