@@ -103,6 +103,12 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
         this._tables && this._tables.forEach(table => table.markAsUntouched());
     }
 
+    public markAsTouched() {
+        this._forms && this._forms.forEach(form => form.markAsTouched());
+        this._tables && this._tables.forEach(table => table.markAsTouched());
+    }
+
+
     public onTabChange(event: MatTabChangeEvent) {
         const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
         queryParams['tab'] = event.index;

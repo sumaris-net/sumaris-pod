@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService, AppFormUtils } from "../../core/core.module";
 import { getPmfmName, PmfmStrategy, Sample, MeasurementUtils } from "../services/trip.model";
@@ -35,10 +35,10 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     private _availableParents: Sample[] = [];
     private _dataSubject = new BehaviorSubject<Sample[]>([]);
 
-    started: boolean = false;
-    pmfms: Observable<PmfmStrategy[]>;
+    loading = true;
+    loadingPmfms = true;
     displayParentPmfm: PmfmStrategy;
-    cachedPmfms: PmfmStrategy[];
+    pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
     measurementValuesFormGroupConfig: { [key: string]: any };
     data: Sample[];
     filteredParents: Observable<Sample[]>;
@@ -49,7 +49,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     set value(data: Sample[]) {
         if (this.data !== data) {
             this.data = data;
-            if (this.started) this.onRefresh.emit();
+            if (!this.loading) this.onRefresh.emit();
         }
     }
 
@@ -100,28 +100,27 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         //this.debug = true;
     };
 
-    ngOnInit() {
+    async ngOnInit() {
         super.ngOnInit();
 
-        this.pmfms = this.programService.loadProgramPmfms(
-            this.program,
-            {
-                acquisitionLevel: this._acquisitionLevel
-            }).first();
+        this.pmfms
+            .filter(pmfms => pmfms && pmfms.length > 0)
+            .first()
+            .subscribe(pmfms => {
+                this.displayParentPmfm = (pmfms || []).find(p => p.pmfmId == PmfmIds.TAG_ID);
+                pmfms = (pmfms || []).filter(p => p !== this.displayParentPmfm);
+                this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
+                let displayedColumns = pmfms.map(p => p.pmfmId.toString());
 
-        this.pmfms.subscribe(pmfms => {
-            this.displayParentPmfm = (pmfms || []).find(p => p.pmfmId == PmfmIds.TAG_ID);
-            this.cachedPmfms = (pmfms || []).filter(p => p.pmfmId != PmfmIds.TAG_ID);
-            this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(this.cachedPmfms);
-            let displayedColumns = this.cachedPmfms.map(p => p.pmfmId.toString());
+                this.displayedColumns = RESERVED_START_COLUMNS
+                    .concat(RESERVED_COLUMNS)
+                    .concat(displayedColumns)
+                    .concat(RESERVED_END_COLUMNS);
 
-            this.displayedColumns = RESERVED_START_COLUMNS
-                .concat(RESERVED_COLUMNS)
-                .concat(displayedColumns)
-                .concat(RESERVED_END_COLUMNS);
-            this.started = true;
-            if (this.data) this.onRefresh.emit();
-        });
+                this.loading = false;
+
+                if (this.data) this.onRefresh.emit();
+            });
 
         // Parent combo
         this.filteredParents = this.registerCellValueChanges('parent')
@@ -171,6 +170,9 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                     controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
                 }
             });
+
+        // Start loading Pmfms
+        await this.refreshPmfms();
     }
 
     async getMaxRankOrder(): Promise<number> {
@@ -208,7 +210,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         filter?: any,
         options?: any
     ): Observable<Sample[]> {
-        if (!this.data || !this.started) {
+        if (!this.data) {
             if (this.debug) console.debug("[monitoring-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
         }
@@ -216,35 +218,39 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         const now = Date.now();
         if (this.debug) console.debug("[monitoring-table] Loading rows...", this.data);
 
-        setTimeout(() => {
-            // Fill samples measurement map
-            const data = this.data.map(data => {
-                const sample = data.asObject();
-                sample.measurementValues = MeasurementUtils.normalizeFormValues(data.measurementValues, this.cachedPmfms);
-                return sample;
+        this.pmfms
+            .filter(pmfms => pmfms && pmfms.length > 0)
+            .first()
+            .subscribe(pmfms => {
+                // Fill samples measurement map
+                const data = this.data.map(sample => {
+                    const json = sample.asObject();
+                    json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);
+                    return json;
+                });
+
+                // Link to parent
+                this.linkSamplesToParent(data);
+
+                // Sort 
+                this.sortSamples(data, sortBy, sortDirection);
+                if (this.debug) console.debug(`[monitoring-table] Rows loaded in ${Date.now() - now}ms`, data);
+
+                this._dataSubject.next(data);
             });
-
-            // Link to parent
-            this.linkSamplesToParent(data);
-
-            // Sort 
-            this.sortSamples(data, sortBy, sortDirection);
-            if (this.debug) console.debug(`[monitoring-table] Rows loaded in ${Date.now() - now}ms`, this.data);
-
-            this._dataSubject.next(data);
-        });
 
         return this._dataSubject.asObservable();
     }
 
     async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
-        if (!this.data || !this.started) throw new Error("[monitoring-table] Could not save table: value not set (or not started)");
+        if (!this.data) throw new Error("[monitoring-table] Could not save table: value not set (or not started)");
 
         if (this.debug) console.debug("[monitoring-table] Updating data from rows...");
 
+        const pmfms = this.pmfms.getValue() || [];
         this.data = data.map(json => {
             const sample = Sample.fromObject(json);
-            sample.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, this.cachedPmfms);
+            sample.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
             sample.parentId = json.parent && json.parent.id;
             return sample;
         });
@@ -253,8 +259,8 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     }
 
     deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
-        //console.debug("[table-survival-tests] Remove data", dataToRemove);
-        //this.data = this.data.filter(item => !dataToRemove.find(g => g === item || g.id === item.id))
+        this._dirty = true;
+        // Noting else to do (make no sense to delete in this.data, will be done in saveAll())
         return Promise.resolve();
     }
 
@@ -304,11 +310,12 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     }
 
     async autoFillTable() {
-        if (!this.started) return;
+        if (this.loading) return;
         if (!this.confirmEditCreateSelectedRow()) return;
 
         const rows = await this.dataSource.getRows();
         const data = rows.map(r => r.currentData);
+        const startRowCount = data.length;
 
         let rankOrder = await this.getMaxRankOrder();
         await this._availableParents
@@ -320,7 +327,10 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                 data.push(sample);
             });
 
-        this._dataSubject.next(data);
+        if (data.length > startRowCount) {
+            this._dataSubject.next(data);
+            this._dirty = true;
+        }
     }
 
     /* -- protected methods -- */
@@ -328,18 +338,17 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
 
     protected getI18nColumnName(columnName: string): string {
 
+        // Replace parent by TAG_ID pmfms
+        columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.pmfmId.toString() : columnName;
+
         // Try to resolve PMFM column, using the cached pmfm list
         if (PMFM_ID_REGEXP.test(columnName)) {
             const pmfmId = parseInt(columnName);
-            const pmfm = this.cachedPmfms.find(p => p.pmfmId === pmfmId);
+            const pmfm = (this.pmfms.getValue() || []).find(p => p.pmfmId === pmfmId);
             if (pmfm) return pmfm.name;
         }
 
         return super.getI18nColumnName(columnName);
-    }
-
-    public trackByFn(index: number, row: TableElement<Sample>) {
-        return row.currentData.rankOrder;
     }
 
     protected linkSamplesToParent(data: Sample[]) {
@@ -405,10 +414,40 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
             const valueA = EntityUtils.getPropertyByPath(a, sortBy);
             const valueB = EntityUtils.getPropertyByPath(b, sortBy);
             return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-        }
-        );
+        });
     }
 
     getPmfmColumnHeader = getPmfmName;
+
+    public trackByFn(index: number, row: TableElement<Sample>) {
+        return row.currentData.rankOrder;
+    }
+
+    protected async refreshPmfms(): Promise<PmfmStrategy[]> {
+        const candLoadPmfms = isNotNil(this.program) && isNotNil(this._acquisitionLevel);
+        if (!candLoadPmfms) {
+            return undefined;
+        }
+
+        this.loading = true;
+        this.loadingPmfms = true;
+
+        // Load pmfms
+        const pmfms = (await this.programService.loadProgramPmfms(
+            this.program,
+            {
+                acquisitionLevel: this._acquisitionLevel
+            })) || [];
+
+        if (!pmfms.length && this.debug) {
+            console.debug(`[monitoring-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+        }
+
+        this.loadingPmfms = false;
+
+        this.pmfms.next(pmfms);
+
+        return pmfms;
+    }
 }
 

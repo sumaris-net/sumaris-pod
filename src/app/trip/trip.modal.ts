@@ -26,14 +26,18 @@ export class TripModal extends TripPage {
     super(route, router, alterCtrl, translate, tripService);
   }
 
-  async save(event: any): Promise<any> {
+  async save(event: any): Promise<boolean> {
 
     try {
-      let res = await super.save(event);
-      this.viewCtrl.dismiss(res);
+      let saved = await super.save(event);
+      if (saved) {
+        this.viewCtrl.dismiss(this.data);
+      }
+      return saved;
     }
     catch (err) {
       // nothing to do
+      return false;
     }
   }
 

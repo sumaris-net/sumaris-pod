@@ -77,13 +77,13 @@ export class TripForm extends AppForm<Trip> implements OnInit {
           debounceTime(250),
           mergeMap(value => {
             if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-            value = (typeof value === "string") && value || undefined;
+            value = (typeof value === "string" && value !== '*') && value || undefined;
             return this.referentialRefService.loadAll(0, 10, undefined, undefined,
               {
                 entityName: 'Location',
                 levelId: LocationLevelIds.PORT,
                 searchText: value as string
-              });
+              }).first();
           })
         );
   }

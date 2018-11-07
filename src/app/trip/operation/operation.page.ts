@@ -142,21 +142,21 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Set measurements
     this.measurementsForm.gear = gearLabel;
     this.measurementsForm.value = data && data.measurements || [];
+    this.measurementsForm.updateControls();
 
     // Set catch bacth
     this.catchForm.gear = gearLabel;
     this.catchForm.value = data && data.catchBatch || Batch.fromObject({ rankOrder: 1 });
+    //this.catchForm.updateControls();
 
     // Set survival tests
     const samples = data && data.samples || [];
-    console.log("TODO: check this (1/2)", data && data.samples);
     const survivalTestSamples = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.SURVIVAL_TEST + "#"));
     this.survivalTestsTable.value = survivalTestSamples;
 
     // Set individual monitoring
     this.individualMonitoringTable.availableParents = survivalTestSamples.filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
     this.individualMonitoringTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"));
-    console.log("TODO: check this (2/2)", this.individualMonitoringTable.value);
 
     this.markAsPristine();
     this.markAsUntouched();
@@ -200,14 +200,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Update entity from JSON
     let json = this.opeForm.value;
+    json.measurements = this.measurementsForm.value;
     this.data.fromObject(json);
     this.data.tripId = this.trip.id;
-    this.data.measurements = this.measurementsForm.value;
 
     // get catch batch
     this.data.catchBatch = this.catchForm.value;
 
-    // update table 'value'
+    // update tables 'value'
     await this.survivalTestsTable.save(); // will  update 'value'
     await this.individualMonitoringTable.save(); // will  update 'value'
 
@@ -219,6 +219,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         sample.children = individualMonitoringSamples.filter(childSample => sample.equals(childSample.parent));
         return sample;
       });
+    console.log(this.data.samples);
 
     const isNew = this.isNewData();
     this.disable();

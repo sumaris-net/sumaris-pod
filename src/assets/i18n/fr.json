@@ -9,6 +9,7 @@
     "BTN_DONE": "Terminer",
     "BTN_DELETE": "Supprimer",
     "BTN_VALIDATE": "Valider",
+    "BTN_NOT_SAVE": "Ne PAS sauvegarder",
     "BTN_SAVE": "Sauvegarder",
     "BTN_FILTER": "Filtrer",
     "BTN_RELOAD": "Mettre à jour",
@@ -333,6 +334,7 @@
       "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression de référentiels",
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
       "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme",
+      "LOAD_PROGRAM_GEARS_ERROR": "Erreur lors de chargement des engins du programme",
       "SAVE_PERSONS_ERROR": "Erreur de sauvegarde des utilisateurs",
       "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs"
     },
@@ -406,7 +408,7 @@
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
-    "SAVE": "Voulez-vous sauvegarder vos modifications ?",
+    "SAVE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous <b>sauvegarder</b> avant de continuer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "Cette opération est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?"
   }

@@ -1,7 +1,7 @@
-import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
+import { Component, OnInit, Input, Output, OnDestroy, EventEmitter } from "@angular/core";
 import { Observable } from 'rxjs';
 import { mergeMap } from "rxjs/operators";
-import { ValidatorService } from "angular4-material-table";
+import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
 import { OperationValidatorService } from "../services/operation.validator";
 import { Operation, Trip, referentialToString, EntityUtils, ReferentialRef } from "../services/trip.model";
@@ -33,6 +33,12 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   @Input() latLongPattern: string;
 
   @Input() tripId: number;
+
+  @Output()
+  onOperationClick: EventEmitter<number> = new EventEmitter<number>();
+
+  @Output()
+  onNewOperationClick: EventEmitter<void> = new EventEmitter<void>();
 
   constructor(
     protected route: ActivatedRoute,
@@ -89,7 +95,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
             {
               entityName: 'Metier',
               searchText: value as string
-            });
+            }).first();
         }));
 
   }
@@ -139,14 +145,24 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     super.deleteSelection();
   }
 
-  protected openEditRowDetail(id: number): Promise<boolean> {
-    return this.router.navigateByUrl('/operations/' + this.tripId + '/' + id);
+  protected async openEditRowDetail(id: number): Promise<boolean> {
+    if (this.onOperationClick.observers.length) {
+      this.onOperationClick.emit(id);
+      return true;
+    }
+
+    return await this.router.navigateByUrl('/operations/' + this.tripId + '/' + id);
   }
 
-  protected openNewRowDetail(): Promise<boolean> {
-    return this.router.navigateByUrl('/operations/' + this.tripId + '/new');
+  protected async openNewRowDetail(): Promise<boolean> {
+    if (this.onNewOperationClick.observers.length) {
+      this.onNewOperationClick.emit();
+      return true;
+    }
+    return await this.router.navigateByUrl('/operations/' + this.tripId + '/new');
   }
 
   referentialToString = referentialToString;
+
 }
 

@@ -93,7 +93,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
             {
               entityName: 'Program',
               searchText: value as string
-            });
+            }).first();
         })
       );
 
@@ -110,7 +110,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
               searchText: value as string
-            });
+            }).first();
         }));
 
     // Update filter when changes

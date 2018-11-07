@@ -117,7 +117,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
         // Add custom 'validDate' validator
         this.formControl.setValidators(isRequired ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
-        this.formControl.updateValueAndValidity();
+        //this.formControl.updateValueAndValidity({ emitEvent: false, onlySelf: true });
 
         // Get patterns to display date and date+time
         this.translate.get(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN'])
@@ -225,12 +225,12 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.disabling = true;
         this.disabled = isDisabled;
         if (isDisabled) {
-            this.formControl.disable();
-            this.form.disable();
+            //this.formControl.disable({ onlySelf: true, emitEvent: false });
+            this.form.disable({ onlySelf: true, emitEvent: false });
         }
         else {
-            this.formControl.enable();
-            this.form.enable();
+            //this.formControl.enable({ onlySelf: true, emitEvent: false });
+            this.form.enable({ onlySelf: true, emitEvent: false });
         }
         this.disabling = false;
     }

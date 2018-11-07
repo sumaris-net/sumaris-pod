@@ -1,9 +1,11 @@
 import { Component, OnInit, ViewChild, OnDestroy } from "@angular/core";
-import { Observable } from 'rxjs';
+
+import { Observable, BehaviorSubject } from 'rxjs';
+import { debounceTime, map } from 'rxjs/operators';
 import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
+import { AppTableDataSource, AppTable, AccountService, AppFormUtils } from "../../core/core.module";
 import { PhysicalGearValidatorService } from "../services/physicalgear.validator";
-import { referentialToString, PhysicalGear } from "../services/trip.model";
+import { referentialToString, PhysicalGear, EntityUtils } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
@@ -24,13 +26,17 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
   private data: PhysicalGear[];
 
+  private _dataSubject = new BehaviorSubject<PhysicalGear[]>([]);
+
   detailMeasurements: Observable<string[]>;
 
   @ViewChild('gearForm') gearForm: PhysicalGearForm;
 
   set value(data: PhysicalGear[]) {
-    this.data = data;
-    this.onRefresh.emit();
+    if (this.data !== data) {
+      this.data = data;
+      this.onRefresh.emit();
+    }
   }
 
   get value(): PhysicalGear[] {
@@ -38,13 +44,16 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
   }
 
   get dirty(): boolean {
-    return this._dirty && this.gearForm.dirty;
+    return this._dirty || this.gearForm.dirty;
   }
   get invalid(): boolean {
-    return !this.valid;
+    if (this.selectedRow) {
+      return this.gearForm.invalid;
+    }
+    return false;
   }
   get valid(): boolean {
-    if (this.selectedRow && this.gearForm.dirty) {
+    if (this.selectedRow) {
       return this.gearForm.valid;
     }
     return true;
@@ -64,8 +73,10 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     );
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = false;
-    this.allowRowDetail = false;
-    this.setDatasource(new AppTableDataSource<PhysicalGear, any>(PhysicalGear, this, this.validatorService));
+    this.setDatasource(new AppTableDataSource<PhysicalGear, any>(PhysicalGear, this, this.validatorService, {
+      prependNewElements: false,
+      onNewRow: (row) => this.onCreateNewGear(row)
+    }));
   };
 
 
@@ -77,29 +88,30 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
     // Listen detail form, to update the table
     this.gearForm.valueChanges
-      .debounceTime(300)
       .subscribe(value => {
         if (!this.selectedRow) return;
-        //console.log("gearForm.valueChanges", value);
-        this.selectedRow.currentData.fromObject(value);
+        if (this.debug) console.debug("[physicalgears-table] gearForm.valueChanges => update select row", value);
+        this.selectedRow.currentData = value;
+        AppFormUtils.copyEntity2Form(this.selectedRow.currentData, this.selectedRow.validator);
         this._dirty = true;
       });
 
     // DEBUG only
-    this.detailMeasurements = this.debug && Observable.empty() || this.gearForm
+    this.detailMeasurements = /*this.debug && Observable.empty() || */this.gearForm
       .valueChanges
-      .debounceTime(300)
-      .map(value => {
-        return (value.measurements || [])
-          .map(m => {
-            let res: string = m.id ? ('id=' + m.id) : 'id=..';
-            res += ' | ';
-            res += m.pmfmId;
-            res += ' | ';
-            res += m.numericalValue || m.alphanumericalValue || (m.qualitativeValue && m.qualitativeValue.label) || '';
-            return res;
-          })
-      });
+      .pipe(
+        map(value => {
+          return (value.measurements || [])
+            .map(m => {
+              let res: string = m.id ? ('id=' + m.id) : 'id=..';
+              res += ' | ';
+              res += m.pmfmId;
+              res += ' | ';
+              res += m.numericalValue || m.alphanumericalValue || (m.qualitativeValue && m.qualitativeValue.label) || '';
+              return res;
+            })
+        })
+      );
   }
 
 
@@ -114,38 +126,79 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     if (!this.data) return Observable.empty(); // Not initialized
     sortBy = sortBy != 'id' && sortBy || 'rankOrder'; // Replace 'id' with 'rankOrder'
 
-    const now = new Date();
-    if (this.debug) console.debug("[physicalgears-table] Reading rows from data", this.data);
+    const now = Date.now();
+    if (this.debug) console.debug("[physicalgears-table] Loading rows..", this.data);
 
-    const res = this.data.slice(0); // Copy the array
-    const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-    res.sort((a, b) =>
-      a[sortBy] === b[sortBy] ?
-        0 : (a[sortBy] > b[sortBy] ?
-          after : (-1 * after)
-        )
-    );
+    setTimeout(() => {
 
-    if (this.debug) console.debug("[physicalgears-table] Rows extracted in " + (new Date().getTime() - now.getTime()) + "ms", res);
+      // Fill samples measurement map
+      const data = this.data.map(gear => gear.asObject());
 
-    return Observable.of(res);
+      // Sort 
+      this.sortGears(data, sortBy, sortDirection);
+      if (this.debug) console.debug(`[physicalgears-table] Rows loaded in ${Date.now() - now}ms`, data);
+
+      this._dataSubject.next(data);
+    });
+
+    return this._dataSubject.asObservable();
   }
 
-  saveAll(data: PhysicalGear[], options?: any): Promise<PhysicalGear[]> {
+  async saveAll(data: PhysicalGear[], options?: any): Promise<PhysicalGear[]> {
     if (!this.data) throw new Error("[physicalgears-table] Could not save table: value not set yet");
 
-    if (this.selectedRow) {
-      this.selectedRow.currentData = this.gearForm.value;
+    if (this.debug) console.debug("[physicalgears-table] Updating data from rows...");
+
+    if (this.selectedRow && this.gearForm.dirty) {
+      console.warn("TODO: May need to update selected row from gear form ?");
     }
 
-    this.data = data;
-    return Promise.resolve(this.data);
+    this.data = data.map(PhysicalGear.fromObject);
+
+    return this.data;
   }
 
   deleteAll(dataToRemove: PhysicalGear[], options?: any): Promise<any> {
-    if (this.debug) console.debug("[physicalgears-table] Remove data", dataToRemove);
-    this.data = this.data.filter(gear => !dataToRemove.find(g => g === gear || g.id === gear.id))
+    this._dirty = true;
+    // Noting else to do (make no sense to delete in this.data, will be done in saveAll())
     return Promise.resolve();
+  }
+
+  async getMaxRankOrder(): Promise<number> {
+    const rows = await this.dataSource.getRows();
+    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+  }
+
+  async onCreateNewGear(row: TableElement<PhysicalGear>): Promise<void> {
+    // Set computed values
+    row.currentData.rankOrder = (await this.getMaxRankOrder()) + 1;
+
+    this.gearForm.value = row.currentData;
+  }
+
+  addRow(event?: any): boolean {
+    if (this.debug) console.debug("[table] Asking for new row...");
+
+    // Check gear form
+    if (this.selectedRow && this.gearForm.invalid || this.loading) {
+      return false;
+    }
+
+    // Try to finish selected row first
+    if (!this.confirmEditCreateSelectedRow()) {
+      return false;
+    }
+
+
+    // Add new row
+    this.addRowToTable();
+
+    // Selected the new row
+    const row = this.dataSource.getRow(-1);
+    this.selectedRow = row;
+    this.gearForm.value = PhysicalGear.fromObject(row.currentData);
+
+    return true;
   }
 
   onRowClick(event: MouseEvent, row: TableElement<PhysicalGear>): boolean {
@@ -157,35 +210,24 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       return false;
     }
 
-    this.selectedRow = row;
-    this.gearForm.value = row.currentData;
-
-    return true;
-  }
-
-  addRow(event?: any): boolean {
-    if (this.debug) console.debug("[physicalgears-table] Calling addRow()");
-
-    // Try to finish selected row first
-    if (!this.confirmEditCreateSelectedRow()) {
+    // Avoid to change select row, if same row
+    if ((this.selectedRow && this.selectedRow === row) || this.gearForm.loading) {
+      event.stopPropagation();
       return false;
     }
 
-    // Create new row
-    super.addRowToTable();
-    const row = this.dataSource.getRow(-1);
-    this.data.push(row.currentData);
     this.selectedRow = row;
-    row.currentData.rankOrder = this.resultsLength;
     this.gearForm.value = row.currentData;
+
     return true;
   }
 
   deleteSelection() {
     super.deleteSelection();
     this.selectedRow = undefined;
-    this.markAsUntouched();
-    this.markAsPristine();
+
+    this.gearForm.markAsPristine();
+    this.gearForm.markAsUntouched();
   }
 
   isDetailRow(row: TableElement<PhysicalGear>): boolean {
@@ -200,6 +242,21 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
   markAsUntouched() {
     super.markAsUntouched();
     this.gearForm.markAsUntouched();
+  }
+
+  markAsTouched() {
+    super.markAsTouched();
+    this.gearForm.markAsTouched();
+  }
+
+  protected sortGears(data: PhysicalGear[], sortBy?: string, sortDirection?: string): PhysicalGear[] {
+    sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
+    const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+    return data.sort((a, b) => {
+      const valueA = EntityUtils.getPropertyByPath(a, sortBy);
+      const valueB = EntityUtils.getPropertyByPath(b, sortBy);
+      return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+    });
   }
 
   referentialToString = referentialToString;

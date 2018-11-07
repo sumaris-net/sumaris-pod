@@ -116,10 +116,10 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
         if (this.disabled != isDisabled) {
             this.disabled = isDisabled;
             if (isDisabled) {
-                this.formControl.disable();
+                //this.formControl.disable({ onlySelf: true, emitEvent: false });
             }
             else {
-                this.formControl.enable();
+                //this.formControl.enable({ onlySelf: true, emitEvent: false });
             }
         }
     }

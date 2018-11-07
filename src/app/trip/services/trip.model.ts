@@ -6,7 +6,7 @@ import {
   PmfmStrategy, getPmfmName
 } from "../../referential/services/model";
 import { Moment } from "moment/moment";
-import { isNotNil } from "../../core/services/model";
+import { isNotNil, isNil } from "../../core/services/model";
 
 export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
@@ -125,7 +125,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     super();
     this.program = new ReferentialRef();
     this.departureLocation = new ReferentialRef();
-    this.returnLocation = new ReferentialRef();
+    this.returnLocation = null;
     this.measurements = [];
   }
 
@@ -148,7 +148,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     target.returnLocation = this.returnLocation && this.returnLocation.asObject(minify) || undefined;
     target.sale = this.sale && this.sale.asObject(minify) || undefined;
     target.gears = this.gears && this.gears.map(p => p && p.asObject(minify)) || undefined;
-    target.measurements = this.measurements && this.measurements.map(m => m.asObject(minify)) || undefined;
+    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
     return target;
   }
 
@@ -158,7 +158,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);
     source.departureLocation && this.departureLocation.fromObject(source.departureLocation);
-    source.returnLocation && this.returnLocation.fromObject(source.returnLocation);
+    this.returnLocation = source.returnLocation && ReferentialRef.fromObject(source.returnLocation);
     if (source.sale) {
       this.sale = new Sale();
       this.sale.fromObject(source.sale);
@@ -213,7 +213,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
     target.gear = this.gear && this.gear.asObject(minify) || undefined;
 
     // Measurements
-    target.measurements = this.measurements && this.measurements.map(m => m.asObject(minify)) || undefined;
+    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
 
     return target;
   }
@@ -291,11 +291,6 @@ export class Measurement extends DataEntity<Measurement> {
       );
   }
 
-  isEmpty(): boolean {
-    return !this.alphanumericalValue
-      && this.numericalValue === undefined
-      && !(this.qualitativeValue && this.qualitativeValue.id)
-  }
 }
 
 export class MeasurementUtils {
@@ -380,6 +375,7 @@ export class MeasurementUtils {
   }
 
   static normalizeFormValue(value: any, pmfm: PmfmStrategy): any {
+    if (!pmfm) return value;
     switch (pmfm.type) {
       case "qualitative_value":
         if (value && typeof value != "object") {
@@ -404,14 +400,14 @@ export class MeasurementUtils {
 
   static normalizeFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]): any {
     const target = {};
-    pmfms.forEach(pmfm => {
+    (pmfms || []).forEach(pmfm => {
       target[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(source[pmfm.pmfmId], pmfm);
     });
     return target;
   }
 
   static toEntityValue(value: any, pmfm: PmfmStrategy): string {
-    if (value === null || value === undefined) return;
+    if (value === null || value === undefined || !pmfm) return;
     switch (pmfm.type) {
       case "qualitative_value":
         return value && value.id && value.id.toString() || undefined;
@@ -421,7 +417,6 @@ export class MeasurementUtils {
       case "string":
         return value;
       case "boolean":
-        console.log("toEntityValue on boolean", value);
         return (value === true || value === "true") ? "true" : ((value === false || value === "false") ? "false" : undefined);
       case "date":
         return toDateISOString(value);
@@ -438,6 +433,16 @@ export class MeasurementUtils {
     return target;
   }
 
+  static isEmpty(source: Measurement | any): boolean {
+    if (!source) return true;
+    return isNil(source.alphanumericalValue)
+      && isNil(source.numericalValue)
+      && (!source.qualitativeValue || isNil(source.qualitativeValue.id))
+  }
+
+  static isNotEmpty(source: Measurement | any): boolean {
+    return !MeasurementUtils.isEmpty(source)
+  }
 }
 
 export class Sale extends DataRootVesselEntity<Sale> {
@@ -543,7 +548,7 @@ export class Operation extends DataEntity<Operation> {
     delete target.physicalGear;
 
     // Measurements
-    target.measurements = this.measurements && this.measurements.map(m => m.asObject(minify)) || undefined;
+    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
 
     // Samples
     target.samples = this.samples && this.samples.map(s => s.asObject(minify)) || undefined;

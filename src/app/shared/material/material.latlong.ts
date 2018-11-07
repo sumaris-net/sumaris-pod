@@ -152,12 +152,12 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
         this.writing = true;
         this.disabled = isDisabled;
         if (isDisabled) {
-            this.formControl.disable();
-            this.textFormControl.disable();
+            //this.formControl.disable({ onlySelf: true, emitEvent: false });
+            this.textFormControl.disable({ onlySelf: true, emitEvent: false });
         }
         else {
-            this.formControl.enable();
-            this.textFormControl.enable();
+            //this.formControl.enable({ onlySelf: true, emitEvent: false });
+            this.textFormControl.enable({ onlySelf: true, emitEvent: false });
         }
         this.writing = false;
         this.disabling = false;

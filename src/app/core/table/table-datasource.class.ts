@@ -151,7 +151,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   confirmCreate(row: TableElement<T>) {
     if (row.validator.valid && row.validator.dirty) {
-      if (this._debug) console.debug("[table-datasource] confirmCreate(): Copy validator -> currentData...");
+      if (this._debug) console.debug("[table-datasource] confirmCreate(): Copying row.validator -> row.currentData...");
       AppFormUtils.copyForm2Entity(row.validator, row.currentData);
       row.currentData.dirty = true;
     }
@@ -160,6 +160,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   confirmEdit(row: TableElement<T>) {
     if (row.validator.valid && row.validator.dirty) {
+      if (this._debug) console.debug("[table-datasource] confirmEdit(): Copying row.validator -> row.currentData");
       AppFormUtils.copyForm2Entity(row.validator, row.currentData);
       row.currentData.dirty = true;
     }

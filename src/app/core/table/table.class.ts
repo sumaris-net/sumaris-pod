@@ -320,6 +320,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     deleteSelection() {
         if (this.loading) return;
 
+        if (this.debug) console.log("[table] Delete selection...");
+
         this.selection.selected
             // Reverse row order
             // This is a workaround, need because row.delete() has async execution

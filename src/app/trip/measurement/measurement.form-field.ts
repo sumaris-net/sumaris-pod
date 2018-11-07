@@ -82,10 +82,10 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
         this.disabled = isDisabled;
         if (isDisabled) {
-            this.formControl.disable();
+            //this.formControl.disable({ onlySelf: true, emitEvent: false });
         }
         else {
-            this.formControl.enable();
+            //this.formControl.enable({ onlySelf: true, emitEvent: false });
         }
         this.disabling = false;
     }

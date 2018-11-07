@@ -48,7 +48,7 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
               levelId: LocationLevelIds.PORT,
               searchText: value as string
             }
-          );
+          ).first();
         }));
   }
 

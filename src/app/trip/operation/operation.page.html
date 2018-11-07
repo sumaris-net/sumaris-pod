@@ -27,7 +27,7 @@
         <ion-row no-padding>
           <ion-col padding>
             <!-- form -->
-            <form-operation (onSubmit)="save($event)" [showError]="false" #opeForm [debug]="debug">
+            <form-operation (onSubmit)="save($event)" [showError]="false" #opeForm [debug]="false">
 
               <!-- Other features -->
               <ion-row ng-if="data">
@@ -37,7 +37,7 @@
                   </ion-label>
                 </ion-col>
                 <ion-col no-padding>
-                  <form-measurements acquisitionLevel="OPERATION" [debug]="debug" #measurementsForm></form-measurements>
+                  <form-measurements acquisitionLevel="OPERATION" [debug]="false" #measurementsForm></form-measurements>
                 </ion-col>
               </ion-row>
             </form-operation>
@@ -82,7 +82,7 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && survivalTestsTable.invalid"></ion-icon>
       </ng-template>
 
-      <table-survival-tests #survivalTestsTable [debug]="debug"></table-survival-tests>
+      <table-survival-tests #survivalTestsTable [debug]="true"></table-survival-tests>
     </mat-tab>
 
     <!-- TAB: Individual monitoring  -->
@@ -93,7 +93,7 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
       </ng-template>
 
-      <table-individual-monitoring #individualMonitoringTable [debug]="true"></table-individual-monitoring>
+      <table-individual-monitoring #individualMonitoringTable [debug]="false"></table-individual-monitoring>
     </mat-tab>
   </mat-tab-group>
 

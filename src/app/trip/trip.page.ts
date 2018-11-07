@@ -11,7 +11,7 @@ import { MeasurementsForm } from './measurement/measurements.form';
 import { AppTabPage, AppFormUtils, AccountService } from '../core/core.module';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../environments/environment.prod';
+import { environment } from '../../environments/environment';
 import { Subscription } from 'rxjs-compat';
 @Component({
   selector: 'page-trip',
@@ -45,7 +45,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     super(route, router, alertCtrl, translate);
 
     // FOR DEV ONLY ----
-    this.debug = true;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -64,6 +64,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
         this.load(parseInt(id));
       }
     });
+
   }
 
   async load(id?: number, options?: any) {
@@ -115,6 +116,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.tripForm.value = data;
     this.saleForm.value = data && data.sale;
     this.measurementsForm.value = data && data.measurements || [];
+    this.measurementsForm.updateControls();
 
     this.physicalGearTable.value = data && data.gears || [];
 
@@ -126,8 +128,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.markAsUntouched();
   }
 
-  async save(event): Promise<any> {
-    if (this.loading || this.saving) return;
+  async save(event): Promise<boolean> {
+    if (this.loading || this.saving) return false;
 
     // Copy vessel features, before trying to validate saleForm
     if (this.tripForm.valid && !this.saleForm.empty) {
@@ -136,6 +138,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     // Not valid
     if (!this.valid) {
+      this.markAsTouched();
       if (this.debug) {
         console.debug("[page-trip] Form not valid. Detecting where...");
         if (this.tripForm.invalid) {
@@ -151,7 +154,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
         }
       }
       this.submitted = true;
-      return;
+      return false;
     }
     this.saving = true;
     this.error = undefined;
@@ -161,12 +164,17 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     // Update Trip from JSON
     let json = this.tripForm.value;
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
+    json.measurements = this.measurementsForm.value;
+
     this.data.fromObject(json);
-    this.data.gears = this.physicalGearTable.value;
-    this.data.measurements = this.measurementsForm.value;
 
     const formDirty = this.dirty;
     const isNew = this.isNewData();
+
+    // Update gears, from table
+    await this.physicalGearTable.save();
+    this.data.gears = this.physicalGearTable.value;
+
     this.disable();
 
     try {
@@ -193,12 +201,13 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
         this.startListenChanges();
       }
 
-      return updatedData;
+      return true;
     }
     catch (err) {
       console.error(err);
       this.submitted = true;
       this.error = err && err.message || err;
+      return false;
     }
     finally {
       this.enable();
@@ -218,4 +227,58 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     super.enable();
   }
 
+  async onOperationClick(opeId: number) {
+    const savedOrContinu = await this.saveIfDirtyAndConfirm();
+
+    if (savedOrContinu) {
+      this.router.navigateByUrl('/operations/' + this.data.id + '/' + opeId);
+    }
+  }
+
+  async onNewOperationClick() {
+    const savedOrContinu = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinu) {
+      this.router.navigateByUrl('/operations/' + this.data.id + '/new');
+    }
+  }
+
+  protected async saveIfDirtyAndConfirm(): Promise<boolean> {
+    if (!this.dirty) return true;
+
+    let confirm = false;
+    let cancel = false;
+    const translations = this.translate.instant(['COMMON.BTN_SAVE', 'COMMON.BTN_CANCEL', 'COMMON.BTN_NOT_SAVE', 'CONFIRM.SAVE', 'CONFIRM.ALERT_HEADER']);
+    const alert = await this.alertCtrl.create({
+      header: translations['CONFIRM.ALERT_HEADER'],
+      message: translations['CONFIRM.SAVE'],
+      buttons: [
+        {
+          text: translations['COMMON.BTN_CANCEL'],
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            cancel = true;
+          }
+        },
+        {
+          text: translations['COMMON.BTN_NOT_SAVE'],
+          cssClass: 'secondary',
+          handler: () => { }
+        },
+        {
+          text: translations['COMMON.BTN_SAVE'],
+          handler: () => {
+            confirm = true; // update upper value
+          }
+        }
+      ]
+    });
+    await alert.present();
+    await alert.onDidDismiss();
+
+    if (!confirm) return !cancel;
+
+    const saved = await this.save(event);
+    return saved;
+  }
 }

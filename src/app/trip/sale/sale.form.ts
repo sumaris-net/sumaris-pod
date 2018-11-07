@@ -81,7 +81,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
               searchText: value as string
-            });
+            }).first();
         }));
 
     // Combo: sale types
@@ -96,7 +96,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
             {
               entityName: 'SaleType',
               searchText: value as string
-            });
+            }).first();
         }));
   }
 

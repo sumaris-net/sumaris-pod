@@ -96,7 +96,7 @@ export abstract class AppForm<T> implements OnInit {
     if (this.debug) console.debug("[form] Updating form... ", json);
 
     // Appply to form
-    this.form.setValue(json);
+    this.form.setValue(json, { emitEvent: false });
   }
 
   /**
@@ -124,7 +124,7 @@ export abstract class AppForm<T> implements OnInit {
   }
 
   public markAsPristine() {
-    this.form.markAsPristine({ onlySelf: false });
+    this.form.markAsPristine();
   }
 
   public markAsUntouched() {

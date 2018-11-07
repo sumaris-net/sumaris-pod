@@ -13,9 +13,9 @@
       <ion-col size="12">
         <mat-form-field>
           <input matInput [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate" [matAutocomplete]="autoGear"
-            formControlName="gear" (keydown)="onGearKeyDown.next($event.target.value)">
-          <mat-error *ngIf="form.controls['gear']?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls['gear']?.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+            formControlName="gear" required>
+          <mat-error *ngIf="form.controls['gear'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['gear'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Gear combo -->
@@ -29,7 +29,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let gear of gears | async" [value]="gear">
+          <mat-option *ngFor="let gear of filteredGears | async" [value]="gear">
             <ion-row>
               <ion-col size="2" [innerHTML]="gear.label | highlight: {search: form.controls['gear'].value }"></ion-col>
               <ion-col [innerHTML]="gear.name | highlight: {search: form.controls['gear'].value }"></ion-col>
@@ -48,7 +48,7 @@
       </ion-col>
     </ion-row>
     <ion-row>
-      <form-measurements acquisitionLevel="PHYSICAL_GEAR" [debug]="debug" #measurementsForm></form-measurements>
+      <form-measurements acquisitionLevel="PHYSICAL_GEAR" [debug]="debug" [requiredGear]="true" #measurementsForm></form-measurements>
     </ion-row>
 
 

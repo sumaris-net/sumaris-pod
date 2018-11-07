@@ -27,6 +27,9 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
     pmfms = new Subject<PmfmStrategy[]>();
     cachedPmfms: PmfmStrategy[];
 
+
+    @Input() requiredGear: boolean = false;
+
     get program(): string {
         return this._program;
     }
@@ -62,7 +65,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
     set gear(value: string) {
         if (this._gear == value) return; // Skip if same
         this._gear = value;
-        if (!this.loading) {
+        if (!this.loading || this.requiredGear) {
             this._onRefreshPmfms.emit('set gear');
         }
     }
@@ -104,25 +107,28 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
     ngOnInit() {
         super.ngOnInit();
 
-        let now: number;
         this._onRefreshPmfms.asObservable()
-            // refresh only if program + acquisition has been set
-            .filter(() => !!this._program && !!this._acquisitionLevel)
-            .pipe(
-                mergeMap((event: any) => {
-                    if (event) this.logDebug(`call _onRefreshPmfms.emit('${event}')`);
-                    now = Date.now();
-                    this.logDebug(`Loading pmfms for '${this._program}' and gear '${this._gear}'...`);
-                    return this.programService.loadProgramPmfms(
-                        this._program,
-                        {
-                            acquisitionLevel: this._acquisitionLevel,
-                            gear: this._gear
-                        }).first();
-                })
-            )
-            .subscribe(pmfms => {
-                pmfms = pmfms || [];
+            .subscribe(async (event: any) => {
+                // Skip if missing: program, acquisition (or gear, if required)
+                const candLoadPmfms = !!this._program && !!this._acquisitionLevel && (!this.requiredGear || !!this._gear)
+                if (!candLoadPmfms) {
+                    this.pmfms.next([]);
+                    this.loading = true;
+                    return;
+                }
+
+                // Log 
+                if (event) this.logDebug(`call _onRefreshPmfms.emit('${event}')`);
+                this.logDebug(`Loading pmfms for '${this._program}/${this._acquisitionLevel}' and gear '${this._gear}'...`);
+                const now = Date.now();
+
+                // Load pmfms
+                const pmfms = (await this.programService.loadProgramPmfms(
+                    this._program,
+                    {
+                        acquisitionLevel: this._acquisitionLevel,
+                        gear: this._gear
+                    })) || [];
 
                 if (!pmfms.length) {
                     const acquisitionLevel = this._acquisitionLevel.toLowerCase().replace(/[_]/g, '-');
@@ -142,7 +148,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
 
         // Update the form group
         zip(
-            this._onValueChange,
+            this._onValueChange.asObservable(),
             this.pmfms
         )
             .subscribe(([event, pmfms]) => {
@@ -169,6 +175,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
                     onlySelf: true,
                     emitEvent: false
                 });
+                this.form.updateValueAndValidity();
 
                 this.logDebug(`Form updated in ${Date.now() - now}ms`, json);
 
@@ -189,7 +196,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
 
     public markAsTouched() {
         this.form.markAsTouched();
-        this.form.updateValueAndValidity();
+        //this.form.updateValueAndValidity();
         if (this.cachedPmfms && this.form && this.form.controls['measurementValues']) {
             const pmfmForm = this.form.controls['measurementValues'] as FormGroup;
             this.cachedPmfms.forEach(pmfm => {

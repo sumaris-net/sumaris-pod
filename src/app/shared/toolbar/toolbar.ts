@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { ProgressBarService } from '../../core/services/progress-bar.service';
-import { Subject, BehaviorSubject } from "rxjs-compat";
+import { Subject, BehaviorSubject } from "rxjs";
 
 @Component({
   selector: 'app-toolbar',

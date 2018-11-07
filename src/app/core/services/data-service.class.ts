@@ -119,7 +119,7 @@ export class BaseDataService {
             if (errors[0].message == "ERROR.UNKNOWN_NETWORK_ERROR") {
               reject(errors[0]);
             }
-            else if (errors[0].message.indexOf('"{code:"')) {
+            else if (errors[0].message.indexOf('"{code:"') !== -1) {
               const error = JSON.parse(errors[0].message);
               console.error("[data-service] " + error.message || error);
               if (error && error.code == ServerErrorCodes.BAD_UPDATE_DATE) {

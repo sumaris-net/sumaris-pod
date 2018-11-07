@@ -1,6 +1,5 @@
 import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable } from 'rxjs';
-import { zip } from "rxjs/observable/zip";
+import { Observable, BehaviorSubject } from 'rxjs';
 import { mergeMap, debounceTime } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
@@ -13,7 +12,7 @@ import { SurvivalTestValidatorService } from "../services/survivaltest.validator
 import { FormBuilder } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
-import { AcquisitionLevelCodes, EntityUtils, ReferentialRef } from "../../core/services/model";
+import { AcquisitionLevelCodes, EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model";
 
 const PMFM_ID_REGEXP = new RegExp(/\d+/);
 
@@ -33,13 +32,13 @@ const RESERVED_COLUMNS: string[] = ['taxonGroup', 'sampleDate'];
 })
 export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
 
-    private _onDataChange = new EventEmitter<any>();
     private _acquisitionLevel: string = AcquisitionLevelCodes.SURVIVAL_TEST;
     private _implicitTaxonGroup: ReferentialRef;
+    private _dataSubject = new BehaviorSubject<Sample[]>([]);
 
-    started: boolean = false;
-    pmfms: Observable<PmfmStrategy[]>;
-    cachedPmfms: PmfmStrategy[];
+    loading: boolean = true;
+    loadingPmfms: boolean = true;
+    pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
     measurementValuesFormGroupConfig: { [key: string]: any };
     data: Sample[];
     taxonGroups: Observable<ReferentialRef[]>;
@@ -50,7 +49,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
     set value(data: Sample[]) {
         if (this.data !== data) {
             this.data = data;
-            this._onDataChange.emit();
+            if (!this.loading) this.onRefresh.emit();
         }
     }
 
@@ -87,33 +86,25 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         //this.debug = true;
     };
 
-    ngOnInit() {
+    async ngOnInit() {
         super.ngOnInit();
 
-        this.pmfms = this.programService.loadProgramPmfms(
-            this.program,
-            {
-                acquisitionLevel: this._acquisitionLevel
-            }).first();
+        this.pmfms
+            .filter(pmfms => pmfms && pmfms.length > 0)
+            .first()
+            .subscribe(pmfms => {
+                this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
+                let displayedColumns = pmfms.map(p => p.pmfmId.toString());
 
-        this.pmfms.subscribe(pmfms => {
-            console.log(pmfms);
-            this.cachedPmfms = pmfms || [];
-            this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(this.cachedPmfms);
-            let displayedColumns = this.cachedPmfms.map(p => p.pmfmId.toString());
+                this.displayedColumns = RESERVED_START_COLUMNS
+                    .concat(RESERVED_COLUMNS)
+                    .concat(displayedColumns)
+                    .concat(RESERVED_END_COLUMNS);
 
-            this.displayedColumns = RESERVED_START_COLUMNS
-                .concat(RESERVED_COLUMNS)
-                .concat(displayedColumns)
-                .concat(RESERVED_END_COLUMNS);
-            this.started = true;
-        });
+                this.loading = false;
 
-        zip(
-            this.pmfms,
-            this._onDataChange
-        )
-            .subscribe(() => this.onRefresh.emit());
+                if (this.data) this.onRefresh.emit();
+            });
 
         // Taxon group combo
         this.taxonGroups = this.registerCellValueChanges('taxonGroup')
@@ -129,13 +120,16 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
                             levelId: TaxonGroupIds.FAO,
                             searchText: value as string,
                             searchAttribute: 'label'
-                        });
+                        }).first();
                 })
             );
 
         this.taxonGroups.subscribe(items => {
             this._implicitTaxonGroup = (items.length === 1) && items[0];
         });
+
+        // Start loading Pmfms
+        await this.refreshPmfms();
     }
 
     getRowValidator(): FormGroup {
@@ -170,47 +164,55 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         filter?: any,
         options?: any
     ): Observable<any[]> {
-        if (!this.data || !this.started) {
+        if (!this.data) {
             if (this.debug) console.debug("[survivaltests-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
         }
         sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
         const now = Date.now();
-        if (this.debug) console.debug("[survivaltests-table] Preparing measurementValues to form...", this.data);
+        if (this.debug) console.debug("[survivaltests-table] Loading rows..", this.data);
 
-        // Fill samples measurement map
-        this.data.forEach(sample => {
-            sample.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, this.cachedPmfms);
-        });
+        this.pmfms
+            .filter(pmfms => pmfms && pmfms.length > 0)
+            .first()
+            .subscribe(pmfms => {
+                // Fill samples measurement map
+                const data = this.data.map(sample => {
+                    const json = sample.asObject();
+                    json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);
+                    return json;
+                });
 
-        // Sort by column
-        const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-        this.data.sort((a, b) =>
-            a[sortBy] === b[sortBy] ?
-                0 : (a[sortBy] > b[sortBy] ?
-                    after : (-1 * after)
-                )
-        );
-        if (this.debug) console.debug("[survivaltests-table] Rows extracted in " + (Date.now() - now) + "ms", this.data);
+                // Sort 
+                this.sortSamples(data, sortBy, sortDirection);
+                if (this.debug) console.debug(`[survivaltests-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-        return Observable.of(this.data);
+                this._dataSubject.next(data);
+            });
+
+        return this._dataSubject.asObservable();
     }
 
     async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
-        if (!this.data || !this.started) throw new Error("[survivaltests-table] Could not save table: value not set (or not started)");
+        if (!this.data) throw new Error("[survivaltests-table] Could not save table: value not set (or not started)");
 
         if (this.debug) console.debug("[survivaltests-table] Updating data from rows...");
 
-        const rows = await this.dataSource.getRows();
-        this.data = rows.map(row => row.currentData);
+        const pmfms = this.pmfms.getValue() || [];
+        this.data = data.map(json => {
+            const sample = Sample.fromObject(json);
+            sample.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
+            return sample;
+        });
 
         return this.data;
     }
 
     async deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
-        console.debug("[table-survival-tests] Remove data", dataToRemove);
-        this.data = this.data.filter(item => !dataToRemove.find(g => g.equals(item)));
+        this._dirty = true;
+        // Noting else to do (make no sense to delete in this.data, will be done in saveAll())
+        return Promise.resolve();
     }
 
     addRow(): boolean {
@@ -243,10 +245,11 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
 
     protected getI18nColumnName(columnName: string): string {
 
+
         // Try to resolve PMFM column, using the cached pmfm list
         if (PMFM_ID_REGEXP.test(columnName)) {
             const pmfmId = parseInt(columnName);
-            const pmfm = this.cachedPmfms.find(p => p.pmfmId === pmfmId);
+            const pmfm = (this.pmfms.getValue() || []).find(p => p.pmfmId === pmfmId);
             if (pmfm) return pmfm.name;
         }
 
@@ -257,6 +260,43 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
 
     public trackByFn(index: number, row: TableElement<Sample>) {
         return row.currentData.rankOrder;
+    }
+
+    protected async refreshPmfms(): Promise<PmfmStrategy[]> {
+        const candLoadPmfms = isNotNil(this.program) && isNotNil(this._acquisitionLevel);
+        if (!candLoadPmfms) {
+            return undefined;
+        }
+
+        this.loading = true;
+        this.loadingPmfms = true;
+
+        // Load pmfms
+        const pmfms = (await this.programService.loadProgramPmfms(
+            this.program,
+            {
+                acquisitionLevel: this._acquisitionLevel
+            })) || [];
+
+        if (!pmfms.length && this.debug) {
+            console.debug(`[survivaltests-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+        }
+
+        this.loadingPmfms = false;
+
+        this.pmfms.next(pmfms);
+
+        return pmfms;
+    }
+
+    protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
+        sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
+        const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+        return data.sort((a, b) => {
+            const valueA = EntityUtils.getPropertyByPath(a, sortBy);
+            const valueB = EntityUtils.getPropertyByPath(b, sortBy);
+            return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+        });
     }
 }
 

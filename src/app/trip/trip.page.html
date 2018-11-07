@@ -30,10 +30,17 @@
             <!-- trip -->
             <form-trip (onSubmit)="save($event)" [showError]="false" #tripForm subForm>
 
+              <span *ngIf="debug">
+                <br />dirty: {{tripForm.dirty}}
+              </span>
+
               <!-- sale -->
               <form-sale [showVessel]="false" [showError]="false" [showComment]="false" [showEndDateTime]="false"
                 [required]="false" #saleForm>
               </form-sale>
+              <span *ngIf="debug">
+                <br />dirty: {{saleForm.dirty}}
+              </span>
 
               <!-- Measurements -->
               <ion-row>
@@ -42,6 +49,9 @@
                 </ion-col>
                 <ion-col>
                   <form-measurements acquisitionLevel="TRIP" [debug]="debug" #measurementsForm></form-measurements>
+                  <span *ngIf="debug">
+                    <br />dirty: {{measurementsForm.dirty}}
+                  </span>
                 </ion-col>
               </ion-row>
 
@@ -61,7 +71,7 @@
           <ion-icon matPrefix slot="start" name="settings"></ion-icon>
         </mat-icon>
         <ion-label translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="physicalGearTable.invalid && physicalGearTable.dirty"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="physicalGearTable.invalid"></ion-icon>
       </ng-template>
 
       <div no-padding>
@@ -72,8 +82,9 @@
           <ion-label color="danger" class="error" [innerHTML]="physicalGearTable.error|translate"></ion-label>
         </ion-item>
 
-        <table-physical-gears #physicalGearTable>
+        <table-physical-gears #physicalGearTable [debug]="debug">
         </table-physical-gears>
+
       </div>
     </mat-tab>
 
@@ -88,7 +99,7 @@
       </ng-template>
 
       <div no-padding>
-        <table-operations #operationTable>
+        <table-operations #operationTable (onOperationClick)="onOperationClick($event)" (onNewOperationClick)="onNewOperationClick($event)">
         </table-operations>
       </div>
     </mat-tab>
