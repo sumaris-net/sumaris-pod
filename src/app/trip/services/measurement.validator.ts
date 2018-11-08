@@ -3,6 +3,12 @@ import { ValidatorService } from "angular4-material-table";
 import { FormGroup, Validators, FormBuilder, AbstractControl, ValidatorFn } from "@angular/forms";
 import { PmfmStrategy } from "./trip.model";
 import { SharedValidators } from "../../shared/validator/validators";
+import { isNotNil, isNil } from "src/app/core/services/model";
+
+
+const REGEXP_INTEGER = /^[0-9]+$/;
+const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
+const REGEXP_DOUBLE_ONE_DECIMAL = /^[0-9]+(\.[0-9])?$/;
 
 @Injectable()
 export class MeasurementsValidatorService implements ValidatorService {
@@ -74,20 +80,30 @@ export class MeasurementsValidatorService implements ValidatorService {
     }
     else if (pmfm.type === 'integer' || pmfm.type === 'double') {
 
-      if (pmfm.minValue != undefined) {
+      if (isNotNil(pmfm.minValue)) {
         validatorFns.push(Validators.min(pmfm.minValue));
       }
-      if (pmfm.maxValue != undefined) {
+      if (isNotNil(pmfm.maxValue)) {
         validatorFns.push(Validators.max(pmfm.maxValue));
       }
 
       // Pattern validation
-      let pattern;
-      if (pmfm.type === 'integer' || pmfm.maximumNumberDecimals !== 0) {
-        pattern = '^[0-9]+$';
+      let pattern: RegExp;
+      // Integer or double with 0 decimals
+      if (pmfm.type === 'integer' || pmfm.maximumNumberDecimals === 0) {
+        pattern = REGEXP_INTEGER;
       }
-      else if (pmfm.maximumNumberDecimals > 0) {
-        pattern = '^[0-9]+([.,][0-9]{0,' + pmfm.maximumNumberDecimals + '})?$';
+      // Double without maximal decimals
+      else if (pmfm.type === 'double' && isNil(pmfm.maximumNumberDecimals)) {
+        pattern = REGEXP_DOUBLE;
+      }
+      // Double with a 1 decimal
+      else if (pmfm.maximumNumberDecimals === 1) {
+        pattern = REGEXP_DOUBLE_ONE_DECIMAL;
+      }
+      // Double with a N decimal
+      else if (pmfm.maximumNumberDecimals > 1) {
+        pattern = new RegExp('^[0-9]+(\.[0-9]{1,' + pmfm.maximumNumberDecimals + '})?$');
       }
       validatorFns.push(Validators.pattern(pattern));
     }
