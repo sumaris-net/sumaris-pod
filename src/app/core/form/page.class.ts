@@ -77,7 +77,9 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
     }
 
     public registerTables(tables: AppTable<any, any>[]): AppTabPage<T, F> {
-        tables.forEach(table => this.registerTable(table));
+        tables
+            .filter(table => !!table) // Skip not found tables
+            .forEach(table => this.registerTable(table));
         return this;
     }
 

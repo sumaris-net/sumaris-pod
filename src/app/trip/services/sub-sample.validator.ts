@@ -4,7 +4,7 @@ import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { SharedValidators } from "../../shared/validator/validators";
 
 @Injectable()
-export class IndividualMonitoringService implements ValidatorService {
+export class SubSampleValidatorService implements ValidatorService {
 
   constructor(private formBuilder: FormBuilder) {
   }

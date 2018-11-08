@@ -6,5 +6,5 @@ export { OperationValidatorService } from './operation.validator';
 export { PositionValidatorService } from './position.validator';
 export { MeasurementsValidatorService } from './measurement.validator';
 export { BatchValidatorService } from './batch.validator';
-export { SurvivalTestValidatorService } from './survivaltest.validator';
-export { IndividualMonitoringService } from './individual-monitoring.validator';
+export { SampleValidatorService } from './sample.validator';
+export { SubSampleValidatorService } from './sub-sample.validator';

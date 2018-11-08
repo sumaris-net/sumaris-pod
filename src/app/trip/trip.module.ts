@@ -15,16 +15,16 @@ import { PhysicalGearForm } from './physicalgear/physicalgear.form';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { OperationTable } from './operation/operations.table';
 import { TripModal } from './trip.modal';
-import { SurvivalTestsTable } from './survivaltest/survivaltests.table';
-import { IndividualMonitoringTable } from './individualmonitoring/individual-monitoring.table';
+import { SamplesTable } from './sample/samples.table';
+import { SubSamplesTable } from './sample/sub-samples.table';
 import { MeasurementValuesForm } from './measurement/measurement-values.form';
 
 import { TripService, OperationService } from './services/trip.services';
 
 import {
     TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService,
-    MeasurementsValidatorService, BatchValidatorService, SurvivalTestValidatorService,
-    IndividualMonitoringService
+    MeasurementsValidatorService, BatchValidatorService, SampleValidatorService,
+    SubSampleValidatorService
 } from './services/trip.validators';
 
 export { TripsPage, TripPage, MeasurementValuesForm }
@@ -50,8 +50,8 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         MeasurementQVFormField,
         MeasurementFormField,
         CatchForm,
-        SurvivalTestsTable,
-        IndividualMonitoringTable
+        SamplesTable,
+        SubSamplesTable
     ],
     exports: [
         TripsPage,
@@ -88,8 +88,8 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         PositionValidatorService,
         MeasurementsValidatorService,
         BatchValidatorService,
-        SurvivalTestValidatorService,
-        IndividualMonitoringService
+        SampleValidatorService,
+        SubSampleValidatorService
     ]
 })
 export class TripModule {

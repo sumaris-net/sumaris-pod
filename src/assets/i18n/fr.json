@@ -211,6 +211,7 @@
         "TAB_CATCH": "Capture",
         "TAB_SURVIVAL_TEST": "Tests de survie",
         "TAB_INDIVIDUAL_MONITORING": "Suivi individuel",
+        "TAB_INDIVIDUAL_RELEASES": "Relachés",
         "START": "Début pêche :",
         "END": "Fin pêche :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
@@ -246,20 +247,17 @@
     "BATCH": {
       "TABLE": {}
     },
-    "INDIVIDUAL_LENGTH": {
-      "TABLE": {}
-    },
-    "SURVIVAL_TEST": {
+    "SAMPLE": {
       "TABLE": {
         "TAXON_GROUP": "Espèce",
         "TAXON_GROUP_PLACEHOLDER": "Code FAO",
-        "SAMPLE_DATE": "Heure du test"
+        "SAMPLE_DATE": "Heure de la mesure"
       }
     },
-    "INDIVIDUAL_MONITORING": {
+    "SUB_SAMPLE": {
       "TABLE": {
-        "PARENT_SAMPLE": "Ehcnatillon parent",
-        "TAXON_GROUP": "Espèce",
+        "PARENT_SAMPLE": "Echantillon parent",
+        "TAXON_GROUP": "Species",
         "COMMENTS": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement"
       }

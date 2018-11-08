@@ -211,6 +211,7 @@
         "TAB_CATCH": "Catch",
         "TAB_SURVIVAL_TEST": "Survival tests",
         "TAB_INDIVIDUAL_MONITORING": "Individual monitoring",
+        "TAB_INDIVIDUAL_RELEASES": "Releases",
         "START": "Start of fishing:",
         "END": "End of fishing:",
         "GEAR_AND_TARGETED_SPECIES": "Gear / Target species:",
@@ -246,17 +247,14 @@
     "BATCH": {
       "TABLE": {}
     },
-    "INDIVIDUAL_LENGTH": {
-      "TABLE": {}
-    },
-    "SURVIVAL_TEST": {
+    "SAMPLE": {
       "TABLE": {
         "TAXON_GROUP": "Species",
         "TAXON_GROUP_PLACEHOLDER": "FAO code",
-        "SAMPLE_DATE": "Time of scoring"
+        "SAMPLE_DATE": "Measure time"
       }
     },
-    "INDIVIDUAL_MONITORING": {
+    "SUB_SAMPLE": {
       "TABLE": {
         "PARENT_SAMPLE": "Parent sample",
         "TAXON_GROUP": "Species",

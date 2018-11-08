@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
 import { Observable, BehaviorSubject } from 'rxjs';
-import { mergeMap, debounceTime } from "rxjs/operators";
+import { mergeMap, debounceTime, startWith } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
 import { referentialToString, PmfmStrategy, Sample, TaxonGroupIds, MeasurementUtils, getPmfmName } from "../services/trip.model";
@@ -8,43 +8,40 @@ import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { SurvivalTestValidatorService } from "../services/survivaltest.validator";
+import { SampleValidatorService } from "../services/sample.validator";
 import { FormBuilder } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
-import { AcquisitionLevelCodes, EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model";
-
-const PMFM_ID_REGEXP = new RegExp(/\d+/);
-
+import { EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model";
 import { FormGroup } from "@angular/forms";
 import { MeasurementsValidatorService } from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 
+const PMFM_ID_REGEXP = /\d+/;
 const RESERVED_COLUMNS: string[] = ['taxonGroup', 'sampleDate'];
 
 @Component({
-    selector: 'table-survival-tests',
-    templateUrl: 'survivaltests.table.html',
-    styleUrls: ['survivaltests.table.scss'],
+    selector: 'table-samples',
+    templateUrl: 'samples.table.html',
+    styleUrls: ['samples.table.scss'],
     providers: [
-        { provide: ValidatorService, useClass: SurvivalTestValidatorService }
+        { provide: ValidatorService, useClass: SampleValidatorService }
     ]
 })
-export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
+export class SamplesTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
 
-    private _acquisitionLevel: string = AcquisitionLevelCodes.SURVIVAL_TEST;
+    private _program: string = environment.defaultProgram;
+    private _acquisitionLevel: string;
     private _implicitTaxonGroup: ReferentialRef;
     private _dataSubject = new BehaviorSubject<Sample[]>([]);
+    private _onRefreshPmfms = new EventEmitter<any>();
 
-    loading: boolean = true;
-    loadingPmfms: boolean = true;
+    loading = true;
+    loadingPmfms = true;
     pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
     measurementValuesFormGroupConfig: { [key: string]: any };
     data: Sample[];
     taxonGroups: Observable<ReferentialRef[]>;
-
-    @Input() program: string = environment.defaultProgram;
-
 
     set value(data: Sample[]) {
         if (this.data !== data) {
@@ -57,6 +54,31 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         return this.data;
     }
 
+    @Input()
+    set program(value: string) {
+        if (this._program === value) return; // Skip if same
+        this._program = value;
+        if (!this.loading) {
+            this._onRefreshPmfms.emit('set program');
+        }
+    }
+
+    get program(): string {
+        return this._program;
+    }
+
+    @Input()
+    set acquisitionLevel(value: string) {
+        if (this._acquisitionLevel !== value) {
+            this._acquisitionLevel = value;
+            if (!this.loading) this.onRefresh.emit();
+        }
+    }
+
+    get acquisitionLevel(): string {
+        return this._acquisitionLevel;
+    }
+
     constructor(
         protected route: ActivatedRoute,
         protected router: Router,
@@ -64,7 +86,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         protected location: Location,
         protected modalCtrl: ModalController,
         protected accountService: AccountService,
-        protected validatorService: SurvivalTestValidatorService,
+        protected validatorService: SampleValidatorService,
         protected measurementsValidatorService: MeasurementsValidatorService,
         protected referentialRefService: ReferentialRefService,
         protected programService: ProgramService,
@@ -74,20 +96,28 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         super(route, router, platform, location, modalCtrl, accountService,
             RESERVED_START_COLUMNS.concat(RESERVED_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
-        this.i18nColumnPrefix = 'TRIP.SURVIVAL_TEST.TABLE.';
+        this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
         this.autoLoad = false;
         this.inlineEdition = true;
         this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
-            Sample, this, this,
-            {
+            Sample, this, this, {
                 prependNewElements: false,
-                onNewRow: (row) => this.onCreateNewSample(row)
+                onNewRow: (row) => this.onNewSample(row.currentData)
             }));
         //this.debug = true;
     };
 
     async ngOnInit() {
         super.ngOnInit();
+
+        this._onRefreshPmfms
+            .pipe(
+                startWith('ngOnInit')
+            )
+            .subscribe((event) => {
+                console.log("DEV=> will load PMFM ?");
+                this.refreshPmfms(event)
+            });
 
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
@@ -113,7 +143,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
                 mergeMap((value) => {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string") && value || undefined;
-                    if (this.debug) console.debug("[survivaltests-table] Searching taxon group on {" + (value || '*') + "}...");
+                    if (this.debug) console.debug("[sample-table] Searching taxon group on {" + (value || '*') + "}...");
                     return this.referentialRefService.loadAll(0, 10, undefined, undefined,
                         {
                             entityName: 'TaxonGroup',
@@ -128,8 +158,18 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
             this._implicitTaxonGroup = (items.length === 1) && items[0];
         });
 
-        // Start loading Pmfms
-        await this.refreshPmfms();
+    }
+
+    async getMaxRankOrder(): Promise<number> {
+
+        const rows = await this.dataSource.getRows();
+        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+    }
+
+    async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
+        // Set computed values
+        sample.rankOrder = rankOrder || (await this.getMaxRankOrder()) + 1;
+        sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
     }
 
     getRowValidator(): FormGroup {
@@ -144,18 +184,6 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         return formGroup;
     }
 
-    async getMaxRankOrder(): Promise<number> {
-
-        const rows = await this.dataSource.getRows();
-        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
-    }
-
-    async onCreateNewSample(row: TableElement<Sample>): Promise<void> {
-        // Set computed values
-        row.currentData.rankOrder = (await this.getMaxRankOrder()) + 1;
-        row.currentData.label = this._acquisitionLevel + "#" + row.currentData.rankOrder;
-    }
-
     loadAll(
         offset: number,
         size: number,
@@ -163,15 +191,15 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<any[]> {
+    ): Observable<Sample[]> {
         if (!this.data) {
-            if (this.debug) console.debug("[survivaltests-table] Unable to load row: value not set (or not started)");
+            if (this.debug) console.debug("[sample-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
         }
         sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
         const now = Date.now();
-        if (this.debug) console.debug("[survivaltests-table] Loading rows..", this.data);
+        if (this.debug) console.debug("[sample-table] Loading rows..", this.data);
 
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
@@ -184,9 +212,9 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
                     return json;
                 });
 
-                // Sort 
+                // Sort
                 this.sortSamples(data, sortBy, sortDirection);
-                if (this.debug) console.debug(`[survivaltests-table] Rows loaded in ${Date.now() - now}ms`, data);
+                if (this.debug) console.debug(`[sample-table] Rows loaded in ${Date.now() - now}ms`, data);
 
                 this._dataSubject.next(data);
             });
@@ -195,9 +223,9 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
     }
 
     async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
-        if (!this.data) throw new Error("[survivaltests-table] Could not save table: value not set (or not started)");
+        if (!this.data) throw new Error("[sample-table] Could not save table: value not set (or not started)");
 
-        if (this.debug) console.debug("[survivaltests-table] Updating data from rows...");
+        if (this.debug) console.debug("[sample-table] Updating data from rows...");
 
         const pmfms = this.pmfms.getValue() || [];
         this.data = data.map(json => {
@@ -209,7 +237,7 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         return this.data;
     }
 
-    async deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
+    deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
         this._dirty = true;
         // Noting else to do (make no sense to delete in this.data, will be done in saveAll())
         return Promise.resolve();
@@ -227,8 +255,6 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         this.selectedRow = row;
         return true;
     }
-
-    referentialToString = referentialToString;
 
     onTaxonGroupCellFocus(event: any, row: TableElement<any>) {
         this.startCellValueChanges('taxonGroup', row);
@@ -255,39 +281,6 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
         return super.getI18nColumnName(columnName);
     }
 
-    getPmfmColumnHeader = getPmfmName;
-
-    public trackByFn(index: number, row: TableElement<Sample>) {
-        return row.currentData.rankOrder;
-    }
-
-    protected async refreshPmfms(): Promise<PmfmStrategy[]> {
-        const candLoadPmfms = isNotNil(this.program) && isNotNil(this._acquisitionLevel);
-        if (!candLoadPmfms) {
-            return undefined;
-        }
-
-        this.loading = true;
-        this.loadingPmfms = true;
-
-        // Load pmfms
-        const pmfms = (await this.programService.loadProgramPmfms(
-            this.program,
-            {
-                acquisitionLevel: this._acquisitionLevel
-            })) || [];
-
-        if (!pmfms.length && this.debug) {
-            console.debug(`[survivaltests-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
-        }
-
-        this.loadingPmfms = false;
-
-        this.pmfms.next(pmfms);
-
-        return pmfms;
-    }
-
     protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
         sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
@@ -297,5 +290,39 @@ export class SurvivalTestsTable extends AppTable<Sample, { operationId?: number 
             return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
         });
     }
+
+    public trackByFn(index: number, row: TableElement<Sample>) {
+        return row.currentData.rankOrder;
+    }
+
+    protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
+        const candLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
+        if (!candLoadPmfms) {
+            return undefined;
+        }
+
+        this.loading = true;
+        this.loadingPmfms = true;
+
+        // Load pmfms
+        const pmfms = (await this.programService.loadProgramPmfms(
+            this._program,
+            {
+                acquisitionLevel: this._acquisitionLevel
+            })) || [];
+
+        if (!pmfms.length && this.debug) {
+            console.debug(`[sample-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+        }
+
+        this.loadingPmfms = false;
+
+        this.pmfms.next(pmfms);
+
+        return pmfms;
+    }
+
+    referentialToString = referentialToString;
+    getPmfmColumnHeader = getPmfmName;
 }
 

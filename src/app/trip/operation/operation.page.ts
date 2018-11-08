@@ -7,8 +7,8 @@ import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form';
 import { AppTabPage, AppFormUtils } from '../../core/core.module';
 import { CatchForm } from '../catch/catch.form';
-import { SurvivalTestsTable } from '../survivaltest/survivaltests.table';
-import { IndividualMonitoringTable } from '../individualmonitoring/individual-monitoring.table';
+import { SamplesTable } from '../sample/samples.table';
+import { SubSamplesTable } from '../sample/sub-samples.table';
 import { AlertController } from "@ionic/angular";
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes, isNotNil, isNil } from '../../core/services/model';
@@ -34,9 +34,11 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('catchForm') catchForm: CatchForm;
 
-  @ViewChild('survivalTestsTable') survivalTestsTable: SurvivalTestsTable;
+  @ViewChild('survivalTestsTable') survivalTestsTable: SamplesTable;
 
-  @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringTable;
+  @ViewChild('individualMonitoringTable') individualMonitoringTable: SubSamplesTable;
+
+  @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
 
   constructor(
     route: ActivatedRoute,
@@ -56,7 +58,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   ngOnInit() {
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
-      .registerTables([this.survivalTestsTable, this.individualMonitoringTable]);
+      .registerTables([this.survivalTestsTable, this.individualMonitoringTable, this.individualReleaseTable]);
 
     // Disable, during load
     this.disable();
@@ -84,7 +86,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.survivalTestsTable.listChange.debounceTime(400).subscribe(samples => {
       const availableParents = (samples || [])
         .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
-      this.individualMonitoringTable.availableParents = availableParents; // Will refresh the table
+      // Will refresh the tables (inside the setter):
+      this.individualMonitoringTable.availableParents = availableParents;
+      this.individualReleaseTable.availableParents = availableParents;
     });
   }
 
@@ -153,19 +157,20 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.catchForm.value = data && data.catchBatch || Batch.fromObject({ rankOrder: 1 });
     //this.catchForm.updateControls();
 
+    // Get all samples (and children)
+    const samples = (data && data.samples || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), [])
+
     // Set survival tests
-    const samples = data && data.samples || [];
-    const survivalTestSamples = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.SURVIVAL_TEST + "#"));
+    const survivalTestSamples = samples.filter(s => s.label.startsWith(this.survivalTestsTable.acquisitionLevel + "#"));
     this.survivalTestsTable.value = survivalTestSamples;
 
     // Set individual monitoring
     this.individualMonitoringTable.availableParents = survivalTestSamples.filter(s => s.measurementValues && isNotNil(s.measurementValues[PmfmIds.TAG_ID]));
-    const individualMonitoringSamples = samples
-      // Get from samples (if not yet a tree - first load)
-      .filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"))
-      // Get from survivalSamples (if is a tree - second load after a save)
-      .concat(survivalTestSamples.reduce((res, sample) => sample.children ? res.concat(sample.children) : res, []));
-    this.individualMonitoringTable.value = individualMonitoringSamples;
+    this.individualMonitoringTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"));
+
+    // Set individual release
+    this.individualReleaseTable.availableParents = this.individualMonitoringTable.availableParents;
+    this.individualReleaseTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_RELEASE + "#"));
 
     // Update title
     this.updateTitle();
@@ -220,15 +225,17 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.data.catchBatch = this.catchForm.value;
 
     // update tables 'value'
-    await this.survivalTestsTable.save(); // will  update 'value'
-    await this.individualMonitoringTable.save(); // will  update 'value'
+    await this.survivalTestsTable.save();
+    await this.individualMonitoringTable.save();
+    await this.individualReleaseTable.save();
 
-    // get samples, from tables
-    const individualMonitoringSamples = this.individualMonitoringTable.value || []; // sub level
+    // get sub-samples, from tables
+    const subSamples = (this.individualMonitoringTable.value || [])
+      .concat(this.individualReleaseTable.value || []);
     this.data.samples = (this.survivalTestsTable.value || [])
       .map(sample => {
-        // Add individual monitoring as children
-        sample.children = individualMonitoringSamples.filter(childSample => sample.equals(childSample.parent));
+        // Add children
+        sample.children = subSamples.filter(childSample => sample.equals(childSample.parent));
         return sample;
       });
 

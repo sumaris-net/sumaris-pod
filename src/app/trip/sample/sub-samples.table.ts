@@ -1,39 +1,41 @@
 import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
 import { Observable, BehaviorSubject } from 'rxjs';
+import { map, debounceTime, startWith } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService, AppFormUtils } from "../../core/core.module";
-import { getPmfmName, PmfmStrategy, Sample, MeasurementUtils } from "../services/trip.model";
+import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
+import { PmfmStrategy, Sample, MeasurementUtils, getPmfmName } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { IndividualMonitoringService } from "../services/individual-monitoring.validator";
-import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import { debounceTime, map } from "rxjs/operators";
+import { SubSampleValidatorService } from "../services/sub-sample.validator";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
-import { AcquisitionLevelCodes, EntityUtils, isNil, isNotNil } from "../../core/services/model";
+import { EntityUtils, isNil, isNotNil } from "../../core/services/model";
 import { MeasurementsValidatorService } from "../services/trip.validators";
+import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 import { PmfmIds } from "../../referential/services/model";
 
-const PMFM_ID_REGEXP = new RegExp(/\d+/);
+const PMFM_ID_REGEXP = /\d+/;
 const RESERVED_COLUMNS: string[] = ['parent'];
 
 @Component({
-    selector: 'table-individual-monitoring',
-    templateUrl: 'individual-monitoring.table.html',
-    styleUrls: ['individual-monitoring.table.scss'],
+    selector: 'table-sub-samples',
+    templateUrl: 'sub-samples.table.html',
+    styleUrls: ['sub-samples.table.scss'],
     providers: [
-        { provide: ValidatorService, useClass: IndividualMonitoringService }
+        { provide: ValidatorService, useClass: SubSampleValidatorService }
     ]
 })
-export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
+export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
 
-    private _acquisitionLevel: string = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
+    private _program: string = environment.defaultProgram;
+    private _acquisitionLevel: string;
     private _implicitParent: Sample;
     private _availableParents: Sample[] = [];
     private _dataSubject = new BehaviorSubject<Sample[]>([]);
+    private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
     loadingPmfms = true;
@@ -42,9 +44,6 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     measurementValuesFormGroupConfig: { [key: string]: any };
     data: Sample[];
     filteredParents: Observable<Sample[]>;
-
-    @Input() program: string = environment.defaultProgram;
-
 
     set value(data: Sample[]) {
         if (this.data !== data) {
@@ -55,6 +54,31 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
 
     get value(): Sample[] {
         return this.data;
+    }
+
+    @Input()
+    set program(value: string) {
+        if (this._program === value) return; // Skip if same
+        this._program = value;
+        if (!this.loading) {
+            this._onRefreshPmfms.emit('set program');
+        }
+    }
+
+    get program(): string {
+        return this._program;
+    }
+
+    @Input()
+    set acquisitionLevel(value: string) {
+        if (this._acquisitionLevel !== value) {
+            this._acquisitionLevel = value;
+            if (!this.loading) this.onRefresh.emit();
+        }
+    }
+
+    get acquisitionLevel(): string {
+        return this._acquisitionLevel;
     }
 
     set availableParents(parents: Sample[]) {
@@ -78,7 +102,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         protected location: Location,
         protected modalCtrl: ModalController,
         protected accountService: AccountService,
-        protected validatorService: IndividualMonitoringService,
+        protected validatorService: SubSampleValidatorService,
         protected measurementsValidatorService: MeasurementsValidatorService,
         protected referentialRefService: ReferentialRefService,
         protected programService: ProgramService,
@@ -88,20 +112,25 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         super(route, router, platform, location, modalCtrl, accountService,
             RESERVED_START_COLUMNS.concat(RESERVED_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
-        this.i18nColumnPrefix = 'TRIP.INDIVIDUAL_MONITORING.TABLE.';
+        this.i18nColumnPrefix = 'TRIP.SUB_SAMPLE.TABLE.';
         this.autoLoad = false;
         this.inlineEdition = true;
         this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
             Sample, this, this, {
                 prependNewElements: false,
                 onNewRow: (row) => this.onNewSample(row.currentData)
-            }
-        ));
+            }));
         //this.debug = true;
     };
 
     async ngOnInit() {
         super.ngOnInit();
+
+        this._onRefreshPmfms
+            .pipe(
+                startWith('ngOnInit')
+            )
+            .subscribe((event) => this.refreshPmfms(event));
 
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
@@ -129,7 +158,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                 map((value) => {
                     if (EntityUtils.isNotEmpty(value)) return [value];
                     value = (typeof value === "string" && value !== "*") && value || undefined;
-                    if (this.debug) console.debug("[monitoring-table] Searching parent {" + (value || '*') + "}...");
+                    if (this.debug) console.debug("[sub-sample-table] Searching parent {" + (value || '*') + "}...");
                     if (!value) return this._availableParents; // All
                     if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
                         return this._availableParents.filter(p => p.measurementValues && (p.measurementValues[this.displayParentPmfm.pmfmId] || '').startsWith(value))
@@ -145,7 +174,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
             this._implicitParent = (items.length === 1) && items[0];
         });
 
-        // Listenning on column 'IS_DEAD' value changes
+        // Listening on column 'IS_DEAD' value changes
         this.registerCellValueChanges('isDead', "measurementValues." + PmfmIds.IS_DEAD.toString())
             .subscribe((isDead) => {
                 if (!this.selectedRow) return; // Should never occur
@@ -171,8 +200,6 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                 }
             });
 
-        // Start loading Pmfms
-        await this.refreshPmfms();
     }
 
     async getMaxRankOrder(): Promise<number> {
@@ -211,18 +238,18 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         options?: any
     ): Observable<Sample[]> {
         if (!this.data) {
-            if (this.debug) console.debug("[monitoring-table] Unable to load row: value not set (or not started)");
+            if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
         }
 
         const now = Date.now();
-        if (this.debug) console.debug("[monitoring-table] Loading rows...", this.data);
+        if (this.debug) console.debug("[sub-sample-table] Loading rows...", this.data);
 
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
             .first()
             .subscribe(pmfms => {
-                // Fill samples measurement map
+                // Transform entities into object array
                 const data = this.data.map(sample => {
                     const json = sample.asObject();
                     json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);
@@ -232,9 +259,9 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
                 // Link to parent
                 this.linkSamplesToParent(data);
 
-                // Sort 
+                // Sort
                 this.sortSamples(data, sortBy, sortDirection);
-                if (this.debug) console.debug(`[monitoring-table] Rows loaded in ${Date.now() - now}ms`, data);
+                if (this.debug) console.debug(`[sub-sample-table] Rows loaded in ${Date.now() - now}ms`, data);
 
                 this._dataSubject.next(data);
             });
@@ -243,9 +270,9 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     }
 
     async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
-        if (!this.data) throw new Error("[monitoring-table] Could not save table: value not set (or not started)");
+        if (!this.data) throw new Error("[sub-sample-table] Could not save table: value not set (or not started)");
 
-        if (this.debug) console.debug("[monitoring-table] Updating data from rows...");
+        if (this.debug) console.debug("[sub-sample-table] Updating data from rows...");
 
         const pmfms = this.pmfms.getValue() || [];
         this.data = data.map(json => {
@@ -265,7 +292,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
     }
 
     addRow(): boolean {
-        if (this.debug) console.debug("[monitoring-table] Calling addRow()");
+        if (this.debug) console.debug("[sub-sample-table] Calling addRow()");
 
         // Create new row
         const result = super.addRow();
@@ -417,14 +444,12 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
         });
     }
 
-    getPmfmColumnHeader = getPmfmName;
-
     public trackByFn(index: number, row: TableElement<Sample>) {
         return row.currentData.rankOrder;
     }
 
-    protected async refreshPmfms(): Promise<PmfmStrategy[]> {
-        const candLoadPmfms = isNotNil(this.program) && isNotNil(this._acquisitionLevel);
+    protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
+        const candLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
         if (!candLoadPmfms) {
             return undefined;
         }
@@ -434,13 +459,13 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
 
         // Load pmfms
         const pmfms = (await this.programService.loadProgramPmfms(
-            this.program,
+            this._program,
             {
                 acquisitionLevel: this._acquisitionLevel
             })) || [];
 
         if (!pmfms.length && this.debug) {
-            console.debug(`[monitoring-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+            console.debug(`[sub-sample-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
         }
 
         this.loadingPmfms = false;
@@ -449,5 +474,7 @@ export class IndividualMonitoringTable extends AppTable<Sample, { operationId?: 
 
         return pmfms;
     }
+
+    getPmfmColumnHeader = getPmfmName;
 }
 

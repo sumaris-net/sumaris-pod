@@ -2,14 +2,9 @@
   <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-
   <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
-  </button>
-  <button mat-icon-button small color="light" *ngIf="!selection.hasValue()" [title]="'TRIP.INDIVIDUAL_MONITORING.TABLE.BTN_AUTO_FILL'|translate"
-    (click)="autoFillTable()">
-    <mat-icon>control_point_duplicate</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
@@ -36,7 +31,27 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" class="table-operations" matSort matSortActive="rankOrder" matSortDirection="asc"
+<!-- First table header
+<mat-table class="table-survival-test">
+  <ng-container matColumnDef="select">
+    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef></mat-header-cell>
+  </ng-container>
+  <ng-container matColumnDef="rankOrder">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+  </ng-container>
+  <ng-container *ngFor="let pmfm of pmfmHeaders | async" matColumnDef="{{pmfm.pmfmId}}">
+    <mat-header-cell *matHeaderCellDef class="col-{{pmfm.count}}">
+      <ion-label>{{pmfm.name | translate}}</ion-label>
+    </mat-header-cell>
+  </ng-container>
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+  </ng-container>
+  <mat-header-row *matHeaderRowDef="displayedHeaderColumns"></mat-header-row>
+</mat-table> -->
+
+
+<mat-table [dataSource]="dataSource" class="table-survival-test" matSort matSortActive="rankOrder" matSortDirection="asc"
   matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -60,34 +75,33 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- parent sample -->
-  <ng-container matColumnDef="parent">
+  <!-- taxon group -->
+  <ng-container matColumnDef="taxonGroup">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label>{{ (displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
-        'TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE') | translate }}</ion-label>
+      <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_GROUP</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent" [appAutofocus]="row.id == -1 && row.editing"
-          [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.INDIVIDUAL_MONITORING.TABLE.PARENT_SAMPLE' | translate)"
-          (focus)="onParentCellFocus($event, row)" (click)="$event.target.select()" (blur)="onParentCellBlur($event, row)"
+        <input matInput [formControl]="row.validator.controls['taxonGroup']" [matAutocomplete]="autoTaxonGroup"
+          [appAutofocus]="row.id == -1 && row.editing" [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
+          (focus)="onTaxonGroupCellFocus($event, row)" (click)="$event.target.select()" (blur)="onTaxonGroupCellBlur($event, row)"
           required>
-        <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        <mat-error *ngIf="row.validator.controls['taxonGroup'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
 
-      <mat-autocomplete autoActiveFirstOption #autoParent="matAutocomplete" [displayWith]="parentSampleToString">
+      <mat-autocomplete autoActiveFirstOption #autoTaxonGroup="matAutocomplete" [displayWith]="referentialToString">
         <ion-row class="mat-autocomplete-header">
-          <ion-col>
-            <ion-text>{{displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || '#'}}</ion-text>
+          <ion-col size="2">
+            <ion-text translate>REFERENTIAL.LABEL</ion-text>
           </ion-col>
           <ion-col>
-            <ion-text translate>TRIP.INDIVIDUAL_MONITORING.TABLE.TAXON_GROUP</ion-text>
+            <ion-text translate>REFERENTIAL.NAME</ion-text>
           </ion-col>
         </ion-row>
-        <mat-option *ngFor="let sample of filteredParents | async" [value]="sample">
+        <mat-option *ngFor="let item of taxonGroups | async" [value]="item">
           <ion-row>
-            <ion-col [innerHTML]="(displayParentPmfm && sample.measurementValues[displayParentPmfm.pmfmId] || sample.rankOrder) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
-            <ion-col [innerHTML]="sample.taxonGroup.label | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
+            <ion-col size="2" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
+            <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
           </ion-row>
         </mat-option>
       </mat-autocomplete>
@@ -95,41 +109,80 @@
 
   </ng-container>
 
+  <!-- date Column -->
+  <ng-container matColumnDef="sampleDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <ion-label translate>TRIP.SAMPLE.TABLE.SAMPLE_DATE</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" class="mat-cell-date-time">
+      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['sampleDate']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
+        [compact]="true" [readonly]="!row.editing" [required]="true"></mat-date-time>
+    </mat-cell>
+  </ng-container>
+
   <!-- Pmfms columns -->
   <ng-container *ngIf="loading">
-    <ng-container matColumnDef="100">
+    <ng-container matColumnDef="60">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row"></mat-cell>
     </ng-container>
-    <ng-container matColumnDef="101">
+    <ng-container matColumnDef="61">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row"></mat-cell>
     </ng-container>
-    <ng-container matColumnDef="102">
+    <ng-container matColumnDef="62">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row"></mat-cell>
     </ng-container>
-    <ng-container matColumnDef="103">
+    <ng-container matColumnDef="63">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row"></mat-cell>
     </ng-container>
-    <ng-container matColumnDef="104">
+    <ng-container matColumnDef="64">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row"></mat-cell>
     </ng-container>
-    <ng-container matColumnDef="105">
+    <ng-container matColumnDef="65">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row"></mat-cell>
     </ng-container>
-    <ng-container matColumnDef="106">
+    <ng-container matColumnDef="66">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row"></mat-cell>
     </ng-container>
-    <ng-container matColumnDef="107">
+    <ng-container matColumnDef="67">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row"></mat-cell>
     </ng-container>
-    <ng-container matColumnDef="108">
+    <ng-container matColumnDef="68">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="69">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="70">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="71">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="80">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="81">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="82">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row"></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="83">
       <mat-header-cell *matHeaderCellDef></mat-header-cell>
       <mat-cell *matCellDef="let row"></mat-cell>
     </ng-container>
@@ -138,7 +191,7 @@
   <ng-container *ngIf="!loading">
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.type=='date'">
+      <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.type=='date'">
         <ion-label>{{getPmfmColumnHeader(pmfm)}}
           <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
         </ion-label>
@@ -151,20 +204,11 @@
 
   </ng-container>
 
-  <!-- Comments column -->
-  <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-icon color="primary" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
-    </mat-cell>
-  </ng-container>
-
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition || !row.editing">
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition && row.editing">
       <!-- undo or delete  -->
       <button mat-icon-button small color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
         (click)="cancelOrDelete($event, row)">
@@ -202,6 +246,8 @@
     {{pmfm.label}}
   </ion-col>
 </ion-row> -->
+
+
 <ion-fab right bottom visible-xs visible-sm>
   <button ion-fab color="light" (click)="addRow()">
     <ion-icon name="md-add"></ion-icon>
