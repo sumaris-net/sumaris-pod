@@ -152,11 +152,9 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
         this.writing = true;
         this.disabled = isDisabled;
         if (isDisabled) {
-            //this.formControl.disable({ onlySelf: true, emitEvent: false });
             this.textFormControl.disable({ onlySelf: true, emitEvent: false });
         }
         else {
-            //this.formControl.enable({ onlySelf: true, emitEvent: false });
             this.textFormControl.enable({ onlySelf: true, emitEvent: false });
         }
         this.writing = false;
@@ -174,7 +172,7 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
             return;
         }
 
-        this.value = strValue && parseLatitudeOrLongitude(strValue, this.latLongPattern, this.maxDecimals, this.placeholderChar);
+        this.value = strValue && parseLatitudeOrLongitude(strValue, this.latLongPattern, 7 /*=precision of the converted double value */, this.placeholderChar);
 
         if (isNaN(this.value)) {
             this.formControl.markAsPending();
