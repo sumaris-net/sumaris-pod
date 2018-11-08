@@ -536,7 +536,7 @@ export class Operation extends DataEntity<Operation> {
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
-    target.metier = this.metier && this.metier.asObject(minify) || undefined;
+    target.metier = this.metier && this.metier.asObject(false/*Always minify=false, because of operations tables cache*/) || undefined;
 
     // Create an array of position, instead of start/end
     target.positions = [this.startPosition, this.endPosition].map(p => p && p.asObject(minify)) || undefined;
