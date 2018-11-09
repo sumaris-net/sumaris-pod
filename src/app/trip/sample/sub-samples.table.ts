@@ -173,48 +173,6 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         this.filteredParents.subscribe(items => {
             this._implicitParent = (items.length === 1) && items[0];
         });
-
-        // Listening on column 'IS_DEAD' value changes
-        this.registerCellValueChanges('isDead', "measurementValues." + PmfmIds.IS_DEAD.toString())
-            .subscribe((isDead) => {
-                if (!this.selectedRow) return; // Should never occur
-                const row = this.selectedRow
-                const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-                if (isDead) {
-                    if (row.validator.enabled) {
-                        controls[PmfmIds.DEATH_TIME].enable();
-                    }
-                    controls[PmfmIds.DEATH_TIME].setValidators(Validators.required);
-                    if (row.validator.enabled) {
-                        controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].enable();
-                    }
-                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators(Validators.required);
-                }
-                else {
-                    controls[PmfmIds.DEATH_TIME].disable();
-                    controls[PmfmIds.DEATH_TIME].setValue(null);
-                    controls[PmfmIds.DEATH_TIME].setValidators([]);
-                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValue(null);
-                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators([]);
-                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
-                }
-            });
-
-    }
-
-    async getMaxRankOrder(): Promise<number> {
-
-        const rows = await this.dataSource.getRows();
-        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
-    }
-
-    async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
-        // Set computed values
-        sample.rankOrder = rankOrder || ((await this.getMaxRankOrder()) + 1);
-        sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
-
-        // Set default values
-        sample.measurementValues[PmfmIds.IS_DEAD] = false;
     }
 
     getRowValidator(): FormGroup {
@@ -314,21 +272,13 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         return canEdit;
     }
 
-    startListenRow(row: TableElement<Sample>) {
-        this.startCellValueChanges('isDead', row);
-    }
 
     parentSampleToString(sample: Sample) {
         if (!sample) return null;
         return sample.measurementValues && sample.measurementValues[PmfmIds.TAG_ID] || `#${sample.rankOrder}`;
     }
 
-    onParentCellFocus(event: any, row: TableElement<any>) {
-        this.startCellValueChanges('parent', row);
-    }
-
     onParentCellBlur(event: FocusEvent, row: TableElement<any>) {
-        this.stopCellValueChanges('parent');
         // Apply last implicit value
         if (row.validator.controls.parent.hasError('entity') && this._implicitParent) {
             row.validator.controls.parent.setValue(this._implicitParent);
@@ -362,6 +312,28 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
 
     /* -- protected methods -- */
 
+
+    protected async getMaxRankOrder(): Promise<number> {
+
+        const rows = await this.dataSource.getRows();
+        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+    }
+
+    protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
+        // Set computed values
+        sample.rankOrder = rankOrder || ((await this.getMaxRankOrder()) + 1);
+        sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
+
+        // Set default values
+        sample.measurementValues[PmfmIds.IS_DEAD] = false;
+    }
+
+    /**
+     * Can be overrided in subclasses (e.g. monitoring invidual table)
+     **/
+    protected startListenRow(row: TableElement<Sample>) {
+        this.startCellValueChanges('parent', row);
+    }
 
     protected getI18nColumnName(columnName: string): string {
 

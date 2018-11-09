@@ -160,18 +160,6 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
 
     }
 
-    async getMaxRankOrder(): Promise<number> {
-
-        const rows = await this.dataSource.getRows();
-        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
-    }
-
-    async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
-        // Set computed values
-        sample.rankOrder = rankOrder || (await this.getMaxRankOrder()) + 1;
-        sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
-    }
-
     getRowValidator(): FormGroup {
         return this.getFormGroup();
     }
@@ -269,6 +257,23 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         this._implicitTaxonGroup = undefined;
     }
 
+    public trackByFn(index: number, row: TableElement<Sample>) {
+        return row.currentData.rankOrder;
+    }
+
+    /* -- protected methods -- */
+
+    protected async getMaxRankOrder(): Promise<number> {
+        const rows = await this.dataSource.getRows();
+        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+    }
+
+    protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
+        // Set computed values
+        sample.rankOrder = rankOrder || (await this.getMaxRankOrder()) + 1;
+        sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
+    }
+
     protected getI18nColumnName(columnName: string): string {
 
         // Try to resolve PMFM column, using the cached pmfm list
@@ -289,10 +294,6 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
             const valueB = EntityUtils.getPropertyByPath(b, sortBy);
             return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
         });
-    }
-
-    public trackByFn(index: number, row: TableElement<Sample>) {
-        return row.currentData.rankOrder;
     }
 
     protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {

@@ -1,0 +1,97 @@
+import { Component } from "@angular/core";
+import { ValidatorService, TableElement } from "angular4-material-table";
+import { AccountService } from "../../../core/core.module";
+import { Sample, } from "../../services/trip.model";
+import { ModalController, Platform } from "@ionic/angular";
+import { Router, ActivatedRoute } from "@angular/router";
+import { Location } from '@angular/common';
+import { ReferentialRefService, ProgramService } from "../../../referential/referential.module";
+import { SubSampleValidatorService } from "../../services/sub-sample.validator";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from "../../../core/services/model";
+import { MeasurementsValidatorService } from "../../services/trip.validators";
+import { PmfmIds } from "../../../referential/services/model";
+import { SubSamplesTable } from "../sub-samples.table";
+
+@Component({
+    selector: 'table-individual-monitoring',
+    templateUrl: '../sub-samples.table.html',
+    styleUrls: ['../sub-samples.table.scss'],
+    providers: [
+        { provide: ValidatorService, useClass: SubSampleValidatorService }
+    ]
+})
+export class IndividualMonitoringTable extends SubSamplesTable {
+
+
+    constructor(
+        protected route: ActivatedRoute,
+        protected router: Router,
+        protected platform: Platform,
+        protected location: Location,
+        protected modalCtrl: ModalController,
+        protected accountService: AccountService,
+        protected validatorService: SubSampleValidatorService,
+        protected measurementsValidatorService: MeasurementsValidatorService,
+        protected referentialRefService: ReferentialRefService,
+        protected programService: ProgramService,
+        protected translate: TranslateService,
+        protected formBuilder: FormBuilder
+    ) {
+        super(route, router, platform, location, modalCtrl, accountService,
+            validatorService, measurementsValidatorService, referentialRefService,
+            programService, translate, formBuilder
+        );
+        this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
+    };
+
+    async ngOnInit() {
+        super.ngOnInit();
+
+        // Listening on column 'IS_DEAD' value changes
+        this.registerCellValueChanges('isDead', "measurementValues." + PmfmIds.IS_DEAD.toString())
+            .subscribe((isDead) => {
+                if (!this.selectedRow) return; // Should never occur
+                const row = this.selectedRow
+                const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+                if (isDead) {
+                    if (row.validator.enabled) {
+                        controls[PmfmIds.DEATH_TIME].enable();
+                    }
+                    controls[PmfmIds.DEATH_TIME].setValidators(Validators.required);
+                    if (row.validator.enabled) {
+                        controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].enable();
+                    }
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators(Validators.required);
+                }
+                else {
+                    controls[PmfmIds.DEATH_TIME].disable();
+                    controls[PmfmIds.DEATH_TIME].setValue(null);
+                    controls[PmfmIds.DEATH_TIME].setValidators([]);
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValue(null);
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].setValidators([]);
+                    controls[PmfmIds.VERTEBRAL_COLUMN_ANALYSIS].disable();
+                }
+            });
+
+    }
+
+    /* -- protected methods -- */
+
+    protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
+        super.onNewSample(sample, rankOrder);
+
+        // Set IS_DEAD default value to false
+        sample.measurementValues[PmfmIds.IS_DEAD] = false;
+    }
+
+    protected startListenRow(row: TableElement<Sample>) {
+        super.startListenRow(row);
+
+        // Listeing IS_DEAD cell
+        this.startCellValueChanges('isDead', row);
+    }
+
+}
+

@@ -93,7 +93,7 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
       </ng-template>
 
-      <table-sub-samples #individualMonitoringTable [debug]="debug" acquisitionLevel="INDIVIDUAL_MONITORING"></table-sub-samples>
+      <table-individual-monitoring #individualMonitoringTable [debug]="debug" acquisitionLevel="INDIVIDUAL_MONITORING"></table-individual-monitoring>
     </mat-tab>
 
     <!-- TAB: Individual releases  -->
