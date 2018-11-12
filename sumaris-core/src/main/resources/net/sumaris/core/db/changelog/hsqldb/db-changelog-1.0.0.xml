@@ -3,7 +3,7 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
-        logicalFilePath="https://forge.ifremer.fr/plugins/scmgit/cgi-bin/gitweb.cgi?p=sumaris-core/sumaris-core.git;a=blob;f=sumaris-core-client/src/main/resources/fr/ifremer/sumaris/core/db/changelog/db-changelog-2.4.0.12.xml;hb=HEAD">
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.0.0.xml">
 
   <!-- reprise des scripts SQL des Jobs Talend -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1443436414284-1">
