@@ -245,7 +245,12 @@
       }
     },
     "BATCH": {
-      "TABLE": {}
+      "TABLE": {
+        "TAXON_GROUP": "FAO déclarative species",
+        "TAXON_GROUP_PLACEHOLDER": "Code FAO",
+        "TAXON_NAME": "FAO scientific species",
+        "TAXON_NAME_PLACEHOLDER": "Code FAO"
+      }
     },
     "SAMPLE": {
       "TABLE": {

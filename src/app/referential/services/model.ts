@@ -15,6 +15,15 @@ export const TaxonGroupIds = {
   METIER: 3
 }
 
+export const TaxonomicLevelIds = {
+  ORDO: 13,
+  FAMILY: 17,
+  GENUS: 26,
+  SUBGENUS: 27,
+  SPECIES: 28,
+  SUBSPECIES: 29
+}
+
 export const PmfmIds = {
   TAG_ID: 82,
   IS_DEAD: 100,

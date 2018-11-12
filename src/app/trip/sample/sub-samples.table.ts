@@ -18,7 +18,8 @@ import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/t
 import { PmfmIds } from "../../referential/services/model";
 
 const PMFM_ID_REGEXP = /\d+/;
-const RESERVED_COLUMNS: string[] = ['parent'];
+const SUBSAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
+const SUBSAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
     selector: 'table-sub-samples',
@@ -110,7 +111,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         protected formBuilder: FormBuilder
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            RESERVED_START_COLUMNS.concat(RESERVED_COLUMNS).concat(RESERVED_END_COLUMNS)
+            RESERVED_START_COLUMNS.concat(SUBSAMPLE_RESERVED_START_COLUMNS).concat(SUBSAMPLE_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
         this.i18nColumnPrefix = 'TRIP.SUB_SAMPLE.TABLE.';
         this.autoLoad = false;
@@ -142,8 +143,9 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
                 let displayedColumns = pmfms.map(p => p.pmfmId.toString());
 
                 this.displayedColumns = RESERVED_START_COLUMNS
-                    .concat(RESERVED_COLUMNS)
+                    .concat(SUBSAMPLE_RESERVED_START_COLUMNS)
                     .concat(displayedColumns)
+                    .concat(SUBSAMPLE_RESERVED_END_COLUMNS)
                     .concat(RESERVED_END_COLUMNS);
 
                 this.loading = false;

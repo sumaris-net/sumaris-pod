@@ -712,7 +712,7 @@ export class Sample extends DataRootEntity<Sample> {
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     delete target.parent;
 
-    target.children = this.children.map(s => s.asObject(minify));
+    target.children = this.children && this.children.map(c => c.asObject(minify)) || undefined;
 
     // Measurement: keep only the map
     if (minify) {
@@ -762,7 +762,7 @@ export class Sample extends DataRootEntity<Sample> {
         && ((!this.operationId && !other.operationId) || this.operationId === other.operationId)
         // same label
         && ((!this.label && !other.label) || this.label === other.label)
-        // Warn: compare using the parent ID is complicated
+        // Warn: compare using the parent ID is too complicated
       );
   }
 }
@@ -775,12 +775,14 @@ export class Batch extends DataEntity<Batch> {
     return res;
   }
 
+  label: string;
   rankOrder: number;
   exhaustiveInventory: boolean;
   samplingRatio: number;
   samplingRatioText: string;
   individualCount: number;
   taxonGroup: ReferentialRef;
+  taxonName: ReferentialRef;
   comments: string;
   measurementValues: { [key: number]: any };
 
@@ -793,6 +795,7 @@ export class Batch extends DataEntity<Batch> {
     super();
     this.parent = null;
     this.taxonGroup = null;
+    this.taxonName = null;
     this.measurementValues = {};
     this.children = [];
   }
@@ -811,6 +814,7 @@ export class Batch extends DataEntity<Batch> {
     this.parent = parent;
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject(minify) || undefined;
 
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     delete target.parent;
@@ -822,9 +826,7 @@ export class Batch extends DataEntity<Batch> {
       target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
         .reduce((map, pmfmId) => {
           const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
-          if (value || value === 0) {
-            map[pmfmId] = value;
-          }
+          if (isNotNil(value)) map[pmfmId] = '' + value;
           return map;
         }, {}) || undefined;
     }
@@ -834,17 +836,17 @@ export class Batch extends DataEntity<Batch> {
 
   fromObject(source: any): Batch {
     super.fromObject(source);
+    this.label = source.label;
     this.rankOrder = source.rankOrder;
     this.exhaustiveInventory = source.exhaustiveInventory;
     this.samplingRatio = source.samplingRatio;
     this.samplingRatioText = source.samplingRatioText;
     this.individualCount = source.individualCount;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
+    this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
     this.comments = source.comments;
     this.operationId = source.operationId;
     this.parentId = source.parentId;
-    this.children = source.children && source.children.filter(c => !!c).map(Batch.fromObject) || undefined;
-    this.children && this.children.forEach(c => c.parent = this); // link children to self
 
     if (source.measurementValues) {
       this.measurementValues = source.measurementValues;
@@ -868,9 +870,9 @@ export class Batch extends DataEntity<Batch> {
       || (this.rankOrder === other.rankOrder
         // same operation
         && ((!this.operationId && !other.operationId) || this.operationId === other.operationId)
-        // same parent
-        && ((!this.parentId && !other.parentId) || this.parentId === other.parentId)
-        // TODO: same label ??
+        // same label
+        && ((!this.label && !other.label) || this.label === other.label)
+        // Warn: compare using the parent ID is too complicated
       );
   }
 }

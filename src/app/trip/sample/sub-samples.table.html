@@ -94,46 +94,7 @@
 
   </ng-container>
 
-  <!-- Pmfms columns 
-  <ng-container *ngIf="loading">
-    <ng-container matColumnDef="100">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let row"></mat-cell>
-    </ng-container>
-    <ng-container matColumnDef="101">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let row"></mat-cell>
-    </ng-container>
-    <ng-container matColumnDef="102">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let row"></mat-cell>
-    </ng-container>
-    <ng-container matColumnDef="103">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let row"></mat-cell>
-    </ng-container>
-    <ng-container matColumnDef="104">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let row"></mat-cell>
-    </ng-container>
-    <ng-container matColumnDef="105">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let row"></mat-cell>
-    </ng-container>
-    <ng-container matColumnDef="106">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let row"></mat-cell>
-    </ng-container>
-    <ng-container matColumnDef="107">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let row"></mat-cell>
-    </ng-container>
-    <ng-container matColumnDef="108">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let row"></mat-cell>
-    </ng-container>
-  </ng-container>-->
-
+  <!-- Pmfms columns -->
   <ng-container *ngIf="!loading">
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
@@ -150,12 +111,16 @@
 
   </ng-container>
 
-  <!-- Comments column -->
+  <!-- Comment column -->
   <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef>
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+      <span translate>REFERENTIAL.COMMENTS</span>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-icon color="primary" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+          [readonly]="!row.editing">
+      </mat-form-field>
     </mat-cell>
   </ng-container>
 

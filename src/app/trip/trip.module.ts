@@ -17,6 +17,7 @@ import { OperationTable } from './operation/operations.table';
 import { TripModal } from './trip.modal';
 import { SamplesTable } from './sample/samples.table';
 import { SubSamplesTable } from './sample/sub-samples.table';
+import { BatchesTable } from './batch/batches.table';
 import { IndividualMonitoringTable } from './sample/individualmonitoring/sample-individual-monitoring.table';
 import { MeasurementValuesForm } from './measurement/measurement-values.form';
 
@@ -53,6 +54,7 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         CatchForm,
         SamplesTable,
         SubSamplesTable,
+        BatchesTable,
         IndividualMonitoringTable
     ],
     exports: [

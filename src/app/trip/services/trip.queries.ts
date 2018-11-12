@@ -121,6 +121,9 @@ export const DataFragments = {
     taxonGroup {
       ...ReferentialFragment
     }
+    taxonName {
+      ...ReferentialFragment
+    }
     measurementValues      
   }
   ${Fragments.referential}

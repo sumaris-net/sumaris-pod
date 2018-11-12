@@ -3,12 +3,12 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { mergeMap, debounceTime, startWith } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { referentialToString, PmfmStrategy, Sample, TaxonGroupIds, MeasurementUtils, getPmfmName } from "../services/trip.model";
+import { referentialToString, PmfmStrategy, Batch, TaxonGroupIds, MeasurementUtils, getPmfmName } from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { SampleValidatorService } from "../services/sample.validator";
+import { BatchValidatorService } from "../services/batch.validator";
 import { FormBuilder } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
@@ -16,42 +16,46 @@ import { EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model
 import { FormGroup } from "@angular/forms";
 import { MeasurementsValidatorService } from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
+import { TaxonomicLevelIds } from "src/app/referential/services/model";
 
 const PMFM_ID_REGEXP = /\d+/;
-const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'sampleDate'];
-const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
+const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
+const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
+
+
 
 @Component({
-    selector: 'table-samples',
-    templateUrl: 'samples.table.html',
-    styleUrls: ['samples.table.scss'],
+    selector: 'table-batches',
+    templateUrl: 'batches.table.html',
+    styleUrls: ['batches.table.scss'],
     providers: [
-        { provide: ValidatorService, useClass: SampleValidatorService }
+        { provide: ValidatorService, useClass: BatchValidatorService }
     ]
 })
-export class SamplesTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
+export class BatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
 
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
-    private _implicitTaxonGroup: ReferentialRef;
-    private _dataSubject = new BehaviorSubject<Sample[]>([]);
+    private _implicitValues: { [key: string]: any } = {};
+    private _dataSubject = new BehaviorSubject<Batch[]>([]);
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
     loadingPmfms = true;
     pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
     measurementValuesFormGroupConfig: { [key: string]: any };
-    data: Sample[];
+    data: Batch[];
     taxonGroups: Observable<ReferentialRef[]>;
+    taxonNames: Observable<ReferentialRef[]>;
 
-    set value(data: Sample[]) {
+    set value(data: Batch[]) {
         if (this.data !== data) {
             this.data = data;
             if (!this.loading) this.onRefresh.emit();
         }
     }
 
-    get value(): Sample[] {
+    get value(): Batch[] {
         return this.data;
     }
 
@@ -87,7 +91,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         protected location: Location,
         protected modalCtrl: ModalController,
         protected accountService: AccountService,
-        protected validatorService: SampleValidatorService,
+        protected validatorService: BatchValidatorService,
         protected measurementsValidatorService: MeasurementsValidatorService,
         protected referentialRefService: ReferentialRefService,
         protected programService: ProgramService,
@@ -95,15 +99,15 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         protected formBuilder: FormBuilder
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            RESERVED_START_COLUMNS.concat(SAMPLE_RESERVED_START_COLUMNS).concat(SAMPLE_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
+            RESERVED_START_COLUMNS.concat(BATCH_RESERVED_START_COLUMNS).concat(BATCH_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
-        this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
+        this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
         this.autoLoad = false;
         this.inlineEdition = true;
         this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
-            Sample, this, this, {
+            Batch, this, this, {
                 prependNewElements: false,
-                onNewRow: (row) => this.onNewSample(row.currentData)
+                onNewRow: (row) => this.onNewBatch(row.currentData)
             }));
         //this.debug = true;
     };
@@ -127,9 +131,9 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 let displayedColumns = pmfms.map(p => p.pmfmId.toString());
 
                 this.displayedColumns = RESERVED_START_COLUMNS
-                    .concat(SAMPLE_RESERVED_START_COLUMNS)
+                    .concat(BATCH_RESERVED_START_COLUMNS)
                     .concat(displayedColumns)
-                    .concat(SAMPLE_RESERVED_END_COLUMNS)
+                    .concat(BATCH_RESERVED_END_COLUMNS)
                     .concat(RESERVED_END_COLUMNS);
 
                 this.loading = false;
@@ -144,7 +148,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 mergeMap((value) => {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string") && value || undefined;
-                    if (this.debug) console.debug("[sample-table] Searching taxon group on {" + (value || '*') + "}...");
+                    if (this.debug) console.debug("[batch-table] Searching taxon group on {" + (value || '*') + "}...");
                     return this.referentialRefService.loadAll(0, 10, undefined, undefined,
                         {
                             entityName: 'TaxonGroup',
@@ -156,7 +160,29 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
             );
 
         this.taxonGroups.subscribe(items => {
-            this._implicitTaxonGroup = (items.length === 1) && items[0];
+            this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined;
+        });
+
+        // Taxon name combo
+        this.taxonNames = this.registerCellValueChanges('taxonName')
+            .pipe(
+                debounceTime(250),
+                mergeMap((value) => {
+                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+                    value = (typeof value === "string") && value || undefined;
+                    if (this.debug) console.debug("[batch-table] Searching taxon name on {" + (value || '*') + "}...");
+                    return this.referentialRefService.loadAll(0, 10, undefined, undefined,
+                        {
+                            entityName: 'TaxonName',
+                            levelId: TaxonomicLevelIds.SPECIES,
+                            searchText: value as string,
+                            searchAttribute: 'label'
+                        }).first();
+                })
+            );
+
+        this.taxonNames.subscribe(items => {
+            this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined;
         });
 
     }
@@ -180,30 +206,30 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Sample[]> {
+    ): Observable<Batch[]> {
         if (!this.data) {
-            if (this.debug) console.debug("[sample-table] Unable to load row: value not set (or not started)");
+            if (this.debug) console.debug("[batch-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
         }
         sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
         const now = Date.now();
-        if (this.debug) console.debug("[sample-table] Loading rows..", this.data);
+        if (this.debug) console.debug("[batch-table] Loading rows..", this.data);
 
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
             .first()
             .subscribe(pmfms => {
                 // Transform entities into object array
-                const data = this.data.map(sample => {
-                    const json = sample.asObject();
-                    json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);
+                const data = this.data.map(batch => {
+                    const json = batch.asObject();
+                    json.measurementValues = MeasurementUtils.normalizeFormValues(batch.measurementValues, pmfms);
                     return json;
                 });
 
                 // Sort
-                this.sortSamples(data, sortBy, sortDirection);
-                if (this.debug) console.debug(`[sample-table] Rows loaded in ${Date.now() - now}ms`, data);
+                this.sortBatches(data, sortBy, sortDirection);
+                if (this.debug) console.debug(`[batch-table] Rows loaded in ${Date.now() - now}ms`, data);
 
                 this._dataSubject.next(data);
             });
@@ -211,22 +237,22 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         return this._dataSubject.asObservable();
     }
 
-    async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
-        if (!this.data) throw new Error("[sample-table] Could not save table: value not set (or not started)");
+    async saveAll(data: Batch[], options?: any): Promise<Batch[]> {
+        if (!this.data) throw new Error("[batch-table] Could not save table: value not set (or not started)");
 
-        if (this.debug) console.debug("[sample-table] Updating data from rows...");
+        if (this.debug) console.debug("[batch-table] Updating data from rows...");
 
         const pmfms = this.pmfms.getValue() || [];
         this.data = data.map(json => {
-            const sample = Sample.fromObject(json);
-            sample.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
-            return sample;
+            const batch = Batch.fromObject(json);
+            batch.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
+            return batch;
         });
 
         return this.data;
     }
 
-    deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
+    deleteAll(dataToRemove: Batch[], options?: any): Promise<any> {
         this._dirty = true;
         // Noting else to do (make no sense to delete in this.data, will be done in saveAll())
         return Promise.resolve();
@@ -245,20 +271,20 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         return true;
     }
 
-    onTaxonGroupCellFocus(event: any, row: TableElement<any>) {
-        this.startCellValueChanges('taxonGroup', row);
+    onCellFocus(event: any, row: TableElement<any>, columnName: string) {
+        this.startCellValueChanges(columnName, row);
     }
 
-    onTaxonGroupCellBlur(event: FocusEvent, row: TableElement<any>) {
-        this.stopCellValueChanges('taxonGroup');
+    onCellBlur(event: FocusEvent, row: TableElement<any>, columnName: string) {
+        this.stopCellValueChanges(columnName);
         // Apply last implicit value
-        if (row.validator.controls.taxonGroup.hasError('entity') && this._implicitTaxonGroup) {
-            row.validator.controls.taxonGroup.setValue(this._implicitTaxonGroup);
+        if (row.validator.controls[columnName].hasError('entity') && isNotNil(this._implicitValues[columnName])) {
+            row.validator.controls[columnName].setValue(this._implicitValues[columnName]);
         }
-        this._implicitTaxonGroup = undefined;
+        this._implicitValues[columnName] = undefined;
     }
 
-    public trackByFn(index: number, row: TableElement<Sample>) {
+    public trackByFn(index: number, row: TableElement<Batch>) {
         return row.currentData.rankOrder;
     }
 
@@ -269,16 +295,16 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
     }
 
-    protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
+    protected async onNewBatch(batch: Batch, rankOrder?: number): Promise<void> {
         // Set computed values
-        sample.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
-        sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
+        batch.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
+        batch.label = this._acquisitionLevel + "#" + batch.rankOrder;
 
         // Set default values
         (this.pmfms.getValue() || [])
             .filter(pmfm => isNotNil(pmfm.defaultValue))
             .forEach(pmfm => {
-                sample.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
+                batch.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
             });
     }
 
@@ -294,7 +320,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         return super.getI18nColumnName(columnName);
     }
 
-    protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
+    protected sortBatches(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {
         sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
         return data.sort((a, b) => {
@@ -321,7 +347,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
             })) || [];
 
         if (!pmfms.length && this.debug) {
-            console.debug(`[sample-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+            console.debug(`[batch-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
         }
 
         this.loadingPmfms = false;

@@ -16,6 +16,7 @@ import { PmfmIds } from '../../referential/services/model';
 import { environment } from 'src/environments/environment';
 import { Subject } from 'rxjs';
 import { DateFormatPipe } from 'src/app/shared/pipes/date-format.pipe';
+import { BatchesTable } from '../batch/batches.table';
 @Component({
   selector: 'page-operation',
   templateUrl: './operation.page.html',
@@ -40,6 +41,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
 
+  @ViewChild('batchesTable') batchesTable: BatchesTable;
+
+
   constructor(
     route: ActivatedRoute,
     router: Router,
@@ -58,7 +62,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   ngOnInit() {
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
-      .registerTables([this.survivalTestsTable, this.individualMonitoringTable, this.individualReleaseTable]);
+      .registerTables([this.survivalTestsTable, this.individualMonitoringTable, this.individualReleaseTable, this.batchesTable]);
 
     // Disable, during load
     this.disable();
@@ -166,11 +170,17 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Set individual monitoring
     this.individualMonitoringTable.availableParents = survivalTestSamples.filter(s => s.measurementValues && isNotNil(s.measurementValues[PmfmIds.TAG_ID]));
-    this.individualMonitoringTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_MONITORING + "#"));
+    this.individualMonitoringTable.value = samples.filter(s => s.label.startsWith(this.individualMonitoringTable.acquisitionLevel + "#"));
 
     // Set individual release
     this.individualReleaseTable.availableParents = this.individualMonitoringTable.availableParents;
-    this.individualReleaseTable.value = samples.filter(s => s.label.startsWith(AcquisitionLevelCodes.INDIVIDUAL_RELEASE + "#"));
+    this.individualReleaseTable.value = samples.filter(s => s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
+
+    // Get all batches (and children)
+    const batches = (data && data.catchBatch && [data.catchBatch] || []).reduce((res, batch) => !batch.children ? res.concat(batch) : res.concat(batch).concat(batch.children), [])
+
+    // Set batches
+    this.batchesTable.value = batches.filter(s => s.label.startsWith(this.batchesTable.acquisitionLevel + "#"));
 
     // Update title
     this.updateTitle();

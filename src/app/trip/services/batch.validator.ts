@@ -22,9 +22,10 @@ export class BatchValidatorService implements ValidatorService {
       'individualCount': ['', Validators.compose([Validators.min(0), Validators.pattern('^[0-9]+$')])],
       'samplingRatio': [''],
       'samplingRatioText': [''],
-      'taxonGroup': ['', SharedValidators.entity /*Validators.compose([Validators.required, SharedValidators.entity])*/],
+      'taxonGroup': ['', SharedValidators.entity],
+      'taxonName': ['', SharedValidators.entity],
       'comments': [''],
-      'parentId': ['']
+      'parent': ['', SharedValidators.entity],
     });
   }
 }
