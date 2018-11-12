@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Entity } from '../services/model';
 
 @Component({
     selector: 'form-buttons-bar',
     templateUrl: './form-buttons-bar.component.html',
+    host: { '(window:keydown)': 'hotkeys($event)' },
     styleUrls: ['./form-buttons-bar.component.scss']
 })
 export class FormButtonsBarComponent {
@@ -23,4 +23,16 @@ export class FormButtonsBarComponent {
     @Output()
     onNext: EventEmitter<any> = new EventEmitter<any>();
 
+    hotkeys(event) {
+        // Ctrl+S 
+        if (event.keyCode == 83 && event.ctrlKey) {
+            if (!this.disabled) this.onSave.emit(event);
+            event.preventDefault();
+        }
+        // Ctrl+Z 
+        if (event.keyCode == 90 && event.ctrlKey) {
+            if (!this.disabled && !this.disabledCancel) this.onCancel.emit(event);
+            event.preventDefault();
+        }
+    }
 }

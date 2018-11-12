@@ -390,7 +390,7 @@ export class MeasurementUtils {
       case "string":
         return value || null;
       case "boolean":
-        return (value === "true" || value === true) ? true : ((value === "false" || value === false) ? false : null);
+        return (value === "true" || value === true || value === 1) ? true : ((value === "false" || value === false || value === 0) ? false : null);
       case "date":
         return fromDateISOString(value) || null;
       default:

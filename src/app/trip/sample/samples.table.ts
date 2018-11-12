@@ -115,7 +115,6 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 startWith('ngOnInit')
             )
             .subscribe((event) => {
-                console.log("DEV=> will load PMFM ?");
                 this.refreshPmfms(event)
             });
 
@@ -270,8 +269,15 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
 
     protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
         // Set computed values
-        sample.rankOrder = rankOrder || (await this.getMaxRankOrder()) + 1;
+        sample.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
         sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
+
+        // Set default values
+        (this.pmfms.getValue() || [])
+            .filter(pmfm => isNotNil(pmfm.defaultValue))
+            .forEach(pmfm => {
+                sample.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
+            });
     }
 
     protected getI18nColumnName(columnName: string): string {

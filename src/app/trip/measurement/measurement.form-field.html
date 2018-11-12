@@ -1,4 +1,4 @@
-<ng-container [ngSwitch]="pmfm.type">
+<ng-container [ngSwitch]="type">
 
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
@@ -51,6 +51,16 @@
       <input matInput autocomplete="off" [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory">
     </mat-form-field>
   </ng-container>
+
+  <!-- latitude -->
+  <mat-latlong *ngSwitchCase="'latitude'" [floatLabel]="floatLabel" [formControl]="formControl" type="latitude"
+    [placeholder]="placeholder" [required]="pmfm.isMandatory">
+  </mat-latlong>
+
+  <!-- longitude -->
+  <mat-latlong *ngSwitchCase="'longitude'" [floatLabel]="floatLabel" [formControl]="formControl" type="longitude"
+    [placeholder]="placeholder" [required]="pmfm.isMandatory">
+  </mat-latlong>
 
   <!-- other -->
   <ng-container *ngSwitchDefault>

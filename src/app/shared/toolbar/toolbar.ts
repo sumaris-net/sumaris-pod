@@ -27,7 +27,7 @@ export class ToolbarComponent implements OnInit {
   @Output()
   onValidate: EventEmitter<any> = new EventEmitter<any>();
 
-  progressBarMode: Subject<string> = new BehaviorSubject('none');
+  progressBarMode: BehaviorSubject<string> = new BehaviorSubject('none');
 
   constructor(
     private progressBarService: ProgressBarService
@@ -37,9 +37,11 @@ export class ToolbarComponent implements OnInit {
   ngOnInit() {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
     this.progressBarService.updateProgressBar$.subscribe((mode: string) => {
-      setTimeout(() => {
-        this.progressBarMode.next(mode);
-      });
+      if (mode != this.progressBarMode.getValue()) {
+        setTimeout(() => {
+          this.progressBarMode.next(mode);
+        });
+      }
     });
   }
 

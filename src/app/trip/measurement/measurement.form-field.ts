@@ -24,6 +24,8 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     private _onTouchedCallback: () => void = noop;
     protected disabling: boolean = false;
 
+    type: string;
+
     @Input() pmfm: PmfmStrategy;
 
     @Input() disabled: boolean = false
@@ -66,6 +68,16 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
         this.formControl.setValidators(this.measurementValidatorService.getValidator(this.pmfm));
         this.placeholder = this.placeholder || getPmfmName(this.pmfm, { withUnit: !this.compact });
+
+        // Compute the field type (use special case for Latitude/Longitude)
+        let type = this.pmfm.type;
+        if (type == "double" && this.pmfm.label === "LATITUDE") {
+            type = "latitude";
+        }
+        else if (type == "double" && this.pmfm.label === "LONGITUDE") {
+            type = "longitude";
+        }
+        this.type = type;
     }
 
     registerOnChange(fn: any): void {
