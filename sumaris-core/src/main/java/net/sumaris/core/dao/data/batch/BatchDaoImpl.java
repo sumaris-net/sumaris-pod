@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data.batch;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.TaxonNameDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
@@ -32,7 +33,9 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.batch.Batch;
 import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.OperationVO;
@@ -64,6 +67,9 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
 
     @Autowired
     private ReferentialDao referentialDao;
+
+    @Autowired
+    private TaxonNameDao taxonNameDao;
 
     @Override
     public List<BatchVO> getAllByOperationId(int operationId) {
@@ -195,6 +201,12 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             target.setTaxonGroup(taxonGroup);
         }
 
+        // Taxon name (from reference)
+        if (source.getReferenceTaxon() != null) {
+            ReferentialVO taxonName = taxonNameDao.getTaxonNameReferent(source.getReferenceTaxon().getId());
+            target.setTaxonName(taxonName);
+        }
+
         // Parent batch
         if (source.getParent() != null) {
             target.setParentId(source.getParent().getId());
@@ -249,6 +261,18 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             }
             else {
                 target.setTaxonGroup(load(TaxonGroup.class, source.getTaxonGroup().getId()));
+            }
+        }
+
+        // Reference taxon (from taxon name)
+        if (copyIfNull || source.getTaxonName() != null) {
+            if (source.getTaxonName() == null || source.getTaxonName().getId() == null) {
+                target.setReferenceTaxon(null);
+            }
+            else {
+                // Get the taxon name, then set reference taxon
+                TaxonName taxonname = get(TaxonName.class, source.getTaxonName().getId());
+                target.setReferenceTaxon(taxonname.getReferenceTaxon());
             }
         }
 
