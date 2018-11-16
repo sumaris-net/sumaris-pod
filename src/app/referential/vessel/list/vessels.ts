@@ -80,13 +80,18 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
     if (this.loading) return Promise.resolve();
 
     const modal = await this.modalCtrl.create({ component: VesselModal });
+    // if new vessel added, refresh the table
     modal.onDidDismiss().then(res => {
-      // if new vessel added, refresh the table
       if (res) this.onRefresh.emit();
     });
     return modal.present();
   }
 
+  protected async openEditRowDetail(id: number, row?: TableElement<VesselFeatures>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    return await this.router.navigateByUrl('/referential/vessels/' + id);
+  }
 
   referentialToString = referentialToString;
 }
