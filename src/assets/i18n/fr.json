@@ -256,7 +256,8 @@
         "TOTAL_WEIGHT": "Total weight (kg)",
         "SAMPLING_RATIO": "Fraction %",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling number of indiv.",
-        "SAMPLING_WEIGHT": "Sampling weight (kg)"
+        "SAMPLING_WEIGHT": "Sampling weight (kg)",
+        "COMMENTS": "Commentaires"
       }
     },
     "SAMPLE": {
