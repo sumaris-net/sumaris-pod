@@ -608,6 +608,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         PmfmVO pmfm = pmfmDao.get(source.getPmfm().getId());
 
+        Preconditions.checkNotNull(pmfm, "Unable to find Pmfm with id=" + source.getPmfm().getId());
+
         ParameterValueType type = ParameterValueType.fromPmfm(pmfm);
         switch (type) {
             case BOOLEAN:

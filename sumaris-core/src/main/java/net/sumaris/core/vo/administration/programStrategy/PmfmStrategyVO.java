@@ -34,7 +34,8 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date> {
+public class
+PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private Integer id;
     private Integer pmfmId;
@@ -45,6 +46,7 @@ public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private String unit;
     private String type;
+    private Integer methodId;
 
     private Double minValue;
     private Double maxValue;
