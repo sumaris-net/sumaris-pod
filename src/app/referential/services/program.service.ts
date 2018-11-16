@@ -14,7 +14,6 @@ const LoadProgramPmfms: any = gql`
     programPmfms(program: $program){
       id
       pmfmId
-      methodId
       label
       name
       unit
