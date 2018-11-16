@@ -41,7 +41,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
 
-  @ViewChild('batchesTable') batchesTable: BatchesTable;
+  @ViewChild('batchGroupsTable') batchGroupsTable: BatchesTable;
 
 
   constructor(
@@ -56,13 +56,13 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     super(route, router, alterCtrl, translate);
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
-      .registerTables([this.survivalTestsTable, this.individualMonitoringTable, this.individualReleaseTable, this.batchesTable]);
+      .registerTables([this.survivalTestsTable, this.individualMonitoringTable, this.individualReleaseTable, this.batchGroupsTable]);
 
     // Disable, during load
     this.disable();
@@ -123,7 +123,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // New operation
     else if (options && options.tripId) {
       if (this.debug) console.debug("[page-operation] Creating new operation...");
-      const trip = await this.tripService.load(options.tripId).toPromise();
+      const trip = await this.tripService.load(options.tripId).first().toPromise();
 
       const operation = new Operation();
 
@@ -176,11 +176,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.individualReleaseTable.availableParents = this.individualMonitoringTable.availableParents;
     this.individualReleaseTable.value = samples.filter(s => s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
-    // Get all batches (and children)
-    const batches = (data && data.catchBatch && [data.catchBatch] || []).reduce((res, batch) => !batch.children ? res.concat(batch) : res.concat(batch).concat(batch.children), [])
+    // Batches
+    if (isNotNil(this.batchGroupsTable)) {
+      // Get all batches (and children)
+      const batches = (data && data.catchBatch && [data.catchBatch] || []).reduce((res, batch) => !batch.children ? res.concat(batch) : res.concat(batch).concat(batch.children), [])
 
-    // Set batches
-    this.batchesTable.value = batches.filter(s => s.label.startsWith(this.batchesTable.acquisitionLevel + "#"));
+      // Set batches table
+      this.batchGroupsTable.value = batches.filter(s => s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
+    }
 
     // Update title
     this.updateTitle();
