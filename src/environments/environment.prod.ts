@@ -9,5 +9,5 @@ export const environment: Environment = {
     defaultLatLongFormat: 'DDMM',
     version: (pkg.version as string),
     defaultProgram: "SUMARiS",
-    apolloFetchPolicy: 'network-only'
+    apolloFetchPolicy: 'cache-first'
 };

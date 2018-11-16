@@ -141,18 +141,70 @@
 
   </ng-container>
 
-  <ng-container *ngIf="!loading">
-    <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
-      <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.type=='date'">
-        <ion-label>{{getPmfmColumnHeader(pmfm)}}
-          <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
-        </ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.type=='date'">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
-          [compact]="true" floatLabel="never"></mat-form-field-measurement>
-      </mat-cell>
+  <ng-container *ngIf="!loading && qvPmfm">
+    <!-- QV value / columns -->
+    <ng-container *ngFor="let qv of qvPmfm.qualitativeValues">
+
+      <!-- total individual count -->
+      <ng-container matColumnDef="{{qv.label + '_totalIndividualCount'}}">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate}}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          TODO
+          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate"
+            [readonly]="!row.editing"> -->
+        </mat-cell>
+      </ng-container>
+
+      <!-- total weight -->
+      <ng-container matColumnDef="{{qv.label + '_totalWeight'}}">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.TOTAL_WEIGHT'|translate}}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          TODO
+          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.TOTAL_WEIGHT'|translate"
+                [readonly]="!row.editing"> -->
+        </mat-cell>
+      </ng-container>
+
+      <!-- Sampling ratio -->
+      <ng-container matColumnDef="{{qv.label + '_samplingRatio'}}">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.SAMPLING_RATIO'|translate}}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          TODO
+          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.SAMPLING_RATIO'|translate"
+                [readonly]="!row.editing"> -->
+        </mat-cell>
+      </ng-container>
+
+      <!-- sampling individual count -->
+      <ng-container matColumnDef="{{qv.label + '_samplingIndividualCount'}}">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT'|translate}}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          TODO
+          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate"
+              [readonly]="!row.editing"> -->
+        </mat-cell>
+      </ng-container>
+
+      <!-- sampling weight count -->
+      <ng-container matColumnDef="{{qv.label + '_samplingWeight'}}">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.SAMPLING_WEIGHT'|translate}}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          TODO
+          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.SAMPLING_WEIGHT'|translate"
+                [readonly]="!row.editing"> -->
+        </mat-cell>
+      </ng-container>
+
     </ng-container>
 
   </ng-container>
@@ -198,7 +250,6 @@
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
     [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>
-
 
 <!-- <ion-row>
   <ion-col *ngFor="let pmfm of pmfms | async">

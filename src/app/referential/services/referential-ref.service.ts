@@ -10,6 +10,7 @@ import { ReferentialRef } from "../../core/services/model";
 
 import { FetchPolicy } from "apollo-client";
 import { ReferentialFilter } from "./referential.service";
+import { environment } from "src/app/core/core.module";
 
 const LoadAllQuery: any = gql`
   query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -31,7 +32,9 @@ export class ReferentialRefService extends BaseDataService implements DataServic
     protected accountService: AccountService
   ) {
     super(apollo);
-    this._debug = true;
+
+    // -- For DEV only
+    //this._debug = !environment.production;
   }
 
   loadAll(offset: number,

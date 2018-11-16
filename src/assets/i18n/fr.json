@@ -73,7 +73,7 @@
     "DEVELOPED_BY": "Développé par :"
   },
   "HOME": {
-    "WELCOME": "Bienvenue sur le portail SUMARiS !",
+    "WELCOME": "Bienvenue sur le site web SUMARiS !",
     "DESCRIPTION": "Base de données européenne partagée<br/>pour la gestion des stocks de raies.",
     "BTN_TRIPS": "Recherche de marées",
     "NOT_THIS_ACCOUNT_QUESTION": "Vous n'êtes pas <b>{{displayName}}</b> ?",
@@ -212,6 +212,8 @@
         "TAB_SURVIVAL_TEST": "Tests de survie",
         "TAB_INDIVIDUAL_MONITORING": "Suivi individuel",
         "TAB_INDIVIDUAL_RELEASES": "Relachés",
+        "BATCH_SPECIES": "Species list",
+        "BATCH_INDIVIDUAL": "Individual sampling",
         "START": "Début pêche :",
         "END": "Fin pêche :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
@@ -249,7 +251,12 @@
         "TAXON_GROUP": "FAO déclarative species",
         "TAXON_GROUP_PLACEHOLDER": "Code FAO",
         "TAXON_NAME": "FAO scientific species",
-        "TAXON_NAME_PLACEHOLDER": "Code FAO"
+        "TAXON_NAME_PLACEHOLDER": "Code FAO",
+        "TOTAL_INDIVIDUAL_COUNT": "Total number of indiv.",
+        "TOTAL_WEIGHT": "Total weight (kg)",
+        "SAMPLING_RATIO": "Fraction %",
+        "SAMPLING_INDIVIDUAL_COUNT": "Sampling number of indiv.",
+        "SAMPLING_WEIGHT": "Sampling weight (kg)"
       }
     },
     "SAMPLE": {

@@ -723,7 +723,7 @@ export class AccountService extends BaseDataService {
   async sendConfirmationEmail(email: String, locale?: string): Promise<boolean> {
 
     locale = locale || this.translate.currentLang;
-    console.debug("[trip-service] Sending confirmation email to {" + email + "} with locale {" + locale + "}...");
+    console.debug("[account] Sending confirmation email to {" + email + "} with locale {" + locale + "}...");
 
     return await this.mutate<boolean>({
       mutation: SendConfirmEmailMutation,

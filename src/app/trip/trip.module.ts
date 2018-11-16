@@ -18,6 +18,7 @@ import { TripModal } from './trip.modal';
 import { SamplesTable } from './sample/samples.table';
 import { SubSamplesTable } from './sample/sub-samples.table';
 import { BatchesTable } from './batch/batches.table';
+import { BatchGroupsTable } from './batch/batch-groups.table';
 import { IndividualMonitoringTable } from './sample/individualmonitoring/sample-individual-monitoring.table';
 import { MeasurementValuesForm } from './measurement/measurement-values.form';
 
@@ -25,7 +26,7 @@ import { TripService, OperationService } from './services/trip.services';
 
 import {
     TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService,
-    MeasurementsValidatorService, BatchValidatorService, SampleValidatorService,
+    MeasurementsValidatorService, BatchValidatorService, BatchGroupsValidatorService, SampleValidatorService,
     SubSampleValidatorService
 } from './services/trip.validators';
 
@@ -55,6 +56,7 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         SamplesTable,
         SubSamplesTable,
         BatchesTable,
+        BatchGroupsTable,
         IndividualMonitoringTable
     ],
     exports: [
@@ -92,6 +94,7 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         PositionValidatorService,
         MeasurementsValidatorService,
         BatchValidatorService,
+        BatchGroupsValidatorService,
         SampleValidatorService,
         SubSampleValidatorService
     ]

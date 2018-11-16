@@ -1,7 +1,7 @@
 import { Router, ActivatedRoute, Params, NavigationEnd } from "@angular/router";
 import { MatTabChangeEvent } from "@angular/material";
 import { AppForm, AppTable } from '../../core/core.module';
-import { Entity } from '../services/model';
+import { Entity, isNotNil } from '../services/model';
 import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -78,7 +78,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
 
     public registerTables(tables: AppTable<any, any>[]): AppTabPage<T, F> {
         tables
-            .filter(table => !!table) // Skip not found tables
+            .filter(table => isNotNil(table)) // Skip not found tables
             .forEach(table => this.registerTable(table));
         return this;
     }

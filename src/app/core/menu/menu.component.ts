@@ -76,14 +76,15 @@ export class MenuComponent implements OnInit {
   }
 
   onLogin(account: Account) {
-    console.debug('[menu] Logged account: ', account);
+    //console.debug('[menu] Logged account: ', account);
+    console.info('[menu] Account logged');
     this.account = account;
     this.isLogin = true;
     this.updateItems();
   }
 
   onLogout() {
-    console.debug("[menu] logout");
+    //console.debug("[menu] logout");
     this.updateItems();
     this.isLogin = false;
 

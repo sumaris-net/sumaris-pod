@@ -66,21 +66,22 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && catchForm.invalid"></ion-icon>
       </ng-template>
 
-
       <!-- form -->
       <form-catch (onSubmit)="save($event)" [showError]="false" #catchForm [debug]="debug">
+      </form-catch>
+
+      <div>
+        <h3>{{'TRIP.OPERATION.EDIT.BATCH_SPECIES'|translate}}</h3>
+
+        <table-batch-groups #batchGroupsTable [debug]="debug" acquisitionLevel="SORTING_BATCH">
+        </table-batch-groups>
 
         <ion-row no-padding>
           <ion-col>
-            <table-batches #batchesTable [debug]="debug" acquisitionLevel="SORTING_BATCH"></table-batches>
+            <!-- <table-batches #batchesIndividualTable [debug]="debug" acquisitionLevel="SORTING_BATCH_INDIVIDUAL"></table-batches> -->
           </ion-col>
         </ion-row>
-        <ion-row no-padding>
-          <ion-col>
-            <table-batches #batchesIndividualTable [debug]="debug" acquisitionLevel="SORTING_BATCH_INDIVIDUAL"></table-batches>
-          </ion-col>
-        </ion-row>
-      </form-catch>
+      </div>
     </mat-tab>
 
     <!-- TAB: Survival  -->

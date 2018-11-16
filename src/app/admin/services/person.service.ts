@@ -162,7 +162,7 @@ export class PersonService extends BaseDataService implements DataService<Person
       }, 'persons', ids);
     }
 
-    if (this._debug) console.debug("[trip-service] Trips deleted in " + (new Date().getTime() - now.getTime()) + "ms");
+    if (this._debug) console.debug("[person-service] Trips deleted in " + (new Date().getTime() - now.getTime()) + "ms");
 
     return res;
   }

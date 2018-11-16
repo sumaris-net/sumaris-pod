@@ -10,6 +10,7 @@ import { Moment } from "moment";
 import { ErrorCodes } from "./trip.errors";
 import { AccountService } from "../../core/services/account.service";
 import { Fragments } from "./trip.queries";
+import { environment } from "src/app/core/core.module";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -169,7 +170,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     super(apollo);
 
     // FOR DEV ONLY
-    this._debug = true;
+    //this._debug = !environment.production;
   }
 
   /**
@@ -239,7 +240,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
   public listenChanges(id: number): Observable<Trip> {
     if (!id && id !== 0) throw "Missing argument 'id' ";
 
-    console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
+    if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
     return this.subscribe<{ updateTrip: Trip }, { tripId: number, interval: number }>({
       query: UpdateSubscription,

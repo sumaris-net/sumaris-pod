@@ -26,9 +26,20 @@ export const TaxonomicLevelIds = {
 
 export const PmfmIds = {
   TAG_ID: 82,
-  IS_DEAD: 100,
+  IS_DEAD: 94,
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102
+}
+
+export const MethodIds = {
+  MEASURED_BY_OBSERVER: 1,
+  OBSERVED_BY_OBSERVER: 2,
+  ESTIMATED_BY_OBSERVER: 3,
+  CALCULATED: 4
+}
+
+export const PmfmLabelPatterns = {
+  BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/
 }
 
 const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
@@ -129,6 +140,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy>  {
     return res;
   }
   pmfmId: number;
+  methodId: number;
   label: string;
   name: string;
   unit: string;
@@ -171,6 +183,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy>  {
     super.fromObject(source);
 
     this.pmfmId = source.pmfmId;
+    this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name;
     this.unit = source.unit;

@@ -14,6 +14,7 @@ const LoadProgramPmfms: any = gql`
     programPmfms(program: $program){
       id
       pmfmId
+      methodId
       label
       name
       unit
@@ -55,7 +56,9 @@ export class ProgramService extends BaseDataService {
     protected apollo: Apollo
   ) {
     super(apollo);
-    this._debug = true;
+
+    // -- For DEV only
+    //this._debug = !environment.production;
   }
 
   /**
