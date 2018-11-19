@@ -252,10 +252,10 @@
         "TAXON_GROUP_PLACEHOLDER": "Code FAO",
         "TAXON_NAME": "FAO scientific species",
         "TAXON_NAME_PLACEHOLDER": "Code FAO",
-        "TOTAL_INDIVIDUAL_COUNT": "Total number of indiv.",
+        "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
         "TOTAL_WEIGHT": "Total weight (kg)",
-        "SAMPLING_RATIO": "Fraction %",
-        "SAMPLING_INDIVIDUAL_COUNT": "Sampling number of indiv.",
+        "SAMPLING_RATIO": "Sampling fraction (%)",
+        "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_WEIGHT": "Sampling weight (kg)",
         "COMMENTS": "Commentaires"
       }
@@ -264,7 +264,7 @@
       "TABLE": {
         "TAXON_GROUP": "Espèce",
         "TAXON_GROUP_PLACEHOLDER": "Code FAO",
-        "SAMPLE_DATE": "Heure de la mesure"
+        "SAMPLE_DATE": "Date/Heure de la mesure"
       }
     },
     "SUB_SAMPLE": {

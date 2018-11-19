@@ -251,7 +251,7 @@
       "TABLE": {
         "TAXON_GROUP": "Species",
         "TAXON_GROUP_PLACEHOLDER": "FAO code",
-        "SAMPLE_DATE": "Measure time"
+        "SAMPLE_DATE": "Measure date/time"
       }
     },
     "SUB_SAMPLE": {

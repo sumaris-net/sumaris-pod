@@ -1,20 +1,40 @@
 :host {
   width: 100%;
+}
 
-  .title {
-    align-content: center;
-
+.mat-header-row {
+  .mat-header-cell {
+    ion-label {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
   }
 }
 
+
 .mat-header-row,
 .mat-row {
+
+  .mat-header-cell.total,
+  .mat-cell.total {
+    background-color: lightgrey;
+  }
+
+  .mat-header-cell.sampling,
+  .mat-cell.sampling {
+    background-color: lightcyan;
+  }
+
   .mat-column-id {
     max-width: 30px;
   }
 
   .mat-column-taxonGroup {
     min-width: 150px;
+  }
+
+  .mat-column-comments {
+    max-width: inherit; // Override default limitation
   }
 
   .mat-column-60,

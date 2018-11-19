@@ -143,65 +143,87 @@
 
   <ng-container *ngIf="!loading && qvPmfm">
     <!-- QV value / columns -->
-    <ng-container *ngFor="let qv of qvPmfm.qualitativeValues">
+    <ng-container *ngFor="let qv of qvPmfm.qualitativeValues;">
 
       <!-- total individual count -->
       <ng-container matColumnDef="{{qv.label + '_totalIndividualCount'}}">
-        <mat-header-cell *matHeaderCellDef>
-          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate}}</ion-label>
+        <mat-header-cell *matHeaderCellDef class="total">
+          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.TOTAmat-latlonL_INDIVIDUAL_COUNT'|translate}}</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          TODO
-          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate"
-            [readonly]="!row.editing"> -->
+
+          <mat-form-field floatLabel="never">
+            <input type="number" matInput autocomplete="off" [formControl]="getControlFromPath(row.validator, 'children.'+qv.label+'totalIndividualCount')"
+              [placeholder]="'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate" [readonly]="!row.editing">
+            <mat-error *ngIf="row.validator.controls['children'].controls[qv.label].controls['totalIndividualCount'].hasError('required')"
+              translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="row.validator.controls['children'].controls[qv.label].controls['totalIndividualCount'].hasError('min')">
+              {{'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
+            <mat-error *ngIf="row.validator.controls['children'].controls[qv.label].controls['totalIndividualCount'].hasError('pattern')">
+              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+          </mat-form-field>
         </mat-cell>
       </ng-container>
 
       <!-- total weight -->
       <ng-container matColumnDef="{{qv.label + '_totalWeight'}}">
-        <mat-header-cell *matHeaderCellDef>
-          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.TOTAL_WEIGHT'|translate}}</ion-label>
+        <mat-header-cell *matHeaderCellDef class="total">
+          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.TOTAL_WEIGHT'|translate}}</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          TODO
-          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.TOTAL_WEIGHT'|translate"
-                [readonly]="!row.editing"> -->
+          <mat-form-field-measurement [pmfm]="defaultWeightPmfm" [formControl]="row.validator.controls[qv.label].controls['totalWeight']"
+            floatLabel="never">
+          </mat-form-field-measurement>
         </mat-cell>
       </ng-container>
 
       <!-- Sampling ratio -->
       <ng-container matColumnDef="{{qv.label + '_samplingRatio'}}">
-        <mat-header-cell *matHeaderCellDef>
-          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.SAMPLING_RATIO'|translate}}</ion-label>
+        <mat-header-cell *matHeaderCellDef class="sampling">
+          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.SAMPLING_RATIO'|translate}}</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          TODO
-          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.SAMPLING_RATIO'|translate"
-                [readonly]="!row.editing"> -->
+          <mat-form-field floatLabel="never">
+            <input type="number" matInput autocomplete="off" [formControl]="row.validator.controls[qv.label].controls['samplingRatio']"
+              step="1" [placeholder]="'TRIP.BATCH.TABLE.SAMPLING_RATIO'|translate" [readonly]="!row.editing">
+            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingRatio'].hasError('required')"
+              translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingRatio'].hasError('min')">
+              {{'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
+            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingRatio'].hasError('pattern')">
+              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+          </mat-form-field>
         </mat-cell>
       </ng-container>
 
       <!-- sampling individual count -->
       <ng-container matColumnDef="{{qv.label + '_samplingIndividualCount'}}">
-        <mat-header-cell *matHeaderCellDef>
-          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT'|translate}}</ion-label>
+        <mat-header-cell *matHeaderCellDef class="sampling">
+          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT'|translate}}</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          TODO
-          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate"
-              [readonly]="!row.editing"> -->
+          <mat-form-field floatLabel="never">
+            <input type="number" matInput autocomplete="off" [formControl]="row.validator.controls[qv.label].controls['samplingIndividualCount']"
+              [placeholder]="'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate" [readonly]="!row.editing">
+            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingIndividualCount'].hasError('required')"
+              translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingIndividualCount'].hasError('min')">
+              {{'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
+            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingIndividualCount'].hasError('pattern')">
+              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+          </mat-form-field>
         </mat-cell>
       </ng-container>
 
       <!-- sampling weight count -->
       <ng-container matColumnDef="{{qv.label + '_samplingWeight'}}">
-        <mat-header-cell *matHeaderCellDef>
-          <ion-label>{{qv.label}} {{'TRIP.BATCH.TABLE.SAMPLING_WEIGHT'|translate}}</ion-label>
+        <mat-header-cell *matHeaderCellDef class="sampling">
+          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.SAMPLING_WEIGHT'|translate}}</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          TODO
-          <!-- <input matInput [formControl]="row.validator.controls[qv.label].controls['individualCount']" [placeholder]="'TRIP.BATCH.TABLE.SAMPLING_WEIGHT'|translate"
-                [readonly]="!row.editing"> -->
+          <mat-form-field-measurement [pmfm]="defaultWeightPmfm" [formControl]="row.validator.controls[qv.label].controls['samplingWeight']"
+            floatLabel="never">
+          </mat-form-field-measurement>
         </mat-cell>
       </ng-container>
 

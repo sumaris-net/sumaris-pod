@@ -70,18 +70,16 @@
       <form-catch (onSubmit)="save($event)" [showError]="false" #catchForm [debug]="debug">
       </form-catch>
 
-      <div>
-        <h3>{{'TRIP.OPERATION.EDIT.BATCH_SPECIES'|translate}}</h3>
+      <h3>{{'TRIP.OPERATION.EDIT.BATCH_SPECIES'|translate}}</h3>
 
-        <table-batch-groups #batchGroupsTable [debug]="debug" acquisitionLevel="SORTING_BATCH">
-        </table-batch-groups>
+      <table-batch-groups #batchGroupsTable [debug]="true" acquisitionLevel="SORTING_BATCH">
+      </table-batch-groups>
 
-        <ion-row no-padding>
-          <ion-col>
-            <!-- <table-batches #batchesIndividualTable [debug]="debug" acquisitionLevel="SORTING_BATCH_INDIVIDUAL"></table-batches> -->
-          </ion-col>
-        </ion-row>
-      </div>
+      <ion-row no-padding>
+        <ion-col>
+          <!-- <table-batches #batchesIndividualTable [debug]="debug" acquisitionLevel="SORTING_BATCH_INDIVIDUAL"></table-batches> -->
+        </ion-col>
+      </ion-row>
     </mat-tab>
 
     <!-- TAB: Survival  -->

@@ -13,13 +13,17 @@ import { environment } from '../../../environments/environment';
 import { EntityUtils, ReferentialRef, isNotNil, Entity, isNil } from "../../core/services/model";
 import { MeasurementsValidatorService, BatchGroupsValidatorService } from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import { TaxonomicLevelIds, PmfmLabelPatterns } from "src/app/referential/services/model";
+import { TaxonomicLevelIds, PmfmLabelPatterns, MethodIds } from "src/app/referential/services/model";
 import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { SharedValidators } from "../../shared/validator/validators";
+import { getControlFromPath } from "src/app/core/form/form.utils";
 
 const PMFM_ID_REGEXP = /\d+/;
-const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
-const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
+const BATCH_GROUP_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
+const BATCH_GROUP_RESERVED_END_COLUMNS: string[] = [
+    //'comments'
+];
+const BATCH_SUBGROUP_RESERVED_COLUMNS: string[] = ['totalIndividualCount', 'totalWeight', 'samplingRatio', 'samplingIndividualCount', 'samplingWeight'];
 
 class BatchGroup extends Entity<BatchGroup>{
     taxonGroup: ReferentialRef;
@@ -27,7 +31,7 @@ class BatchGroup extends Entity<BatchGroup>{
     rankOrder: number;
     label: string;
     children: {
-        [key: string]: BatchItem
+        [key: string]: BatchSubGroup
     }
 
     pmfm: PmfmStrategy;
@@ -38,7 +42,9 @@ class BatchGroup extends Entity<BatchGroup>{
         return target;
     }
 }
-class BatchItem {
+class BatchSubGroup {
+    rankOrder: number;
+    label: string;
     totalWeight: number;
     totalIndividualCount: number;
     samplingRatio: number;
@@ -67,7 +73,9 @@ export class BatchGroupsTable extends AppTable<BatchGroup, { operationId?: numbe
     loadingPmfms = true;
     pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
     qvPmfm: PmfmStrategy;
-    rowFormGroupConfig: { [key: string]: any };
+    defaultWeightPmfm: PmfmStrategy;
+    rowGroupFormConfig: { [key: string]: any };
+    rowSubGroupFormConfig: { [key: string]: any };
     data: Batch[];
     taxonGroups: Observable<ReferentialRef[]>;
     taxonNames: Observable<ReferentialRef[]>;
@@ -124,7 +132,7 @@ export class BatchGroupsTable extends AppTable<BatchGroup, { operationId?: numbe
         protected formBuilder: FormBuilder
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            RESERVED_START_COLUMNS.concat(BATCH_RESERVED_START_COLUMNS).concat(BATCH_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
+            RESERVED_START_COLUMNS.concat(BATCH_GROUP_RESERVED_START_COLUMNS).concat(BATCH_GROUP_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
         this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
         this.autoLoad = false;
@@ -155,17 +163,18 @@ export class BatchGroupsTable extends AppTable<BatchGroup, { operationId?: numbe
             .first()
             .subscribe(pmfms => {
 
-                this.rowFormGroupConfig = this.getRowFormGroupConfig(pmfms);
+                this.refreshRowFormGroupConfig(pmfms);
 
-                const batchItemProperties = Object.getOwnPropertyNames(new BatchItem());
                 let displayedColumns = this.qvPmfm.qualitativeValues.reduce((res, qv) => {
-                    return res.concat(batchItemProperties.map(columnSuffix => `${qv.label}_${columnSuffix}`));
+                    return res.concat(BATCH_SUBGROUP_RESERVED_COLUMNS.map(column => (qv.label + '_' + column)));
                 }, []);
 
+                console.log(displayedColumns);
+
                 this.displayedColumns = RESERVED_START_COLUMNS
-                    .concat(BATCH_RESERVED_START_COLUMNS)
+                    .concat(BATCH_GROUP_RESERVED_START_COLUMNS)
                     .concat(displayedColumns)
-                    .concat(BATCH_RESERVED_END_COLUMNS)
+                    .concat(BATCH_GROUP_RESERVED_END_COLUMNS)
                     .concat(RESERVED_END_COLUMNS);
 
                 this.loading = false;
@@ -220,15 +229,15 @@ export class BatchGroupsTable extends AppTable<BatchGroup, { operationId?: numbe
     }
 
     getRowValidator(): FormGroup {
-        const config = Object.assign({}, this.rowFormGroupConfig);
-        const childrenConfig = config.children;
-        delete config.children;
 
-        const formGroup = this.formBuilder.group(config);
-        if (childrenConfig) {
-            this.qvPmfm.qualitativeValues.forEach(qv => {
-                formGroup.addControl(qv.label, this.formBuilder.group(childrenConfig[qv.label]));
-            });
+        const formGroup = this.formBuilder.group(this.rowGroupFormConfig);
+        if (this.rowSubGroupFormConfig) {
+            formGroup.addControl('children', this.formBuilder.group(
+                this.qvPmfm.qualitativeValues.reduce((res, qv) => {
+                    res[qv.label] = this.formBuilder.group(this.rowSubGroupFormConfig[qv.label]);
+                    return res;
+                }, {})
+            ));
         }
         console.log(formGroup);
         return formGroup;
@@ -338,8 +347,11 @@ export class BatchGroupsTable extends AppTable<BatchGroup, { operationId?: numbe
         batchGroup.label = this._acquisitionLevel + "#" + batchGroup.rankOrder;
 
         if (isNotNil(this.qvPmfm)) {
+            let childCount = 1;
             batchGroup.children = this.qvPmfm.qualitativeValues.reduce((res, qv) => {
-                const child = new BatchItem();
+                const child = new BatchSubGroup();
+                child.rankOrder = childCount++;
+                child.label = batchGroup.label + '.' + qv.label + '.' + child.rankOrder;
                 res[qv.label] = child;
                 return res;
             }, {});
@@ -389,15 +401,19 @@ export class BatchGroupsTable extends AppTable<BatchGroup, { operationId?: numbe
         }
 
         let weightMinRankOrder;
+        let defaultWeightPmfm;
         const weightPmfmsByMethod = pmfms.reduce((res, p) => {
             const matches = PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label);
             if (matches) {
                 const methodId = p.methodId;
                 res[methodId] = p;
                 if (isNil(weightMinRankOrder)) weightMinRankOrder = p.rankOrder;
+                if (isNil(defaultWeightPmfm)) defaultWeightPmfm = p;
             }
             return res;
         }, {});
+
+        this.defaultWeightPmfm = defaultWeightPmfm;
 
         this.qvPmfm = pmfms.find(p => p.type == 'qualitative_value');
         if (isNil(weightMinRankOrder) || weightMinRankOrder < this.qvPmfm.rankOrder) {
@@ -412,42 +428,48 @@ export class BatchGroupsTable extends AppTable<BatchGroup, { operationId?: numbe
         return pmfms;
     }
 
-    protected getRowFormGroupConfig(pmfms: PmfmStrategy[]): { [key: string]: any } {
+    protected refreshRowFormGroupConfig(pmfms: PmfmStrategy[]) {
 
-        const rowConfig = {
+        // Compute group form config
+        this.rowGroupFormConfig = {
             id: [''],
             rankOrder: ['1', Validators.required],
             label: [''],
             taxonGroup: ['', SharedValidators.entity],
             taxonName: ['', SharedValidators.entity],
             comments: [''],
-            parent: ['', SharedValidators.entity]
+            parent: ['', SharedValidators.entity],
+            children: ['']
         };
         let childCount = 0;
-        rowConfig['children'] = this.qvPmfm.qualitativeValues
+        const decimalValidator = Validators.compose([Validators.min(0), Validators.pattern('^[0-9]+$')]);
+        const pctValidator = Validators.compose([Validators.min(0), Validators.max(100)]);
+
+        // Compute sub group form config
+        this.rowSubGroupFormConfig = this.qvPmfm.qualitativeValues
             .reduce((res, qv) => {
                 childCount++;
                 res[qv.label] = {
-                    'id': [''],
-                    'rankOrder': [childCount, Validators.required],
-                    'label': [''],
-                    'individualCount': ['', Validators.compose([Validators.min(0), Validators.pattern('^[0-9]+$')])],
-                    'samplingRatio': ['', Validators.compose([Validators.min(0), Validators.max(100)])],
-                    'samplingRatioText': [''],
-                    'weight': [''],
-                    'isEstimatedWeight': [''],
-                    'comments': ['']
+                    id: [''],
+                    rankOrder: [childCount, Validators.required],
+                    label: [''],
+                    totalIndividualCount: ['', decimalValidator],
+                    totalWeight: [''],
+                    samplingRatio: ['', pctValidator],
+                    samplingRatioText: [''],
+                    samplingIndividualCount: ['', decimalValidator],
+                    samplingWeight: [''],
+                    isEstimatedWeight: [''],
+                    comments: ['']
                 };
 
                 // TODO: add pmfms where rankOrder > weight and qv
                 return res;
             }, {});
-
-        console.log(rowConfig);
-        return rowConfig;
     }
 
     referentialToString = referentialToString;
     getPmfmColumnHeader = getPmfmName;
+    getControlFromPath = getControlFromPath;
 }
 
