@@ -2,7 +2,7 @@
   "name": "SUMARiS",
   "short_name": "SUMARiS",
   "manifest_version": 2,
-  "version": "0.6.3",
+  "version": "0.6.4",
   "default_locale": "en",
   "icons": [{
     "src": "assets/img/logo.png",
