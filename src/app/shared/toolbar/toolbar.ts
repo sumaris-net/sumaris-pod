@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
 import { ProgressBarService } from '../../core/services/progress-bar.service';
-import { Subject, BehaviorSubject } from "rxjs";
+import { BehaviorSubject } from "rxjs";
+import { IonBackButton } from "@ionic/angular";
 
 @Component({
   selector: 'app-toolbar',
@@ -22,12 +23,18 @@ export class ToolbarComponent implements OnInit {
   hasValidate: boolean = false;
 
   @Input()
+  defaultBackHref: string | undefined;
+
+  @Input()
   hasSearch: boolean = false;
 
   @Output()
   onValidate: EventEmitter<any> = new EventEmitter<any>();
 
   progressBarMode: BehaviorSubject<string> = new BehaviorSubject('none');
+
+  @ViewChild('backButton') backButton: IonBackButton;
+
 
   constructor(
     private progressBarService: ProgressBarService
@@ -43,6 +50,8 @@ export class ToolbarComponent implements OnInit {
         });
       }
     });
+    console.log(this.backButton);
+    //this.backButton.onClick
   }
 
   enableSearchBar() {

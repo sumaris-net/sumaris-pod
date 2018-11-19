@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from "@angular/router";
 import { OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
@@ -22,12 +22,14 @@ import { BatchesTable } from '../batch/batches.table';
   templateUrl: './operation.page.html',
   styleUrls: ['./operation.page.scss']
 })
-export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {
+export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit, OnDestroy {
 
   title = new Subject<string>();
   trip: Trip;
   saving: boolean = false;
   rankOrder: number;
+
+  defaultBackHref: string;
 
   @ViewChild('opeForm') opeForm: OperationForm;
 
@@ -94,6 +96,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.individualMonitoringTable.availableParents = availableParents;
       this.individualReleaseTable.availableParents = availableParents;
     });
+  }
+
+  ngOnDestroy() {
   }
 
   async load(id?: number, options?: { tripId: number }) {
@@ -190,6 +195,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     this.markAsPristine();
     this.markAsUntouched();
+
+    // Compute the default back URL
+    this.defaultBackHref = "/trips/" + this.trip.id;
   }
 
   async save(event): Promise<any> {

@@ -2,7 +2,7 @@
   <ion-toolbar [color]="color">
 
     <ion-buttons slot="start">
-      <ion-back-button icon="arrow-back">
+      <ion-back-button icon="arrow-back" [defaultHref]="defaultBackHref" #backButton>
       </ion-back-button>
 
       <ion-menu-toggle>

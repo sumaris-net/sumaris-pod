@@ -27,6 +27,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   title = new Subject<string>();
   saving: boolean = false;
+  defaultBackHref: string = "/trips";
 
   @ViewChild('tripForm') tripForm: TripForm;
 
@@ -68,7 +69,6 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
         this.load(parseInt(id));
       }
     });
-
   }
 
   async load(id?: number, options?: any) {
