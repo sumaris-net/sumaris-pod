@@ -40,13 +40,7 @@ function formatToDDMMSS(value: number, isLatitude: boolean, maxDecimals: number,
 
     // Force spacer
     if (placeholderChar) {
-        if (!isLatitude && degrees < 10) {
-            degrees = placeholderChar + placeholderChar + degrees;
-        }
-        else if (!isLatitude && degrees < 100) {
-            degrees = placeholderChar + degrees;
-        }
-        else if (degrees < 10) {
+        if (degrees < 10) {
             degrees = placeholderChar + degrees;
         }
         if (minutes < 10) {
@@ -86,13 +80,7 @@ function formatToDDMM(value: number, isLatitude: boolean, maxDecimals: number, p
 
     // Add placeholderChar
     if (placeholderChar) {
-        if (!isLatitude && degrees < 10) {
-            degrees = placeholderChar + placeholderChar + degrees;
-        }
-        else if (!isLatitude && degrees < 100) {
-            degrees = placeholderChar + degrees;
-        }
-        else if (isLatitude && degrees < 10) {
+        if (degrees < 10) {
             degrees = placeholderChar + degrees;
         }
         if (minutes < 10) {
@@ -120,7 +108,7 @@ function formatToDDMM(value: number, isLatitude: boolean, maxDecimals: number, p
 }
 
 // 36°57'9" N  = 36.9525000
-// 110°4'21" W = -110.0725000
+// 10°4'21" W = -10.0725000
 function parseLatitudeOrLongitude(input: string, pattern: string, maxDecimals?: number, placeholderChar?: string): number | null {
     // Remove all placeholder (= trim on each parts)
     const inputFix = input.trim().replace(new RegExp("^[\s]+|[" + (placeholderChar || DEFAULT_PLACEHOLDER_CHAR) + ']+|[\s]+$', "g"), '');
