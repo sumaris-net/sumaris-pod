@@ -263,7 +263,7 @@
       "TABLE": {
         "TAXON_GROUP": "Espèce",
         "TAXON_GROUP_PLACEHOLDER": "Code FAO",
-        "SAMPLE_DATE": "Heure de la mesure"
+        "SAMPLE_DATE": "Date/Heure de la mesure"
       }
     },
     "SUB_SAMPLE": {
