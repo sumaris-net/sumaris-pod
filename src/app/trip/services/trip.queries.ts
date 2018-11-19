@@ -7,6 +7,7 @@ export const Fragments = {
       label
       name
       logo
+      __typename
     }
   `,
   recorderDepartment: gql`
@@ -15,6 +16,7 @@ export const Fragments = {
       label
       name
       logo
+      __typename
     }
   `,
   recorderPerson: gql`
@@ -27,7 +29,9 @@ export const Fragments = {
         id
         label
         name
+        __typename
       }
+      __typename
     }
   `,
   location: gql`
@@ -36,6 +40,7 @@ export const Fragments = {
         label
         name
         entityName
+        __typename
       }
     `,
   referential: gql`
@@ -44,6 +49,7 @@ export const Fragments = {
         label
         name
         entityName
+        __typename
       }
     `,
   position: gql`
@@ -58,7 +64,9 @@ export const Fragments = {
           id
           label
           name
+          __typename
         }
+        __typename
       }
     `,
   measurement: gql`
@@ -71,6 +79,7 @@ export const Fragments = {
         qualitativeValue {
           id
           label
+          __typename
         }
         digitCount
         qualityFlagId
@@ -80,8 +89,10 @@ export const Fragments = {
           id
           label
           name
+          __typename
         }
         entityName
+        __typename
       }
     `
 };
@@ -103,7 +114,8 @@ export const DataFragments = {
       taxonGroup {
         ...ReferentialFragment
       }
-      measurementValues      
+      measurementValues    
+      __typename  
     }
     ${Fragments.referential}
   `,
@@ -124,7 +136,8 @@ export const DataFragments = {
     taxonName {
       ...ReferentialFragment
     }
-    measurementValues      
+    measurementValues     
+    __typename 
   }
   ${Fragments.referential}
 `

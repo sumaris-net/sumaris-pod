@@ -24,7 +24,9 @@ export const PersonFragments = {
       label
       name
       logo
+      __typename
     }
+    __typename
   }
   `
 };

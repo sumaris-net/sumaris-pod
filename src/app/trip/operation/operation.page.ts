@@ -165,16 +165,16 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     const samples = (data && data.samples || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), [])
 
     // Set survival tests
-    const survivalTestSamples = samples.filter(s => s.label.startsWith(this.survivalTestsTable.acquisitionLevel + "#"));
+    const survivalTestSamples = samples.filter(s => s.label && s.label.startsWith(this.survivalTestsTable.acquisitionLevel + "#"));
     this.survivalTestsTable.value = survivalTestSamples;
 
     // Set individual monitoring
     this.individualMonitoringTable.availableParents = survivalTestSamples.filter(s => s.measurementValues && isNotNil(s.measurementValues[PmfmIds.TAG_ID]));
-    this.individualMonitoringTable.value = samples.filter(s => s.label.startsWith(this.individualMonitoringTable.acquisitionLevel + "#"));
+    this.individualMonitoringTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualMonitoringTable.acquisitionLevel + "#"));
 
     // Set individual release
     this.individualReleaseTable.availableParents = this.individualMonitoringTable.availableParents;
-    this.individualReleaseTable.value = samples.filter(s => s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
+    this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Batches
     if (isNotNil(this.batchGroupsTable)) {
@@ -182,7 +182,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       const batches = (data && data.catchBatch && [data.catchBatch] || []).reduce((res, batch) => !batch.children ? res.concat(batch) : res.concat(batch).concat(batch.children), [])
 
       // Set batches table
-      this.batchGroupsTable.value = batches.filter(s => s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
+      this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
     }
 
     // Update title

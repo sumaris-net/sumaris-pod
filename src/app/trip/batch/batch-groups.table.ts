@@ -116,8 +116,6 @@ export class BatchGroupsTable extends AppTable<BatchGroup, { operationId?: numbe
         return this._acquisitionLevel;
     }
 
-    @Input() title: string;
-
     constructor(
         protected route: ActivatedRoute,
         protected router: Router,

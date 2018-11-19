@@ -35,7 +35,9 @@ const LoadProgramPmfms: any = gql`
         name
         statusId
         entityName
+        __typename
       }
+      __typename
     }
   }
 `;
