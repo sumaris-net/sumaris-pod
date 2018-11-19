@@ -3,7 +3,7 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
-        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.0.0.xml">
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.1.0.xml">
 
   <!-- reprise des scripts SQL des Jobs Talend -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1443436414284-1">
@@ -11,33 +11,10 @@
       <not><tableExists tableName="SYSTEM_VERSION"/></not>
     </preConditions>
     <sqlFile
-        path="db-changelog-1.0.0.sql"
+        path="db-changelog-0.1.0.sql"
         relativeToChangelogFile="true"
         stripComments="true"
     />
-  </changeSet>
-
-  <changeSet author="benoit.lavenier@e-is.pro" id="1443436414284-2">
-    <preConditions onFail="MARK_RAN">
-      <not>
-        <tableExists tableName="TRANSCRIBING_ITEM"/>
-      </not>
-    </preConditions>
-    <createTable tableName="TRANSCRIBING_ITEM">
-      <column name="TRANSC_ITEM_ID" type="INT">
-        <constraints nullable="false"/>
-      </column>
-      <column name="OBJECT_ID" type="INT"/>
-      <column name="OBJECT_CD" type="VARCHAR(40)"/>
-      <column name="TRANSC_ITEM_EXTERNAL_CD" type="VARCHAR(255)">
-        <constraints nullable="false"/>
-      </column>
-      <column name="TRANSC_ITEM_CM" type="VARCHAR(2000)"/>
-      <column name="UPDATE_DT" type="timestamp"/>
-      <column name="TRANSC_ITEM_TYPE_ID" type="INT">
-        <constraints nullable="false"/>
-      </column>
-    </createTable>
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->

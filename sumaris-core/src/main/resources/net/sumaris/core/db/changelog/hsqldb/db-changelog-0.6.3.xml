@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.6.3.xml">
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="REFERENCE_TAXON"/>
+      </not>
+    </preConditions>
+    <createTable tableName="REFERENCE_TAXON">
+      <column autoIncrement="true" name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="REFERENCE_TAXON_PK"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-1-2">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists columnName="update_date" tableName="reference_taxon"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="reference_taxon">
+      <column name="update_date" type="timestamp"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-2">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="BATCH" columnName="REFERENCE_TAXON_FK"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="BATCH">
+      <column name="REFERENCE_TAXON_FK" type="INTEGER"/>
+    </addColumn>
+  </changeSet>
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-3" failOnError="false">
+    <addForeignKeyConstraint baseTableName="BATCH"
+                             baseColumnNames="REFERENCE_TAXON_FK"
+                             constraintName="FK9ECB425IV7DO5PLK4JO6DXLQQ"
+                             referencedTableName="REFERENCE_TAXON"
+                             referencedColumnNames="ID"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-4">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="TAXON_GROUP"/>
+      </not>
+    </preConditions>
+    <createTable tableName="TAXON_GROUP">
+      <column autoIncrement="true" name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="TAXON_GROUP_PK"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="parent_taxon_group_fk" type="INT"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="taxon_group_type_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-5">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="TAXON_GROUP_TYPE"/>
+      </not>
+    </preConditions>
+    <createTable tableName="TAXON_GROUP_TYPE">
+      <column autoIncrement="true" name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="TAXON_GROUP_TYPE_PK"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-6">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="TAXON_NAME"/>
+      </not>
+    </preConditions>
+    <createTable tableName="TAXON_NAME">
+      <column autoIncrement="true" name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="TAXON_NAME_PK"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="completeName" type="VARCHAR(100)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="is_naming" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="is_referent" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="is_virtual" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="start_date" type="TIMESTAMP"/>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="parent_taxon_name_fk" type="INT"/>
+      <column name="reference_taxon_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="taxonomic_level_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-7">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="TAXONOMIC_LEVEL"/>
+      </not>
+    </preConditions>
+    <createTable tableName="TAXONOMIC_LEVEL">
+      <column autoIncrement="true" name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="TAXONOMIC_LEVELPK"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="rank_order" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-8" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="SAMPLE" constraintName="FK1w4ni1ntlg8dlviv2xcqpg9oj" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="TAXON_GROUP"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-9"  failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="BATCH" constraintName="FK2o5uqqi31lyyf7cyt4xbwjmxb" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="REFERENCE_TAXON"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-10"  failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="TAXON_NAME" constraintName="FK5ffbwn86pjghph8n3s1c6ptec" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="STATUS"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-11"  failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="METIER" constraintName="FK8ncu2nihmtgb34io8i2l4ea5u" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="TAXON_GROUP"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-12"  failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="TAXON_NAME" constraintName="FKdtk5woekufdgsdlilv5pwu03x" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="REFERENCE_TAXON"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-13"  failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxonomic_level_fk" baseTableName="TAXON_NAME" constraintName="FKfrn13i3xy8smupig3y8agbdio" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="TAXONOMIC_LEVEL"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-14" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="parent_taxon_group_fk" baseTableName="TAXON_GROUP" constraintName="FKhwe2h5qsa9tvphcdrm508a92o" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="TAXON_GROUP"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-15" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="BATCH" constraintName="FKhxdlbfp61s7aijnsayimquvpl" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="TAXON_GROUP"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-16" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_type_fk" baseTableName="TAXON_GROUP" constraintName="FKi566pu4ao9ash43kxkn5kkis8" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="TAXON_GROUPType"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-17" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="parent_taxon_name_fk" baseTableName="TAXON_NAME" constraintName="FKmc4yjyaldoxjfc620ubi13op5" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="TAXON_NAME"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-18" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="TAXONOMIC_LEVEL" constraintName="FKnsnomoe121e4d4snxkkgapuer" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="STATUS"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-19" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="TAXON_GROUP_TYPE" constraintName="FKnvis2dualf3fyvdkm5h8c33em" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="STATUS"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-20" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="TAXON_GROUP" constraintName="FKq3f9ywva3kl1qhak45g037lft" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="STATUS"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-21">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="TRANSCRIBING_ITEM"/>
+    </preConditions>
+    <dropTable tableName="TRANSCRIBING_ITEM"/>
+  </changeSet>
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-22">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="TRANSCRIBING_ITEM"/>
+      </not>
+    </preConditions>
+    <createTable tableName="TRANSCRIBING_ITEM">
+      <column autoIncrement="true" name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="transcribing_item_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="object_id" type="INT"/>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="transcribing_item_type_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-23">
+    <createTable tableName="transcribing_item_type">
+      <column autoIncrement="true" name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="transcribing_item_type_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="transcribing_system_fk" type="INT"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-24">
+    <createTable tableName="transcribing_system">
+      <column autoIncrement="true" name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="transcribing_system_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-25">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="transcribing_system" constraintName="FK1n9e0igvm6tu6ke59d3h5vbri" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-26">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="transcribing_item_type" constraintName="FK5w01g8kq1mv7y7gomlvirkck0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-27">
+    <addForeignKeyConstraint baseColumnNames="transcribing_system_fk" baseTableName="transcribing_item_type" constraintName="FK78wb1v7vk766tcp4a978wrekb" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="transcribing_system"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-28">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="transcribing_item" constraintName="FKfx2bfmv9v7xjdfqpx4wnkkkr0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-29">
+    <addForeignKeyConstraint baseColumnNames="transcribing_item_type_fk" baseTableName="transcribing_item" constraintName="FKmynedx91gfxx3xvpdgolpfg75" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="transcribing_item_type"/>
+  </changeSet>
+  
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.6.3'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">0.6.3</column>
+      <column name="DESCRIPTION">
+        - Add column BATCH.REFERENCE_TAXON_FK
+        - Add tables REFERENCE_TAXON, TAXON_NAME, etc.
+        - Add tables TRANSCRIBING_ITEM, TRANSCRIBING_ITEM
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+      <column name="COMMENTS">
+        - Add table BATCH.REFERENCE_TAXON_FK
+        - Add tables REFERENCE_TAXON, TAXON_NAME, etc.
+        - Add tables TRANSCRIBING_ITEM, TRANSCRIBING_ITEM_TYPE, TRANSCRIBING_SYSTEM
+      </column>
+    </insert>
+  </changeSet>
+
+</databaseChangeLog>

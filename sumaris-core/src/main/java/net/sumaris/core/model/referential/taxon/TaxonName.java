@@ -36,6 +36,7 @@ import java.util.Date;
  */
 @Data
 @Entity
+@Table(name = "taxon_name")
 public class TaxonName implements IItemReferentialEntity {
 
     public static final String PROPERTY_REFERENCE_TAXON = "referenceTaxon";

@@ -35,15 +35,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 
 /**
- * <p>DatabaseNewDbAction class.</p>
+ * <p>Update database schema class.</p>
  */
-public class DatabaseNewDbAction {
+public class DatabaseUpdateSchemaAction {
 	/* Logger */
-	private static final Log log = LogFactory.getLog(DatabaseNewDbAction.class);
+	private static final Log log = LogFactory.getLog(DatabaseUpdateSchemaAction.class);
 
 	/**
 	 * <p>run.</p>
@@ -51,27 +49,16 @@ public class DatabaseNewDbAction {
 	public void run() {
 		SumarisConfiguration config = SumarisConfiguration.getInstance();
 
-		// Check output directory validity
-		File outputDirectory = ActionUtils.checkAndGetOutputFile(true, this.getClass());
-
 		DatabaseSchemaDao databaseSchemaDao = new DatabaseSchemaDaoImpl(config);
 
 		try {
-			// Create the database
-			databaseSchemaDao.generateNewDb(outputDirectory, false);
-
 			// Update the DB schema
-			databaseSchemaDao.updateSchema(outputDirectory);
+			databaseSchemaDao.updateSchema();
 		} catch (SumarisTechnicalException | DatabaseSchemaUpdateException e1) {
 			log.error(e1.getMessage());
 
             // stop here
             return;
 		}
-
-        // Set this new db directory (and JDBC URL) as default database
-		// This allow to chain action. e.g. --new-db --import-ref
-		config.setDbDirectory(outputDirectory);
-        config.setJdbcUrl(Daos.getJdbcUrl(outputDirectory, config.getDbName()));
 	}
 }

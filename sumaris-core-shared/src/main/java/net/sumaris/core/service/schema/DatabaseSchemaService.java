@@ -27,6 +27,7 @@ package net.sumaris.core.service.schema;
 
 
 
+import net.sumaris.core.exception.VersionNotFoundException;
 import org.nuiton.version.Version;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +46,7 @@ public interface DatabaseSchemaService {
 	 *
 	 * @return a {@link Version} object.
 	 */
-	Version getDbVersion();
+	Version getDbVersion() throws VersionNotFoundException;
 
 	/**
 	 * Return the version of the applciation. This version comes from database updates (e.g. liquibase patch)

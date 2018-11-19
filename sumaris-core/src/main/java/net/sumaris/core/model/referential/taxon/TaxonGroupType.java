@@ -40,6 +40,7 @@ import java.util.Date;
  */
 @Data
 @Entity
+@Table(name = "taxon_group_type")
 public class TaxonGroupType implements IItemReferentialEntity {
 
     @Id

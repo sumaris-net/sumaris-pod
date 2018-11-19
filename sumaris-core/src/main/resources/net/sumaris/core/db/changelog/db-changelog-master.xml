@@ -8,7 +8,8 @@
   <property name="dbms" value="hsqldb" dbms="hsqldb"/>
   
   <!-- Processing updates -->
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-1.0.0.xml"/>
+  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.1.0.xml"/>
+  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.6.3.xml"/>
 
 
   <!-- Refresh schema objects (functions, procedures, triggers, ...)

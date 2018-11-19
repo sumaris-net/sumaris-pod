@@ -36,6 +36,7 @@ import java.util.Date;
  */
 @Data
 @Entity
+@Table(name = "reference_taxon")
 public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id

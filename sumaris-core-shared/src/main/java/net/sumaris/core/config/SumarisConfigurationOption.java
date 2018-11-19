@@ -315,12 +315,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "${sumaris.data.directory}/dbbackup",
             File.class,
             false),
-    DB_ENUMERATION_RESOURCE(
-	        "sumaris.persistence.db.enumeration.resource",
-	        n("sumaris.config.option.persistence.db.enumeration.resource"),
-	        "classpath*:sumaris-db-enumerations.properties",
-	        String.class,
-	        false),
     HIBERNATE_SHOW_SQL(
             "spring.jpa.show-sql",
             n("sumaris.config.option.spring.jpa.show-sql.description"),

@@ -27,6 +27,8 @@ package net.sumaris.core.service;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
 /*import org.springframework.beans.factory.access.BeanFactoryLocator;
 import org.springframework.beans.factory.access.BeanFactoryReference;
 import org.springframework.context.ApplicationContext;
@@ -70,19 +72,6 @@ public class ServiceLocator implements Closeable {
      * <p>Constructor for ServiceLocator.</p>
      */
     protected ServiceLocator() {
-        // shouldn't be instantiated
-        init(null, null);
-    }
-
-    /**
-     * <p>Constructor for ServiceLocator.</p>
-     *
-     * @param beanFactoryReferenceLocation a {@link String} object.
-     * @param beanRefFactoryReferenceId    a {@link String} object.
-     */
-    protected ServiceLocator(String beanFactoryReferenceLocation,
-                             String beanRefFactoryReferenceId) {
-        init(beanFactoryReferenceLocation, beanRefFactoryReferenceId);
     }
 
     /**
@@ -106,64 +95,14 @@ public class ServiceLocator implements Closeable {
     /**
      * The bean factory reference instance.
      */
-    //private BeanFactoryReference beanFactoryReference;
-
-    /**
-     * The bean factory reference location.
-     */
-    private String beanFactoryReferenceLocation;
-
-    /**
-     * The bean factory reference id.
-     */
-    private String beanRefFactoryReferenceId;
+    private ApplicationContext applicationContext;
 
     /**
      * <p>initDefault.</p>
      */
-    public static void initDefault() {
-        instance.init(null, null);
+    public static void init(ApplicationContext applicationContext) {
+        instance.setApplicationContext(applicationContext);
         ServiceLocator.setInstance(instance);
-    }
-
-    /**
-     * Initializes the Spring application context from the given <code>beanFactoryReferenceLocation</code>. If <code>null</code> is
-     * specified for the <code>beanFactoryReferenceLocation</code> then the
-     * default application context will be used.
-     *
-     * @param beanFactoryReferenceLocation the location of the beanRefFactory reference.
-     * @param beanRefFactoryReferenceId    a {@link String} object.
-     */
-    public synchronized void init(String beanFactoryReferenceLocation,
-                                  String beanRefFactoryReferenceId) {
-        // Log if default values are overridden
-        if (log.isDebugEnabled() && beanFactoryReferenceLocation != null && beanRefFactoryReferenceId != null) {
-            log.debug(String.format("Initializing ServiceLocator to use Spring bean factory [%s] at: %s", beanRefFactoryReferenceId,
-                    beanFactoryReferenceLocation));
-        }
-
-        this.beanFactoryReferenceLocation =
-                beanFactoryReferenceLocation == null ?
-                        DEFAULT_BEAN_REFERENCE_LOCATION :
-                        beanFactoryReferenceLocation;
-        this.beanRefFactoryReferenceId = beanRefFactoryReferenceId == null ?
-                DEFAULT_BEAN_REFERENCE_ID :
-                beanRefFactoryReferenceId;
-        //this.beanFactoryReference = null;
-    }
-
-    /**
-     * Initializes the Spring application context from the given <code>beanFactoryReferenceLocation</code>. If <code>null</code> is
-     * specified for the <code>beanFactoryReferenceLocation</code> then the
-     * default application context will be used.
-     *
-     * @param beanFactoryReferenceLocation the location of the beanRefFactory reference.
-     */
-    public synchronized void init(String beanFactoryReferenceLocation) {
-        this.beanFactoryReferenceLocation = beanFactoryReferenceLocation == null ?
-                DEFAULT_BEAN_REFERENCE_LOCATION :
-                beanFactoryReferenceLocation;
-        //this.beanFactoryReference = null;
     }
 
     /**
@@ -178,11 +117,8 @@ public class ServiceLocator implements Closeable {
             log.debug("Close Spring application context");
         }
 
-        /*((AbstractApplicationContext) getContext()).close();
-        if (beanFactoryReference != null) {
-            beanFactoryReference.release();
-            beanFactoryReference = null;
-        }*/
+        // applicationContext.close()
+
         open = false;
     }
 
@@ -196,8 +132,7 @@ public class ServiceLocator implements Closeable {
      */
     public <S> S getService(String name, Class<S> serviceType) {
 
-        return null;
-        //return getContext().getBean(name, serviceType);
+        return applicationContext.getBean(name, serviceType);
     }
 
     /**
@@ -215,22 +150,15 @@ public class ServiceLocator implements Closeable {
      *
      * @return a {@link ApplicationContext} object.
      */
-    /*protected synchronized ApplicationContext getContext() {
-        if (beanFactoryReference == null) {
-            if (log.isDebugEnabled() && beanFactoryReferenceLocation != null && beanRefFactoryReferenceId != null) {
-                log.debug(String.format("Starting Spring application context using bean factory [%s] from file: %s", beanRefFactoryReferenceId,
-                        beanFactoryReferenceLocation));
-            }
-            BeanFactoryLocator beanFactoryLocator =
-                    ContextSingletonBeanFactoryLocator.getInstance(
-                            beanFactoryReferenceLocation);
-            beanFactoryReference = beanFactoryLocator
-                    .useBeanFactory(beanRefFactoryReferenceId);
+    protected synchronized ApplicationContext getContext() {
+        return this.applicationContext;
+    }
 
-            open = true;
-        }
-        return (ApplicationContext) beanFactoryReference.getFactory();
-    }*/
+
+    protected synchronized void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
 
     /**
      * {@inheritDoc}

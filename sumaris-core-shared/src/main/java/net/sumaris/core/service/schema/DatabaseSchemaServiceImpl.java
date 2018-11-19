@@ -131,7 +131,7 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
                 || !outputFile.getParentFile().isDirectory() 
                 || (outputFile.exists() && !outputFile.canWrite())) {
             log.error("Could not write into the output file. Please make sure the given path is a valid path.");
-            return;
+            throw new SumarisTechnicalException("Invalid path: " + outputFile.getName());
         }        
         databaseSchemaDao.generateDiffChangeLog(outputFile, config.getLiquibaseDiffTypes());
     }

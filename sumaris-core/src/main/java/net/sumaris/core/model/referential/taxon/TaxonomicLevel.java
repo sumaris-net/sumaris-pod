@@ -97,6 +97,7 @@ import java.util.Date;
  */
 @Data
 @Entity
+@Table(name = "taxonomic_level")
 public class TaxonomicLevel implements IItemReferentialEntity {
 
     @Id

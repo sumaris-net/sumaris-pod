@@ -23,6 +23,8 @@ package net.sumaris.core.service.technical.schema;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import org.apache.commons.io.FileUtils;
@@ -52,8 +54,12 @@ public class DatabaseSchemaServiceTest extends AbstractServiceTest {
     public void updateSchema() {
         service.updateSchema();
 
-        Version dbVersion = service.getDbVersion();
-        log.debug("DB version is now: " + dbVersion.toString());
+        try {
+            Version dbVersion = service.getDbVersion();
+            log.debug("DB version is now: " + dbVersion.toString());
+        } catch(VersionNotFoundException e) {
+            throw new SumarisTechnicalException(e);
+        }
     }
 
     @Test
