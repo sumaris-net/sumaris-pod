@@ -1,5 +1,5 @@
 <app-toolbar [title]="title | async" color="primary" [hasValidate]="dirty && !loading" (onValidate)="save($event)"
-  [defaultBackHref]="defaultBackHref">
+  [defaultBackHref]="defaultBackHref" #appToolbar>
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
@@ -121,7 +121,7 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm>
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event) " [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error">

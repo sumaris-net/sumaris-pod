@@ -2,6 +2,8 @@
   "APP_NAME": "SUMARiS",
   "COMMON": {
     "BTN_CANCEL": "Annuler",
+    "BTN_ABORT_CHANGES": "Abandonner les modifications",
+    "BTN_RESET": "Réinitiliser",
     "BTN_ADD": "Ajouter",
     "BTN_APPLY": "Appliquer",
     "BTN_EDIT": "Modifier",
@@ -422,7 +424,8 @@
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
-    "SAVE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous <b>sauvegarder</b> avant de continuer ?",
+    "SAVE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
+    "SAVE_BEFORE_CLOSE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "Cette opération est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?"
   }

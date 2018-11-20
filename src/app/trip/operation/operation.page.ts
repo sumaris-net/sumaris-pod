@@ -17,12 +17,16 @@ import { environment } from 'src/environments/environment';
 import { Subject } from 'rxjs';
 import { DateFormatPipe } from 'src/app/shared/pipes/date-format.pipe';
 import { BatchesTable } from '../batch/batches.table';
+import { Observable } from 'rxjs';
+import { delay } from 'rxjs/operators';
+
+
 @Component({
   selector: 'page-operation',
   templateUrl: './operation.page.html',
   styleUrls: ['./operation.page.scss']
 })
-export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit, OnDestroy {
+export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {
 
   title = new Subject<string>();
   trip: Trip;
@@ -62,6 +66,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   }
 
   ngOnInit() {
+    super.ngOnInit();
+
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
       .registerTables([this.survivalTestsTable, this.individualMonitoringTable, this.individualReleaseTable, this.batchGroupsTable]);
@@ -80,13 +86,15 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         else {
           this.load(parseInt(id), { tripId: tripId });
         }
+        // Compute the default back
+        this.defaultBackHref = "/trips/" + tripId + "?tab=2";
       });
     });
 
     this.opeForm.form.controls['physicalGear'].valueChanges.subscribe((res) => {
       if (this.loading) return; // SKip during loading
       this.catchForm.gear = res && res.gear && res.gear.label || null;
-    })
+    });
 
     // Update available parent on individual table, when survival tests changes
     this.survivalTestsTable.listChange.debounceTime(400).subscribe(samples => {
@@ -96,9 +104,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.individualMonitoringTable.availableParents = availableParents;
       this.individualReleaseTable.availableParents = availableParents;
     });
-  }
-
-  ngOnDestroy() {
   }
 
   async load(id?: number, options?: { tripId: number }) {
@@ -196,8 +201,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.markAsPristine();
     this.markAsUntouched();
 
-    // Compute the default back URL
-    this.defaultBackHref = "/trips/" + this.trip.id;
+
   }
 
   async save(event): Promise<any> {
@@ -327,5 +331,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Emit the title
     this.title.next(title);
   }
+
 
 }

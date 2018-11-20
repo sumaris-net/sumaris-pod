@@ -54,13 +54,15 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   }
 
   ngOnInit() {
+    super.ngOnInit();
+
     // Register forms & tables
     this.registerForms([this.tripForm, this.saleForm, this.measurementsForm])
       .registerTables([this.physicalGearTable, this.operationTable]);
 
     this.disable();
 
-    this.route.params.subscribe(res => {
+    this.route.params.first().subscribe(res => {
       const id = res && res["tripId"];
       if (!id || id === "new") {
         this.load();
@@ -252,7 +254,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     let confirm = false;
     let cancel = false;
-    const translations = this.translate.instant(['COMMON.BTN_SAVE', 'COMMON.BTN_CANCEL', 'COMMON.BTN_NOT_SAVE', 'CONFIRM.SAVE', 'CONFIRM.ALERT_HEADER']);
+    const translations = this.translate.instant(['COMMON.BTN_SAVE', 'COMMON.BTN_CANCEL', 'COMMON.BTN_ABORT_CHANGES', 'CONFIRM.SAVE', 'CONFIRM.ALERT_HEADER']);
     const alert = await this.alertCtrl.create({
       header: translations['CONFIRM.ALERT_HEADER'],
       message: translations['CONFIRM.SAVE'],
@@ -266,7 +268,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
           }
         },
         {
-          text: translations['COMMON.BTN_NOT_SAVE'],
+          text: translations['COMMON.BTN_ABORT_CHANGES'],
           cssClass: 'secondary',
           handler: () => { }
         },

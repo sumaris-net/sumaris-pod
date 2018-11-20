@@ -2,6 +2,8 @@
   "APP_NAME": "SUMARiS",
   "COMMON": {
     "BTN_CANCEL": "Cancel",
+    "BTN_ABORT_CHANGES": "Abort the changes",
+    "BTN_RESET": "Reset",
     "BTN_ADD": "Add",
     "BTN_APPLY": "Apply",
     "BTN_EDIT": "Edit",
@@ -409,7 +411,8 @@
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
-    "SAVE": "Do you want to save your changes?",
+    "SAVE": "Some changes have not been saved.<br/><br/>Do you want <b>save your changes</b>?",
+    "SAVE_BEFORE_CLOSE": "Some changes have not been saved.<br/><br/>Do you want to <b>save your changes</b> before closing?",
     "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?"
   }

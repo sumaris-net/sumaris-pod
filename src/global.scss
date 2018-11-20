@@ -94,6 +94,7 @@ ion-toast-controller,
   opacity: 0;
 }
 
+
 // Ionic Safe Margins
 // --------------------------------------------------
 html.plt-ios.plt-hybrid,
@@ -126,12 +127,15 @@ html {
 
 .ion-page.can-go-back {
   app-toolbar {
-    ion-back-button {
-      display: inline-block !important;
-    }
 
     ion-menu-toggle {
       display: none !important;
+    }
+
+    // Back button
+    ion-back-button,
+    ion-button.back-button {
+      display: inline-block !important;
     }
   }
 }
@@ -403,6 +407,8 @@ ion-toolbar[translucent] {
   --background: transparent !important;
 }
 
+
+
 // --- mat-stepper component
 mat-horizontal-stepper {
   .mat-horizontal-stepper-header-container {
@@ -457,6 +463,14 @@ mat-button-toggle.mat-button-toggle-checked,
 mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
   background-color: color($colors, light);
   color: white;
+}
+
+// --------------------------------------------------
+// Pages
+// --------------------------------------------------
+
+ion-alert button.alert-button {
+  cursor: pointer;
 }
 
 // --------------------------------------------------

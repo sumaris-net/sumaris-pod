@@ -1,11 +1,15 @@
+import { ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute, Params, NavigationEnd } from "@angular/router";
 import { MatTabChangeEvent } from "@angular/material";
-import { AppForm, AppTable } from '../../core/core.module';
 import { Entity, isNotNil } from '../services/model';
 import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-export abstract class AppTabPage<T extends Entity<T>, F = any>{
+import { ToolbarComponent } from '../../shared/toolbar/toolbar';
+import { AppTable } from '../table/table.class';
+import { AppForm } from './form.class';
+import { FormButtonsBarComponent } from './form-buttons-bar.component';
+export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
 
     private _forms: AppForm<any>[];
@@ -18,6 +22,9 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
     submitted: boolean = false;
     error: string;
     loading: boolean = true;
+
+    @ViewChild(ToolbarComponent) appToolbar: ToolbarComponent;
+    @ViewChild(FormButtonsBarComponent) formButtonsBar: FormButtonsBarComponent;
 
     public get dirty(): boolean {
         return (this._forms && !!this._forms.find(form => form.dirty)) || (this._tables && !!this._tables.find(table => table.dirty));
@@ -44,6 +51,16 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
                 this.selectedTabIndex = parseInt(tabIndex);
             }
         });
+    }
+
+    ngOnInit() {
+        // Catch back click events
+        if (this.appToolbar) {
+            this.registerSubscription(this.appToolbar.onBackClick.subscribe(event => this.onBackClick(event)));
+        }
+        if (this.formButtonsBar) {
+            this.registerSubscription(this.formButtonsBar.onBack.subscribe(event => this.onBackClick(event)));
+        }
     }
 
     ngOnDestroy() {
@@ -124,6 +141,92 @@ export abstract class AppTabPage<T extends Entity<T>, F = any>{
         if (!this.dirty) return;
         await this.reload();
     };
+
+    onBackClick(event: MouseEvent) {
+        // Stop the go back event, to be able to overide it
+        event.preventDefault();
+
+        setTimeout(async () => {
+            let confirm = !this.dirty;
+            let save = false;
+
+            if (!confirm) {
+
+                let alert;
+                // Ask user before
+                if (this.valid) {
+                    const translations = this.translate.instant(['COMMON.BTN_CANCEL', 'COMMON.BTN_SAVE', 'COMMON.BTN_ABORT_CHANGES',
+                        'CONFIRM.SAVE_BEFORE_CLOSE', 'CONFIRM.ALERT_HEADER']);
+                    alert = await this.alertCtrl.create({
+                        header: translations['CONFIRM.ALERT_HEADER'],
+                        message: translations['CONFIRM.SAVE_BEFORE_CLOSE'],
+                        buttons: [
+                            {
+                                text: translations['COMMON.BTN_CANCEL'],
+                                role: 'cancel',
+                                cssClass: 'secondary',
+                                handler: () => {
+                                }
+                            },
+                            {
+                                text: translations['COMMON.BTN_ABORT_CHANGES'],
+                                cssClass: 'secondary',
+                                handler: () => {
+                                    confirm = true;
+                                }
+                            },
+                            {
+                                text: translations['COMMON.BTN_SAVE'],
+                                handler: () => {
+                                    save = true;
+                                    confirm = true;
+                                }
+                            }
+                        ]
+                    });
+                }
+                else {
+                    const translations = this.translate.instant(['COMMON.BTN_ABORT_CHANGES', 'COMMON.BTN_CANCEL', 'CONFIRM.CANCEL_CHANGES', 'CONFIRM.ALERT_HEADER']);
+
+                    alert = await this.alertCtrl.create({
+                        header: translations['CONFIRM.ALERT_HEADER'],
+                        message: translations['CONFIRM.CANCEL_CHANGES'],
+                        buttons: [
+                            {
+                                text: translations['COMMON.BTN_ABORT_CHANGES'],
+                                role: 'cancel',
+                                cssClass: 'secondary',
+                                handler: () => {
+                                    confirm = true; // update upper value
+                                }
+                            },
+                            {
+                                text: translations['COMMON.BTN_CANCEL'],
+                                handler: () => { }
+                            }
+                        ]
+                    });
+                }
+                await alert.present();
+                await alert.onDidDismiss();
+
+            }
+
+
+            if (confirm) {
+                if (save) {
+                    await this.save(event); // sync save
+                }
+                else if (this.dirty && this.data.id) {
+                    this.doReload(); // async reload
+                }
+
+                // Execute the action
+                this.appToolbar.goBack();
+            }
+
+        });
+    }
 
     public async reload(confirm?: boolean) {
         const needConfirm = this.dirty;
