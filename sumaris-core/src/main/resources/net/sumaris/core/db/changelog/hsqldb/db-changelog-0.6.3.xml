@@ -157,7 +157,7 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-7">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-7" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="TAXONOMIC_LEVEL"/>
@@ -235,7 +235,6 @@
     <dropTable tableName="TRANSCRIBING_ITEM"/>
   </changeSet>
 
-
   <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-22">
     <preConditions onFail="MARK_RAN">
       <not>
@@ -268,7 +267,12 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-23">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-23" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="transcribing_item_type"/>
+      </not>
+    </preConditions>
     <createTable tableName="transcribing_item_type">
       <column autoIncrement="true" name="id" type="INT">
         <constraints primaryKey="true" primaryKeyName="transcribing_item_type_pk"/>
@@ -292,7 +296,10 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-24">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-24" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="transcribing_system"/>
+    </preConditions>
     <createTable tableName="transcribing_system">
       <column autoIncrement="true" name="id" type="INT">
         <constraints primaryKey="true" primaryKeyName="transcribing_system_pk"/>

@@ -96,7 +96,7 @@
     <elasticsearch.version>6.2.2</elasticsearch.version>
     <jna.version>4.5.1</jna.version>
     <tyrus.version>1.14</tyrus.version>
-    <jackson.version>2.9.5</jackson.version>
+    <jackson.version>2.9.7</jackson.version>
     <stringtemplate.version>4.0.2</stringtemplate.version>
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
     <commonBeanutilsVersion>1.9.3</commonBeanutilsVersion>

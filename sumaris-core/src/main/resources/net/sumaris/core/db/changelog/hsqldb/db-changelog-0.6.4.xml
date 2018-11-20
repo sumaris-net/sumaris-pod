@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.6.4.xml">
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068500-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="TAXON_NAME" columnName="complete_name"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="TAXON_NAME">
+      <column name="complete_name" type="VARCHAR(100)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068500-2">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="TAXON_NAME" columnName="completename"/>
+    </preConditions>
+    <dropColumn tableName="TAXON_NAME" columnName="completename"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068500-3">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1"><![CDATA[
+        select count(*) from system_version where label='1.0.0'
+      ]]>
+      </sqlCheck>
+    </preConditions>
+    <sql><![CDATA[
+        delete from system_version where label='1.0.0'
+      ]]></sql>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068500-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.6.4'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">0.6.4</column>
+      <column name="DESCRIPTION">
+        - Fix column name TAXON_NAME.COMPLETE_NAME
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+      <column name="COMMENTS">
+        - Fix column name TAXON_NAME.COMPLETE_NAME
+      </column>
+    </insert>
+  </changeSet>
+
+</databaseChangeLog>
