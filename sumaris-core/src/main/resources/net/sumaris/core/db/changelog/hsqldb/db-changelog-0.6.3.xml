@@ -5,15 +5,15 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
         logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.6.3.xml">
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-1">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-1" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="REFERENCE_TAXON"/>
       </not>
     </preConditions>
-    <createTable tableName="REFERENCE_TAXON">
+    <createTable tableName="reference_taxon">
       <column autoIncrement="true" name="id" type="INT">
-        <constraints primaryKey="true" primaryKeyName="REFERENCE_TAXON_PK"/>
+        <constraints primaryKey="true" primaryKeyName="reference_taxon_pk"/>
       </column>
       <column name="update_date" type="TIMESTAMP"/>
     </createTable>
@@ -165,7 +165,7 @@
     </preConditions>
     <createTable tableName="TAXONOMIC_LEVEL">
       <column autoIncrement="true" name="id" type="INT">
-        <constraints primaryKey="true" primaryKeyName="TAXONOMIC_LEVELPK"/>
+        <constraints primaryKey="true" primaryKeyName="TAXONOMIC_LEVEL_PK"/>
       </column>
       <column name="comments" type="VARCHAR(2000)"/>
       <column name="creation_date" type="TIMESTAMP">
