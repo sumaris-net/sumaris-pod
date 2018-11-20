@@ -324,19 +324,19 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-25">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-25" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="transcribing_system" constraintName="FK1n9e0igvm6tu6ke59d3h5vbri" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-26">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-26" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="transcribing_item_type" constraintName="FK5w01g8kq1mv7y7gomlvirkck0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-27">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-27" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="transcribing_system_fk" baseTableName="transcribing_item_type" constraintName="FK78wb1v7vk766tcp4a978wrekb" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="transcribing_system"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-28">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-28" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="transcribing_item" constraintName="FKfx2bfmv9v7xjdfqpx4wnkkkr0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-29">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-29" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="transcribing_item_type_fk" baseTableName="transcribing_item" constraintName="FKmynedx91gfxx3xvpdgolpfg75" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="transcribing_item_type"/>
   </changeSet>
   
