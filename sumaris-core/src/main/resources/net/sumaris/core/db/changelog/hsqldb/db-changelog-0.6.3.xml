@@ -298,7 +298,9 @@
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1542622068000-24" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <tableExists tableName="transcribing_system"/>
+      <not>
+        <tableExists tableName="transcribing_system"/>
+      </not>
     </preConditions>
     <createTable tableName="transcribing_system">
       <column autoIncrement="true" name="id" type="INT">
