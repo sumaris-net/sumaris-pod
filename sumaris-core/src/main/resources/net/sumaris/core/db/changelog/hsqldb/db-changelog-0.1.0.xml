@@ -22,9 +22,12 @@
     <delete tableName="SYSTEM_VERSION">
       <where>LABEL='1.0.0'</where>
     </delete>
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.1.0'</where>
+    </delete>
     <insert tableName="SYSTEM_VERSION">
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-      <column name="LABEL">1.0.0</column>
+      <column name="LABEL">0.1.0</column>
       <column name="DESCRIPTION">
         - Add table SYSTEM_VERSION
       </column>
