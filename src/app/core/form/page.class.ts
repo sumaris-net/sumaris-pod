@@ -194,7 +194,6 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
                         buttons: [
                             {
                                 text: translations['COMMON.BTN_ABORT_CHANGES'],
-                                role: 'cancel',
                                 cssClass: 'secondary',
                                 handler: () => {
                                     confirm = true; // update upper value
@@ -202,6 +201,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
                             },
                             {
                                 text: translations['COMMON.BTN_CANCEL'],
+                                role: 'cancel',
                                 handler: () => { }
                             }
                         ]
@@ -232,22 +232,22 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
         const needConfirm = this.dirty;
         // if not confirm yet: ask confirmation
         if (!confirm && needConfirm) {
-            const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.CANCEL_CHANGES', 'CONFIRM.ALERT_HEADER']);
+            const translations = this.translate.instant(['COMMON.BTN_ABORT_CHANGES', 'COMMON.BTN_CANCEL', 'CONFIRM.CANCEL_CHANGES', 'CONFIRM.ALERT_HEADER']);
             const alert = await this.alertCtrl.create({
                 header: translations['CONFIRM.ALERT_HEADER'],
                 message: translations['CONFIRM.CANCEL_CHANGES'],
                 buttons: [
                     {
-                        text: translations['COMMON.NO'],
-                        role: 'cancel',
+                        text: translations['COMMON.BTN_ABORT_CHANGES'],
                         cssClass: 'secondary',
-                        handler: () => { }
-                    },
-                    {
-                        text: translations['COMMON.YES'],
                         handler: () => {
                             confirm = true; // update upper value
                         }
+                    },
+                    {
+                        text: translations['COMMON.BTN_CANCEL'],
+                        role: 'cancel',
+                        handler: () => { }
                     }
                 ]
             });

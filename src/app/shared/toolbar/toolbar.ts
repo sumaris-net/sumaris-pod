@@ -46,7 +46,6 @@ export class ToolbarComponent implements OnInit {
     protected router: Router,
     public routerOutlet: IonRouterOutlet
   ) {
-    this.routerOutlet.activateEvents.subscribe(event => console.log(event));
   }
 
   ngOnInit() {
