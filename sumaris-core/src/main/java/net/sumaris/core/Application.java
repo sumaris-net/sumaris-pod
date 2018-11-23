@@ -22,8 +22,11 @@ package net.sumaris.core;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.service.ServiceLocator;
+import net.sumaris.core.util.ApplicationUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,7 +36,9 @@ import org.nuiton.i18n.init.UserI18nInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -41,7 +46,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -51,7 +59,8 @@ import java.util.Locale;
  */
 @SpringBootApplication(
 		exclude = {
-				LiquibaseAutoConfiguration.class
+				LiquibaseAutoConfiguration.class,
+                FreeMarkerAutoConfiguration.class
 		},
 		scanBasePackages = {
 				"net.sumaris.core"
@@ -64,9 +73,6 @@ public class Application {
 
 	/* Logger */
 	private static final Log log = LogFactory.getLog(Application.class);
-
-	public static String MAIN_CONFIG_FILE;
-    public static String[] MAIN_ARGS;
 
 	/**
 	 * <p>
@@ -87,7 +93,7 @@ public class Application {
 		}
 
 		// Could override config file id (useful for dev)
-		String configFile = "sumaris-core.config";
+		String configFile = "application.properties";
 		if (System.getProperty(configFile) != null) {
 			configFile = System.getProperty(configFile);
 			configFile = configFile.replaceAll("\\\\", "/");
@@ -96,9 +102,8 @@ public class Application {
 		}
 
 		// Create configuration
-		SumarisConfiguration config = new SumarisConfiguration(configFile, args);
+		SumarisConfiguration config = new SumarisConfiguration(configFile, ApplicationUtils.adaptArgsForConfig(args));
 		SumarisConfiguration.setInstance(config);
-
 
 		// Init i18n
 		try {
@@ -107,24 +112,23 @@ public class Application {
 			throw new SumarisTechnicalException("i18n initialization failed", e);
 		}
 
-		SpringApplication.run(Application.class, args)
-        .addApplicationListener(applicationEvent -> {
-            if (applicationEvent != null) {
-                log.warn(applicationEvent);
-            }
-        });
-
-
         try {
+            // Start Spring boot
+            ConfigurableApplicationContext appContext = SpringApplication.run(Application.class, args);
+            appContext.addApplicationListener(applicationEvent -> {
+                if (applicationEvent != null) {
+                    log.warn(applicationEvent);
+                }
+            });
+
+            // Init service locator
+            ServiceLocator.init(appContext);
+
+            // Execute all action
             SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
         } catch (Exception e) {
             log.error("Error in action", e);
         }
-//        try {
-//            SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
-//        } catch (Exception e) {
-//            log.error("Error in action", e);
-//        }
 
     }
 

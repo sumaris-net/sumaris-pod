@@ -38,8 +38,7 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearLevel;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonGroupType;
+import net.sumaris.core.model.referential.taxon.*;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
@@ -82,9 +81,12 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     UserProfile.class,
                     SaleType.class,
                     VesselType.class,
-                    // Taxon
+                    // Taxon group
                     TaxonGroupType.class,
                     TaxonGroup.class,
+                    // Taxon
+                    TaxonomicLevel.class,
+                    TaxonName.class,
                     // Métier
                     Metier.class,
                     // Pmfm
@@ -111,6 +113,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.saleType");
         I18n.n("sumaris.persistence.table.taxonGroup");
         I18n.n("sumaris.persistence.table.taxonGroupType");
+        I18n.n("sumaris.persistence.table.taxonomicLevel");
+        I18n.n("sumaris.persistence.table.referenceTaxon");
+        I18n.n("sumaris.persistence.table.taxonName");
         I18n.n("sumaris.persistence.table.metier");
         I18n.n("sumaris.persistence.table.parameter");
         I18n.n("sumaris.persistence.table.pmfm");
@@ -137,6 +142,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         result.put(Fraction.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Fraction.class, Fraction.PROPERTY_MATRIX));
         result.put(QualitativeValue.class.getSimpleName(), BeanUtils.getPropertyDescriptor(QualitativeValue.class, QualitativeValue.PROPERTY_PARAMETER));
         result.put(TaxonGroup.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonGroup.PROPERTY_TAXON_GROUP_TYPE));
+        result.put(TaxonName.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonName.PROPERTY_TAXONOMIC_LEVEL));
         result.put(Strategy.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Strategy.class, Strategy.PROPERTY_PROGRAM));
         result.put(Metier.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Metier.class, Metier.PROPERTY_GEAR));
 

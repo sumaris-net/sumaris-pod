@@ -24,7 +24,9 @@ package net.sumaris.core.config;
  * #L%
  */
 
-import net.sumaris.core.action.DatabaseNewDbAction;
+import net.sumaris.core.action.DatabaseGenerateChangeLogAction;
+import net.sumaris.core.action.DatabaseCreateSchemaAction;
+import net.sumaris.core.action.DatabaseUpdateSchemaAction;
 import net.sumaris.core.action.HelpAction;
 import org.nuiton.config.ConfigActionDef;
 
@@ -37,7 +39,11 @@ public enum SumarisCoreConfigurationAction implements ConfigActionDef {
 
     HELP(HelpAction.class.getName() + "#show", "Shows help", "-h", "--help"),
 
-    DB_CREATE(DatabaseNewDbAction.class.getName() + "#run", "Create new database", "--schema-create");
+    DB_CREATE(DatabaseCreateSchemaAction.class.getName() + "#run", "Create new database", "--schema-create"),
+
+    DB_UPDATE_SCHEMA(DatabaseUpdateSchemaAction.class.getName() + "#run", "Update an existing database", "--schema-update"),
+
+    DB_CHANGELOG(DatabaseGenerateChangeLogAction.class.getName() + "#run", "Update an existing database", "--schema-changelog");
 
     public final String action;
     public final String description;

@@ -24,6 +24,7 @@ package net.sumaris.server.config;
 
 import com.google.common.collect.ImmutableList;
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
+import net.sumaris.core.util.ApplicationUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.SpringApplication;
@@ -75,7 +76,7 @@ public class Application extends SpringBootServletInitializer {
     }
 
     public static void main(String[] args) {
-        SumarisServerConfiguration.setArgs(adaptArgsForConfig(args));
+        SumarisServerConfiguration.setArgs(ApplicationUtils.adaptArgsForConfig(args));
         SpringApplication.run(Application.class, args);
     }
 
@@ -124,20 +125,4 @@ public class Application extends SpringBootServletInitializer {
         };
     }
 
-    /* -- --*/
-    protected static String[] adaptArgsForConfig(String... args) {
-
-        final Pattern optionPattern = Pattern.compile("--([a-zA-Z0-9._]+)=([^ \t]+)");
-
-        List<String> configArgs = ImmutableList.copyOf(args).stream()
-                .map(optionPattern::matcher)
-                .filter(matcher -> matcher.matches())
-                .flatMap(matcher -> {
-                    String name = matcher.group(1);
-                    String value = matcher.group(1);
-                    return ImmutableList.of("--option", name, value).stream();
-            }).collect(Collectors.toList());
-
-        return configArgs.toArray(new String[configArgs.size()]);
-    }
 }

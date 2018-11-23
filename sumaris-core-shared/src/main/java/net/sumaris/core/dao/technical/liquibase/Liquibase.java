@@ -49,6 +49,7 @@ import net.sumaris.shared.exception.ErrorCodes;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.cfg.Environment;
+import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
 import org.slf4j.LoggerFactory;
@@ -280,6 +281,8 @@ public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoade
      */
     public void executeUpdate(Properties connectionProperties) throws LiquibaseException {
 
+        log.info(I18n.t("sumaris.persistence.liquibase.executeUpdate"));
+
         Connection c = null;
         liquibase.Liquibase liquibase;
         try {
@@ -300,6 +303,7 @@ public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoade
             }
 
         } catch (SQLException e) {
+            log.error(I18n.t("sumaris.persistence.liquibase.executeUpdate.error", e.getMessage()));
             throw new DatabaseException(e);
         } finally {
             if (c != null) {

@@ -315,12 +315,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "${sumaris.data.directory}/dbbackup",
             File.class,
             false),
-    DB_ENUMERATION_RESOURCE(
-	        "sumaris.persistence.db.enumeration.resource",
-	        n("sumaris.config.option.persistence.db.enumeration.resource"),
-	        "classpath*:sumaris-db-enumerations.properties",
-	        String.class,
-	        false),
     HIBERNATE_SHOW_SQL(
             "spring.jpa.show-sql",
             n("sumaris.config.option.spring.jpa.show-sql.description"),
@@ -357,21 +351,21 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             false),
 
     LIQUIBASE_RUN_AUTO(
-            "sumaris.persistence.liquibase.should.run",
+            "spring.liquibase.enabled",
             n("sumaris.config.option.liquibase.should.run.description"),
             Boolean.FALSE.toString(),
             boolean.class,
             false),
 
     LIQUIBASE_RUN_COMPACT(
-            "sumaris.persistence.liquibase.should.compact",
+            "spring.liquibase.compact.enabled",
             n("sumaris.config.option.liquibase.should.compact.description"),
             Boolean.FALSE.toString(),
             boolean.class,
             false),
 
     LIQUIBASE_CHANGE_LOG_PATH(
-            "sumaris.persistence.liquibase.changelog.path",
+            "spring.liquibase.change-log",
             n("sumaris.config.option.liquibase.changelog.path.description"),
             "classpath:net/sumaris/core/db/changelog/db-changelog-master.xml",
             String.class,

@@ -4,6 +4,7 @@ import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import org.hibernate.annotations.Cascade;
 
@@ -50,6 +51,10 @@ public class Batch implements IDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "taxon_group_fk")
     private TaxonGroup taxonGroup;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reference_taxon_fk")
+    private ReferenceTaxon referenceTaxon;
 
     /* -- quality insurance -- */
 

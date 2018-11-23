@@ -27,19 +27,24 @@ package net.sumaris.core;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.DatabaseResource;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 public class InitTests extends net.sumaris.core.test.InitTests {
 
     private static final Logger log = LoggerFactory.getLogger(InitTests.class);
 
+    private String[] args;
+
     public static void main(String[] args) {
 
         InitTests initTests = new InitTests();
+        initTests.args = args;
         try {
 
             // Force replacement
@@ -77,5 +82,12 @@ public class InitTests extends net.sumaris.core.test.InitTests {
     @Override
     protected void afterInsert(Connection conn) throws SQLException {
         super.afterInsert(conn);
+    }
+
+    protected String[] getConfigArgs() {
+        if (ArrayUtils.isNotEmpty(args)) {
+            return args;
+        }
+        return super.getConfigArgs();
     }
 }

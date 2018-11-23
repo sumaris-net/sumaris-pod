@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.administration.programStrategy;
+package net.sumaris.core.model.referential.taxon;
 
 /*-
  * #%L
@@ -24,41 +24,27 @@ package net.sumaris.core.vo.administration.programStrategy;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.vo.referential.IReferentialVO;
-import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.Status;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
+import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 
+/**
+ * Un référence stable (un identifiant unique) de taxon réel.
+ *
+ */
 @Data
-public class
-PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date> {
+@Entity
+@Table(name = "reference_taxon")
+public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
 
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
     private Integer id;
-    private Integer pmfmId;
 
-    private String label;
-    private String name;
+    @Column(name = "update_date")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    private String unit;
-    private String type;
-    private Integer methodId;
-
-    private Double minValue;
-    private Double maxValue;
-    private Integer maximumNumberDecimals;
-    private Double defaultValue;
-
-    private Integer acquisitionNumber;
-    private Boolean isMandatory;
-    private Integer rankOrder;
-
-    private String acquisitionLevel;
-    private List<String> gears;
-
-    List<ReferentialVO> qualitativeValues;
 }

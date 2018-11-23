@@ -62,7 +62,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Locale;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 /**
  * @author peck7 on 13/10/2017.
@@ -148,8 +147,7 @@ public class InitTests extends ExternalResource {
     protected String[] getConfigArgs() {
         return new String[]{
                 "--option", SumarisConfigurationOption.DB_DIRECTORY.getKey(), getTargetDbDirectory(),
-                "--option", SumarisConfigurationOption.JDBC_URL.getKey(), SumarisConfigurationOption.JDBC_URL.getDefaultValue(),
-                "--option", SumarisConfigurationOption.DB_ENUMERATION_RESOURCE.getKey(), getDbEnumerationResource()
+                "--option", SumarisConfigurationOption.JDBC_URL.getKey(), SumarisConfigurationOption.JDBC_URL.getDefaultValue()
         };
     }
 
@@ -165,7 +163,7 @@ public class InitTests extends ExternalResource {
 
     protected void initServiceLocator() {
 
-        ServiceLocator.initDefault();
+        ServiceLocator.init(null);
     }
 
     @Override
@@ -210,9 +208,8 @@ public class InitTests extends ExternalResource {
         try {
             // Update DB schema
             if (needSchemaUpdate) {
-                //log.info("Updating database schema...");
-                // TODO: replace the service locator ?
-                //ServiceLocator.instance().getDatabaseSchemaService().updateSchema();
+                log.info("Updating database schema...");
+                updateSchema(null);
             }
 
             conn = Daos.createConnection(config.getConnectionProperties());
@@ -412,7 +409,8 @@ public class InitTests extends ExternalResource {
 
         try {
             // Update the DB schema
-            databaseSchemaDao.updateSchema(outputDirectory);
+            if (outputDirectory != null) databaseSchemaDao.updateSchema(outputDirectory);
+            else databaseSchemaDao.updateSchema();
         } catch (SumarisTechnicalException | DatabaseSchemaUpdateException e) {
             log.error(e.getMessage());
             Assume.assumeNoException(e);

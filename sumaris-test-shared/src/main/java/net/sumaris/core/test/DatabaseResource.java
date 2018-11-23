@@ -83,10 +83,6 @@ public abstract class DatabaseResource implements TestRule {
 
     private String dbDirectory;
 
-    private final String beanFactoryReferenceLocation;
-
-    private final String beanRefFactoryReferenceId;
-
     private final boolean writeDb;
 
     private final String configName;
@@ -107,8 +103,6 @@ public abstract class DatabaseResource implements TestRule {
                                String beanRefFactoryReferenceId,
                                boolean writeDb) {
         this.configName = configName;
-        this.beanFactoryReferenceLocation = beanFactoryReferenceLocation;
-        this.beanRefFactoryReferenceId = beanRefFactoryReferenceId;
         this.writeDb = writeDb;
     }
 
@@ -147,14 +141,6 @@ public abstract class DatabaseResource implements TestRule {
      */
     public File getResourceDirectory() {
         return resourceDirectory;
-    }
-
-    public String getBeanRefFactoryReferenceId() {
-        return beanRefFactoryReferenceId;
-    }
-
-    public String getBeanFactoryReferenceLocation() {
-        return beanFactoryReferenceLocation;
     }
 
     /**
@@ -237,7 +223,7 @@ public abstract class DatabaseResource implements TestRule {
         }
 
         // Prepare DB
-        if (enableDb() && BUILD_ENVIRONMENT_DEFAULT.equalsIgnoreCase(buildEnvironment)) {
+        if (BUILD_ENVIRONMENT_DEFAULT.equalsIgnoreCase(buildEnvironment)) {
 
             dbDirectory = getHsqldbSrcDatabaseDirectory();
             if (!defaultDbName) {
@@ -290,13 +276,6 @@ public abstract class DatabaseResource implements TestRule {
 
         // Init i18n
         initI18n();
-
-        // Initialize spring context
-        if (beanFactoryReferenceLocation != null) {
-            ServiceLocator.instance().init(
-                    beanFactoryReferenceLocation,
-                    beanRefFactoryReferenceId);
-        }
     }
 
     protected final Set<File> toDestroy = Sets.newHashSet();
@@ -398,7 +377,7 @@ public abstract class DatabaseResource implements TestRule {
         ServiceLocator serviceLocator = ServiceLocator.instance();
 
         // If service and database has been started
-        if (enableDb() && serviceLocator.isOpen()) {
+        if (serviceLocator.isOpen()) {
             Properties connectionProperties = SumarisConfiguration.getInstance().getConnectionProperties();
 
             // Shutdown if HSQLDB database is a file database (not server mode)
@@ -421,11 +400,6 @@ public abstract class DatabaseResource implements TestRule {
             destroyDirectories(toDestroy, true);
         }
 
-        if (beanFactoryReferenceLocation != null) {
-
-            // push back default configuration
-            ServiceLocator.instance().init(null, null);
-        }
     }
 
     /**
@@ -648,10 +622,6 @@ public abstract class DatabaseResource implements TestRule {
     }
 
     /* -- Internal methods -- */
-
-    private boolean enableDb() {
-        return beanFactoryReferenceLocation == null || !beanFactoryReferenceLocation.contains("WithNoDb");
-    }
 
     private void destroyDirectories(Set<File> toDestroy, boolean retry) {
         if (CollectionUtils.isEmpty(toDestroy)) {

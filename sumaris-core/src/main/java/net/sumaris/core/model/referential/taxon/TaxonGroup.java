@@ -43,6 +43,7 @@ import java.util.Date;
  */
 @Data
 @Entity
+@Table(name = "taxon_group")
 public class TaxonGroup implements IItemReferentialEntity {
 
     public static final String PROPERTY_TAXON_GROUP_TYPE = "taxonGroupType";

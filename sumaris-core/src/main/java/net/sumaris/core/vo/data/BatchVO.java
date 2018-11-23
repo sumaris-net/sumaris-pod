@@ -33,6 +33,7 @@ public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
     private String samplingRatioText;
     private Integer individualCount;
     private ReferentialVO taxonGroup;
+    private ReferentialVO taxonName;
 
     private OperationVO operation;
     private Integer operationId;
