@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data.batch;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.TaxonNameDao;
 import net.sumaris.core.dao.technical.Beans;
@@ -31,15 +32,12 @@ import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.batch.Batch;
-import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -184,6 +182,12 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
         return toBatchVO(source, true);
     }
 
+    @Override
+    public List<BatchVO> toFlatList(final BatchVO source) {
+        List<BatchVO> result = Lists.newArrayList();
+        fillListFromTree(result, source);
+        return result;
+    }
 
     /* -- protected methods -- */
 
@@ -237,7 +241,6 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
         if (source == null) return;
 
         target.setRecorderDepartment(source.getRecorderDepartment());
-
     }
 
     protected List<BatchVO> toBatchVOs(List<Batch> source, boolean allFields) {
@@ -293,7 +296,6 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             }
         }
 
-
         // Operation
         if (copyIfNull || (opeId != null)) {
             if (opeId == null) {
@@ -323,5 +325,21 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
         }
+    }
+
+    protected void fillListFromTree(final List<BatchVO> result, final BatchVO source) {
+
+        result.add(source);
+
+        if (CollectionUtils.isNotEmpty(source.getChildren())) {
+            source.getChildren().forEach(child -> {
+                child.setParentId(source.getId());
+                fillListFromTree(result, child);
+            });
+        }
+
+        // Not need anymore
+        source.setParent(null);
+        source.setChildren(null);
     }
 }

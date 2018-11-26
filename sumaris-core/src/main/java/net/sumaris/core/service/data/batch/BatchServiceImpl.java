@@ -78,9 +78,6 @@ public class BatchServiceImpl implements BatchService {
 
 		List<BatchVO> result = batchDao.saveByOperationId(operationId, sources);
 
-
-
-
 		// Save measurements
 		result.stream().forEach(savedBatch -> {
 			// If only one maps: distinguish each item
@@ -155,6 +152,11 @@ public class BatchServiceImpl implements BatchService {
 		ids.stream()
 				.filter(Objects::nonNull)
 				.forEach(this::delete);
+	}
+
+	@Override
+	public List<BatchVO> toFlatList(final BatchVO catchBatch) {
+		return batchDao.toFlatList(catchBatch);
 	}
 
 	/* -- protected methods -- */

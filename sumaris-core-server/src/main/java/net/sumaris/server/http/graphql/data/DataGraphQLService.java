@@ -322,13 +322,14 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "batches", description = "Get operation's batches")
     public List<BatchVO> getBatchesByOperation(@GraphQLContext OperationVO operation) {
-        // Avoid a reloading (e.g. when saving)
+        // Avoid a reloading (e.g. when saving): reuse existing VO
         if (operation.getCatchBatch() != null) {
-            log.warn("TODO: do not reload batches after saving it, but reuse updated VO !");
-            // TODO
-            // => flat tree as list
+            log.warn("FIXME: do not reload batches after saving it, but reuse updated VO !");
+            // FIXME see issue #1 - https://github.com/sumaris-net/sumaris-pod/issues/1
+            //return batchService.toFlatList(operation.getCatchBatch());
         }
 
+        // Reload, if not exist in VO
         return batchService.getAllByOperationId(operation.getId());
     }
 
