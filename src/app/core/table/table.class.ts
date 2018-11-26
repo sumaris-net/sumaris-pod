@@ -436,10 +436,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     private generateTableId() {
-        const id = this.location.path(true).replace(/[?].*$/g, '') + "_" + this.constructor.name;
-        if (this.debug) {
-            console.debug("table id = " + id);
-        }
+        const id = this.location.path(true).replace(/[?].*$/g, '').replace(/\/[\d]+/g, '_id') + "_" + this.constructor.name;
+        //if (this.debug) console.debug("[table] id = " + id);
         return id;
     }
 

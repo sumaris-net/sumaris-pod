@@ -31,28 +31,52 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<!-- First table header
-<mat-table class="table-survival-test">
+<!-- First header row -->
+<mat-table>
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef></mat-header-cell>
   </ng-container>
-  <ng-container matColumnDef="rankOrder">
+
+  <!-- rankOrder Column = id -->
+  <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
-  <ng-container *ngFor="let pmfm of pmfmHeaders | async" matColumnDef="{{pmfm.pmfmId}}">
-    <mat-header-cell *matHeaderCellDef class="col-{{pmfm.count}}">
-      <ion-label>{{pmfm.name | translate}}</ion-label>
-    </mat-header-cell>
+
+  <!-- taxon group (comemrcial species) -->
+  <ng-container matColumnDef="taxonGroup">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
+
+  <!-- taxon name (scientific species) -->
+  <ng-container matColumnDef="taxonName">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+  </ng-container>
+
+  <ng-container *ngIf="!loading">
+    <!-- Pmfm columns -->
+    <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
+      <mat-header-cell *matHeaderCellDef class="first-header align-self-center" [class.even]="pmfm.id % 2 === 0"
+        [class.odd]="pmfm.id % 2 !== 0">
+        <ion-label *ngIf="pmfm.pmfmId % 5 === 0">{{qvPmfm.qualitativeValues[pmfm.id].name}}</ion-label>
+      </mat-header-cell>
+    </ng-container>
+  </ng-container>
+
+  <!-- Comment column -->
+  <ng-container matColumnDef="comments">
+    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm"></mat-header-cell>
+  </ng-container>
+
+  <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition"></mat-header-cell>
   </ng-container>
-  <mat-header-row *matHeaderRowDef="displayedHeaderColumns"></mat-header-row>
-</mat-table> -->
 
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+</mat-table>
 
-<mat-table [dataSource]="dataSource" class="table-survival-test" matSort matSortActive="rankOrder" matSortDirection="asc"
-  matSortDisableClear [trackBy]="trackByFn">
+<mat-table [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
+  [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
@@ -75,7 +99,7 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- taxon group (comemrcial species) -->
+  <!-- taxon group (commercial species) -->
   <ng-container matColumnDef="taxonGroup">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
@@ -141,94 +165,30 @@
 
   </ng-container>
 
-  <ng-container *ngIf="!loading && qvPmfm">
-    <!-- QV value / columns -->
-    <ng-container *ngFor="let qv of qvPmfm.qualitativeValues;">
+  <ng-container *ngIf="!loading && !header">
 
-      <!-- total individual count -->
-      <ng-container matColumnDef="{{qv.label + '_totalIndividualCount'}}">
-        <mat-header-cell *matHeaderCellDef class="total">
-          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.TOTAmat-latlonL_INDIVIDUAL_COUNT'|translate}}</ion-label>
-        </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-
-          <mat-form-field floatLabel="never">
-            <input type="number" matInput autocomplete="off" [formControl]="getControlFromPath(row.validator, 'children.'+qv.label+'totalIndividualCount')"
-              [placeholder]="'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate" [readonly]="!row.editing">
-            <mat-error *ngIf="row.validator.controls['children'].controls[qv.label].controls['totalIndividualCount'].hasError('required')"
-              translate>ERROR.FIELD_REQUIRED</mat-error>
-            <mat-error *ngIf="row.validator.controls['children'].controls[qv.label].controls['totalIndividualCount'].hasError('min')">
-              {{'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
-            <mat-error *ngIf="row.validator.controls['children'].controls[qv.label].controls['totalIndividualCount'].hasError('pattern')">
-              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
-          </mat-form-field>
-        </mat-cell>
-      </ng-container>
-
-      <!-- total weight -->
-      <ng-container matColumnDef="{{qv.label + '_totalWeight'}}">
-        <mat-header-cell *matHeaderCellDef class="total">
-          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.TOTAL_WEIGHT'|translate}}</ion-label>
-        </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <mat-form-field-measurement [pmfm]="defaultWeightPmfm" [formControl]="row.validator.controls[qv.label].controls['totalWeight']"
-            floatLabel="never">
-          </mat-form-field-measurement>
-        </mat-cell>
-      </ng-container>
-
-      <!-- Sampling ratio -->
-      <ng-container matColumnDef="{{qv.label + '_samplingRatio'}}">
-        <mat-header-cell *matHeaderCellDef class="sampling">
-          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.SAMPLING_RATIO'|translate}}</ion-label>
-        </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <mat-form-field floatLabel="never">
-            <input type="number" matInput autocomplete="off" [formControl]="row.validator.controls[qv.label].controls['samplingRatio']"
-              step="1" [placeholder]="'TRIP.BATCH.TABLE.SAMPLING_RATIO'|translate" [readonly]="!row.editing">
-            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingRatio'].hasError('required')"
-              translate>ERROR.FIELD_REQUIRED</mat-error>
-            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingRatio'].hasError('min')">
-              {{'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
-            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingRatio'].hasError('pattern')">
-              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
-          </mat-form-field>
-        </mat-cell>
-      </ng-container>
-
-      <!-- sampling individual count -->
-      <ng-container matColumnDef="{{qv.label + '_samplingIndividualCount'}}">
-        <mat-header-cell *matHeaderCellDef class="sampling">
-          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT'|translate}}</ion-label>
-        </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <mat-form-field floatLabel="never">
-            <input type="number" matInput autocomplete="off" [formControl]="row.validator.controls[qv.label].controls['samplingIndividualCount']"
-              [placeholder]="'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'|translate" [readonly]="!row.editing">
-            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingIndividualCount'].hasError('required')"
-              translate>ERROR.FIELD_REQUIRED</mat-error>
-            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingIndividualCount'].hasError('min')">
-              {{'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
-            <mat-error *ngIf="row.validator.controls[qv.label].controls['samplingIndividualCount'].hasError('pattern')">
-              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
-          </mat-form-field>
-        </mat-cell>
-      </ng-container>
-
-      <!-- sampling weight count -->
-      <ng-container matColumnDef="{{qv.label + '_samplingWeight'}}">
-        <mat-header-cell *matHeaderCellDef class="sampling">
-          <ion-label>{{qv.name}} / {{'TRIP.BATCH.TABLE.SAMPLING_WEIGHT'|translate}}</ion-label>
-        </mat-header-cell>
-        <mat-cell *matCellDef="let row">
-          <mat-form-field-measurement [pmfm]="defaultWeightPmfm" [formControl]="row.validator.controls[qv.label].controls['samplingWeight']"
-            floatLabel="never">
-          </mat-form-field-measurement>
-        </mat-cell>
-      </ng-container>
-
+    <!-- Pmfm columns -->
+    <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)"
+        [class.even]="isEven(pmfm)">
+        <ion-label>{{getPmfmColumnHeader(pmfm)}}
+          <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
+        </ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)" [class.even]="isEven(pmfm)">
+        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
+          [compact]="true" floatLabel="never"></mat-form-field-measurement>
+      </mat-cell>
     </ng-container>
+  </ng-container>
 
+  <ng-container *ngIf="!loading && header">
+    <!-- Pmfm columns -->
+    <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
+      <mat-header-cell *matHeaderCellDef class="first-header" [class.even]="pmfm.qvIndex % 2 === 0" [class.odd]="pmfm.qvIndex % 2 !== 0">
+        <ion-label *ngIf="pmfm.pmfmId % 5 === 0">{{qvPmfm.qualitativeValues[pmfm.qvIndex].name}}</ion-label>
+      </mat-header-cell>
+    </ng-container>
   </ng-container>
 
   <!-- Comment column -->
@@ -248,7 +208,7 @@
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition && row.editing">
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
       <!-- undo or delete  -->
       <button mat-icon-button small color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
         (click)="cancelOrDelete($event, row)">
@@ -269,6 +229,7 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
     [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>

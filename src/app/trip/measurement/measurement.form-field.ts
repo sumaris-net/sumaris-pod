@@ -9,6 +9,7 @@ const noop = () => {
 
 @Component({
     selector: 'mat-form-field-measurement',
+    styleUrls: ['./measurement.form-field.scss'],
     templateUrl: './measurement.form-field.html',
     providers: [
         {

@@ -261,28 +261,39 @@ mat-option ion-row {
 // Material Table
 // --------------------------------------------------
 mat-table {
-  .mat-header-cell>ion-label {
+
+  .mat-header-cell>ion-label,
+  .mat-header-cell button>ion-label {
     white-space: normal;
     word-wrap: break-word;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   .mat-header-cell[align-self-center]>ion-label,
+  .mat-header-cell[align-self-center] button>ion-label,
   .mat-row[align-self-center] {
     text-align: center;
-
   }
 
   .mat-header-row,
   .mat-row {
     border-left: 1px solid transparent;
     max-height: 52px;
-    padding: 0 !important;
     z-index: 999;
+    padding: 0 !important;
 
     mat-cell:last-child,
     mat-footer-cell:last-child,
     mat-header-cell:last-child {
       padding-right: 8px;
+    }
+
+    .mat-form-field {
+
+      .mat-form-field-label {
+        padding-left: 5px;
+      }
     }
 
     .mat-form-field-disabled,
@@ -304,6 +315,19 @@ mat-table {
 
       .mat-form-field-label {
         visibility: hidden;
+      }
+
+    }
+
+    .mat-row {
+      .mat-form-field {
+        input {
+          padding-left: 5px;
+        }
+
+        input[type=number] {
+          text-align: right;
+        }
       }
     }
 

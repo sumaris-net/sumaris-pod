@@ -168,7 +168,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Set catch bacth
     this.catchForm.gear = gearLabel;
-    this.catchForm.value = data && data.catchBatch || Batch.fromObject({ rankOrder: 1 });
+    this.catchForm.value = data && data.catchBatch || Batch.fromObject({ rankOrder: 1, label: AcquisitionLevelCodes.CATCH_BATCH });
     //this.catchForm.updateControls();
 
     // Get all samples (and children)
@@ -189,7 +189,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Batches
     if (isNotNil(this.batchGroupsTable)) {
       // Get all batches (and children)
-      const batches = (data && data.catchBatch && [data.catchBatch] || []).reduce((res, batch) => !batch.children ? res.concat(batch) : res.concat(batch).concat(batch.children), [])
+      const batches = (data && data.catchBatch && data.catchBatch.children) || [];
 
       // Set batches table
       this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
@@ -229,6 +229,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           AppFormUtils.logFormErrors(this.individualMonitoringTable.selectedRow.validator, "[monitoring-table]")
         }
       }
+      if (this.batchGroupsTable.invalid) {
+        this.batchGroupsTable.markAsTouched();
+        if (this.batchGroupsTable.selectedRow && this.batchGroupsTable.selectedRow.editing) {
+          AppFormUtils.logFormErrors(this.batchGroupsTable.selectedRow.validator, "[batch-group-table]")
+        }
+      }
 
       this.submitted = true;
       return;
@@ -253,6 +259,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     await this.survivalTestsTable.save();
     await this.individualMonitoringTable.save();
     await this.individualReleaseTable.save();
+    await this.batchGroupsTable.save();
 
     // get sub-samples, from tables
     const subSamples = (this.individualMonitoringTable.value || [])
@@ -260,9 +267,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.data.samples = (this.survivalTestsTable.value || [])
       .map(sample => {
         // Add children
-        sample.children = subSamples.filter(childSample => sample.equals(childSample.parent));
+        sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
         return sample;
       });
+
+    // get batches
+    this.data.catchBatch.children = (this.batchGroupsTable.value || []);
 
     const isNew = this.isNewData();
     this.disable();

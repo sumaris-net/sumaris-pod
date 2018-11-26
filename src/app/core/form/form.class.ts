@@ -1,13 +1,14 @@
-import { OnInit, EventEmitter, Output, Input } from '@angular/core';
+import { OnInit, OnDestroy, EventEmitter, Output, Input } from '@angular/core';
 import { FormGroup } from "@angular/forms";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN } from '../constants';
 import { DateAdapter } from "@angular/material";
+import { Subscription } from 'rxjs';
 
+export abstract class AppForm<T> implements OnInit, OnDestroy {
 
-export abstract class AppForm<T> implements OnInit {
-
+  private _subscriptions: Subscription[];
   protected _enable: boolean = false;
 
   touchUi: boolean = false;
@@ -79,6 +80,13 @@ export abstract class AppForm<T> implements OnInit {
     this._enable ? this.enable() : this.disable();
   }
 
+  ngOnDestroy() {
+    if (this._subscriptions) {
+      this._subscriptions.forEach(s => s.unsubscribe());
+      this._subscriptions = undefined;
+    }
+  }
+
   public cancel() {
     this.onCancel.emit();
   }
@@ -121,6 +129,11 @@ export abstract class AppForm<T> implements OnInit {
       }
     }
     return value;
+  }
+
+  protected registerSubscription(sub: Subscription) {
+    this._subscriptions = this._subscriptions || [];
+    this._subscriptions.push(sub);
   }
 
   public markAsPristine() {

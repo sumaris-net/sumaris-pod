@@ -54,7 +54,6 @@ export class MeasurementsValidatorService implements ValidatorService {
       if (!formControl) {
 
         formControl = this.formBuilder.control(pmfm.defaultValue || '', this.getValidator(pmfm));
-        //console.log(formControl);
         form.addControl(controlName, formControl);
       }
 

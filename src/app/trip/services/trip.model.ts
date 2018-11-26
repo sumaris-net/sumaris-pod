@@ -6,7 +6,7 @@ import {
   PmfmStrategy, getPmfmName
 } from "../../referential/services/model";
 import { Moment } from "moment/moment";
-import { isNotNil, isNil } from "../../core/services/model";
+import { isNotNil, isNil, AcquisitionLevelCodes } from "../../core/services/model";
 
 export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
@@ -598,14 +598,16 @@ export class Operation extends DataEntity<Operation> {
     // Batches
     if (source.batches) {
       let batches = (source.batches || []).map(Batch.fromObject);
-      this.catchBatch = batches.find(b => !b.parentId) || undefined;
+      this.catchBatch = batches.find(b => isNil(b.parentId) && (isNil(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
       if (this.catchBatch) {
         batches.forEach(s => {
           // Link to parent
-          s.parent = s.parentId && batches.find(p => p.id === s.parentId) || undefined;
+          s.parent = isNotNil(s.parentId) && batches.find(p => p.id === s.parentId) || undefined;
           s.parentId = undefined; // Avoid redundant info on parent
         });
-        this.catchBatch.children = batches.filter(b => b.parentId === this.catchBatch.id);
+        // Link to children
+        batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
+        this.catchBatch.children = batches.filter(b => b.parent === this.catchBatch);
         //console.log("[trip-model] Operation.catchBatch:", this.catchBatch);
       }
     }

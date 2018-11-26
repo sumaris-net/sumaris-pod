@@ -75,7 +75,7 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- taxon group (comemrcial species) -->
+  <!-- taxon group (commercial species) -->
   <ng-container matColumnDef="taxonGroup">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
@@ -174,7 +174,7 @@
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition && row.editing">
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
       <!-- undo or delete  -->
       <button mat-icon-button small color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
         (click)="cancelOrDelete($event, row)">
@@ -198,6 +198,7 @@
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
     [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>
+
 
 
 <!-- <ion-row>

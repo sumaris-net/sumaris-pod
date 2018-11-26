@@ -22,8 +22,6 @@ const PMFM_ID_REGEXP = /\d+/;
 const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-
-
 @Component({
     selector: 'table-batches',
     templateUrl: 'batches.table.html',
@@ -59,6 +57,10 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         return this.data;
     }
 
+    protected get dataSubject(): BehaviorSubject<Batch[]> {
+        return this._dataSubject;
+    }
+
     @Input()
     set program(value: string) {
         if (this._program === value) return; // Skip if same
@@ -83,6 +85,8 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     get acquisitionLevel(): string {
         return this._acquisitionLevel;
     }
+
+    @Input() showComment: boolean = false;
 
     constructor(
         protected route: ActivatedRoute,
@@ -133,7 +137,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                 this.displayedColumns = RESERVED_START_COLUMNS
                     .concat(BATCH_RESERVED_START_COLUMNS)
                     .concat(displayedColumns)
-                    .concat(BATCH_RESERVED_END_COLUMNS)
+                    .concat(this.showComment ? BATCH_RESERVED_END_COLUMNS : [])
                     .concat(RESERVED_END_COLUMNS);
 
                 this.loading = false;
@@ -188,11 +192,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     }
 
     getRowValidator(): FormGroup {
-        return this.getFormGroup();
-    }
-
-    getFormGroup(data?: any): FormGroup {
-        let formGroup = this.validatorService.getFormGroup(data);
+        let formGroup = this.validatorService.getRowValidator();
         if (this.measurementValuesFormGroupConfig) {
             formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
         }
@@ -321,6 +321,9 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     }
 
     protected sortBatches(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {
+        if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
+            sortBy = 'measurementValues.' + sortBy;
+        }
         sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
         return data.sort((a, b) => {

@@ -73,12 +73,13 @@
 
       <h3>{{'TRIP.OPERATION.EDIT.BATCH_SPECIES'|translate}}</h3>
 
-      <table-batch-groups #batchGroupsTable [debug]="true" acquisitionLevel="SORTING_BATCH">
+      <table-batch-groups #batchGroupsTable [debug]="true" acquisitionLevel="SORTING_BATCH" [showComment]="false">
       </table-batch-groups>
 
       <ion-row no-padding>
         <ion-col>
-          <!-- <table-batches #batchesIndividualTable [debug]="debug" acquisitionLevel="SORTING_BATCH_INDIVIDUAL"></table-batches> -->
+          <!-- <table-batches #batchesIndividualTable [debug]="debug" acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
+            [showComment]="true"></table-batches> -->
         </ion-col>
       </ion-row>
     </mat-tab>

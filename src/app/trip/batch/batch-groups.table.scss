@@ -1,3 +1,5 @@
+@import 'core';
+
 :host {
   width: 100%;
 }
@@ -15,20 +17,34 @@
 .mat-header-row,
 .mat-row {
 
-  .mat-header-cell.total,
-  .mat-cell.total {
-    background-color: lightgrey;
+  .mat-header-cell.first-header.even {
+    background-color: ion-color(light, base) !important;
   }
 
-  .mat-header-cell.sampling,
-  .mat-cell.sampling {
-    background-color: lightcyan;
+  .mat-header-cell.total.even,
+  .mat-cell.total.even {
+    background-color: ion-color(light100, base) !important;
+  }
+
+  // .mat-header-cell.even,
+  // .mat-cell.even {
+  //   background-color: ion-color(light050, base);
+  // }
+
+  .mat-header-cell.first-header.odd {
+    background-color: lightgray !important;
+  }
+
+  .mat-header-cell.total.odd,
+  .mat-cell.total.odd {
+    background-color: whitesmoke;
   }
 
   .mat-column-id {
     max-width: 30px;
   }
 
+  .mat-column-taxonName,
   .mat-column-taxonGroup {
     min-width: 150px;
   }

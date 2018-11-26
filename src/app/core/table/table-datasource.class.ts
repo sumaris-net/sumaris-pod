@@ -100,7 +100,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
         return false;
       }
 
-      if (this._debug) console.log("[table-datasource] Dirty data to save:", dataToSave);
+      if (this._debug) console.debug("[table-datasource] Dirty data to save:", dataToSave);
 
       var savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
       if (this._debug) console.debug("[table-datasource] Data saved. Updated data received by service:", savedData);

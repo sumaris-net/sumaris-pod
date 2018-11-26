@@ -128,7 +128,7 @@
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition || !row.editing">
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
       <!-- undo or delete  -->
       <button mat-icon-button small color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
         (click)="cancelOrDelete($event, row)">

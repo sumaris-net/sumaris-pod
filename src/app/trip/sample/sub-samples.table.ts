@@ -410,8 +410,11 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
     }
 
     protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
-        if (sortBy === "parent") {
-            sortBy = 'parent.measurementvalues.' + PmfmIds.TAG_ID;
+        if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
+            sortBy = 'measurementValues.' + sortBy;
+        }
+        else if (sortBy === "parent") {
+            sortBy = 'parent.measurementValues.' + PmfmIds.TAG_ID;
         }
         sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;

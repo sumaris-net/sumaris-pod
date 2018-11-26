@@ -295,6 +295,9 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     }
 
     protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
+        if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
+            sortBy = 'measurementValues.' + sortBy;
+        }
         sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
         return data.sort((a, b) => {

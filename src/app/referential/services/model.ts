@@ -131,6 +131,7 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
   }
 }
 
+export declare type PmfmType = 'integer' | 'double' | 'string' | 'qualitative_value';
 
 export class PmfmStrategy extends Entity<PmfmStrategy>  {
 
@@ -144,7 +145,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy>  {
   label: string;
   name: string;
   unit: string;
-  type: string;
+  type: string | PmfmType;
   minValue: number;
   maxValue: number;
   maximumNumberDecimals: number;
