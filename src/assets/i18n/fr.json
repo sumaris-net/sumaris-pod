@@ -251,14 +251,14 @@
     "BATCH": {
       "TABLE": {
         "TAXON_GROUP": "Espèce commerciale FAO",
-        "TAXON_GROUP_PLACEHOLDER": "Code FAO",
-        "TAXON_NAME": "Espèce scientifique",
-        "TAXON_NAME_PLACEHOLDER": "Code FAO",
-        "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
+        "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale",
+        "TAXON_NAME": "Espèce scientifique FAO",
+        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique",
+        "TOTAL_INDIVIDUAL_COUNT": "Nb indiv. total",
         "TOTAL_WEIGHT": "Poids total",
-        "SAMPLING_RATIO": "Fraction échantillonnée",
-        "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échantillonné",
-        "SAMPLING_WEIGHT": "Poids échantillon",
+        "SAMPLING_RATIO": "Fraction échant.",
+        "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
+        "SAMPLING_WEIGHT": "Poids échant.",
         "COMMENTS": "Commentaires"
       }
     },
