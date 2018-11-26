@@ -53,7 +53,14 @@
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
 
-    "DISPLAYED_COLUMNS": "Colonnes visibles"
+    "DISPLAYED_COLUMNS": "Colonnes visibles",
+
+    "PAGINATOR": {
+      "ITEMS_PER_PAGE":"Lignes par page",
+      "NEXT_PAGE":"Page suivante",
+      "PREVIOUS_PAGE":"Page précédente",
+      "OF": "sur"
+    }
   },
   "MENU": {
     "HOME": "Accueil",

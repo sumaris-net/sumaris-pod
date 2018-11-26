@@ -54,6 +54,13 @@
     "RECORDER": "Recorder",
 
     "DISPLAYED_COLUMNS": "Displayed columns"
+
+    "PAGINATOR": {
+      "ITEMS_PER_PAGE":"Items per page",
+      "NEXT_PAGE":"Next page",
+      "PREVIOUS_PAGE":"Previous page",
+      "OF": "sur"
+    }
   },
   "MENU": {
     "HOME": "Home",

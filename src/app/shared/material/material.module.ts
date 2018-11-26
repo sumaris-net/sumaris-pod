@@ -1,7 +1,5 @@
 import { NgModule } from "@angular/core";
-import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
-import { ReactiveFormsModule } from "@angular/forms";
 import {
   MatPaginatorModule, MatTableModule, MatSortModule, MatFormFieldModule, MatInputModule,
   MatAutocompleteModule, MatCheckboxModule, MatExpansionModule, MatToolbarModule, MatDialogModule, MatIconModule,
@@ -14,9 +12,6 @@ import { MatMomentDateModule } from '@angular/material-moment-adapter';
 
 import { fadeInAnimation, slideInOutAnimation } from './material.animations';
 
-import { MatDateTime } from './material.datetime';
-import { MatLatLong } from './material.latlong';
-import { MatBooleanField } from './material.boolean';
 
 const modules: any[] = [
   MatTableModule,
