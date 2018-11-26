@@ -15,12 +15,14 @@ export class SampleValidatorService implements ValidatorService {
 
   getFormGroup(data?: any): FormGroup {
     return this.formBuilder.group({
-      'id': [''],
-      'rankOrder': ['', Validators.required],
-      'label': ['', Validators.required],
-      'sampleDate': ['', Validators.required],
-      'taxonGroup': [null, Validators.compose([Validators.required, SharedValidators.entity])],
-      'comments': ['']
+      id: [''],
+      updateDate: [''],
+      creationDate: [''],
+      rankOrder: ['', Validators.required],
+      label: ['', Validators.required],
+      sampleDate: ['', Validators.required],
+      taxonGroup: [null, Validators.compose([Validators.required, SharedValidators.entity])],
+      comments: ['']
     });
   }
 }
