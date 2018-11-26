@@ -16,8 +16,8 @@ import { isNil, isNotNil } from 'src/app/core/services/model';
 
 @Component({
     selector: 'form-measurements',
-    templateUrl: './measurements.form.html',
-    styleUrls: ['./measurements.form.scss']
+    templateUrl: './measurements.form.component.html',
+    styleUrls: ['./measurements.form.component.scss']
 })
 export class MeasurementsForm extends AppForm<Measurement[]> {
 

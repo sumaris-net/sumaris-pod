@@ -11,7 +11,7 @@ import { SharedValidators } from '../../shared/validator/validators';
 
 @Component({
     selector: 'mat-form-field-measurement-qv',
-    templateUrl: './measurement-qv.form-field.html',
+    templateUrl: './measurement-qv.form-field.component.html',
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

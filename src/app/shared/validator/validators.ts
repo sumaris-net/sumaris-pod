@@ -14,13 +14,13 @@ export class SharedValidators {
 
   static latitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value < -90 || value > 90)
+    if (value && (value < -90 || value > 90))
       return { validLatitude: true };
   }
 
   static longitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value < -180 || value > 180)
+    if (value && (value < -180 || value > 180))
       return { validLongitude: true };
   }
 
@@ -44,7 +44,7 @@ export class SharedValidators {
 
   static integer(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (Math.trunc(value) !== value)
+    if (value && Math.trunc(value) !== value)
       return { integer: true };
   }
 }

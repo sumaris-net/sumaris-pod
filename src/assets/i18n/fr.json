@@ -56,7 +56,7 @@
     "DISPLAYED_COLUMNS": "Colonnes visibles",
 
     "PAGINATOR": {
-      "ITEMS_PER_PAGE":"Lignes par page",
+      "ITEMS_PER_PAGE":"Nombre de lignes",
       "NEXT_PAGE":"Page suivante",
       "PREVIOUS_PAGE":"Page précédente",
       "OF": "sur"

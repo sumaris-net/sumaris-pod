@@ -7,7 +7,7 @@ import { TripForm } from './trip.form';
 import { Trip } from './services/trip.model';
 import { SaleForm } from './sale/sale.form';
 import { OperationTable } from './operation/operations.table';
-import { MeasurementsForm } from './measurement/measurements.form';
+import { MeasurementsForm } from './measurement/measurements.form.component';
 import { AppTabPage, AppFormUtils, AccountService } from '../core/core.module';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { TranslateService } from '@ngx-translate/core';
@@ -184,7 +184,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.disable();
 
     try {
-      // Save trip form (with sale) 
+      // Save trip form (with sale)
       const updatedData = formDirty ? await this.tripService.save(this.data) : this.data;
       formDirty && this.markAsPristine();
       formDirty && this.markAsUntouched();
@@ -291,7 +291,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   /**
    * Compute the title
-   * @param data 
+   * @param data
    */
   async updateTitle(data?: Trip) {
     data = data || this.data;

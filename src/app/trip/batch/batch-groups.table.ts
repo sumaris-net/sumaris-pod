@@ -1,30 +1,25 @@
-import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable, BehaviorSubject } from 'rxjs';
-import { mergeMap, debounceTime, startWith } from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { referentialToString, PmfmStrategy, Batch, TaxonGroupIds, MeasurementUtils, getPmfmName } from "../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../../environments/environment';
-import { EntityUtils, ReferentialRef, isNotNil, Entity, isNil } from "../../core/services/model";
-import { MeasurementsValidatorService, BatchGroupsValidatorService, BatchValidatorService } from "../services/trip.validators";
-import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import { TaxonomicLevelIds, PmfmLabelPatterns, MethodIds, PmfmType } from "src/app/referential/services/model";
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { SharedValidators } from "../../shared/validator/validators";
-import { getControlFromPath } from "src/app/core/form/form.utils";
-import { BatchesTable } from "./batches.table";
+import {Component} from "@angular/core";
+import {Observable} from "rxjs";
+import {ValidatorService} from "angular4-material-table";
+import {AccountService} from "../../core/core.module";
+import {referentialToString, PmfmStrategy, Batch, MeasurementUtils, getPmfmName} from "../services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {Router, ActivatedRoute} from "@angular/router";
+import {Location} from "@angular/common";
+import {ReferentialRefService, ProgramService} from "../../referential/referential.module";
+import {TranslateService} from "@ngx-translate/core";
+import {environment} from "../../../environments/environment";
+import {isNotNil, isNil} from "../../core/services/model";
+import {
+  MeasurementsValidatorService,
+  BatchGroupsValidatorService,
+  BatchValidatorService
+} from "../services/trip.validators";
+import {PmfmLabelPatterns} from "src/app/referential/services/model";
+import {FormBuilder} from "@angular/forms";
+import {getControlFromPath} from "src/app/core/form/form.utils";
+import {BatchesTable} from "./batches.table";
 
-const PMFM_ID_REGEXP = /\d+/;
-const BATCH_GROUP_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
-const BATCH_GROUP_RESERVED_END_COLUMNS: string[] = [
-    //'comments'
-];
-const BATCH_SUBGROUP_RESERVED_COLUMNS: string[] = ['totalIndividualCount', 'totalWeight', 'samplingRatio', 'samplingIndividualCount', 'samplingWeight'];
 @Component({
     selector: 'table-batch-groups',
     templateUrl: 'batch-groups.table.html',

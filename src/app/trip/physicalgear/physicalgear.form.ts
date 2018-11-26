@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, EventEmitter, Output, ViewChild } from '@angular/core';
 import { PhysicalGearValidatorService } from "../services/physicalgear.validator";
-import { PhysicalGear, GearLevelIds, Measurement } from "../services/trip.model";
+import { PhysicalGear, Measurement } from "../services/trip.model";
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment'
 import { DateAdapter } from "@angular/material";
@@ -9,7 +9,7 @@ import { map, startWith, distinctUntilChanged, debounceTime } from 'rxjs/operato
 import { AppForm } from '../../core/core.module';
 import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
 import { referentialToString, ReferentialRef, EntityUtils } from '../../referential/services/model';
-import { MeasurementsForm } from '../measurement/measurements.form';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { environment } from '../../../environments/environment.prod';
 
 @Component({

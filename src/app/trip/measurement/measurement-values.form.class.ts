@@ -2,7 +2,7 @@ import { Input, EventEmitter } from '@angular/core';
 import { PmfmStrategy, MeasurementUtils } from "../services/trip.model";
 import { Platform } from "@ionic/angular";
 import { Moment } from 'moment/moment';
-import { DateAdapter, FloatLabelType } from "@angular/material";
+import { DateAdapter } from "@angular/material";
 import { Subject } from 'rxjs';
 import { zip } from "rxjs/observable/zip";
 import { AppForm, AppFormUtils } from '../../core/core.module';

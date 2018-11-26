@@ -7,7 +7,7 @@ import { ProgramService } from "../../referential/referential.module";
 import { FormBuilder } from '@angular/forms'
 import { AcquisitionLevelCodes } from '../../core/services/model';
 import { MeasurementsValidatorService } from '../services/measurement.validator';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { Subject } from 'rxjs';
 import { BatchValidatorService } from '../services/batch.validator';
 

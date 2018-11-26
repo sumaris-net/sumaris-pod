@@ -1,10 +1,10 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from "@angular/router";
 import { OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
 import { Operation, Trip, Batch } from '../services/trip.model';
 import { TripService } from '../services/trip.service';
-import { MeasurementsForm } from '../measurement/measurements.form';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { AppTabPage, AppFormUtils } from '../../core/core.module';
 import { CatchForm } from '../catch/catch.form';
 import { SamplesTable } from '../sample/samples.table';
@@ -13,12 +13,9 @@ import { AlertController } from "@ionic/angular";
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes, isNotNil, isNil } from '../../core/services/model';
 import { PmfmIds } from '../../referential/services/model';
-import { environment } from 'src/environments/environment';
 import { Subject } from 'rxjs';
 import { DateFormatPipe } from 'src/app/shared/pipes/date-format.pipe';
 import { BatchesTable } from '../batch/batches.table';
-import { Observable } from 'rxjs';
-import { delay } from 'rxjs/operators';
 
 
 @Component({
@@ -279,7 +276,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     try {
 
-      // Save trip form (with sale) 
+      // Save trip form (with sale)
       const updatedData = await this.operationService.save(this.data);
 
       // Update the view (e.g metadata)
@@ -321,7 +318,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   /**
    * Compute the title
-   * @param data 
+   * @param data
    */
   async updateTitle(data?: Operation) {
     data = data || this.data;
