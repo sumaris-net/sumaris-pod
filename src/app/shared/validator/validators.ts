@@ -41,4 +41,10 @@ export class SharedValidators {
     if (value && (typeof value != 'string' || !PUBKEY_REGEXP.test(value)))
       return { pubkey: true };
   }
+
+  static integer(control: FormControl): ValidationErrors | null {
+    const value = control.value;
+    if (Math.trunc(value) !== value)
+      return { integer: true };
+  }
 }
