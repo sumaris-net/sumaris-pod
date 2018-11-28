@@ -109,14 +109,18 @@
       <ion-label translate>TRIP.OPERATION.LIST.START_POSITION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <div [formGroup]="row.validator.controls['startPosition']">
+      <ng-container *ngIf="!row.editing">
+        {{row.currentData?.startPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+        {{row.currentData?.startPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
+      </ng-container>
+      <form *ngIf="row.editing" [formGroup]="row.validator.controls['startPosition']">
         <mat-latlong floatLabel="never" formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern"
-          [readonly]="!row.editing" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [required]="true">
+          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [required]="true">
         </mat-latlong>
         <mat-latlong floatLabel="never" formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern"
-          [readonly]="!row.editing" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [required]="true">
+          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [required]="true">
         </mat-latlong>
-      </div>
+      </form>
     </mat-cell>
   </ng-container>
 
@@ -138,14 +142,16 @@
       <ion-label translate>TRIP.OPERATION.LIST.END_POSITION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <form [formGroup]="row.validator.controls['endPosition']">
+      <div class="align-" *ngIf="!row.editing">
+        {{row.currentData?.endPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+        {{row.currentData?.endPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
+      </div>
+      <form *ngIf="row.editing" [formGroup]="row.validator.controls['endPosition']">
         <mat-latlong floatLabel="never" formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern"
-          [readonly]="!row.editing" [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [readonly]="!row.editing"
-          [required]="true">
+          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [required]="true">
         </mat-latlong>
         <mat-latlong floatLabel="never" formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern"
-          [readonly]="!row.editing" [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [readonly]="!row.editing"
-          [required]="true">
+          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [required]="true">
         </mat-latlong>
       </form>
     </mat-cell>
