@@ -12,4 +12,4 @@ SET DB_TEMP_DIRECTORY=../db-temp
 rem SET DB_OPTS=%DB_OPTS% --database.2 file:%DB_TEMP_DIRECTORY%/sumaris --dbname.2 sumaris-temp
 
 rem -- DB server AND a temp DB:
-java -classpath %M2_REPO%\org\hsqldb\hsqldb\2.4.0\hsqldb-2.4.0.jar org.hsqldb.Server %DB_OPTS%
+java -classpath %M2_REPO%\org\hsqldb\hsqldb\2.4.1\hsqldb-2.4.1.jar org.hsqldb.Server %DB_OPTS%
