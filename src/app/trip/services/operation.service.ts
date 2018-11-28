@@ -139,8 +139,7 @@ const DeleteOperations: any = gql`
   }
 `;
 
-const sortByStartDateFn = (n1: Operation, n2: Operation) => { return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? -1 : 1); };
-const sortByRankrOrderFn = (n1: Operation, n2: Operation) => { return n1.rankOrderOnPeriod - n2.rankOrderOnPeriod; };
+const sortByStartDateFn = (n1: Operation, n2: Operation) => { return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1); };
 
 @Injectable()
 export class OperationService extends BaseDataService implements DataService<Operation, OperationFilter>{
@@ -158,11 +157,11 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
   /**
    * Load many operations
-   * @param offset 
-   * @param size 
-   * @param sortBy 
-   * @param sortDirection 
-   * @param filter 
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
    */
   loadAll(offset: number,
     size: number,
@@ -182,7 +181,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
     return this.watchQuery<{ operations: Operation[] }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR" }
+      error: { code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR" },
+      fetchPolicy: 'cache-and-network'
     })
       .pipe(
         map((data) => {
@@ -192,7 +192,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
           // Compute rankOrderOnPeriod, by tripId
           if (filter && filter.tripId) {
             let rankOrderOnPeriod = 1;
-            res.sort(sortByStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
+            [].concat(res).sort(sortByStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
           }
 
           return res;
@@ -223,7 +223,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
   /**
    * Save many operations
-   * @param data 
+   * @param data
    */
   async saveAll(entities: Operation[], options?: any): Promise<Operation[]> {
     if (!entities) return entities;
@@ -268,7 +268,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
   /**
      * Save an operation
-     * @param data 
+     * @param data
      */
   async save(entity: Operation): Promise<Operation> {
 
@@ -312,7 +312,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
   /**
    * Save many operations
-   * @param entities 
+   * @param entities
    */
   async deleteAll(entities: Operation[]): Promise<any> {
 
@@ -416,8 +416,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
   /**
    * Copy Id and update, in sample tree (recursively)
-   * @param sources 
-   * @param targets 
+   * @param sources
+   * @param targets
    */
   copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[]) {
     // Update samples
@@ -438,8 +438,8 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
   /**
    * Copy Id and update, in batch tree (recursively)
-   * @param sources 
-   * @param targets 
+   * @param sources
+   * @param targets
    */
   copyIdAndUpdateDateOnBatch(sources: (Batch | any)[], targets: Batch[]) {
     if (sources && targets) {

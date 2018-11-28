@@ -25,6 +25,7 @@ export class OperationValidatorService implements ValidatorService {
     return {
       id: [''],
       updateDate: [''],
+      rankOrderOnPeriod: [''],
       startDateTime: ['', Validators.required],
       endDateTime: [''],
       comments: ['', Validators.maxLength(2000)],

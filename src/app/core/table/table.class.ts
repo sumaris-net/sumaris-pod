@@ -34,6 +34,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     } = {};
     protected _dirty = false;
     protected allowRowDetail = true;
+    protected pageSize: number;
 
     inlineEdition: boolean = false;
     displayedColumns: string[];
@@ -154,7 +155,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                         if (this.debug) console.debug("[table] Calling dataSource.load()...");
                         return this.dataSource.load(
                             this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
-                            this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
+                            this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,
                             this.sort && this.sort.active,
                             this.sort && this.sort.direction,
                             this.filter
