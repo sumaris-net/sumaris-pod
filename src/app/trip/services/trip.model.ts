@@ -29,7 +29,7 @@ export function fillRankOrder(values: { rankOrder: number }[]) {
   });
 }
 
-const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? -1 : 1); };
+const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1); };
 
 
 /* -- DATA -- */
