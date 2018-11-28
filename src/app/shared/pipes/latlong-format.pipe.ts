@@ -159,7 +159,7 @@ export class LatLongFormatPipe implements PipeTransform {
 
     transform(value: number, args?: any): string | Promise<string> {
         args = args || {};
-        return ((!args.type || args.type !== 'longitude') && formatLatitude || formatLongitude)
+        return ((!args.type || args.type !== 'latitude') ? formatLongitude : formatLatitude)
             (value, { pattern: args.pattern, maxDecimals: args.maxDecimals, placeholderChar: args.placeholderChar });
     }
 
