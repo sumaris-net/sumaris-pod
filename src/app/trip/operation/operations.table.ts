@@ -76,6 +76,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.autoLoad = false;
     this.latLongPattern = accountService.account.settings.latLongFormat || 'DDMM';
     //this.inlineEdition = true; // TODO: remove this line !
+    this.pageSize = 1000; // Do not use paginator
   };
 
 

@@ -56,7 +56,7 @@
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{row.id+1}}
+      {{row.currentData?.rankOrderOnPeriod}}
     </mat-cell>
   </ng-container>
 
@@ -177,34 +177,14 @@
     (onblur)="confirmAndAddRow($event,row)"></mat-row>
 </mat-table>
 
+<!-- Paginator: not need
 <ion-row no-padding>
-  <!-- paginator -->
   <ion-col no-padding col-12>
     <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]">
     </mat-paginator>
   </ion-col>
 </ion-row>
-
-<!-- Bottom buttons
-<ion-row no-padding>
-  <ion-col col-6 padding>
-    <ion-buttons left start *ngIf="!loading">
-      <button mat-raised-button *ngIf="dirty" (click)="onRefresh.emit()">
-        <ion-icon name="md-close"></ion-icon>
-        <span translate>COMMON.BTN_CANCEL</span>
-      </button>
-      <button mat-raised-button color="primary" *ngIf="dirty" (click)="save()">
-        <ion-icon name="md-checkmark"></ion-icon>
-        <span translate>COMMON.BTN_SAVE</span>
-      </button>
-    </ion-buttons>
-  </ion-col>
-
-  <ion-col no-padding col-6>
-    <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]">
-    </mat-paginator>
-  </ion-col>
-</ion-row>-->
+-->
 
 <ion-fab right bottom visible-xs visible-sm>
   <button ion-fab color="light" (click)="addRow()">

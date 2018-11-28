@@ -10,7 +10,6 @@ import { Moment } from "moment";
 import { ErrorCodes } from "./trip.errors";
 import { AccountService } from "../../core/services/account.service";
 import { Fragments } from "./trip.queries";
-import { environment } from "src/app/core/core.module";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -175,11 +174,11 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
   /**
    * Load many trips
-   * @param offset 
-   * @param size 
-   * @param sortBy 
-   * @param sortDirection 
-   * @param filter 
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
    */
   loadAll(offset: number,
     size: number,
@@ -267,7 +266,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
   /**
    * Save many trips
-   * @param data 
+   * @param data
    */
   async saveAll(entities: Trip[], options?: any): Promise<Trip[]> {
     if (!entities) return entities;
@@ -302,7 +301,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
   /**
    * Save a trip
-   * @param data 
+   * @param data
    */
   async save(entity: Trip): Promise<Trip> {
 
@@ -344,7 +343,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
   /**
    * Save many trips
-   * @param entities 
+   * @param entities
    */
   async deleteAll(entities: Trip[]): Promise<any> {
 
