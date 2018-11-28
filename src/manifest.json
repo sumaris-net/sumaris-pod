@@ -1,13 +1,10 @@
 {
   "name": "SUMARiS",
   "short_name": "SUMARiS",
-  "manifest_version": 2,
+  "manifest_version": 1,
   "version": "0.6.3",
   "default_locale": "en",
-<<<<<<< HEAD
-=======
   "description": "Shared database for management halieutic stocks.",
->>>>>>> 945714a... fix manifest
   "icons": [{
     "src": "assets/img/logo.png",
     "sizes": "183x120",
