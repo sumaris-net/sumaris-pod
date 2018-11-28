@@ -248,7 +248,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.data.samples = (this.survivalTestsTable.value || [])
       .map(sample => {
         // Add children
-        sample.children = subSamples.filter(childSample => sample.equals(childSample.parent));
+        sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
         return sample;
       });
 
@@ -257,7 +257,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     try {
 
-      // Save trip form (with sale) 
+      // Save trip form (with sale)
       const updatedData = await this.operationService.save(this.data);
 
       // Update the view (e.g metadata)
@@ -299,7 +299,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   /**
    * Compute the title
-   * @param data 
+   * @param data
    */
   async updateTitle(data?: Operation) {
     data = data || this.data;
