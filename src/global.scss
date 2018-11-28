@@ -301,6 +301,16 @@ mat-table {
       .mat-form-field-label {
         visibility: hidden;
       }
+
+      input[type=number]::-webkit-outer-spin-button,
+      input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      input[type=number] {
+        -moz-appearance:textfield;
+      }
     }
 
     .mat-form-field-underline {
@@ -347,17 +357,18 @@ mat-table {
       .mat-form-field-infix {
         width: auto !important;
         white-space: nowrap; //padding-left: 8px;
-        overflow: hidden;
-      }
+        overflow: visible;
+        //overflow: visible;
 
-      .mat-form-field-infix input {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        input {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
 
       .mat-form-field-subscript-wrapper {
-        margin-top: 0.05rem !important;
+        margin-top: -0.1rem !important;
       }
     }
 
