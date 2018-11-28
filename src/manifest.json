@@ -4,7 +4,7 @@
   "manifest_version": 1,
   "version": "0.7.3",
   "default_locale": "en",
-  "description": "A shared database on halieutic ",
+  "description": "Shared database for management halieutic stocks.",
   "icons": [{
     "src": "assets/img/logo.png",
     "sizes": "183x120",
@@ -13,5 +13,6 @@
   "background_color": "#4e8ef7",
   "theme_color": "#4e8ef7",
   "start_url": "/",
-  "display": "standalone"
+  "display": "standalone",
+  "orientation": "portrait"
 }
