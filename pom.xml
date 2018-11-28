@@ -80,7 +80,7 @@
     <file.encoding>UTF-8</file.encoding>
 
     <!-- Project properties -->
-    <javaVersion>1.8</javaVersion>
+    <javaVersion>8</javaVersion>
     <signatureArtifactId>java18</signatureArtifactId>
     <signatureVersion>1.0</signatureVersion>
 
