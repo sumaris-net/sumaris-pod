@@ -24,6 +24,7 @@ package net.sumaris.core.service.data.batch;
 
 
 import net.sumaris.core.vo.data.BatchVO;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -51,5 +52,8 @@ public interface BatchService {
 	void delete(int id);
 
 	void delete(List<Integer> ids);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	List<BatchVO> toFlatList(BatchVO catchBatch);
 
 }

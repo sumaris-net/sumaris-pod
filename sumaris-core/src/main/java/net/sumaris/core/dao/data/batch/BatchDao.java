@@ -23,5 +23,7 @@ public interface BatchDao {
 
     BatchVO toBatchVO(Batch source);
 
+    List<BatchVO> toFlatList(BatchVO source);
+
     void delete(int id);
 }
