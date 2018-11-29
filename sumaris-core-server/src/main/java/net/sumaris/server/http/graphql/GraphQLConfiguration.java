@@ -81,7 +81,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
 
-        log.info(String.format("GraphQL websocket handler started at {%s}...", GraphQLPaths.SUBSCRIPTION_PATH));
+        log.info(String.format("Starting GraphQL websocket handler at {%s}...", GraphQLPaths.SUBSCRIPTION_PATH));
 
         webSocketHandlerRegistry.addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
                 .setAllowedOrigins("*")

@@ -115,7 +115,7 @@
     <!--<ehcache.version>2.5.7</ehcache.version>ehcache version MUST be < 2.6.* -->
     <ehcache.version>2.10.3</ehcache.version><!--try with 2.6.x version-->
     <ehcache-monitor.version>2.7.11</ehcache-monitor.version>
-    <lombok.version>1.16.22</lombok.version>
+    <lombok.version>1.18.4</lombok.version>
     <spring-boot.version>2.0.3.RELEASE</spring-boot.version>
     <spring-boot-plugin.version>2.0.1.RELEASE</spring-boot-plugin.version>
     <ozimov-email.version>0.6.3</ozimov-email.version>
