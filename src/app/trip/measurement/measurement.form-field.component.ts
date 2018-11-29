@@ -138,7 +138,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     }
     else {
       //input command entered of delete, backspace or one of the 4 direction up, down, left and right
-      if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8) {
+      if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8|| event.keyCode == 9) {
         console.log('input command entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
       }
       else {

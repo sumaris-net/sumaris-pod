@@ -49,7 +49,7 @@
       </ion-grid>
     </mat-tab>
 
-    <!-- TAB: Gear 
+    <!-- TAB: Gear
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_PHYSICAL_GEAR'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>settings</mat-icon>
@@ -71,17 +71,32 @@
       <form-catch (onSubmit)="save($event)" [showError]="false" #catchForm [debug]="debug">
       </form-catch>
 
-      <h3>{{'TRIP.OPERATION.EDIT.BATCH_SPECIES'|translate}}</h3>
+      <mat-tab-group [disableRipple]="true" dynamicHeight>
+        <!-- TAB: species list -->
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
+          <ng-template mat-tab-label>
+            <mat-icon>line_weight</mat-icon>
+            <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
+          </ng-template>
 
-      <table-batch-groups #batchGroupsTable [debug]="true" acquisitionLevel="SORTING_BATCH" [showComment]="false">
-      </table-batch-groups>
+          <table-batch-groups #batchGroupsTable [debug]="true" acquisitionLevel="SORTING_BATCH" [showComment]="false">
+          </table-batch-groups>
+        </mat-tab>
 
-      <ion-row no-padding>
-        <ion-col>
-          <!-- <table-batches #batchesIndividualTable [debug]="debug" acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
-            [showComment]="true"></table-batches> -->
-        </ion-col>
-      </ion-row>
+        <!-- TAB: individual measurements -->
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}">
+          <ng-template mat-tab-label>
+            <mat-icon>list</mat-icon>
+            <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
+          </ng-template>
+
+          <table-batches #batchesIndividualTable [debug]="true" acquisitionLevel="SORTING_BATCH_INDIVIDUAL" [showComment]="true">
+          </table-batches>
+        </mat-tab>
+      </mat-tab-group>
+
     </mat-tab>
 
     <!-- TAB: Survival  -->

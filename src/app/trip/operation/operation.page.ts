@@ -16,6 +16,7 @@ import { PmfmIds } from '../../referential/services/model';
 import { Subject } from 'rxjs';
 import { DateFormatPipe } from 'src/app/shared/pipes/date-format.pipe';
 import { BatchesTable } from '../batch/batches.table';
+import {BatchGroupsTable} from "../batch/batch-groups.table";
 
 
 @Component({
@@ -44,7 +45,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
 
-  @ViewChild('batchGroupsTable') batchGroupsTable: BatchesTable;
+  @ViewChild('batchGroupsTable') batchGroupsTable: BatchGroupsTable;
+
+  @ViewChild('batchesIndividualTable') batchesIndividualTable: BatchesTable;
 
 
   constructor(
@@ -67,7 +70,13 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
-      .registerTables([this.survivalTestsTable, this.individualMonitoringTable, this.individualReleaseTable, this.batchGroupsTable]);
+      .registerTables([
+        this.survivalTestsTable,
+        this.individualMonitoringTable,
+        this.individualReleaseTable,
+        this.batchGroupsTable,
+        this.batchesIndividualTable
+      ]);
 
     // Disable, during load
     this.disable();
@@ -230,6 +239,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         this.batchGroupsTable.markAsTouched();
         if (this.batchGroupsTable.selectedRow && this.batchGroupsTable.selectedRow.editing) {
           AppFormUtils.logFormErrors(this.batchGroupsTable.selectedRow.validator, "[batch-group-table]")
+        }
+      }
+      if (this.batchesIndividualTable.invalid) {
+        this.batchesIndividualTable.markAsTouched();
+        if (this.batchesIndividualTable.selectedRow && this.batchesIndividualTable.selectedRow.editing) {
+          AppFormUtils.logFormErrors(this.batchesIndividualTable.selectedRow.validator, "[batch-table]")
         }
       }
 

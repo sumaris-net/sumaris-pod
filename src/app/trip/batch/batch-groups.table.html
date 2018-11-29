@@ -230,8 +230,8 @@
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 
-  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-    [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid" class="left-padding"
+    [class.mat-row-dirty]="row.currentData?.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>
 
 <!-- <ion-row>
