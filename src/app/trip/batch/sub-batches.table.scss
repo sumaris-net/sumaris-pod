@@ -1,10 +1,13 @@
+:host {
+  width: 100%;
+}
+
 .mat-header-row,
 .mat-row {
   .mat-column-id {
     max-width: 30px;
   }
 
-  .mat-column-taxonName,
   .mat-column-taxonGroup {
     min-width: 150px;
   }
@@ -15,7 +18,7 @@
 
   .mat-column-60,
   .mat-column-62 {
-    min-width: 45px;
+    min-width: 54px;
     max-width: 100px;
   }
 

@@ -18,7 +18,7 @@ import { MeasurementsValidatorService } from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 
 const PMFM_ID_REGEXP = /\d+/;
-const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'sampleDate'];
+const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonName', 'sampleDate'];
 const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
@@ -33,7 +33,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
 
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
-    private _implicitTaxonGroup: ReferentialRef;
+    private _implicitValues: { [key: string]: any } = {};
     private _dataSubject = new BehaviorSubject<Sample[]>([]);
     private _onRefreshPmfms = new EventEmitter<any>();
 
@@ -42,7 +42,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
     measurementValuesFormGroupConfig: { [key: string]: any };
     data: Sample[];
-    taxonGroups: Observable<ReferentialRef[]>;
+    taxonNames: Observable<ReferentialRef[]>;
 
     set value(data: Sample[]) {
         if (this.data !== data) {
@@ -137,14 +137,14 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 if (this.data) this.onRefresh.emit();
             });
 
-        // Taxon group combo
-        this.taxonGroups = this.registerCellValueChanges('taxonGroup')
+        // Taxon name combo
+        this.taxonNames = this.registerCellValueChanges('taxonName')
             .pipe(
                 debounceTime(250),
                 mergeMap((value) => {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string") && value || undefined;
-                    if (this.debug) console.debug("[sample-table] Searching taxon group on {" + (value || '*') + "}...");
+                    if (this.debug) console.debug("[sample-table] Searching taxon name on {" + (value || '*') + "}...");
                     return this.referentialRefService.loadAll(0, 10, undefined, undefined,
                         {
                             entityName: 'TaxonGroup',
@@ -155,8 +155,8 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 })
             );
 
-        this.taxonGroups.subscribe(items => {
-            this._implicitTaxonGroup = (items.length === 1) && items[0];
+        this.taxonNames.subscribe(items => {
+          this._implicitValues['taxonName'] = (items.length === 1) && items[0];
         });
 
     }
@@ -245,17 +245,17 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         return true;
     }
 
-    onTaxonGroupCellFocus(event: any, row: TableElement<any>) {
-        this.startCellValueChanges('taxonGroup', row);
+    onCellFocus(event: any, row: TableElement<any>, columnName: string) {
+      this.startCellValueChanges(columnName, row);
     }
 
-    onTaxonGroupCellBlur(event: FocusEvent, row: TableElement<any>) {
-        this.stopCellValueChanges('taxonGroup');
-        // Apply last implicit value
-        if (row.validator.controls.taxonGroup.hasError('entity') && this._implicitTaxonGroup) {
-            row.validator.controls.taxonGroup.setValue(this._implicitTaxonGroup);
-        }
-        this._implicitTaxonGroup = undefined;
+    onCellBlur(event: FocusEvent, row: TableElement<any>, columnName: string) {
+      this.stopCellValueChanges(columnName);
+      // Apply last implicit value
+      if (row.validator.controls[columnName].hasError('entity') && isNotNil(this._implicitValues[columnName])) {
+        row.validator.controls[columnName].setValue(this._implicitValues[columnName]);
+      }
+      this._implicitValues[columnName] = undefined;
     }
 
     public trackByFn(index: number, row: TableElement<Sample>) {

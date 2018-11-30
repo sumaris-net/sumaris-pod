@@ -90,7 +90,7 @@ export class IndividualMonitoringTable extends SubSamplesTable {
     protected startListenRow(row: TableElement<Sample>) {
         super.startListenRow(row);
 
-        // Listeing IS_DEAD cell
+        // Listening IS_DEAD cell
         this.startCellValueChanges('isDead', row);
     }
 

@@ -221,7 +221,7 @@
         "TAB_SURVIVAL_TEST": "Tests de survie",
         "TAB_INDIVIDUAL_MONITORING": "Suivi individuel",
         "TAB_INDIVIDUAL_RELEASES": "Relachés",
-        "TAB_BATCH_SPECIES": "Capture par espèce",
+        "TAB_BATCH_SPECIES": "Lots par espèce",
         "TAB_BATCH_INDIVIDUAL": "Mesures individuelles",
         "START": "Début pêche :",
         "END": "Fin pêche :",
@@ -266,20 +266,18 @@
         "SAMPLING_RATIO": "Fraction échant.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant.",
+        "PARENT_BATCH": "Lot espèce",
         "COMMENTS": "Commentaires"
       }
     },
     "SAMPLE": {
       "TABLE": {
-        "TAXON_GROUP": "Espèce",
+        "TAXON_GROUP": "Espèce commerciale FAO",
         "TAXON_GROUP_PLACEHOLDER": "Code FAO",
-        "SAMPLE_DATE": "Date/Heure de la mesure"
-      }
-    },
-    "SUB_SAMPLE": {
-      "TABLE": {
+        "TAXON_NAME": "Espèce scientifique FAO",
+        "TAXON_NAME_PLACEHOLDER": "Code FAO",
+        "SAMPLE_DATE": "Date/Heure de la mesure",
         "PARENT_SAMPLE": "Echantillon parent",
-        "TAXON_GROUP": "Species",
         "COMMENTS": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement"
       }

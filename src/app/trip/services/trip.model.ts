@@ -684,6 +684,7 @@ export class Sample extends DataRootEntity<Sample> {
   sampleDate: Moment;
   individualCount: number;
   taxonGroup: ReferentialRef;
+  taxonName: ReferentialRef;
   measurementValues: { [key: string]: any };
   matrixId: number;
   batchId: number;
@@ -709,7 +710,8 @@ export class Sample extends DataRootEntity<Sample> {
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
     target.sampleDate = toDateISOString(this.sampleDate);
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false/*fix #32*/) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject(false/*fix #32*/) || undefined;
 
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     delete target.parent;
@@ -736,6 +738,7 @@ export class Sample extends DataRootEntity<Sample> {
     this.individualCount = source.individualCount;
     this.comments = source.comments;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
+    this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
     this.matrixId = source.matrixId;
     this.parentId = source.parentId;
     this.parent = source.parent;
@@ -815,8 +818,8 @@ export class Batch extends DataEntity<Batch> {
     delete target.parentBatch;
     this.parent = parent;
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject(minify) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false /*fix #32*/ ) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject(false /*fix #32*/) || undefined;
 
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     delete target.parent;

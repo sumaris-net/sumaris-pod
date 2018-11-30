@@ -80,7 +80,9 @@
             <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
           </ng-template>
 
-          <table-batch-groups #batchGroupsTable [debug]="true" acquisitionLevel="SORTING_BATCH" [showComment]="false">
+          <table-batch-groups #batchGroupsTable [debug]="true"
+                              acquisitionLevel="SORTING_BATCH"
+                              [showCommentsColumn]="false">
           </table-batch-groups>
         </mat-tab>
 
@@ -89,11 +91,14 @@
           <ng-template mat-tab-label>
             <mat-icon>list</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
-            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (subBatchesTable.invalid || false)"></ion-icon>
           </ng-template>
 
-          <table-batches #batchesIndividualTable [debug]="true" acquisitionLevel="SORTING_BATCH_INDIVIDUAL" [showComment]="true">
-          </table-batches>
+          <table-sub-batches #subBatchesTable [debug]="true"
+                             acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
+                             [showTaxonGroupColumn]="false"
+                             [showTaxonNameColumn]="false">
+          </table-sub-batches>
         </mat-tab>
       </mat-tab-group>
 

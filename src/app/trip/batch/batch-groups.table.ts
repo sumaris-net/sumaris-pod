@@ -32,6 +32,7 @@ export class BatchGroupsTable extends BatchesTable {
 
     qvPmfm: PmfmStrategy;
     defaultWeightPmfm: PmfmStrategy;
+    weightPmfmsByMethod: {[key: string]: PmfmStrategy};
 
     constructor(
         route: ActivatedRoute,
@@ -81,19 +82,19 @@ export class BatchGroupsTable extends BatchesTable {
                     const json = batch.asObject();
                     if (isNotNil(this.qvPmfm)) {
                         const measurementValues = {};
-                        this.qvPmfm.qualitativeValues.forEach((qv, index) => {
+                        this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
                             const child = (batch.children || []).find(child => child.label === `${batch.label}.${qv.label}`);
                             if (child) {
-                                let childOffset = index * 5;
-                                measurementValues[childOffset++] = child && isNotNil(child.individualCount) ? child.individualCount : null;
-                                measurementValues[childOffset++] = child && child.measurementValues[this.defaultWeightPmfm.pmfmId];
+                                let i = qvIndex * 5;
+                                measurementValues[i++] = child && isNotNil(child.individualCount) ? child.individualCount : null;
+                                measurementValues[i++] = child && child.measurementValues[this.defaultWeightPmfm.pmfmId];
 
                                 if (child.children && child.children.length == 1) {
                                     const samplingChild = child.children[0];
-                                    measurementValues[childOffset++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio : null;
-                                    measurementValues[childOffset++] = isNotNil(samplingChild.individualCount) ? samplingChild.individualCount : null;
-                                    measurementValues[childOffset++] = samplingChild.measurementValues[this.defaultWeightPmfm.pmfmId];
-                                };
+                                    measurementValues[i++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio * 100 : null;
+                                    measurementValues[i++] = isNotNil(samplingChild.individualCount) ? samplingChild.individualCount : null;
+                                    measurementValues[i++] = samplingChild.measurementValues[this.defaultWeightPmfm.pmfmId];
+                                }
                             }
                         });
                         json.measurementValues = MeasurementUtils.normalizeFormValues(measurementValues, pmfms);
@@ -117,17 +118,15 @@ export class BatchGroupsTable extends BatchesTable {
 
         if (this.debug) console.debug("[batch-table] Updating data from rows...");
 
-        const pmfms = this.pmfms.getValue() || [];
         this.data = data.map(json => {
             const batch: Batch = json.id && this.data.find(b => b.id === json.id) || Batch.fromObject(json);
             //const batch: Batch = Batch.fromObject(json);
             const measurementValues = json.measurementValues;
-            batch.measurementValues = {}; // TODO: compute total weight and indiv ?
+            batch.measurementValues = {}; // TODO: compute total weight and nb indiv ?
 
             if (isNotNil(this.qvPmfm)) {
-                let childCount = 1;
-                batch.children = this.qvPmfm.qualitativeValues.reduce((res, qv) => {
-                    let i = 0;
+                batch.children = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex:number) => {
+                    let i = qvIndex * 5;
                     const individualCount = measurementValues[i++];
                     const weight = measurementValues[i++];
                     const samplingRatio = measurementValues[i++];
@@ -136,7 +135,7 @@ export class BatchGroupsTable extends BatchesTable {
 
                     const childLabel = `${batch.label}.${qv.label}`;
                     const child: Batch = batch.id && (batch.children || []).find(b => b.label === childLabel) || new Batch();
-                    child.rankOrder = childCount++;
+                    child.rankOrder = qvIndex + 1;
                     child.measurementValues[this.defaultWeightPmfm.pmfmId] = weight;
                     child.individualCount = individualCount;
                     child.label = childLabel;
@@ -149,7 +148,7 @@ export class BatchGroupsTable extends BatchesTable {
                         samplingChild.label = samplingLabel;
                         samplingChild.samplingRatio = isNotNil(samplingRatio) ? samplingRatio / 100 : undefined;
                         samplingChild.samplingRatioText = isNotNil(samplingRatio) ? `${samplingRatio}%` : undefined;
-                        samplingChild.measurementValues[this.defaultWeightPmfm.pmfmId] = samplingWeight
+                        samplingChild.measurementValues[this.defaultWeightPmfm.pmfmId] = samplingWeight;
                         samplingChild.individualCount = samplingIndividualCount;
                         child.children = [samplingChild];
                     }
@@ -179,13 +178,6 @@ export class BatchGroupsTable extends BatchesTable {
         // Set computed values
         batch.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
         batch.label = this.acquisitionLevel + "#" + batch.rankOrder;
-
-        // Set default values
-        /*(this.pmfms.getValue() || [])
-             .filter(pmfm => isNotNil(pmfm.defaultValue))
-             .forEach(pmfm => {
-                 batch.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
-             });*/
     }
     protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
         const candLoadPmfms = isNotNil(this.program) && isNotNil(this.acquisitionLevel);
@@ -205,9 +197,9 @@ export class BatchGroupsTable extends BatchesTable {
             console.debug(`[batch-group-table] No pmfm found (program=${this.program}, acquisitionLevel=${this.acquisitionLevel}). Please fill program's strategies !`);
         }
 
-        let weightMinRankOrder;
-        let defaultWeightPmfm;
-        const weightPmfmsByMethod = pmfms.reduce((res, p) => {
+        let weightMinRankOrder: number = undefined;
+        let defaultWeightPmfm: PmfmStrategy = undefined;
+        this.weightPmfmsByMethod = pmfms.reduce((res, p) => {
             const matches = PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label);
             if (matches) {
                 const methodId = p.methodId;
@@ -217,7 +209,6 @@ export class BatchGroupsTable extends BatchesTable {
             }
             return res;
         }, {});
-
         this.defaultWeightPmfm = defaultWeightPmfm;
 
         this.qvPmfm = pmfms.find(p => p.type == 'qualitative_value');

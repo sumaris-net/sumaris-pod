@@ -17,6 +17,7 @@ import { Subject } from 'rxjs';
 import { DateFormatPipe } from 'src/app/shared/pipes/date-format.pipe';
 import { BatchesTable } from '../batch/batches.table';
 import {BatchGroupsTable} from "../batch/batch-groups.table";
+import {SubBatchesTable} from "../batch/sub-batches.table";
 
 
 @Component({
@@ -47,7 +48,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('batchGroupsTable') batchGroupsTable: BatchGroupsTable;
 
-  @ViewChild('batchesIndividualTable') batchesIndividualTable: BatchesTable;
+  @ViewChild('subBatchesTable') subBatchesTable: SubBatchesTable;
 
 
   constructor(
@@ -75,7 +76,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         this.individualMonitoringTable,
         this.individualReleaseTable,
         this.batchGroupsTable,
-        this.batchesIndividualTable
+        this.subBatchesTable
       ]);
 
     // Disable, during load
@@ -102,13 +103,19 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.catchForm.gear = res && res.gear && res.gear.label || null;
     });
 
-    // Update available parent on individual table, when survival tests changes
+    // Update available parent on sub-sample table, when samples changes
     this.survivalTestsTable.listChange.debounceTime(400).subscribe(samples => {
       const availableParents = (samples || [])
         .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
       // Will refresh the tables (inside the setter):
       this.individualMonitoringTable.availableParents = availableParents;
       this.individualReleaseTable.availableParents = availableParents;
+    });
+
+    // Update available parent on individual batch table, when batch group changes
+    this.batchGroupsTable.listChange.debounceTime(400).subscribe(batchGroups => {
+      // Will refresh the tables (inside the setter):
+      this.subBatchesTable.availableParents = (batchGroups || []);
     });
   }
 
@@ -192,13 +199,17 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.individualReleaseTable.availableParents = this.individualMonitoringTable.availableParents;
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
-    // Batches
-    if (isNotNil(this.batchGroupsTable)) {
-      // Get all batches (and children)
-      const batches = (data && data.catchBatch && data.catchBatch.children) || [];
+    // Get all batches (and children)
+    const batches = (data && data.catchBatch && data.catchBatch.children) || [];
 
-      // Set batches table
+    // Set batch groups table (if exists)
+    if (isNotNil(this.batchGroupsTable)) {
       this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
+    }
+
+    // Set batches table (if exists)
+    if (isNotNil(this.subBatchesTable)) {
+      this.subBatchesTable.value = batches.filter(s => s.label && s.label.startsWith(this.subBatchesTable.acquisitionLevel + "#"));
     }
 
     // Update title
@@ -241,10 +252,10 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           AppFormUtils.logFormErrors(this.batchGroupsTable.selectedRow.validator, "[batch-group-table]")
         }
       }
-      if (this.batchesIndividualTable.invalid) {
-        this.batchesIndividualTable.markAsTouched();
-        if (this.batchesIndividualTable.selectedRow && this.batchesIndividualTable.selectedRow.editing) {
-          AppFormUtils.logFormErrors(this.batchesIndividualTable.selectedRow.validator, "[batch-table]")
+      if (this.subBatchesTable.invalid) {
+        this.subBatchesTable.markAsTouched();
+        if (this.subBatchesTable.selectedRow && this.subBatchesTable.selectedRow.editing) {
+          AppFormUtils.logFormErrors(this.subBatchesTable.selectedRow.validator, "[batch-table]")
         }
       }
 
@@ -272,6 +283,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     await this.individualMonitoringTable.save();
     await this.individualReleaseTable.save();
     await this.batchGroupsTable.save();
+    await this.subBatchesTable.save();
 
     // get sub-samples, from tables
     const subSamples = (this.individualMonitoringTable.value || [])
@@ -284,7 +296,17 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       });
 
     // get batches
-    this.data.catchBatch.children = (this.batchGroupsTable.value || []);
+    const batchGroups = (this.batchGroupsTable.value || []);
+
+    const subBatches  = (this.subBatchesTable .value || []);
+    this.data.catchBatch.children = batchGroups
+      .map(batchGroup => {
+        // Add children
+        console.log(batchGroup);
+        //batchGroup.children = subBatches.filter(childBatch => childBatch.parent && batchGroup.equals(childBatch.parent));
+        return batchGroup;
+      });
+    console.log(this.data.catchBatch.children);
 
     const isNew = this.isNewData();
     this.disable();

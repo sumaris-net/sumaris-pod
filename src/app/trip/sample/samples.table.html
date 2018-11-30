@@ -31,27 +31,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<!-- First table header
-<mat-table class="table-survival-test">
-  <ng-container matColumnDef="select">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-  <ng-container matColumnDef="rankOrder">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-  <ng-container *ngFor="let pmfm of pmfmHeaders | async" matColumnDef="{{pmfm.pmfmId}}">
-    <mat-header-cell *matHeaderCellDef class="col-{{pmfm.count}}">
-      <ion-label>{{pmfm.name | translate}}</ion-label>
-    </mat-header-cell>
-  </ng-container>
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-  <mat-header-row *matHeaderRowDef="displayedHeaderColumns"></mat-header-row>
-</mat-table> -->
-
-
-<mat-table [dataSource]="dataSource" class="table-survival-test" matSort matSortActive="rankOrder" matSortDirection="asc"
+<mat-table [dataSource]="dataSource" class="table-samples" matSort matSortActive="rankOrder" matSortDirection="asc"
   matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -75,18 +55,18 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- taxon group -->
-  <ng-container matColumnDef="taxonGroup">
+  <!-- taxon name -->
+  <ng-container matColumnDef="taxonName">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_GROUP</ion-label>
+      <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_NAME</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['taxonGroup']" [matAutocomplete]="autoTaxonGroup"
-          [appAutofocus]="row.id == -1 && row.editing" [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
-          (focus)="onTaxonGroupCellFocus($event, row)" (click)="$event.target.select()" (blur)="onTaxonGroupCellBlur($event, row)"
+        <input matInput [formControl]="row.validator.controls['taxonName']" [matAutocomplete]="autoTaxonGroup"
+          [appAutofocus]="row.id == -1 && row.editing" [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
+          (focus)="onCellFocus($event, row, 'taxonName')" (blur)="onCellBlur($event, row, 'taxonName')" (click)="$event.target.select()"
           required>
-        <mat-error *ngIf="row.validator.controls['taxonGroup'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        <mat-error *ngIf="row.validator.controls['taxonName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
 
       <mat-autocomplete autoActiveFirstOption #autoTaxonGroup="matAutocomplete" [displayWith]="referentialToString">
@@ -98,10 +78,10 @@
             <ion-text translate>REFERENTIAL.NAME</ion-text>
           </ion-col>
         </ion-row>
-        <mat-option *ngFor="let item of taxonGroups | async" [value]="item">
+        <mat-option *ngFor="let item of taxonNames | async" [value]="item">
           <ion-row>
-            <ion-col size="2" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
+            <ion-col size="2" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
+            <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
           </ion-row>
         </mat-option>
       </mat-autocomplete>
@@ -124,7 +104,7 @@
   <ng-container *ngIf="!loading">
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
-      <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.type=='date'">
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.type=='date'">
         <ion-label>{{getPmfmColumnHeader(pmfm)}}
           <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
         </ion-label>
@@ -136,7 +116,6 @@
     </ng-container>
 
   </ng-container>
-
 
   <!-- Comment column -->
   <ng-container matColumnDef="comments">
@@ -179,12 +158,6 @@
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
     [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>
-
-<!-- <ion-row>
-  <ion-col *ngFor="let pmfm of pmfms | async">
-    {{pmfm.label}}
-  </ion-col>
-</ion-row> -->
 
 <ion-fab right bottom visible-xs visible-sm>
   <button ion-fab color="light" (click)="addRow()">

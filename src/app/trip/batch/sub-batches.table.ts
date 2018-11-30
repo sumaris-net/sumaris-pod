@@ -1,9 +1,15 @@
 import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
 import { Observable, BehaviorSubject } from 'rxjs';
-import { mergeMap, debounceTime, startWith } from "rxjs/operators";
+import {mergeMap, debounceTime, startWith, map} from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { referentialToString, PmfmStrategy, Batch, TaxonGroupIds, MeasurementUtils, getPmfmName } from "../services/trip.model";
+import {
+  referentialToString,
+  PmfmStrategy,
+  Batch,
+  MeasurementUtils,
+  getPmfmName, Sample
+} from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
@@ -12,39 +18,41 @@ import { BatchValidatorService } from "../services/batch.validator";
 import { FormBuilder } from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
-import { EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model";
+import {EntityUtils, ReferentialRef, isNotNil, isNil} from "../../core/services/model";
 import { FormGroup } from "@angular/forms";
-import { MeasurementsValidatorService } from "../services/trip.validators";
+import {MeasurementsValidatorService, SubBatchValidatorService} from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import { TaxonomicLevelIds } from "src/app/referential/services/model";
+import {PmfmIds, TaxonomicLevelIds} from "src/app/referential/services/model";
 
 const PMFM_ID_REGEXP = /\d+/;
-const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
-const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
+const SUBBATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
+const SUBBATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
-    selector: 'table-batches',
-    templateUrl: 'batches.table.html',
-    styleUrls: ['batches.table.scss'],
+    selector: 'table-sub-batches',
+    templateUrl: 'sub-batches.table.html',
+    styleUrls: ['sub-batches.table.scss'],
     providers: [
         { provide: ValidatorService, useClass: BatchValidatorService }
     ]
 })
-export class BatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
+export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
 
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
     private _implicitValues: { [key: string]: any } = {};
+    private _availableParents: Batch[] = [];
     private _dataSubject = new BehaviorSubject<Batch[]>([]);
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
     loadingPmfms = true;
+    displayParentPmfm: PmfmStrategy;
     pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
     measurementValuesFormGroupConfig: { [key: string]: any };
     data: Batch[];
-    taxonGroups: Observable<ReferentialRef[]>;
     taxonNames: Observable<ReferentialRef[]>;
+    filteredParents: Observable<Batch[]>;
 
     set value(data: Batch[]) {
         if (this.data !== data) {
@@ -88,6 +96,21 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
 
     @Input() showCommentsColumn: boolean = true;
     @Input() showTaxonGroupColumn: boolean = true;
+    @Input() showTaxonNameColumn: boolean = true;
+
+    set  availableParents(parents: Batch[]) {
+      if (this._availableParents !== parents) {
+        // Sort parents by by Tag-ID
+        this._availableParents = this.sortBatches(parents, PmfmIds.TAG_ID.toString());
+
+        // Link samples to parent, and delete orphan
+        this.linkBatchesToParentAndDeleteOrphan();
+      }
+    }
+
+    get availableParents(): Batch[] {
+      return this._availableParents;
+    }
 
     constructor(
         protected route: ActivatedRoute,
@@ -96,7 +119,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         protected location: Location,
         protected modalCtrl: ModalController,
         protected accountService: AccountService,
-        protected validatorService: BatchValidatorService,
+        protected validatorService: SubBatchValidatorService,
         protected measurementsValidatorService: MeasurementsValidatorService,
         protected referentialRefService: ReferentialRefService,
         protected programService: ProgramService,
@@ -104,7 +127,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         protected formBuilder: FormBuilder
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            RESERVED_START_COLUMNS.concat(BATCH_RESERVED_START_COLUMNS).concat(BATCH_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
+            RESERVED_START_COLUMNS.concat(SUBBATCH_RESERVED_START_COLUMNS).concat(SUBBATCH_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
         this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
         this.autoLoad = false;
@@ -134,41 +157,20 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                 let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
 
                 this.displayedColumns = RESERVED_START_COLUMNS
-                    .concat(BATCH_RESERVED_START_COLUMNS)
+                    .concat(SUBBATCH_RESERVED_START_COLUMNS)
                     .concat(pmfmColumns)
-                    .concat(BATCH_RESERVED_END_COLUMNS)
+                    .concat(SUBBATCH_RESERVED_END_COLUMNS)
                     .concat(RESERVED_END_COLUMNS)
                     // Remove columns to hide
                     .filter(column =>
                       (this.showCommentsColumn || column != 'comments') &&
-                      (this.showTaxonGroupColumn || column != 'taxonGroup'));
+                      (this.showTaxonGroupColumn || column != 'taxonGroup') &&
+                      (this.showTaxonNameColumn || column != 'taxonName'));
 
                 this.loading = false;
 
                 if (this.data) this.onRefresh.emit();
             });
-
-        // Taxon group combo
-        this.taxonGroups = this.registerCellValueChanges('taxonGroup')
-            .pipe(
-                debounceTime(250),
-                mergeMap((value) => {
-                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string") && value || undefined;
-                    if (this.debug) console.debug("[batch-table] Searching taxon group on {" + (value || '*') + "}...");
-                    return this.referentialRefService.loadAll(0, 10, undefined, undefined,
-                        {
-                            entityName: 'TaxonGroup',
-                            levelId: TaxonGroupIds.FAO,
-                            searchText: value as string,
-                            searchAttribute: 'label'
-                        }).first();
-                })
-            );
-
-        this.taxonGroups.subscribe(items => {
-            this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined;
-        });
 
         // Taxon name combo
         this.taxonNames = this.registerCellValueChanges('taxonName')
@@ -177,7 +179,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                 mergeMap((value) => {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string") && value || undefined;
-                    if (this.debug) console.debug("[batch-table] Searching taxon name on {" + (value || '*') + "}...");
+                    if (this.debug) console.debug("[sub-batch-table] Searching taxon name on {" + (value || '*') + "}...");
                     return this.referentialRefService.loadAll(0, 10, undefined, undefined,
                         {
                             entityName: 'TaxonName',
@@ -192,6 +194,29 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
             this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined;
         });
 
+      // Parent combo
+      this.filteredParents = this.registerCellValueChanges('parent')
+        .pipe(
+          debounceTime(250),
+          map((value) => {
+            if (EntityUtils.isNotEmpty(value)) return [value];
+            value = (typeof value === "string" && value !== "*") && value || undefined;
+            if (this.debug) console.debug("[sub-batch-table] Searching parent {" + (value || '*') + "}...");
+            if (isNil(value)) return this._availableParents; // All
+            const ucValueParts = value.trim().toUpperCase().split(" ", 1);
+            // Search on labels (taxonGroup or taxonName)
+            return this._availableParents.filter(p =>
+              (p.taxonGroup && p.taxonGroup.label && p.taxonGroup.label.toUpperCase().indexOf(ucValueParts[0]) === 0) ||
+              (p.taxonName  && p.taxonName.label  && p.taxonName.label.toUpperCase().indexOf(ucValueParts.length == 2 ? ucValueParts[1] : ucValueParts[0]) === 0)
+            );
+          })
+        )
+      ;
+
+      // add implicit value
+      this.filteredParents.subscribe(items => {
+        this._implicitValues['parent'] = (items.length === 1) && items[0];
+      });
     }
 
     getRowValidator(): FormGroup {
@@ -211,13 +236,13 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         options?: any
     ): Observable<Batch[]> {
         if (!this.data) {
-            if (this.debug) console.debug("[batch-table] Unable to load row: value not set (or not started)");
+            if (this.debug) console.debug("[sub-batch-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
         }
         sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
         const now = Date.now();
-        if (this.debug) console.debug("[batch-table] Loading rows..", this.data);
+        if (this.debug) console.debug("[sub-batch-table] Loading rows..", this.data);
 
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
@@ -229,6 +254,9 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                     json.measurementValues = MeasurementUtils.normalizeFormValues(batch.measurementValues, pmfms);
                     return json;
                 });
+
+                // Link to parent
+                this.linkBatchesToParent(data);
 
                 // Sort
                 this.sortBatches(data, sortBy, sortDirection);
@@ -249,6 +277,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         this.data = data.map(json => {
             const batch = Batch.fromObject(json);
             batch.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
+            batch.parentId = json.parent && json.parent.id;
             return batch;
         });
 
@@ -262,7 +291,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     }
 
     addRow(): boolean {
-        if (this.debug) console.debug("[survivaltest-table] Calling addRow()");
+        if (this.debug) console.debug("[sub-batch-table] Calling addRow()");
 
         // Create new row
         const result = super.addRow();
@@ -272,6 +301,17 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         this.data.push(row.currentData);
         this.selectedRow = row;
         return true;
+    }
+
+    parentBatchToString(batch: Batch) {
+      if (!batch) return null;
+      if (batch.taxonName && batch.taxonName.label && (!batch.taxonGroup || !batch.taxonGroup.label || batch.taxonGroup.label == batch.taxonName.label)) {
+        return `${batch.taxonName.label} - ${batch.taxonName.name}`;
+      }
+      if (batch.taxonGroup && batch.taxonGroup.label && batch.taxonName && batch.taxonName.label) {
+        return `${batch.taxonGroup.label} / ${batch.taxonName.label} - ${batch.taxonName.name}`;
+      }
+      return `#${batch.rankOrder}`;
     }
 
     onCellFocus(event: any, row: TableElement<any>, columnName: string) {
@@ -323,9 +363,68 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         return super.getI18nColumnName(columnName);
     }
 
+  protected linkBatchesToParent(data: Batch[]) {
+    if (!this._availableParents || !data) return;
+
+    data.forEach(s => {
+      const parentId = s.parentId || (s.parent && s.parent.id);
+      s.parent = isNotNil(parentId) ? this.availableParents.find(p => p.id === parentId) : null;
+    });
+  }
+
+  /**
+   * Remove batches in table, if there have no more parent
+   */
+  protected async linkBatchesToParentAndDeleteOrphan() {
+
+    const rows = await this.dataSource.getRows();
+
+    // Check if need to delete some rows
+    let hasRemovedBatch = false;
+    const data = rows
+      .filter(row => {
+        const s = row.currentData;
+        const parentId = s.parentId || (s.parent && s.parent.id);
+
+        if (isNil(parentId)) {
+          const parentTaxonGroupId = s.parent && s.parent.taxonGroup && s.parent.taxonGroup.id ;
+          const parentTaxonNameId = s.parent && s.parent.taxonName && s.parent.taxonName.id;
+          if (isNil(parentTaxonGroupId) && isNil(parentTaxonNameId)) {
+            s.parent = undefined; // remove link to parent
+            return true; // not yet a parent: keep (.e.g new row)
+          }
+          // Update the parent, by taxonGroup+taxonName
+          s.parent = this.availableParents.find(p =>
+            (p && ((!p.taxonGroup && !parentTaxonGroupId) || (p.taxonGroup && p.taxonGroup.id == parentTaxonGroupId))
+            && ((!p.taxonName && !parentTaxonNameId) || (p.taxonName && p.taxonName.id == parentTaxonNameId))));
+
+        }
+        else {
+          // Update the parent, by id
+          s.parent = this.availableParents.find(p => p.id == parentId);
+        }
+
+        // Could not found the parent anymore (parent has been delete)
+        if (!s.parent) {
+          hasRemovedBatch = true;
+          return false;
+        }
+
+        if (!row.editing) this.dataSource.refreshValidator(row);
+
+        return true; // Keep only if sample still have a parent
+      })
+      .map(r => r.currentData);
+
+    if (hasRemovedBatch) this._dataSubject.next(data);
+  }
+
     protected sortBatches(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {
         if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
             sortBy = 'measurementValues.' + sortBy;
+        }
+        else if (sortBy === "parent") {
+            sortBy = 'parent.measurementValues.' + PmfmIds.TAG_ID;
         }
         sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
@@ -353,7 +452,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
             })) || [];
 
         if (!pmfms.length && this.debug) {
-            console.debug(`[batch-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+            console.debug(`[sub-batch-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
         }
 
         this.loadingPmfms = false;

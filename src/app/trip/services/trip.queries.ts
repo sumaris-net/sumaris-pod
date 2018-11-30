@@ -111,6 +111,9 @@ export const DataFragments = {
       matrix {
         ...ReferentialFragment
       }
+      taxonName {
+        ...ReferentialFragment
+      }
       taxonGroup {
         ...ReferentialFragment
       }
