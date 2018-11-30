@@ -270,7 +270,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
     }
 
     onRowClick(event: MouseEvent, row: TableElement<Sample>): boolean {
-        const canEdit = super.onRowClick(event, row)
+        const canEdit = super.onRowClick(event, row);
         if (canEdit) this.startListenRow(row);
         return canEdit;
     }

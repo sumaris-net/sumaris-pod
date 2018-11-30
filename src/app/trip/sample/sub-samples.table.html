@@ -85,7 +85,7 @@
         <mat-option *ngFor="let sample of filteredParents | async" [value]="sample">
           <ion-row>
             <ion-col [innerHTML]="(displayParentPmfm && sample.measurementValues[displayParentPmfm.pmfmId] || sample.rankOrder) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
-            <ion-col [innerHTML]="sample.taxonGroup.label | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
+            <ion-col [innerHTML]="sample.taxonName.label | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
           </ion-row>
         </mat-option>
       </mat-autocomplete>

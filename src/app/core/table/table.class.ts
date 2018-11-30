@@ -2,7 +2,7 @@ import { EventEmitter, OnInit, Output, ViewChild, OnDestroy, Input } from "@angu
 import { MatPaginator, MatSort, MatTable } from "@angular/material";
 import { merge } from "rxjs/observable/merge";
 import { Observable } from 'rxjs';
-import { startWith, mergeMap } from "rxjs/operators";
+import {startWith, mergeMap, distinctUntilChanged} from "rxjs/operators";
 import { TableElement } from "angular4-material-table";
 import { AppTableDataSource } from "./table-datasource.class";
 import { SelectionModel } from "@angular/cdk/collections";
@@ -469,10 +469,13 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             formPath: formPath
         };
 
-        return this._cellValueChangesDefs[name].eventEmitter;
+        return this._cellValueChangesDefs[name].eventEmitter
+          .pipe(
+            distinctUntilChanged()
+          );
     }
 
-    public startCellValueChanges(name: string, row: TableElement<any>) {
+    public startCellValueChanges(name: string, row: TableElement<T>) {
         const def = this._cellValueChangesDefs[name];
         if (!def) {
             console.warn("[table] Listener with name {" + name + "} not registered! Please call registerCellValueChanges() before;");

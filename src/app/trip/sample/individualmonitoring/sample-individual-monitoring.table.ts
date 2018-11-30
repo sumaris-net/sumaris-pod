@@ -13,6 +13,8 @@ import { AcquisitionLevelCodes } from "../../../core/services/model";
 import { MeasurementsValidatorService } from "../../services/trip.validators";
 import { PmfmIds } from "../../../referential/services/model";
 import { SubSamplesTable } from "../sub-samples.table";
+import { distinctUntilChanged } from "rxjs/operators";
+
 
 @Component({
     selector: 'table-individual-monitoring',
@@ -52,8 +54,9 @@ export class IndividualMonitoringTable extends SubSamplesTable {
         // Listening on column 'IS_DEAD' value changes
         this.registerCellValueChanges('isDead', "measurementValues." + PmfmIds.IS_DEAD.toString())
             .subscribe((isDeadValue) => {
+                console.log("IS_DEAD="+isDeadValue);
                 if (!this.selectedRow) return; // Should never occur
-                const row = this.selectedRow
+                const row = this.selectedRow;
                 const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
                 if (isDeadValue) {
                     if (controls[PmfmIds.DEATH_TIME]) {

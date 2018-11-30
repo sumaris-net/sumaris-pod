@@ -15,14 +15,14 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
 import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
 import { BatchValidatorService } from "../services/batch.validator";
-import { FormBuilder } from "@angular/forms";
+import {FormBuilder, Validators} from "@angular/forms";
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
 import {EntityUtils, ReferentialRef, isNotNil, isNil} from "../../core/services/model";
 import { FormGroup } from "@angular/forms";
 import {MeasurementsValidatorService, SubBatchValidatorService} from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import {PmfmIds, TaxonomicLevelIds} from "src/app/referential/services/model";
+import {PmfmIds, QualitativeLabels, TaxonomicLevelIds} from "src/app/referential/services/model";
 
 const PMFM_ID_REGEXP = /\d+/;
 const SUBBATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -217,6 +217,30 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
       this.filteredParents.subscribe(items => {
         this._implicitValues['parent'] = (items.length === 1) && items[0];
       });
+
+      // Listening on column 'IS_DEAD' value changes
+      this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
+        .subscribe((value) => {
+          console.log("DISCARD_OR_LANDING="+value);
+          if (!this.selectedRow) return; // Should never occur
+          const row = this.selectedRow;
+          const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+          if (EntityUtils.isNotEmpty(value) && value.label == QualitativeLabels.DISCARD) {
+            if (controls[PmfmIds.DISCARD_REASON]) {
+              if (row.validator.enabled) {
+                controls[PmfmIds.DISCARD_REASON].enable();
+              }
+              controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
+            }
+          }
+          else {
+            if (controls[PmfmIds.DISCARD_REASON]) {
+              controls[PmfmIds.DISCARD_REASON].disable();
+              controls[PmfmIds.DISCARD_REASON].setValue(null);
+              controls[PmfmIds.DISCARD_REASON].setValidators([]);
+            }
+          }
+        });
     }
 
     getRowValidator(): FormGroup {
@@ -300,18 +324,28 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         const row = this.dataSource.getRow(-1);
         this.data.push(row.currentData);
         this.selectedRow = row;
+
+        // Listen row value changes
+        this.startListenRow(row);
+
         return true;
     }
 
+    onRowClick(event: MouseEvent, row: TableElement<Batch>): boolean {
+        const canEdit = super.onRowClick(event, row);
+        if (canEdit) this.startListenRow(row);
+        return canEdit;
+    }
+
     parentBatchToString(batch: Batch) {
-      if (!batch) return null;
-      if (batch.taxonName && batch.taxonName.label && (!batch.taxonGroup || !batch.taxonGroup.label || batch.taxonGroup.label == batch.taxonName.label)) {
-        return `${batch.taxonName.label} - ${batch.taxonName.name}`;
-      }
-      if (batch.taxonGroup && batch.taxonGroup.label && batch.taxonName && batch.taxonName.label) {
-        return `${batch.taxonGroup.label} / ${batch.taxonName.label} - ${batch.taxonName.name}`;
-      }
-      return `#${batch.rankOrder}`;
+        if (!batch) return null;
+        if (batch.taxonName && batch.taxonName.label && (!batch.taxonGroup || !batch.taxonGroup.label || batch.taxonGroup.label == batch.taxonName.label)) {
+          return `${batch.taxonName.label} - ${batch.taxonName.name}`;
+        }
+        if (batch.taxonGroup && batch.taxonGroup.label && batch.taxonName && batch.taxonName.label) {
+          return `${batch.taxonGroup.label} / ${batch.taxonName.label} - ${batch.taxonName.name}`;
+        }
+        return `#${batch.rankOrder}`;
     }
 
     onCellFocus(event: any, row: TableElement<any>, columnName: string) {
@@ -334,21 +368,28 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     /* -- protected methods -- */
 
     protected async getMaxRankOrder(): Promise<number> {
-        const rows = await this.dataSource.getRows();
-        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+      const rows = await this.dataSource.getRows();
+      return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
     }
 
     protected async onNewBatch(batch: Batch, rankOrder?: number): Promise<void> {
-        // Set computed values
-        batch.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
-        batch.label = this._acquisitionLevel + "#" + batch.rankOrder;
+      // Set computed values
+      batch.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
+      batch.label = this._acquisitionLevel + "#" + batch.rankOrder;
 
-        // Set default values
-        (this.pmfms.getValue() || [])
-            .filter(pmfm => isNotNil(pmfm.defaultValue))
-            .forEach(pmfm => {
-                batch.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
-            });
+      // Set default values
+      (this.pmfms.getValue() || [])
+        .filter(pmfm => isNotNil(pmfm.defaultValue))
+        .forEach(pmfm => {
+            batch.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
+        });
+    }
+
+    /**
+     * Can be overrided in subclasses
+     **/
+    protected startListenRow(row: TableElement<Batch>) {
+      this.startCellValueChanges('discard', row);
     }
 
     protected getI18nColumnName(columnName: string): string {

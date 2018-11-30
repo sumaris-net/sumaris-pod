@@ -26,9 +26,15 @@ export const TaxonomicLevelIds = {
 
 export const PmfmIds = {
   TAG_ID: 82,
+  DISCARD_OR_LANDING: 90,
   IS_DEAD: 94,
+  DISCARD_REASON: 95,
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102
+}
+
+export const QualitativeLabels = {
+  DISCARD: 'DIS'
 }
 
 export const MethodIds = {
