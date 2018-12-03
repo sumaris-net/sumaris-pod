@@ -45,6 +45,7 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateConnectionProvider;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.shared.exception.ErrorCodes;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -281,13 +282,14 @@ public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoade
      */
     public void executeUpdate(Properties connectionProperties) throws LiquibaseException {
 
-        log.info(I18n.t("sumaris.persistence.liquibase.executeUpdate"));
 
         Connection c = null;
         liquibase.Liquibase liquibase;
         try {
             // open connection
             c = createConnection(connectionProperties);
+
+            log.info(I18n.t("sumaris.persistence.liquibase.executeUpdate", c.getMetaData().getURL()));
 
             // create liquibase instance
             liquibase = createLiquibase(c);
@@ -315,7 +317,6 @@ public class Liquibase implements InitializingBean, BeanNameAware, ResourceLoade
                 releaseConnection(c);
             }
         }
-
     }
 
     /**

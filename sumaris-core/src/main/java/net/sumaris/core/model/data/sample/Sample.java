@@ -7,6 +7,7 @@ import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.data.batch.Batch;
 import net.sumaris.core.model.referential.Matrix;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import org.hibernate.annotations.Cascade;
 
@@ -43,6 +44,10 @@ public class Sample implements IRootDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "taxon_group_fk")
     private TaxonGroup taxonGroup;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reference_taxon_fk")
+    private ReferenceTaxon referenceTaxon;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "matrix_fk", nullable = false)
