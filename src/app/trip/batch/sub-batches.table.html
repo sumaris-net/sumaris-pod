@@ -96,7 +96,7 @@
   </ng-container>
 
   <!-- taxon name (scientific species) -->
-  <ng-container matColumnDef="taxonName" *ngIf="showTaxonNameColumn">
+  <ng-container matColumnDef="taxonName">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
     </mat-header-cell>
@@ -145,7 +145,7 @@
   </ng-container>
 
   <!-- Comment column -->
-  <ng-container matColumnDef="comments" *ngIf="showCommentsColumn">
+  <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
       <span translate>REFERENTIAL.COMMENTS</span>
     </mat-header-cell>

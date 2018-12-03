@@ -141,58 +141,60 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     };
 
     async ngOnInit() {
-        super.ngOnInit();
+      super.ngOnInit();
 
-        this._onRefreshPmfms
-            .pipe(
-                startWith('ngOnInit')
-            )
-            .subscribe((event) => this.refreshPmfms(event));
+      let excludesColumns:String[] = new Array<String>();
+      if (!this.showCommentsColumn) excludesColumns.push('comments');
+      if (!this.showTaxonGroupColumn) excludesColumns.push('taxonGroup');
+      if (!this.showTaxonNameColumn) excludesColumns.push('taxonName');
 
-        this.pmfms
-            .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
-            .subscribe(pmfms => {
-                this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
-                let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
+      this._onRefreshPmfms
+          .pipe(
+              startWith('ngOnInit')
+          )
+          .subscribe((event) => this.refreshPmfms(event));
 
-                this.displayedColumns = RESERVED_START_COLUMNS
-                    .concat(SUBBATCH_RESERVED_START_COLUMNS)
-                    .concat(pmfmColumns)
-                    .concat(SUBBATCH_RESERVED_END_COLUMNS)
-                    .concat(RESERVED_END_COLUMNS)
-                    // Remove columns to hide
-                    .filter(column =>
-                      (this.showCommentsColumn || column != 'comments') &&
-                      (this.showTaxonGroupColumn || column != 'taxonGroup') &&
-                      (this.showTaxonNameColumn || column != 'taxonName'));
+      this.pmfms
+          .filter(pmfms => pmfms && pmfms.length > 0)
+          .first()
+          .subscribe(pmfms => {
+              this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
+              let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
 
-                this.loading = false;
+              this.displayedColumns = RESERVED_START_COLUMNS
+                  .concat(SUBBATCH_RESERVED_START_COLUMNS)
+                  .concat(pmfmColumns)
+                  .concat(SUBBATCH_RESERVED_END_COLUMNS)
+                  .concat(RESERVED_END_COLUMNS)
+                  // Remove columns to hide
+                  .filter(column => !excludesColumns.includes(column));
 
-                if (this.data) this.onRefresh.emit();
-            });
+              this.loading = false;
 
-        // Taxon name combo
-        this.taxonNames = this.registerCellValueChanges('taxonName')
-            .pipe(
-                debounceTime(250),
-                mergeMap((value) => {
-                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string") && value || undefined;
-                    if (this.debug) console.debug("[sub-batch-table] Searching taxon name on {" + (value || '*') + "}...");
-                    return this.referentialRefService.loadAll(0, 10, undefined, undefined,
-                        {
-                            entityName: 'TaxonName',
-                            levelId: TaxonomicLevelIds.SPECIES,
-                            searchText: value as string,
-                            searchAttribute: 'label'
-                        }).first();
-                })
-            );
+              if (this.data) this.onRefresh.emit();
+          });
 
-        this.taxonNames.subscribe(items => {
-            this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined;
-        });
+      // Taxon name combo
+      this.taxonNames = this.registerCellValueChanges('taxonName')
+          .pipe(
+              debounceTime(250),
+              mergeMap((value) => {
+                  if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+                  value = (typeof value === "string") && value || undefined;
+                  if (this.debug) console.debug("[sub-batch-table] Searching taxon name on {" + (value || '*') + "}...");
+                  return this.referentialRefService.loadAll(0, 10, undefined, undefined,
+                      {
+                          entityName: 'TaxonName',
+                          levelId: TaxonomicLevelIds.SPECIES,
+                          searchText: value as string,
+                          searchAttribute: 'label'
+                      }).first();
+              })
+          );
+
+      this.taxonNames.subscribe(items => {
+          this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined;
+      });
 
       // Parent combo
       this.filteredParents = this.registerCellValueChanges('parent')
@@ -408,6 +410,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     if (!this._availableParents || !data) return;
 
     data.forEach(s => {
+      console.log(s);
       const parentId = s.parentId || (s.parent && s.parent.id);
       s.parent = isNotNil(parentId) ? this.availableParents.find(p => p.id === parentId) : null;
     });

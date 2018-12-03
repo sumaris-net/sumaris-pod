@@ -76,7 +76,7 @@
   </ng-container>
 
   <!-- taxon group (commercial species) -->
-  <ng-container matColumnDef="taxonGroup" *ngIf="showTaxonGroupColumn">
+  <ng-container matColumnDef="taxonGroup">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
     </mat-header-cell>
@@ -158,7 +158,7 @@
   </ng-container>
 
   <!-- Comment column -->
-  <ng-container matColumnDef="comments" *ngIf="showCommentsColumn">
+  <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
       <span translate>REFERENTIAL.COMMENTS</span>
     </mat-header-cell>

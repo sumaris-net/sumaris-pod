@@ -595,7 +595,7 @@ export class Operation extends DataEntity<Operation> {
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
 
-    // Batches
+    // Batches list to tree
     if (source.batches) {
       let batches = (source.batches || []).map(Batch.fromObject);
       this.catchBatch = batches.find(b => isNil(b.parentId) && (isNil(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
@@ -608,7 +608,7 @@ export class Operation extends DataEntity<Operation> {
         // Link to children
         batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
         this.catchBatch.children = batches.filter(b => b.parent === this.catchBatch);
-        //console.log("[trip-model] Operation.catchBatch:", this.catchBatch);
+        //console.log("[trip-model] Operation.catchBatch as tree:", this.catchBatch);
       }
     }
     else {
@@ -852,6 +852,7 @@ export class Batch extends DataEntity<Batch> {
     this.comments = source.comments;
     this.operationId = source.operationId;
     this.parentId = source.parentId;
+    this.parent = source.parent;
 
     if (source.measurementValues) {
       this.measurementValues = source.measurementValues;

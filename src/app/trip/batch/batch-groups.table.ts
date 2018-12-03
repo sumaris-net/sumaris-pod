@@ -136,6 +136,7 @@ export class BatchGroupsTable extends BatchesTable {
                     const childLabel = `${batch.label}.${qv.label}`;
                     const child: Batch = batch.id && (batch.children || []).find(b => b.label === childLabel) || new Batch();
                     child.rankOrder = qvIndex + 1;
+                    child.measurementValues[this.qvPmfm.pmfmId] = qv.id.toString();
                     child.measurementValues[this.defaultWeightPmfm.pmfmId] = weight;
                     child.individualCount = individualCount;
                     child.label = childLabel;
@@ -179,6 +180,7 @@ export class BatchGroupsTable extends BatchesTable {
         batch.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
         batch.label = this.acquisitionLevel + "#" + batch.rankOrder;
     }
+
     protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
         const candLoadPmfms = isNotNil(this.program) && isNotNil(this.acquisitionLevel);
         if (!candLoadPmfms) return undefined;

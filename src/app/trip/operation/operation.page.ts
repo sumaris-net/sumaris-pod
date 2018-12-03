@@ -202,14 +202,43 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Get all batches (and children)
     const batches = (data && data.catchBatch && data.catchBatch.children) || [];
 
-    // Set batch groups table (if exists)
-    if (isNotNil(this.batchGroupsTable)) {
-      this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
-    }
+    // Set batch tables (if exists)
+    if (isNotNil(this.batchGroupsTable) && isNotNil(this.subBatchesTable)) {
+      const batchGroups = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
 
-    // Set batches table (if exists)
-    if (isNotNil(this.subBatchesTable)) {
-      this.subBatchesTable.value = batches.filter(s => s.label && s.label.startsWith(this.subBatchesTable.acquisitionLevel + "#"));
+      this.batchGroupsTable.pmfms
+        .filter(pmfms => (pmfms && pmfms.length > 0))
+        .first()
+        .subscribe(() => {
+          const qvPmfm = this.batchGroupsTable.qvPmfm;
+          this.subBatchesTable.availableParents = batchGroups;
+          this.subBatchesTable.value = batchGroups.reduce((res, group) => {
+            if (qvPmfm) {
+              return res.concat(group.children.reduce((res, qvBatch) => {
+                const children = this.getBatchChildrenByLevel(qvBatch, this.subBatchesTable.acquisitionLevel);
+                return res.concat(children
+                  .map(child => {
+                    // Copy QV value from the group
+                    child.measurementValues = child.measurementValues || {};
+                    child.measurementValues[qvPmfm.pmfmId] = qvBatch.measurementValues[qvPmfm.pmfmId];
+                    // Replace parent by the group (instead of the sampling batch)
+                    child.parentId = group.id;
+                    return child;
+                  }));
+                }, []));
+            } else {
+              return res.concat(this.getBatchChildrenByLevel(group, this.subBatchesTable.acquisitionLevel)
+                .map(child => {
+                  // Replace parent by the group (instead of the sampling batch)
+                  child.parentId = group.id;
+                  return child;
+                }));
+            }
+          }, []);
+        });
+
+      this.batchGroupsTable.value = batchGroups;
+
     }
 
     // Update title
@@ -217,8 +246,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     this.markAsPristine();
     this.markAsUntouched();
-
-
   }
 
   async save(event): Promise<any> {
@@ -298,15 +325,20 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // get batches
     const batchGroups = (this.batchGroupsTable.value || []);
 
-    const subBatches  = (this.subBatchesTable .value || []);
-    this.data.catchBatch.children = batchGroups
-      .map(batchGroup => {
+    const subBatches  = (this.subBatchesTable.value || []);
+    const qvPmfm = this.batchGroupsTable.qvPmfm;
+    batchGroups.forEach(batchGroup => {
         // Add children
-        console.log(batchGroup);
-        //batchGroup.children = subBatches.filter(childBatch => childBatch.parent && batchGroup.equals(childBatch.parent));
-        return batchGroup;
-      });
-    console.log(this.data.catchBatch.children);
+        (batchGroup.children || []).forEach(b => {
+          const children = subBatches.filter(childBatch => childBatch.parent && batchGroup.equals(childBatch.parent) &&
+            (!qvPmfm || (childBatch.measurementValues[qvPmfm.pmfmId] == b.measurementValues[qvPmfm.pmfmId]))
+          );
+          // If has sampling batch, use it a parent
+          if (b.children && b.children.length == 1) b.children[0].children = children;
+          else b.children = children;
+        });
+    });
+    this.data.catchBatch.children = batchGroups;
 
     const isNew = this.isNewData();
     this.disable();
@@ -376,5 +408,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.title.next(title);
   }
 
+
+  protected getBatchChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[]{
+    return (batch.children || []).reduce((res, child) => {
+      if (child.label && child.label.startsWith(acquisitionLevel + "#")) return res.concat(child);
+      return res.concat(this.getBatchChildrenByLevel(child, acquisitionLevel)); // recursive call
+    }, []);
+  }
 
 }

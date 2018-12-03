@@ -224,12 +224,12 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     if (!row.validator.hasError) return;
 
-    var errorsMessage = "";
+    let errorsMessage = "";
     Object.getOwnPropertyNames(row.validator.controls)
       .forEach(key => {
-        var control = row.validator.controls[key];
+        let control = row.validator.controls[key];
         if (control.invalid) {
-          errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unkown error') + "),";
+          errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unknown error') + "),";
         }
       });
 

@@ -8,6 +8,8 @@
     max-width: 30px;
   }
 
+  .mat-column-parent,
+  .mat-column-taxonName,
   .mat-column-taxonGroup {
     min-width: 150px;
   }
@@ -16,29 +18,14 @@
     max-width: inherit; // Override default limitation
   }
 
-  .mat-column-60,
-  .mat-column-62 {
-    min-width: 54px;
-    max-width: 100px;
-  }
-
-  .mat-column-63,
-  .mat-column-64,
-  .mat-column-65,
-  .mat-column-66,
-  .mat-column-67,
-  .mat-column-68,
-  .mat-column-69,
-  .mat-column-70,
-  .mat-column-71 {
-    max-width: 30px;
-  }
-
-  .mat-column-80 {
+  .mat-column-80,
+  .mat-column-94,
+  .mat-column-94 {
     max-width: 50px;
   }
 
-  .mat-column-81 {
+  .mat-column-81,
+  .mat-column-95 {
     max-width: 100px;
   }
 }
