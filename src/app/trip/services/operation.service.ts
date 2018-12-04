@@ -298,7 +298,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
       // Update the cache
       if (isNew && this._lastVariables.loadAll) {
-        const list = this.addToQueryCache({
+        this.addToQueryCache({
           query: LoadAllQuery,
           variables: this._lastVariables.loadAll
         }, 'operations', entity.asObject());

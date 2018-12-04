@@ -144,11 +144,11 @@ export class Trip extends DataRootVesselEntity<Trip> {
 
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
-    target.program = this.program && this.program.asObject(minify) || undefined;
+    target.program = this.program && this.program.asObject(false/*keep for trips list*/) || undefined;
     target.departureDateTime = toDateISOString(this.departureDateTime);
     target.returnDateTime = toDateISOString(this.returnDateTime);
-    target.departureLocation = this.departureLocation && this.departureLocation.asObject(minify) || undefined;
-    target.returnLocation = this.returnLocation && this.returnLocation.asObject(minify) || undefined;
+    target.departureLocation = this.departureLocation && this.departureLocation.asObject(false/*keep for trips list*/) || undefined;
+    target.returnLocation = this.returnLocation && this.returnLocation.asObject(false/*keep for trips list*/) || undefined;
     target.sale = this.sale && this.sale.asObject(minify) || undefined;
     target.gears = this.gears && this.gears.map(p => p && p.asObject(minify)) || undefined;
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;

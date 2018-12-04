@@ -91,8 +91,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
       .pipe(
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string") && value || undefined;
-          return this.referentialRefService.loadAll(0, 10, undefined, undefined,
+          value = (typeof value === "string" && value !== '*') && value || undefined;
+          return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Metier',
               searchText: value as string

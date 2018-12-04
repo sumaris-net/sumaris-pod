@@ -321,7 +321,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         trips: [json]
       },
       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" }
-    })
+    });
 
     var savedTrip = res && res.saveTrips && res.saveTrips[0];
     if (savedTrip) {
@@ -329,7 +329,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
       // Update the cache
       if (isNew && this._lastVariables.loadAll) {
-        const list = this.addToQueryCache({
+        this.addToQueryCache({
           query: LoadAllQuery,
           variables: this._lastVariables.loadAll
         }, 'trips', entity.asObject());

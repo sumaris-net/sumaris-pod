@@ -42,7 +42,10 @@ export class ReferentialRefService extends BaseDataService implements DataServic
     sortBy?: string,
     sortDirection?: string,
     filter?: ReferentialFilter,
-    options?: any): Observable<ReferentialRef[]> {
+    options?: {
+      [key: string]: any;
+      fetchPolicy?: FetchPolicy;
+    }): Observable<ReferentialRef[]> {
 
     if (!filter || !filter.entityName) {
       console.error("[referential-ref-service] Missing filter.entityName");
@@ -72,7 +75,8 @@ export class ReferentialRefService extends BaseDataService implements DataServic
     return this.watchQuery<{ referentials: any[] }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" }
+      error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" },
+      fetchPolicy: options && options.fetchPolicy || "cache-first"
     })
       .pipe(
         map((data) => {

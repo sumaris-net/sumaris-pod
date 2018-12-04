@@ -96,7 +96,9 @@ export class ReferentialService extends BaseDataService implements DataService<R
     sortBy?: string,
     sortDirection?: string,
     filter?: ReferentialFilter,
-    options?: any): Observable<Referential[]> {
+    options?: {
+      fetchPolicy?: FetchPolicy
+    }): Observable<Referential[]> {
 
     if (!filter || !filter.entityName) {
       console.error("[referential-service] Missing filter.entityName");
@@ -130,7 +132,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" },
-      fetchPolicy: 'network-only'
+      fetchPolicy: options && options.fetchPolicy || 'network-only'
     }).first()
       .pipe(
         map((data) => {

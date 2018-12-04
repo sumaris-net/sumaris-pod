@@ -16,6 +16,7 @@ import { EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model
 import { FormGroup } from "@angular/forms";
 import { MeasurementsValidatorService } from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
+import {TaxonomicLevelIds} from "../../referential/services/model";
 
 const PMFM_ID_REGEXP = /\d+/;
 const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonName', 'sampleDate'];
@@ -143,12 +144,12 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 debounceTime(250),
                 mergeMap((value) => {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string") && value || undefined;
+                    value = (typeof value === "string" && value !== '*') && value || undefined;
                     if (this.debug) console.debug("[sample-table] Searching taxon name on {" + (value || '*') + "}...");
-                    return this.referentialRefService.loadAll(0, 10, undefined, undefined,
+                    return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
                         {
-                            entityName: 'TaxonGroup',
-                            levelId: TaxonGroupIds.FAO,
+                            entityName: 'TaxonName',
+                            levelId: TaxonomicLevelIds.SPECIES,
                             searchText: value as string,
                             searchAttribute: 'label'
                         }).first();
