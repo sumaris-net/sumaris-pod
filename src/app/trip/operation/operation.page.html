@@ -67,11 +67,13 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && catchForm.invalid"></ion-icon>
       </ng-template>
 
-      <!-- form -->
+      <!-- catch form -->
       <form-catch (onSubmit)="save($event)" [showError]="false" #catchForm [debug]="debug">
       </form-catch>
 
-      <mat-tab-group [disableRipple]="true" dynamicHeight>
+      <!-- tab group for batches -->
+      <mat-tab-group [selectedIndex]="selectedBatchTabIndex" (selectedTabChange)="onBatchTabChange($event)" [color]="accent" [disableRipple]="true" dynamicHeight >
+
         <!-- TAB: species list -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
           <ng-template mat-tab-label>
@@ -80,7 +82,7 @@
             <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
           </ng-template>
 
-          <table-batch-groups #batchGroupsTable [debug]="true"
+          <table-batch-groups #batchGroupsTable [debug]="debug"
                               acquisitionLevel="SORTING_BATCH"
                               [showCommentsColumn]="false">
           </table-batch-groups>
@@ -94,7 +96,7 @@
             <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (subBatchesTable.invalid || false)"></ion-icon>
           </ng-template>
 
-          <table-sub-batches #subBatchesTable [debug]="true"
+          <table-sub-batches #subBatchesTable [debug]="debug"
                              acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
                              [showTaxonGroupColumn]="false"
                              [showTaxonNameColumn]="false">

@@ -310,7 +310,6 @@
     }
   },
   "VESSEL": {
-    "TITLE": "Navire",
     "VESSEL_ID": "Code interne",
     "NAME": "Nom",
     "EXTERIOR_MARKING": "Immatriculation",
@@ -320,6 +319,9 @@
     "ACTIONS": "Actions sur la ligne",
     "START_DATE": "Début validité",
     "TAB_GENERAL": "Détails",
+    "EDIT": {
+      "TITLE": "Navire"
+    },
     "NEW": {
       "TITLE": "Nouveau navire"
     },

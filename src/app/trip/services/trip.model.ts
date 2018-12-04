@@ -1,16 +1,19 @@
 import {
-  Referential, ReferentialRef, EntityUtils, Department, Person,
   toDateISOString, fromDateISOString,
-  vesselFeaturesToString, entityToString, referentialToString,
-  StatusIds, Cloneable, Entity, LocationLevelIds, VesselFeatures, GearLevelIds, TaxonGroupIds,
-  PmfmStrategy, getPmfmName
-} from "../../referential/services/model";
+  entityToString, referentialToString,
+  StatusIds, Cloneable, Entity, LocationLevelIds, isNotNil, isNil
+} from "../../core/core.module";
+import {
+  Referential, ReferentialRef, EntityUtils, Department, Person,
+  vesselFeaturesToString,
+  VesselFeatures, GearLevelIds, TaxonGroupIds,
+  PmfmStrategy, getPmfmName, AcquisitionLevelCodes
+} from "../../referential/referential.module";
 import { Moment } from "moment/moment";
-import { isNotNil, isNil, AcquisitionLevelCodes } from "../../core/services/model";
 
 export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
-  toDateISOString, fromDateISOString,
+  toDateISOString, fromDateISOString, isNotNil, isNil,
   vesselFeaturesToString, entityToString, referentialToString, getPmfmName,
   StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds,
   PmfmStrategy
@@ -36,7 +39,7 @@ const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1
 export abstract class DataEntity<T> extends Entity<T> {
   recorderDepartment: Department;
 
-  constructor() {
+  protected constructor() {
     super();
     this.recorderDepartment = new Department();
   }
@@ -162,7 +165,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     if (source.sale) {
       this.sale = new Sale();
       this.sale.fromObject(source.sale);
-    };
+    }
     this.gears = source.gears && source.gears.filter(g => !!g).map(PhysicalGear.fromObject) || undefined;
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     return this;

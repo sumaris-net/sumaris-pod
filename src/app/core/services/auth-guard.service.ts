@@ -41,7 +41,7 @@ export class AuthGuardService implements CanActivate {
         });
     }
 
-    if (next.data && next.data.profile && !this.accountService.hasProfile(next.data.profile)) {
+    if (next.data && next.data.profile && !this.accountService.hasMinProfile(next.data.profile)) {
       console.debug("[auth-gard] Not authorized access to /" + next.url.join('/') + ". Missing required profile: " + next.data.profile);
       return false;
     }

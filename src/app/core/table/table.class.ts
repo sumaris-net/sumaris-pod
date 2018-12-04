@@ -265,7 +265,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         return true;
     }
 
-    protected confirmEditCreateSelectedRow(): boolean {
+    confirmEditCreateSelectedRow(): boolean {
         if (this.selectedRow && this.selectedRow.editing && !this.selectedRow.confirmEditCreate()) {
             if (this.debug) console.warn("[table] Selected row not valid", this.selectedRow);
             return false;
@@ -392,7 +392,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         const fixedEndColumns = this.columns.filter(value => RESERVED_END_COLUMNS.includes(value));
 
         // Remove fixed columns from user columns
-        userColumns = userColumns.filter(value => (!fixedStartColumns.includes(value) && !fixedEndColumns.includes(value)));
+        userColumns = userColumns.filter(value => (!fixedStartColumns.includes(value) && !fixedEndColumns.includes(value) && this.columns.includes(value)));
         return fixedStartColumns.concat(userColumns).concat(fixedEndColumns);
     }
 

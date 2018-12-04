@@ -1,4 +1,9 @@
-import { Referential, ReferentialRef, EntityUtils, Department, Person, toDateISOString, fromDateISOString, StatusIds, Cloneable, Entity, joinProperties, entityToString, referentialToString } from "../../core/services/model";
+import {
+  Cloneable, Entity, EntityUtils,
+  Referential, ReferentialRef, Department, Person,
+  StatusIds,AcquisitionLevelCodes,
+  toDateISOString, fromDateISOString, joinProperties, entityToString, referentialToString, isNotNil, isNil
+} from "../../core/core.module";
 import { Moment } from "moment/moment";
 
 export const LocationLevelIds = {
@@ -50,7 +55,9 @@ export const PmfmLabelPatterns = {
 
 const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
-export { Referential, ReferentialRef, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department, entityToString, referentialToString };
+export { Referential, ReferentialRef, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department, entityToString, referentialToString, isNotNil, isNil, AcquisitionLevelCodes };
+
+
 
 export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
   return obj && obj.vesselId && joinProperties(obj, ['exteriorMarking', 'name']) || undefined;

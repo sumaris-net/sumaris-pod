@@ -248,13 +248,22 @@ export class AccountService extends BaseDataService {
     return !!(this.data.pubkey && this.data.keypair && this.data.keypair.secretKey);
   }
 
-  public hasProfile(label: UserProfileLabel): boolean {
+  public hasMinProfile(label: UserProfileLabel): boolean {
     // should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
       (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
       return false;
     return hasUpperOrEqualsProfile(this.data.account.profiles, label as UserProfileLabel);
   }
+
+  public hasExactProfile(label: UserProfileLabel): boolean {
+    // should be login, and status ENABLE or TEMPORARY
+    if (!this.data.account || !this.data.account.pubkey ||
+      (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
+      return false;
+    return !!this.data.account.profiles.find(profile => profile === label);
+  }
+
 
   public hasProfileAndIsEnable(label: UserProfileLabel): boolean {
     // should be login, and status ENABLE

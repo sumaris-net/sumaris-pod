@@ -266,6 +266,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
             return Observable.empty(); // Not initialized
         }
         sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
+        sortBy = (sortBy !== 'parent') && sortBy || 'parent.rankOrder'; // Replace parent by its rankOrder
 
         const now = Date.now();
         if (this.debug) console.debug("[sub-batch-table] Loading rows..", this.data);
@@ -300,7 +301,8 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         if (this.debug) console.debug("[batch-table] Updating data from rows...");
 
         const pmfms = this.pmfms.getValue() || [];
-        this.data = data.map(json => {
+        this.data = data
+          .map(json => {
             const batch = Batch.fromObject(json);
             batch.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
             batch.parentId = json.parent && json.parent.id;

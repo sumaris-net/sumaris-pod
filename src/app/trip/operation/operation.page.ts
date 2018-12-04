@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from "@angular/router";
+import {Router, ActivatedRoute, Params} from "@angular/router";
 import { OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
 import { Operation, Trip, Batch } from '../services/trip.model';
@@ -18,6 +18,7 @@ import { DateFormatPipe } from 'src/app/shared/pipes/date-format.pipe';
 import { BatchesTable } from '../batch/batches.table';
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {SubBatchesTable} from "../batch/sub-batches.table";
+import {MatTabChangeEvent} from "@angular/material";
 
 
 @Component({
@@ -31,6 +32,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   trip: Trip;
   saving: boolean = false;
   rankOrder: number;
+  selectedBatchTabIndex: number = 0;
 
   defaultBackHref: string;
 
@@ -61,6 +63,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     protected tripService: TripService
   ) {
     super(route, router, alterCtrl, translate);
+
+    // Listen route parameters
+    this.route.queryParams.subscribe(res => {
+      const subTabIndex = res["sub-tab"];
+      if (subTabIndex !== undefined) {
+        this.selectedBatchTabIndex = parseInt(subTabIndex) || 0;
+      }
+    });
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -306,7 +316,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.data.catchBatch = this.catchForm.value;
 
     // update tables 'value'
-    await this.survivalTestsTable.save();
+    const saved = await this.survivalTestsTable.save();
     await this.individualMonitoringTable.save();
     await this.individualReleaseTable.save();
     await this.batchGroupsTable.save();
@@ -416,4 +426,16 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     }, []);
   }
 
+  public onBatchTabChange(event: MatTabChangeEvent) {
+    const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
+    queryParams['sub-tab'] = event.index;
+    this.router.navigate(['.'], {
+      relativeTo: this.route,
+      queryParams: queryParams
+    });
+
+    // Confirm editing row
+    this.batchGroupsTable.confirmEditCreateSelectedRow();
+    this.subBatchesTable.confirmEditCreateSelectedRow();
+  }
 }
