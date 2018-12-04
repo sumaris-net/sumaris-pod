@@ -21,13 +21,20 @@
     <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="Sample" constraintName="FKmdgptfqbt1d69o6xxskp1i7ei" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon"/>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-3">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-3" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <not>
-        <sqlCheck expectedResult="0"><![CDATA[
-          SELECT COUNT(*) FROM SAMPLE WHERE TAXON_GROUP_FK IS NOT NULL AND REFERENCE_TAXON_FK IS NULL
-        ]]></sqlCheck>
-      </not>
+      <and>
+        <not>
+          <sqlCheck expectedResult="0"><![CDATA[
+            SELECT COUNT(*) FROM SAMPLE WHERE TAXON_GROUP_FK IS NOT NULL AND REFERENCE_TAXON_FK IS NULL
+          ]]></sqlCheck>
+        </not>
+        <not>
+          <sqlCheck expectedResult="0"><![CDATA[
+            SELECT COUNT(*) FROM TAXON_NAME
+          ]]></sqlCheck>
+        </not>
+      </and>
     </preConditions>
 
     <sql><![CDATA[
@@ -38,10 +45,15 @@
           FROM TAXON_NAME TN
           WHERE
             TN.LABEL= (SELECT TG.LABEL FROM TAXON_GROUP TG WHERE TG.ID = S.TAXON_GROUP_FK)
-        ),
-        TAXON_GROUP_FK=null
+        )
       WHERE
       TAXON_GROUP_FK IS NOT NULL AND REFERENCE_TAXON_FK IS NULL
+      AND EXISTS (
+          SELECT TN.REFERENCE_TAXON_FK
+          FROM TAXON_NAME TN
+          WHERE
+            TN.LABEL= (SELECT TG.LABEL FROM TAXON_GROUP TG WHERE TG.ID = S.TAXON_GROUP_FK)
+        )
     ]]></sql>
 
   </changeSet>
@@ -66,77 +78,6 @@
     <addColumn tableName="vessel_features">
       <column name="gross_tonnage_gt" type="integer"/>
     </addColumn>
-  </changeSet>
-
-
-  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-6" runOnChange="true">
-    <preConditions onFail="MARK_RAN">
-      <and>
-        <!-- Only on SUMARIS database -->
-        <sqlCheck expectedResult="1"><![CDATA[
-          SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'
-        ]]></sqlCheck>
-        <sqlCheck expectedResult="0"><![CDATA[
-          SELECT COUNT(*) FROM PARAMETER WHERE LABEL = 'MAIN_METIER' AND ID=25
-        ]]></sqlCheck>
-      </and>
-    </preConditions>
-    <insert tableName="PARAMETER">
-      <column name="ID" valueNumeric="25"/>
-      <column name="LABEL">MAIN_METIER</column>
-      <column name="NAME">Main observed metier</column>
-      <column name="IS_QUALITATIVE" valueNumeric="0"/>
-      <column name="IS_ALPHANUMERIC" valueNumeric="1"/>
-      <column name="STATUS_FK" valueNumeric="1"/>
-      <column name="CREATION_DATE" valueComputed="sysdate" />
-      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
-    </insert>
-  </changeSet>
-
-  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-7" runOnChange="true">
-    <preConditions onFail="MARK_RAN">
-      <and>
-        <!-- Only on SUMARIS database -->
-        <sqlCheck expectedResult="1"><![CDATA[
-          SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'
-        ]]></sqlCheck>
-        <sqlCheck expectedResult="0"><![CDATA[
-          SELECT COUNT(*) FROM PMFM WHERE ID=25
-        ]]></sqlCheck>
-      </and>
-    </preConditions>
-    <insert tableName="PMFM">
-      <column name="ID" valueNumeric="25"/>
-      <column name="PARAMETER_FK" valueNumeric="25"/>
-      <column name="LABEL">MAIN_METIER</column>
-      <column name="UNIT_FK" valueNumeric="0"/>
-      <column name="STATUS_FK" valueNumeric="1"/>
-      <column name="CREATION_DATE" valueComputed="sysdate" />
-      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
-    </insert>
-  </changeSet>
-
-  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-8" runOnChange="true">
-    <preConditions onFail="MARK_RAN">
-      <and>
-        <!-- Only on SUMARIS database -->
-        <sqlCheck expectedResult="1"><![CDATA[
-          SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'
-        ]]></sqlCheck>
-        <sqlCheck expectedResult="0"><![CDATA[
-          SELECT COUNT(*) FROM PMFM_STRATEGY WHERE ID=25
-        ]]></sqlCheck>
-      </and>
-    </preConditions>
-    <insert tableName="PMFM_STRATEGY">
-      <column name="ID" valueNumeric="25"/>
-      <column name="STRATEGY_FK" valueNumeric="1"/>
-      <column name="ACQUISITION_LEVEL_FK" valueNumeric="1"/>
-      <column name="PMFM_FK" valueNumeric="25"/>
-      <column name="RANK_ORDER" valueNumeric="1"/>
-      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
-      <column name="IS_MANDATORY" valueNumeric="1"/>
-    </insert>
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->
