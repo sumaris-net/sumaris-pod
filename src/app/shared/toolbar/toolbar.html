@@ -2,8 +2,12 @@
   <ion-toolbar [color]="color">
 
     <ion-buttons slot="start">
-      <ion-back-button icon="arrow-back">
-      </ion-back-button>
+      <ion-button class="back-button" (click)="doBackClick($event)" routerDirection="back" *ngIf="routerOutlet.canGoBack || !!defaultBackHref">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+
+      <!-- <ion-back-button icon="arrow-back" [defaultHref]="defaultBackHref" (onClick)="onBackClick($event)" #backButton>
+      </ion-back-button> -->
 
       <ion-menu-toggle>
         <ion-button>

@@ -4,9 +4,10 @@ import { FormGroup, Validators, FormBuilder } from "@angular/forms";
 import { SharedValidators } from "../../shared/validator/validators";
 
 @Injectable()
-export class SubSampleValidatorService implements ValidatorService {
+export class SubBatchValidatorService implements ValidatorService {
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(
+    private formBuilder: FormBuilder) {
   }
 
   getRowValidator(): FormGroup {
@@ -17,9 +18,12 @@ export class SubSampleValidatorService implements ValidatorService {
     return this.formBuilder.group({
       'id': [''],
       'updateDate': [''],
-      'rankOrder': ['', Validators.required],
-      'label': ['', Validators.required],
+      'rankOrder': ['1', Validators.required],
+      'label': [data && data.label || ''],
       'parent': ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      'individualCount': ['', Validators.compose([Validators.min(1), SharedValidators.integer])],
+      'taxonGroup': ['', SharedValidators.entity],
+      'taxonName': ['', SharedValidators.entity],
       'comments': ['']
     });
   }

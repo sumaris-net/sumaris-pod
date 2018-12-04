@@ -83,6 +83,7 @@ export class ReferentialRefService extends BaseDataService implements DataServic
       );
   }
 
+
   saveAll(entities: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {
     throw 'Not implemented ! Use ReferentialService instead';
   }

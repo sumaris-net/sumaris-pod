@@ -72,7 +72,8 @@ export class AppGraphQLModule {
       options: {
         lazy: true,
         reconnect: true,
-        connectionParams: wsConnectionParams
+        connectionParams: wsConnectionParams,
+        addTypename: true
       },
       webSocketImpl: AppWebSocket
     });
@@ -89,7 +90,7 @@ export class AppGraphQLModule {
           return def.kind === 'OperationDefinition' && def.operation === 'subscription';
         },
         ws,
-        http,
+        http
       ),
       cache: imCache,
       connectToDevTools: !environment.production
@@ -104,7 +105,7 @@ export class AppGraphQLModule {
         wsConnectionParams.authToken = token;
       }
       else {
-        console.debug("[apollo] Resseting authentication token");
+        console.debug("[apollo] Resetting authentication token");
         headers.delete('Authorization');
         delete wsConnectionParams.authToken;
       }

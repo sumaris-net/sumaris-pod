@@ -7,10 +7,8 @@ import { ProgramService } from "../../referential/referential.module";
 import { FormBuilder } from '@angular/forms'
 import { AcquisitionLevelCodes } from '../../core/services/model';
 import { MeasurementsValidatorService } from '../services/measurement.validator';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form';
-import { Subject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { Subject } from 'rxjs';
 import { BatchValidatorService } from '../services/batch.validator';
 
 @Component({
@@ -42,14 +40,17 @@ export class CatchForm extends MeasurementValuesForm<Batch> implements OnInit {
     ngOnInit() {
         super.ngOnInit();
 
-        //this.logDebug("[catch-form] call ngOnInit()");
-
         // pmfm
-        this.pmfms.subscribe(pmfms => {
-            this.logDebug("[catch-form] Received pmfms:", pmfms);
-            this.onDeckPmfms.next(pmfms.filter(p => p.label.indexOf('ON_DECK_') === 0));
-            this.sortingPmfms.next(pmfms.filter(p => p.label.indexOf('SORTING_') === 0));
-            this.weightPmfms.next(pmfms.filter(p => p.label.indexOf('_WEIGHT') > 0));
-        });
+        this.registerSubscription(
+            this.pmfms.subscribe(pmfms => {
+                //this.logDebug("[catch-form] Received pmfms:", pmfms);
+                this.onDeckPmfms.next(pmfms.filter(p => p.label.indexOf('ON_DECK_') === 0));
+                this.sortingPmfms.next(pmfms.filter(p => p.label.indexOf('SORTING_') === 0));
+                this.weightPmfms.next(pmfms.filter(p => p.label.indexOf('_WEIGHT') > 0));
+            }));
+
+        this.registerSubscription(
+            this._onValueChange.subscribe(event => this.data.label = this._acquisitionLevel)
+        );
     }
 }

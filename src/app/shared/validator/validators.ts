@@ -1,4 +1,4 @@
-import { FormControl, ValidationErrors } from "@angular/forms";
+import {FormControl, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
 
@@ -14,13 +14,13 @@ export class SharedValidators {
 
   static latitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value < -90 || value > 90)
+    if (value && (value < -90 || value > 90))
       return { validLatitude: true };
   }
 
   static longitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value < -180 || value > 180)
+    if (value && (value < -180 || value > 180))
       return { validLongitude: true };
   }
 
@@ -40,5 +40,15 @@ export class SharedValidators {
     const value = control.value;
     if (value && (typeof value != 'string' || !PUBKEY_REGEXP.test(value)))
       return { pubkey: true };
+  }
+
+  static integer(control: FormControl): ValidationErrors | null {
+    const value = control.value;
+    if (value && Math.trunc(value) !== value)
+      return { integer: true };
+  }
+
+  static maxDecimalsPattern(maxDecimals: number): ValidatorFn {
+    return Validators.pattern(new RegExp('^[0-9]+(\.[0-9]{1,'+maxDecimals+'})?$'));
   }
 }

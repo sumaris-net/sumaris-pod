@@ -4,8 +4,13 @@
     max-width: 30px;
   }
 
+  .mat-column-taxonName,
   .mat-column-taxonGroup {
     min-width: 150px;
+  }
+
+  .mat-column-comments {
+    max-width: inherit; // Override default limitation
   }
 
   .mat-column-60,

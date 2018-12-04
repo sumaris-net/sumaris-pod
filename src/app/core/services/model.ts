@@ -15,6 +15,18 @@ export const LocationLevelIds = {
   PORT: 2
 }
 
+export const AcquisitionLevelCodes = {
+  TRIP: 'TRIP',
+  PHYSICAL_GEAR: 'PHYSICAL_GEAR',
+  OPERATION: 'OPERATION',
+  CATCH_BATCH: 'CATCH_BATCH',
+  SORTING_BATCH: 'SORTING_BATCH',
+  SAMPLE: 'SAMPLE',
+  SURVIVAL_TEST: 'SURVIVAL_TEST',
+  INDIVIDUAL_MONITORING: 'INDIVIDUAL_MONITORING',
+  INDIVIDUAL_RELEASE: 'INDIVIDUAL_RELEASE'
+}
+
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
 
 export const PRIORITIZED_USER_PROFILES: UserProfileLabel[] = ['ADMIN', 'SUPERVISOR', 'USER', 'GUEST'];
@@ -34,18 +46,6 @@ export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfil
   return expectedProfileIndex != -1 && getMainProfileIndex(actualProfiles) <= expectedProfileIndex;
 }
 
-export const AcquisitionLevelCodes = {
-  TRIP: 'TRIP',
-  PHYSICAL_GEAR: 'PHYSICAL_GEAR',
-  OPERATION: 'OPERATION',
-  CATCH_BATCH: 'CATCH_BATCH',
-  SORTING_BATCH: 'SORTING_BATCH',
-  SAMPLE: 'SAMPLE',
-  SURVIVAL_TEST: 'SURVIVAL_TEST',
-  INDIVIDUAL_MONITORING: 'INDIVIDUAL_MONITORING',
-  INDIVIDUAL_RELEASE: 'INDIVIDUAL_RELEASE'
-}
-
 export function isNil<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null;
 }
@@ -56,6 +56,7 @@ export function isNotNil<T>(obj: T | null | undefined): boolean {
 export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
   return obj === undefined ? null : obj;
 }
+
 export declare interface Cloneable<T> {
   clone(): T;
 }

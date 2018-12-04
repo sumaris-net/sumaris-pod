@@ -7,9 +7,9 @@ import { TripForm } from './trip.form';
 import { SaleForm } from './sale/sale.form';
 import { OperationForm } from './operation/operation.form';
 import { OperationPage } from './operation/operation.page';
-import { MeasurementsForm } from './measurement/measurements.form';
-import { MeasurementQVFormField } from './measurement/measurement-qv.form-field';
-import { MeasurementFormField } from './measurement/measurement.form-field';
+import { MeasurementsForm } from './measurement/measurements.form.component';
+import { MeasurementQVFormField } from './measurement/measurement-qv.form-field.component';
+import { MeasurementFormField } from './measurement/measurement.form-field.component';
 import { CatchForm } from './catch/catch.form';
 import { PhysicalGearForm } from './physicalgear/physicalgear.form';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
@@ -17,17 +17,18 @@ import { OperationTable } from './operation/operations.table';
 import { TripModal } from './trip.modal';
 import { SamplesTable } from './sample/samples.table';
 import { SubSamplesTable } from './sample/sub-samples.table';
-import { BatchesTable } from './batch/batches.table';
 import { BatchGroupsTable } from './batch/batch-groups.table';
+import { BatchesTable } from './batch/batches.table';
+import { SubBatchesTable } from './batch/sub-batches.table';
 import { IndividualMonitoringTable } from './sample/individualmonitoring/sample-individual-monitoring.table';
-import { MeasurementValuesForm } from './measurement/measurement-values.form';
+import { MeasurementValuesForm } from './measurement/measurement-values.form.class';
 
 import { TripService, OperationService } from './services/trip.services';
 
 import {
     TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService,
     MeasurementsValidatorService, BatchValidatorService, BatchGroupsValidatorService, SampleValidatorService,
-    SubSampleValidatorService
+    SubSampleValidatorService, SubBatchValidatorService
 } from './services/trip.validators';
 
 export { TripsPage, TripPage, MeasurementValuesForm }
@@ -55,8 +56,9 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         CatchForm,
         SamplesTable,
         SubSamplesTable,
-        BatchesTable,
         BatchGroupsTable,
+        BatchesTable,
+        SubBatchesTable,
         IndividualMonitoringTable
     ],
     exports: [
@@ -94,6 +96,7 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         PositionValidatorService,
         MeasurementsValidatorService,
         BatchValidatorService,
+        SubBatchValidatorService,
         BatchGroupsValidatorService,
         SampleValidatorService,
         SubSampleValidatorService

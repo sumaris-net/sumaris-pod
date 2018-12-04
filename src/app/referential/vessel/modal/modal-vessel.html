@@ -28,5 +28,5 @@
 
 
 <ion-footer hidden-xs hidden-sm>
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="onSave($event) " [disabled]="!form.dirty || loading "></form-buttons-bar>
+  <form-buttons-bar (onBack)="cancel() " (onCancel)="onReset($event)" (onSave)="onSave($event)" [disabled]="!form.dirty || loading "></form-buttons-bar>
 </ion-footer>

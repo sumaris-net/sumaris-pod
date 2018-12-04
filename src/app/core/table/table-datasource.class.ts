@@ -87,20 +87,21 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
         throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
       }
 
+      const saveOnlyDirtyRows = this.serviceOptions && this.serviceOptions.saveOnlyDirtyRows;
       // Get row data
-      let data: T[] = rows.map(row => row.currentData);
+      const data: T[] = rows.map(row => row.currentData);
 
       // Filter to keep only dirty row
-      const dataToSave = (this.serviceOptions && this.serviceOptions.saveOnlyDirtyRows) ?
+      const dataToSave = saveOnlyDirtyRows ?
         data.filter(t => (t && (t.id === undefined || t.dirty))) : data;
 
       // If no data to save: exit
-      if (!dataToSave.length) {
+      if (saveOnlyDirtyRows && !dataToSave.length) {
         if (this._debug) console.debug("[table-datasource] No row to save");
         return false;
       }
 
-      if (this._debug) console.log("[table-datasource] Dirty data to save:", dataToSave);
+      if (this._debug) console.debug("[table-datasource] Dirty data to save:", dataToSave);
 
       var savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
       if (this._debug) console.debug("[table-datasource] Data saved. Updated data received by service:", savedData);
@@ -224,12 +225,12 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     if (!row.validator.hasError) return;
 
-    var errorsMessage = "";
+    let errorsMessage = "";
     Object.getOwnPropertyNames(row.validator.controls)
       .forEach(key => {
-        var control = row.validator.controls[key];
+        let control = row.validator.controls[key];
         if (control.invalid) {
-          errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unkown error') + "),";
+          errorsMessage += "'" + key + "' (" + (control.errors ? Object.getOwnPropertyNames(control.errors) : 'unknown error') + "),";
         }
       });
 

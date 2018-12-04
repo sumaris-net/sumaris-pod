@@ -1,6 +1,10 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
 import { ProgressBarService } from '../../core/services/progress-bar.service';
-import { Subject, BehaviorSubject } from "rxjs";
+import { BehaviorSubject } from "rxjs";
+import { Router } from "@angular/router";
+import { IonBackButton, IonRouterOutlet } from "@ionic/angular";
+
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-toolbar',
@@ -22,15 +26,25 @@ export class ToolbarComponent implements OnInit {
   hasValidate: boolean = false;
 
   @Input()
+  defaultBackHref: string | undefined;
+
+  @Input()
   hasSearch: boolean = false;
 
   @Output()
   onValidate: EventEmitter<any> = new EventEmitter<any>();
 
+  @Output()
+  onBackClick: EventEmitter<any> = new EventEmitter<any>();
+
   progressBarMode: BehaviorSubject<string> = new BehaviorSubject('none');
 
+  @ViewChild("backButton") backButton: IonBackButton;
+
   constructor(
-    private progressBarService: ProgressBarService
+    private progressBarService: ProgressBarService,
+    protected router: Router,
+    public routerOutlet: IonRouterOutlet
   ) {
   }
 
@@ -47,6 +61,25 @@ export class ToolbarComponent implements OnInit {
 
   enableSearchBar() {
     console.warn('[app-toolbar] TODO: implement enableSearchBar()');
+  }
+
+  doBackClick(event: MouseEvent) {
+
+    this.onBackClick.emit(event);
+
+    // Stop propagation, if need
+    if (event.defaultPrevented) return;
+
+    this.goBack();
+  }
+
+  goBack() {
+    if (this.routerOutlet.canGoBack()) {
+      this.routerOutlet.pop();
+    }
+    else {
+      this.router.navigateByUrl(this.defaultBackHref);
+    }
   }
 
 }

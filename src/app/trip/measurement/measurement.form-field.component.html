@@ -3,19 +3,23 @@
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
     <input matInput autocomplete="off" type="number" min="0" [max]="pmfm.maxValue" [placeholder]="placeholder"
+           (keypress)="filterNumberInput($event, false)"
       [formControl]="formControl" [required]="pmfm.isMandatory">
     <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.errors?.min">
-      {{'ERROR.FIELD_MIN'| translate:{min: pmfm.minValue} }}</mat-error>
+      {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate:{min: pmfm.minValue} }}</mat-error>
     <mat-error *ngIf="formControl.errors?.max">
-      {{'ERROR.FIELD_MAX'| translate:{min: pmfm.maxValue} }}</mat-error>
+      {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAN') | translate:{max: pmfm.maxValue} }}</mat-error>
     <mat-error *ngIf="formControl.errors?.pattern">
+      {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+    <mat-error *ngIf="formControl.errors?.integer">
       {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
   </mat-form-field>
 
   <!-- double -->
   <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
     <input matInput autocomplete="off" type="number" [min]="pmfm.minValue" [max]="pmfm.maxValue" [placeholder]="placeholder"
+           (keypress)="filterNumberInput($event, true)"
       [step]="computeNumberInputStep(pmfm)" [formControl]="formControl" [required]="pmfm.isMandatory">
     <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.errors?.min">

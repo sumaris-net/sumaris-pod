@@ -2,6 +2,8 @@
   "APP_NAME": "SUMARiS",
   "COMMON": {
     "BTN_CANCEL": "Cancel",
+    "BTN_ABORT_CHANGES": "Abort the changes",
+    "BTN_RESET": "Reset",
     "BTN_ADD": "Add",
     "BTN_APPLY": "Apply",
     "BTN_EDIT": "Edit",
@@ -51,7 +53,14 @@
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
 
-    "DISPLAYED_COLUMNS": "Displayed columns"
+    "DISPLAYED_COLUMNS": "Displayed columns",
+
+    "PAGINATOR": {
+      "ITEMS_PER_PAGE":"Items per page",
+      "NEXT_PAGE":"Next page",
+      "PREVIOUS_PAGE":"Previous page",
+      "OF": "sur"
+    }
   },
   "MENU": {
     "HOME": "Home",
@@ -212,6 +221,8 @@
         "TAB_SURVIVAL_TEST": "Survival tests",
         "TAB_INDIVIDUAL_MONITORING": "Individual monitoring",
         "TAB_INDIVIDUAL_RELEASES": "Releases",
+        "TAB_BATCH_SPECIES": "Batch by species",
+        "TAB_BATCH_INDIVIDUAL": "Individual measure",
         "START": "Start of fishing:",
         "END": "End of fishing:",
         "GEAR_AND_TARGETED_SPECIES": "Gear / Target species:",
@@ -245,19 +256,28 @@
       }
     },
     "BATCH": {
-      "TABLE": {}
+      "TABLE": {
+        "TAXON_GROUP": "Declarative species (FAO)",
+        "TAXON_GROUP_PLACEHOLDER": "Species code",
+        "TAXON_NAME": "Scientific species (FAO)",
+        "TAXON_NAME_PLACEHOLDER": "Species code",
+        "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
+        "TOTAL_WEIGHT": "Total weight",
+        "SAMPLING_RATIO": "Sampling fraction",
+        "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
+        "SAMPLING_WEIGHT": "Sampling weight",
+        "PARENT_BATCH": "Species batch",
+        "COMMENTS": "Comments"
+      }
     },
     "SAMPLE": {
       "TABLE": {
-        "TAXON_GROUP": "Species",
-        "TAXON_GROUP_PLACEHOLDER": "FAO code",
-        "SAMPLE_DATE": "Measure date/time"
-      }
-    },
-    "SUB_SAMPLE": {
-      "TABLE": {
+        "TAXON_GROUP": "Scientific species (FAO)",
+        "TAXON_GROUP_PLACEHOLDER": "Species code",
+        "TAXON_NAME": "Scientific species (FAO)",
+        "TAXON_NAME_PLACEHOLDER": "Species code",
+        "SAMPLE_DATE": "Measure date/time",
         "PARENT_SAMPLE": "Parent sample",
-        "TAXON_GROUP": "Species",
         "COMMENTS": "Comments",
         "BTN_AUTO_FILL": "Automatically fill"
       }
@@ -290,7 +310,6 @@
     }
   },
   "VESSEL": {
-    "TITLE": "Vessel",
     "VESSEL_ID": "Internal code",
     "NAME": "Name",
     "EXTERIOR_MARKING": "Registration No",
@@ -299,7 +318,14 @@
     "COMMENTS": "Comments",
     "ACTIONS": "Actions on row",
     "START_DATE": "Validity start date",
-    "TAB_GENERAL": "General  informations",
+    "TAB_GENERAL": "General information",
+    "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
+    "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
+    "ADMINISTRATIVE_POWER": "Administrative power (kW)",
+    "LENGTH_OVER_ALL": "Length over all (m)",
+    "EDIT": {
+      "TITLE": "Vessel"
+    },
     "NEW": {
       "TITLE": "New vessel"
     },
@@ -409,7 +435,8 @@
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
-    "SAVE": "Do you want to save your changes?",
+    "SAVE": "Some changes have not been saved.<br/><br/>Do you want <b>save your changes</b>?",
+    "SAVE_BEFORE_CLOSE": "Some changes have not been saved.<br/><br/>Do you want to <b>save your changes</b> before closing?",
     "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?"
   }

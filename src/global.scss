@@ -94,6 +94,7 @@ ion-toast-controller,
   opacity: 0;
 }
 
+
 // Ionic Safe Margins
 // --------------------------------------------------
 html.plt-ios.plt-hybrid,
@@ -126,12 +127,15 @@ html {
 
 .ion-page.can-go-back {
   app-toolbar {
-    ion-back-button {
-      display: inline-block !important;
-    }
 
     ion-menu-toggle {
       display: none !important;
+    }
+
+    // Back button
+    ion-back-button,
+    ion-button.back-button {
+      display: inline-block !important;
     }
   }
 }
@@ -257,64 +261,32 @@ mat-option ion-row {
 // Material Table
 // --------------------------------------------------
 mat-table {
-  .mat-header-cell>ion-label {
+
+  .mat-header-cell>ion-label,
+  .mat-header-cell button>ion-label {
     white-space: normal;
     word-wrap: break-word;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   .mat-header-cell[align-self-center]>ion-label,
+  .mat-header-cell[align-self-center] button>ion-label,
   .mat-row[align-self-center] {
     text-align: center;
-
   }
 
   .mat-header-row,
   .mat-row {
     border-left: 1px solid transparent;
     max-height: 52px;
-    padding: 0 !important;
     z-index: 999;
+    padding: 0 !important;
 
     mat-cell:last-child,
     mat-footer-cell:last-child,
     mat-header-cell:last-child {
       padding-right: 8px;
-    }
-
-    .mat-form-field-disabled,
-    .mat-input-element:disabled,
-    .mat-form-field-disabled * {
-      pointer-events: inherit;
-      color: inherit;
-
-      .mat-form-field-underline {
-        background: none !important;
-        display: none;
-      }
-
-      .mat-select-arrow-wrapper .mat-select-arrow {
-        visibility: hidden;
-        width: 0;
-        border: 0;
-      }
-
-      .mat-form-field-label {
-        visibility: hidden;
-      }
-
-      input[type=number]::-webkit-outer-spin-button,
-      input[type=number]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-
-      input[type=number] {
-        -moz-appearance:textfield;
-      }
-    }
-
-    .mat-form-field-underline {
-      bottom: 9px !important;
     }
 
     .mat-column-select {
@@ -339,51 +311,116 @@ mat-table {
     }
 
     .mat-cell-date-time {
-      min-width: 140px;
+      min-width: 145px;
       max-width: 180px;
 
       input {
         max-width: 120px;
+        overflow: visible !important;
       }
     }
+  }
+  .mat-row {
+    .mat-form-field-disabled,
+    .mat-input-element:disabled,
+    .mat-form-field-disabled * {
+      pointer-events: inherit;
+      color: inherit;
 
-    mat-form-field {
+      .mat-form-field-underline {
+        background: none !important;
+        display: none;
+      }
+
+      .mat-select-arrow-wrapper .mat-select-arrow {
+        visibility: hidden;
+        width: 0;
+        border: 0;
+      }
+
+      .mat-form-field-label {
+        visibility: hidden;
+      }
+
+
+    }
+
+    .mat-form-field-underline {
+      bottom: 9px !important;
+    }
+
+    .mat-form-field {
       width: 100%;
+
+      .mat-form-field-label {
+        width: 100%;
+      }
+
+      //input[type=number] {
+      //  padding-right: 5px;
+      //  text-align: right;
+      //}
 
       .mat-form-field-wrapper {
         padding-bottom: 10px;
       }
 
       .mat-form-field-infix {
-        width: auto !important;
-        white-space: nowrap; //padding-left: 8px;
-        overflow: visible;
-        //overflow: visible;
+        width: 100%;
+        white-space: nowrap;
+        overflow: inherit;
 
+        .mat-input-element,
         input {
+          //margin-left: 5px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-      }
 
-      .mat-form-field-subscript-wrapper {
-        margin-top: -0.1rem !important;
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+
+        input[type=number] {
+          //text-align: right;
+          -moz-appearance: textfield;
+        }
       }
     }
 
-    mat-cell .avatar {
-      color: #d9d9d9;
-      background-color: #f8f8f8;
-      border: solid 1px #d9d9d9;
-      overflow: hidden !important;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: inline-block;
+    .mat-form-field-subscript-wrapper {
+      margin-top: -0.1rem !important;
     }
   }
 
+  /* Special case if cell need left padding */
+  .mat-row.left-padding {
+    .mat-form-field-label {
+      width: 100%;
+      padding-left: 5px;
+    }
+    .mat-form-field-infix {
+      padding-left: 5px;
+    }
+  }
+
+  mat-cell .avatar {
+    color: #d9d9d9;
+    background-color: #f8f8f8;
+    border: solid 1px #d9d9d9;
+    overflow: hidden !important;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+
+
+  .mat-row
   .mat-row.mat-row-disabled {
     cursor: pointer !important;
 
@@ -413,6 +450,8 @@ mat-table {
 ion-toolbar[translucent] {
   --background: transparent !important;
 }
+
+
 
 // --- mat-stepper component
 mat-horizontal-stepper {
@@ -468,6 +507,14 @@ mat-button-toggle.mat-button-toggle-checked,
 mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
   background-color: color($colors, light);
   color: white;
+}
+
+// --------------------------------------------------
+// Alert
+// --------------------------------------------------
+
+ion-alert button.alert-button {
+  cursor: pointer;
 }
 
 // --------------------------------------------------

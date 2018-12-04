@@ -15,13 +15,16 @@ export class FormButtonsBarComponent {
     disabledCancel: boolean = false;
 
     @Output()
-    onCancel: EventEmitter<any> = new EventEmitter<any>();
+    onCancel: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
 
     @Output()
-    onSave: EventEmitter<any> = new EventEmitter<any>();
+    onSave: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
 
     @Output()
-    onNext: EventEmitter<any> = new EventEmitter<any>();
+    onNext: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
+
+    @Output()
+    onBack: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
 
     hotkeys(event) {
         // Ctrl+S 

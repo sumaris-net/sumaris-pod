@@ -14,6 +14,7 @@ const LoadProgramPmfms: any = gql`
     programPmfms(program: $program){
       id
       pmfmId
+      methodId
       label
       name
       unit
@@ -34,7 +35,9 @@ const LoadProgramPmfms: any = gql`
         name
         statusId
         entityName
+        __typename
       }
+      __typename
     }
   }
 `;

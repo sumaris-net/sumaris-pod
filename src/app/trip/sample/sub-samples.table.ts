@@ -113,7 +113,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         super(route, router, platform, location, modalCtrl, accountService,
             RESERVED_START_COLUMNS.concat(SUBSAMPLE_RESERVED_START_COLUMNS).concat(SUBSAMPLE_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
         );
-        this.i18nColumnPrefix = 'TRIP.SUB_SAMPLE.TABLE.';
+        this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
         this.autoLoad = false;
         this.inlineEdition = true;
         this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
@@ -140,11 +140,11 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
                 this.displayParentPmfm = (pmfms || []).find(p => p.pmfmId == PmfmIds.TAG_ID);
                 pmfms = (pmfms || []).filter(p => p !== this.displayParentPmfm);
                 this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
-                let displayedColumns = pmfms.map(p => p.pmfmId.toString());
+                let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
 
                 this.displayedColumns = RESERVED_START_COLUMNS
                     .concat(SUBSAMPLE_RESERVED_START_COLUMNS)
-                    .concat(displayedColumns)
+                    .concat(pmfmColumns)
                     .concat(SUBSAMPLE_RESERVED_END_COLUMNS)
                     .concat(RESERVED_END_COLUMNS);
 
@@ -201,6 +201,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
             if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
         }
+        sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
         const now = Date.now();
         if (this.debug) console.debug("[sub-sample-table] Loading rows...", this.data);
@@ -269,7 +270,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
     }
 
     onRowClick(event: MouseEvent, row: TableElement<Sample>): boolean {
-        const canEdit = super.onRowClick(event, row)
+        const canEdit = super.onRowClick(event, row);
         if (canEdit) this.startListenRow(row);
         return canEdit;
     }
@@ -312,11 +313,14 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         }
     }
 
+    public trackByFn(index: number, row: TableElement<Sample>) {
+      return row.currentData.rankOrder;
+    }
+
     /* -- protected methods -- */
 
 
     protected async getMaxRankOrder(): Promise<number> {
-
         const rows = await this.dataSource.getRows();
         return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
     }
@@ -410,8 +414,11 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
     }
 
     protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
-        if (sortBy === "parent") {
-            sortBy = 'parent.measurementvalues.' + PmfmIds.TAG_ID;
+        if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
+            sortBy = 'measurementValues.' + sortBy;
+        }
+        else if (sortBy === "parent") {
+            sortBy = 'parent.measurementValues.' + PmfmIds.TAG_ID;
         }
         sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
@@ -420,10 +427,6 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
             const valueB = EntityUtils.getPropertyByPath(b, sortBy);
             return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
         });
-    }
-
-    public trackByFn(index: number, row: TableElement<Sample>) {
-        return row.currentData.rankOrder;
     }
 
     protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {

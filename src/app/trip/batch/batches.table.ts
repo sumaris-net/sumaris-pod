@@ -22,8 +22,6 @@ const PMFM_ID_REGEXP = /\d+/;
 const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-
-
 @Component({
     selector: 'table-batches',
     templateUrl: 'batches.table.html',
@@ -59,6 +57,10 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         return this.data;
     }
 
+    protected get dataSubject(): BehaviorSubject<Batch[]> {
+        return this._dataSubject;
+    }
+
     @Input()
     set program(value: string) {
         if (this._program === value) return; // Skip if same
@@ -83,6 +85,10 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     get acquisitionLevel(): string {
         return this._acquisitionLevel;
     }
+
+    @Input() showCommentsColumn: boolean = true;
+    @Input() showTaxonGroupColumn: boolean = true;
+    @Input() showTaxonNameColumn: boolean = true;
 
     constructor(
         protected route: ActivatedRoute,
@@ -115,26 +121,31 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     async ngOnInit() {
         super.ngOnInit();
 
+      let excludesColumns:String[] = new Array<String>();
+      if (!this.showCommentsColumn) excludesColumns.push('comments');
+      if (!this.showTaxonGroupColumn) excludesColumns.push('taxonGroup');
+      if (!this.showTaxonNameColumn) excludesColumns.push('taxonName');
+
         this._onRefreshPmfms
             .pipe(
                 startWith('ngOnInit')
             )
-            .subscribe((event) => {
-                this.refreshPmfms(event)
-            });
+            .subscribe((event) => this.refreshPmfms(event));
 
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
             .first()
             .subscribe(pmfms => {
                 this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
-                let displayedColumns = pmfms.map(p => p.pmfmId.toString());
+                let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
 
                 this.displayedColumns = RESERVED_START_COLUMNS
                     .concat(BATCH_RESERVED_START_COLUMNS)
-                    .concat(displayedColumns)
+                    .concat(pmfmColumns)
                     .concat(BATCH_RESERVED_END_COLUMNS)
-                    .concat(RESERVED_END_COLUMNS);
+                    .concat(RESERVED_END_COLUMNS)
+                    // Remove columns to hide
+                    .filter(column => !excludesColumns.includes(column));
 
                 this.loading = false;
 
@@ -188,11 +199,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     }
 
     getRowValidator(): FormGroup {
-        return this.getFormGroup();
-    }
-
-    getFormGroup(data?: any): FormGroup {
-        let formGroup = this.validatorService.getFormGroup(data);
+        let formGroup = this.validatorService.getRowValidator();
         if (this.measurementValuesFormGroupConfig) {
             formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
         }
@@ -321,6 +328,9 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     }
 
     protected sortBatches(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {
+        if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
+            sortBy = 'measurementValues.' + sortBy;
+        }
         sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
         const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
         return data.sort((a, b) => {

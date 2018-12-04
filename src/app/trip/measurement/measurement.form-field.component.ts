@@ -9,7 +9,8 @@ const noop = () => {
 
 @Component({
     selector: 'mat-form-field-measurement',
-    templateUrl: './measurement.form-field.html',
+    styleUrls: ['./measurement.form-field.component.scss'],
+    templateUrl: './measurement.form-field.component.html',
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
@@ -124,4 +125,29 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
             return "1";
         }
     }
+
+  filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
+    //input number entered or one of the 4 direction up, down, left and right
+    if ((event.which >= 48 && event.which <= 57) || (event.which >= 37 && event.which <= 40)) {
+      //console.debug('input number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+      // OK
+    }
+    // Decimal separator
+    else if (allowDecimals && event.key == '.' || event.key == ',') {
+      //console.debug('input decimal separator entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+      // OK
+    }
+    else {
+      //input command entered of delete, backspace or one of the 4 direction up, down, left and right
+      if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8|| event.keyCode == 9) {
+        //console.debug('input command entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+        // OK
+      }
+      // Cancel other keyboard events
+      else {
+        //console.debug('input not number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+        event.preventDefault();
+      }
+    }
+  }
 }

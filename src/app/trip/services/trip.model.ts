@@ -1,16 +1,19 @@
 import {
-  Referential, ReferentialRef, EntityUtils, Department, Person,
   toDateISOString, fromDateISOString,
-  vesselFeaturesToString, entityToString, referentialToString,
-  StatusIds, Cloneable, Entity, LocationLevelIds, VesselFeatures, GearLevelIds, TaxonGroupIds,
-  PmfmStrategy, getPmfmName
-} from "../../referential/services/model";
+  entityToString, referentialToString,
+  StatusIds, Cloneable, Entity, LocationLevelIds, isNotNil, isNil
+} from "../../core/core.module";
+import {
+  Referential, ReferentialRef, EntityUtils, Department, Person,
+  vesselFeaturesToString,
+  VesselFeatures, GearLevelIds, TaxonGroupIds,
+  PmfmStrategy, getPmfmName, AcquisitionLevelCodes
+} from "../../referential/referential.module";
 import { Moment } from "moment/moment";
-import { isNotNil, isNil } from "../../core/services/model";
 
 export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
-  toDateISOString, fromDateISOString,
+  toDateISOString, fromDateISOString, isNotNil, isNil,
   vesselFeaturesToString, entityToString, referentialToString, getPmfmName,
   StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds,
   PmfmStrategy
@@ -36,7 +39,7 @@ const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1
 export abstract class DataEntity<T> extends Entity<T> {
   recorderDepartment: Department;
 
-  constructor() {
+  protected constructor() {
     super();
     this.recorderDepartment = new Department();
   }
@@ -162,7 +165,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     if (source.sale) {
       this.sale = new Sale();
       this.sale.fromObject(source.sale);
-    };
+    }
     this.gears = source.gears && source.gears.filter(g => !!g).map(PhysicalGear.fromObject) || undefined;
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     return this;
@@ -595,18 +598,20 @@ export class Operation extends DataEntity<Operation> {
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
 
-    // Batches
+    // Batches list to tree
     if (source.batches) {
       let batches = (source.batches || []).map(Batch.fromObject);
-      this.catchBatch = batches.find(b => !b.parentId) || undefined;
+      this.catchBatch = batches.find(b => isNil(b.parentId) && (isNil(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
       if (this.catchBatch) {
         batches.forEach(s => {
           // Link to parent
-          s.parent = s.parentId && batches.find(p => p.id === s.parentId) || undefined;
+          s.parent = isNotNil(s.parentId) && batches.find(p => p.id === s.parentId) || undefined;
           s.parentId = undefined; // Avoid redundant info on parent
         });
-        this.catchBatch.children = batches.filter(b => b.parentId === this.catchBatch.id);
-        //console.log("[trip-model] Operation.catchBatch:", this.catchBatch);
+        // Link to children
+        batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
+        this.catchBatch.children = batches.filter(b => b.parent === this.catchBatch);
+        //console.log("[trip-model] Operation.catchBatch as tree:", this.catchBatch);
       }
     }
     else {
@@ -682,6 +687,7 @@ export class Sample extends DataRootEntity<Sample> {
   sampleDate: Moment;
   individualCount: number;
   taxonGroup: ReferentialRef;
+  taxonName: ReferentialRef;
   measurementValues: { [key: string]: any };
   matrixId: number;
   batchId: number;
@@ -707,7 +713,8 @@ export class Sample extends DataRootEntity<Sample> {
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
     target.sampleDate = toDateISOString(this.sampleDate);
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false/*fix #32*/) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject(false/*fix #32*/) || undefined;
 
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     delete target.parent;
@@ -734,6 +741,7 @@ export class Sample extends DataRootEntity<Sample> {
     this.individualCount = source.individualCount;
     this.comments = source.comments;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
+    this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
     this.matrixId = source.matrixId;
     this.parentId = source.parentId;
     this.parent = source.parent;
@@ -813,8 +821,8 @@ export class Batch extends DataEntity<Batch> {
     delete target.parentBatch;
     this.parent = parent;
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(minify) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject(minify) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false /*fix #32*/ ) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject(false /*fix #32*/) || undefined;
 
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     delete target.parent;
@@ -847,6 +855,7 @@ export class Batch extends DataEntity<Batch> {
     this.comments = source.comments;
     this.operationId = source.operationId;
     this.parentId = source.parentId;
+    this.parent = source.parent;
 
     if (source.measurementValues) {
       this.measurementValues = source.measurementValues;
