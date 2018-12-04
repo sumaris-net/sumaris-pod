@@ -25,6 +25,8 @@ const LoadAllQuery: any = gql`
       exteriorMarking
       administrativePower
       lengthOverAll
+      grossTonnageGt
+      grossTonnageGrt
       creationDate
       updateDate
       comments
@@ -53,6 +55,8 @@ const LoadQuery: any = gql`
       exteriorMarking
       administrativePower
       lengthOverAll
+      grossTonnageGt
+      grossTonnageGrt
       creationDate
       updateDate
       comments
@@ -92,6 +96,8 @@ const SaveVessels: any = gql`
       exteriorMarking
       administrativePower
       lengthOverAll
+      grossTonnageGt
+      grossTonnageGrt
       creationDate
       updateDate
       comments

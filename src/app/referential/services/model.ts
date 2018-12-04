@@ -88,6 +88,10 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
   startDate: Date | Moment;
   endDate: Date | Moment;
   exteriorMarking: string;
+  administrativePower: number;
+  lengthOverAll: number;
+  grossTonnageGt: number;
+  grossTonnageGrt: number;
   basePortLocation: ReferentialRef;
   creationDate: Date | Moment;
   recorderDepartment: Department;
@@ -117,6 +121,7 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
 
   asObject(minify?: boolean): any {
     const target: any = super.asObject(minify);
+
     target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject(minify) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
@@ -136,6 +141,10 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
     this.vesselTypeId = source.vesselTypeId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
+    this.administrativePower = source.administrativePower;
+    this.lengthOverAll = source.lengthOverAll;
+    this.grossTonnageGt = source.grossTonnageGt;
+    this.grossTonnageGrt = source.grossTonnageGrt;
     this.creationDate = fromDateISOString(source.creationDate);
     source.basePortLocation && this.basePortLocation.fromObject(source.basePortLocation);
     source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
