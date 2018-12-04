@@ -119,7 +119,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     };
 
     async ngOnInit() {
-        super.ngOnInit();
+      super.ngOnInit();
 
       let excludesColumns:String[] = new Array<String>();
       if (!this.showCommentsColumn) excludesColumns.push('comments');

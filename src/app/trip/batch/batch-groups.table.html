@@ -182,15 +182,6 @@
     </ng-container>
   </ng-container>
 
-  <ng-container *ngIf="!loading">
-    <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
-      <mat-header-cell *matHeaderCellDef class="first-header" [class.even]="pmfm.qvIndex % 2 === 0" [class.odd]="pmfm.qvIndex % 2 !== 0">
-        <ion-label *ngIf="pmfm.pmfmId % 5 === 0">{{qvPmfm.qualitativeValues[pmfm.qvIndex].name}}</ion-label>
-      </mat-header-cell>
-    </ng-container>
-  </ng-container>
-
   <!-- Comment column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
