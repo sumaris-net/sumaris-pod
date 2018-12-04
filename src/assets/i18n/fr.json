@@ -319,10 +319,10 @@
     "ACTIONS": "Actions sur la ligne",
     "START_DATE": "Début validité",
     "TAB_GENERAL": "Détails",
-    "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
-    "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
-    "ADMINISTRATIVE_POWER": "Administrative power (kW)",
-    "LENGTH_OVER_ALL": "Length over all (m)",
+    "GROSS_TONNAGE_GT": "Tonnage (GT)",
+    "GROSS_TONNAGE_GRT": "Tonnage jauge brute (TJB)",
+    "ADMINISTRATIVE_POWER": "Puissance administrative (kW)",
+    "LENGTH_OVER_ALL": "Longueur hors tout (m)",
     "EDIT": {
       "TITLE": "Navire"
     },

@@ -310,7 +310,6 @@
     }
   },
   "VESSEL": {
-    "TITLE": "Vessel",
     "VESSEL_ID": "Internal code",
     "NAME": "Name",
     "EXTERIOR_MARKING": "Registration No",
@@ -319,7 +318,14 @@
     "COMMENTS": "Comments",
     "ACTIONS": "Actions on row",
     "START_DATE": "Validity start date",
-    "TAB_GENERAL": "General  informations",
+    "TAB_GENERAL": "General information",
+    "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
+    "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
+    "ADMINISTRATIVE_POWER": "Administrative power (kW)",
+    "LENGTH_OVER_ALL": "Length over all (m)",
+    "EDIT": {
+      "TITLE": "Vessel"
+    },
     "NEW": {
       "TITLE": "New vessel"
     },
