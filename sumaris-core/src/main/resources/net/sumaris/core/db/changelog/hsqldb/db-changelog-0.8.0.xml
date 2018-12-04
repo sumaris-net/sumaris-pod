@@ -68,6 +68,77 @@
     </addColumn>
   </changeSet>
 
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-6" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <!-- Only on SUMARIS database -->
+        <sqlCheck expectedResult="1"><![CDATA[
+          SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'
+        ]]></sqlCheck>
+        <sqlCheck expectedResult="0"><![CDATA[
+          SELECT COUNT(*) FROM PARAMETER WHERE LABEL = 'MAIN_METIER' AND ID=25
+        ]]></sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PARAMETER">
+      <column name="ID" valueNumeric="25"/>
+      <column name="LABEL">MAIN_METIER</column>
+      <column name="NAME">Main observed metier</column>
+      <column name="IS_QUALITATIVE" valueNumeric="0"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="1"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+    </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-7" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <!-- Only on SUMARIS database -->
+        <sqlCheck expectedResult="1"><![CDATA[
+          SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'
+        ]]></sqlCheck>
+        <sqlCheck expectedResult="0"><![CDATA[
+          SELECT COUNT(*) FROM PMFM WHERE ID=25
+        ]]></sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="25"/>
+      <column name="PARAMETER_FK" valueNumeric="25"/>
+      <column name="LABEL">MAIN_METIER</column>
+      <column name="UNIT_FK" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+    </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-8" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <!-- Only on SUMARIS database -->
+        <sqlCheck expectedResult="1"><![CDATA[
+          SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'
+        ]]></sqlCheck>
+        <sqlCheck expectedResult="0"><![CDATA[
+          SELECT COUNT(*) FROM PMFM_STRATEGY WHERE ID=25
+        ]]></sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="25"/>
+      <column name="STRATEGY_FK" valueNumeric="1"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="1"/>
+      <column name="PMFM_FK" valueNumeric="25"/>
+      <column name="RANK_ORDER" valueNumeric="1"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
