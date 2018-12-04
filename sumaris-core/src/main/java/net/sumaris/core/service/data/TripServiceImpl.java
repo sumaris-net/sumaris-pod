@@ -88,6 +88,11 @@ public class TripServiceImpl implements TripService {
 	}
 
 	@Override
+	public Long countByFilter(TripFilterVO filter) {
+		return tripDao.countByFilter(filter);
+	}
+
+	@Override
 	public TripVO get(int tripId) {
 		return tripDao.get(tripId);
 	}

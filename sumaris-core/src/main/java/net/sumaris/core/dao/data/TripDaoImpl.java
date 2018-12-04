@@ -36,7 +36,6 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -45,7 +44,6 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -181,6 +179,65 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
                 .setFirstResult(offset)
                 .setMaxResults(size);
         return toTripVOs(q.getResultList());
+    }
+
+    @Override
+    public Long countByFilter(TripFilterVO filter) {
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
+
+        Integer programId = null;
+        if (filter != null && StringUtils.isNotBlank(filter.getProgramLabel())) {
+            programId = programDao.getByLabel(filter.getProgramLabel()).getId();
+        }
+
+        ParameterExpression<Date> startDateParam = builder.parameter(Date.class);
+        ParameterExpression<Date> endDateParam = builder.parameter(Date.class);
+        ParameterExpression<Integer> locationIdParam = builder.parameter(Integer.class);
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+
+        Root<Trip> root = criteriaQuery.from(Trip.class);
+        criteriaQuery.select(builder.count(root));
+        if (filter != null) {
+            criteriaQuery.where(builder.and(
+                    // Filter: program
+                    builder.or(
+                            builder.isNull(programIdParam),
+                            builder.equal(root.get(Trip.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                    ),
+                    // Filter: startDate
+                    builder.or(
+                            builder.isNull(startDateParam),
+                            builder.not(builder.lessThan(root.get(Trip.PROPERTY_RETURN_DATE_TIME), startDateParam))
+                    ),
+                    // Filter: endDate
+                    builder.or(
+                            builder.isNull(endDateParam),
+                            builder.not(builder.greaterThan(root.get(Trip.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
+                    ),
+                    // Filter: location
+                    builder.or(
+                            builder.isNull(locationIdParam),
+                            builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
+                            builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                    )
+            ));
+        }
+
+        if (filter != null) {
+            return getEntityManager()
+                    .createQuery(criteriaQuery)
+                    .setParameter(programIdParam, programId)
+                    .setParameter(startDateParam, filter.getStartDate())
+                    .setParameter(endDateParam, filter.getEndDate())
+                    .setParameter(locationIdParam, filter.getLocationId())
+                    .getSingleResult();
+        } else {
+            return getEntityManager()
+                    .createQuery(criteriaQuery)
+                    .getSingleResult();
+        }
     }
 
     @Override

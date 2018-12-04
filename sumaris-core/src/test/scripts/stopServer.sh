@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export M2_REPO=$HOME/.m2/repository
-export CLASSPATH=$M2_REPO/org/hsqldb/hsqldb/2.4.0/hsqldb-2.4.1.jar
+export CLASSPATH=$M2_REPO/org/hsqldb/hsqldb/2.4.1/hsqldb-2.4.1.jar
 export CLASSPATH=$CLASSPATH:$M2_REPO/org/hsqldb/sqltool/2.4.1/sqltool-2.4.1.jar
 
 # install SqlTool 2.4.1

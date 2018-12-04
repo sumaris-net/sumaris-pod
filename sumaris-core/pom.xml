@@ -232,6 +232,27 @@
       </plugin>
 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>escape-backslashes</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <value>${project.build.outputDirectory}</value>
+              <regex>\\</regex>
+              <replacement>/</replacement>
+              <name>escapedOutputDirectory</name>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.codehaus.gmavenplus</groupId>
         <artifactId>gmavenplus-plugin</artifactId>
         <dependencies>
@@ -256,7 +277,7 @@
                         ConfigurationBuilder builder = new ConfigurationBuilder();
                         builder.addUrls(ClasspathHelper.forPackage("${hibernate.entities.package}"));
                         new org.reflections.Reflections(builder)
-                            .save("${project.build.outputDirectory}/META-INF/reflections/${project.artifactId}-reflections.xml")
+                            .save("${escapedOutputDirectory}/META-INF/reflections/${project.artifactId}-reflections.xml")
                     ]]></script>
               </scripts>
             </configuration>

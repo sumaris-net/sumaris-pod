@@ -160,6 +160,12 @@ public class DataGraphQLService {
         return result;
     }
 
+    @GraphQLQuery(name = "tripsCount", description = "Get total trips count")
+    @Transactional(readOnly = true)
+    public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter) {
+        return tripService.countByFilter(filter);
+    }
+
     // FOR DEV ONLY: Full access to database model
     //@GraphQLQuery(name = "model_trip", description = "Get a trip, by id")
     //@Transactional(readOnly = true)

@@ -22,7 +22,6 @@ package net.sumaris.server.config;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
 import net.sumaris.core.util.ApplicationUtils;
 import org.apache.commons.logging.Log;
@@ -39,14 +38,7 @@ import org.springframework.core.Ordered;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import org.springframework.web.servlet.config.annotation.*;
 
 @SpringBootApplication(
         scanBasePackages = {
@@ -81,8 +73,8 @@ public class Application extends SpringBootServletInitializer {
     }
 
     @Bean
-    public WebMvcConfigurerAdapter forwardToIndex() {
-        return new WebMvcConfigurerAdapter() {
+    public WebMvcConfigurer forwardToIndex() {
+        return new WebMvcConfigurer() {
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
 
@@ -119,7 +111,6 @@ public class Application extends SpringBootServletInitializer {
 
             @Override
             public void configurePathMatch(PathMatchConfigurer configurer) {
-                super.configurePathMatch(configurer);
                 configurer.setUseSuffixPatternMatch(false);
             }
         };

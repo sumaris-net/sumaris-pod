@@ -50,6 +50,9 @@ public interface TripService {
 	List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	@Transactional(readOnly = true)
+	Long countByFilter(TripFilterVO filter);
+
+	@Transactional(readOnly = true)
 	TripVO get(int id);
 
 	@Transactional(readOnly = true)

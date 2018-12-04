@@ -24,14 +24,12 @@ package net.sumaris.core.service.referential;
 
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +92,12 @@ public class ReferentialServiceImpl implements ReferentialService {
 		Preconditions.checkNotNull(ids);
 
 		ids.stream().forEach(id -> delete(entityName, id));
+	}
+
+	@Override
+	public Long count(String entityName) {
+		Preconditions.checkNotNull(entityName);
+		return referentialDao.count(entityName);
 	}
 
 	@Override

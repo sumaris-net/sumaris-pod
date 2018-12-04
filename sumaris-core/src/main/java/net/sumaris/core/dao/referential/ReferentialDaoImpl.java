@@ -28,17 +28,20 @@ import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.dao.technical.model.IEntityBean;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearLevel;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.taxon.*;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.model.referential.taxon.TaxonGroupType;
+import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
+import net.sumaris.core.model.referential.transcribing.TranscribingItem;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
@@ -99,6 +102,8 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     Program.class,
                     Strategy.class,
                     AcquisitionLevel.class
+                    //test
+                    , TranscribingItem.class
             ), Class::getSimpleName);
 
     private Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
@@ -241,6 +246,20 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
         log.debug(String.format("Deleting %s {id=%s}...", entityName, id));
         delete(entityClass, id);
+    }
+
+    @Override
+    public Long count(String entityName) {
+        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
+        criteriaQuery.select(builder.count(criteriaQuery.from(entityClass)));
+
+        return getEntityManager().createQuery(criteriaQuery).getSingleResult();
     }
 
     @Override

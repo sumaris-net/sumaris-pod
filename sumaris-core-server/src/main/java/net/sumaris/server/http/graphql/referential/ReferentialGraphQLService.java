@@ -68,6 +68,12 @@ public class ReferentialGraphQLService {
         return referentialService.findByFilter(entityName, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
+    @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")
+    @Transactional(readOnly = true)
+    public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName) {
+        return referentialService.count(entityName);
+    }
+
     @GraphQLQuery(name = "referentialLevels", description = "Get all levels from entityName")
     @Transactional(readOnly = true)
     public List<ReferentialVO> getAllReferentialLevels(
