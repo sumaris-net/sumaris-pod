@@ -53,6 +53,7 @@ public class SampleVO implements IUpdateDateEntityBean<Integer, Date> {
     private Integer individualCount;
     private ReferentialVO matrix;
     private ReferentialVO taxonGroup;
+    private ReferentialVO taxonName;
 
     private SampleVO parent;
     private Integer parentId;

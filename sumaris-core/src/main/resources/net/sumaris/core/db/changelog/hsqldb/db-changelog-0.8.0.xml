@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.8.0.xml">
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-1">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="sample" columnName="reference_taxon_fk"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="sample">
+      <column name="reference_taxon_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-2" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="Sample" constraintName="FKmdgptfqbt1d69o6xxskp1i7ei" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-3" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <not>
+          <sqlCheck expectedResult="0"><![CDATA[
+            SELECT COUNT(*) FROM SAMPLE WHERE TAXON_GROUP_FK IS NOT NULL AND REFERENCE_TAXON_FK IS NULL
+          ]]></sqlCheck>
+        </not>
+        <not>
+          <sqlCheck expectedResult="0"><![CDATA[
+            SELECT COUNT(*) FROM TAXON_NAME
+          ]]></sqlCheck>
+        </not>
+      </and>
+    </preConditions>
+
+    <sql><![CDATA[
+      UPDATE SAMPLE S
+      SET
+        REFERENCE_TAXON_FK = (
+          SELECT TN.REFERENCE_TAXON_FK
+          FROM TAXON_NAME TN
+          WHERE
+            TN.LABEL= (SELECT TG.LABEL FROM TAXON_GROUP TG WHERE TG.ID = S.TAXON_GROUP_FK)
+        )
+      WHERE
+      TAXON_GROUP_FK IS NOT NULL AND REFERENCE_TAXON_FK IS NULL
+      AND EXISTS (
+          SELECT TN.REFERENCE_TAXON_FK
+          FROM TAXON_NAME TN
+          WHERE
+            TN.LABEL= (SELECT TG.LABEL FROM TAXON_GROUP TG WHERE TG.ID = S.TAXON_GROUP_FK)
+        )
+    ]]></sql>
+
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-4">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="vessel_features" columnName="gross_tonnage_grt"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="vessel_features">
+      <column name="gross_tonnage_grt" type="integer"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-5">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="vessel_features" columnName="gross_tonnage_gt"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="vessel_features">
+      <column name="gross_tonnage_gt" type="integer"/>
+    </addColumn>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.8.0'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">0.8.0</column>
+      <column name="DESCRIPTION">
+        - Add column SAMPLE.REFERENCE_TAXON_FK
+        - Add columns VESSEL_FEATURES: GROSS_TONNAGE_GRT and GROSS_TONNAGE_GT
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+      <column name="COMMENTS">
+        - Add columns VESSEL_FEATURES: GROSS_TONNAGE_GRT and GROSS_TONNAGE_GT
+      </column>
+    </insert>
+  </changeSet>
+
+</databaseChangeLog>

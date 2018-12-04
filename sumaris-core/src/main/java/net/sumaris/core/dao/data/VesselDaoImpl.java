@@ -267,6 +267,18 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
         Beans.copyProperties(source, target);
 
+        // Convert from cm to m
+        if (source.getLengthOverAll() != null) {
+            target.setLengthOverAll(source.getLengthOverAll().doubleValue() /100);
+        }
+        // Convert tonnage (divide by 100)
+        if (source.getGrossTonnageGrt() != null) {
+            target.setGrossTonnageGrt(source.getGrossTonnageGrt().doubleValue() / 100);
+        }
+        if (source.getGrossTonnageGt() != null) {
+            target.setGrossTonnageGt(source.getGrossTonnageGt().doubleValue() / 100);
+        }
+
         target.setVesselId(source.getVessel().getId());
         target.setQualityFlagId(source.getQualityFlag().getId());
 
@@ -293,6 +305,18 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
     protected void vesselFeaturesVOToEntity(VesselFeaturesVO source, VesselFeatures target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
+
+        // Convert from meter to centimeter
+        if (source.getLengthOverAll() != null) {
+            target.setLengthOverAll((int)(source.getLengthOverAll().doubleValue()  * 100));
+        }
+        // Convert tonnage (x100)
+        if (source.getGrossTonnageGrt() != null) {
+            target.setGrossTonnageGrt((int)(source.getGrossTonnageGrt().doubleValue() * 100));
+        }
+        if (source.getGrossTonnageGt() != null) {
+            target.setGrossTonnageGt((int)(source.getGrossTonnageGt().doubleValue() * 100));
+        }
 
         // Vessel
         if (copyIfNull || source.getVesselId() != null) {

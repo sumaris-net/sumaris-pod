@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/sumaris/db-changelog-0.8.0.xml">
+
+  <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+  <property name="sqlCheck.sumaris.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'"/>
+  <property name="sqlCheck.sumaris.expectedResult" value="1"/>
+
+  <preConditions onFail="WARN" onFailMessage="Database instance is not a SUMARiS database instance ! Do not include this changelog file in the master file">
+    <or>
+      <!-- Test if database is empty -->
+      <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+      <!-- OR if departments comes from an Ifremer database -->
+      <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+    </or>
+  </preConditions>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-300" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+        <sqlCheck expectedResult="0"><![CDATA[
+          SELECT COUNT(*) FROM PARAMETER WHERE LABEL = 'MAIN_METIER' AND ID=25
+        ]]></sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PARAMETER">
+      <column name="ID" valueNumeric="25"/>
+      <column name="LABEL">MAIN_METIER</column>
+      <column name="NAME">Main observed metier</column>
+      <column name="IS_QUALITATIVE" valueNumeric="0"/>
+      <column name="IS_ALPHANUMERIC" valueNumeric="1"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+    </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-301" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+        <sqlCheck expectedResult="0"><![CDATA[
+          SELECT COUNT(*) FROM PMFM WHERE ID=25
+        ]]></sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PMFM">
+      <column name="ID" valueNumeric="25"/>
+      <column name="PARAMETER_FK" valueNumeric="25"/>
+      <column name="LABEL">MAIN_METIER</column>
+      <column name="UNIT_FK" valueNumeric="0"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+    </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-302" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+        <sqlCheck expectedResult="0"><![CDATA[
+          SELECT COUNT(*) FROM PMFM_STRATEGY WHERE ID=25
+        ]]></sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="PMFM_STRATEGY">
+      <column name="ID" valueNumeric="25"/>
+      <column name="STRATEGY_FK" valueNumeric="1"/>
+      <column name="ACQUISITION_LEVEL_FK" valueNumeric="1"/>
+      <column name="PMFM_FK" valueNumeric="25"/>
+      <column name="RANK_ORDER" valueNumeric="1"/>
+      <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+      <column name="IS_MANDATORY" valueNumeric="1"/>
+    </insert>
+  </changeSet>
+
+
+</databaseChangeLog>
