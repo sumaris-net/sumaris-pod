@@ -31,7 +31,6 @@ import graphql.schema.GraphQLSchema;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.http.security.AuthService;
-import net.sumaris.server.service.crypto.ServerCryptoService;
 import net.sumaris.server.vo.security.AuthDataVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -211,7 +210,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
             String authToken =MapUtils.getString(payload, "authToken");
 
             // Success: continue
-            if (StringUtils.isNotBlank(authToken) && authService.authenticate(authToken)) {
+            if (StringUtils.isNotBlank(authToken) && authService.authenticate(authToken).isPresent()) {
                 // success
             }
 

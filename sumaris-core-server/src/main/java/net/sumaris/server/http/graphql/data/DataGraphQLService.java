@@ -38,6 +38,7 @@ import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.server.http.security.IsEditor;
 import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,6 +56,7 @@ import java.util.Set;
 
 @Service
 @Transactional
+@IsEditor
 public class DataGraphQLService {
 
     private static final Log log = LogFactory.getLog(DataGraphQLService.class);

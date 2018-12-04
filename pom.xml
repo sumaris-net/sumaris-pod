@@ -123,7 +123,8 @@
     <rxjava.version>2.1.5</rxjava.version>
 
     <jnr-ffi.version>2.1.7</jnr-ffi.version>
-    <kalium.version>0.5.0_blavenie</kalium.version>
+    <!--<kalium.version>0.5.0_blavenie</kalium.version>-->
+    <kalium.version>0.8.1-SNAPSHOT</kalium.version>
     <scrypt.version>1.4.0</scrypt.version>
 
     <!-- database version management -->
@@ -367,6 +368,11 @@
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-autoconfigure</artifactId>
+        <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
         <version>${spring-boot.version}</version>
       </dependency>
       <dependency>
@@ -784,7 +790,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
-          <version>1.7</version>
+          <version>3.0.0</version>
         </plugin>
 
         <plugin>
@@ -1064,7 +1070,7 @@
                 <requireProperty>
                   <property>javaVersion</property>
                   <message>"javaVersion property must be specified."</message>
-                  <regex>1\.6|1\.7|1\.8|10$</regex>
+                  <regex>1\.6|6|1\.7|7|1\.8|8|10$</regex>
                   <regexMessage>"javaVersion property can not be empty and must be 1.6 or 1.7 or 1.8 or 10."</regexMessage>
                 </requireProperty>
               </rules>

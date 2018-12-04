@@ -39,6 +39,7 @@ import net.sumaris.server.exception.ErrorHelper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.io.IOException;
 import java.util.List;
@@ -154,6 +155,11 @@ public class GraphQLHelper {
         else if (cause instanceof DataRetrievalFailureException) {
             DataRetrievalFailureException exception = (DataRetrievalFailureException) cause;
             return new AbortExecutionException(toJsonErrorString(ErrorCodes.NOT_FOUND, exception.getMessage()));
+        }
+
+        // Spring Security exceptions
+        else if (cause instanceof AccessDeniedException) {
+            return new AbortExecutionException(toJsonErrorString(ErrorCodes.UNAUTHORIZED, cause.getMessage()));
         }
 
         return null;

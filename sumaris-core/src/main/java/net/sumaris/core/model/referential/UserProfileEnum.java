@@ -42,6 +42,6 @@ public enum UserProfileEnum {
 
   public static String byId(int id) {
       Optional<UserProfileEnum> enumValue = Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
-      return enumValue.isPresent() ? enumValue.toString() : null;
+      return enumValue.map(Enum::toString).orElse(null);
   }
 }

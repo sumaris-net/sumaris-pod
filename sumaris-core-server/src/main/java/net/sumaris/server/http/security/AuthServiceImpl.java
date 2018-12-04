@@ -1,5 +1,27 @@
 package net.sumaris.server.http.security;
 
+/*-
+ * #%L
+ * SUMARiS:: Server
+ * %%
+ * Copyright (C) 2018 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -17,10 +39,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.mapping.Attributes2GrantedAuthoritiesMapper;
+import org.springframework.security.core.authority.mapping.SimpleAttributes2GrantedAuthoritiesMapper;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service("authService")
 public class AuthServiceImpl implements AuthService {
@@ -32,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
     private final List<Integer> AUTH_ACCEPTED_PROFILES = ImmutableList.of(UserProfileEnum.ADMIN.id, UserProfileEnum.USER.id, UserProfileEnum.SUPERVISOR.id);
 
     private final ValidationExpiredCache challenges;
-    private final ValidationExpiredCache checkedTokens;
+    private final ValidationExpiredCacheMap<AuthUser> checkedTokens;
     private final boolean debug;
 
     @Autowired
@@ -44,6 +72,8 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private PersonDao personDao;
 
+    private Attributes2GrantedAuthoritiesMapper authoritiesMapper;
+
     @Autowired
     public AuthServiceImpl(Environment environment) {
 
@@ -51,40 +81,52 @@ public class AuthServiceImpl implements AuthService {
         this.challenges = new ValidationExpiredCache(challengeLifeTimeInSeconds);
 
         int tokenLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getDefaultValue()));
-        this.checkedTokens = new ValidationExpiredCache(tokenLifeTimeInSeconds);
+        this.checkedTokens = new ValidationExpiredCacheMap<>(tokenLifeTimeInSeconds);
+
+        authoritiesMapper = new SimpleAttributes2GrantedAuthoritiesMapper();
 
         this.debug = log.isDebugEnabled();
     }
 
-    public boolean authenticate(String token) {
+    @Override
+    public Optional<AuthUser> authenticate(String token) {
+
+        // First check anonymous user
+        if (AnonymousUser.INSTANCE.getToken().equals(token)) return Optional.of(AnonymousUser.INSTANCE);
 
         // Check if present in cache
-        if (checkedTokens.contains(token)) return true;
+        if (checkedTokens.contains(token)) return Optional.of(checkedTokens.get(token));
 
+        // Parse the token
+        AuthDataVO authData;
         try {
-            AuthDataVO authData = AuthDataVO.parse(token);
-            return authenticate(authData);
+            authData = AuthDataVO.parse(token);
         } catch(ParseException e) {
             log.warn("Authentication failed. Invalid token: " + token);
-            return false;
+            return Optional.empty();
         }
+
+        // Try to authenticate
+        AuthUser authUser = authenticate(authData);
+
+        return Optional.ofNullable(authUser);
     }
 
-    public boolean authenticate(AuthDataVO authData) {
+    private AuthUser authenticate(AuthDataVO authData) {
 
         // Check if pubkey can authenticate
         try {
             if (authData.getPubkey().length() < 6) {
                 if (debug) log.debug("Authentication failed. Bad pubkey format: " + authData.getPubkey());
-                return false;
+                return null;
             }
             if (!canAuth(authData.getPubkey())) {
                 if (debug) log.debug("Authentication failed. User is not allowed to authenticate: " + authData.getPubkey());
-                return false;
+                return null;
             }
         } catch(DataNotFoundException | DataRetrievalFailureException e) {
             log.debug("Authentication failed. User not found: " + authData.getPubkey());
-            return false;
+            return null;
         }
 
         // Token exists on database: check as new challenge response
@@ -96,14 +138,14 @@ public class AuthServiceImpl implements AuthService {
             if (!challenges.contains(authData.getChallenge())) {
                 if (debug)
                     log.debug("Authentication failed. Challenge not found or expired: " + authData.getChallenge());
-                return false;
+                return null;
             }
         }
 
         // Check signature
         if (!cryptoService.verify(authData.getChallenge(), authData.getSignature(), authData.getPubkey())) {
             if (debug) log.debug("Authentication failed. Bad challenge signature in token: " + authData.toString());
-            return false;
+            return null;
         }
 
         // Auth success !
@@ -111,9 +153,15 @@ public class AuthServiceImpl implements AuthService {
         // Force challenge to expire
         challenges.remove(authData.getChallenge());
 
+        // Get authorities
+        List<GrantedAuthority> authorities = getAuthorities(authData.getPubkey());
+
+        // Create authenticated user
+        AuthUser authUser = new AuthUser(authData, authorities);
+
         // Add token to store
         String token = authData.toString();
-        checkedTokens.add(token);
+        checkedTokens.add(token, authUser);
 
         if(!isStoredToken) {
             // Save this new token to database
@@ -127,10 +175,17 @@ public class AuthServiceImpl implements AuthService {
 
         if (debug) log.debug(String.format("Authentication succeed for user with pubkey {%s}", authData.getPubkey().substring(0, 6)));
 
-        return true;
+        return authUser;
     }
 
-    public boolean canAuth(final String pubkey) throws DataNotFoundException {
+    private List<GrantedAuthority> getAuthorities(String pubkey) {
+        List<Integer> profileIds = accountService.getProfileIdsByPubkey(pubkey);
+
+        return new ArrayList<>(authoritiesMapper.getGrantedAuthorities(profileIds.stream().map(UserProfileEnum::byId).collect(Collectors.toSet())));
+
+    }
+
+    private boolean canAuth(final String pubkey) throws DataNotFoundException {
         PersonVO person = personDao.getByPubkeyOrNull(pubkey);
         if (person == null) {
             throw new DataRetrievalFailureException(I18n.t("sumaris.error.account.notFound"));
@@ -169,10 +224,9 @@ public class AuthServiceImpl implements AuthService {
 
     /* -- new challenge -- */
 
-    protected String newChallenge() {
+    private String newChallenge() {
         byte[] randomNonce = cryptoService.getBoxRandomNonce();
         String randomNonceStr = CryptoUtils.encodeBase64(randomNonce);
-        String randomHash = cryptoService.hash(randomNonceStr);
-        return randomHash;
+        return cryptoService.hash(randomNonceStr);
     }
 }

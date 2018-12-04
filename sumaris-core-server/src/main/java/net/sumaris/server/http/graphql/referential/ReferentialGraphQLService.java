@@ -31,6 +31,7 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.server.http.security.IsAdmin;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,18 +90,21 @@ public class ReferentialGraphQLService {
     }
 
     @GraphQLMutation(name = "saveReferential", description = "Create or update a referential")
+    @IsAdmin
     public ReferentialVO saveReferential(
             @GraphQLArgument(name = "referential") ReferentialVO referential) {
         return referentialService.save(referential);
     }
 
     @GraphQLMutation(name = "saveReferentials", description = "Create or update many referential")
+    @IsAdmin
     public List<ReferentialVO> saveReferentials(
             @GraphQLArgument(name = "referentials") List<ReferentialVO> referential) {
         return referentialService.save(referential);
     }
 
     @GraphQLMutation(name = "deleteReferential", description = "Delete a referential (by id)")
+    @IsAdmin
     public void deleteReferential(
             @GraphQLArgument(name = "entityName") String entityName,
             @GraphQLArgument(name = "id") int id) {
@@ -108,6 +112,7 @@ public class ReferentialGraphQLService {
     }
 
     @GraphQLMutation(name = "deleteReferentials", description = "Delete many referential (by ids)")
+    @IsAdmin
     public void deleteReferentials(
             @GraphQLArgument(name = "entityName") String entityName,
             @GraphQLArgument(name = "ids") List<Integer> ids) {

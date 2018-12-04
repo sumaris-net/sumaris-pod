@@ -44,6 +44,7 @@ import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.RestPaths;
+import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.lang3.StringUtils;
@@ -135,6 +136,7 @@ public class AdministrationGraphQLService {
     }*/
 
     @GraphQLMutation(name = "savePersons", description = "Create or update many persons")
+    @IsAdmin
     public List<PersonVO> savePersons(
             @GraphQLArgument(name = "persons") List<PersonVO> persons) {
         return personService.save(persons);
@@ -147,6 +149,7 @@ public class AdministrationGraphQLService {
     }*/
 
     @GraphQLMutation(name = "deletePersons", description = "Delete many person (by ids)")
+    @IsAdmin
     public void deletePersons(
             @GraphQLArgument(name = "ids") List<Integer> ids) {
         personService.delete(ids);
@@ -233,6 +236,7 @@ public class AdministrationGraphQLService {
     }
 
     @GraphQLMutation(name = "saveAccount", description = "Create or update an account")
+//    @IsAdmin TODO ?
     public AccountVO saveAccount(@GraphQLArgument(name = "account") AccountVO account) {
         return accountService.saveAccount(account);
     }
@@ -252,6 +256,7 @@ public class AdministrationGraphQLService {
     }
 
     @GraphQLMutation(name = "saveDepartment", description = "Create or update a department")
+    @IsAdmin
     public DepartmentVO saveDepartment(@GraphQLArgument(name = "department") DepartmentVO department) {
         return departmentService.save(department);
     }
@@ -260,6 +265,7 @@ public class AdministrationGraphQLService {
     /* -- Subscriptions -- */
 
     @GraphQLSubscription(name = "updateAccount", description = "Subcribe to an account update")
+//    @IsAdmin TODO ?
     public Publisher<AccountVO> updateAccount(
             @GraphQLArgument(name = "pubkey") final String pubkey,
             @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
