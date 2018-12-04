@@ -46,6 +46,28 @@
 
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-4">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="vessel_features" columnName="gross_tonnage_grt"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="vessel_features">
+      <column name="gross_tonnage_grt" type="integer"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-5">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="vessel_features" columnName="gross_tonnage_gt"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="vessel_features">
+      <column name="gross_tonnage_gt" type="integer"/>
+    </addColumn>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1543570579453-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
@@ -56,11 +78,12 @@
       <column name="LABEL">0.8.0</column>
       <column name="DESCRIPTION">
         - Add column SAMPLE.REFERENCE_TAXON_FK
+        - Add columns VESSEL_FEATURES: GROSS_TONNAGE_GRT and GROSS_TONNAGE_GT
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate" />
       <column name="UPDATE_DATE" valueComputed="current_timestamp" />
       <column name="COMMENTS">
-        - Add column SAMPLE.REFERENCE_TAXON_FK
+        - Add columns VESSEL_FEATURES: GROSS_TONNAGE_GRT and GROSS_TONNAGE_GT
       </column>
     </insert>
   </changeSet>
