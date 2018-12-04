@@ -268,16 +268,23 @@ public class InitTests extends ExternalResource {
 
                 // If multiple files, split and loop over
                 for(String importFileName : Splitter.on(',').split(importFileNames.trim())) {
-                    log.info(String.format("Importing data from file {%s}...", importFileName));
                     URL importFileUrl = getClass().getResource("/" + importFileName.trim());
                     Assume.assumeTrue(
                             String.format("Unable to find resource for configuration option [%s] resource = %s. \nPlease review your properties in the test configuration.",
                                     DATASET_ADDITIONAL_XML_FILES, importFileName),
                             importFileUrl != null);
 
+                    // Delete all
+                    log.info(String.format("Deleting data, from tables found in file {%s}...", importFileName));
+                    deleteAllFromXmlDataSet(importFileUrl, conn);
+
+                    afterInsert(conn);
+                    beforeInsert(conn);
+
                     // Insert
+                    log.info(String.format("Importing data from file {%s}...", importFileName));
                     insertFromXmlDataSet(importFileUrl, conn);
-                };
+                }
 
                 // Committing insertions
                 conn.commit();
