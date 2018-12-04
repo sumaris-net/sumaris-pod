@@ -154,7 +154,7 @@ public class OperationServiceImpl implements OperationService {
 			batches.forEach(b -> fillDefaultProperties(savedOperation, b));
 			batches = batchService.saveByOperationId(savedOperation.getId(), batches);
 
-			// Prepare saved batches (e.g. to be used as graphQL query response)
+			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
 			batches.forEach(batch -> {
 				// Set parentId (instead of parent object)
 				if (batch.getParent() != null) {
@@ -238,11 +238,12 @@ public class OperationServiceImpl implements OperationService {
 			batch.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		if (parent.getId() != null) {
-			batch.setParentId(parent.getId());
+		if (parent.getId() == null) {
+			// Need to be the parent object, when parent has not id yet (see issue #2)
+			batch.setParent(parent);
 		}
 		else {
-			batch.setParent(parent);
+			batch.setParentId(parent.getId());
 		}
 		batch.setOperationId(parent.getOperationId());
 	}
