@@ -6,7 +6,7 @@ import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, map } from 'rxjs/operators';
 import { VesselService } from '../../services/vessel-service';
 import { AppForm } from '../../../core/core.module';
 import { ReferentialRefService } from '../../services/referential-ref.service';
@@ -48,8 +48,10 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
               levelId: LocationLevelIds.PORT,
               searchText: value as string
             }
-          ).first();
-        }));
+          ).first()
+            .map(({data}) => data);
+        }))
+    ;
   }
 
   referentialToString = referentialToString;

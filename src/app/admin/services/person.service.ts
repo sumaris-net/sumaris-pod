@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable } from 'rxjs';
 import { Person } from './model';
-import { DataService, BaseDataService } from "../../core/services/data-service.class";
+import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
 import { ErrorCodes } from "./errors";
 import { map } from "rxjs/operators";
 
@@ -86,7 +86,7 @@ export class PersonService extends BaseDataService implements DataService<Person
     sortBy?: string,
     sortDirection?: string,
     filter?: PersonFilter
-  ): Observable<Person[]> {
+  ): Observable<LoadResult<Person>> {
 
     const variables = {
       offset: offset || 0,
@@ -96,17 +96,22 @@ export class PersonService extends BaseDataService implements DataService<Person
       filter: filter
     };
 
-    this._lastVariables.loadAll = variables
+    this._lastVariables.loadAll = variables;
 
     //console.debug("[person-service] Loading persons, using filter: ", variables);
-    return this.watchQuery<{ persons: Person[] }>({
+    return this.watchQuery<{ persons: Person[]; personsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR" },
       fetchPolicy: 'network-only'
     })
       .pipe(
-        map(data => (data && data.persons || []).map(Person.fromObject))
+        map(({persons, personsCount}) => {
+          return {
+            data: (persons || []).map(Person.fromObject),
+            total: personsCount
+        }
+        })
       );
   }
 

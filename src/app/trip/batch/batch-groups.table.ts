@@ -19,6 +19,7 @@ import {PmfmLabelPatterns} from "src/app/referential/services/model";
 import {FormBuilder} from "@angular/forms";
 import {getControlFromPath} from "src/app/core/form/form.utils";
 import {BatchesTable} from "./batches.table";
+import {LoadResult} from "../../core/services/data-service.class";
 
 @Component({
     selector: 'table-batch-groups',
@@ -61,7 +62,7 @@ export class BatchGroupsTable extends BatchesTable {
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Batch[]> {
+    ): Observable<LoadResult<Batch>> {
         if (!this.data) {
             if (this.debug) console.debug("[batch-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
@@ -106,7 +107,7 @@ export class BatchGroupsTable extends BatchesTable {
                 this.sortBatches(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[batch-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-                this.dataSubject.next(data);
+                this.dataSubject.next({data: data});
             });
 
         return this.dataSubject.asObservable();

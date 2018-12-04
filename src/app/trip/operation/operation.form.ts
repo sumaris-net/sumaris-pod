@@ -87,7 +87,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                             entityName: 'Metier',
                             levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null,
                             searchText: value as string
-                        }).first();
+                        }).first().map(({data}) => data);
                 }));
     }
 

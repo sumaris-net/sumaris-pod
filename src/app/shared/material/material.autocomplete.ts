@@ -61,7 +61,8 @@ export class MatAutocompleteField implements OnInit {
                         Object.assign({
                             searchText: value as string,
                         }, this.filter || {}),
-                        this.serviceOptions);
+                        this.serviceOptions)
+                        .map(({data}) => data);
                 })
             );
 

@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { Referential, StatusIds, PmfmStrategy } from "./model";
-import { DataService, BaseDataService } from "../../core/services/data-service.class";
+import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
 import { Apollo } from "apollo-angular";
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
@@ -20,7 +20,7 @@ export declare class ReferentialFilter {
   searchAttribute?: string;
 }
 const LoadAllQuery: any = gql`
-  query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+  query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       id
       label
@@ -33,6 +33,7 @@ const LoadAllQuery: any = gql`
       levelId
       entityName
     }
+    referentialsCount(entityName: $entityName)
   }
 `;
 export declare class ReferentialType {
@@ -96,7 +97,7 @@ export class ReferentialService extends BaseDataService implements DataService<R
     sortBy?: string,
     sortDirection?: string,
     filter?: ReferentialFilter,
-    options?: any): Observable<Referential[]> {
+    options?: any): Observable<LoadResult<Referential>> {
 
     if (!filter || !filter.entityName) {
       console.error("[referential-service] Missing filter.entityName");
@@ -126,18 +127,21 @@ export class ReferentialService extends BaseDataService implements DataService<R
     // Saving variables, to be able to update the cache when saving or deleting
     this._lastVariables.loadAll = variables;
 
-    return this.watchQuery<{ referentials: any[] }>({
+    return this.watchQuery<{ referentials: any[]; referentialsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" },
       fetchPolicy: 'network-only'
     }).first()
       .pipe(
-        map((data) => {
-          const res = (data && data.referentials || []).map(Referential.fromObject);
-          res.forEach(r => r.entityName = entityName);
-          if (this._debug) console.debug(`[referential-service] ${entityName} loaded in ${new Date().getTime() - now.getTime()}ms`, res);
-          return res;
+        map(({referentials, referentialsCount}) => {
+          const data = (referentials || []).map(Referential.fromObject);
+          data.forEach(r => r.entityName = entityName);
+          if (this._debug) console.debug(`[referential-service] ${entityName} loaded in ${new Date().getTime() - now.getTime()}ms`, data);
+          return {
+            data: data,
+            total: referentialsCount
+          };
         })
       );
   }

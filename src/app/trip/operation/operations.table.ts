@@ -96,7 +96,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
             {
               entityName: 'Metier',
               searchText: value as string
-            }).first();
+            }).first().map(({data}) => data);
         }));
 
   }

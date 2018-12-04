@@ -6,7 +6,7 @@ import { startWith, mergeMap } from "rxjs/operators";
 import { TableElement } from "angular4-material-table";
 import { AppTableDataSource } from "./table-datasource.class";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Entity } from "../services/model";
+import {Entity, isNotNil} from "../services/model";
 import { Subscription } from "rxjs-compat";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -166,11 +166,11 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 this.error = err && err.message || err;
                 return Observable.empty();
             })
-            .subscribe(data => {
-                if (data) {
-                    this.isRateLimitReached = !this.paginator || (data.length < this.paginator.pageSize);
-                    this.resultsLength = (this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + data.length;
-                    if (this.debug) console.debug(`[table] ${data.length} rows loaded`);
+            .subscribe(res => {
+                if (res && res.data) {
+                    this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
+                    this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + res.data.length);
+                    if (this.debug) console.debug(`[table] ${res.data.length} rows loaded`);
                 }
                 else {
                     if (this.debug) console.debug('[table] NO rows loaded');

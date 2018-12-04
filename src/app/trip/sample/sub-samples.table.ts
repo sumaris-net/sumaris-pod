@@ -16,6 +16,7 @@ import { EntityUtils, isNil, isNotNil } from "../../core/services/model";
 import { MeasurementsValidatorService } from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 import { PmfmIds } from "../../referential/services/model";
+import {LoadResult} from "../../core/services/data-service.class";
 
 const PMFM_ID_REGEXP = /\d+/;
 const SUBSAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
@@ -35,7 +36,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
     private _acquisitionLevel: string;
     private _implicitParent: Sample;
     private _availableParents: Sample[] = [];
-    private _dataSubject = new BehaviorSubject<Sample[]>([]);
+    private _dataSubject = new BehaviorSubject<{data: Sample[]}>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -196,7 +197,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Sample[]> {
+    ): Observable<LoadResult<Sample>> {
         if (!this.data) {
             if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
@@ -223,7 +224,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
                 this.sortSamples(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[sub-sample-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-                this._dataSubject.next(data);
+                this._dataSubject.next({data: data});
             });
 
         return this._dataSubject.asObservable();
@@ -307,7 +308,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
             });
 
         if (data.length > startRowCount) {
-            this._dataSubject.next(data);
+            this._dataSubject.next({data: data});
             this._dirty = true;
         }
     }
@@ -406,7 +407,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
             })
             .map(r => r.currentData);
 
-        if (hasRemovedSample) this._dataSubject.next(data);
+        if (hasRemovedSample) this._dataSubject.next({data: data});
     }
 
     protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {

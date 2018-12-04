@@ -25,10 +25,14 @@ A GraphQL editor should be accessible at [localhost:8080](http://localhost:8080/
 6. Start app
 ```
 cd sumaris-app
-ionic serve -l
+npm start
+```
+ou
+```
+ng serve --port [port]
 ```
 
-The application should be accessible at [localhost:8100](http://localhost:8100)
+The application should be accessible at [localhost:4200](http://localhost:4200)
 
 7. Check environment configuration
 

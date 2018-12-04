@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { DataService, BaseDataService } from "../../core/services/data-service.class";
+import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
 import { Apollo } from "apollo-angular";
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
@@ -13,7 +13,7 @@ import { ReferentialFilter } from "./referential.service";
 import { environment } from "src/app/core/core.module";
 
 const LoadAllQuery: any = gql`
-  query Referenials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+  query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       id
       label
@@ -42,7 +42,7 @@ export class ReferentialRefService extends BaseDataService implements DataServic
     sortBy?: string,
     sortDirection?: string,
     filter?: ReferentialFilter,
-    options?: any): Observable<ReferentialRef[]> {
+    options?: any): Observable<LoadResult<ReferentialRef>> {
 
     if (!filter || !filter.entityName) {
       console.error("[referential-ref-service] Missing filter.entityName");
@@ -69,16 +69,19 @@ export class ReferentialRefService extends BaseDataService implements DataServic
     const now = new Date();
     if (this._debug) console.debug(`[referential-ref-service] Loading references on ${entityName}...`, variables);
 
-    return this.watchQuery<{ referentials: any[] }>({
+    return this.watchQuery<{ referentials: any[]; referentialsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" }
     })
       .pipe(
-        map((data) => {
-          const res = (data && data.referentials || []).map(ReferentialRef.fromObject);
-          if (this._debug) console.debug(`[referential-ref-service] References on ${entityName} loaded in ${new Date().getTime() - now.getTime()}ms`, res);
-          return res;
+        map(({referentials, referentialsCount}) => {
+          const data = (referentials || []).map(ReferentialRef.fromObject);
+          if (this._debug) console.debug(`[referential-ref-service] References on ${entityName} loaded in ${new Date().getTime() - now.getTime()}ms`, data);
+          return {
+            data: data,
+            total: referentialsCount
+          };
         })
       );
   }

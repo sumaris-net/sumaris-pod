@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable, Subject } from "rxjs-compat";
 import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement, Sample, Batch } from "./trip.model";
-import { DataService, BaseDataService } from "../../core/services/data-service.class";
+import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { TripService } from "../services/trip.service";
 
@@ -167,7 +167,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: OperationFilter): Observable<Operation[]> {
+    filter?: OperationFilter): Observable<LoadResult<Operation>> {
     const variables: any = {
       offset: offset || 0,
       size: size || 1000,
@@ -178,24 +178,27 @@ export class OperationService extends BaseDataService implements DataService<Ope
     this._lastVariables.loadAll = variables;
 
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
-    return this.watchQuery<{ operations: Operation[] }>({
+    return this.watchQuery<{ operations: Operation[]; operationsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR" },
       fetchPolicy: 'cache-and-network'
     })
       .pipe(
-        map((data) => {
-          const res = (data && data.operations || []).map(Operation.fromObject);
-          if (this._debug) console.debug(`[operation-service] Loaded ${res.length} operations`);
+        map(({operations, operationsCount}) => {
+          const data = (operations || []).map(Operation.fromObject);
+          if (this._debug) console.debug(`[operation-service] Loaded ${data.length} operations`);
 
           // Compute rankOrderOnPeriod, by tripId
           if (filter && filter.tripId) {
             let rankOrderOnPeriod = 1;
-            [].concat(res).sort(sortByStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
+            [].concat(data).sort(sortByStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
           }
 
-          return res;
+          return {
+            data: data,
+            total: operationsCount
+          };
         }));
   }
 

@@ -1,6 +1,6 @@
 import { TableDataSource, ValidatorService } from "angular4-material-table";
 import { Observable } from "rxjs";
-import { DataService } from "../services/data-service.class";
+import {DataService, LoadResult} from "../services/data-service.class";
 import { EventEmitter } from "@angular/core";
 import { Entity } from "../services/model";
 import { TableElement } from "angular4-material-table";
@@ -56,16 +56,16 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: F): Observable<T[]> {
+    filter?: F): Observable<LoadResult<T>> {
 
     this.onLoading.emit(true);
     return this.dataService.loadAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
       .catch(err => this.handleError(err, 'Unable to load rows'))
-      .map(data => {
+      .map(res => {
         this.onLoading.emit(false);
-        if (this._debug) console.debug("[table-datasource] Updating datasource...", data);
-        this.updateDatasource(data);
-        return data
+        if (this._debug) console.debug("[table-datasource] Updating datasource...", res);
+        this.updateDatasource(res.data);
+        return res;
       });
   }
 
@@ -187,7 +187,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     AppFormUtils.copyEntity2Form(row.currentData, row.validator);
   }
 
-  public handleError(error: any, message: string): Observable<T[]> {
+  public handleError(error: any, message: string): Observable<LoadResult<T>> {
     console.error(error && error.message || error);
     this.onLoading.emit(false);
     return Observable.throw(error && error.message && error || message || error);

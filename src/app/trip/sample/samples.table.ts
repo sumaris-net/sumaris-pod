@@ -16,6 +16,7 @@ import { EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model
 import { FormGroup } from "@angular/forms";
 import { MeasurementsValidatorService } from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
+import {LoadResult} from "../../core/services/data-service.class";
 
 const PMFM_ID_REGEXP = /\d+/;
 const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'sampleDate'];
@@ -34,7 +35,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
     private _implicitTaxonGroup: ReferentialRef;
-    private _dataSubject = new BehaviorSubject<Sample[]>([]);
+    private _dataSubject = new BehaviorSubject<{data: Sample[]}>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -151,7 +152,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                             levelId: TaxonGroupIds.FAO,
                             searchText: value as string,
                             searchAttribute: 'label'
-                        }).first();
+                        }).first().map(({data}) => data);
                 })
             );
 
@@ -180,7 +181,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Sample[]> {
+    ): Observable<LoadResult<Sample>> {
         if (!this.data) {
             if (this.debug) console.debug("[sample-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
@@ -205,7 +206,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 this.sortSamples(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[sample-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-                this._dataSubject.next(data);
+                this._dataSubject.next({data: data});
             });
 
         return this._dataSubject.asObservable();

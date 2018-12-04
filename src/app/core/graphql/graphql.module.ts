@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { HttpClientModule, HttpHeaders } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AccountService } from '../services/account.service';
 
@@ -60,10 +60,8 @@ export class AppGraphQLModule {
     console.info("[apollo] GraphQL subscription uri: " + wsUri);
 
     // auth
-    const headers = new HttpHeaders();
     const http = httpLink.create({
       uri: uri,
-      headers: headers
     });
 
     const wsConnectionParams: { authToken?: string } = {};
@@ -78,6 +76,19 @@ export class AppGraphQLModule {
       webSocketImpl: AppWebSocket
     });
 
+    const authLink = new ApolloLink((operation, forward) => {
+
+      // Use the setContext method to set the HTTP headers.
+      operation.setContext({
+        headers: {
+          authorization: wsConnectionParams.authToken ? `token ${wsConnectionParams.authToken}` : ''
+        }
+      });
+
+      // Call the next link in the middleware chain.
+      return forward(operation);
+    });
+
     const imCache = new InMemoryCache({
       dataIdFromObject: dataIdFromObject
     });
@@ -90,7 +101,7 @@ export class AppGraphQLModule {
           return def.kind === 'OperationDefinition' && def.operation === 'subscription';
         },
         ws,
-        http
+        authLink.concat(http)
       ),
       cache: imCache,
       connectToDevTools: !environment.production
@@ -100,13 +111,10 @@ export class AppGraphQLModule {
     accountService.onAuthTokenChange.subscribe((token) => {
       if (token) {
         console.debug("[apollo] Setting new authentication token");
-        headers.delete('Authorization');
-        headers.append('Authorization', `token ${token}`);
         wsConnectionParams.authToken = token;
       }
       else {
         console.debug("[apollo] Resseting authentication token");
-        headers.delete('Authorization');
         delete wsConnectionParams.authToken;
       }
     });

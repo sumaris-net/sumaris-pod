@@ -9,7 +9,7 @@ import { referentialToString, PhysicalGear, EntityUtils } from "../services/trip
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
-import { DataService } from "../../core/services/data-service.class";
+import {DataService, LoadResult} from "../../core/services/data-service.class";
 import { PhysicalGearForm } from "./physicalgear.form";
 import { RESERVED_START_COLUMNS } from "../../core/table/table.class";
 
@@ -26,7 +26,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
   private data: PhysicalGear[];
 
-  private _dataSubject = new BehaviorSubject<PhysicalGear[]>([]);
+  private _dataSubject = new BehaviorSubject<{data: PhysicalGear[]}>({data: []});
 
   detailMeasurements: Observable<string[]>;
 
@@ -122,7 +122,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     sortDirection?: string,
     filter?: any,
     options?: any
-  ): Observable<PhysicalGear[]> {
+  ): Observable<LoadResult<PhysicalGear>> {
     if (!this.data) return Observable.empty(); // Not initialized
     sortBy = sortBy != 'id' && sortBy || 'rankOrder'; // Replace 'id' with 'rankOrder'
 
@@ -138,7 +138,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       this.sortGears(data, sortBy, sortDirection);
       if (this.debug) console.debug(`[physicalgears-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-      this._dataSubject.next(data);
+      this._dataSubject.next({data: data});
     });
 
     return this._dataSubject.asObservable();

@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable } from "rxjs-compat";
 import { Trip, Person, fillRankOrder } from "./trip.model";
-import { DataService, BaseDataService } from "../../core/services/data-service.class";
+import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
 
@@ -125,9 +125,11 @@ const LoadAllQuery: any = gql`
     trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightTripFragment
     }
+    tripsCount(filter: $filter)
   }
   ${TripFragments.lightTrip}
 `;
+//
 const LoadQuery: any = gql`
   query Trip($id: Int) {
     trip(id: $id) {
@@ -184,7 +186,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: TripFilter): Observable<Trip[]> {
+    filter?: TripFilter): Observable<LoadResult<Trip>> {
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
@@ -197,18 +199,23 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     const now = new Date();
     if (this._debug) console.debug("[trip-service] Loading trips... using options:", variables);
-    return this.watchQuery<{ trips: Trip[] }>({
+    return this.watchQuery<{ trips: Trip[]; tripsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
       fetchPolicy: 'cache-and-network'
     })
       .pipe(
-        map((data) => {
-          const res = (data && data.trips || []).map(Trip.fromObject);
-          if (this._debug) console.debug("[trip-service] Loaded {" + (res.length || 0) + "} trips in " + (new Date().getTime() - now.getTime()) + "ms", res);
-          return res;
-        }));
+        map(res /*({trips, tripsCount})*/ => {
+          const data = (res && res.trips || []).map(Trip.fromObject);
+          const total = res && res.tripsCount || 0;
+          if (this._debug) console.debug("[trip-service] Loaded {" + (data.length || 0) + "} trips in " + (new Date().getTime() - now.getTime()) + "ms", data);
+          return {
+            data: data,
+            total: total
+          };
+        })
+      );
   }
 
   load(id: number): Observable<Trip | null> {

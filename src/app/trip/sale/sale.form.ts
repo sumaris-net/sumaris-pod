@@ -61,7 +61,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
             value = (typeof value === "string") && value || undefined;
             return this.vesselService.loadAll(0, 10, undefined, undefined,
               { searchText: value as string }
-            );
+            ).map(({data}) => data);
           }));
     }
     else {
@@ -81,7 +81,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
               searchText: value as string
-            }).first();
+            }).first().map(({data}) => data);
         }));
 
     // Combo: sale types
@@ -96,7 +96,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
             {
               entityName: 'SaleType',
               searchText: value as string
-            }).first();
+            }).first().map(({data}) => data);
         }));
   }
 

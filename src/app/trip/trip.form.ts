@@ -51,7 +51,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
             {
               entityName: 'Program',
               searchText: value as string
-            }).first();
+            }).first().map(({data}) => data);
         }));
 
     // Combo: vessels
@@ -64,7 +64,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
           value = (typeof value === "string") && value || undefined;
           return this.vesselService.loadAll(0, 10, undefined, undefined,
             { searchText: value as string }
-          ).first();
+          ).first().map(({data}) => data);
         }));
 
     // Combo: sale location
@@ -83,7 +83,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
                 entityName: 'Location',
                 levelId: LocationLevelIds.PORT,
                 searchText: value as string
-              }).first();
+              }).first().map(({data}) => data);
           })
         );
   }

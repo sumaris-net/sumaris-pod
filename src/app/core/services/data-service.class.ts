@@ -6,6 +6,10 @@ import { ErrorCodes, ServiceError, ServerErrorCodes } from "./errors";
 import { map } from "rxjs/operators";
 
 import { environment } from '../../../environments/environment';
+export declare interface LoadResult<T> {
+  data: T[];
+  total?: number
+}
 export declare interface DataService<T, F> {
 
   loadAll(
@@ -15,7 +19,7 @@ export declare interface DataService<T, F> {
     sortDirection?: string,
     filter?: F,
     options?: any
-  ): Observable<T[]>;
+  ): Observable<LoadResult<T>>;
 
   saveAll(data: T[], options?: any): Promise<T[]>;
 

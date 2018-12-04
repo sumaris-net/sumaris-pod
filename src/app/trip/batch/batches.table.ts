@@ -17,6 +17,7 @@ import { FormGroup } from "@angular/forms";
 import { MeasurementsValidatorService } from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 import { TaxonomicLevelIds } from "src/app/referential/services/model";
+import {LoadResult} from "../../core/services/data-service.class";
 
 const PMFM_ID_REGEXP = /\d+/;
 const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
@@ -35,7 +36,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
     private _implicitValues: { [key: string]: any } = {};
-    private _dataSubject = new BehaviorSubject<Batch[]>([]);
+    private _dataSubject = new BehaviorSubject<LoadResult<Batch>>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -57,7 +58,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         return this.data;
     }
 
-    protected get dataSubject(): BehaviorSubject<Batch[]> {
+    protected get dataSubject(): BehaviorSubject<LoadResult<Batch>> {
         return this._dataSubject;
     }
 
@@ -159,7 +160,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                             levelId: TaxonGroupIds.FAO,
                             searchText: value as string,
                             searchAttribute: 'label'
-                        }).first();
+                        }).first().map(({data}) => data);
                 })
             );
 
@@ -181,7 +182,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                             levelId: TaxonomicLevelIds.SPECIES,
                             searchText: value as string,
                             searchAttribute: 'label'
-                        }).first();
+                        }).first().map(({data}) => data);
                 })
             );
 
@@ -206,7 +207,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Batch[]> {
+    ): Observable<LoadResult<Batch>> {
         if (!this.data) {
             if (this.debug) console.debug("[batch-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
@@ -231,7 +232,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                 this.sortBatches(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[batch-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-                this._dataSubject.next(data);
+                this._dataSubject.next({data: data});
             });
 
         return this._dataSubject.asObservable();
