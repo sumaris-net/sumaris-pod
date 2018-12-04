@@ -238,7 +238,12 @@ public class OperationServiceImpl implements OperationService {
 			batch.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		batch.setParentId(parent.getId());
+		if (parent.getId() != null) {
+			batch.setParentId(parent.getId());
+		}
+		else {
+			batch.setParent(parent);
+		}
 		batch.setOperationId(parent.getOperationId());
 	}
 

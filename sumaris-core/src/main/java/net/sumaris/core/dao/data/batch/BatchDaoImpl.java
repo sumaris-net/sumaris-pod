@@ -162,6 +162,13 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
             entityManager.merge(entity);
         }
 
+        // Force to fill parentId from parent - see issue #
+        if (source.getParent() != null) {
+            source.setParentId(source.getParent().getId());
+            source.setParent(null);
+        }
+
+        // Update date
         source.setUpdateDate(newUpdateDate);
 
         entityManager.flush();
@@ -219,11 +226,6 @@ public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
         // Operation
         if (source.getOperation() != null) {
             target.setOperationId(source.getOperation().getId());
-        }
-
-        // Parent batch
-        if (source.getParent() != null) {
-            target.setParentId(source.getParent().getId());
         }
 
         // If full export
