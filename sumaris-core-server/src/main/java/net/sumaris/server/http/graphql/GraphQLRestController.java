@@ -27,9 +27,6 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.server.exception.ErrorCodes;
-import net.sumaris.server.http.HttpHeaders;
 import net.sumaris.server.http.security.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +50,6 @@ public class GraphQLRestController {
     private final ObjectMapper objectMapper;
 
     @Autowired
-    private AuthService authService;
-
-    @Autowired
     public GraphQLRestController(GraphQLSchema schema,
                                  ObjectMapper objectMapper) {
         this.graphQL = GraphQL.newGraphQL(schema).build();
@@ -66,20 +60,6 @@ public class GraphQLRestController {
     @PostMapping(value = GraphQLPaths.BASE_PATH, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public Map<String, Object> indexFromAnnotated(@RequestBody Map<String, Object> request, HttpServletRequest rawRequest) {
-        String token = rawRequest.getHeader(HttpHeaders.AUTHORIZATION);
-        if (token != null) {
-            log.debug("Checking auth for token " + token);
-            if (!authService.authenticate(token).isPresent()) {
-                Throwable error = new SumarisTechnicalException(GraphQLHelper.toJsonErrorString(ErrorCodes.UNAUTHORIZED, "Authentication required"));
-                return GraphQLHelper.processError(error);
-            }
-        }
-        else {
-            log.warn("Executing GraphQL rest request without auth token!");
-            // TODO
-            //Throwable error = new SumarisTechnicalException(GraphQLHelper.toJsonErrorString(ErrorCodes.UNAUTHORIZED, "Authentication required"));
-            //return GraphQLHelper.processError(error);
-        }
         ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
                 .query((String)request.get("query"))
                 .operationName((String)request.get("operationName"))

@@ -45,6 +45,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.RestPaths;
 import net.sumaris.server.http.security.IsAdmin;
+import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +53,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -186,9 +189,11 @@ public class AdministrationGraphQLService {
         return personService.countByFilter(filter);
     }*/
 
-    @GraphQLQuery(name = "account", description = "Search a user account")
+    @GraphQLQuery(name = "account", description = "Load a user account")
     @Transactional(readOnly = true)
-    public AccountVO loadAccount(@GraphQLArgument(name = "pubkey") String pubkey) {
+    @IsGuest
+    @PreAuthorize("#pubkey == authentication.name")
+    public AccountVO loadAccount(@P("pubkey") @GraphQLArgument(name = "pubkey") String pubkey) {
 
         AccountVO result = accountService.getByPubkey(pubkey);
         fillAvatar(result);
@@ -236,8 +241,9 @@ public class AdministrationGraphQLService {
     }
 
     @GraphQLMutation(name = "saveAccount", description = "Create or update an account")
-//    @IsAdmin TODO ?
-    public AccountVO saveAccount(@GraphQLArgument(name = "account") AccountVO account) {
+    @IsGuest
+    @PreAuthorize("hasRole('ADMIN') or #account.pubkey == authentication.name")
+    public AccountVO saveAccount(@P("account") @GraphQLArgument(name = "account") AccountVO account) {
         return accountService.saveAccount(account);
     }
 
@@ -249,6 +255,7 @@ public class AdministrationGraphQLService {
     }
 
     @GraphQLMutation(name = "sendAccountConfirmationEmail", description = "Resent confirmation email")
+    @IsGuest
     public boolean sendConfirmationEmail(@GraphQLArgument(name="email") String email,
                                          @GraphQLArgument(name="locale", defaultValue = "en_GB") String locale) {
         accountService.sendConfirmationEmail(email, locale);
@@ -264,10 +271,11 @@ public class AdministrationGraphQLService {
 
     /* -- Subscriptions -- */
 
-    @GraphQLSubscription(name = "updateAccount", description = "Subcribe to an account update")
-//    @IsAdmin TODO ?
+    @GraphQLSubscription(name = "updateAccount", description = "Subscribe to an account update")
+    @IsGuest
+    @PreAuthorize("hasRole('ADMIN') or #pubkey == authentication.name")
     public Publisher<AccountVO> updateAccount(
-            @GraphQLArgument(name = "pubkey") final String pubkey,
+            @P("pubkey") @GraphQLArgument(name = "pubkey") final String pubkey,
             @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkNotNull(pubkey, "Missing pubkey");

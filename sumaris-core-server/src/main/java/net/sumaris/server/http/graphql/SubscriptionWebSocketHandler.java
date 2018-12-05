@@ -23,7 +23,9 @@ package net.sumaris.server.http.graphql;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -31,6 +33,7 @@ import graphql.schema.GraphQLSchema;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.http.security.AuthService;
+import net.sumaris.server.http.security.AuthUser;
 import net.sumaris.server.vo.security.AuthDataVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -42,6 +45,10 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -51,6 +58,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -71,7 +79,6 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
     @Autowired
     private AuthService authService;
-
 
     @Autowired
     public SubscriptionWebSocketHandler(GraphQLSchema graphQLSchema) {
@@ -108,92 +115,12 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
         String type = Objects.toString(request.get("type"), "start");
         if ("connection_init".equals(type)) {
             handleInitConnection(session, request);
-            return; // ignore
         }
         else if ("stop".equals(type)) {
             if (subscriptionRef.get() != null) subscriptionRef.get().cancel();
         }
         else if ("start".equals(type)) {
-            Map<String, Object> payload = (Map<String, Object>)request.get("payload");
-            final Object opId = request.get("id");
-
-            String query = Objects.toString(payload.get("query"));
-            ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
-                    .query(query)
-                    .operationName((String) payload.get("operationName"))
-                    .variables(GraphQLHelper.getVariables(payload, objectMapper))
-                    .build());
-
-            // If error: send error then disconnect
-            if (CollectionUtils.isNotEmpty(executionResult.getErrors())) {
-                try {
-                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
-                            ImmutableMap.of(
-                                    "id", opId,
-                                    "type", "error",
-                                    "payload", GraphQLHelper.processExecutionResult(executionResult))
-                    )));
-
-                    //session.close(CloseStatus.SERVER_ERROR);
-                } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-                }
-                return;
-            }
-
-            Publisher<ExecutionResult> stream = executionResult.getData();
-
-            stream.subscribe(new Subscriber<ExecutionResult>() {
-                @Override
-                public void onSubscribe(Subscription subscription) {
-                    subscriptionRef.set(subscription);
-                    if (subscriptionRef.get() != null) subscriptionRef.get().request(1);
-                }
-
-                @Override
-                public void onNext(ExecutionResult result) {
-                    try {
-                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
-                                ImmutableMap.of(
-                                        "id", opId,
-                                        "type", "data",
-                                        "payload", GraphQLHelper.processExecutionResult(result))
-                        )));
-                        //session.sendMessage(new TextMessage(objectMapper.writeValueAsString(result.toSpecification())));
-                    } catch (IOException e) {
-                        log.error(e.getMessage(), e);
-                    }
-
-                    if (subscriptionRef.get() != null) subscriptionRef.get().request(1);
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    try {
-                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
-                                ImmutableMap.of(
-                                        "id", opId,
-                                        "type", "error",
-                                        "payload", GraphQLHelper.processError(throwable))
-                        )));
-
-                        // Not need to close, as the client will do it
-                        // TODO maybe close on auth error ??
-
-                    } catch (IOException e) {
-                        log.error(e.getMessage(), e);
-                    }
-                }
-
-                @Override
-                public void onComplete() {
-                    try {
-                        session.close();
-                    } catch (IOException e) {
-                        log.error(e.getMessage(), e);
-                    }
-                }
-            });
+            handleStartConnection(session, request);
         }
     }
 
@@ -205,30 +132,141 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
     /* -- protected methods -- */
 
     protected void handleInitConnection(WebSocketSession session, Map<String, Object> request) {
-        try {
-            Map<String, Object> payload = (Map<String, Object>) request.get("payload");
-            String authToken =MapUtils.getString(payload, "authToken");
+        Map<String, Object> payload = (Map<String, Object>) request.get("payload");
+        String authToken = MapUtils.getString(payload, "authToken");
 
-            // Success: continue
-            if (StringUtils.isNotBlank(authToken) && authService.authenticate(authToken).isPresent()) {
-                // success
+        // Has token: try to authenticate
+        if (StringUtils.isNotBlank(authToken)) {
+
+            // try to authenticate
+            try {
+                Optional<AuthUser> authUser = authService.authenticate(authToken);
+                // If success
+                if (authUser.isPresent()) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(authUser.get().getUsername(), authToken, authUser.get().getAuthorities());
+                    //authentication.setDetails(authUser);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    return; // OK
+                }
             }
-
-            // Not auth: send a new challenge
-            else {
-                AuthDataVO challenge = authService.createNewChallenge();
-                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
-                        ImmutableMap.of(
-                                "type", "error",
-                                "payload", ImmutableMap.of(
-                                        "message", GraphQLHelper.toJsonErrorString(ErrorCodes.UNAUTHORIZED, "Authentication required"),
-                                        "challenge", challenge)
-                        ))));
+            catch(AuthenticationException e) {
+                log.warn("Unable to authenticate websocket session, using token: " + e.getMessage());
+                // Continue
             }
         }
-        catch(IOException e) {
+
+        // Not auth: send a new challenge
+        try {
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+                    ImmutableMap.of(
+                            "type", "error",
+                            "payload", getUnauthorizedErrorWithChallenge()
+                    ))));
+        } catch (IOException e) {
             throw new SumarisTechnicalException(e);
         }
     }
 
+
+    protected void handleStartConnection(WebSocketSession session, Map<String, Object> request) {
+
+        Map<String, Object> payload = (Map<String, Object>)request.get("payload");
+        final Object opId = request.get("id");
+
+        // Check authenticated
+        if (!isAuthenticated()) {
+            sendResponse(session,
+                        ImmutableMap.of(
+                                "id", opId,
+                                "type", "error",
+                                "payload",
+                                ImmutableMap.of("errors", ImmutableList.of(
+                                                ImmutableMap.of("message", getUnauthorizedErrorString()
+                                )))
+                        )
+                );
+            return;
+        }
+
+        String query = Objects.toString(payload.get("query"));
+        ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
+                .query(query)
+                .operationName((String) payload.get("operationName"))
+                .variables(GraphQLHelper.getVariables(payload, objectMapper))
+                .build());
+
+        // If error: send error then disconnect
+        if (CollectionUtils.isNotEmpty(executionResult.getErrors())) {
+            sendResponse(session,
+                         ImmutableMap.of(
+                                "id", opId,
+                                "type", "error",
+                                "payload", GraphQLHelper.processExecutionResult(executionResult))
+                );
+            return;
+        }
+
+        Publisher<ExecutionResult> stream = executionResult.getData();
+
+        stream.subscribe(new Subscriber<ExecutionResult>() {
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                subscriptionRef.set(subscription);
+                if (subscriptionRef.get() != null) subscriptionRef.get().request(1);
+            }
+
+            @Override
+            public void onNext(ExecutionResult result) {
+                sendResponse(session, ImmutableMap.of(
+                                    "id", opId,
+                                    "type", "data",
+                                    "payload", GraphQLHelper.processExecutionResult(result))
+                );
+
+                if (subscriptionRef.get() != null) subscriptionRef.get().request(1);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                sendResponse(session,
+                             ImmutableMap.of(
+                                    "id", opId,
+                                    "type", "error",
+                                    "payload", GraphQLHelper.processError(throwable))
+                );
+            }
+
+            @Override
+            public void onComplete() {
+                try {
+                    session.close();
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        });
+    }
+
+    protected boolean isAuthenticated() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null && auth.isAuthenticated());
+    }
+
+    protected void sendResponse(WebSocketSession session, Object value)  {
+        try {
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(value)));
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    protected Map<String, Object> getUnauthorizedErrorWithChallenge() {
+        AuthDataVO challenge = authService.createNewChallenge();
+        return ImmutableMap.of("message", getUnauthorizedErrorString(),
+                               "challenge", challenge);
+    }
+
+    protected String getUnauthorizedErrorString() {
+        return GraphQLHelper.toJsonErrorString(ErrorCodes.UNAUTHORIZED, "Authentication required");
+    }
 }

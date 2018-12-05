@@ -15,7 +15,7 @@ class AnonymousUser extends AuthUser {
     static final AnonymousUser INSTANCE = new AnonymousUser();
 
     private AnonymousUser() {
-        super(new AuthDataVO("anonymous", "anonymous", "anonymous"), AuthorityUtils.createAuthorityList("ROLE_GUEST"));
+        super(new AuthDataVO("anonymous", "anonymous", "anonymous"), AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
     }
 
 }

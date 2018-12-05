@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.data.batch.BatchService;
@@ -236,12 +237,12 @@ public class DataGraphQLService {
         tripService.delete(ids);
     }
 
-    @GraphQLSubscription(name = "updateTrip", description = "Subcribe to a trip update")
-    public Publisher<TripVO> updateTrip(@GraphQLArgument(name = "tripId") final int tripId,
+    @GraphQLSubscription(name = "updateTrip", description = "Subscribe to changes on a trip")
+    public Publisher<TripVO> updateTrip(@GraphQLArgument(name = "id") final int id,
                                         @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
 
-        Preconditions.checkArgument(tripId >= 0, "Invalid tripId");
-        return changesPublisherService.getPublisher(Trip.class, TripVO.class, tripId, minIntervalInSecond, true);
+        Preconditions.checkArgument(id >= 0, "Invalid id");
+        return changesPublisherService.getPublisher(Trip.class, TripVO.class, id, minIntervalInSecond, true);
     }
 
     @GraphQLQuery(name = "gears", description = "Get operation's gears")
@@ -273,7 +274,8 @@ public class DataGraphQLService {
                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
-        return operationService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        List<OperationVO> res = operationService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        return res;
     }
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -305,6 +307,14 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "deleteOperations", description = "Delete many operations")
     public void deleteOperations(@GraphQLArgument(name = "ids") List<Integer> ids) {
         operationService.delete(ids);
+    }
+
+    @GraphQLSubscription(name = "updateOperation", description = "Subscribe to changes on an operation")
+    public Publisher<OperationVO> updateOperation(@GraphQLArgument(name = "id") final int id,
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+
+        Preconditions.checkArgument(id >= 0, "Invalid id");
+        return changesPublisherService.getPublisher(Operation.class, OperationVO.class, id, minIntervalInSecond, true);
     }
 
     /* -- Vessel position -- */
