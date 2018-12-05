@@ -331,10 +331,8 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "batches", description = "Get operation's batches")
     public List<BatchVO> getBatchesByOperation(@GraphQLContext OperationVO operation) {
         // Avoid a reloading (e.g. when saving): reuse existing VO
-        if (operation.getCatchBatch() != null) {
-            log.warn("FIXME: do not reload batches after saving it, but reuse updated VO !");
-            // FIXME see issue #1 - https://github.com/sumaris-net/sumaris-pod/issues/1
-            //return batchService.toFlatList(operation.getCatchBatch());
+        if (CollectionUtils.isNotEmpty(operation.getBatches())) {
+            return operation.getBatches();
         }
 
         // Reload, if not exist in VO

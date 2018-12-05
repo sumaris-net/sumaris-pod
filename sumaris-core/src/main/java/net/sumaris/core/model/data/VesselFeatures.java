@@ -104,6 +104,12 @@ public class VesselFeatures implements IRootDataEntity<Integer> {
     @Column(name = "administrative_power")
     private Integer administrativePower;
 
+    @Column(name = "gross_tonnage_grt")
+    private Integer grossTonnageGrt;
+
+    @Column(name = "gross_tonnage_gt")
+    private Integer grossTonnageGt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="base_port_location_fk", nullable = false)
     private Location basePortLocation;

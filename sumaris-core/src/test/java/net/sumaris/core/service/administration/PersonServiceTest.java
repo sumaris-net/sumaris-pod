@@ -30,10 +30,7 @@ import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -88,6 +85,7 @@ public class PersonServiceTest extends AbstractServiceTest{
     public void isExistsByEmailHash() {
 
         PersonVO person = service.get(dbResource.getFixtures().getPersonId(0));
+        Assume.assumeNotNull(person);
         String emailHash = MD5Util.md5Hex(person.getEmail());
 
         boolean isExists = service.isExistsByEmailHash(emailHash);

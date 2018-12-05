@@ -61,6 +61,7 @@ import org.nuiton.version.VersionBuilder;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
@@ -90,7 +91,7 @@ import java.util.function.Predicate;
 @Lazy
 public class DatabaseSchemaDaoImpl
         extends HibernateDaoSupport
-        implements DatabaseSchemaDao {
+        implements DatabaseSchemaDao, InitializingBean {
 
     /** Logger. */
     private static final Logger log =
@@ -135,6 +136,21 @@ public class DatabaseSchemaDaoImpl
         this.config = config;
         this.liquibase = liquibase;
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * Executed automatically when the bean is initialized.
+     */
+    @Override
+    public void afterPropertiesSet() {
+        try {
+            log.info(I18n.t("sumaris.persistence.schemaVersion", getSchemaVersion().toString()));
+        } catch (VersionNotFoundException e) {
+            // silent
+        }
+    }
+
 
     /** {@inheritDoc} */
     @Override
@@ -189,6 +205,7 @@ public class DatabaseSchemaDaoImpl
     public void updateSchema(Properties connectionProperties) throws DatabaseSchemaUpdateException {
         try {
             liquibase.executeUpdate(connectionProperties);
+
         } catch (LiquibaseException le) {
             if (log.isErrorEnabled()) {
                 log.error(le.getMessage(), le);

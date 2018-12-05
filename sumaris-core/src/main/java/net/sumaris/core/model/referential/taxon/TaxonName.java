@@ -70,7 +70,7 @@ public class TaxonName implements IItemReferentialEntity {
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
-    @Column(length = LENGTH_NAME)
+    @Column(name = "complete_name", length = LENGTH_NAME)
     private String completeName;
 
     @Column(name = "start_date")

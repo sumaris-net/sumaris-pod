@@ -29,8 +29,6 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
@@ -43,8 +41,10 @@ public class VesselFeaturesVO implements IUpdateDateEntityBean<Integer, Date> {
     private Integer id;
     private String name;
     private String exteriorMarking;
-    private Integer lengthOverAll;
     private Integer administrativePower;
+    private Double lengthOverAll;
+    private Double grossTonnageGrt;
+    private Double grossTonnageGt;
     private ReferentialVO basePortLocation;
     private String comments;
 

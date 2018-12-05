@@ -28,4 +28,5 @@ package net.sumaris.server.http;
 public interface HttpHeaders {
 
     String ACCESS_CONTROL_DENY_DELETION_ENTITIES = "Access-Control-Deny-Deletion-Entities";
+    String AUTHORIZATION = "Authorization";
 }

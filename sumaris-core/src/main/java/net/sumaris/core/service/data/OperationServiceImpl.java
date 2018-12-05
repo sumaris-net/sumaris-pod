@@ -151,11 +151,22 @@ public class OperationServiceImpl implements OperationService {
 		{
 
 			List<BatchVO> batches = getAllBatches(savedOperation);
-			if (CollectionUtils.isNotEmpty(batches)) {
-				batches.forEach(b -> fillDefaultProperties(savedOperation, b));
-				batches = batchService.saveByOperationId(savedOperation.getId(), batches);
-				savedOperation.setCatchBatch(batches.get(0));
-			}
+			batches.forEach(b -> fillDefaultProperties(savedOperation, b));
+			batches = batchService.saveByOperationId(savedOperation.getId(), batches);
+
+			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
+			batches.forEach(batch -> {
+				// Set parentId (instead of parent object)
+				if (batch.getParent() != null) {
+					batch.setParentId(batch.getParent().getId());
+					batch.setParent(null);
+				}
+				// Remove link to children
+				batch.setChildren(null);
+			});
+
+			savedOperation.setCatchBatch(null);
+			savedOperation.setBatches(batches);
 		}
 
 		return savedOperation;
@@ -227,7 +238,13 @@ public class OperationServiceImpl implements OperationService {
 			batch.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		batch.setParentId(parent.getId());
+		if (parent.getId() == null) {
+			// Need to be the parent object, when parent has not id yet (see issue #2)
+			batch.setParent(parent);
+		}
+		else {
+			batch.setParentId(parent.getId());
+		}
 		batch.setOperationId(parent.getOperationId());
 	}
 
