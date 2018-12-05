@@ -123,8 +123,8 @@
     <rxjava.version>2.1.5</rxjava.version>
 
     <jnr-ffi.version>2.1.7</jnr-ffi.version>
-    <!--<kalium.version>0.5.0_blavenie</kalium.version>-->
-    <kalium.version>0.8.1-SNAPSHOT</kalium.version>
+    <kalium.version>0.5.0_blavenie</kalium.version>
+    <!--<kalium.version>0.8.1-SNAPSHOT</kalium.version>-->
     <scrypt.version>1.4.0</scrypt.version>
 
     <!-- database version management -->

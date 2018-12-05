@@ -85,7 +85,7 @@
     <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-8">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="" columnName="qualification_comments"/>
+                <columnExists tableName="vessel_features" columnName="qualification_comments"/>
             </not>
         </preConditions>
         <addColumn tableName="vessel_features">
