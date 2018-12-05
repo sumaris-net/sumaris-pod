@@ -23,13 +23,14 @@ package net.sumaris.server.http.graphql;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import graphql.*;
+import graphql.ExecutionInput;
+import graphql.ExecutionResult;
+import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.http.HttpHeaders;
 import net.sumaris.server.http.security.AuthService;
-import org.hibernate.tool.hbm2x.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +69,7 @@ public class GraphQLRestController {
         String token = rawRequest.getHeader(HttpHeaders.AUTHORIZATION);
         if (token != null) {
             log.debug("Checking auth for token " + token);
-            if (!authService.authenticate(token)) {
+            if (!authService.authenticate(token).isPresent()) {
                 Throwable error = new SumarisTechnicalException(GraphQLHelper.toJsonErrorString(ErrorCodes.UNAUTHORIZED, "Authentication required"));
                 return GraphQLHelper.processError(error);
             }
