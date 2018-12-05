@@ -206,7 +206,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       fetchPolicy: 'cache-and-network'
     })
       .pipe(
-        map(res /*({trips, tripsCount})*/ => {
+        map(res => {
           const data = (res && res.trips || []).map(Trip.fromObject);
           const total = res && res.tripsCount || 0;
           if (this._debug) console.debug("[trip-service] Loaded {" + (data.length || 0) + "} trips in " + (new Date().getTime() - now.getTime()) + "ms", data);
@@ -248,10 +248,10 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.subscribe<{ updateTrip: Trip }, { tripId: number, interval: number }>({
+    return this.subscribe<{ updateTrip: Trip }, { id: number, interval: number }>({
       query: UpdateSubscription,
       variables: {
-        tripId: id,
+        id: id,
         interval: 10
       },
       error: {

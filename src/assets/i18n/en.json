@@ -132,6 +132,9 @@
       "DESCRIPTION": "Here are the possible settings for the use of the application:",
       "LOCALE": "Language",
       "LAT_LONG_FORMAT": "Latitude/longitude format"
+    },
+    "ERROR": {
+      "SUBSCRIBE_ACCOUNT_ERROR": "Error while listening account's changes."
     }
   },
   "USER": {
@@ -192,7 +195,7 @@
       "LOAD_TRIPS_ERROR": "Error while loading trips.",
       "SAVE_TRIP_ERROR": "Error while saving the trip.",
       "SAVE_TRIPS_ERROR": "Error while saving trips.",
-      "SUBSCRIBE_TRIP_ERROR": "Error while listening trip's changes made on server."
+      "SUBSCRIBE_TRIP_ERROR": "Error while listening trip's changes."
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
@@ -245,7 +248,8 @@
         "LOAD_OPERATION_ERROR": "Error while loading the operation.",
         "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
-        "SAVE_OPERATIONS_ERROR": "Error while saving operations."
+        "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
+        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes."
       }
     },
     "CATCH": {
@@ -431,7 +435,8 @@
     "ACCOUNT_NOT_EXISTS": "Your account does not appear to exist and can not be backed up.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Error sending account confirmation email.<small><br/>If the problem persists, please contact your administrator.</small>",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Error while confirming the email. This account may have already been confirmed?",
-    "UNAUTHORIZED": "Failed authentication on the server",
+    "UNAUTHORIZED": "Authentication required by server",
+    "FORBIDDEN": "Forbidden access",
     "AUTH_SERVER_ERROR": "Error during authentication on the server",
     "AUTH_CHALLENGE_ERROR": "Error during authentication on the server (loading challenge failed)",
     "TABLE_INVALID_ROW_ERROR": "A row is invalid"

@@ -6,6 +6,8 @@ import { ErrorCodes, ServiceError, ServerErrorCodes } from "./errors";
 import { map } from "rxjs/operators";
 
 import { environment } from '../../../environments/environment';
+import {GraphQLError} from "graphql";
+import {getErrorLogger} from "@angular/core/src/errors";
 export declare interface LoadResult<T> {
   data: T[];
   total?: number
@@ -58,15 +60,13 @@ export class BaseDataService {
           subscription.unsubscribe();
 
           if (errors) {
-            if (errors[0].message == "ERROR.UNKNOWN_NETWORK_ERROR") {
-              reject({
-                code: ErrorCodes.UNKNOWN_NETWORK_ERROR,
-                message: "ERROR.UNKNOWN_NETWORK_ERROR"
-              });
+            const error = errors[0] as any;
+            if (error && error.code && error.message) {
+              reject(error);
               return;
             }
-            console.error("[data-service] " + errors[0].message);
-            reject(opts.error ? opts.error : errors[0].message);
+            console.error("[data-service] " + error.message);
+            reject(opts.error ? opts.error : error.message);
             return;
           }
           resolve(data as T);
@@ -92,15 +92,12 @@ export class BaseDataService {
       .pipe(
         map(({ data, errors }) => {
           if (errors) {
-            var error = errors[0];
-            if (error.message === "ERROR.UNKNOWN_NETWORK_ERROR") {
-              throw {
-                code: ErrorCodes.UNKNOWN_NETWORK_ERROR,
-                message: "ERROR.UNKNOWN_NETWORK_ERROR"
-              };
+            const error = errors[0] as any;
+            if (error && error.code && error.message) {
+              throw error;
             }
-            console.error("[data-service] " + errors[0].message);
-            throw opts.error ? opts.error : errors[0].message;
+            console.error("[data-service] " + error.message);
+            throw opts.error ? opts.error : error.message;
           }
           return data;
         })
@@ -120,12 +117,8 @@ export class BaseDataService {
         .catch(this.onApolloError)
         .subscribe(({ data, errors }) => {
           if (errors) {
-            if (errors[0].message == "ERROR.UNKNOWN_NETWORK_ERROR") {
-              reject(errors[0]);
-            }
-            else if (errors[0].message.indexOf('"{code:"') !== -1) {
-              const error = JSON.parse(errors[0].message);
-              console.error("[data-service] " + error.message || error);
+            const error = errors[0] as any;
+            if (error && error.code && error.message) {
               if (error && error.code == ServerErrorCodes.BAD_UPDATE_DATE) {
                 reject({ code: ServerErrorCodes.BAD_UPDATE_DATE, message: "ERROR.BAD_UPDATE_DATE" });
               }
@@ -133,13 +126,12 @@ export class BaseDataService {
                 reject({ code: ServerErrorCodes.DATA_LOCKED, message: "ERROR.DATA_LOCKED" });
               }
               else {
-                reject(error.message ? error.message : (opts.error ? opts.error : errors[0].message));
+                reject(error);
               }
+              return;
             }
-            else {
-              console.error("[data-service] " + errors[0].message);
-              reject(opts.error ? opts.error : errors[0].message);
-            }
+            console.error("[data-service] " + error.message);
+            throw opts.error ? opts.error : error.message;
           }
           else {
             resolve(data as T);
@@ -155,7 +147,7 @@ export class BaseDataService {
     error?: ServiceError
   }): Observable<T> {
 
-    const res = this.apollo.subscribe({
+    return this.apollo.subscribe({
       query: opts.query,
       variables: opts.variables
     })
@@ -163,21 +155,16 @@ export class BaseDataService {
       .pipe(
         map(({ data, errors }) => {
           if (errors) {
-            var error = errors[0];
-            if (error.message === "ERROR.UNKNOWN_NETWORK_ERROR") {
-              throw {
-                code: ErrorCodes.UNKNOWN_NETWORK_ERROR,
-                message: "ERROR.UNKNOWN_NETWORK_ERROR"
-              };
+            let error = errors[0];
+            if (error && error.code && error.message) {
+              throw error;
             }
-            console.error("[data-service] " + errors[0].message);
-            throw opts.error ? opts.error : errors[0].message;
+            console.error("[data-service] " + error.message);
+            throw opts.error ? opts.error : error.message;
           }
           return data;
         })
       );
-
-    return res;
   }
 
   protected addToQueryCache<V = R>(opts: {
@@ -293,30 +280,49 @@ export class BaseDataService {
   }
 
   private onApolloError<T>(err: any): Observable<ApolloQueryResult<T>> {
-    let result: ApolloQueryResult<T>;
-    if (err && err.networkError) {
-      console.error("[network] " + err.networkError.message);
-      err.message = "ERROR.UNKNOWN_NETWORK_ERROR";
-      result = {
-        data: null,
-        errors: [err],
-        loading: false,
-        networkStatus: err.networkStatus,
-        stale: err.stale
-      };
-    }
-    else {
-      if (err instanceof ApolloError) {
-        result = {
-          data: null,
-          errors: err.graphQLErrors,
-          loading: false,
-          networkStatus: null,
-          stale: null
-        };
-      }
-    }
-    return Observable.of(result);
+    const appError = (err.networkError && (this.toAppError(err.networkError) || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR))) ||
+      (err.graphQLErrors && this.toAppError(err.graphQLErrors[0])) ||
+      this.toAppError(err) ||
+      this.toAppError(err.originalError);
+    return Observable.of({
+      data: null,
+      errors: appError && [appError] || err.graphQLErrors || [err],
+      loading: false,
+      networkStatus: null,
+      stale: null
+    });
   }
+
+  private createAppErrorByCode(errorCode: number): any | undefined {
+    const message = this.getI18nErrorMessageByCode(errorCode);
+    if (message) return {
+      code: errorCode,
+      message: this.getI18nErrorMessageByCode(errorCode)
+    };
+    return undefined;
+  }
+
+  private getI18nErrorMessageByCode(errorCode: number): string | undefined{
+    switch (errorCode) {
+      case ServerErrorCodes.UNAUTHORIZED:
+        return "ERROR.UNAUTHORIZED";
+      case ServerErrorCodes.FORBIDDEN:
+        return "ERROR.FORBIDDEN";
+      case ErrorCodes.UNKNOWN_NETWORK_ERROR:
+        return "ERROR.UNKNOWN_NETWORK_ERROR";
+    }
+    return undefined;
+  }
+
+  private toAppError(err: any) : any | undefined{
+    const message = err && err.message || err;
+    if (typeof message == "string" && message.trim().indexOf('{"code":') == 0) {
+      const error = JSON.parse(message);
+      return error && this.createAppErrorByCode(error.code) || err;
+    }
+    return undefined;
+  }
+
+
 
 }

@@ -146,8 +146,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
   constructor(
     protected apollo: Apollo,
-    protected accountService: AccountService,
-    protected tripService: TripService
+    protected accountService: AccountService
   ) {
     super(apollo);
 
@@ -178,26 +177,28 @@ export class OperationService extends BaseDataService implements DataService<Ope
     this._lastVariables.loadAll = variables;
 
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
-    return this.watchQuery<{ operations: Operation[]; operationsCount: number }>({
+    return this.watchQuery<{ operations?: Operation[] }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR" },
       fetchPolicy: 'cache-and-network'
     })
       .pipe(
-        map(({operations, operationsCount}) => {
-          const data = (operations || []).map(Operation.fromObject);
+        map((res) => {
+          const data = (res && res.operations || []).map(Operation.fromObject);
           if (this._debug) console.debug(`[operation-service] Loaded ${data.length} operations`);
 
           // Compute rankOrderOnPeriod, by tripId
           if (filter && filter.tripId) {
             let rankOrderOnPeriod = 1;
-            [].concat(data).sort(sortByStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
+            // apply a sorted copy (do NOT change original order), then compute rankOrder
+            data.slice().sort(sortByStartDateFn)
+              .forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
           }
 
           return {
             data: data,
-            total: operationsCount
+            total: data.length
           };
         }));
   }

@@ -2,7 +2,7 @@ import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core
 import { Observable, BehaviorSubject } from 'rxjs';
 import {mergeMap, debounceTime, startWith, map} from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
+import {AppTableDataSource, AppTable, AccountService, DataService} from "../../core/core.module";
 import {
   referentialToString,
   PmfmStrategy,
@@ -23,6 +23,7 @@ import { FormGroup } from "@angular/forms";
 import {MeasurementsValidatorService, SubBatchValidatorService} from "../services/trip.validators";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
 import {PmfmIds, QualitativeLabels, TaxonomicLevelIds} from "src/app/referential/services/model";
+import {LoadResult} from "../../core/services/data-service.class";
 
 const PMFM_ID_REGEXP = /\d+/;
 const SUBBATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -36,13 +37,13 @@ const SUBBATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
         { provide: ValidatorService, useClass: BatchValidatorService }
     ]
 })
-export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
+export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService, DataService<Batch, any> {
 
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
     private _implicitValues: { [key: string]: any } = {};
     private _availableParents: Batch[] = [];
-    private _dataSubject = new BehaviorSubject<Batch[]>([]);
+    private _dataSubject = new BehaviorSubject<LoadResult<Batch>>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -65,7 +66,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         return this.data;
     }
 
-    protected get dataSubject(): BehaviorSubject<Batch[]> {
+    protected get dataSubject(): BehaviorSubject<LoadResult<Batch>> {
         return this._dataSubject;
     }
 
@@ -260,7 +261,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Batch[]> {
+    ): Observable<LoadResult<Batch>> {
         if (!this.data) {
             if (this.debug) console.debug("[sub-batch-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
@@ -289,7 +290,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
                 this.sortBatches(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[batch-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-                this._dataSubject.next(data);
+                this._dataSubject.next({data: data});
             });
 
         return this._dataSubject.asObservable();
@@ -461,7 +462,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
       })
       .map(r => r.currentData);
 
-    if (hasRemovedBatch) this._dataSubject.next(data);
+    if (hasRemovedBatch) this._dataSubject.next({data: data});
   }
 
     protected sortBatches(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {

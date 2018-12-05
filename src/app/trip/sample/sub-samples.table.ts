@@ -3,7 +3,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { map, debounceTime, startWith } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { PmfmStrategy, Sample, MeasurementUtils, getPmfmName } from "../services/trip.model";
+import {PmfmStrategy, Sample, MeasurementUtils, getPmfmName, Batch} from "../services/trip.model";
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Location } from '@angular/common';
@@ -36,7 +36,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
     private _acquisitionLevel: string;
     private _implicitParent: Sample;
     private _availableParents: Sample[] = [];
-    private _dataSubject = new BehaviorSubject<{data: Sample[]}>({data: []});
+    private _dataSubject = new BehaviorSubject<LoadResult<Sample>>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -56,6 +56,10 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
 
     get value(): Sample[] {
         return this.data;
+    }
+
+    protected get dataSubject(): BehaviorSubject<LoadResult<Sample>> {
+      return this._dataSubject;
     }
 
     @Input()

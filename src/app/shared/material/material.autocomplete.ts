@@ -70,7 +70,7 @@ export class MatAutocompleteField implements OnInit {
     }
 
     writeValue(value: any): void {
-        console.debug("writeValue", value);
+        //console.debug("writeValue", value);
     }
 
     registerOnChange(fn: any): void {

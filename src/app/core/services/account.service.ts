@@ -359,7 +359,7 @@ export class AccountService extends BaseDataService {
   }
 
   async login(data: AuthData): Promise<Account> {
-    if (!data.username || !data.username) throw "Missing required username por password";
+    if (!data.username || !data.password) throw "Missing required username or password";
 
     console.debug("[account] Trying to login...");
 
@@ -375,6 +375,16 @@ export class AccountService extends BaseDataService {
     // Store pubkey+keypair
     this.data.pubkey = base58.encode(keypair.publicKey);
     this.data.keypair = keypair;
+
+    // Try to auth on remote server
+    try {
+      this.data.authToken = await this.authenticateAndGetToken();
+    }
+    catch (error) {
+      console.error(error);
+      this.resetData();
+      throw error;
+    }
 
     // Load account data
     try {
@@ -403,9 +413,6 @@ export class AccountService extends BaseDataService {
     }
 
     try {
-      // Try to auth on remote server
-      this.data.authToken = await this.authenticateAndGetToken();
-
       // Store to local storage
       await this.saveLocally();
     }
@@ -415,8 +422,7 @@ export class AccountService extends BaseDataService {
       throw error;
     }
 
-
-    console.debug("[account] Sucessfully authenticated {" + this.data.pubkey.substr(0, 6) + "}");
+    console.debug("[account] Successfully authenticated {" + this.data.pubkey.substr(0, 6) + "}");
 
     // Emit event to observers
     this.onLogin.next(this.data.account);
@@ -761,7 +767,7 @@ export class AccountService extends BaseDataService {
         code: ErrorCodes.CONFIRM_EMAIL_FAILED,
         message: "ERROR.CONFIRM_ACCOUNT_EMAIL_FAILED"
       }
-    })
+    });
     return res && res.confirmAccountEmail;
   }
 
@@ -772,34 +778,38 @@ export class AccountService extends BaseDataService {
 
     console.debug('[account] [WS] Listening changes on {/subscriptions/websocket}...');
 
-    const subscription = this.apollo.subscribe({
+    const subscription = this.subscribe<{updateAccount: any}>({
       query: UpdateSubscription,
       variables: {
         pubkey: this.data.pubkey,
         interval: 10
+      },
+      error: {
+        code: ErrorCodes.SUBSCRIBE_ACCOUNT_ERROR,
+        message: 'ERROR.ACCOUNT.SUBSCRIBE_ACCOUNT_ERROR'
       }
     }).subscribe({
-      next({ data, errors }) {
-        if (data && data.updateAccount) {
-          const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
-          if (existingUpdateDate !== data.updateAccount.updateDate) {
-            console.debug("[account] [WS] Detected update on {" + data.updateDate + "}");
-            self.refresh();
+        async next(data) {
+          if (data && data.updateAccount) {
+            const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
+            if (existingUpdateDate !== data.updateAccount.updateDate) {
+              console.debug("[account] [WS] Detected update on {" + data.updateAccount.updateDate + "}");
+              await self.refresh();
+            }
           }
+        },
+      async error(err) {
+          if (err && err.code == ServerErrorCodes.NOT_FOUND) {
+            console.info("[account] Account not exists anymore: force user to logout...", err);
+            await this.logout();
+          }
+          else {
+            console.warn("[account] [WS] Received error:", err);
+          }
+        },
+        complete() {
+          console.debug('[account] [WS] Completed');
         }
-      },
-      error(err) {
-        if (err && err.code == ServerErrorCodes.NOT_FOUND) {
-          console.info("[account] Account not exists anymore: force user to logout...", err);
-          this.logout();
-        }
-        else {
-          console.warn("[account] [WS] Received error:", err);
-        }
-      },
-      complete() {
-        console.debug('[account] [WS] Completed');
-      }
     });
 
     // Add log when closing WS
