@@ -180,9 +180,9 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
               debounceTime(250),
               mergeMap((value) => {
                   if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                  value = (typeof value === "string") && value || undefined;
+                  value = (typeof value === "string" && value !== '*') && value || undefined;
                   if (this.debug) console.debug("[sub-batch-table] Searching taxon name on {" + (value || '*') + "}...");
-                  return this.referentialRefService.loadAll(0, 10, undefined, undefined,
+                  return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
                       {
                           entityName: 'TaxonName',
                           levelId: TaxonomicLevelIds.SPECIES,
@@ -223,7 +223,6 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
       // Listening on column 'IS_DEAD' value changes
       this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
         .subscribe((value) => {
-          console.log("DISCARD_OR_LANDING="+value);
           if (!this.selectedRow) return; // Should never occur
           const row = this.selectedRow;
           const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
@@ -233,6 +232,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
                 controls[PmfmIds.DISCARD_REASON].enable();
               }
               controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
+              controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
             }
           }
           else {
@@ -412,7 +412,6 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     if (!this._availableParents || !data) return;
 
     data.forEach(s => {
-      console.log(s);
       const parentId = s.parentId || (s.parent && s.parent.id);
       s.parent = isNotNil(parentId) ? this.availableParents.find(p => p.id === parentId) : null;
     });

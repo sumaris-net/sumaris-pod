@@ -47,7 +47,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== "*") && value || undefined;
-          return this.referentialRefService.loadAll(0, 10, undefined, undefined,
+          return this.referentialRefService.loadAll(0, !value ? 50 : 10, undefined, undefined,
             {
               entityName: 'Program',
               searchText: value as string
@@ -78,7 +78,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
           mergeMap(value => {
             if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
             value = (typeof value === "string" && value !== '*') && value || undefined;
-            return this.referentialRefService.loadAll(0, 10, undefined, undefined,
+            return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
               {
                 entityName: 'Location',
                 levelId: LocationLevelIds.PORT,

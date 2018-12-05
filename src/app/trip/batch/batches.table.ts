@@ -120,7 +120,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     };
 
     async ngOnInit() {
-        super.ngOnInit();
+      super.ngOnInit();
 
       let excludesColumns:String[] = new Array<String>();
       if (!this.showCommentsColumn) excludesColumns.push('comments');
@@ -159,9 +159,9 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                 debounceTime(250),
                 mergeMap((value) => {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string") && value || undefined;
+                    value = (typeof value === "string" && value !== '*') && value || undefined;
                     if (this.debug) console.debug("[batch-table] Searching taxon group on {" + (value || '*') + "}...");
-                    return this.referentialRefService.loadAll(0, 10, undefined, undefined,
+                    return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
                         {
                             entityName: 'TaxonGroup',
                             levelId: TaxonGroupIds.FAO,
@@ -181,9 +181,9 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                 debounceTime(250),
                 mergeMap((value) => {
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string") && value || undefined;
+                    value = (typeof value === "string" && value !== '*') && value || undefined;
                     if (this.debug) console.debug("[batch-table] Searching taxon name on {" + (value || '*') + "}...");
-                    return this.referentialRefService.loadAll(0, 10, undefined, undefined,
+                    return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
                         {
                             entityName: 'TaxonName',
                             levelId: TaxonomicLevelIds.SPECIES,
