@@ -69,7 +69,7 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
     @Column(name="qualification_comments", length = LENGTH_COMMENTS)
     private Date qualificationComments;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 

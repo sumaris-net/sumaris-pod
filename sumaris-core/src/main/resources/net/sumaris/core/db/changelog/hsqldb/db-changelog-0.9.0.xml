@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.9.0.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="vessel_position" columnName="qualification_comments"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="vessel_position">
+            <column name="qualification_comments" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="sale" columnName="validation_date"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="sale">
+            <column name="validation_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="sample" columnName="validation_date"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="sample">
+            <column name="validation_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-4">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="trip" columnName="validation_date"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="trip">
+            <column name="validation_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-5">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="vessel" columnName="validation_date"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="vessel">
+            <column name="validation_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-6">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="image_attachment" columnName="validation_date"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="image_attachment">
+            <column name="validation_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-7">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="physical_gear" columnName="validation_date"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="physical_gear">
+            <column name="validation_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-8">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="" columnName="qualification_comments"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="vessel_features">
+            <column name="validation_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-9">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="vessel_position" columnName="validation_date"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="vessel_position">
+            <column name="validation_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='0.9.0'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">0.9.0</column>
+            <column name="DESCRIPTION">
+                - Add column VALIDATION_DATE on data root tables
+                - Add column VESSEL_POSITION.QUALIFICATION_COMMENTS
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="COMMENTS">
+                - Add column VALIDATION_DATE on data root tables
+                - Add column VESSEL_POSITION.QUALIFICATION_COMMENTS
+            </column>
+        </insert>
+    </changeSet>
+    
+</databaseChangeLog>

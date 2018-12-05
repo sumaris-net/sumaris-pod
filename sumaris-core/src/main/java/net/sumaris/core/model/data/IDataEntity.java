@@ -37,6 +37,7 @@ public interface IDataEntity<T extends Serializable> extends Serializable, IUpda
     String PROPERTY_CONTROL_DATE = "controlDate";
     String PROPERTY_QUALIFICATION_DATE = "qualificationDate";
     String PROPERTY_QUALITY_FLAG = "qualityFlag";
+    String PROPERTY_QUALIFICATION_COMMENTS = "qualificationComments";
     String PROPERTY_RECORDER_DEPARTMENT = "recorderDepartment";
 
     Department getRecorderDepartment();
@@ -54,4 +55,8 @@ public interface IDataEntity<T extends Serializable> extends Serializable, IUpda
     QualityFlag getQualityFlag();
 
     void setQualityFlag(QualityFlag qualityFlag);
+
+    Date getQualificationComments();
+
+    void setQualificationComments(Date qualificationComments);
 }

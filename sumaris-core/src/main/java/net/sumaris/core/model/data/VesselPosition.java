@@ -56,11 +56,18 @@ public class VesselPosition implements IDataEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
+    @Column(name="validation_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date validationDate;
+
     @Column(name="qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
+    private Date qualificationComments;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
