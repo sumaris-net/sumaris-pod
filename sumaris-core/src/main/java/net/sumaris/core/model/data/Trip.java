@@ -90,6 +90,10 @@ public class Trip implements IRootDataEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
+    @Column(name="validation_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date validationDate;
+
     @Column(name="qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;

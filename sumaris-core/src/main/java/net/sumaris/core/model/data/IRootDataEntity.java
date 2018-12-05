@@ -33,7 +33,7 @@ public interface IRootDataEntity<T extends Serializable> extends IDataEntity<T> 
     String PROPERTY_CREATION_DATE = "creationDate";
     String PROPERTY_RECORDER_PERSON = "recorderPerson";
     String PROPERTY_COMMENTS = "comments";
-    String PROPERTY_QUALIFICATION_COMMENTS = "qualificationComments";
+    String PROPERTY_VALIDATION_DATE = "validationDate";
 
     Date getCreationDate() ;
 
@@ -47,7 +47,7 @@ public interface IRootDataEntity<T extends Serializable> extends IDataEntity<T> 
 
     void setComments(String comments);
 
-    Date getQualificationComments();
+    Date getValidationDate() ;
 
-    void setQualificationComments(Date qualificationComments);
+    void setValidationDate(Date validationDate);
 }
