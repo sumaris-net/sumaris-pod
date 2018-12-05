@@ -221,8 +221,8 @@
         "TAB_SURVIVAL_TEST": "Tests de survie",
         "TAB_INDIVIDUAL_MONITORING": "Suivi individuel",
         "TAB_INDIVIDUAL_RELEASES": "Relachés",
-        "BATCH_SPECIES": "Capture par espèce",
-        "BATCH_INDIVIDUAL": "Mesures individuelles",
+        "TAB_BATCH_SPECIES": "Lots par espèce",
+        "TAB_BATCH_INDIVIDUAL": "Mesures individuelles",
         "START": "Début pêche :",
         "END": "Fin pêche :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
@@ -257,29 +257,27 @@
     },
     "BATCH": {
       "TABLE": {
-        "TAXON_GROUP": "Espèce commerciale FAO",
-        "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale",
-        "TAXON_NAME": "Espèce scientifique FAO",
-        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique",
+        "TAXON_GROUP": "Espèce commerciale (FAO)",
+        "TAXON_GROUP_PLACEHOLDER": "Code espèce",
+        "TAXON_NAME": "Espèce scientifique (FAO)",
+        "TAXON_NAME_PLACEHOLDER": "Code espèce",
         "TOTAL_INDIVIDUAL_COUNT": "Nb indiv. total",
         "TOTAL_WEIGHT": "Poids total",
         "SAMPLING_RATIO": "Fraction échant.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant.",
+        "PARENT_BATCH": "Lot espèce",
         "COMMENTS": "Commentaires"
       }
     },
     "SAMPLE": {
       "TABLE": {
-        "TAXON_GROUP": "Espèce",
-        "TAXON_GROUP_PLACEHOLDER": "Code FAO",
-        "SAMPLE_DATE": "Date/Heure de la mesure"
-      }
-    },
-    "SUB_SAMPLE": {
-      "TABLE": {
+        "TAXON_GROUP": "Espèce commerciale (FAO)",
+        "TAXON_GROUP_PLACEHOLDER": "Code espèce",
+        "TAXON_NAME": "Espèce scientifique (FAO)",
+        "TAXON_NAME_PLACEHOLDER": "Code espèce",
+        "SAMPLE_DATE": "Date/Heure de la mesure",
         "PARENT_SAMPLE": "Echantillon parent",
-        "TAXON_GROUP": "Species",
         "COMMENTS": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement"
       }
@@ -312,7 +310,6 @@
     }
   },
   "VESSEL": {
-    "TITLE": "Navire",
     "VESSEL_ID": "Code interne",
     "NAME": "Nom",
     "EXTERIOR_MARKING": "Immatriculation",
@@ -322,6 +319,13 @@
     "ACTIONS": "Actions sur la ligne",
     "START_DATE": "Début validité",
     "TAB_GENERAL": "Détails",
+    "GROSS_TONNAGE_GT": "Tonnage (GT)",
+    "GROSS_TONNAGE_GRT": "Tonnage jauge brute (TJB)",
+    "ADMINISTRATIVE_POWER": "Puissance administrative (kW)",
+    "LENGTH_OVER_ALL": "Longueur hors tout (m)",
+    "EDIT": {
+      "TITLE": "Navire"
+    },
     "NEW": {
       "TITLE": "Nouveau navire"
     },

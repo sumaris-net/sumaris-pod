@@ -49,7 +49,7 @@
       </ion-grid>
     </mat-tab>
 
-    <!-- TAB: Gear 
+    <!-- TAB: Gear
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_PHYSICAL_GEAR'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>settings</mat-icon>
@@ -67,21 +67,43 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && catchForm.invalid"></ion-icon>
       </ng-template>
 
-      <!-- form -->
+      <!-- catch form -->
       <form-catch (onSubmit)="save($event)" [showError]="false" #catchForm [debug]="debug">
       </form-catch>
 
-      <h3>{{'TRIP.OPERATION.EDIT.BATCH_SPECIES'|translate}}</h3>
+      <!-- tab group for batches -->
+      <mat-tab-group [selectedIndex]="selectedBatchTabIndex" (selectedTabChange)="onBatchTabChange($event)" [color]="accent" [disableRipple]="true" dynamicHeight >
 
-      <table-batch-groups #batchGroupsTable [debug]="true" acquisitionLevel="SORTING_BATCH" [showComment]="false">
-      </table-batch-groups>
+        <!-- TAB: species list -->
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
+          <ng-template mat-tab-label>
+            <mat-icon>line_weight</mat-icon>
+            <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
+          </ng-template>
 
-      <ion-row no-padding>
-        <ion-col>
-          <!-- <table-batches #batchesIndividualTable [debug]="debug" acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
-            [showComment]="true"></table-batches> -->
-        </ion-col>
-      </ion-row>
+          <table-batch-groups #batchGroupsTable [debug]="debug"
+                              acquisitionLevel="SORTING_BATCH"
+                              [showCommentsColumn]="false">
+          </table-batch-groups>
+        </mat-tab>
+
+        <!-- TAB: individual measurements -->
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}">
+          <ng-template mat-tab-label>
+            <mat-icon>list</mat-icon>
+            <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (subBatchesTable.invalid || false)"></ion-icon>
+          </ng-template>
+
+          <table-sub-batches #subBatchesTable [debug]="debug"
+                             acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
+                             [showTaxonGroupColumn]="false"
+                             [showTaxonNameColumn]="false">
+          </table-sub-batches>
+        </mat-tab>
+      </mat-tab-group>
+
     </mat-tab>
 
     <!-- TAB: Survival  -->

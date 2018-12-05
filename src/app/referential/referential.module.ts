@@ -12,9 +12,18 @@ import { VesselPage } from "./vessel/page/page-vessel";
 import { VesselsPage } from "./vessel/list/vessels";
 import { VesselModal } from "./vessel/modal/modal-vessel";
 import { ReferentialsPage } from './list/referentials';
-import { vesselFeaturesToString, referentialToString, getPmfmName } from './services/model';
+import { Referential, ReferentialRef, EntityUtils, Department, Person,
+  entityToString, referentialToString,
+  VesselFeatures, GearLevelIds, TaxonGroupIds,
+  PmfmStrategy, AcquisitionLevelCodes, StatusIds,
+  vesselFeaturesToString, getPmfmName } from './services/model';
 
-export { VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService, vesselFeaturesToString, referentialToString, getPmfmName }
+export { VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
+  Referential, ReferentialRef, EntityUtils, Department, Person,
+  VesselFeatures, PmfmStrategy,
+  GearLevelIds, TaxonGroupIds, AcquisitionLevelCodes, StatusIds,
+  entityToString, referentialToString,
+  vesselFeaturesToString, getPmfmName }
 
 @NgModule({
     imports: [

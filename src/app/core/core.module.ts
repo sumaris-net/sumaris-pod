@@ -37,6 +37,11 @@ import { ProgressBarService } from './services/progress-bar.service';
 import { ProgressInterceptor } from '../shared/interceptors/progess.interceptor';
 
 import { environment } from '../../environments/environment';
+import { Entity, Cloneable, EntityUtils,
+  Referential, ReferentialRef, Department, Person,
+  StatusIds, AcquisitionLevelCodes, LocationLevelIds,
+  isNil, isNotNil, nullIfUndefined, referentialToString, joinProperties, entityToString,
+  toDateISOString, fromDateISOString} from './services/model';
 
 // import ngx-translate and the http loader
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
@@ -47,7 +52,11 @@ export {
     environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
     AccountService, AccountFieldDef, DataService, AccountValidatorService, UserSettingsValidatorService,
     AuthGuardService, FormMetadataComponent, FormButtonsBarComponent,
-    RESERVED_START_COLUMNS, RESERVED_END_COLUMNS
+    RESERVED_START_COLUMNS, RESERVED_END_COLUMNS,
+    Entity, Cloneable, EntityUtils,
+    AcquisitionLevelCodes, StatusIds, LocationLevelIds,
+    Referential, ReferentialRef, Department, Person,
+    toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined, entityToString, referentialToString
 }
 
 export function HttpLoaderFactory(http: HttpClient) {

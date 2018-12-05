@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from "@angular/router";
+import {Router, ActivatedRoute, Params} from "@angular/router";
 import { OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
 import { Operation, Trip, Batch } from '../services/trip.model';
@@ -16,6 +16,9 @@ import { PmfmIds } from '../../referential/services/model';
 import { Subject } from 'rxjs';
 import { DateFormatPipe } from 'src/app/shared/pipes/date-format.pipe';
 import { BatchesTable } from '../batch/batches.table';
+import {BatchGroupsTable} from "../batch/batch-groups.table";
+import {SubBatchesTable} from "../batch/sub-batches.table";
+import {MatTabChangeEvent} from "@angular/material";
 
 
 @Component({
@@ -29,6 +32,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   trip: Trip;
   saving: boolean = false;
   rankOrder: number;
+  selectedBatchTabIndex: number = 0;
 
   defaultBackHref: string;
 
@@ -44,7 +48,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
 
-  @ViewChild('batchGroupsTable') batchGroupsTable: BatchesTable;
+  @ViewChild('batchGroupsTable') batchGroupsTable: BatchGroupsTable;
+
+  @ViewChild('subBatchesTable') subBatchesTable: SubBatchesTable;
 
 
   constructor(
@@ -58,6 +64,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   ) {
     super(route, router, alterCtrl, translate);
 
+    // Listen route parameters
+    this.route.queryParams.subscribe(res => {
+      const subTabIndex = res["sub-tab"];
+      if (subTabIndex !== undefined) {
+        this.selectedBatchTabIndex = parseInt(subTabIndex) || 0;
+      }
+    });
+
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
   }
@@ -67,7 +81,13 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
-      .registerTables([this.survivalTestsTable, this.individualMonitoringTable, this.individualReleaseTable, this.batchGroupsTable]);
+      .registerTables([
+        this.survivalTestsTable,
+        this.individualMonitoringTable,
+        this.individualReleaseTable,
+        this.batchGroupsTable,
+        this.subBatchesTable
+      ]);
 
     // Disable, during load
     this.disable();
@@ -93,13 +113,19 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.catchForm.gear = res && res.gear && res.gear.label || null;
     });
 
-    // Update available parent on individual table, when survival tests changes
+    // Update available parent on sub-sample table, when samples changes
     this.survivalTestsTable.listChange.debounceTime(400).subscribe(samples => {
       const availableParents = (samples || [])
         .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
       // Will refresh the tables (inside the setter):
       this.individualMonitoringTable.availableParents = availableParents;
       this.individualReleaseTable.availableParents = availableParents;
+    });
+
+    // Update available parent on individual batch table, when batch group changes
+    this.batchGroupsTable.listChange.debounceTime(400).subscribe(batchGroups => {
+      // Will refresh the tables (inside the setter):
+      this.subBatchesTable.availableParents = (batchGroups || []);
     });
   }
 
@@ -183,13 +209,46 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.individualReleaseTable.availableParents = this.individualMonitoringTable.availableParents;
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
-    // Batches
-    if (isNotNil(this.batchGroupsTable)) {
-      // Get all batches (and children)
-      const batches = (data && data.catchBatch && data.catchBatch.children) || [];
+    // Get all batches (and children)
+    const batches = (data && data.catchBatch && data.catchBatch.children) || [];
 
-      // Set batches table
-      this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
+    // Set batch tables (if exists)
+    if (isNotNil(this.batchGroupsTable) && isNotNil(this.subBatchesTable)) {
+      const batchGroups = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
+
+      this.batchGroupsTable.pmfms
+        .filter(pmfms => (pmfms && pmfms.length > 0))
+        .first()
+        .subscribe(() => {
+          const qvPmfm = this.batchGroupsTable.qvPmfm;
+          this.subBatchesTable.availableParents = batchGroups;
+          this.subBatchesTable.value = batchGroups.reduce((res, group) => {
+            if (qvPmfm) {
+              return res.concat(group.children.reduce((res, qvBatch) => {
+                const children = this.getBatchChildrenByLevel(qvBatch, this.subBatchesTable.acquisitionLevel);
+                return res.concat(children
+                  .map(child => {
+                    // Copy QV value from the group
+                    child.measurementValues = child.measurementValues || {};
+                    child.measurementValues[qvPmfm.pmfmId] = qvBatch.measurementValues[qvPmfm.pmfmId];
+                    // Replace parent by the group (instead of the sampling batch)
+                    child.parentId = group.id;
+                    return child;
+                  }));
+                }, []));
+            } else {
+              return res.concat(this.getBatchChildrenByLevel(group, this.subBatchesTable.acquisitionLevel)
+                .map(child => {
+                  // Replace parent by the group (instead of the sampling batch)
+                  child.parentId = group.id;
+                  return child;
+                }));
+            }
+          }, []);
+        });
+
+      this.batchGroupsTable.value = batchGroups;
+
     }
 
     // Update title
@@ -197,8 +256,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     this.markAsPristine();
     this.markAsUntouched();
-
-
   }
 
   async save(event): Promise<any> {
@@ -232,6 +289,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           AppFormUtils.logFormErrors(this.batchGroupsTable.selectedRow.validator, "[batch-group-table]")
         }
       }
+      if (this.subBatchesTable.invalid) {
+        this.subBatchesTable.markAsTouched();
+        if (this.subBatchesTable.selectedRow && this.subBatchesTable.selectedRow.editing) {
+          AppFormUtils.logFormErrors(this.subBatchesTable.selectedRow.validator, "[batch-table]")
+        }
+      }
 
       this.submitted = true;
       return;
@@ -253,10 +316,11 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.data.catchBatch = this.catchForm.value;
 
     // update tables 'value'
-    await this.survivalTestsTable.save();
+    const saved = await this.survivalTestsTable.save();
     await this.individualMonitoringTable.save();
     await this.individualReleaseTable.save();
     await this.batchGroupsTable.save();
+    await this.subBatchesTable.save();
 
     // get sub-samples, from tables
     const subSamples = (this.individualMonitoringTable.value || [])
@@ -269,7 +333,22 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       });
 
     // get batches
-    this.data.catchBatch.children = (this.batchGroupsTable.value || []);
+    const batchGroups = (this.batchGroupsTable.value || []);
+
+    const subBatches  = (this.subBatchesTable.value || []);
+    const qvPmfm = this.batchGroupsTable.qvPmfm;
+    batchGroups.forEach(batchGroup => {
+        // Add children
+        (batchGroup.children || []).forEach(b => {
+          const children = subBatches.filter(childBatch => childBatch.parent && batchGroup.equals(childBatch.parent) &&
+            (!qvPmfm || (childBatch.measurementValues[qvPmfm.pmfmId] == b.measurementValues[qvPmfm.pmfmId]))
+          );
+          // If has sampling batch, use it a parent
+          if (b.children && b.children.length == 1) b.children[0].children = children;
+          else b.children = children;
+        });
+    });
+    this.data.catchBatch.children = batchGroups;
 
     const isNew = this.isNewData();
     this.disable();
@@ -340,4 +419,23 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   }
 
 
+  protected getBatchChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[]{
+    return (batch.children || []).reduce((res, child) => {
+      if (child.label && child.label.startsWith(acquisitionLevel + "#")) return res.concat(child);
+      return res.concat(this.getBatchChildrenByLevel(child, acquisitionLevel)); // recursive call
+    }, []);
+  }
+
+  public onBatchTabChange(event: MatTabChangeEvent) {
+    const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
+    queryParams['sub-tab'] = event.index;
+    this.router.navigate(['.'], {
+      relativeTo: this.route,
+      queryParams: queryParams
+    });
+
+    // Confirm editing row
+    this.batchGroupsTable.confirmEditCreateSelectedRow();
+    this.subBatchesTable.confirmEditCreateSelectedRow();
+  }
 }

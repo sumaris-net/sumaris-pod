@@ -2,7 +2,6 @@
   <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-
   <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
@@ -36,7 +35,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<mat-table [dataSource]="dataSource" class="table-operations" matSort matSortActive="rankOrder" matSortDirection="asc"
+<mat-table [dataSource]="dataSource" class="table-sub-samples" matSort matSortActive="rankOrder" matSortDirection="asc"
   matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
@@ -60,16 +59,16 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- parent sample -->
+  <!-- parent -->
   <ng-container matColumnDef="parent">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{ (displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
-        'TRIP.SUB_SAMPLE.TABLE.PARENT_SAMPLE') | translate }}</ion-label>
+        'TRIP.SAMPLE.TABLE.PARENT_SAMPLE') | translate }}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent" [appAutofocus]="row.id == -1 && row.editing"
-          [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.SUB_SAMPLE.TABLE.PARENT_SAMPLE' | translate)"
+          [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.SAMPLE.TABLE.PARENT_SAMPLE' | translate)"
           (click)="$event.target.select()" (blur)="onParentCellBlur($event, row)" required>
         <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
@@ -80,13 +79,13 @@
             <ion-text>{{displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || '#'}}</ion-text>
           </ion-col>
           <ion-col>
-            <ion-text translate>TRIP.SUB_SAMPLE.TABLE.TAXON_GROUP</ion-text>
+            <ion-text translate>TRIP.SAMPLE.TABLE.TAXON_GROUP</ion-text>
           </ion-col>
         </ion-row>
         <mat-option *ngFor="let sample of filteredParents | async" [value]="sample">
           <ion-row>
             <ion-col [innerHTML]="(displayParentPmfm && sample.measurementValues[displayParentPmfm.pmfmId] || sample.rankOrder) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
-            <ion-col [innerHTML]="sample.taxonGroup.label | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
+            <ion-col [innerHTML]="sample.taxonName.label | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
           </ion-row>
         </mat-option>
       </mat-autocomplete>
@@ -96,7 +95,6 @@
 
   <!-- Pmfms columns -->
   <ng-container *ngIf="!loading">
-    <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.type=='date'">
         <ion-label>{{getPmfmColumnHeader(pmfm)}}
@@ -153,11 +151,6 @@
     [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>
 
-<!-- <ion-row>
-  <ion-col *ngFor="let pmfm of pmfms | async">
-    {{pmfm.label}}
-  </ion-col>
-</ion-row> -->
 <ion-fab right bottom visible-xs visible-sm>
   <button ion-fab color="light" (click)="addRow()">
     <ion-icon name="md-add"></ion-icon>

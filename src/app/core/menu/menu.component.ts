@@ -17,6 +17,7 @@ export interface MenuItem {
   page?: string | any;
   icon?: string;
   profile?: UserProfileLabel;
+  exactProfile?: UserProfileLabel;
 }
 
 @Component({
@@ -111,11 +112,23 @@ export class MenuComponent implements OnInit {
     }
     else {
       this.filteredItems.next((this.items || []).filter(i => {
-        const res = !i.profile || this.accountService.hasProfile(i.profile);
-        if (!res) {
-          console.debug("[menu] User does not have profile '" + i.profile + "' need by ", (i.path || i.page));
-          this.accountService.hasProfile(i.profile);
+        let res;
+        if (i.profile) {
+          res = this.accountService.hasMinProfile(i.profile);
+          if (!res) {
+            console.debug("[menu] User does not have minimal profile '" + i.profile + "' need by ", (i.path || i.page));
+          }
         }
+        else if (i.exactProfile) {
+          res = !i.profile || this.accountService.hasExactProfile(i.profile);
+          if (!res) {
+            console.debug("[menu] User does not have exact profile '" + i.profile + "' need by ", (i.path || i.page));
+          }
+        }
+        else {
+          res = true;
+        }
+
         return res;
       }));
     }

@@ -184,19 +184,27 @@ export class BaseDataService {
     query: any,
     variables: V
   }, propertyName: string, newValue: any) {
-    const values = this.apollo.getClient().readQuery(opts);
 
-    if (values && values[propertyName]) {
-      values[propertyName].push(newValue);
+    try {
+      const values = this.apollo.getClient().readQuery(opts);
 
-      this.apollo.getClient().writeQuery({
-        query: opts.query,
-        variables: opts.variables,
-        data: values
-      });
-    } else {
-      if (this._debug) console.debug("[data-service] Unable to add entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+      if (values && values[propertyName]) {
+        values[propertyName].push(newValue);
+
+        this.apollo.getClient().writeQuery({
+          query: opts.query,
+          variables: opts.variables,
+          data: values
+        });
+        return; // OK: stop here
+      }
     }
+
+    catch(err) {
+      // continue
+      // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
+    }
+    if (this._debug) console.debug("[data-service] Unable to add entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
   protected addManyToQueryCache<V = R>(opts: {
@@ -206,26 +214,32 @@ export class BaseDataService {
 
     if (!newValues || !newValues.length) return; // nothing to process
 
-    const values = this.apollo.getClient().readQuery(opts);
+    try {
+      const values = this.apollo.getClient().readQuery(opts);
 
-    if (values && values[propertyName]) {
-      // Keep only not existing values
-      newValues = newValues.filter(nv => !values[propertyName].find(v => nv['id'] === v['id'] && nv['entityName'] === v['entityName']));
+      if (values && values[propertyName]) {
+        // Keep only not existing values
+        newValues = newValues.filter(nv => !values[propertyName].find(v => nv['id'] === v['id'] && nv['entityName'] === v['entityName']));
 
-      if (!newValues.length) return; // No new value
+        if (!newValues.length) return; // No new value
 
-      // Update the cache
-      values[propertyName] = values[propertyName].concat(newValues);
-      this.apollo.getClient().writeQuery({
-        query: opts.query,
-        variables: opts.variables,
-        data: values
-      });
+        // Update the cache
+        values[propertyName] = values[propertyName].concat(newValues);
+        this.apollo.getClient().writeQuery({
+          query: opts.query,
+          variables: opts.variables,
+          data: values
+        });
+        return; // OK: stop here
+      }
     }
 
-    else {
-      if (this._debug) console.debug("[data-service] Unable to add entities to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+    catch(err) {
+      // continue
+      // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
+
+    if (this._debug) console.debug("[data-service] Unable to add entities to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
   protected removeToQueryCacheById<V = R>(opts: {
@@ -233,20 +247,26 @@ export class BaseDataService {
     variables: V
   }, propertyName: string, idToRemove: number) {
 
-    const values = this.apollo.getClient().readQuery(opts);
+    try {
+      const values = this.apollo.getClient().readQuery(opts);
 
-    if (values && values[propertyName]) {
+      if (values && values[propertyName]) {
 
-      values[propertyName] = (values[propertyName] || []).filter(item => item['id'] !== idToRemove);
-      this.apollo.getClient().writeQuery({
-        query: opts.query,
-        variables: opts.variables,
-        data: values
-      });
+        values[propertyName] = (values[propertyName] || []).filter(item => item['id'] !== idToRemove);
+        this.apollo.getClient().writeQuery({
+          query: opts.query,
+          variables: opts.variables,
+          data: values
+        });
+
+        return;
+      }
     }
-    else {
-      console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
+    catch(err) {
+      // continue
+      // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
+    console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
   protected removeToQueryCacheByIds<V = R>(opts: {

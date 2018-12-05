@@ -221,8 +221,8 @@
         "TAB_SURVIVAL_TEST": "Survival tests",
         "TAB_INDIVIDUAL_MONITORING": "Individual monitoring",
         "TAB_INDIVIDUAL_RELEASES": "Releases",
-        "BATCH_SPECIES": "Species list",
-        "BATCH_INDIVIDUAL": "Individual sampling",
+        "TAB_BATCH_SPECIES": "Batch by species",
+        "TAB_BATCH_INDIVIDUAL": "Individual measure",
         "START": "Start of fishing:",
         "END": "End of fishing:",
         "GEAR_AND_TARGETED_SPECIES": "Gear / Target species:",
@@ -258,30 +258,26 @@
     "BATCH": {
       "TABLE": {
         "TAXON_GROUP": "Declarative species (FAO)",
-        "TAXON_GROUP_PLACEHOLDER": "Declarative species",
+        "TAXON_GROUP_PLACEHOLDER": "Species code",
         "TAXON_NAME": "Scientific species (FAO)",
-        "TAXON_NAME_PLACEHOLDER": "Scientific species",
+        "TAXON_NAME_PLACEHOLDER": "Species code",
         "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
         "TOTAL_WEIGHT": "Total weight",
         "SAMPLING_RATIO": "Sampling fraction",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_WEIGHT": "Sampling weight",
+        "PARENT_BATCH": "Species batch",
         "COMMENTS": "Comments"
       }
     },
     "SAMPLE": {
       "TABLE": {
         "TAXON_GROUP": "Scientific species (FAO)",
-        "TAXON_GROUP_PLACEHOLDER": "Scientific species",
-        "TAXON_GROUP": "Scientific species (FAO)",
-        "TAXON_GROUP_PLACEHOLDER": "Scientific species",
-        "SAMPLE_DATE": "Measure date/time"
-      }
-    },
-    "SUB_SAMPLE": {
-      "TABLE": {
+        "TAXON_GROUP_PLACEHOLDER": "Species code",
+        "TAXON_NAME": "Scientific species (FAO)",
+        "TAXON_NAME_PLACEHOLDER": "Species code",
+        "SAMPLE_DATE": "Measure date/time",
         "PARENT_SAMPLE": "Parent sample",
-        "TAXON_GROUP": "Species",
         "COMMENTS": "Comments",
         "BTN_AUTO_FILL": "Automatically fill"
       }
@@ -314,7 +310,6 @@
     }
   },
   "VESSEL": {
-    "TITLE": "Vessel",
     "VESSEL_ID": "Internal code",
     "NAME": "Name",
     "EXTERIOR_MARKING": "Registration No",
@@ -323,7 +318,14 @@
     "COMMENTS": "Comments",
     "ACTIONS": "Actions on row",
     "START_DATE": "Validity start date",
-    "TAB_GENERAL": "General  informations",
+    "TAB_GENERAL": "General information",
+    "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
+    "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
+    "ADMINISTRATIVE_POWER": "Administrative power (kW)",
+    "LENGTH_OVER_ALL": "Length over all (m)",
+    "EDIT": {
+      "TITLE": "Vessel"
+    },
     "NEW": {
       "TITLE": "New vessel"
     },

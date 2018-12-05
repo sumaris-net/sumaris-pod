@@ -1,4 +1,9 @@
-import { Referential, ReferentialRef, EntityUtils, Department, Person, toDateISOString, fromDateISOString, StatusIds, Cloneable, Entity, joinProperties, entityToString, referentialToString } from "../../core/services/model";
+import {
+  Cloneable, Entity, EntityUtils,
+  Referential, ReferentialRef, Department, Person,
+  StatusIds,AcquisitionLevelCodes,
+  toDateISOString, fromDateISOString, joinProperties, entityToString, referentialToString, isNotNil, isNil
+} from "../../core/core.module";
 import { Moment } from "moment/moment";
 
 export const LocationLevelIds = {
@@ -26,9 +31,15 @@ export const TaxonomicLevelIds = {
 
 export const PmfmIds = {
   TAG_ID: 82,
+  DISCARD_OR_LANDING: 90,
   IS_DEAD: 94,
+  DISCARD_REASON: 95,
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102
+}
+
+export const QualitativeLabels = {
+  DISCARD: 'DIS'
 }
 
 export const MethodIds = {
@@ -44,7 +55,9 @@ export const PmfmLabelPatterns = {
 
 const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
-export { Referential, ReferentialRef, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department, entityToString, referentialToString };
+export { Referential, ReferentialRef, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department, entityToString, referentialToString, isNotNil, isNil, AcquisitionLevelCodes };
+
+
 
 export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
   return obj && obj.vesselId && joinProperties(obj, ['exteriorMarking', 'name']) || undefined;
@@ -75,6 +88,10 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
   startDate: Date | Moment;
   endDate: Date | Moment;
   exteriorMarking: string;
+  administrativePower: number;
+  lengthOverAll: number;
+  grossTonnageGt: number;
+  grossTonnageGrt: number;
   basePortLocation: ReferentialRef;
   creationDate: Date | Moment;
   recorderDepartment: Department;
@@ -104,6 +121,7 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
 
   asObject(minify?: boolean): any {
     const target: any = super.asObject(minify);
+
     target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject(minify) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
@@ -123,6 +141,10 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
     this.vesselTypeId = source.vesselTypeId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
+    this.administrativePower = source.administrativePower;
+    this.lengthOverAll = source.lengthOverAll;
+    this.grossTonnageGt = source.grossTonnageGt;
+    this.grossTonnageGrt = source.grossTonnageGrt;
     this.creationDate = fromDateISOString(source.creationDate);
     source.basePortLocation && this.basePortLocation.fromObject(source.basePortLocation);
     source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);

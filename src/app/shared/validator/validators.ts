@@ -1,4 +1,4 @@
-import { FormControl, ValidationErrors } from "@angular/forms";
+import {FormControl, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
 
@@ -46,5 +46,9 @@ export class SharedValidators {
     const value = control.value;
     if (value && Math.trunc(value) !== value)
       return { integer: true };
+  }
+
+  static maxDecimalsPattern(maxDecimals: number): ValidatorFn {
+    return Validators.pattern(new RegExp('^[0-9]+(\.[0-9]{1,'+maxDecimals+'})?$'));
   }
 }

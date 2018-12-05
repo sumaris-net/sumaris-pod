@@ -98,7 +98,7 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
                 // Skip if noloading or no observers
                 if (this.loading || !this.valueChanges.observers.length) return;
 
-                if (this.debug) console.debug("[physcial-gear-form] measurementsForm.valueChanges => propagate event");
+                if (this.debug) console.debug("[physical-gear-form] measurementsForm.valueChanges => propagate event");
                 this.valueChanges.emit(this.value);
             });
 
@@ -107,10 +107,10 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
                 debounceTime(300)
             )*/
             .subscribe(json => {
-                // Skip if noloading or no observers
+                // Skip if not loading or no observers
                 if (this.loading || !this.valueChanges.observers.length) return;
 
-                if (this.debug) console.debug("[physcial-gear-form] form(=gear).valueChanges => propagate event");
+                if (this.debug) console.debug("[physical-gear-form] form(=gear).valueChanges => propagate event");
                 this.valueChanges.emit(this.value);
             });
     }

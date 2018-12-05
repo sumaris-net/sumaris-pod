@@ -87,7 +87,9 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         return this._acquisitionLevel;
     }
 
-    @Input() showComment: boolean = false;
+    @Input() showCommentsColumn: boolean = true;
+    @Input() showTaxonGroupColumn: boolean = true;
+    @Input() showTaxonNameColumn: boolean = true;
 
     constructor(
         protected route: ActivatedRoute,
@@ -120,26 +122,31 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     async ngOnInit() {
         super.ngOnInit();
 
+      let excludesColumns:String[] = new Array<String>();
+      if (!this.showCommentsColumn) excludesColumns.push('comments');
+      if (!this.showTaxonGroupColumn) excludesColumns.push('taxonGroup');
+      if (!this.showTaxonNameColumn) excludesColumns.push('taxonName');
+
         this._onRefreshPmfms
             .pipe(
                 startWith('ngOnInit')
             )
-            .subscribe((event) => {
-                this.refreshPmfms(event)
-            });
+            .subscribe((event) => this.refreshPmfms(event));
 
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
             .first()
             .subscribe(pmfms => {
                 this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
-                let displayedColumns = pmfms.map(p => p.pmfmId.toString());
+                let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
 
                 this.displayedColumns = RESERVED_START_COLUMNS
                     .concat(BATCH_RESERVED_START_COLUMNS)
-                    .concat(displayedColumns)
-                    .concat(this.showComment ? BATCH_RESERVED_END_COLUMNS : [])
-                    .concat(RESERVED_END_COLUMNS);
+                    .concat(pmfmColumns)
+                    .concat(BATCH_RESERVED_END_COLUMNS)
+                    .concat(RESERVED_END_COLUMNS)
+                    // Remove columns to hide
+                    .filter(column => !excludesColumns.includes(column));
 
                 this.loading = false;
 

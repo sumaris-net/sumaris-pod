@@ -42,7 +42,7 @@ export class VesselModal {
       this.form.disable();
 
       const res = await this.vesselService.save(data);
-      this.viewCtrl.dismiss(res)
+      await this.viewCtrl.dismiss(res)
     }
     catch (err) {
       this.form.error = err && err.message || err;
@@ -53,5 +53,11 @@ export class VesselModal {
 
   cancel() {
     this.viewCtrl.dismiss();
+  }
+
+  onReset(event: any) {
+    this.form.setValue(VesselFeatures.fromObject({}));
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
   }
 }
