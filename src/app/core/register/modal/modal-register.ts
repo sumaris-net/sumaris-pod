@@ -37,7 +37,7 @@ export class RegisterModal {
       console.debug('[register] Sending registration to server...', data);
       const res = await this.accountService.register(data);
 
-      console.debug('[register] Account registered ! Closing modal...');
+      console.debug('[register] Account registered!');
       await this.viewCtrl.dismiss();
     }
     catch (err) {
@@ -46,6 +46,6 @@ export class RegisterModal {
     finally {
       this.form.enable();
       this.sending = false;
-    };
+    }
   }
 }

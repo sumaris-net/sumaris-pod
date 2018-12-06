@@ -56,10 +56,9 @@ const SETTINGS_STORAGE_KEY = "settings"
 /* ------------------------------------
  * GraphQL queries
  * ------------------------------------*/
-// Get account query
-const AccountQuery: any = gql`
-  query Account($pubkey: String){
-    account(pubkey: $pubkey){
+export const Fragments = {
+  account: gql`
+    fragment AccountFragment on AccountVO {
       id
       firstName
       lastName
@@ -77,14 +76,27 @@ const AccountQuery: any = gql`
         content
         nonce
         updateDate
+        __typename
       }
       department {
         id
         label
         name
+        __typename
       }
+      __typename
+    }
+  `
+};
+
+// Load account query
+const LoadQuery: any = gql`
+  query Account($pubkey: String){
+    account(pubkey: $pubkey){
+      ...AccountFragment
     }
   }
+  ${Fragments.account}
 `;
 export declare type AccountVariables = {
   pubkey: string;
@@ -105,34 +117,23 @@ export declare type IsEmailExistsVariables = {
 }
 
 // Save (create or update) account mutation
-const SaveAccountMutation: any = gql`
+const SaveMutation: any = gql`
   mutation SaveAccount($account:AccountVOInput){
     saveAccount(account: $account){
-      id
-      firstName
-      lastName
-      email
-      pubkey
-      avatar
-      statusId
-      updateDate
-      creationDate
-      profiles
-      settings {
-        id
-        locale
-        latLongFormat
-        content
-        nonce
-        updateDate
-      }
-      department {
-        id
-        label 
-        name
-      }
+      ...AccountFragment
     }
   }
+  ${Fragments.account}
+`;
+
+// Create account mutation
+const CreateMutation: any = gql`
+  mutation CreateAccount($account:AccountVOInput){
+    createAccount(account: $account){
+      ...AccountFragment
+    }
+  }
+  ${Fragments.account}
 `;
 
 // Sent confirmation email
@@ -330,8 +331,6 @@ export class AccountService extends BaseDataService {
       // Default values
       data.account.settings.locale = data.account.settings.locale || this.translate.currentLang || this.translate.defaultLang;
       data.account.settings.latLongFormat = environment.defaultLatLongFormat || 'DDMM';
-
-      // TODO: add department to register form
       data.account.department.id = data.account.department.id || environment.defaultDepartmentId;
 
       this.data.keypair = keypair;
@@ -347,12 +346,12 @@ export class AccountService extends BaseDataService {
 
       await this.saveLocally();
 
-      console.debug("[account] Account sucessfully registered in " + (new Date().getTime() - now.getTime()) + "ms");
+      console.debug("[account] Account successfully registered in " + (new Date().getTime() - now.getTime()) + "ms");
       this.onLogin.next(this.data.account);
       return this.data.account;
     }
     catch (error) {
-      console.error(error);
+      console.error(error && error.message || error);
       this.resetData();
       throw error;
     };
@@ -631,7 +630,7 @@ export class AccountService extends BaseDataService {
     var now = new Date();
 
     const res = await this.query<{ account: any }>({
-      query: AccountQuery,
+      query: LoadQuery,
       variables: {
         pubkey: pubkey
       },
@@ -681,7 +680,7 @@ export class AccountService extends BaseDataService {
 
     // Execute mutation
     const res = await this.mutate<{ saveAccount: any }>({
-      mutation: SaveAccountMutation,
+      mutation: isNew ? CreateMutation : SaveMutation,
       variables: {
         account: json
       },
