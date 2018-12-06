@@ -65,8 +65,8 @@
       <!-- length over all -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input type="number" step="0.1" autocomplete="off" matInput [placeholder]="'VESSEL.LENGTH_OVER_ALL'|translate"
-                 formControlName="lengthOverAll">
+          <input matInput type="number" step="0.1" min="0" autocomplete="off"  [placeholder]="'VESSEL.LENGTH_OVER_ALL'|translate"
+                 formControlName="lengthOverAll" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.controls['lengthOverAll'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['lengthOverAll'].hasError('pattern')">
             {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
@@ -78,8 +78,8 @@
       <!-- Administrative power -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input type="number" step="1" autocomplete="off" matInput [placeholder]="'VESSEL.ADMINISTRATIVE_POWER'|translate"
-                 formControlName="administrativePower">
+          <input type="number" step="1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.ADMINISTRATIVE_POWER'|translate"
+                 formControlName="administrativePower" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.controls['administrativePower'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['administrativePower'].hasError('pattern')">
             {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
@@ -91,8 +91,8 @@
       <!-- Gross tonnage (GT) -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input type="number" step="0.1" autocomplete="off" matInput [placeholder]="'VESSEL.GROSS_TONNAGE_GT'|translate"
-                 formControlName="grossTonnageGt">
+          <input type="number" step="0.1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.GROSS_TONNAGE_GT'|translate"
+                 formControlName="grossTonnageGt" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.controls['grossTonnageGt'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['grossTonnageGt'].hasError('pattern')">
             {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
@@ -100,6 +100,19 @@
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>
       </ion-col>
+
+      <!-- Gross tonnage (GRT)
+      <ion-col size="12" size-md="4" hidden>
+        <mat-form-field>
+          <input type="number" step="0.1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.GROSS_TONNAGE_GRT'|translate"
+                 formControlName="grossTonnageGrt" (keypress)="filterNumberInput($event, true)">
+          <mat-error *ngIf="form.controls['grossTonnageGrt'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['grossTonnageGrt'].hasError('pattern')">
+            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
+          <mat-error *ngIf="form.controls['grossTonnageGrt'].hasError('min')">
+            {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
+        </mat-form-field>
+      </ion-col>-->
     </ion-row>
 
     <!-- Comments -->

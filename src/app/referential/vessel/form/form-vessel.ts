@@ -7,8 +7,7 @@ import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Observable } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
-import { VesselService } from '../../services/vessel-service';
-import { AppForm } from '../../../core/core.module';
+import { AppForm, AppFormUtils } from '../../../core/core.module';
 import { ReferentialRefService } from '../../services/referential-ref.service';
 
 
@@ -28,7 +27,6 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
     protected dateAdapter: DateAdapter<Moment>,
     protected platform: Platform,
     protected vesselValidatorService: VesselValidatorService,
-    protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService
   ) {
 
@@ -53,5 +51,6 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
   }
 
   referentialToString = referentialToString;
+  filterNumberInput = AppFormUtils.filterNumberInput;
 
 }
