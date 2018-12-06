@@ -114,7 +114,7 @@ export class BaseDataService {
         mutation: opts.mutation,
         variables: opts.variables
       })
-        .catch(this.onApolloError)
+        .catch(error => this.onApolloError<T>(error))
         .subscribe(({ data, errors }) => {
           if (errors) {
             const error = errors[0] as any;
