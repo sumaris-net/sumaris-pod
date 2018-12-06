@@ -43,20 +43,21 @@ import { Entity, Cloneable, EntityUtils,
   isNil, isNotNil, nullIfUndefined, referentialToString, joinProperties, entityToString,
   toDateISOString, fromDateISOString} from './services/model';
 
+
 // import ngx-translate and the http loader
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 
 export {
-    environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
-    AccountService, AccountFieldDef, DataService, AccountValidatorService, UserSettingsValidatorService,
-    AuthGuardService, FormMetadataComponent, FormButtonsBarComponent,
-    RESERVED_START_COLUMNS, RESERVED_END_COLUMNS,
-    Entity, Cloneable, EntityUtils,
-    AcquisitionLevelCodes, StatusIds, LocationLevelIds,
-    Referential, ReferentialRef, Department, Person,
-    toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined, entityToString, referentialToString
+  environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
+  AccountService, AccountFieldDef, DataService, AccountValidatorService, UserSettingsValidatorService,
+  AuthGuardService, FormMetadataComponent, FormButtonsBarComponent,
+  RESERVED_START_COLUMNS, RESERVED_END_COLUMNS,
+  Entity, Cloneable, EntityUtils,
+  AcquisitionLevelCodes, StatusIds, LocationLevelIds,
+  Referential, ReferentialRef, Department, Person,
+  toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined, entityToString, referentialToString
 }
 
 export function HttpLoaderFactory(http: HttpClient) {
