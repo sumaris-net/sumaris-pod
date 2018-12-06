@@ -13,7 +13,7 @@
       <ion-col size="12" no-padding>
         <mat-form-field>
           <input matInput [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate" [matAutocomplete]="autoGear"
-            formControlName="gear" required>
+                 formControlName="gear" required>
           <mat-error *ngIf="form.controls['gear'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['gear'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>

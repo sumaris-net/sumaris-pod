@@ -40,7 +40,7 @@
   <!-- date -->
   <ng-container *ngSwitchCase="'date'">
     <mat-date-time [formControl]="formControl" [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
-      [floatLabel]="floatLabel" [required]="pmfm.isMandatory" [displayTime]="pmfm.unit=='Date & Time'"></mat-date-time>
+      [floatLabel]="floatLabel" [required]="pmfm.isMandatory" [readonly]="readonly" [displayTime]="pmfm.unit=='Date & Time'"></mat-date-time>
   </ng-container>
 
   <!-- qualitative value -->

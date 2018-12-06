@@ -104,7 +104,7 @@
       <ion-card>
 
         <!-- Help -->
-        <ion-item [hidden]="selectedRow">
+        <ion-item [hidden]="!resultsLength || selectedRow">
           <ion-icon slot="start" name="ios-help-circle-outline" color="primary"></ion-icon>
           <ion-label>
             <ion-text>

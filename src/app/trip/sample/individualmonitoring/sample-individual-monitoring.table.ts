@@ -13,7 +13,6 @@ import { AcquisitionLevelCodes } from "../../../core/services/model";
 import { MeasurementsValidatorService } from "../../services/trip.validators";
 import { PmfmIds } from "../../../referential/services/model";
 import { SubSamplesTable } from "../sub-samples.table";
-import { distinctUntilChanged } from "rxjs/operators";
 
 
 @Component({

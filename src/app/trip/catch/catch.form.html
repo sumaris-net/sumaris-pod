@@ -8,25 +8,36 @@
 
   <ion-grid no-padding>
 
-    <!-- on deck -->
-    <ion-row>
+    <!-- on deck (loading) -->
+    <ion-row *ngIf="!(onDeckPmfms | async)">
       <ion-col size="12" size-md="3" align-self-end>
         <ion-label>
           <ion-text translate>TRIP.CATCH.FORM.ON_DECK</ion-text>
         </ion-label>
       </ion-col>
-
-      <!-- FIXME <ion-col size="6" size-md="auto" *ngIf="loading">
-        <ion-spinner></ion-spinner>
-      </ion-col> -->
-
-      <ion-col size="6" size-md="auto" *ngFor="let pmfm of onDeckPmfms | async">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues']?.controls[pmfm.pmfmId]"
-          *ngIf="form.controls['measurementValues']?.controls[pmfm.pmfmId]">
-        </mat-form-field-measurement>
+      <ion-col size="6" size-md="auto">
+        <ion-label>
+          <ion-spinner></ion-spinner>
+        </ion-label>
       </ion-col>
-
     </ion-row>
+
+    <!-- on deck (loaded) -->
+    <ng-container *ngIf="onDeckPmfms | async;let pmfms">
+      <ion-row *ngIf="pmfms.length">
+        <ion-col size="12" size-md="3" align-self-end>
+          <ion-label>
+            <ion-text translate>TRIP.CATCH.FORM.ON_DECK</ion-text>
+          </ion-label>
+        </ion-col>
+
+        <ion-col size="6" size-md="auto" *ngFor="let pmfm of pmfms">
+          <mat-form-field-measurement [pmfm]="pmfm" [formControl]="form.controls['measurementValues']?.controls[pmfm.pmfmId]"
+                                      *ngIf="form.controls['measurementValues']?.controls[pmfm.pmfmId]">
+          </mat-form-field-measurement>
+        </ion-col>
+      </ion-row>
+    </ng-container>
 
     <!-- Sorting -->
     <ion-row>
