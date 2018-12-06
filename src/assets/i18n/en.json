@@ -172,7 +172,8 @@
     "TAB_PHYSICAL_GEAR": "Gears",
     "TAB_OPERATIONS": "Operations",
     "NEW": {
-      "TITLE": "New trip"
+      "TITLE": "New trip",
+      "ACCESS_OPERATIONS_HELP": "Please <b>save trip</b> first, so you can access operations table"
     },
     "EDIT": {
       "TITLE": "{{vessel}} - Trip of {{departureDateTime}}",
@@ -426,7 +427,7 @@
     "UNKNOWN_NETWORK_ERROR": "Error communicating with the server.<small><br/>If the problem persists, please contact your administrator.</small>",
     "BAD_UPDATE_DATE": "Unable to save.<small><br/>Concurrent change detected. Please reload this page and retry.</small>",
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
-    "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "LOAD_ACCOUNT_ERROR": "Error loading user account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "ACCOUNT_NOT_EXISTS": "Your account does not appear to exist and can not be backed up.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Error sending account confirmation email.<small><br/>If the problem persists, please contact your administrator.</small>",
