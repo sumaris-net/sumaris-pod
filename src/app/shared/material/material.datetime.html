@@ -22,10 +22,10 @@
 
   <input matInput autocomplete="off" type="text" [textMask]="{mask: mask, keepCharPositions: true, placeholderChar: placeholderChar}"
     formControlName="day" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()"
-    (keyup.arrowdown)="openDatePicker($event)" (click)="openDatePickerIfTouchUi($event)" [required]="required">
+    (keyup.arrowdown)="openDatePicker($event, datePicker1)" (click)="openDatePickerIfTouchUi($event)" [required]="required">
   <input matInput type="text" [formControl]="formControl" hidden [matDatepicker]="datePicker1" (dateChange)="onDatePickerChange($event)">
 
-  <button type="button" matSuffix (click)="openDatePicker($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+  <button type="button" matSuffix (click)="openDatePicker($event, datePicker1)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
     <mat-icon>keyboard_arrow_down</mat-icon>
   </button>
   <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #datePicker1></mat-datepicker>
@@ -59,13 +59,13 @@
 
         <input matInput autocomplete="off" type="text" [textMask]="{mask: mask, keepCharPositions: true, placeholderChar: placeholderChar}"
           formControlName="day" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()"
-          (keyup.arrowdown)="openDatePicker($event)" (click)="openDatePickerIfTouchUi($event)" [required]="required">
+          (keyup.arrowdown)="openDatePicker($event, datePicker3)" (click)="openDatePickerIfTouchUi($event)" [required]="required">
 
-        <input matInput type="text" [formControl]="formControl" hidden [matDatepicker]="datePicker3" (dateChange)="onDatePickerChange($event)">
-        <button type="button" matSuffix (click)="openDatePicker($event)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+        <input matInput type="text" [formControl]="formControl" hidden [matDatepicker]="datePicker2" (dateChange)="onDatePickerChange($event)">
+        <button type="button" matSuffix (click)="openDatePicker($event, datePicker2)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
           <mat-icon>keyboard_arrow_down</mat-icon>
         </button>
-        <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #datePicker3></mat-datepicker>
+        <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #datePicker2></mat-datepicker>
 
       </mat-form-field>
       <div class="mat-form-field-subscript mat-form-field-subscript-wrapper" *ngIf="formControl.invalid">
