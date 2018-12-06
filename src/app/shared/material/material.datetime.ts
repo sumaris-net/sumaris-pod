@@ -7,6 +7,7 @@ import * as moment from "moment/moment";
 import { Moment } from 'moment/moment';
 import { DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR } from '../constants';
 import { SharedValidators } from '../validator/validators';
+import {isNil} from "../functions";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
     provide: NG_VALUE_ACCESSOR,
@@ -76,7 +77,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
     @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
-    @ViewChild('datePicker3') datePicker3: MatDatepicker<Moment>;
 
     constructor(
         platform: Platform,
@@ -336,6 +336,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
         let date = event.value;
         date = typeof date === 'string' && this.dateAdapter.parse(date, DATE_ISO_PATTERN) || date;
+        let day;
         if (this.displayTime) {
             if (this.mobile) {
                 date = date && date
@@ -343,26 +344,30 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
                     .locale(this.locale)
                     // then change in UTC, to avoid TZ offset in final string
                     .utc();
+                day = date && date.clone().startOf('day');
             }
             else {
-                const hourParts = (this.form.controls.hour.value || '').split(':');
-                date = date && date
-                    // set as time as locale time
-                    .locale(this.locale)
-                    .hour(parseInt(hourParts[0] || 0))
-                    .minute(parseInt(hourParts[1] || 0))
-                    .seconds(0).millisecond(0)
-                    // then change in UTC, to avoid TZ offset in final string
-                    .utc();
+              // Keep original day (to avoid to have a offset of 1 day - fix #33)
+              day = date && date.clone().locale(this.locale).hour(0).minute(0).seconds(0).millisecond(0).utc(true);
+              const hourParts = (this.form.controls.hour.value || '').split(':');
+              date = date && date
+                  // set as time as locale time
+                  .locale(this.locale)
+                  .hour(parseInt(hourParts[0] || 0))
+                  .minute(parseInt(hourParts[1] || 0))
+                  .seconds(0).millisecond(0)
+                  // then change in UTC, to avoid TZ offset in final string
+                  .utc();
             }
         }
         else {
             // avoid to have TZ offset
             date = date && date.utc(true).hour(0).minute(0).seconds(0).millisecond(0);
+            day = date && date.clone().startOf('day');
         }
 
         // update day value
-        this.form.controls.day.setValue(date && date.clone().startOf('day').format(this.mobile ? this.displayPattern : this.dayPattern), { emitEvent: false });
+        this.form.controls.day.setValue(day && day.format(this.mobile ? this.displayPattern : this.dayPattern), { emitEvent: false });
 
         // Get the model value
         const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
@@ -389,11 +394,15 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         this.openDatePicker(event);
     }
 
-    public openDatePicker(event: UIEvent) {
+    public openDatePicker(event: UIEvent, datePicker?: MatDatepicker<Moment>) {
+      if (datePicker) {
+        datePicker.open();
+      }
+      else {
         this.datePicker1 && this.datePicker1.open();
         this.datePicker2 && this.datePicker2.open();
-        this.datePicker3 && this.datePicker3.open();
-        event.preventDefault();
+      }
+      event.preventDefault();
     }
 
 }
