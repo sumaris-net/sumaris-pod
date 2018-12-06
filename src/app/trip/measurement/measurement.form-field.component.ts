@@ -3,6 +3,7 @@ import { PmfmStrategy, getPmfmName } from "../services/trip.model";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, FormControl, FormGroupDirective } from '@angular/forms';
 import { FloatLabelType } from "@angular/material";
 import { MeasurementsValidatorService } from '../services/measurement.validator';
+import {AppFormUtils} from "../../core/core.module";
 
 const noop = () => {
 };
@@ -29,7 +30,9 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
     @Input() pmfm: PmfmStrategy;
 
-    @Input() disabled: boolean = false
+    @Input() readonly: boolean = false;
+
+    @Input() disabled: boolean = false;
 
     @Input() formControl: FormControl;
 
@@ -109,7 +112,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
         }
     }
 
-    computeNumberInputStep(pmfm: PmfmStrategy): string {
+    public computeNumberInputStep(pmfm: PmfmStrategy): string {
 
         if (pmfm.maximumNumberDecimals > 0) {
             let step = "0.";
@@ -126,28 +129,5 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
         }
     }
 
-  filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
-    //input number entered or one of the 4 direction up, down, left and right
-    if ((event.which >= 48 && event.which <= 57) || (event.which >= 37 && event.which <= 40)) {
-      //console.debug('input number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-      // OK
-    }
-    // Decimal separator
-    else if (allowDecimals && event.key == '.' || event.key == ',') {
-      //console.debug('input decimal separator entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-      // OK
-    }
-    else {
-      //input command entered of delete, backspace or one of the 4 direction up, down, left and right
-      if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8|| event.keyCode == 9) {
-        //console.debug('input command entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-        // OK
-      }
-      // Cancel other keyboard events
-      else {
-        //console.debug('input not number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
-        event.preventDefault();
-      }
-    }
-  }
+    filterNumberInput = AppFormUtils.filterNumberInput;
 }

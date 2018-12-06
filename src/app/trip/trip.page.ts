@@ -28,6 +28,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   title = new Subject<string>();
   saving: boolean = false;
   defaultBackHref: string = "/trips";
+  canAccessOperations = false;
 
   @ViewChild('tripForm') tripForm: TripForm;
 
@@ -94,6 +95,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       this.updateView(data, true);
       this.enable();
       this.loading = false;
+      this.canAccessOperations = true;
       this.startListenChanges();
     }
   }
@@ -203,6 +205,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
           queryParams: this.route.snapshot.queryParams,
           replaceUrl: true // replace the current satte in history
         });
+
+        this.canAccessOperations = true;
 
         // SUbscription to changes
         this.startListenChanges();

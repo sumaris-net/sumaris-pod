@@ -29,13 +29,15 @@
 
           <ion-row no-padding class="other-data">
             <ion-col no-padding>
-              <ion-button small expand="full" color="light" menuClose [routerLink]="['/account']">
+              <ion-button menuClose small expand="full" color="light" [routerLink]="['/account']"
+                          routerDirection="root" routerLinkActive="selected"
+                          (click)="menu.close()">
                 <ion-icon name="contact" slot="start"></ion-icon>
                 <ion-label translate>MENU.BTN_ACCOUNT</ion-label>
               </ion-button>
             </ion-col>
             <ion-col no-padding padding-left>
-              <ion-button small expand="full" color="light" menuClose (click)="logout()">
+              <ion-button small expand="full" color="light" menuClose (click)="menu.close() && logout()">
                 <ion-icon name="log-out" slot="start"></ion-icon>
                 <ion-label translate>MENU.BTN_LOGOUT</ion-label>
               </ion-button>

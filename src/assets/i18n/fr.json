@@ -172,7 +172,8 @@
     "TAB_PHYSICAL_GEAR": "Engins",
     "TAB_OPERATIONS": "Opérations",
     "NEW": {
-      "TITLE": "Nouvelle marée"
+      "TITLE": "Nouvelle marée",
+      "ACCESS_OPERATIONS_HELP": "Veuillez <b>sauvegarder la marée</b>, afin de pouvoir accéder à la saisie des opérations"
     },
     "EDIT": {
       "TITLE": "{{vessel}} - Marée du {{departureDateTime}}",
@@ -203,7 +204,7 @@
         "FEATURES": "Caractéristiques physiques :"
       },
       "LIST": {
-        "SELECT_ROW_HELP": "Sélectionnez une ligne pour l'éditer",
+        "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
         "COMMENTS": "Commentaires"
       }
