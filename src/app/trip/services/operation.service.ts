@@ -10,7 +10,6 @@ import { TripService } from "../services/trip.service";
 import { ErrorCodes } from "./trip.errors";
 import { AccountService } from "../../core/services/account.service";
 import { Fragments, DataFragments } from "./trip.queries";
-import { environment } from "src/app/core/core.module";
 
 
 export declare class OperationFilter {
