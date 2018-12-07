@@ -176,7 +176,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       await alert.onDidDismiss();
     }
 
-    super.deleteSelection();
+    await super.deleteSelection();
   }
 
   vesselFeaturesToString = vesselFeaturesToString;

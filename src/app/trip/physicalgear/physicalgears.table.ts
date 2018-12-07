@@ -222,8 +222,8 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     return true;
   }
 
-  deleteSelection() {
-    super.deleteSelection();
+  async deleteSelection() {
+    await super.deleteSelection();
     this.selectedRow = undefined;
 
     this.gearForm.markAsPristine();

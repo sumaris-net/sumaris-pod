@@ -48,17 +48,15 @@ export class BaseDataService {
     error?: ServiceError,
     fetchPolicy?: FetchPolicy
   }): Promise<T> {
-    //this.apollo.getClient().cache.reset();
     return new Promise<T>((resolve, reject) => {
-      const subscription: Subscription = this.apollo.query<ApolloQueryResult<T>, V>({
+      this.apollo.query<ApolloQueryResult<T>, V>({
         query: opts.query,
         variables: opts.variables,
         fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy) || undefined
       })
         .catch(error => this.onApolloError<T>(error))
+        .first()
         .subscribe(({ data, errors }) => {
-          subscription.unsubscribe();
-
           if (errors) {
             const error = errors[0] as any;
             if (error && error.code && error.message) {
@@ -80,7 +78,6 @@ export class BaseDataService {
     error?: ServiceError,
     fetchPolicy?: FetchPolicy
   }): Observable<T> {
-    //this.apollo.getClient().cache.reset();
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
       variables: opts.variables,
@@ -110,11 +107,12 @@ export class BaseDataService {
     error?: ServiceError
   }): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      const subscription = this.apollo.mutate<ApolloQueryResult<T>, V>({
+      this.apollo.mutate<ApolloQueryResult<T>, V>({
         mutation: opts.mutation,
         variables: opts.variables
       })
         .catch(error => this.onApolloError<T>(error))
+        .first()
         .subscribe(({ data, errors }) => {
           if (errors) {
             const error = errors[0] as any;
@@ -128,15 +126,15 @@ export class BaseDataService {
               else {
                 reject(error);
               }
-              return;
             }
-            console.error("[data-service] " + error.message);
-            throw opts.error ? opts.error : error.message;
+            else {
+              console.error("[data-service] " + error.message);
+              reject(opts.error ? opts.error : error.message);
+            }
           }
           else {
             resolve(data as T);
           }
-          subscription.unsubscribe();
         });
     });
   }
