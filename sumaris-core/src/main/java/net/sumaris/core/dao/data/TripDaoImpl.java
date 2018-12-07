@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -342,6 +342,95 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         }
 
         return target;
+    }
+
+    @Override
+    public TripVO control(TripVO source) {
+        Preconditions.checkNotNull(source);
+
+        Trip entity = get(Trip.class, source.getId());
+
+        // Check update date
+        checkUpdateDateForUpdate(source, entity);
+
+        // Lock entityName
+        lockForUpdate(entity);
+
+        // TODO CONTROL PROCESS HERE
+        Date controlDate = new Date(getDatabaseCurrentTimestamp().getTime());
+        entity.setControlDate(controlDate);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+        getEntityManager().merge(entity);
+
+        // Update source
+        source.setControlDate(controlDate);
+        source.setUpdateDate(newUpdateDate);
+
+        return source;
+    }
+
+    @Override
+    public TripVO validate(TripVO source) {
+        Preconditions.checkNotNull(source);
+
+        Trip entity = get(Trip.class, source.getId());
+
+        // Check update date
+        checkUpdateDateForUpdate(source, entity);
+
+        // Lock entityName
+//        lockForUpdate(entity);
+
+        // TODO VALIDATION PROCESS HERE
+        Date validationDate = new Date(getDatabaseCurrentTimestamp().getTime());
+        entity.setValidationDate(validationDate);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+//        getEntityManager().merge(entity);
+
+        // Update source
+        source.setValidationDate(validationDate);
+        source.setUpdateDate(newUpdateDate);
+
+        return source;
+    }
+
+    @Override
+    public TripVO unvalidate(TripVO source) {
+        Preconditions.checkNotNull(source);
+
+        Trip entity = get(Trip.class, source.getId());
+
+        // Check update date
+        checkUpdateDateForUpdate(source, entity);
+
+        // Lock entityName
+//        lockForUpdate(entity);
+
+        // TODO UNVALIDATION PROCESS HERE
+        entity.setValidationDate(null);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+//        getEntityManager().merge(entity);
+
+        // Update source
+        source.setValidationDate(null);
+        source.setUpdateDate(newUpdateDate);
+
+        return source;
     }
 
     /* -- protected methods -- */

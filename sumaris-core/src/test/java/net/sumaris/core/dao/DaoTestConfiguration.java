@@ -22,22 +22,13 @@ package net.sumaris.core.dao;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
-import net.sumaris.core.config.SumarisConfiguration;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import net.sumaris.core.TestConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import javax.annotation.Resource;
-import javax.sql.DataSource;
 
 @SpringBootApplication(
         exclude = {
@@ -53,53 +44,6 @@ import javax.sql.DataSource;
 @EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
 @EnableJpaRepositories("net.sumaris.core.dao")
-@org.springframework.boot.test.context.TestConfiguration
-public class DaoTestConfiguration {
+public class DaoTestConfiguration extends TestConfiguration {
 
-    /**
-     * Logger.
-     */
-    protected static final Log log =
-            LogFactory.getLog(DaoTestConfiguration.class);
-
-    @Bean
-    public static SumarisConfiguration sumarisConfiguration() {
-        SumarisConfiguration config = SumarisConfiguration.getInstance();
-        if (config == null) {
-            log.warn("Sumaris configuration not exists: creating a new one");
-            config = new SumarisConfiguration("sumaris-core-test.properties");
-            SumarisConfiguration.setInstance(config);
-        }
-        return config;
-    }
-
-    @Resource
-    private SumarisConfiguration config;
-
-    @Bean
-    public DataSource dataSource() {
-
-        // Driver datasource
-        Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcDriver()), "Missing jdbc driver in configuration");
-        Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcURL()), "Missing jdbc driver in configuration");
-        Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcUsername()), "Missing jdbc username in configuration");
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(config.getJdbcDriver());
-        dataSource.setUrl(config.getJdbcURL());
-        dataSource.setUsername(config.getJdbcUsername());
-        dataSource.setPassword(config.getJdbcPassword());
-
-        if (StringUtils.isNotBlank(config.getJdbcSchema())) {
-            dataSource.setSchema(config.getJdbcSchema());
-        }
-        if (StringUtils.isNotBlank(config.getJdbcCatalog())) {
-            dataSource.setCatalog(config.getJdbcCatalog());
-        }
-        return dataSource;
-    }
-
-    @Bean
-    public DatabaseFixtures databaseFixtures() {
-        return new DatabaseFixtures();
-    }
 }

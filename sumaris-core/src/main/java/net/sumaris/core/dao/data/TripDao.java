@@ -47,4 +47,9 @@ public interface TripDao {
 
     TripVO toTripVO(Trip trip);
 
+    TripVO control(TripVO trip);
+
+    TripVO validate(TripVO trip);
+
+    TripVO unvalidate(TripVO trip);
 }

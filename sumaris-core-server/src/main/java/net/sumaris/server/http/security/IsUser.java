@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Secured({ "ROLE_USER", "ROLE_SUPERVISOR", "ROLE_ADMIN" })
-public @interface IsEditor {
+public @interface IsUser {
 }

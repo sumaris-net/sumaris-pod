@@ -64,6 +64,6 @@ public class DepartmentServiceTest extends AbstractServiceTest{
 
     @Test
     public void delete() {
-        service.delete(dbResource.getFixtures().getDepartmentId(0));
+        service.delete(dbResource.getFixtures().getDepartmentId(1));
     }
 }
