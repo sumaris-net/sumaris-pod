@@ -197,20 +197,30 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   public handleErrorPromise(error: any, message: string) {
     console.error(error && error.message || error);
     this.onLoading.emit(false);
-    throw error; // (error && error.code) ? error : (message || error);
+    throw (error && error.message && error || message || error);
   }
 
   public delete(id: number): void {
-    var row = this.getRow(id);
+    const row = this.getRow(id);
     this.onLoading.emit(true);
 
     this.dataService.deleteAll([row.currentData], this.serviceOptions)
+      .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
         super.delete(id);
         this.onLoading.emit(false);
-      })
-      .catch(err => {
-        console.error(err);
+      });
+  }
+
+  public deleteAll(rows: TableElement<T>[]): Promise<any> {
+    this.onLoading.emit(true);
+
+    const data = rows.map(r => r.currentData);
+
+    return this.dataService.deleteAll(data, this.serviceOptions)
+      .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
+      .then(() => {
+        //rows.forEach(r => super.delete(r.id));
         this.onLoading.emit(false);
       });
   }

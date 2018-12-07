@@ -12,7 +12,7 @@ import { AppTabPage, AppFormUtils, AccountService } from '../core/core.module';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../environments/environment';
-import { Subscription, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { DateFormatPipe } from '../shared/pipes/date-format.pipe';
 import { isNil } from '../core/services/model';
 @Component({

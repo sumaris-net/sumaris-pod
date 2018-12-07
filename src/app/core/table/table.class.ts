@@ -144,7 +144,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                     (any: any) => {
                         this._dirty = false;
                         this.selection.clear();
-                        this.selectedRow = null;
+                        this.selectedRow = undefined;
                         if (any === 'skip' || !this.dataSource) {
                             return Observable.of(undefined);
                         }
@@ -230,13 +230,13 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 if (this.debug) console.warn("[table] Row not valid: unable to confirm", row);
                 return false;
             }
-            this.selectedRow = null; // unselect row
+            this.selectedRow = undefined; // unselect row
         }
         return true;
     }
 
     cancelOrDelete(event: any, row: TableElement<T>) {
-        this.selectedRow = null; // unselect row
+        this.selectedRow = undefined; // unselect row
         event.stopPropagation();
         this.dataSource.cancelOrDelete(row);
 
@@ -318,23 +318,26 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             );
     }
 
-    deleteSelection() {
-        if (this.loading) return;
+    async deleteSelection() {
+        if (this.loading || this.selection.isEmpty()) return;
 
         if (this.debug) console.debug("[table] Delete selection...");
 
-        this.selection.selected
+        const rowsToDelete = this.selection.selected.slice()
             // Reverse row order
             // This is a workaround, need because row.delete() has async execution
             // and index cache is updated with a delay)
-            .sort((a, b) => a.id > b.id ? -1 : 1)
-            .forEach(row => {
-                row.delete();
-                this.selection.deselect(row);
-                this.resultsLength--;
-            });
-        this.selection.clear();
-        this.selectedRow = null;
+            .sort((a, b) => a.id > b.id ? -1 : 1);
+
+        try {
+          await this.dataSource.deleteAll(rowsToDelete);
+          this.resultsLength -= rowsToDelete.length;
+          this.selection.clear();
+          this.selectedRow = undefined;
+        }
+        catch(err){
+          this.error = err && err.message || err;
+        }
     }
 
     onEditRow(event: MouseEvent, row: TableElement<T>): boolean {

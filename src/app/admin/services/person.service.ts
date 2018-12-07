@@ -158,7 +158,8 @@ export class PersonService extends BaseDataService implements DataService<Person
       mutation: DeletePersons,
       variables: {
         ids: ids
-      }
+      },
+      error: { code: ErrorCodes.DELETE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.DELETE_PERSONS_ERROR" }
     });
 
     // Update the cache
@@ -181,11 +182,10 @@ export class PersonService extends BaseDataService implements DataService<Person
 
     const target = source.asObject();
 
-    // Not known on server model
+    // Not known in server GraphQL schema
     delete target.mainProfile;
 
-
-    // Simplify the daprtment object
+    // Simplify the department object
     target.department = target.department && { id: target.department.id };
 
     return target;

@@ -305,10 +305,8 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     const target: any = super.asObject();
     target.department = this.department && this.department.asObject() || undefined;
     target.profiles = this.profiles && this.profiles.slice(0) || [];
-    // Add main profile to the list, if need
-    if (this.mainProfile && !target.profiles.find(p => p === this.mainProfile)) {
-      target.profiles = target.profiles.concat(this.mainProfile);
-    }
+    // Set profile list from the main profile
+    target.profiles = this.mainProfile && [this.mainProfile] || target.profiles || ['GUEST'];
     target.creationDate = toDateISOString(this.creationDate);
 
     if (!minify) target.mainProfile = getMainProfile(target.profiles);

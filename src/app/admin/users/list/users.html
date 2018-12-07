@@ -26,6 +26,12 @@
       <mat-icon>edit</mat-icon>
     </mat-button-toggle> -->
 
+    <!-- error -->
+    <ion-item *ngIf="error" hidden-xs hidden-sm>
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
     <div class="toolbar-spacer"></div>
 
     <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
@@ -54,6 +60,12 @@
       <button mat-raised-button color="primary" (click)="onRefresh.emit(true)">{{'COMMON.BTN_SEARCH'|translate}}</button>
     </form>
   </mat-expansion-panel>
+
+  <!-- error -->
+  <ion-item *ngIf="error" visible-xs visible-sm>
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
 
   <mat-table #table [dataSource]="dataSource" matSort matSortActive="lastName" matSortDirection="asc"
     matSortDisableClear [trackBy]="trackByFn">

@@ -114,7 +114,7 @@ export class AppGraphQLModule {
         wsConnectionParams.authToken = token;
       }
       else {
-        console.debug("[apollo] Resseting authentication token");
+        console.debug("[apollo] Resetting authentication token");
         delete wsConnectionParams.authToken;
       }
     });

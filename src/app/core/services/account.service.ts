@@ -342,6 +342,10 @@ export class AccountService extends BaseDataService {
 
       this.data.account = account;
       this.data.pubkey = account.pubkey;
+
+      // Try to auth on remote server
+      this.data.authToken = await this.authenticateAndGetToken();
+
       this.data.loaded = true;
 
       await this.saveLocally();
@@ -432,13 +436,10 @@ export class AccountService extends BaseDataService {
   public async refresh(): Promise<Account> {
     if (!this.data.pubkey) throw new Error("User not logged");
 
-    const locale = this.translate.currentLang;
-
     await this.loadData({ fetchPolicy: 'network-only' });
-
     await this.saveLocally();
 
-    console.debug("[account] Sucessfully reload account");
+    console.debug("[account] Successfully reload account");
 
     // Emit login event to subscribers
     this.onLogin.next(this.data.account);
@@ -800,7 +801,11 @@ export class AccountService extends BaseDataService {
       async error(err) {
           if (err && err.code == ServerErrorCodes.NOT_FOUND) {
             console.info("[account] Account not exists anymore: force user to logout...", err);
-            await this.logout();
+            await self.logout();
+          }
+          else if (err && err.code == ServerErrorCodes.UNAUTHORIZED) {
+             console.info("[account] Account not authorized: force user to logout...", err);
+             await self.logout();
           }
           else {
             console.warn("[account] [WS] Received error:", err);
@@ -862,7 +867,7 @@ export class AccountService extends BaseDataService {
     if (this._debug && !counter) console.debug("[account] Authenticating on server...");
 
     if (counter > 4) {
-      if (this._debug) console.debug(`[account] Authentification failed (after ${counter} attempts)`);
+      if (this._debug) console.debug(`[account] Authentication failed (after ${counter} attempts)`);
       throw { code: ErrorCodes.AUTH_SERVER_ERROR, message: "ERROR.AUTH_SERVER_ERROR" };
     }
 
