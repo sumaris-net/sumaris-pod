@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import { Router, ActivatedRoute } from "@angular/router";
 import { AlertController } from "@ionic/angular";
 
@@ -15,6 +15,8 @@ import { environment } from '../../environments/environment';
 import { Subscription, Subject } from 'rxjs';
 import { DateFormatPipe } from '../shared/pipes/date-format.pipe';
 import { isNil } from '../core/services/model';
+import {el} from "@angular/platform-browser/testing/src/browser_util";
+import {isNotNil} from "../shared/functions";
 @Component({
   selector: 'page-trip',
   templateUrl: './trip.page.html',
@@ -29,6 +31,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   saving: boolean = false;
   defaultBackHref: string = "/trips";
   canAccessOperations = false;
+  onRefresh = new EventEmitter<any>();
 
   @ViewChild('tripForm') tripForm: TripForm;
 
@@ -134,6 +137,14 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     this.markAsPristine();
     this.markAsUntouched();
+
+    if (isNotNil(this.data.validationDate)) {
+      this.disable();
+    } else {
+      this.enable();
+    }
+
+    this.onRefresh.emit();
   }
 
   async save(event): Promise<boolean> {
@@ -218,10 +229,10 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       console.error(err);
       this.submitted = true;
       this.error = err && err.message || err;
+      this.enable();
       return false;
     }
     finally {
-      this.enable();
       this.submitted = false;
       this.saving = false;
     }
