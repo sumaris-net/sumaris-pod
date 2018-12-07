@@ -1,10 +1,10 @@
-<ng-container *ngIf="canShow">
+<ng-container *ngIf="enable">
 
   <!-- control date -->
   <ng-container *ngIf="data.controlDate">
     <br/>
     <ion-text color="primary">
-      <ion-icon name="calendar"></ion-icon>&nbsp;
+      <ion-icon name="checkmark"></ion-icon>&nbsp;
       <span translate>QUALITY.CONTROLLED_ON</span>
       <span>
           <b>{{ data.controlDate | dateFormat: {pattern: 'L LT'} }}</b>
@@ -14,8 +14,8 @@
   <ng-container *ngIf="canControl">
     <br/>
     <ion-button (click)="control()" expand="full">
-      <ion-icon name="calculator" slot="start"></ion-icon>
-      <span translate>QUALITY.CONTROL</span>
+      <ion-icon name="checkmark" slot="start"></ion-icon>
+      <ion-text translate>QUALITY.CONTROL</ion-text>
     </ion-button>
   </ng-container>
 
@@ -23,7 +23,7 @@
   <ng-container *ngIf="data.validationDate">
     <br/>
     <ion-text color="primary">
-      <ion-icon name="calendar"></ion-icon>&nbsp;
+      <ion-icon name="thumbs-up"></ion-icon>&nbsp;
       <span translate>QUALITY.VALIDATED_ON</span>
       <span>
           <b>{{ data.validationDate | dateFormat: {pattern: 'L LT'} }}</b>
@@ -52,8 +52,8 @@
       <ion-icon name="calendar"></ion-icon>&nbsp;
       <span translate>QUALITY.QUALIFIED_ON</span>
       <span>
-          <b>{{ data.qualificationDate | dateFormat: {pattern: 'L LT'} }}</b>
-        </span>
+        <b>{{ data.qualificationDate | dateFormat: {pattern: 'L LT'} }}</b>
+      </span>
     </ion-text>
   </ng-container>
   <ng-container *ngIf="data.qualityFlag && data.qualityFlag.id">

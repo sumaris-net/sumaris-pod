@@ -533,7 +533,12 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
   canUserWrite(trip: Trip): boolean {
     if (!trip) return false;
 
-    // TODO: check rights on program (need a model upgrade ?)
+    // If the user is the recorder: can write
+    if (trip.recorderPerson && this.accountService.account.equals(trip.recorderPerson)) {
+      return true;
+    }
+
+    // TODO: check rights on program (need model changes)
 
     return this.accountService.canUserWriteDataForDepartment(trip.recorderDepartment);
   }
@@ -546,16 +551,16 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     // Fill return date using departure date
     copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
 
-    // Fill return location using departure lcoation
+    // Fill return location using departure location
     if (!copy.returnLocation || !copy.returnLocation.id) {
       copy.returnLocation = { id: copy.departureLocation && copy.departureLocation.id };
     }
 
-    // Clean vesselfeatures object, before saving
-    copy.vesselFeatures = { vesselId: entity.vesselFeatures && entity.vesselFeatures.vesselId }
+    // Clean vessel features object, before saving
+    copy.vesselFeatures = { vesselId: entity.vesselFeatures && entity.vesselFeatures.vesselId };
 
     // Keep id only, on person and department
-    copy.recorderPerson = { id: entity.recorderPerson && entity.recorderPerson.id }
+    copy.recorderPerson = { id: entity.recorderPerson && entity.recorderPerson.id };
     copy.recorderDepartment = entity.recorderDepartment && { id: entity.recorderDepartment && entity.recorderDepartment.id } || undefined;
 
     return copy;

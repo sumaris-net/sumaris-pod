@@ -15,7 +15,7 @@ import {TripService} from "../services/trip.service";
 export class EntityQualityMetadataComponent {
 
   data: DataRootEntity<any>;
-  canShow: boolean;
+  enable: boolean;
   canControl: boolean;
   canValidate: boolean;
   canUnvalidate: boolean;
@@ -63,16 +63,14 @@ export class EntityQualityMetadataComponent {
   }
 
   protected onValueChange() {
-    this.canShow = this.data && isNotNil(this.data.id);
-    if (!this.canShow) {
+    this.enable = this.data && isNotNil(this.data.id);
+    if (!this.enable) {
       this.canControl = false;
       this.canValidate = false;
       this.canUnvalidate = false;
       this.canQualify = false;
-      return
     }
-
-    if (this.data instanceof Trip) {
+    else if (this.data instanceof Trip) {
       const canWrite = this.tripService.canUserWrite(this.data);
       const isSupervisor = this.accountService.isSupervisor();
       this.canControl = canWrite && isNil(this.data.controlDate);

@@ -320,9 +320,9 @@
   },
   "QUALITY": {
     "MODIFIED": "En cours de saisie",
-    "CONTROLLED": "Contrôlé",
-    "CONTROLLED_ON": "Contrôlé le ",
-    "CONTROL": "Terminer",
+    "CONTROLLED": "Terminé",
+    "CONTROLLED_ON": "Terminé le ",
+    "CONTROL": "Terminer la saisie",
     "VALIDATED": "Validé",
     "VALIDATED_ON": "Validé le ",
     "VALIDATE": "Valider",
