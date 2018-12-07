@@ -242,7 +242,7 @@ public class AdministrationGraphQLService {
 
     @GraphQLMutation(name = "saveAccount", description = "Create or update an account")
     @IsGuest
-    @PreAuthorize("hasRole('ADMIN') or #account.pubkey == authentication.name")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or #account.pubkey == authentication.name")
     public AccountVO saveAccount(@P("account") @GraphQLArgument(name = "account") AccountVO account) {
         return accountService.saveAccount(account);
     }
@@ -273,7 +273,7 @@ public class AdministrationGraphQLService {
 
     @GraphQLSubscription(name = "updateAccount", description = "Subscribe to an account update")
     @IsGuest
-    @PreAuthorize("hasRole('ADMIN') or #pubkey == authentication.name")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or #pubkey == authentication.name")
     public Publisher<AccountVO> updateAccount(
             @P("pubkey") @GraphQLArgument(name = "pubkey") final String pubkey,
             @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {

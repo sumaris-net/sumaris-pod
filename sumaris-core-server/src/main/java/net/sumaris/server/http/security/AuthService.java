@@ -32,11 +32,6 @@ public interface AuthService {
 
     Optional<AuthUser> authenticate(String token);
 
-//    boolean authenticate(AuthDataVO authData);
-
-//    @Transactional(readOnly = true)
-//    boolean canAuth(String pubkey);
-
     @Transactional(readOnly = true)
     AuthDataVO createNewChallenge();
 }

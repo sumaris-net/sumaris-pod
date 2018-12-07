@@ -22,20 +22,26 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.administration.user.UserTokenDao;
+import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.StatusId;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.crypto.CryptoUtils;
+import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.crypto.ServerCryptoService;
 import net.sumaris.server.vo.security.AuthDataVO;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -44,6 +50,7 @@ import org.springframework.security.core.authority.mapping.Attributes2GrantedAut
 import org.springframework.security.core.authority.mapping.SimpleAttributes2GrantedAuthoritiesMapper;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,8 +64,6 @@ public class AuthServiceImpl implements AuthService {
     private static final Logger log =
             LoggerFactory.getLogger(AuthServiceImpl.class);
 
-    private final List<Integer> AUTH_ACCEPTED_PROFILES = ImmutableList.of(UserProfileEnum.ADMIN.id, UserProfileEnum.USER.id, UserProfileEnum.SUPERVISOR.id);
-
     private final ValidationExpiredCache challenges;
     private final ValidationExpiredCacheMap<AuthUser> checkedTokens;
     private final boolean debug;
@@ -71,6 +76,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private PersonDao personDao;
+
+    @Autowired
+    private UserTokenDao userTokenDao;
 
     private Attributes2GrantedAuthoritiesMapper authoritiesMapper;
 
@@ -88,11 +96,30 @@ public class AuthServiceImpl implements AuthService {
         this.debug = log.isDebugEnabled();
     }
 
+    @PostConstruct
+    public void registerListeners() {
+        // Listen person update, to update the cache
+        personDao.addListener(new PersonDao.Listener() {
+            @Override
+            public void onSave(PersonVO person) {
+                if (!StringUtils.isNotBlank(person.getPubkey())) return;
+                List<String> tokens = userTokenDao.getAllByPubkey(person.getPubkey());
+                if (CollectionUtils.isEmpty(tokens)) return;
+                tokens.forEach(checkedTokens::remove);
+            }
+
+            @Override
+            public void onDelete(int id) {
+                // Will be remove when cache expired
+            }
+        });
+    }
+
     @Override
     public Optional<AuthUser> authenticate(String token) {
 
         // First check anonymous user
-        if (AnonymousUser.INSTANCE.getToken().equals(token)) return Optional.of(AnonymousUser.INSTANCE);
+        if (AnonymousUser.TOKEN.equals(token)) return Optional.of(AnonymousUser.INSTANCE);
 
         // Check if present in cache
         if (checkedTokens.contains(token)) return Optional.of(checkedTokens.get(token));

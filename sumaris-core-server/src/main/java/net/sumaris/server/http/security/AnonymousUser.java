@@ -14,8 +14,20 @@ class AnonymousUser extends AuthUser {
 
     static final AnonymousUser INSTANCE = new AnonymousUser();
 
+    static final String TOKEN = "anonymous";
+
     private AnonymousUser() {
-        super(new AuthDataVO("anonymous", "anonymous", "anonymous"), AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+        super(null,
+                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
     }
 
+    @Override
+    public String getUsername() {
+        return TOKEN;
+    }
+
+    @Override
+    public String getPassword() {
+        return TOKEN;
+    }
 }

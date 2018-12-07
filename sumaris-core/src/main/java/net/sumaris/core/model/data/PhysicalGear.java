@@ -101,4 +101,7 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PhysicalGearMeasurement> measurements = new ArrayList<>();
 
+    public String toString() {
+        return new StringBuilder().append(super.toString()).append(",gear=").append(this.gear).toString();
+    }
 }

@@ -28,10 +28,13 @@ import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.UserProfile;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Data
@@ -81,20 +84,30 @@ public class Person implements IReferentialEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_fk", nullable = false)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private Department department;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "person2user_profile", joinColumns = {
-            @JoinColumn(name = "person_fk", nullable = false, updatable = false) },
+    @ManyToMany(fetch = FetchType.EAGER, targetEntity = UserProfile.class, cascade = CascadeType.ALL)
+    @JoinTable(name = "person2user_profile",
+            joinColumns = {
+                @JoinColumn(name = "person_fk", nullable = false, updatable = false)
+            },
             inverseJoinColumns = {
-                @JoinColumn(name = "user_profile_fk", nullable = false, updatable = false) })
-    private Set<UserProfile> userProfiles = Sets.newHashSet();
+                @JoinColumn(name = "user_profile_fk", nullable = false, updatable = false)
+            })
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private Set<UserProfile> userProfiles = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "avatar_fk")
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private ImageAttachment avatar;
 
     public String toString() {
         return new StringBuilder().append(super.toString()).append(",email=").append(this.email).toString();
+    }
+
+    public int hashCode() {
+        return Objects.hash(id, pubkey, email);
     }
 }

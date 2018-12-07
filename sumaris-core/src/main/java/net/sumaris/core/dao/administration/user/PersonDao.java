@@ -37,6 +37,11 @@ import java.util.List;
 
 public interface PersonDao  {
 
+    interface Listener {
+        void onSave(PersonVO personVO);
+        void onDelete(int id);
+    }
+
     List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
     Long countByFilter(PersonFilterVO filter);
@@ -64,4 +69,6 @@ public interface PersonDao  {
     PersonVO save(PersonVO source);
 
     PersonVO toPersonVO(Person source);
+
+    void addListener(Listener listener);
 }

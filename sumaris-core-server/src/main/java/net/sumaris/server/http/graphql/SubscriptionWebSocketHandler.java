@@ -175,16 +175,22 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
         // Check authenticated
         if (!isAuthenticated()) {
-            sendResponse(session,
-                        ImmutableMap.of(
-                                "id", opId,
-                                "type", "error",
-                                "payload",
-                                ImmutableMap.of("errors", ImmutableList.of(
-                                                ImmutableMap.of("message", getUnauthorizedErrorString()
-                                )))
-                        )
-                );
+//            sendResponse(session,
+//                        ImmutableMap.of(
+//                                "id", opId,
+//                                "type", "error",
+//                                "payload",
+//                                ImmutableMap.of("errors", ImmutableList.of(
+//                                                ImmutableMap.of("message", getUnauthorizedErrorString()
+//                                )))
+//                        )
+//                );
+            try {
+                session.close(CloseStatus.SERVICE_RESTARTED);
+            }
+            catch(IOException e) {
+                // continue
+            }
             return;
         }
 

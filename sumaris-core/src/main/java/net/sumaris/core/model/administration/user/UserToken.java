@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.model.IEntityBean;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -48,5 +49,9 @@ public class UserToken implements IEntityBean<Integer> {
 
     @Column(name="token", nullable = false, unique = true)
     private String token;
+
+    public int hashCode() {
+        return Objects.hash(token);
+    }
 
 }

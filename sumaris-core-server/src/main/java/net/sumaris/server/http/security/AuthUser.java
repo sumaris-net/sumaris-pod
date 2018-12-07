@@ -22,10 +22,6 @@ public class AuthUser implements UserDetails {
         this.authorities = authorities;
     }
 
-    public String getToken() {
-        return authData.asToken();
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;

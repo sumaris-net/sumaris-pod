@@ -37,7 +37,7 @@ public class TokenAuthenticationFilter extends AbstractAuthenticationProcessingF
         final String token = ofNullable(param)
                 .map(value -> removeStart(value, TOKEN))
                 .map(StringUtils::trimToNull)
-                .orElse(AnonymousUser.INSTANCE.getToken());
+                .orElse(AnonymousUser.TOKEN);
 
         final Authentication auth = new UsernamePasswordAuthenticationToken(token, token);
         return getAuthenticationManager().authenticate(auth);

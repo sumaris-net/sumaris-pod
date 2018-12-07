@@ -39,12 +39,12 @@ import org.springframework.core.io.ClassPathResource;
 import javax.annotation.PostConstruct;
 @Configuration
 @ConditionalOnClass({org.springframework.cache.CacheManager.class, net.sf.ehcache.Cache.class})
-public class SumarisCacheAutoConfiguration {
+public class CacheConfiguration {
     /**
      * Logger.
      */
     protected static final Log log =
-            LogFactory.getLog(SumarisCacheAutoConfiguration.class);
+            LogFactory.getLog(CacheConfiguration.class);
 
     @Autowired(required = false)
     protected CacheManager cacheManager;
