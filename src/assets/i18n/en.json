@@ -189,14 +189,18 @@
         "START_DATE": "Start period",
         "END_DATE": "End period",
         "LOCATION": "Port (departure or return)"
-      }
+      },
+      "QUALITY": "State"
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Error while loading the trip.",
       "LOAD_TRIPS_ERROR": "Error while loading trips.",
       "SAVE_TRIP_ERROR": "Error while saving the trip.",
       "SAVE_TRIPS_ERROR": "Error while saving trips.",
-      "SUBSCRIBE_TRIP_ERROR": "Error while listening trip's changes."
+      "SUBSCRIBE_TRIP_ERROR": "Error while listening trip's changes.",
+      "CONTROL_TRIP_ERROR": "Error while terminating the trip",
+      "VALIDATE_TRIP_ERROR": "Error while validating the trip",
+      "UNVALIDATE_TRIP_ERROR": "Error while unvalidating the trip"
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
@@ -313,6 +317,21 @@
       "SAVE_ERROR": "Error while saving the sale.",
       "SAVE_ALL_ERROR": "Error while saving sales."
     }
+  },
+  "QUALITY": {
+    "MODIFIED": "Being edited",
+    "CONTROLLED": "Controlled",
+    "CONTROLLED_ON": "Controlled on ",
+    "CONTROL": "Terminate",
+    "VALIDATED": "Validated",
+    "VALIDATED_ON": "Validated on ",
+    "VALIDATE": "Validate",
+    "UNVALIDATE": "Unvalidate",
+    "QUALIFIED": "Qualified",
+    "QUALIFIED_ON": "Qualified on ",
+    "QUALIFICATION_COMMENT": "Qualification comment",
+    "QUALIFY": "Qualify",
+    "QUALITY_FLAG": "Quality level"
   },
   "VESSEL": {
     "VESSEL_ID": "Internal code",

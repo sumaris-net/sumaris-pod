@@ -17,7 +17,7 @@ import { AccountPage } from "./account/account";
 import { SharedModule } from '../shared/shared.module';
 import { AppForm } from './form/form.class';
 import { AppTabPage } from './form/page.class';
-import { FormMetadataComponent } from './form/form-metadata.component';
+import { EntityMetadataComponent } from './form/entity-metadata.component';
 import { FormButtonsBarComponent } from './form/form-buttons-bar.component';
 import { AppTable, RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from './table/table.class';
 import { AppTableDataSource } from './table/table-datasource.class';
@@ -43,7 +43,6 @@ import { Entity, Cloneable, EntityUtils,
   isNil, isNotNil, nullIfUndefined, referentialToString, joinProperties, entityToString,
   toDateISOString, fromDateISOString} from './services/model';
 
-
 // import ngx-translate and the http loader
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -52,7 +51,7 @@ import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common
 export {
   environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
   AccountService, AccountFieldDef, DataService, AccountValidatorService, UserSettingsValidatorService,
-  AuthGuardService, FormMetadataComponent, FormButtonsBarComponent,
+  AuthGuardService, EntityMetadataComponent, FormButtonsBarComponent,
   RESERVED_START_COLUMNS, RESERVED_END_COLUMNS,
   Entity, Cloneable, EntityUtils,
   AcquisitionLevelCodes, StatusIds, LocationLevelIds,
@@ -96,7 +95,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         // Components
         TableSelectColumnsComponent,
         AboutModal,
-        FormMetadataComponent,
+        EntityMetadataComponent,
         FormButtonsBarComponent
     ],
     exports: [
@@ -108,7 +107,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         AuthForm,
         AuthModal,
         TableSelectColumnsComponent,
-        FormMetadataComponent,
+        EntityMetadataComponent,
         FormButtonsBarComponent,
         MenuComponent,
         ReactiveFormsModule,
@@ -119,7 +118,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         RegisterModal,
         AuthModal,
         TableSelectColumnsComponent,
-        FormMetadataComponent,
+        EntityMetadataComponent,
         FormButtonsBarComponent,
         AboutModal
     ],

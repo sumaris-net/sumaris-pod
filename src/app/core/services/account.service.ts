@@ -438,7 +438,7 @@ export class AccountService extends BaseDataService {
 
     await this.saveLocally();
 
-    console.debug("[account] Sucessfully reload account");
+    console.debug("[account] Successfully reload account");
 
     // Emit login event to subscribers
     this.onLogin.next(this.data.account);

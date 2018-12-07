@@ -14,4 +14,12 @@
     visibility: hidden;
     display: none;
   }
+
+  .mat-header-row,
+  .mat-row {
+    .mat-column-quality {
+      max-width: 40px;
+      padding-left: 0px;
+    }
+  }
 }
