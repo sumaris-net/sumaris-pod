@@ -68,11 +68,13 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
     private final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
-    private final GraphQL graphQL;
 
     private final boolean debug;
 
     private List<WebSocketSession> sessions = new CopyOnWriteArrayList();
+
+    @Autowired
+    private GraphQL graphQL;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -81,8 +83,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
     private AuthService authService;
 
     @Autowired
-    public SubscriptionWebSocketHandler(GraphQLSchema graphQLSchema) {
-        this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();
+    public SubscriptionWebSocketHandler() {
         this.debug = log.isDebugEnabled();
     }
 
@@ -90,7 +91,6 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         // keep all sessions (for broadcast)
         sessions.add(session);
-        //log.debug("afterConnectionEstablished", session);
     }
 
     @Override
@@ -175,16 +175,6 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
         // Check authenticated
         if (!isAuthenticated()) {
-//            sendResponse(session,
-//                        ImmutableMap.of(
-//                                "id", opId,
-//                                "type", "error",
-//                                "payload",
-//                                ImmutableMap.of("errors", ImmutableList.of(
-//                                                ImmutableMap.of("message", getUnauthorizedErrorString()
-//                                )))
-//                        )
-//                );
             try {
                 session.close(CloseStatus.SERVICE_RESTARTED);
             }
