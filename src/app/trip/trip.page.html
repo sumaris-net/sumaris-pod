@@ -59,7 +59,9 @@
             </form-trip>
           </ion-col>
           <ion-col no-padding size="12" size-xl="3">
-            <form-metadata [data]="data"></form-metadata>
+            <entity-metadata [value]="data">
+              <entity-quality-metadata [value]="data"></entity-quality-metadata>
+            </entity-metadata>
           </ion-col>
         </ion-row>
       </ion-grid>

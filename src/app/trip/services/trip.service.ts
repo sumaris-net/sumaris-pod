@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable } from "rxjs-compat";
-import { Trip, Person, fillRankOrder } from "./trip.model";
+import {Trip, Person, fillRankOrder, isNil} from "./trip.model";
 import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
@@ -10,6 +10,7 @@ import { Moment } from "moment";
 import { ErrorCodes } from "./trip.errors";
 import { AccountService } from "../../core/services/account.service";
 import { Fragments } from "./trip.queries";
+import {isNotNil} from "../../shared/functions";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -22,6 +23,8 @@ export const TripFragments = {
     returnDateTime
     creationDate
     updateDate
+    controlDate
+    validationDate
     comments
     departureLocation {
       ...LocationFragment
@@ -55,6 +58,8 @@ export const TripFragments = {
     returnDateTime
     creationDate
     updateDate
+    controlDate
+    validationDate
     comments
     departureLocation {
       ...LocationFragment
@@ -141,6 +146,30 @@ const LoadQuery: any = gql`
 const SaveTrips: any = gql`
   mutation saveTrips($trips:[TripVOInput]){
     saveTrips(trips: $trips){
+      ...TripFragment
+    }
+  }
+  ${TripFragments.trip}
+`;
+const ControlTrip: any = gql`
+  mutation controlTrip($trip:TripVOInput){
+    controlTrip(trip: $trip){
+      ...TripFragment
+    }
+  }
+  ${TripFragments.trip}
+`;
+const ValidateTrip: any = gql`
+  mutation validateTrip($trip:TripVOInput){
+    validateTrip(trip: $trip){
+      ...TripFragment
+    }
+  }
+  ${TripFragments.trip}
+`;
+const UnvalidateTrip: any = gql`
+  mutation unvalidateTrip($trip:TripVOInput){
+    unvalidateTrip(trip: $trip){
       ...TripFragment
     }
   }
@@ -317,7 +346,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     // Transform into json
     const json = this.asObject(entity);
-    const isNew = !entity.id && entity.id !== 0;;
+    const isNew = isNil(entity.id);
 
     const now = new Date();
     if (this._debug) console.debug("[trip-service] Saving trip...", json);
@@ -330,11 +359,11 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" }
     });
 
-    var savedTrip = res && res.saveTrips && res.saveTrips[0];
+    const savedTrip = res && res.saveTrips && res.saveTrips[0];
     if (savedTrip) {
       this.copyIdAndUpdateDate(savedTrip, entity);
 
-      // Update the cache
+      // Add to cache
       if (isNew && this._lastVariables.loadAll) {
         this.addToQueryCache({
           query: LoadAllQuery,
@@ -344,6 +373,126 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     }
 
     if (this._debug) console.debug("[trip-service] Trip saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+
+    return entity;
+  }
+
+  /**
+   * Control the trip
+   * @param entity
+   */
+  async controlTrip(entity: Trip) {
+
+    if (isNil(entity.id)) {
+      throw "Entity must be saved before control !"
+    }
+
+    // Prepare to save
+    this.fillDefaultProperties(entity);
+
+    // Transform into json
+    const json = this.asObject(entity);
+
+    const now = new Date();
+    if (this._debug) console.debug("[trip-service] Control trip...", json);
+
+    const res = await this.mutate<{ controlTrip: any }>({
+      mutation: ControlTrip,
+      variables: {
+        trip: json
+      },
+      error: { code: ErrorCodes.CONTROL_TRIP_ERROR, message: "TRIP.ERROR.CONTROL_TRIP_ERROR" }
+    });
+
+    let savedTrip = res && res.controlTrip;
+    if (savedTrip) {
+      this.copyIdAndUpdateDate(savedTrip, entity);
+      entity.controlDate = savedTrip.controlDate || entity.controlDate;
+      entity.validationDate = savedTrip.validationDate || entity.validationDate;
+    }
+
+    if (this._debug) console.debug("[trip-service] Trip controlled in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+
+    return entity;
+  }
+
+  /**
+   * Validate the trip
+   * @param entity
+   */
+  async validateTrip(entity: Trip) {
+
+    if (isNil(entity.controlDate)) {
+      throw "Entity must be controlled before validate !"
+    }
+    if (isNotNil(entity.validationDate)) {
+      throw "Entity is already validated !"
+    }
+
+    // Prepare to save
+    this.fillDefaultProperties(entity);
+
+    // Transform into json
+    const json = this.asObject(entity);
+
+    const now = new Date();
+    if (this._debug) console.debug("[trip-service] Validate trip...", json);
+
+    const res = await this.mutate<{ validateTrip: any }>({
+      mutation: ValidateTrip,
+      variables: {
+        trip: json
+      },
+      error: { code: ErrorCodes.VALIDATE_TRIP_ERROR, message: "TRIP.ERROR.VALIDATE_TRIP_ERROR" }
+    });
+
+    let savedTrip = res && res.validateTrip;
+    if (savedTrip) {
+      this.copyIdAndUpdateDate(savedTrip, entity);
+      entity.controlDate = savedTrip.controlDate || entity.controlDate;
+      entity.validationDate = savedTrip.validationDate || entity.validationDate;
+    }
+
+    if (this._debug) console.debug("[trip-service] Trip validated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+
+    return entity;
+  }
+
+  /**
+   * Unvalidate the trip
+   * @param entity
+   */
+  async unvalidateTrip(entity: Trip) {
+
+    if (isNil(entity.validationDate)) {
+      throw "Entity is not validated yet !"
+    }
+
+    // Prepare to save
+    this.fillDefaultProperties(entity);
+
+    // Transform into json
+    const json = this.asObject(entity);
+
+    const now = new Date();
+    if (this._debug) console.debug("[trip-service] Unvalidate trip...", json);
+
+    const res = await this.mutate<{ unvalidateTrip: any }>({
+      mutation: UnvalidateTrip,
+      variables: {
+        trip: json
+      },
+      error: { code: ErrorCodes.UNVALIDATE_TRIP_ERROR, message: "TRIP.ERROR.UNVALIDATE_TRIP_ERROR" }
+    });
+
+    let savedTrip = res && res.unvalidateTrip;
+    if (savedTrip) {
+      this.copyIdAndUpdateDate(savedTrip, entity);
+      entity.controlDate = savedTrip.controlDate || entity.controlDate;
+      entity.validationDate = savedTrip.validationDate || entity.validationDate;
+    }
+
+    if (this._debug) console.debug("[trip-service] Trip unvalidated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
 
     return entity;
   }
@@ -485,4 +634,5 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       });
     }
   }
+
 }

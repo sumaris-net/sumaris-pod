@@ -189,14 +189,18 @@
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
         "LOCATION": "Port (départ ou retour)"
-      }
+      },
+      "QUALITY": "Etat"
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",
       "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
       "SAVE_TRIP_ERROR": "Erreur lors de la sauvegarde de la marée.",
       "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées.",
-      "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée."
+      "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée.",
+      "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
+      "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
+      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée"
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
@@ -313,6 +317,21 @@
       "SAVE_ERROR": "Erreur lors de la sauvegarde de la vente.",
       "SAVE_ALL_ERROR": "Erreur lors de la sauvegarde des ventes."
     }
+  },
+  "QUALITY": {
+    "MODIFIED": "En cours de saisie",
+    "CONTROLLED": "Contrôlé",
+    "CONTROLLED_ON": "Contrôlé le ",
+    "CONTROL": "Terminer",
+    "VALIDATED": "Validé",
+    "VALIDATED_ON": "Validé le ",
+    "VALIDATE": "Valider",
+    "UNVALIDATE": "Dévalider",
+    "QUALIFIED": "Qualifié",
+    "QUALIFIED_ON": "Qualifié le ",
+    "QUALIFICATION_COMMENT": "Commentaire de qualification",
+    "QUALIFY": "Qualifier",
+    "QUALITY_FLAG": "Niveau de qualité"
   },
   "VESSEL": {
     "VESSEL_ID": "Code interne",

@@ -38,21 +38,36 @@ const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1
 /* -- DATA -- */
 export abstract class DataEntity<T> extends Entity<T> {
   recorderDepartment: Department;
+  controlDate: Moment;
+  qualificationDate: Moment;
+  qualificationComments: string;
+  // TODO use a ReferentialRef when qualification is developed
+  qualityFlagId: number;
 
   protected constructor() {
     super();
     this.recorderDepartment = new Department();
+    // this.qualityFlagId = new ReferentialRef();
   }
 
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(minify) || undefined;
+    target.controlDate = toDateISOString(this.controlDate);
+    target.qualificationDate = toDateISOString(this.qualificationDate);
+    target.qualificationComments = this.qualificationComments || undefined;
+    target.qualityFlag = this.qualityFlagId || undefined;
     return target;
   }
 
   fromObject(source: any): DataEntity<T> {
     super.fromObject(source);
     source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
+    this.controlDate = fromDateISOString(source.controlDate);
+    this.qualificationDate = fromDateISOString(source.qualificationDate);
+    this.qualificationComments = source.qualificationComments;
+    // source.qualityFlagId && this.qualityFlagId.fromObject(source.qualityFlagId);
+    this.qualityFlagId = source.qualityFlagId;
     return this;
   }
 
@@ -62,6 +77,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> {
   comments: string;
   creationDate: Moment;
   recorderPerson: Person;
+  validationDate: Moment;
 
   constructor() {
     super();
@@ -72,6 +88,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> {
     const target = super.asObject(minify);
     target.creationDate = toDateISOString(this.creationDate);
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
+    target.validationDate = toDateISOString(this.validationDate);
     return target;
   }
 
@@ -80,6 +97,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> {
     this.comments = source.comments;
     this.creationDate = fromDateISOString(source.creationDate);
     source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
+    this.validationDate = fromDateISOString(source.validationDate);
     return this;
   }
 }

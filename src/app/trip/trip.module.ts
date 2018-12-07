@@ -22,6 +22,7 @@ import { BatchesTable } from './batch/batches.table';
 import { SubBatchesTable } from './batch/sub-batches.table';
 import { IndividualMonitoringTable } from './sample/individualmonitoring/sample-individual-monitoring.table';
 import { MeasurementValuesForm } from './measurement/measurement-values.form.class';
+import { EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
 
 import { TripService, OperationService } from './services/trip.services';
 
@@ -59,7 +60,8 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         BatchGroupsTable,
         BatchesTable,
         SubBatchesTable,
-        IndividualMonitoringTable
+        IndividualMonitoringTable,
+        EntityQualityMetadataComponent
     ],
     exports: [
         TripsPage,

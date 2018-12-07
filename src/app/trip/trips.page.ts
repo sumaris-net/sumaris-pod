@@ -51,6 +51,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     super(route, router, platform, location, modalCtrl, accountService,
       RESERVED_START_COLUMNS
         .concat([
+          'quality',
           'program',
           'vessel',
           'departureLocation',

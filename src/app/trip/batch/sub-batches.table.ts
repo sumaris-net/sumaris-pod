@@ -189,7 +189,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
                           levelId: TaxonomicLevelIds.SPECIES,
                           searchText: value as string,
                           searchAttribute: 'label'
-                      }).first();
+                      }).first().map(({data}) => data);
               })
           );
 
