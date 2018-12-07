@@ -149,6 +149,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
       const trip = await this.tripService.load(data.tripId).first().toPromise();
       this.updateView(data, trip);
+      if (trip.program && trip.program.label) {
+        this.updateViewByProgram(trip.program.label);
+      }
       this.enable();
       this.loading = false;
     }
@@ -166,6 +169,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       }
 
       this.updateView(operation, trip);
+      if (trip.program && trip.program.label) {
+        this.updateViewByProgram(trip.program.label);
+      }
       this.enable();
       this.loading = false;
     }
@@ -250,6 +256,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.batchGroupsTable.value = batchGroups;
 
     }
+
+
+    this.updateViewExtension(data, trip);
 
     // Update title
     this.updateTitle();
@@ -437,5 +446,15 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Confirm editing row
     this.batchGroupsTable.confirmEditCreateSelectedRow();
     this.subBatchesTable.confirmEditCreateSelectedRow();
+  }
+
+  /**
+   * Configure specific behavior program
+   * @param programLabel
+   */
+  protected updateViewExtension(data: Operation | null, trip?: Trip) {
+    if (trip.program && trip.program.label == "SUMARiS") {
+      //this.measurementsForm.form.controls[]
+    }
   }
 }
