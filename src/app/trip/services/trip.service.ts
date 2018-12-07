@@ -383,6 +383,8 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
    */
   async controlTrip(entity: Trip) {
 
+    // TODO vérifier que le formulaire est dirty et/ou s'il est valide, car le control provoque une sauvegarde
+
     if (isNil(entity.id)) {
       throw "Entity must be saved before control !"
     }
@@ -489,7 +491,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     if (savedTrip) {
       this.copyIdAndUpdateDate(savedTrip, entity);
       entity.controlDate = savedTrip.controlDate || entity.controlDate;
-      entity.validationDate = savedTrip.validationDate || entity.validationDate;
+      entity.validationDate = savedTrip.validationDate; // should be null
     }
 
     if (this._debug) console.debug("[trip-service] Trip unvalidated in " + (new Date().getTime() - now.getTime()) + "ms", entity);

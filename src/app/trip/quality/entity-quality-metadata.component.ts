@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {DataRootEntity, isNil, isNotNil, Trip} from '../services/trip.model';
 
 // import fade in animation
@@ -12,7 +12,7 @@ import {TripService} from "../services/trip.service";
   styleUrls: ['./entity-quality-metadata.component.scss'],
   animations: [fadeInAnimation]
 })
-export class EntityQualityMetadataComponent {
+export class EntityQualityMetadataComponent {//implements OnChanges{
 
   data: DataRootEntity<any>;
   enable: boolean;
@@ -20,6 +20,11 @@ export class EntityQualityMetadataComponent {
   canValidate: boolean;
   canUnvalidate: boolean;
   canQualify: boolean;
+
+  @Input("updateDate")
+  set updateDate(_) {
+    this.onValueChange()
+  }
 
   @Input("value")
   set value(value: DataRootEntity<any>) {
@@ -29,6 +34,9 @@ export class EntityQualityMetadataComponent {
   get value(): DataRootEntity<any> {
     return this.data;
   }
+
+  @Output()
+  onChange = new EventEmitter<any>();
 
   constructor(
     protected accountService: AccountService,
@@ -40,21 +48,21 @@ export class EntityQualityMetadataComponent {
   async control() {
     if (this.data instanceof Trip) {
       await this.tripService.controlTrip(this.data);
-      this.onValueChange();
+      this.onChange.emit();
     }
   }
 
   async validate() {
     if (this.data instanceof Trip) {
       await this.tripService.validateTrip(this.data);
-      this.onValueChange();
+      this.onChange.emit();
     }
   }
 
   async unvalidate() {
     if (this.data instanceof Trip) {
       await this.tripService.unvalidateTrip(this.data);
-      this.onValueChange();
+      this.onChange.emit();
     }
   }
 
