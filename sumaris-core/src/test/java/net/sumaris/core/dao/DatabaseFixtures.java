@@ -26,8 +26,6 @@ package net.sumaris.core.dao;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import org.junit.Assume;
 
 /**
  * Fixtures for the local db.
@@ -123,7 +121,8 @@ public class DatabaseFixtures {
 		switch (index) {
 			case 0:
 				return 1;
-
+			case 1:
+				return 4;
 			default:
 				return 1;
 		}

@@ -66,4 +66,9 @@ public interface TripService {
 
 	void delete(List<Integer> ids);
 
+    TripVO control(TripVO trip);
+
+	TripVO validate(TripVO trip);
+
+	TripVO unvalidate(TripVO trip);
 }

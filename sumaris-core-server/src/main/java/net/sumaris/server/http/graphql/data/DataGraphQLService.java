@@ -39,7 +39,8 @@ import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.server.http.security.IsEditor;
+import net.sumaris.server.http.security.IsSupervisor;
+import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -51,13 +52,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 @Service
 @Transactional
-@IsEditor
+@IsUser
 public class DataGraphQLService {
 
     private static final Log log = LogFactory.getLog(DataGraphQLService.class);
@@ -148,17 +150,8 @@ public class DataGraphQLService {
         final List<TripVO> result = tripService.findByFilter(filter, offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
 
-        // Add image if need
-        if (hasImageField(fields)) fillImages(result);
-
-        // Add vessel if need
-        if (hasVesselFeaturesField(fields)) {
-            result.stream().forEach( t -> {
-                if (t.getVesselFeatures().getVesselId() != null) {
-                    t.setVesselFeatures(vesselService.getByVesselIdAndDate(t.getVesselFeatures().getVesselId(), t.getDepartureDateTime()));
-                }
-            });
-        }
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
 
         return result;
     }
@@ -182,13 +175,8 @@ public class DataGraphQLService {
                               @GraphQLEnvironment() Set<String> fields) {
         final TripVO result = tripService.get(id);
 
-        // Add image if need
-        if (hasImageField(fields)) fillImages(result);
-
-        // Add vessel if need
-        if (hasVesselFeaturesField(fields) && result.getVesselFeatures() != null && result.getVesselFeatures().getVesselId() != null) {
-            result.setVesselFeatures(vesselService.getByVesselIdAndDate(result.getVesselFeatures().getVesselId(), result.getDepartureDateTime()));
-        }
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
 
         return result;
     }
@@ -197,13 +185,8 @@ public class DataGraphQLService {
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
         final TripVO result = tripService.save(trip, false);
 
-        // Add image if need
-        if (hasImageField(fields)) fillImages(result);
-
-        // Add vessel if need
-        if (hasVesselFeaturesField(fields) && result.getVesselFeatures() != null && result.getVesselFeatures().getVesselId() != null) {
-            result.setVesselFeatures(vesselService.getByVesselIdAndDate(result.getVesselFeatures().getVesselId(), result.getDepartureDateTime()));
-        }
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
 
         return result;
     }
@@ -212,17 +195,8 @@ public class DataGraphQLService {
     public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips, @GraphQLEnvironment() Set<String> fields) {
         final List<TripVO> result = tripService.save(trips, false);
 
-        // Add image if need
-        if (hasImageField(fields)) fillImages(result);
-
-        // Add vessel if need
-        if (hasVesselFeaturesField(fields)) {
-            result.stream().forEach( t -> {
-                if (t.getVesselFeatures().getVesselId() != null) {
-                    t.setVesselFeatures(vesselService.getByVesselIdAndDate(t.getVesselFeatures().getVesselId(), t.getDepartureDateTime()));
-                }
-            });
-        }
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
 
         return result;
     }
@@ -244,6 +218,40 @@ public class DataGraphQLService {
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return changesPublisherService.getPublisher(Trip.class, TripVO.class, id, minIntervalInSecond, true);
     }
+
+    @GraphQLMutation(name = "controlTrip", description = "Control a trip")
+    public TripVO controlTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+        final TripVO result = tripService.control(trip);
+
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
+
+        return result;
+    }
+
+    @IsSupervisor
+    @GraphQLMutation(name = "validateTrip", description = "Validate a trip")
+    public TripVO validateTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+        final TripVO result = tripService.validate(trip);
+
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
+
+        return result;
+    }
+
+    @IsSupervisor
+    @GraphQLMutation(name = "unvalidateTrip", description = "Unvalidate a trip")
+    public TripVO unvalidateTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+        final TripVO result = tripService.unvalidate(trip);
+
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
+
+        return result;
+    }
+
+    /* -- Gears -- */
 
     @GraphQLQuery(name = "gears", description = "Get operation's gears")
     public List<PhysicalGearVO> getGearsByTrip(@GraphQLContext TripVO trip) {
@@ -420,14 +428,38 @@ public class DataGraphQLService {
 
     /* -- protected methods -- */
 
+    protected void fillAdditionalProperties(TripVO trip, Set<String> fields) {
+        // Add image if need
+        if (hasImageField(fields)) fillImages(trip);
+
+        // Add vessel if need
+        if (hasVesselFeaturesField(fields) && trip.getVesselFeatures() != null && trip.getVesselFeatures().getVesselId() != null) {
+            trip.setVesselFeatures(vesselService.getByVesselIdAndDate(trip.getVesselFeatures().getVesselId(), trip.getDepartureDateTime()));
+        }
+    }
+
+    protected void fillAdditionalProperties(List<TripVO> trips, Set<String> fields) {
+        // Add image if need
+        if (hasImageField(fields)) fillImages(trips);
+
+        // Add vessel if need
+        if (hasVesselFeaturesField(fields)) {
+            trips.forEach(t -> {
+                if (t.getVesselFeatures().getVesselId() != null) {
+                    t.setVesselFeatures(vesselService.getByVesselIdAndDate(t.getVesselFeatures().getVesselId(), t.getDepartureDateTime()));
+                }
+            });
+        }
+    }
+
     protected boolean hasImageField(Set<String> fields) {
-        return fields.contains(TripVO.PROPERTY_RECORDER_DEPARTMENT + "/" + DepartmentVO.PROPERTY_LOGO) ||
-                fields.contains(TripVO.PROPERTY_RECORDER_PERSON + "/" + PersonVO.PROPERTY_AVATAR);
+        return fields.contains(TripVO.PROPERTY_RECORDER_DEPARTMENT + File.separator + DepartmentVO.PROPERTY_LOGO) ||
+                fields.contains(TripVO.PROPERTY_RECORDER_PERSON + File.separator + PersonVO.PROPERTY_AVATAR);
     }
 
     protected boolean hasVesselFeaturesField(Set<String> fields) {
-        return fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + "/" + VesselFeaturesVO.PROPERTY_EXTERIOR_MARKING)
-                || fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + "/" + VesselFeaturesVO.PROPERTY_NAME);
+        return fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + File.separator + VesselFeaturesVO.PROPERTY_EXTERIOR_MARKING)
+                || fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + File.separator + VesselFeaturesVO.PROPERTY_NAME);
     }
 
     protected List<TripVO> fillImages(final List<TripVO> results) {

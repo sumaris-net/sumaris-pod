@@ -45,7 +45,7 @@ public class ValidationExpiredCacheMap<T> {
     }
 
     public boolean contains(String key) {
-        return get(key) != null;
+        return StringUtils.isNotBlank(key) && get(key) != null;
     }
 
     public T get(String key) {
