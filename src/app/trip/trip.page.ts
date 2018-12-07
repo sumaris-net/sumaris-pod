@@ -17,6 +17,7 @@ import { DateFormatPipe } from '../shared/pipes/date-format.pipe';
 import { isNil } from '../core/services/model';
 import {el} from "@angular/platform-browser/testing/src/browser_util";
 import {isNotNil} from "../shared/functions";
+import {EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
 @Component({
   selector: 'page-trip',
   templateUrl: './trip.page.html',
@@ -42,6 +43,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
 
   @ViewChild('operationTable') operationTable: OperationTable;
+
+  @ViewChild('qualityForm') qualityForm: EntityQualityMetadataComponent;
 
   constructor(
     route: ActivatedRoute,
@@ -133,6 +136,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       this.operationTable && this.operationTable.setTrip(data);
     }
 
+    this.qualityForm.value = data;
+
     this.updateTitle();
 
     this.markAsPristine();
@@ -219,7 +224,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
         this.canAccessOperations = true;
 
-        // SUbscription to changes
+        // Subscription to changes
         this.startListenChanges();
       }
 

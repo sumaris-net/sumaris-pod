@@ -21,11 +21,6 @@ export class EntityQualityMetadataComponent {//implements OnChanges{
   canUnvalidate: boolean;
   canQualify: boolean;
 
-  @Input("updateDate")
-  set updateDate(_) {
-    this.onValueChange()
-  }
-
   @Input("value")
   set value(value: DataRootEntity<any>) {
     this.data = value;
