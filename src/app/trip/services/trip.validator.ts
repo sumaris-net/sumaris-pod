@@ -26,6 +26,8 @@ export class TripValidatorService implements ValidatorService {
       'returnDateTime': [''],
       'returnLocation': ['', SharedValidators.entity],
       'comments': ['', Validators.maxLength(2000)]
+    }, {
+      validator: Validators.compose([SharedValidators.dateIsAfter('departureDateTime', 'returnDateTime') ])
     });
   }
 }

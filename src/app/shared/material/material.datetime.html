@@ -32,6 +32,7 @@
 
   <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   <mat-error *ngIf="formControl.hasError('validDate')" translate>ERROR.FIELD_NOT_VALID_DATE</mat-error>
+  <mat-error *ngIf="formControl.hasError('dateIsAfter')" translate>ERROR.FIELD_NOT_VALID_DATE_AFTER</mat-error>
 </mat-form-field>
 
 <!-- writable + mobile + time -->
@@ -74,6 +75,7 @@
         <mat-error *ngIf="formControl.touched && form.controls.hour.touched && formControl.hasError('validDate')"
           translate>ERROR.FIELD_NOT_VALID_DATE_TIME</mat-error>
         <mat-error *ngIf="formControl.touched && formControl.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_HOUR_MINUTE</mat-error>
+        <mat-error *ngIf="formControl.touched && formControl.hasError('dateIsAfter')" translate>ERROR.FIELD_NOT_VALID_DATE_AFTER</mat-error>
       </div>
     </ion-col>
 

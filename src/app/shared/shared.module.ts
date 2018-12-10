@@ -6,6 +6,7 @@ import {TranslateModule, TranslateService} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
 import {AutofocusDirective} from "./directives/autofocus.directive";
 import {DateFormatPipe} from "./pipes/date-format.pipe";
+import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {LatLongFormatPipe} from "./pipes/latlong-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {ToolbarComponent} from "./toolbar/toolbar";
@@ -32,6 +33,7 @@ import {MatPaginatorI18n} from "./material/material.paginator-i18n";
         AutofocusDirective,
         ToolbarComponent,
         DateFormatPipe,
+        DateDiffDurationPipe,
         LatLongFormatPipe,
         HighlightPipe,
         MatDateTime,
@@ -47,6 +49,7 @@ import {MatPaginatorI18n} from "./material/material.paginator-i18n";
         AutofocusDirective,
         ToolbarComponent,
         DateFormatPipe,
+        DateDiffDurationPipe,
         LatLongFormatPipe,
         HighlightPipe,
         TextMaskModule,
@@ -58,6 +61,7 @@ import {MatPaginatorI18n} from "./material/material.paginator-i18n";
     ],
     providers: [
         DateFormatPipe,
+        DateDiffDurationPipe,
         LatLongFormatPipe,
         HighlightPipe,
       {

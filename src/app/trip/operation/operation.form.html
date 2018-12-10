@@ -129,6 +129,7 @@
             <ion-col size-lg="auto">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="endDateTime">
               </mat-date-time>
+              <mat-hint align="end">{{ {startValue: form.controls['startDateTime'].value, endValue: form.controls['endDateTime'].value} | dateDiffDuration }}</mat-hint>
             </ion-col>
           </ion-row>
         </ion-grid>

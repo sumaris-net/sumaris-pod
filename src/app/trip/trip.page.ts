@@ -170,7 +170,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       if (this.debug) {
         console.debug("[page-trip] Form not valid. Detecting where...");
         if (this.tripForm.invalid) {
-          AppFormUtils.logFormErrors(this.tripForm.form, "[page-trip] [gear-form] ");
+          AppFormUtils.logFormErrors(this.tripForm.form, "[page-trip] ");
         }
         if (!this.saleForm.empty && this.saleForm.invalid) {
           AppFormUtils.logFormErrors(this.saleForm.form, "[page-trip] [sale-form] ");

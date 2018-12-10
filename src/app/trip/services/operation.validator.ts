@@ -18,11 +18,7 @@ export class OperationValidatorService implements ValidatorService {
   }
 
   getFormGroup(data?: Operation): FormGroup {
-    return this.formBuilder.group(this.getFields());
-  }
-
-  getFields(): { [key: string]: any } {
-    return {
+    return this.formBuilder.group({
       id: [''],
       updateDate: [''],
       rankOrderOnPeriod: [''],
@@ -33,6 +29,10 @@ export class OperationValidatorService implements ValidatorService {
       endPosition: this.positionValidator.getFormGroup(),
       metier: ['', Validators.compose([Validators.required, SharedValidators.entity])],
       physicalGear: ['', Validators.compose([Validators.required, SharedValidators.entity])]
-    };
-  }
+      },
+    {
+      validator: Validators.compose([SharedValidators.dateIsAfter('startDateTime', 'endDateTime') ])
+      });
+    }
+
 }

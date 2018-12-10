@@ -437,6 +437,7 @@
     "FIELD_NOT_VALID_INTEGER": "Expected integer value",
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",
     "FIELD_NOT_VALID_DATE": "Invalid date",
+    "FIELD_NOT_VALID_DATE_AFTER": "Invalid end date",
     "FIELD_NOT_VALID_HOUR_MINUTE": "Invalid hour/minute",
     "FIELD_NOT_VALID_DATE_TIME": "Invalid date/hour",
     "FIELD_NOT_VALID_LATITUDE": "Invalid latitude",

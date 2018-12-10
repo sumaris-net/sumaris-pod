@@ -12,7 +12,7 @@ import {TripService} from "../services/trip.service";
   styleUrls: ['./entity-quality-metadata.component.scss'],
   animations: [fadeInAnimation]
 })
-export class EntityQualityMetadataComponent {//implements OnChanges{
+export class EntityQualityMetadataComponent {
 
   data: DataRootEntity<any>;
   enable: boolean;

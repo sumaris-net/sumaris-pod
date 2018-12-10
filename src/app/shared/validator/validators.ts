@@ -1,6 +1,8 @@
-import {FormControl, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
+import {FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
+import {isoStringToDate} from "@angular/common/src/i18n/format_date";
+import {fromDateISOString} from "../../core/services/model";
 
 export class SharedValidators {
 
@@ -51,4 +53,18 @@ export class SharedValidators {
   static maxDecimalsPattern(maxDecimals: number): ValidatorFn {
     return Validators.pattern(new RegExp('^[0-9]+(\.[0-9]{1,'+maxDecimals+'})?$'));
   }
+
+  static dateIsAfter(startDateField: string, endDateField: string): ValidatorFn {
+    return (group: FormGroup): { [key: string]: boolean } | null => {
+      const startDate = fromDateISOString(group.get(startDateField).value);
+      const endDate = fromDateISOString(group.get(endDateField).value);
+      if ((startDate !== null && endDate !== null) && startDate > endDate) {
+        const error = { dateIsAfter: true};
+        group.get(endDateField).setErrors(error);
+        return error;
+      }
+      return null;
+    };
+  }
+
 }
