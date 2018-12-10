@@ -144,7 +144,6 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
                 // If success
                 if (authUser.isPresent()) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(authUser.get().getUsername(), authToken, authUser.get().getAuthorities());
-                    //authentication.setDetails(authUser);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     return; // OK
                 }
