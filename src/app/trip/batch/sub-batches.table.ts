@@ -227,7 +227,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
           if (!this.selectedRow) return; // Should never occur
           const row = this.selectedRow;
           const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-          if (EntityUtils.isNotEmpty(value) && value.label == QualitativeLabels.DISCARD) {
+          if (EntityUtils.isNotEmpty(value) && value.label == QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (controls[PmfmIds.DISCARD_REASON]) {
               if (row.validator.enabled) {
                 controls[PmfmIds.DISCARD_REASON].enable();

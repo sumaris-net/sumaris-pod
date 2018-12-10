@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable } from "rxjs-compat";
-import {Trip, Person, fillRankOrder, isNil} from "./trip.model";
+import {Trip, Person, fillRankOrder, isNil, toDateISOString} from "./trip.model";
 import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
@@ -182,8 +182,8 @@ const DeleteTrips: any = gql`
 `;
 
 const UpdateSubscription = gql`
-  subscription updateTrip($tripId: Int, $interval: Int){
-    updateTrip(tripId: $tripId, interval: $interval) {
+  subscription updateTrip($id: Int, $interval: Int){
+    updateTrip(id: $id, interval: $interval) {
       ...TripFragment
     }
   }

@@ -4,7 +4,7 @@ import { AlertController } from "@ionic/angular";
 
 import { TripService } from './services/trip.service';
 import { TripForm } from './trip.form';
-import { Trip } from './services/trip.model';
+import {toDateISOString, Trip} from './services/trip.model';
 import { SaleForm } from './sale/sale.form';
 import { OperationTable } from './operation/operations.table';
 import { MeasurementsForm } from './measurement/measurements.form.component';
@@ -18,6 +18,7 @@ import { isNil } from '../core/services/model';
 import {el} from "@angular/platform-browser/testing/src/browser_util";
 import {isNotNil} from "../shared/functions";
 import {EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
+import {Moment} from "moment";
 @Component({
   selector: 'page-trip',
   templateUrl: './trip.page.html',
@@ -26,7 +27,8 @@ import {EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.
 export class TripPage extends AppTabPage<Trip> implements OnInit {
 
 
-  protected _enableListenChanges: boolean = false;
+  // FIXME: aithentication error in server
+  protected _enableListenChanges: boolean = true;
 
   title = new Subject<string>();
   saving: boolean = false;
@@ -91,15 +93,14 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       });
 
       this.updateView(data, true);
-      this.enable();
       this.loading = false;
+      this.canAccessOperations = false;
     }
 
     // Load
     else {
       const data = await this.tripService.load(id).first().toPromise();
       this.updateView(data, true);
-      this.enable();
       this.loading = false;
       this.canAccessOperations = true;
       this.startListenChanges();
@@ -111,15 +112,18 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     const subscription = this.tripService.listenChanges(this.data.id)
       .subscribe((data: Trip | undefined) => {
-        if (data && data.updateDate) {
-          if (this.debug) console.debug("[trip] Detected update on server", data.updateDate, this.data.updateDate);
+        const newUpdateDate: Moment | undefined = data && data.updateDate || undefined;
+        if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
+          if (this.debug) console.debug("[trip] Detected update on server", newUpdateDate);
+          if (!this.dirty) {
+            this.updateView(data, true);
+          }
         }
       });
 
     // Add log when closing
     if (this.debug) subscription.add(() => console.debug('[trip] [WS] Stop to listen changes'));
 
-    //.subscribe(data => this.updateView(data, true));
     this.registerSubscription(subscription);
   }
 
@@ -166,7 +170,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       if (this.debug) {
         console.debug("[page-trip] Form not valid. Detecting where...");
         if (this.tripForm.invalid) {
-          AppFormUtils.logFormErrors(this.saleForm.form, "[page-trip] [gear-form] ");
+          AppFormUtils.logFormErrors(this.tripForm.form, "[page-trip] [gear-form] ");
         }
         if (!this.saleForm.empty && this.saleForm.invalid) {
           AppFormUtils.logFormErrors(this.saleForm.form, "[page-trip] [sale-form] ");
@@ -228,6 +232,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
         this.startListenChanges();
       }
 
+      this.submitted = false;
       return true;
     }
     catch (err) {
@@ -238,13 +243,12 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       return false;
     }
     finally {
-      this.submitted = false;
       this.saving = false;
     }
   }
 
   enable() {
-    if (!this.data) return false;
+    if (!this.data || isNotNil(this.data.validationDate)) return false;
     // If not a new trip, check user can write
     if ((this.data.id || this.data.id === 0) && !this.tripService.canUserWrite(this.data)) {
       if (this.debug) console.warn("[trip] Leave form disable (User has NO write access)");

@@ -132,10 +132,10 @@
         <span translate>TRIP.LIST.QUALITY</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-icon color="primary" name="create" *ngIf="!row.currentData.controlDate" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
-        <ion-icon color="primary" name="calculator" *ngIf="row.currentData.controlDate && !row.currentData.validationDate" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
-        <ion-icon color="primary" name="thumbs-up" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
-        <ion-icon color="primary" name="ribbon" *ngIf="row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.QUALIFIED'|translate"></ion-icon>
+        <ion-icon color="light" name="create" *ngIf="!row.currentData.controlDate" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
+        <ion-icon color="primary" name="checkmark" *ngIf="row.currentData.controlDate && !row.currentData.validationDate" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
+        <ion-icon color="primary" name="checkmark-circle" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
+        <!--<ion-icon color="primary" name="ribbon" *ngIf="row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.QUALIFIED'|translate"></ion-icon>-->
       </mat-cell>
     </ng-container>
 

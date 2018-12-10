@@ -23,7 +23,7 @@
   <ng-container *ngIf="data.validationDate">
     <br/>
     <ion-text color="primary">
-      <ion-icon name="thumbs-up"></ion-icon>&nbsp;
+      <ion-icon name="checkmark-circle"></ion-icon>&nbsp;
       <span translate>QUALITY.VALIDATED_ON</span>
       <span>
           <b>{{ data.validationDate | dateFormat: {pattern: 'L LT'} }}</b>
@@ -32,16 +32,14 @@
   </ng-container>
   <ng-container *ngIf="canValidate">
     <br/>
-    <ion-button (click)="validate()" expand="full">
-      <ion-icon name="thumbs-up" slot="start"></ion-icon>
-      <span translate>QUALITY.VALIDATE</span>
+    <ion-button (click)="validate()" expand="full" color="danger">
+      <ion-text translate>QUALITY.VALIDATE</ion-text>
     </ion-button>
   </ng-container>
   <ng-container *ngIf="canUnvalidate">
     <br/>
-    <ion-button (click)="unvalidate()" expand="full">
-      <ion-icon name="thumbs-down" slot="start"></ion-icon>
-      <span translate>QUALITY.UNVALIDATE</span>
+    <ion-button (click)="unvalidate()" expand="full" >
+      <ion-text translate>QUALITY.UNVALIDATE</ion-text>
     </ion-button>
   </ng-container>
 
@@ -69,7 +67,7 @@
     <br/>
     <ion-button (click)="qualify()" *ngIf="!data.qualificationDate" expand="full">
       <ion-icon name="ribbon" slot="start"></ion-icon>
-      <span translate>QUALITY.QUALIFY</span>
+      <ion-text translate>QUALITY.QUALIFY</ion-text>
     </ion-button>
   </ng-container>
 

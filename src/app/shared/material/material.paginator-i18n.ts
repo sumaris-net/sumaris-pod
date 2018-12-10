@@ -31,7 +31,7 @@ export class MatPaginatorI18n extends MatPaginatorIntl {
   }
 
   translateLabels() {
-    console.log("[i18n] Update pagination translations");
+    //console.debug("[i18n] Update pagination translations");
     this.itemsPerPageLabel = this.translate.instant('COMMON.PAGINATOR.ITEMS_PER_PAGE');
     this.nextPageLabel = this.translate.instant('COMMON.PAGINATOR.NEXT_PAGE');
     this.previousPageLabel = this.translate.instant('COMMON.PAGINATOR.PREVIOUS_PAGE');
