@@ -2,7 +2,7 @@ import { Component, OnInit, Input, Output, OnDestroy, EventEmitter } from "@angu
 import { Observable } from 'rxjs';
 import { mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
+import { AppTableDataSource, AppTable, AccountService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../../core/core.module";
 import { OperationValidatorService } from "../services/operation.validator";
 import { Operation, Trip, referentialToString, EntityUtils, ReferentialRef } from "../services/trip.model";
 import { ModalController, Platform, AlertController } from "@ionic/angular";
@@ -11,7 +11,6 @@ import { Location } from '@angular/common';
 import { ReferentialRefService } from "../../referential/referential.module";
 import { OperationService, OperationFilter } from "../services/operation.service";
 import { PositionValidatorService } from "../services/position.validator";
-import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../../core/table/table.class";
 import { TranslateService } from "@ngx-translate/core";
 
 

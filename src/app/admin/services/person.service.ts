@@ -1,11 +1,12 @@
-import { Injectable } from "@angular/core";
+import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import { Apollo } from "apollo-angular";
-import { Observable } from 'rxjs';
-import { Person } from './model';
-import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
-import { ErrorCodes } from "./errors";
-import { map } from "rxjs/operators";
+import {Apollo} from "apollo-angular";
+import {Observable} from 'rxjs';
+import {Person} from './model';
+import {DataService, LoadResult} from "../../shared/shared.module";
+import {BaseDataService} from "../../core/services/base.data-service.class";
+import {ErrorCodes} from "./errors";
+import {map} from "rxjs/operators";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {

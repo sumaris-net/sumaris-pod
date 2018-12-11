@@ -1,18 +1,18 @@
-import { Component, Input, EventEmitter, Output } from '@angular/core';
-import { PmfmStrategy, Measurement, MeasurementUtils } from "../services/trip.model";
-import { Platform } from "@ionic/angular";
-import { Moment } from 'moment/moment';
-import { DateAdapter, FloatLabelType } from "@angular/material";
-import { BehaviorSubject, Observable } from 'rxjs';
-import { startWith, throttleTime } from "rxjs/operators";
-import { zip } from "rxjs/observable/zip";
-import { AppForm } from '../../core/core.module';
-import { ProgramService } from "../../referential/referential.module";
-import { FormBuilder } from '@angular/forms';
-import { MeasurementsValidatorService } from '../services/measurement.validator';
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../../environments/environment';
-import { isNil, isNotNil } from 'src/app/core/services/model';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Measurement, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
+import {Platform} from "@ionic/angular";
+import {Moment} from 'moment/moment';
+import {DateAdapter, FloatLabelType} from "@angular/material";
+import {BehaviorSubject} from 'rxjs';
+import {startWith, throttleTime} from "rxjs/operators";
+import {zip} from "rxjs/observable/zip";
+import {AppForm} from '../../core/core.module';
+import {ProgramService} from "../../referential/referential.module";
+import {FormBuilder} from '@angular/forms';
+import {MeasurementsValidatorService} from '../services/measurement.validator';
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../../environments/environment';
+import {isNil, isNotNil} from '../../shared/shared.module';
 
 @Component({
     selector: 'form-measurements',
@@ -148,20 +148,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
             .first()
             .subscribe(([event, pmfms]) => this.updateControls(event, pmfms));
 
-        /*this._onMeasurementsChanged
-            .pipe(
-                startWith('ngOnInit')
-            )
-            .filter((event) => this.data && this.data.length > 0)
-            .subscribe((event) => this.updateControls(event));*/
-
-        /*this.pmfms
-            .filter((pmfms) => isNotNil(pmfms) && !this.loadingPmfms)
-            .pipe(
-                throttleTime(100)
-            )
-            .subscribe((pmfms) => this.updateControls('pmfms', pmfms));*/
-
         // Listen form changes
         this.form.valueChanges
             .subscribe(value => {
@@ -225,6 +211,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
 
         this.onLoading.next(true);
 
+        if (this.form.enabled){
+          this.form.disable();
+        }
+
         // Waiting end of pmfm load
         if (!pmfms || this._onLoadingPmfms.getValue()) {
             this.logDebug(`updateControls(${event}): waiting pmfms...`);
@@ -271,6 +261,15 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
 
         this.markAsUntouched();
         this.markAsPristine();
+
+        // Restore enable state (because form.setValue() can change it !)
+        if (this._enable) {
+          this.enable({onlySelf: true, emitEvent: false});
+        }
+        else if (this.form.enabled){
+          this.disable({onlySelf: true, emitEvent: false});
+        }
+
         this.onLoading.next(false);
         return true;
     }

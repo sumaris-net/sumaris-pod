@@ -1,15 +1,15 @@
-import { Injectable } from "@angular/core";
+import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
-import { Referential, StatusIds, PmfmStrategy } from "./model";
-import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
-import { Apollo } from "apollo-angular";
-import { ErrorCodes } from "./errors";
-import { AccountService } from "../../core/services/account.service";
-import { ReferentialRef } from "../../core/services/model";
+import {Observable} from "rxjs";
+import {map} from "rxjs/operators";
+import {Referential} from "./model";
+import {DataService, LoadResult} from "../../shared/shared.module";
+import {BaseDataService} from "../../core/core.module";
+import {Apollo} from "apollo-angular";
+import {ErrorCodes} from "./errors";
+import {AccountService} from "../../core/services/account.service";
 
-import { FetchPolicy } from "apollo-client";
+import {FetchPolicy} from "apollo-client";
 
 export declare class ReferentialFilter {
   entityName: string;

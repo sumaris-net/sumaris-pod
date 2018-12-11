@@ -2,7 +2,7 @@ import { Component, OnInit, forwardRef, Optional, Input } from "@angular/core";
 import { FormControl, NG_VALUE_ACCESSOR, FormGroupDirective } from "@angular/forms";
 import { Observable } from "rxjs";
 import { debounceTime, mergeMap, startWith } from "rxjs/operators";
-import { DataService } from "../../core/services/data-service.class";
+import { DataService } from "../services/data-service.class";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
     provide: NG_VALUE_ACCESSOR,

@@ -41,6 +41,7 @@
 
     "METADATA": "Metadata:",
 
+    "DAY_UNIT": "j",
     "DATE": "Date",
     "HOUR": "Hour",
     "MINUTE": "Minute",

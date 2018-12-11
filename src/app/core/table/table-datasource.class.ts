@@ -1,6 +1,6 @@
 import { TableDataSource, ValidatorService } from "angular4-material-table";
 import { Observable } from "rxjs";
-import {DataService, LoadResult} from "../services/data-service.class";
+import {DataService, LoadResult} from "../../shared/shared.module";
 import { EventEmitter } from "@angular/core";
 import { Entity } from "../services/model";
 import { TableElement } from "angular4-material-table";
@@ -220,7 +220,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     return this.dataService.deleteAll(data, this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
-        //rows.forEach(r => super.delete(r.id));
+        rows.forEach(r => super.delete(r.id));
         this.onLoading.emit(false);
       });
   }

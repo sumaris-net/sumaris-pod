@@ -1,8 +1,7 @@
 import {FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
-import {isoStringToDate} from "@angular/common/src/i18n/format_date";
-import {fromDateISOString} from "../../core/services/model";
+import {fromDateISOString} from "../functions";
 
 export class SharedValidators {
 

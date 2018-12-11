@@ -1,15 +1,13 @@
-import { Injectable } from "@angular/core";
+import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import { Apollo } from "apollo-angular";
-import { Observable, Subject } from "rxjs-compat";
-import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement, Sample, Batch } from "./trip.model";
-import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
-import { map } from "rxjs/operators";
-import { TripService } from "../services/trip.service";
-
-import { ErrorCodes } from "./trip.errors";
-import { AccountService } from "../../core/services/account.service";
-import { Fragments, DataFragments } from "./trip.queries";
+import {Apollo} from "apollo-angular";
+import {Observable} from "rxjs-compat";
+import {Batch, DataEntity, Measurement, Operation, Person, Sample, VesselPosition} from "./trip.model";
+import {map} from "rxjs/operators";
+import {DataService, LoadResult} from "../../shared/shared.module";
+import {AccountService, BaseDataService} from "../../core/core.module";
+import {ErrorCodes} from "./trip.errors";
+import {DataFragments, Fragments} from "./trip.queries";
 
 
 export declare class OperationFilter {
@@ -429,6 +427,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
         const source = sources.find(json => target.equals(json));
         target.id = source && source.id || target.id;
         target.updateDate = source && source.updateDate || target.updateDate;
+        target.creationDate = source && source.creationDate || target.creationDate;
         target.dirty = false;
 
         // Apply to children

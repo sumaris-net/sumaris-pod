@@ -18,6 +18,21 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {TextMaskModule} from "angular2-text-mask";
 import {MatPaginatorIntl} from "@angular/material";
 import {MatPaginatorI18n} from "./material/material.paginator-i18n";
+import {ProgressBarService} from "./services/progress-bar.service";
+import {HTTP_INTERCEPTORS} from "@angular/common/http";
+import {ProgressInterceptor} from "./interceptors/progess.interceptor";
+import {DataService, LoadResult} from "./services/data-service.class";
+import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toDateISOString} from "./functions";
+import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
+
+
+export {
+  DataService, LoadResult,
+  isNil, isNotNil, nullIfUndefined,
+  toDateISOString, fromDateISOString,
+  fadeInAnimation, fadeInOutAnimation,
+  DateFormatPipe, ToolbarComponent
+}
 
 @NgModule({
     imports: [
@@ -60,10 +75,12 @@ import {MatPaginatorI18n} from "./material/material.paginator-i18n";
         MatAutocompleteField
     ],
     providers: [
-        DateFormatPipe,
-        DateDiffDurationPipe,
-        LatLongFormatPipe,
-        HighlightPipe,
+      DateFormatPipe,
+      DateDiffDurationPipe,
+      LatLongFormatPipe,
+      HighlightPipe,
+      ProgressBarService,
+      { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService] },
       {
         provide: MatPaginatorIntl,
         useFactory: (translate) => {

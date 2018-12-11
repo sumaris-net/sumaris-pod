@@ -22,11 +22,17 @@
 
   ion-col.day {
     min-width: 100px;
-    //max-width: 125px;
 
     .mat-form-field-subscript-wrapper {
       overflow: visible;
       right: -45px; // right offset to align hour
+
+      .mat-form-field-hint-wrapper {
+        display: flex;
+        .mat-form-field-hint-spacer {
+          flex: 1 0 1em;
+        }
+      }
     }
   }
 

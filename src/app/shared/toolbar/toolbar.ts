@@ -1,10 +1,9 @@
 import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
-import { ProgressBarService } from '../../core/services/progress-bar.service';
+import { ProgressBarService } from '../services/progress-bar.service';
 import { BehaviorSubject } from "rxjs";
 import { Router } from "@angular/router";
 import { IonBackButton, IonRouterOutlet } from "@ionic/angular";
-
-import { Location } from '@angular/common';
+import {isNotNil} from "../functions";
 
 @Component({
   selector: 'app-toolbar',
@@ -12,6 +11,8 @@ import { Location } from '@angular/common';
   styleUrls: ['./toolbar.scss'],
 })
 export class ToolbarComponent implements OnInit {
+
+  canGoBack: boolean = false;
 
   @Input()
   title: string = '';
@@ -57,6 +58,7 @@ export class ToolbarComponent implements OnInit {
         });
       }
     });
+    this.canGoBack = this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref);
   }
 
   enableSearchBar() {

@@ -2,7 +2,7 @@ import { Component, OnInit, Input, EventEmitter, Output, forwardRef, Optional } 
 import { Referential, PmfmStrategy } from "../services/trip.model";
 import { Observable, Subject } from 'rxjs';
 import { startWith, debounceTime, map } from 'rxjs/operators';
-import { referentialToString, EntityUtils, ReferentialRef } from '../../referential/services/model';
+import { referentialToString, EntityUtils, ReferentialRef } from '../../referential/referential.module';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, Validators, FormControl, FormGroupDirective } from '@angular/forms';
 import { FloatLabelType } from "@angular/material";
 

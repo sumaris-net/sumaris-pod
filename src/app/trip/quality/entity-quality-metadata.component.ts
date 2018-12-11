@@ -2,8 +2,8 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {DataRootEntity, isNil, isNotNil, Trip} from '../services/trip.model';
 
 // import fade in animation
-import {fadeInAnimation} from '../../shared/material/material.animations';
-import {AccountService} from "../../core/services/account.service";
+import {fadeInAnimation} from '../../shared/shared.module';
+import {AccountService} from "../../core/core.module";
 import {TripService} from "../services/trip.service";
 
 @Component({
@@ -15,7 +15,7 @@ import {TripService} from "../services/trip.service";
 export class EntityQualityMetadataComponent {
 
   data: DataRootEntity<any>;
-  enable: boolean;
+  loading: boolean = true;
   canControl: boolean;
   canValidate: boolean;
   canUnvalidate: boolean;
@@ -31,7 +31,10 @@ export class EntityQualityMetadataComponent {
   }
 
   @Output()
-  onChange = new EventEmitter<any>();
+  onChange = new EventEmitter<any>(true);
+
+  @Output()
+  onControl = new EventEmitter<Event>();
 
   constructor(
     protected accountService: AccountService,
@@ -40,34 +43,42 @@ export class EntityQualityMetadataComponent {
     this.accountService.onLogin.subscribe(() => this.onValueChange());
   }
 
-  async control() {
+  async control(event: Event) {
+    this.onControl.emit(event);
+
+    if (event.defaultPrevented) return;
+
     if (this.data instanceof Trip) {
       await this.tripService.controlTrip(this.data);
       this.onChange.emit();
     }
   }
 
-  async validate() {
+  async validate(event: Event) {
+    this.onControl.emit(event);
+
+    if (event.defaultPrevented) return;
+
     if (this.data instanceof Trip) {
       await this.tripService.validateTrip(this.data);
       this.onChange.emit();
     }
   }
 
-  async unvalidate() {
+  async unvalidate(event) {
     if (this.data instanceof Trip) {
       await this.tripService.unvalidateTrip(this.data);
       this.onChange.emit();
     }
   }
 
-  qualify() {
+  qualify(event) {
     // TODO
   }
 
   protected onValueChange() {
-    this.enable = this.data && isNotNil(this.data.id);
-    if (!this.enable) {
+    this.loading = isNil(this.data) || isNil(this.data.id);
+    if (this.loading) {
       this.canControl = false;
       this.canValidate = false;
       this.canUnvalidate = false;

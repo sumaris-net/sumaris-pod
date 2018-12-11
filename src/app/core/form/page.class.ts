@@ -1,14 +1,15 @@
-import { ViewChild, OnInit, OnDestroy } from '@angular/core';
-import { Router, ActivatedRoute, Params, NavigationEnd } from "@angular/router";
-import { MatTabChangeEvent } from "@angular/material";
-import { Entity, isNotNil } from '../services/model';
-import { AlertController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
-import { ToolbarComponent } from '../../shared/toolbar/toolbar';
-import { AppTable } from '../table/table.class';
-import { AppForm } from './form.class';
-import { FormButtonsBarComponent } from './form-buttons-bar.component';
+import {OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ActivatedRoute, Params, Router} from "@angular/router";
+import {MatTabChangeEvent} from "@angular/material";
+import {Entity} from '../services/model';
+import {AlertController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
+import {Subscription} from 'rxjs';
+import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
+import {AppTable} from '../table/table.class';
+import {AppForm} from './form.class';
+import {FormButtonsBarComponent} from './form-buttons-bar.component';
+
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
 

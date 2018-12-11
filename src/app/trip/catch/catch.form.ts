@@ -1,15 +1,15 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { PmfmStrategy, Batch } from "../services/trip.model";
-import { Platform } from "@ionic/angular";
-import { Moment } from 'moment/moment';
-import { DateAdapter } from "@angular/material";
-import { ProgramService } from "../../referential/referential.module";
-import { FormBuilder } from '@angular/forms'
-import { AcquisitionLevelCodes } from '../../core/services/model';
-import { MeasurementsValidatorService } from '../services/measurement.validator';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { Subject } from 'rxjs';
-import { BatchValidatorService } from '../services/batch.validator';
+import {Component, Input, OnInit} from '@angular/core';
+import {Batch, PmfmStrategy} from "../services/trip.model";
+import {Platform} from "@ionic/angular";
+import {Moment} from 'moment/moment';
+import {DateAdapter} from "@angular/material";
+import {ProgramService} from "../../referential/referential.module";
+import {FormBuilder} from '@angular/forms'
+import {AcquisitionLevelCodes} from '../../core/core.module';
+import {MeasurementsValidatorService} from '../services/measurement.validator';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {Subject} from 'rxjs';
+import {BatchValidatorService} from '../services/batch.validator';
 
 @Component({
     selector: 'form-catch',

@@ -1,24 +1,22 @@
 import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
-import { Router, ActivatedRoute } from "@angular/router";
-import { AlertController } from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {AlertController} from "@ionic/angular";
 
-import { TripService } from './services/trip.service';
-import { TripForm } from './trip.form';
-import {toDateISOString, Trip} from './services/trip.model';
-import { SaleForm } from './sale/sale.form';
-import { OperationTable } from './operation/operations.table';
-import { MeasurementsForm } from './measurement/measurements.form.component';
-import { AppTabPage, AppFormUtils, AccountService } from '../core/core.module';
-import { PhysicalGearTable } from './physicalgear/physicalgears.table';
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../environments/environment';
-import { Subject } from 'rxjs';
-import { DateFormatPipe } from '../shared/pipes/date-format.pipe';
-import { isNil } from '../core/services/model';
-import {el} from "@angular/platform-browser/testing/src/browser_util";
-import {isNotNil} from "../shared/functions";
+import {TripService} from './services/trip.service';
+import {TripForm} from './trip.form';
+import {Trip} from './services/trip.model';
+import {SaleForm} from './sale/sale.form';
+import {OperationTable} from './operation/operations.table';
+import {MeasurementsForm} from './measurement/measurements.form.component';
+import {AppFormUtils, AppTabPage} from '../core/core.module';
+import {PhysicalGearTable} from './physicalgear/physicalgears.table';
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../environments/environment';
+import {Subject} from 'rxjs';
+import {DateFormatPipe, isNil, isNotNil} from '../shared/shared.module';
 import {EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
 import {Moment} from "moment";
+
 @Component({
   selector: 'page-trip',
   templateUrl: './trip.page.html',
@@ -59,7 +57,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     super(route, router, alertCtrl, translate);
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -112,7 +110,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     const subscription = this.tripService.listenChanges(this.data.id)
       .subscribe((data: Trip | undefined) => {
-        const newUpdateDate: Moment | undefined = data && data.updateDate || undefined;
+        const newUpdateDate = data && (data.updateDate as Moment)|| undefined;
         if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
           if (this.debug) console.debug("[trip] Detected update on server", newUpdateDate);
           if (!this.dirty) {
@@ -167,20 +165,9 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     // Not valid
     if (!this.valid) {
       this.markAsTouched();
-      if (this.debug) {
-        console.debug("[page-trip] Form not valid. Detecting where...");
-        if (this.tripForm.invalid) {
-          AppFormUtils.logFormErrors(this.tripForm.form, "[page-trip] ");
-        }
-        if (!this.saleForm.empty && this.saleForm.invalid) {
-          AppFormUtils.logFormErrors(this.saleForm.form, "[page-trip] [sale-form] ");
-        }
-        if (this.physicalGearTable.invalid) {
-          AppFormUtils.logFormErrors(this.physicalGearTable.gearForm.form, "[page-trip] [gear-form] ");
-          AppFormUtils.logFormErrors(this.physicalGearTable.gearForm.measurementsForm.form, "[page-trip] [gear-measurementsForm] ");
+      this.logFormErrors();
+      this.openFirstInvalidTab();
 
-        }
-      }
       this.submitted = true;
       return false;
     }
@@ -335,5 +322,50 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     // Emit the title
     this.title.next(title);
+  }
+
+  protected logFormErrors() {
+    if (this.debug) console.debug("[page-trip] Form not valid. Detecting where...");
+    if (this.tripForm.invalid) {
+      AppFormUtils.logFormErrors(this.tripForm.form, "[page-trip] ");
+    }
+    if (!this.saleForm.empty && this.saleForm.invalid) {
+      AppFormUtils.logFormErrors(this.saleForm.form, "[page-trip] [sale-form] ");
+    }
+    if (this.physicalGearTable.invalid) {
+      AppFormUtils.logFormErrors(this.physicalGearTable.gearForm.form, "[page-trip] [gear-form] ");
+      AppFormUtils.logFormErrors(this.physicalGearTable.gearForm.measurementsForm.form, "[page-trip] [gear-measurementsForm] ");
+    }
+  }
+
+  /**
+   * Open the first tab that is invalid
+   */
+  protected openFirstInvalidTab() {
+    const tab0Invalid = this.tripForm.invalid || this.measurementsForm.invalid;
+    const tab1Invalid = this.physicalGearTable.invalid;
+    const tab2Invalid = this.operationTable.invalid;
+
+    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
+    if (this.selectedTabIndex === 0 && !tab0Invalid) {
+      this.selectedTabIndex = invalidTabIndex;
+    }
+    else if (this.selectedTabIndex === 1 && !tab1Invalid) {
+      this.selectedTabIndex = invalidTabIndex;
+    }
+    else if (this.selectedTabIndex === 2 && !tab2Invalid) {
+      this.selectedTabIndex = invalidTabIndex;
+    }
+  }
+
+  public onTripControl(event: Event) {
+    // Stop if trip is not valid
+    if (!this.valid) {
+      // Stop the control
+      event.preventDefault();
+
+      // Open the first tab in error
+      this.openFirstInvalidTab();
+    }
   }
 }

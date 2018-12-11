@@ -1,4 +1,4 @@
-<ng-container *ngIf="enable">
+<div [@fadeInAnimation] *ngIf="!loading">
 
   <!-- control date -->
   <ng-container *ngIf="data.controlDate">
@@ -13,8 +13,7 @@
   </ng-container>
   <ng-container *ngIf="canControl">
     <br/>
-    <ion-button (click)="control()" expand="full">
-      <ion-icon name="checkmark" slot="start"></ion-icon>
+    <ion-button (click)="control($event)" expand="full">
       <ion-text translate>QUALITY.CONTROL</ion-text>
     </ion-button>
   </ng-container>
@@ -32,13 +31,13 @@
   </ng-container>
   <ng-container *ngIf="canValidate">
     <br/>
-    <ion-button (click)="validate()" expand="full" color="danger">
+    <ion-button (click)="validate($event)" expand="full" color="danger">
       <ion-text translate>QUALITY.VALIDATE</ion-text>
     </ion-button>
   </ng-container>
   <ng-container *ngIf="canUnvalidate">
     <br/>
-    <ion-button (click)="unvalidate()" expand="full" >
+    <ion-button (click)="unvalidate($event)" expand="full">
       <ion-text translate>QUALITY.UNVALIDATE</ion-text>
     </ion-button>
   </ng-container>
@@ -71,4 +70,4 @@
     </ion-button>
   </ng-container>
 
-</ng-container>
+</div>

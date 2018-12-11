@@ -1,17 +1,22 @@
-import { Component, OnInit, ViewChild, OnDestroy } from "@angular/core";
+import {Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
 
-import { Observable, BehaviorSubject } from 'rxjs';
-import { debounceTime, map } from 'rxjs/operators';
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService, AppFormUtils } from "../../core/core.module";
-import { PhysicalGearValidatorService } from "../services/physicalgear.validator";
-import { referentialToString, PhysicalGear, EntityUtils } from "../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import {DataService, LoadResult} from "../../core/services/data-service.class";
-import { PhysicalGearForm } from "./physicalgear.form";
-import { RESERVED_START_COLUMNS } from "../../core/table/table.class";
+import {BehaviorSubject, Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {
+  AccountService,
+  AppFormUtils,
+  AppTable,
+  AppTableDataSource,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
+import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
+import {EntityUtils, PhysicalGear, referentialToString} from "../services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {PhysicalGearForm} from "./physicalgear.form";
+import {DataService, LoadResult} from "../../shared/shared.module";
 
 
 @Component({
@@ -218,6 +223,10 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
     this.selectedRow = row;
     this.gearForm.value = row.currentData;
+
+    if (this.enabled) {
+      this.gearForm.enable();
+    }
 
     return true;
   }

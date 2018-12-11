@@ -1,15 +1,15 @@
-import { Component } from '@angular/core';
-import { Platform } from "@ionic/angular";
-import { MenuItem } from './core/menu/menu.component';
-import { HomePage } from './core/home/home';
-import { AccountService, DataService } from './core/core.module';
-import { ReferentialRefService } from './referential/referential.module';
+import {Component} from '@angular/core';
+import {Platform} from "@ionic/angular";
+import {MenuItem} from './core/menu/menu.component';
+import {HomePage} from './core/home/home';
+import {AccountService, DataService} from './core/core.module';
+import {ReferentialRefService} from './referential/referential.module';
 // import { StatusBar } from "@ionic-native/status-bar";
 // import { SplashScreen } from "@ionic-native/splash-screen";
 // import { Keyboard } from "@ionic-native/keyboard";
 // import { AccountFieldDef, AccountService } from './core/core.module';
 // import { Referential } from './core/services/model';
-// import { DataService } from './core/services/data-service.class';
+// import { DataService } from './shared/shared.module';
 
 
 @Component({

@@ -3,7 +3,8 @@ import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable } from "rxjs-compat";
 import { VesselFeatures, Person, toDateISOString } from "./model";
-import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
+import {DataService, LoadResult} from "../../shared/shared.module";
+import {BaseDataService} from "../../core/core.module";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
 

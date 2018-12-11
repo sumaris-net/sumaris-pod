@@ -1,4 +1,5 @@
 import gql from "graphql-tag";
+import {ReferentialFragments} from "../../referential/referential.module";
 
 export const Fragments = {
   department: gql`
@@ -43,15 +44,7 @@ export const Fragments = {
         __typename
       }
     `,
-  referential: gql`
-      fragment ReferentialFragment on ReferentialVO {
-        id
-        label
-        name
-        entityName
-        __typename
-      }
-    `,
+  referential: ReferentialFragments.referential,
   position: gql`
       fragment PositionFragment on VesselPositionVO {
         id

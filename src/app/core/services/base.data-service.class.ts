@@ -1,42 +1,20 @@
-import { Observable, Subscription } from "rxjs-compat";
-import { Apollo } from "apollo-angular";
-import { ApolloQueryResult, ApolloError, FetchPolicy } from "apollo-client";
-import { R } from "apollo-angular/types";
-import { ErrorCodes, ServiceError, ServerErrorCodes } from "./errors";
-import { map } from "rxjs/operators";
+import {Observable} from "rxjs-compat";
+import {Apollo} from "apollo-angular";
+import {ApolloQueryResult, FetchPolicy} from "apollo-client";
+import {R} from "apollo-angular/types";
+import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
+import {map} from "rxjs/operators";
 
-import { environment } from '../../../environments/environment';
-import {GraphQLError} from "graphql";
-import {getErrorLogger} from "@angular/core/src/errors";
-export declare interface LoadResult<T> {
-  data: T[];
-  total?: number
-}
-export declare interface DataService<T, F> {
+import {environment} from '../../../environments/environment';
 
-  loadAll(
-    offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: F,
-    options?: any
-  ): Observable<LoadResult<T>>;
-
-  saveAll(data: T[], options?: any): Promise<T[]>;
-
-  deleteAll(data: T[], options?: any): Promise<any>;
-}
-
-
-export class BaseDataService {
+export abstract class BaseDataService {
 
   protected _debug = false;
   protected _lastVariables: any = {
     loadAll: undefined
   };
 
-  constructor(
+  protected constructor(
     protected apollo: Apollo
   ) {
 

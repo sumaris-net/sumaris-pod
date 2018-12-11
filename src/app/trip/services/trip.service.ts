@@ -1,16 +1,16 @@
-import { Injectable } from "@angular/core";
+import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import { Apollo } from "apollo-angular";
-import { Observable } from "rxjs-compat";
-import {Trip, Person, fillRankOrder, isNil, toDateISOString} from "./trip.model";
-import {DataService, BaseDataService, LoadResult} from "../../core/services/data-service.class";
-import { map } from "rxjs/operators";
-import { Moment } from "moment";
+import {Apollo} from "apollo-angular";
+import {Observable} from "rxjs-compat";
+import {fillRankOrder, isNil, Person, Trip} from "./trip.model";
+import {DataService, LoadResult, isNotNil} from "../../shared/shared.module";
+import {BaseDataService} from "../../core/core.module";
+import {map} from "rxjs/operators";
+import {Moment} from "moment";
 
-import { ErrorCodes } from "./trip.errors";
-import { AccountService } from "../../core/services/account.service";
-import { Fragments } from "./trip.queries";
-import {isNotNil} from "../../shared/functions";
+import {ErrorCodes} from "./trip.errors";
+import {AccountService} from "../../core/services/account.service";
+import {Fragments} from "./trip.queries";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {

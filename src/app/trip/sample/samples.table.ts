@@ -1,23 +1,28 @@
-import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable, BehaviorSubject } from 'rxjs';
-import { mergeMap, debounceTime, startWith } from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { referentialToString, PmfmStrategy, Sample, TaxonGroupIds, MeasurementUtils, getPmfmName } from "../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { SampleValidatorService } from "../services/sample.validator";
-import { FormBuilder } from "@angular/forms";
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../../environments/environment';
-import { EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model";
-import { FormGroup } from "@angular/forms";
-import { MeasurementsValidatorService } from "../services/trip.validators";
-import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import {LoadResult} from "../../core/services/data-service.class";
-import {TaxonomicLevelIds} from "../../referential/services/model";
+import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
+import {BehaviorSubject, Observable} from 'rxjs';
+import {debounceTime, mergeMap, startWith} from "rxjs/operators";
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {
+  AccountService,
+  AppTable,
+  AppTableDataSource,
+  EntityUtils,
+  ReferentialRef,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
+import {getPmfmName, MeasurementUtils, PmfmStrategy, referentialToString, Sample} from "../services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {ProgramService, ReferentialRefService, TaxonomicLevelIds} from "../../referential/referential.module";
+import {SampleValidatorService} from "../services/sample.validator";
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../../environments/environment';
+import {MeasurementsValidatorService} from "../services/trip.validators";
+import {isNotNil, LoadResult} from "../../shared/shared.module";
+
 
 const PMFM_ID_REGEXP = /\d+/;
 const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonName', 'sampleDate'];

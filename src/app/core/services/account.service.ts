@@ -1,18 +1,27 @@
-import { Injectable } from "@angular/core";
-import { KeyPair, CryptoService, base58 } from "./crypto.service";
-import { Account, UserSettings, toDateISOString, getMainProfile, UserProfileLabel, hasUpperOrEqualsProfile, ReferentialRef, StatusIds } from "./model";
-import { Subject, Subscription } from "rxjs-compat";
+import {Injectable} from "@angular/core";
+import {base58, CryptoService, KeyPair} from "./crypto.service";
+import {
+  Account,
+  getMainProfile,
+  hasUpperOrEqualsProfile,
+  Referential,
+  ReferentialRef,
+  StatusIds,
+  UserProfileLabel,
+  UserSettings
+} from "./model";
+import {Subject, Subscription} from "rxjs-compat";
 import gql from "graphql-tag";
-import { TranslateService } from "@ngx-translate/core";
-import { Apollo } from "apollo-angular";
-import { Storage } from '@ionic/storage';
-import { FetchPolicy } from "apollo-client";
+import {TranslateService} from "@ngx-translate/core";
+import {Apollo} from "apollo-angular";
+import {Storage} from '@ionic/storage';
+import {FetchPolicy} from "apollo-client";
 
-import { BaseDataService, DataService } from "./data-service.class";
-import { ErrorCodes, ServerErrorCodes } from "./errors";
-import { environment } from "../../../environments/environment";
+import {DataService, toDateISOString,} from "../../shared/shared.module";
+import {BaseDataService} from "./base.data-service.class";
+import {ErrorCodes, ServerErrorCodes} from "./errors";
+import {environment} from "../../../environments/environment";
 
-import { Referential } from "../../trip/services/trip.model";
 
 export declare interface AccountHolder {
   loaded: boolean;

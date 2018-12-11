@@ -1,20 +1,21 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import {Router, ActivatedRoute, Params} from "@angular/router";
-import { OperationService } from '../services/operation.service';
-import { OperationForm } from './operation.form';
-import {Operation, Trip, Batch, EntityUtils} from '../services/trip.model';
-import { TripService } from '../services/trip.service';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
-import { AppTabPage, AppFormUtils } from '../../core/core.module';
-import { CatchForm } from '../catch/catch.form';
-import { SamplesTable } from '../sample/samples.table';
-import { SubSamplesTable } from '../sample/sub-samples.table';
-import { AlertController } from "@ionic/angular";
-import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes, isNotNil, isNil } from '../../core/services/model';
-import {PmfmIds, QualitativeLabels} from '../../referential/services/model';
-import { Subject } from 'rxjs';
-import { DateFormatPipe } from 'src/app/shared/pipes/date-format.pipe';
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {ActivatedRoute, Params, Router} from "@angular/router";
+import {OperationService} from '../services/operation.service';
+import {OperationForm} from './operation.form';
+import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
+import {TripService} from '../services/trip.service';
+import {MeasurementsForm} from '../measurement/measurements.form.component';
+import {AppFormUtils, AppTabPage} from '../../core/core.module';
+import {CatchForm} from '../catch/catch.form';
+import {SamplesTable} from '../sample/samples.table';
+import {SubSamplesTable} from '../sample/sub-samples.table';
+import {AlertController} from "@ionic/angular";
+import {TranslateService} from '@ngx-translate/core';
+import {AcquisitionLevelCodes} from '../../core/services/model';
+import {isNil, isNotNil} from '../../shared/shared.module';
+import {PmfmIds, QualitativeLabels} from '../../referential/referential.module';
+import {Subject} from 'rxjs';
+import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {SubBatchesTable} from "../batch/sub-batches.table";
 import {MatTabChangeEvent} from "@angular/material";
@@ -319,17 +320,18 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                 .debounceTime(400)
                 .pipe(
                   startWith(tripProgressControl.value),
+                  filter(isNotNil),
                   distinctUntilChanged()
                 )
                 .subscribe(value => {
                   if (!value) {
                     this.opeForm.form.controls['comments'].setValidators(Validators.required);
+                    this.opeForm.form.controls['comments'].markAsTouched({onlySelf: true});
                   }
                   else {
                     this.opeForm.form.controls['comments'].setValidators([]);
                   }
                   this.opeForm.form.controls['comments'].updateValueAndValidity({emitEvent: false});
-                  this.opeForm.form.controls['comments'].markAsTouched({onlySelf: true});
                 })
             );
           }
@@ -343,51 +345,11 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Not valid
     if (!this.valid) {
-      if (this.debug) console.warn("[page-operation] Validation errors !");
+      this.markAsTouched();
 
-      if (this.opeForm.invalid) {
-        this.opeForm.markAsTouched();
-        AppFormUtils.logFormErrors(this.opeForm.form, "[operation-form]");
-      }
-      if (this.measurementsForm.invalid) this.measurementsForm.markAsTouched();
-      if (this.catchForm.invalid) {
-        this.catchForm.markAsTouched();
-        AppFormUtils.logFormErrors(this.catchForm.form, "[catch-form]");
-      }
-      if (this.showSurvivalTestTables) {
-        if (this.survivalTestsTable.invalid) {
-          this.survivalTestsTable.markAsTouched();
-          if (this.survivalTestsTable.selectedRow && this.survivalTestsTable.selectedRow.editing) {
-            AppFormUtils.logFormErrors(this.survivalTestsTable.selectedRow.validator, "[survivaltests-table]")
-          }
-        }
-        if (this.individualMonitoringTable.invalid) {
-          this.individualMonitoringTable.markAsTouched();
-          if (this.individualMonitoringTable.selectedRow && this.individualMonitoringTable.selectedRow.editing) {
-            AppFormUtils.logFormErrors(this.individualMonitoringTable.selectedRow.validator, "[monitoring-table]")
-          }
-        }
-      }
-      if (this.showBatchSamplingTables) {
-        if (this.batchGroupsTable.invalid) {
-          this.batchGroupsTable.markAsTouched();
-          if (this.batchGroupsTable.selectedRow && this.batchGroupsTable.selectedRow.editing) {
-            AppFormUtils.logFormErrors(this.batchGroupsTable.selectedRow.validator, "[batch-group-table]")
-          }
-        }
-        if (this.subBatchesTable.invalid) {
-          this.subBatchesTable.markAsTouched();
-          if (this.subBatchesTable.selectedRow && this.subBatchesTable.selectedRow.editing) {
-            AppFormUtils.logFormErrors(this.subBatchesTable.selectedRow.validator, "[batch-table]")
-          }
-        }
-      }
-      if (this.individualReleaseTable.invalid) {
-        this.individualReleaseTable.markAsTouched();
-        if (this.individualReleaseTable.selectedRow && this.individualReleaseTable.selectedRow.editing) {
-          AppFormUtils.logFormErrors(this.individualReleaseTable.selectedRow.validator, "[release-table]")
-        }
-      }
+      this.logFormErrors();
+
+      this.openFirstInvalidTab();
 
       this.submitted = true;
       return;
@@ -552,5 +514,79 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     }
     if (this.debug) console.debug("[operation] Enabling form (User has write access)");
     super.enable();
+  }
+
+  protected logFormErrors() {
+    if (this.debug) console.warn("[page-operation] Validation errors !");
+    if (this.opeForm.invalid) {
+      AppFormUtils.logFormErrors(this.opeForm.form, "[operation-form]");
+    }
+    if (this.measurementsForm.invalid) {
+      AppFormUtils.logFormErrors(this.measurementsForm.form, "[operation-meas-form]");
+    }
+    if (this.catchForm.invalid) {
+      AppFormUtils.logFormErrors(this.catchForm.form, "[catch-form]");
+    }
+    if (this.survivalTestsTable.invalid) {
+      if (this.survivalTestsTable.selectedRow && this.survivalTestsTable.selectedRow.editing) {
+        AppFormUtils.logFormErrors(this.survivalTestsTable.selectedRow.validator, "[survivaltests-table]")
+      }
+    }
+    if (this.individualMonitoringTable.invalid) {
+      if (this.individualMonitoringTable.selectedRow && this.individualMonitoringTable.selectedRow.editing) {
+        AppFormUtils.logFormErrors(this.individualMonitoringTable.selectedRow.validator, "[monitoring-table]")
+      }
+    }
+    if (this.batchGroupsTable.invalid) {
+      if (this.batchGroupsTable.selectedRow && this.batchGroupsTable.selectedRow.editing) {
+        AppFormUtils.logFormErrors(this.batchGroupsTable.selectedRow.validator, "[batch-group-table]")
+      }
+    }
+    if (this.subBatchesTable.invalid) {
+      if (this.subBatchesTable.selectedRow && this.subBatchesTable.selectedRow.editing) {
+        AppFormUtils.logFormErrors(this.subBatchesTable.selectedRow.validator, "[batch-table]")
+      }
+    }
+    if (this.individualReleaseTable.invalid) {
+      if (this.individualReleaseTable.selectedRow && this.individualReleaseTable.selectedRow.editing) {
+        AppFormUtils.logFormErrors(this.individualReleaseTable.selectedRow.validator, "[release-table]")
+      }
+    }
+  }
+
+  /**
+   * Open the first tab that is invalid
+   */
+  protected openFirstInvalidTab() {
+    // tab 0
+    const tab0Invalid = this.opeForm.invalid || this.measurementsForm.invalid;
+    // tab 1
+    const subTab0Invalid = (this.showBatchSamplingTables && this.batchGroupsTable.invalid) || (this.showSurvivalTestTables && this.survivalTestsTable.invalid);
+    const subTab1Invalid = (this.showBatchSamplingTables && this.subBatchesTable.invalid) || (this.showSurvivalTestTables && this.individualMonitoringTable.invalid);
+    const subTab2Invalid = this.showBatchSamplingTables && this.individualReleaseTable.invalid;
+    const tab1Invalid = this.catchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;
+
+    // Open the first invalid tab
+    let invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : this.selectedTabIndex);
+    if (this.selectedTabIndex === 0 && !tab0Invalid) {
+      this.selectedTabIndex = invalidTabIndex;
+    }
+    else if (this.selectedTabIndex === 1 && !tab1Invalid) {
+      this.selectedTabIndex = invalidTabIndex;
+    }
+
+    // If tab 1, open the invalid sub tab
+    if (invalidTabIndex == 1) {
+      const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedBatchTabIndex));
+      if (this.selectedBatchTabIndex === 0 && !subTab0Invalid) {
+        this.selectedBatchTabIndex = invalidSubTabIndex;
+      }
+      else if (this.selectedBatchTabIndex === 1 && !subTab1Invalid) {
+        this.selectedBatchTabIndex = invalidSubTabIndex;
+      }
+      else if (this.selectedBatchTabIndex === 2 && !subTab2Invalid) {
+        this.selectedBatchTabIndex = invalidSubTabIndex;
+      }
+    }
   }
 }

@@ -128,8 +128,11 @@
             </ion-col>
             <ion-col size-lg="auto">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="endDateTime">
+                <mat-error *ngIf="form.controls['endDateTime'].hasError('dateIsAfter')" translate>TRIP.OPERATION.ERROR.FIELD_END_DATE_BEFORE_START</mat-error>
+                <mat-hint align="end" *ngIf="form.controls['endDateTime'].value">
+                  <span translate>COMMON.DURATION_DOTS</span>{{ {startValue: form.controls['startDateTime'].value, endValue: form.controls['endDateTime'].value} | dateDiffDuration }}
+                </mat-hint>
               </mat-date-time>
-              <mat-hint align="end">{{ {startValue: form.controls['startDateTime'].value, endValue: form.controls['endDateTime'].value} | dateDiffDuration }}</mat-hint>
             </ion-col>
           </ion-row>
         </ion-grid>

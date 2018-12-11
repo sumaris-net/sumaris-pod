@@ -1,25 +1,22 @@
 import {Component} from "@angular/core";
 import {Observable} from "rxjs";
 import {ValidatorService} from "angular4-material-table";
-import {AccountService} from "../../core/core.module";
-import {referentialToString, PmfmStrategy, Batch, MeasurementUtils, getPmfmName} from "../services/trip.model";
+import {AccountService, AppFormUtils} from "../../core/core.module";
+import {Batch, getPmfmName, MeasurementUtils, PmfmStrategy, referentialToString} from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
-import {Router, ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
-import {ReferentialRefService, ProgramService} from "../../referential/referential.module";
+import {PmfmLabelPatterns, ProgramService, ReferentialRefService,} from "../../referential/referential.module";
 import {TranslateService} from "@ngx-translate/core";
 import {environment} from "../../../environments/environment";
-import {isNotNil, isNil} from "../../core/services/model";
 import {
-  MeasurementsValidatorService,
   BatchGroupsValidatorService,
-  BatchValidatorService
+  BatchValidatorService,
+  MeasurementsValidatorService
 } from "../services/trip.validators";
-import {PmfmLabelPatterns} from "src/app/referential/services/model";
 import {FormBuilder} from "@angular/forms";
-import {getControlFromPath} from "src/app/core/form/form.utils";
 import {BatchesTable} from "./batches.table";
-import {LoadResult} from "../../core/services/data-service.class";
+import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
 
 @Component({
     selector: 'table-batch-groups',
@@ -294,6 +291,6 @@ export class BatchGroupsTable extends BatchesTable {
 
     referentialToString = referentialToString;
     getPmfmColumnHeader = getPmfmName;
-    getControlFromPath = getControlFromPath;
+    getControlFromPath = AppFormUtils.getControlFromPath;
 }
 

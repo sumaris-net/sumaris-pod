@@ -1,20 +1,21 @@
-import { EventEmitter, OnInit, Output, ViewChild, OnDestroy, Input } from "@angular/core";
-import { MatPaginator, MatSort, MatTable } from "@angular/material";
-import { merge } from "rxjs/observable/merge";
-import { Observable } from 'rxjs';
-import {startWith, mergeMap, distinctUntilChanged} from "rxjs/operators";
-import { TableElement } from "angular4-material-table";
-import { AppTableDataSource } from "./table-datasource.class";
-import { SelectionModel } from "@angular/cdk/collections";
-import {Entity, isNotNil} from "../services/model";
-import { Subscription } from "rxjs-compat";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { AccountService } from '../services/account.service';
-import { TableSelectColumnsComponent } from './table-select-columns.component';
-import { Location } from '@angular/common';
-import { ErrorCodes } from "../services/errors";
-import { AppFormUtils } from "../form/form.utils";
+import {EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
+import {MatPaginator, MatSort, MatTable} from "@angular/material";
+import {merge} from "rxjs/observable/merge";
+import {Observable} from 'rxjs';
+import {distinctUntilChanged, mergeMap, startWith} from "rxjs/operators";
+import {TableElement} from "angular4-material-table";
+import {AppTableDataSource} from "./table-datasource.class";
+import {SelectionModel} from "@angular/cdk/collections";
+import {Entity} from "../services/model";
+import {Subscription} from "rxjs-compat";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {AccountService} from '../services/account.service';
+import {TableSelectColumnsComponent} from './table-select-columns.component';
+import {Location} from '@angular/common';
+import {ErrorCodes} from "../services/errors";
+import {AppFormUtils} from "../form/form.utils";
+import {isNotNil} from "../../shared/shared.module";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -88,6 +89,14 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     enable() {
         if (!this._initialized || !this.table) return;
         this.table.disabled = false;
+    }
+
+    get enabled(): boolean {
+      return !this.table.disabled;
+    }
+
+    get disabled(): boolean {
+      return this.table.disabled;
     }
 
     markAsPristine() {
