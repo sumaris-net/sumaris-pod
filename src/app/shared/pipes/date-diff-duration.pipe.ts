@@ -34,7 +34,7 @@ export class DateDiffDurationPipe implements PipeTransform {
       .minute(duration.minutes());
 
     let days = Math.floor(duration.asDays());
-    const result = (days > 0 ? days.toString() + (this.dayUnit + ' ') : '') + timeDuration.format('LT');
+    const result = (days > 0 ? days.toString() + (this.dayUnit + ' ') : '') + timeDuration.format('HH:mm');
     return result;
   }
 }
