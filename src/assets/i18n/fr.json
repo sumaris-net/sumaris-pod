@@ -225,7 +225,7 @@
         "TITLE": "Nouvelle opération"
       },
       "EDIT": {
-        "TITLE": "Operation - {{startDateTime}}",
+        "TITLE": "<small class='hidden-xs hidden-sm'>{{vessel}} - Marée {{departureDateTime}} - </small>Ope {{startDateTime}}",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",

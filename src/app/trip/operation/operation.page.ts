@@ -476,6 +476,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Existing ope
     else {
       title = await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
+        vessel: this.trip && this.trip.vesselFeatures && (this.trip.vesselFeatures.exteriorMarking || this.trip.vesselFeatures.name) || '',
+        departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || '',
         startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, { time: true }) as string
       }).toPromise();
     }
