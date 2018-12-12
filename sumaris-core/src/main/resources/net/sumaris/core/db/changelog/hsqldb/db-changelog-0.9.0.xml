@@ -82,10 +82,10 @@
         </addColumn>
     </changeSet>
     
-    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-8">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-8" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="vessel_features" columnName="qualification_comments"/>
+                <columnExists tableName="vessel_features" columnName="validation_date"/>
             </not>
         </preConditions>
         <addColumn tableName="vessel_features">
