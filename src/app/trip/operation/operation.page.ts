@@ -34,7 +34,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   trip: Trip;
   saving: boolean = false;
   rankOrder: number;
-  selectedBatchTabIndex: number = 0;
+  selectedBatchSamplingTabIndex: number = 0;
+  selectedSurvivalTestTabIndex: number = 0;
 
   defaultBackHref: string;
   showBatchSamplingTables: boolean = false;
@@ -71,8 +72,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Listen route parameters
     this.route.queryParams.subscribe(res => {
       const subTabIndex = res["sub-tab"];
-      if (subTabIndex !== undefined) {
-        this.selectedBatchTabIndex = parseInt(subTabIndex) || 0;
+      if (isNotNil(subTabIndex)) {
+        this.selectedBatchSamplingTabIndex = parseInt(subTabIndex) || 0;
+        this.selectedSurvivalTestTabIndex = parseInt(subTabIndex) || 0;
       }
     });
 
@@ -291,7 +293,10 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                   distinctUntilChanged()
                 )
                 .subscribe(qvLabel => {
-                  // TODO: Ask user confirmation before cleaning table ?
+                  // Force first tab index
+                  this.selectedBatchSamplingTabIndex=0;
+                  this.selectedSurvivalTestTabIndex=0;
+
                   switch(qvLabel as string) {
                     case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.SURVIVAL:
                       console.debug("[operation-page] Enable survival test tables");
@@ -492,17 +497,38 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     }, []);
   }
 
-  public onBatchTabChange(event: MatTabChangeEvent) {
+  public onBatchSamplingTabChange(event: MatTabChangeEvent) {
     const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
     queryParams['sub-tab'] = event.index;
     this.router.navigate(['.'], {
       relativeTo: this.route,
       queryParams: queryParams
     });
+    if (!this.loading) {
+      this.selectedBatchSamplingTabIndex = event.index;
 
-    // Confirm editing row
-    this.batchGroupsTable.confirmEditCreateSelectedRow();
-    this.subBatchesTable.confirmEditCreateSelectedRow();
+      // On each tables, confirm editing row
+      this.batchGroupsTable.confirmEditCreateSelectedRow();
+      this.subBatchesTable.confirmEditCreateSelectedRow();
+    }
+  }
+
+  public onSurvivalTestTabChange(event: MatTabChangeEvent) {
+
+    const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
+    queryParams['sub-tab'] = event.index;
+    this.router.navigate(['.'], {
+      relativeTo: this.route,
+      queryParams: queryParams
+    });
+    if (!this.loading) {
+      this.selectedSurvivalTestTabIndex = event.index;
+
+      // On each tables, confirm editing row
+      this.survivalTestsTable.confirmEditCreateSelectedRow();
+      this.individualMonitoringTable.confirmEditCreateSelectedRow();
+      this.individualReleaseTable.confirmEditCreateSelectedRow();
+    }
   }
 
   enable() {
@@ -563,7 +589,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // tab 1
     const subTab0Invalid = (this.showBatchSamplingTables && this.batchGroupsTable.invalid) || (this.showSurvivalTestTables && this.survivalTestsTable.invalid);
     const subTab1Invalid = (this.showBatchSamplingTables && this.subBatchesTable.invalid) || (this.showSurvivalTestTables && this.individualMonitoringTable.invalid);
-    const subTab2Invalid = this.showBatchSamplingTables && this.individualReleaseTable.invalid;
+    const subTab2Invalid = this.showBatchSamplingTables && this.individualReleaseTable.invalid || false;
     const tab1Invalid = this.catchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;
 
     // Open the first invalid tab
@@ -577,15 +603,29 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // If tab 1, open the invalid sub tab
     if (invalidTabIndex == 1) {
-      const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedBatchTabIndex));
-      if (this.selectedBatchTabIndex === 0 && !subTab0Invalid) {
-        this.selectedBatchTabIndex = invalidSubTabIndex;
+      if (this.showBatchSamplingTables) {
+        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedBatchSamplingTabIndex));
+        if (this.selectedBatchSamplingTabIndex === 0 && !subTab0Invalid) {
+          this.selectedBatchSamplingTabIndex = invalidSubTabIndex;
+        }
+        else if (this.selectedBatchSamplingTabIndex === 1 && !subTab1Invalid) {
+          this.selectedBatchSamplingTabIndex = invalidSubTabIndex;
+        }
+        else if (this.selectedBatchSamplingTabIndex === 2 && !subTab2Invalid) {
+          this.selectedBatchSamplingTabIndex = invalidSubTabIndex;
+        }
       }
-      else if (this.selectedBatchTabIndex === 1 && !subTab1Invalid) {
-        this.selectedBatchTabIndex = invalidSubTabIndex;
-      }
-      else if (this.selectedBatchTabIndex === 2 && !subTab2Invalid) {
-        this.selectedBatchTabIndex = invalidSubTabIndex;
+      else  if (this.showSurvivalTestTables) {
+        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedSurvivalTestTabIndex));
+        if (this.selectedSurvivalTestTabIndex === 0 && !subTab0Invalid) {
+          this.selectedSurvivalTestTabIndex = invalidSubTabIndex;
+        }
+        else if (this.selectedSurvivalTestTabIndex === 1 && !subTab1Invalid) {
+          this.selectedSurvivalTestTabIndex = invalidSubTabIndex;
+        }
+        else if (this.selectedSurvivalTestTabIndex === 2 && !subTab2Invalid) {
+          this.selectedSurvivalTestTabIndex = invalidSubTabIndex;
+        }
       }
     }
   }

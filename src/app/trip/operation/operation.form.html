@@ -91,15 +91,15 @@
         <ion-grid no-padding>
           <ion-row no-padding>
 
-            <ion-col size="12" size-lg="auto">
+            <ion-col size="12" size-lg="4">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="startDateTime" [required]="true">
               </mat-date-time>
             </ion-col>
-            <ion-col [formGroup]="form.controls['startPosition']">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
               <mat-latlong formControlName="latitude" type="latitude" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
               </mat-latlong>
             </ion-col>
-            <ion-col [formGroup]="form.controls['startPosition']">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
               <mat-latlong formControlName="longitude" type="longitude" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
               </mat-latlong>
             </ion-col>
@@ -117,19 +117,19 @@
       <ion-col no-padding>
         <ion-grid no-padding>
           <ion-row no-padding>
-            <ion-col size="12" size-lg="auto">
+            <ion-col size="12" size-lg="4">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="endDateTime">
                 <mat-error *ngIf="form.controls['endDateTime'].hasError('dateIsAfter')" translate>TRIP.OPERATION.ERROR.FIELD_END_DATE_BEFORE_START</mat-error>
                 <mat-hint align="end" *ngIf="form.controls['endDateTime'].value">
-                  <span translate>COMMON.DURATION_DOTS</span>{{ {startValue: form.controls['startDateTime'].value, endValue: form.controls['endDateTime'].value} | dateDiffDuration }}
+                  <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls['startDateTime'].value, endValue: form.controls['endDateTime'].value} | dateDiffDuration }}
                 </mat-hint>
               </mat-date-time>
             </ion-col>
-            <ion-col [formGroup]="form.controls['endPosition']">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
               <mat-latlong formControlName="latitude" type="latitude" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
               </mat-latlong>
             </ion-col>
-            <ion-col [formGroup]="form.controls['endPosition']">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
               <mat-latlong formControlName="longitude" type="longitude" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
               </mat-latlong>
             </ion-col>
