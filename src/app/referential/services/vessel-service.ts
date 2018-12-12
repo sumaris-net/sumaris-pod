@@ -3,7 +3,8 @@ import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable } from "rxjs-compat";
 import { VesselFeatures, Person, toDateISOString } from "./model";
-import { DataService, BaseDataService } from "../../core/services/data-service.class";
+import {DataService, LoadResult} from "../../shared/shared.module";
+import {BaseDataService} from "../../core/core.module";
 import { map } from "rxjs/operators";
 import { Moment } from "moment";
 
@@ -155,7 +156,7 @@ export class VesselService extends BaseDataService implements DataService<Vessel
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: VesselFilter): Observable<VesselFeatures[]> {
+    filter?: VesselFilter): Observable<LoadResult<VesselFeatures>> {
 
     const variables: any = {
       offset: offset || 0,
@@ -171,11 +172,16 @@ export class VesselService extends BaseDataService implements DataService<Vessel
       error: { code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR" }
     })
       .pipe(
-        map((data) => (data && data.vessels || []).map(t => {
-          const res = new VesselFeatures();
-          res.fromObject(t);
-          return res;
-        })
+        map(({vessels}) => {
+          const data = (vessels || []).map(t => {
+            const res = new VesselFeatures();
+            res.fromObject(t);
+            return res;
+          });
+          return {
+            data: data,
+          }
+        }
         )
       );
   }

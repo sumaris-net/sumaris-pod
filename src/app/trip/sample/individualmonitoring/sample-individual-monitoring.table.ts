@@ -53,7 +53,7 @@ export class IndividualMonitoringTable extends SubSamplesTable {
         // Listening on column 'IS_DEAD' value changes
         this.registerCellValueChanges('isDead', "measurementValues." + PmfmIds.IS_DEAD.toString())
             .subscribe((isDeadValue) => {
-                console.log("IS_DEAD="+isDeadValue);
+                //console.log("IS_DEAD="+isDeadValue);
                 if (!this.selectedRow) return; // Should never occur
                 const row = this.selectedRow;
                 const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;

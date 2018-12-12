@@ -1,22 +1,35 @@
-import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable, BehaviorSubject } from 'rxjs';
-import { mergeMap, debounceTime, startWith } from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { referentialToString, PmfmStrategy, Batch, TaxonGroupIds, MeasurementUtils, getPmfmName } from "../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { BatchValidatorService } from "../services/batch.validator";
-import { FormBuilder } from "@angular/forms";
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../../environments/environment';
-import { EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model";
-import { FormGroup } from "@angular/forms";
-import { MeasurementsValidatorService } from "../services/trip.validators";
-import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import { TaxonomicLevelIds } from "src/app/referential/services/model";
+import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
+import {BehaviorSubject, Observable} from 'rxjs';
+import {debounceTime, mergeMap, startWith} from "rxjs/operators";
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {
+  AccountService,
+  AppTable,
+  AppTableDataSource,
+  EntityUtils,
+  ReferentialRef,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
+import {
+  Batch,
+  getPmfmName,
+  MeasurementUtils,
+  PmfmStrategy,
+  referentialToString,
+  TaxonGroupIds
+} from "../services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {ProgramService, ReferentialRefService} from "../../referential/referential.module";
+import {BatchValidatorService} from "../services/batch.validator";
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../../environments/environment';
+import {MeasurementsValidatorService} from "../services/trip.validators";
+import {TaxonomicLevelIds} from "src/app/referential/services/model";
+import {isNotNil, LoadResult} from "../../shared/shared.module";
 
 const PMFM_ID_REGEXP = /\d+/;
 const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
@@ -35,7 +48,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
     private _implicitValues: { [key: string]: any } = {};
-    private _dataSubject = new BehaviorSubject<Batch[]>([]);
+    private _dataSubject = new BehaviorSubject<LoadResult<Batch>>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -57,7 +70,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         return this.data;
     }
 
-    protected get dataSubject(): BehaviorSubject<Batch[]> {
+    protected get dataSubject(): BehaviorSubject<LoadResult<Batch>> {
         return this._dataSubject;
     }
 
@@ -166,7 +179,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                             levelId: TaxonGroupIds.FAO,
                             searchText: value as string,
                             searchAttribute: 'label'
-                        }).first();
+                        }).first().map(({data}) => data);
                 })
             );
 
@@ -188,7 +201,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                             levelId: TaxonomicLevelIds.SPECIES,
                             searchText: value as string,
                             searchAttribute: 'label'
-                        }).first();
+                        }).first().map(({data}) => data);
                 })
             );
 
@@ -213,7 +226,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Batch[]> {
+    ): Observable<LoadResult<Batch>> {
         if (!this.data) {
             if (this.debug) console.debug("[batch-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
@@ -238,7 +251,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                 this.sortBatches(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[batch-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-                this._dataSubject.next(data);
+                this._dataSubject.next({data: data});
             });
 
         return this._dataSubject.asObservable();

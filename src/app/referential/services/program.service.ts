@@ -3,11 +3,10 @@ import gql from "graphql-tag";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { PmfmStrategy } from "./model";
-import { BaseDataService } from "../../core/services/data-service.class";
+import { BaseDataService, ReferentialRef } from "../../core/core.module";
 import { ErrorCodes } from "./errors";
 import { Apollo } from "apollo-angular";
-import { ReferentialRef } from "../../core/services/model";
-import { Fragments } from "../../trip/services/trip.queries";
+import { ReferentialFragments } from "../services/referential.queries";
 
 const LoadProgramPmfms: any = gql`
   query LoadProgramPmfms($program: String) {
@@ -48,7 +47,7 @@ const LoadProgramGears: any = gql`
       ...ReferentialFragment
     }
   }
-  ${Fragments.referential}
+  ${ReferentialFragments.referential}
 `;
 
 @Injectable()

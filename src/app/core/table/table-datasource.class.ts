@@ -1,6 +1,6 @@
 import { TableDataSource, ValidatorService } from "angular4-material-table";
 import { Observable } from "rxjs";
-import { DataService } from "../services/data-service.class";
+import {DataService, LoadResult} from "../../shared/shared.module";
 import { EventEmitter } from "@angular/core";
 import { Entity } from "../services/model";
 import { TableElement } from "angular4-material-table";
@@ -56,16 +56,16 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: F): Observable<T[]> {
+    filter?: F): Observable<LoadResult<T>> {
 
     this.onLoading.emit(true);
     return this.dataService.loadAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
       .catch(err => this.handleError(err, 'Unable to load rows'))
-      .map(data => {
+      .map(res => {
         this.onLoading.emit(false);
-        if (this._debug) console.debug("[table-datasource] Updating datasource...", data);
-        this.updateDatasource(data);
-        return data
+        if (this._debug) console.debug("[table-datasource] Updating datasource...", res);
+        this.updateDatasource(res.data);
+        return res;
       });
   }
 
@@ -188,7 +188,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     AppFormUtils.copyEntity2Form(row.currentData, row.validator);
   }
 
-  public handleError(error: any, message: string): Observable<T[]> {
+  public handleError(error: any, message: string): Observable<LoadResult<T>> {
     console.error(error && error.message || error);
     this.onLoading.emit(false);
     return Observable.throw(error && error.message && error || message || error);
@@ -197,20 +197,30 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   public handleErrorPromise(error: any, message: string) {
     console.error(error && error.message || error);
     this.onLoading.emit(false);
-    throw error; // (error && error.code) ? error : (message || error);
+    throw (error && error.message && error || message || error);
   }
 
   public delete(id: number): void {
-    var row = this.getRow(id);
+    const row = this.getRow(id);
     this.onLoading.emit(true);
 
     this.dataService.deleteAll([row.currentData], this.serviceOptions)
+      .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
         super.delete(id);
         this.onLoading.emit(false);
-      })
-      .catch(err => {
-        console.error(err);
+      });
+  }
+
+  public deleteAll(rows: TableElement<T>[]): Promise<any> {
+    this.onLoading.emit(true);
+
+    const data = rows.map(r => r.currentData);
+
+    return this.dataService.deleteAll(data, this.serviceOptions)
+      .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
+      .then(() => {
+        rows.forEach(r => super.delete(r.id));
         this.onLoading.emit(false);
       });
   }

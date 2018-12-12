@@ -41,11 +41,13 @@
 
     "METADATA": "Métadonnées :",
 
+    "DAY_UNIT": "j",
     "DATE": "Date",
+    "TIME": "Heure",
     "HOUR": "Heure",
     "MINUTE": "Minute",
-    "HOUR_PLACEHOLDER": "hh:mm",
-    "MINUTE_PLACEHOLDER": "mm",
+    "TIME_PLACEHOLDER": "hh:mm",
+    "DURATION_DOTS": "Durée :",
 
     "YES": "Oui",
     "NO": "Non",
@@ -132,6 +134,9 @@
       "DESCRIPTION": "Voici les réglages possibles pour l'usage de l'application :",
       "LOCALE": "Langue",
       "LAT_LONG_FORMAT": "Format latitude/longitude"
+    },
+    "ERROR": {
+      "SUBSCRIBE_ACCOUNT_ERROR": "Echec de l'abonnement distant au compte utilisateur."
     }
   },
   "USER": {
@@ -186,14 +191,19 @@
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
         "LOCATION": "Port (départ ou retour)"
-      }
+      },
+      "QUALITY": "Etat"
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",
       "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
       "SAVE_TRIP_ERROR": "Erreur lors de la sauvegarde de la marée.",
       "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées.",
-      "SUBSCRIBE_TRIP_ERROR": "Erreur lors de l'écoute des modifications distantes de la marée."
+      "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée.",
+      "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
+      "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
+      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
+      "FIELD_RETURN_DATE_BEFORE_DEPARTURE": "Date supérieure à la date de départ"
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
@@ -215,7 +225,7 @@
         "TITLE": "Nouvelle opération"
       },
       "EDIT": {
-        "TITLE": "Operation - {{startDateTime}}",
+        "TITLE": "<small class='hidden-xs hidden-sm'>{{vessel}} - Marée {{departureDateTime}} - </small>Ope {{startDateTime}}",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",
@@ -246,7 +256,9 @@
         "LOAD_OPERATION_ERROR": "Erreur de chargement de l'opération.",
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
-        "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations."
+        "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
+        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
+        "FIELD_END_DATE_BEFORE_START": "Date supérieure à la date de début"
       }
     },
     "CATCH": {
@@ -309,6 +321,21 @@
       "SAVE_ERROR": "Erreur lors de la sauvegarde de la vente.",
       "SAVE_ALL_ERROR": "Erreur lors de la sauvegarde des ventes."
     }
+  },
+  "QUALITY": {
+    "MODIFIED": "En cours de saisie",
+    "CONTROLLED": "Terminé",
+    "CONTROLLED_ON": "Terminé le ",
+    "CONTROL": "Terminer la saisie",
+    "VALIDATED": "Validé",
+    "VALIDATED_ON": "Validé le ",
+    "VALIDATE": "Valider",
+    "UNVALIDATE": "Dévalider",
+    "QUALIFIED": "Qualifié",
+    "QUALIFIED_ON": "Qualifié le ",
+    "QUALIFICATION_COMMENT": "Commentaire de qualification",
+    "QUALIFY": "Qualifier",
+    "QUALITY_FLAG": "Niveau de qualité"
   },
   "VESSEL": {
     "VESSEL_ID": "Code interne",
@@ -414,6 +441,7 @@
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
     "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
+    "FIELD_NOT_VALID_DATE_AFTER": "Date de fin invalide",
     "FIELD_NOT_VALID_HOUR_MINUTE": "Heure/minute invalide",
     "FIELD_NOT_VALID_DATE_TIME": "Date/heure invalide",
     "FIELD_NOT_VALID_LATITUDE": "Latitude invalide",
@@ -432,7 +460,8 @@
     "ACCOUNT_NOT_EXISTS": "Votre compte semble inexistant, et ne peut donc être sauvegardé.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Erreur d'envoi de l'email de confirmation du compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Erreur lors de la confirmation de l'email. Ce compte a peut-être déjà été confirmé ?",
-    "UNAUTHORIZED": "Echec de l'authentification sur le serveur",
+    "UNAUTHORIZED": "Accès au serveur non autorisé",
+    "FORBIDDEN": "Accès non autorisé",
     "AUTH_SERVER_ERROR": "Erreur lors de l'authentification sur le serveur",
     "AUTH_CHALLENGE_ERROR": "Erreur lors de l'authentification sur le serveur (récupration du challenge)",
     "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur"

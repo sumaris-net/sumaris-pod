@@ -1,15 +1,16 @@
-import { Injectable } from "@angular/core";
+import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import { Apollo } from "apollo-angular";
-import { Observable } from "rxjs-compat";
-import { Trip, Person, fillRankOrder } from "./trip.model";
-import { DataService, BaseDataService } from "../../core/services/data-service.class";
-import { map } from "rxjs/operators";
-import { Moment } from "moment";
+import {Apollo} from "apollo-angular";
+import {Observable} from "rxjs-compat";
+import {fillRankOrder, isNil, Person, Trip} from "./trip.model";
+import {DataService, LoadResult, isNotNil} from "../../shared/shared.module";
+import {BaseDataService} from "../../core/core.module";
+import {map} from "rxjs/operators";
+import {Moment} from "moment";
 
-import { ErrorCodes } from "./trip.errors";
-import { AccountService } from "../../core/services/account.service";
-import { Fragments } from "./trip.queries";
+import {ErrorCodes} from "./trip.errors";
+import {AccountService} from "../../core/services/account.service";
+import {Fragments} from "./trip.queries";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -22,6 +23,8 @@ export const TripFragments = {
     returnDateTime
     creationDate
     updateDate
+    controlDate
+    validationDate
     comments
     departureLocation {
       ...LocationFragment
@@ -55,6 +58,8 @@ export const TripFragments = {
     returnDateTime
     creationDate
     updateDate
+    controlDate
+    validationDate
     comments
     departureLocation {
       ...LocationFragment
@@ -125,9 +130,11 @@ const LoadAllQuery: any = gql`
     trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightTripFragment
     }
+    tripsCount(filter: $filter)
   }
   ${TripFragments.lightTrip}
 `;
+//
 const LoadQuery: any = gql`
   query Trip($id: Int) {
     trip(id: $id) {
@@ -144,6 +151,30 @@ const SaveTrips: any = gql`
   }
   ${TripFragments.trip}
 `;
+const ControlTrip: any = gql`
+  mutation controlTrip($trip:TripVOInput){
+    controlTrip(trip: $trip){
+      ...TripFragment
+    }
+  }
+  ${TripFragments.trip}
+`;
+const ValidateTrip: any = gql`
+  mutation validateTrip($trip:TripVOInput){
+    validateTrip(trip: $trip){
+      ...TripFragment
+    }
+  }
+  ${TripFragments.trip}
+`;
+const UnvalidateTrip: any = gql`
+  mutation unvalidateTrip($trip:TripVOInput){
+    unvalidateTrip(trip: $trip){
+      ...TripFragment
+    }
+  }
+  ${TripFragments.trip}
+`;
 const DeleteTrips: any = gql`
   mutation deleteTrips($ids:[Int]){
     deleteTrips(ids: $ids)
@@ -151,8 +182,8 @@ const DeleteTrips: any = gql`
 `;
 
 const UpdateSubscription = gql`
-  subscription updateTrip($tripId: Int, $interval: Int){
-    updateTrip(tripId: $tripId, interval: $interval) {
+  subscription updateTrip($id: Int, $interval: Int){
+    updateTrip(id: $id, interval: $interval) {
       ...TripFragment
     }
   }
@@ -184,7 +215,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: TripFilter): Observable<Trip[]> {
+    filter?: TripFilter): Observable<LoadResult<Trip>> {
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
@@ -197,18 +228,23 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     const now = new Date();
     if (this._debug) console.debug("[trip-service] Loading trips... using options:", variables);
-    return this.watchQuery<{ trips: Trip[] }>({
+    return this.watchQuery<{ trips: Trip[]; tripsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
       fetchPolicy: 'cache-and-network'
     })
       .pipe(
-        map((data) => {
-          const res = (data && data.trips || []).map(Trip.fromObject);
-          if (this._debug) console.debug("[trip-service] Loaded {" + (res.length || 0) + "} trips in " + (new Date().getTime() - now.getTime()) + "ms", res);
-          return res;
-        }));
+        map(res => {
+          const data = (res && res.trips || []).map(Trip.fromObject);
+          const total = res && res.tripsCount || 0;
+          if (this._debug) console.debug("[trip-service] Loaded {" + (data.length || 0) + "} trips in " + (new Date().getTime() - now.getTime()) + "ms", data);
+          return {
+            data: data,
+            total: total
+          };
+        })
+      );
   }
 
   load(id: number): Observable<Trip | null> {
@@ -241,10 +277,10 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.subscribe<{ updateTrip: Trip }, { tripId: number, interval: number }>({
+    return this.subscribe<{ updateTrip: Trip }, { id: number, interval: number }>({
       query: UpdateSubscription,
       variables: {
-        tripId: id,
+        id: id,
         interval: 10
       },
       error: {
@@ -310,7 +346,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     // Transform into json
     const json = this.asObject(entity);
-    const isNew = !entity.id && entity.id !== 0;;
+    const isNew = isNil(entity.id);
 
     const now = new Date();
     if (this._debug) console.debug("[trip-service] Saving trip...", json);
@@ -323,11 +359,11 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" }
     });
 
-    var savedTrip = res && res.saveTrips && res.saveTrips[0];
+    const savedTrip = res && res.saveTrips && res.saveTrips[0];
     if (savedTrip) {
       this.copyIdAndUpdateDate(savedTrip, entity);
 
-      // Update the cache
+      // Add to cache
       if (isNew && this._lastVariables.loadAll) {
         this.addToQueryCache({
           query: LoadAllQuery,
@@ -337,6 +373,128 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     }
 
     if (this._debug) console.debug("[trip-service] Trip saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+
+    return entity;
+  }
+
+  /**
+   * Control the trip
+   * @param entity
+   */
+  async controlTrip(entity: Trip) {
+
+    // TODO vérifier que le formulaire est dirty et/ou s'il est valide, car le control provoque une sauvegarde
+
+    if (isNil(entity.id)) {
+      throw "Entity must be saved before control !"
+    }
+
+    // Prepare to save
+    this.fillDefaultProperties(entity);
+
+    // Transform into json
+    const json = this.asObject(entity);
+
+    const now = new Date();
+    if (this._debug) console.debug("[trip-service] Control trip...", json);
+
+    const res = await this.mutate<{ controlTrip: any }>({
+      mutation: ControlTrip,
+      variables: {
+        trip: json
+      },
+      error: { code: ErrorCodes.CONTROL_TRIP_ERROR, message: "TRIP.ERROR.CONTROL_TRIP_ERROR" }
+    });
+
+    let savedTrip = res && res.controlTrip;
+    if (savedTrip) {
+      this.copyIdAndUpdateDate(savedTrip, entity);
+      entity.controlDate = savedTrip.controlDate || entity.controlDate;
+      entity.validationDate = savedTrip.validationDate || entity.validationDate;
+    }
+
+    if (this._debug) console.debug("[trip-service] Trip controlled in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+
+    return entity;
+  }
+
+  /**
+   * Validate the trip
+   * @param entity
+   */
+  async validateTrip(entity: Trip) {
+
+    if (isNil(entity.controlDate)) {
+      throw "Entity must be controlled before validate !"
+    }
+    if (isNotNil(entity.validationDate)) {
+      throw "Entity is already validated !"
+    }
+
+    // Prepare to save
+    this.fillDefaultProperties(entity);
+
+    // Transform into json
+    const json = this.asObject(entity);
+
+    const now = new Date();
+    if (this._debug) console.debug("[trip-service] Validate trip...", json);
+
+    const res = await this.mutate<{ validateTrip: any }>({
+      mutation: ValidateTrip,
+      variables: {
+        trip: json
+      },
+      error: { code: ErrorCodes.VALIDATE_TRIP_ERROR, message: "TRIP.ERROR.VALIDATE_TRIP_ERROR" }
+    });
+
+    let savedTrip = res && res.validateTrip;
+    if (savedTrip) {
+      this.copyIdAndUpdateDate(savedTrip, entity);
+      entity.controlDate = savedTrip.controlDate || entity.controlDate;
+      entity.validationDate = savedTrip.validationDate || entity.validationDate;
+    }
+
+    if (this._debug) console.debug("[trip-service] Trip validated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+
+    return entity;
+  }
+
+  /**
+   * Unvalidate the trip
+   * @param entity
+   */
+  async unvalidateTrip(entity: Trip) {
+
+    if (isNil(entity.validationDate)) {
+      throw "Entity is not validated yet !"
+    }
+
+    // Prepare to save
+    this.fillDefaultProperties(entity);
+
+    // Transform into json
+    const json = this.asObject(entity);
+
+    const now = new Date();
+    if (this._debug) console.debug("[trip-service] Unvalidate trip...", json);
+
+    const res = await this.mutate<{ unvalidateTrip: any }>({
+      mutation: UnvalidateTrip,
+      variables: {
+        trip: json
+      },
+      error: { code: ErrorCodes.UNVALIDATE_TRIP_ERROR, message: "TRIP.ERROR.UNVALIDATE_TRIP_ERROR" }
+    });
+
+    let savedTrip = res && res.unvalidateTrip;
+    if (savedTrip) {
+      this.copyIdAndUpdateDate(savedTrip, entity);
+      entity.controlDate = savedTrip.controlDate || entity.controlDate;
+      entity.validationDate = savedTrip.validationDate; // should be null
+    }
+
+    if (this._debug) console.debug("[trip-service] Trip unvalidated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
 
     return entity;
   }
@@ -377,7 +535,12 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
   canUserWrite(trip: Trip): boolean {
     if (!trip) return false;
 
-    // TODO: check rights on program (need a model upgrade ?)
+    // If the user is the recorder: can write
+    if (trip.recorderPerson && this.accountService.account.equals(trip.recorderPerson)) {
+      return true;
+    }
+
+    // TODO: check rights on program (need model changes)
 
     return this.accountService.canUserWriteDataForDepartment(trip.recorderDepartment);
   }
@@ -390,16 +553,16 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     // Fill return date using departure date
     copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
 
-    // Fill return location using departure lcoation
+    // Fill return location using departure location
     if (!copy.returnLocation || !copy.returnLocation.id) {
       copy.returnLocation = { id: copy.departureLocation && copy.departureLocation.id };
     }
 
-    // Clean vesselfeatures object, before saving
-    copy.vesselFeatures = { vesselId: entity.vesselFeatures && entity.vesselFeatures.vesselId }
+    // Clean vessel features object, before saving
+    copy.vesselFeatures = { vesselId: entity.vesselFeatures && entity.vesselFeatures.vesselId };
 
     // Keep id only, on person and department
-    copy.recorderPerson = { id: entity.recorderPerson && entity.recorderPerson.id }
+    copy.recorderPerson = { id: entity.recorderPerson && entity.recorderPerson.id };
     copy.recorderDepartment = entity.recorderDepartment && { id: entity.recorderDepartment && entity.recorderDepartment.id } || undefined;
 
     return copy;
@@ -478,4 +641,5 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       });
     }
   }
+
 }

@@ -43,7 +43,7 @@
             </form-operation>
           </ion-col>
           <ion-col no-padding size="12" size-xl="2">
-            <form-metadata [data]="data"></form-metadata>
+            <entity-metadata [value]="data"></entity-metadata>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -72,7 +72,8 @@
       </form-catch>
 
       <!-- tab group for batches -->
-      <mat-tab-group [selectedIndex]="selectedBatchTabIndex" (selectedTabChange)="onBatchTabChange($event)" [disableRipple]="true" dynamicHeight >
+      <mat-tab-group [class.hidden]="!showBatchSamplingTables"
+                     [selectedIndex]="selectedBatchTabIndex" (selectedTabChange)="onBatchSamplingTabChange($event)" [disableRipple]="true" dynamicHeight>
 
         <!-- TAB: species list -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
@@ -102,43 +103,60 @@
                              [showTaxonNameColumn]="false">
           </table-sub-batches>
         </mat-tab>
+
+        <!-- TAB: Individual releases
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES'|translate}}">
+          <ng-template mat-tab-label>
+            <mat-icon>room</mat-icon>
+            <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
+          </ng-template>
+
+          <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE"></table-sub-samples>
+        </mat-tab>-->
+      </mat-tab-group>
+
+      <!-- tab group for survival test -->
+      <mat-tab-group [class.hidden]="!showSurvivalTestTables"
+                     [selectedIndex]="selectedBatchTabIndex" (selectedTabChange)="onSurvivalTestTabChange($event)" [disableRipple]="true" dynamicHeight >
+
+        <!-- TAB: Survival tests -->
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">
+          <ng-template mat-tab-label>
+            <mat-icon>timer</mat-icon>
+            <ion-label translate>TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST</ion-label>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && survivalTestsTable.invalid"></ion-icon>
+          </ng-template>
+
+          <table-samples #survivalTestsTable [debug]="debug" acquisitionLevel="SURVIVAL_TEST">
+          </table-samples>
+        </mat-tab>
+
+        <!-- TAB: Individual monitoring  -->
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING'|translate}}">
+          <ng-template mat-tab-label>
+            <mat-icon>center_focus_strong</mat-icon>
+            <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING</ion-label>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
+          </ng-template>
+
+          <table-individual-monitoring #individualMonitoringTable [debug]="debug" acquisitionLevel="INDIVIDUAL_MONITORING"></table-individual-monitoring>
+        </mat-tab>
+
+        <!-- TAB: Individual releases  -->
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES'|translate}}">
+          <ng-template mat-tab-label>
+            <mat-icon>room</mat-icon>
+            <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
+          </ng-template>
+
+          <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE"></table-sub-samples>
+        </mat-tab>
       </mat-tab-group>
 
     </mat-tab>
 
-    <!-- TAB: Survival  -->
-    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">
-      <ng-template mat-tab-label>
-        <mat-icon>timer</mat-icon>
-        <ion-label translate>TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && survivalTestsTable.invalid"></ion-icon>
-      </ng-template>
-
-      <table-samples #survivalTestsTable [debug]="debug" acquisitionLevel="SURVIVAL_TEST">
-      </table-samples>
-    </mat-tab>
-
-    <!-- TAB: Individual monitoring  -->
-    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING'|translate}}">
-      <ng-template mat-tab-label>
-        <mat-icon>center_focus_strong</mat-icon>
-        <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
-      </ng-template>
-
-      <table-individual-monitoring #individualMonitoringTable [debug]="debug" acquisitionLevel="INDIVIDUAL_MONITORING"></table-individual-monitoring>
-    </mat-tab>
-
-    <!-- TAB: Individual releases  -->
-    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES'|translate}}">
-      <ng-template mat-tab-label>
-        <mat-icon>room</mat-icon>
-        <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
-      </ng-template>
-
-      <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE"></table-sub-samples>
-    </mat-tab>
   </mat-tab-group>
 
 </ion-content>

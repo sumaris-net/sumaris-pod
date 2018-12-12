@@ -33,6 +33,9 @@
 
               <span *ngIf="debug">
                 <br />dirty: {{tripForm.dirty}}
+                <!--<br/>updateDate: {{data && (data.updateDate | dateFormat: {pattern: 'L LT'}) }}-->
+                <!--<br/>controlDate: {{data && (data.controlDate | dateFormat: {pattern: 'L LT'}) }}-->
+                <!--<br/>validationDate: {{data && (data.validationDate | dateFormat: {pattern: 'L LT'}) }}-->
               </span>
 
               <!-- sale -->
@@ -59,7 +62,10 @@
             </form-trip>
           </ion-col>
           <ion-col no-padding size="12" size-xl="3">
-            <form-metadata [data]="data"></form-metadata>
+            <entity-metadata [value]="data">
+              <entity-quality-metadata #qualityForm (onChange)="updateView(data)" (onControl)="onTripControl($event)">
+              </entity-quality-metadata>
+            </entity-metadata>
           </ion-col>
         </ion-row>
       </ion-grid>

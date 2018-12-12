@@ -1,10 +1,10 @@
-import { Injectable } from "@angular/core";
-import { ValidatorService } from "angular4-material-table";
-import { FormGroup, Validators, FormBuilder, AbstractControl, ValidatorFn } from "@angular/forms";
-import { PmfmStrategy } from "./trip.model";
-import { SharedValidators } from "../../shared/validator/validators";
-import { isNotNil, isNil } from "src/app/core/services/model";
+import {Injectable} from "@angular/core";
+import {ValidatorService} from "angular4-material-table";
+import {AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
+import {PmfmStrategy} from "./trip.model";
+import {SharedValidators} from "../../shared/validator/validators";
 
+import {isNil, isNotNil} from '../../shared/shared.module';
 
 const REGEXP_INTEGER = /^[0-9]+$/;
 const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;

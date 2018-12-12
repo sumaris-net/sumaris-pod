@@ -1,62 +1,76 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
 
-import { AccountService, AccountFieldDef } from './services/account.service';
-import { AccountValidatorService } from './services/account.validator';
-import { UserSettingsValidatorService } from './services/user-settings.validator';
-import { AuthGuardService } from './services/auth-guard.service';
-import { CryptoService } from './services/crypto.service';
-import { DataService } from './services/data-service.class';
-import { AuthForm } from './auth/form/form-auth';
-import { AuthModal } from './auth/modal/modal-auth';
-import { AboutModal } from './about/modal-about';
+import {AccountFieldDef, AccountService} from './services/account.service';
+import {AccountValidatorService} from './services/account.validator';
+import {UserSettingsValidatorService} from './services/user-settings.validator';
+import {AuthGuardService} from './services/auth-guard.service';
+import {CryptoService} from './services/crypto.service';
+import {BaseDataService} from './services/base.data-service.class';
+import {AuthForm} from './auth/form/form-auth';
+import {AuthModal} from './auth/modal/modal-auth';
+import {AboutModal} from './about/modal-about';
 
-import { RegisterConfirmPage } from "./register/confirm/confirm";
-import { AccountPage } from "./account/account";
-import { SharedModule } from '../shared/shared.module';
-import { AppForm } from './form/form.class';
-import { AppTabPage } from './form/page.class';
-import { FormMetadataComponent } from './form/form-metadata.component';
-import { FormButtonsBarComponent } from './form/form-buttons-bar.component';
-import { AppTable, RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from './table/table.class';
-import { AppTableDataSource } from './table/table-datasource.class';
-import { TableSelectColumnsComponent } from './table/table-select-columns.component';
-import { MenuComponent } from './menu/menu.component';
-import { ReactiveFormsModule } from "@angular/forms";
-import { IonicStorageModule } from '@ionic/storage';
-import { HomePage } from './home/home';
-import { RegisterForm } from './register/form/form-register';
-import { RegisterModal } from './register/modal/modal-register';
-import { AppGraphQLModule } from './graphql/graphql.module';
-import { DateAdapter } from "@angular/material";
+import {RegisterConfirmPage} from "./register/confirm/confirm";
+import {AccountPage} from "./account/account";
+import {
+  DataService,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  LoadResult,
+  nullIfUndefined,
+  SharedModule,
+  toDateISOString
+} from '../shared/shared.module';
+import {AppForm} from './form/form.class';
+import {AppTabPage} from './form/page.class';
+import {EntityMetadataComponent} from './form/entity-metadata.component';
+import {FormButtonsBarComponent} from './form/form-buttons-bar.component';
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from './table/table.class';
+import {AppTableDataSource} from './table/table-datasource.class';
+import {TableSelectColumnsComponent} from './table/table-select-columns.component';
+import {MenuComponent} from './menu/menu.component';
+import {ReactiveFormsModule} from "@angular/forms";
+import {IonicStorageModule} from '@ionic/storage';
+import {HomePage} from './home/home';
+import {RegisterForm} from './register/form/form-register';
+import {RegisterModal} from './register/modal/modal-register';
+import {AppGraphQLModule} from './graphql/graphql.module';
+import {DateAdapter} from "@angular/material";
 import * as moment from "moment/moment";
-import { AppFormUtils } from './form/form.utils';
+import {AppFormUtils} from './form/form.utils';
 
-import { ProgressBarService } from './services/progress-bar.service';
-import { ProgressInterceptor } from '../shared/interceptors/progess.interceptor';
-
-import { environment } from '../../environments/environment';
-import { Entity, Cloneable, EntityUtils,
-  Referential, ReferentialRef, Department, Person,
-  StatusIds, AcquisitionLevelCodes, LocationLevelIds,
-  isNil, isNotNil, nullIfUndefined, referentialToString, joinProperties, entityToString,
-  toDateISOString, fromDateISOString} from './services/model';
-
-
+import {environment} from '../../environments/environment';
+import {
+  AcquisitionLevelCodes,
+  Cloneable,
+  Department,
+  Entity,
+  entityToString,
+  EntityUtils,
+  joinProperties,
+  LocationLevelIds,
+  Person,
+  Referential,
+  ReferentialRef,
+  referentialToString,
+  StatusIds
+} from './services/model';
 // import ngx-translate and the http loader
-import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
+import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
 
 export {
   environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
-  AccountService, AccountFieldDef, DataService, AccountValidatorService, UserSettingsValidatorService,
-  AuthGuardService, FormMetadataComponent, FormButtonsBarComponent,
+  AccountService, AccountFieldDef, BaseDataService, AccountValidatorService, UserSettingsValidatorService,
+  AuthGuardService, EntityMetadataComponent, FormButtonsBarComponent,
   RESERVED_START_COLUMNS, RESERVED_END_COLUMNS,
   Entity, Cloneable, EntityUtils,
   AcquisitionLevelCodes, StatusIds, LocationLevelIds,
-  Referential, ReferentialRef, Department, Person,
+  Referential, ReferentialRef, Department, Person, DataService, LoadResult,
   toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined, entityToString, referentialToString
 }
 
@@ -96,7 +110,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         // Components
         TableSelectColumnsComponent,
         AboutModal,
-        FormMetadataComponent,
+        EntityMetadataComponent,
         FormButtonsBarComponent
     ],
     exports: [
@@ -108,7 +122,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         AuthForm,
         AuthModal,
         TableSelectColumnsComponent,
-        FormMetadataComponent,
+        EntityMetadataComponent,
         FormButtonsBarComponent,
         MenuComponent,
         ReactiveFormsModule,
@@ -119,7 +133,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         RegisterModal,
         AuthModal,
         TableSelectColumnsComponent,
-        FormMetadataComponent,
+        EntityMetadataComponent,
         FormButtonsBarComponent,
         AboutModal
     ],
@@ -127,10 +141,8 @@ export function HttpLoaderFactory(http: HttpClient) {
         AccountService,
         AuthGuardService,
         CryptoService,
-        ProgressBarService,
         AccountValidatorService,
-        UserSettingsValidatorService,
-        { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService] }
+        UserSettingsValidatorService
     ]
 })
 export class CoreModule {

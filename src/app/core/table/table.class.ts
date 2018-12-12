@@ -1,20 +1,21 @@
-import { EventEmitter, OnInit, Output, ViewChild, OnDestroy, Input } from "@angular/core";
-import { MatPaginator, MatSort, MatTable } from "@angular/material";
-import { merge } from "rxjs/observable/merge";
-import { Observable } from 'rxjs';
-import {startWith, mergeMap, distinctUntilChanged} from "rxjs/operators";
-import { TableElement } from "angular4-material-table";
-import { AppTableDataSource } from "./table-datasource.class";
-import { SelectionModel } from "@angular/cdk/collections";
-import { Entity } from "../services/model";
-import { Subscription } from "rxjs-compat";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { AccountService } from '../services/account.service';
-import { TableSelectColumnsComponent } from './table-select-columns.component';
-import { Location } from '@angular/common';
-import { ErrorCodes } from "../services/errors";
-import { AppFormUtils } from "../form/form.utils";
+import {EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
+import {MatPaginator, MatSort, MatTable} from "@angular/material";
+import {merge} from "rxjs/observable/merge";
+import {Observable} from 'rxjs';
+import {distinctUntilChanged, mergeMap, startWith} from "rxjs/operators";
+import {TableElement} from "angular4-material-table";
+import {AppTableDataSource} from "./table-datasource.class";
+import {SelectionModel} from "@angular/cdk/collections";
+import {Entity} from "../services/model";
+import {Subscription} from "rxjs-compat";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {AccountService} from '../services/account.service';
+import {TableSelectColumnsComponent} from './table-select-columns.component';
+import {Location} from '@angular/common';
+import {ErrorCodes} from "../services/errors";
+import {AppFormUtils} from "../form/form.utils";
+import {isNotNil} from "../../shared/shared.module";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -90,6 +91,14 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.table.disabled = false;
     }
 
+    get enabled(): boolean {
+      return !this.table.disabled;
+    }
+
+    get disabled(): boolean {
+      return this.table.disabled;
+    }
+
     markAsPristine() {
         this._dirty = false;
     }
@@ -144,7 +153,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                     (any: any) => {
                         this._dirty = false;
                         this.selection.clear();
-                        this.selectedRow = null;
+                        this.selectedRow = undefined;
                         if (any === 'skip' || !this.dataSource) {
                             return Observable.of(undefined);
                         }
@@ -166,11 +175,11 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 this.error = err && err.message || err;
                 return Observable.empty();
             })
-            .subscribe(data => {
-                if (data) {
-                    this.isRateLimitReached = !this.paginator || (data.length < this.paginator.pageSize);
-                    this.resultsLength = (this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + data.length;
-                    if (this.debug) console.debug(`[table] ${data.length} rows loaded`);
+            .subscribe(res => {
+                if (res && res.data) {
+                    this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
+                    this.resultsLength = isNotNil(res.total) ? res.total : ((this.paginator && this.paginator.pageIndex * (this.paginator.pageSize || DEFAULT_PAGE_SIZE) || 0) + res.data.length);
+                    if (this.debug) console.debug(`[table] ${res.data.length} rows loaded`);
                 }
                 else {
                     if (this.debug) console.debug('[table] NO rows loaded');
@@ -230,13 +239,13 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 if (this.debug) console.warn("[table] Row not valid: unable to confirm", row);
                 return false;
             }
-            this.selectedRow = null; // unselect row
+            this.selectedRow = undefined; // unselect row
         }
         return true;
     }
 
     cancelOrDelete(event: any, row: TableElement<T>) {
-        this.selectedRow = null; // unselect row
+        this.selectedRow = undefined; // unselect row
         event.stopPropagation();
         this.dataSource.cancelOrDelete(row);
 
@@ -318,23 +327,26 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             );
     }
 
-    deleteSelection() {
-        if (this.loading) return;
+    async deleteSelection() {
+        if (this.loading || this.selection.isEmpty()) return;
 
         if (this.debug) console.debug("[table] Delete selection...");
 
-        this.selection.selected
+        const rowsToDelete = this.selection.selected.slice()
             // Reverse row order
             // This is a workaround, need because row.delete() has async execution
             // and index cache is updated with a delay)
-            .sort((a, b) => a.id > b.id ? -1 : 1)
-            .forEach(row => {
-                row.delete();
-                this.selection.deselect(row);
-                this.resultsLength--;
-            });
-        this.selection.clear();
-        this.selectedRow = null;
+            .sort((a, b) => a.id > b.id ? -1 : 1);
+
+        try {
+          await this.dataSource.deleteAll(rowsToDelete);
+          this.resultsLength -= rowsToDelete.length;
+          this.selection.clear();
+          this.selectedRow = undefined;
+        }
+        catch(err){
+          this.error = err && err.message || err;
+        }
     }
 
     onEditRow(event: MouseEvent, row: TableElement<T>): boolean {

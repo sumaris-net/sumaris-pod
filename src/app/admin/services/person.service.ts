@@ -1,11 +1,12 @@
-import { Injectable } from "@angular/core";
+import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import { Apollo } from "apollo-angular";
-import { Observable } from 'rxjs';
-import { Person } from './model';
-import { DataService, BaseDataService } from "../../core/services/data-service.class";
-import { ErrorCodes } from "./errors";
-import { map } from "rxjs/operators";
+import {Apollo} from "apollo-angular";
+import {Observable} from 'rxjs';
+import {Person} from './model';
+import {DataService, LoadResult} from "../../shared/shared.module";
+import {BaseDataService} from "../../core/services/base.data-service.class";
+import {ErrorCodes} from "./errors";
+import {map} from "rxjs/operators";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -86,7 +87,7 @@ export class PersonService extends BaseDataService implements DataService<Person
     sortBy?: string,
     sortDirection?: string,
     filter?: PersonFilter
-  ): Observable<Person[]> {
+  ): Observable<LoadResult<Person>> {
 
     const variables = {
       offset: offset || 0,
@@ -96,17 +97,22 @@ export class PersonService extends BaseDataService implements DataService<Person
       filter: filter
     };
 
-    this._lastVariables.loadAll = variables
+    this._lastVariables.loadAll = variables;
 
     //console.debug("[person-service] Loading persons, using filter: ", variables);
-    return this.watchQuery<{ persons: Person[] }>({
+    return this.watchQuery<{ persons: Person[]; personsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR" },
       fetchPolicy: 'network-only'
     })
       .pipe(
-        map(data => (data && data.persons || []).map(Person.fromObject))
+        map(({persons, personsCount}) => {
+          return {
+            data: (persons || []).map(Person.fromObject),
+            total: personsCount
+        }
+        })
       );
   }
 
@@ -153,7 +159,8 @@ export class PersonService extends BaseDataService implements DataService<Person
       mutation: DeletePersons,
       variables: {
         ids: ids
-      }
+      },
+      error: { code: ErrorCodes.DELETE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.DELETE_PERSONS_ERROR" }
     });
 
     // Update the cache
@@ -176,11 +183,10 @@ export class PersonService extends BaseDataService implements DataService<Person
 
     const target = source.asObject();
 
-    // Not known on server model
+    // Not known in server GraphQL schema
     delete target.mainProfile;
 
-
-    // Simplify the daprtment object
+    // Simplify the department object
     target.department = target.department && { id: target.department.id };
 
     return target;

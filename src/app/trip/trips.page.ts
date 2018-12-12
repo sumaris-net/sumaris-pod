@@ -1,19 +1,30 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Observable } from 'rxjs';
-import { ValidatorService } from "angular4-material-table";
-import { AppTable, AppTableDataSource, AccountService } from "../core/core.module";
-import { TripValidatorService } from "./services/trip.validator";
-import { TripService, TripFilter } from "./services/trip.service";
-import { TripModal } from "./trip.modal";
-import { Trip, VesselFeatures, LocationLevelIds, EntityUtils, ReferentialRef } from "./services/trip.model";
-import { ModalController, Platform, AlertController } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { FormGroup, FormBuilder } from "@angular/forms";
-import { VesselService, vesselFeaturesToString, referentialToString, ReferentialRefService } from "../referential/referential.module";
-import { RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../core/core.module";
-import { debounceTime, mergeMap } from "rxjs/operators";
-import { TranslateService } from "@ngx-translate/core";
+import {Component, OnDestroy, OnInit} from "@angular/core";
+import {Observable} from 'rxjs';
+import {ValidatorService} from "angular4-material-table";
+import {
+  AccountService,
+  AppTable,
+  AppTableDataSource,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../core/core.module";
+import {TripValidatorService} from "./services/trip.validator";
+import {TripFilter, TripService} from "./services/trip.service";
+import {TripModal} from "./trip.modal";
+import {EntityUtils, LocationLevelIds, ReferentialRef, Trip, VesselFeatures} from "./services/trip.model";
+import {AlertController, ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {
+  ReferentialRefService,
+  referentialToString,
+  vesselFeaturesToString,
+  VesselService
+} from "../referential/referential.module";
+import {debounceTime, mergeMap} from "rxjs/operators";
+import {TranslateService} from "@ngx-translate/core";
+
 @Component({
   selector: 'page-trips',
   templateUrl: 'trips.page.html',
@@ -51,6 +62,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     super(route, router, platform, location, modalCtrl, accountService,
       RESERVED_START_COLUMNS
         .concat([
+          'quality',
           'program',
           'vessel',
           'departureLocation',
@@ -93,7 +105,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
             {
               entityName: 'Program',
               searchText: value as string
-            }).first();
+            }).first().map(({data}) => data);
         })
       );
 
@@ -110,7 +122,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
               searchText: value as string
-            }).first();
+            }).first().map(({data}) => data);
         }));
 
     // Update filter when changes
@@ -175,7 +187,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       await alert.onDidDismiss();
     }
 
-    super.deleteSelection();
+    await super.deleteSelection();
   }
 
   vesselFeaturesToString = vesselFeaturesToString;

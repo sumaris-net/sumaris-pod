@@ -1,16 +1,21 @@
-import { Component, OnInit, Input, EventEmitter, Output, ViewChild } from '@angular/core';
-import { PhysicalGearValidatorService } from "../services/physicalgear.validator";
-import { PhysicalGear, Measurement } from "../services/trip.model";
-import { Platform } from "@ionic/angular";
-import { Moment } from 'moment/moment'
-import { DateAdapter } from "@angular/material";
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
-import { map, startWith, distinctUntilChanged, debounceTime } from 'rxjs/operators';
-import { AppForm } from '../../core/core.module';
-import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { referentialToString, ReferentialRef, EntityUtils } from '../../referential/services/model';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
-import { environment } from '../../../environments/environment.prod';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
+import {Measurement, PhysicalGear} from "../services/trip.model";
+import {Platform} from "@ionic/angular";
+import {Moment} from 'moment/moment'
+import {DateAdapter} from "@angular/material";
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {debounceTime, distinctUntilChanged, map, startWith} from 'rxjs/operators';
+import {AppForm} from '../../core/core.module';
+import {
+  EntityUtils,
+  ProgramService,
+  ReferentialRef,
+  ReferentialRefService,
+  referentialToString
+} from "../../referential/referential.module";
+import {MeasurementsForm} from '../measurement/measurements.form.component';
+import {environment} from '../../../environments/environment';
 
 @Component({
     selector: 'form-physical-gear',
@@ -144,6 +149,14 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
                 .first()
                 .subscribe(() => this.loading = false);
         }
+
+        // Restore enable state (because form.setValue() can change it !)
+        if (this._enable) {
+          this.enable({onlySelf: true, emitEvent: false});
+        }
+        else {
+          this.disable({onlySelf: true, emitEvent: false});
+        }
     }
 
     get value(): PhysicalGear {
@@ -164,9 +177,7 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
         emitEvent?: boolean;
     }): void {
         super.disable(opts);
-        if (!opts || !opts.onlySelf) {
-            this.measurementsForm.disable(opts);
-        }
+        this.measurementsForm.disable(opts);
     }
 
     public enable(opts?: {
@@ -174,9 +185,7 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
         emitEvent?: boolean;
     }): void {
         super.enable(opts);
-        if (!opts || !opts.onlySelf) {
-            this.measurementsForm.enable(opts);
-        }
+        this.measurementsForm.enable(opts);
     }
 
     public markAsPristine() {

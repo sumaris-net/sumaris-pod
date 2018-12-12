@@ -1,22 +1,28 @@
-import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable, BehaviorSubject } from 'rxjs';
-import { mergeMap, debounceTime, startWith } from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { referentialToString, PmfmStrategy, Sample, TaxonGroupIds, MeasurementUtils, getPmfmName } from "../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { SampleValidatorService } from "../services/sample.validator";
-import { FormBuilder } from "@angular/forms";
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../../environments/environment';
-import { EntityUtils, ReferentialRef, isNotNil } from "../../core/services/model";
-import { FormGroup } from "@angular/forms";
-import { MeasurementsValidatorService } from "../services/trip.validators";
-import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import {TaxonomicLevelIds} from "../../referential/services/model";
+import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
+import {BehaviorSubject, Observable} from 'rxjs';
+import {debounceTime, mergeMap, startWith} from "rxjs/operators";
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {
+  AccountService,
+  AppTable,
+  AppTableDataSource,
+  EntityUtils,
+  ReferentialRef,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
+import {getPmfmName, MeasurementUtils, PmfmStrategy, referentialToString, Sample} from "../services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {ProgramService, ReferentialRefService, TaxonomicLevelIds} from "../../referential/referential.module";
+import {SampleValidatorService} from "../services/sample.validator";
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../../environments/environment';
+import {MeasurementsValidatorService} from "../services/trip.validators";
+import {isNotNil, LoadResult} from "../../shared/shared.module";
+
 
 const PMFM_ID_REGEXP = /\d+/;
 const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonName', 'sampleDate'];
@@ -35,7 +41,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
     private _implicitValues: { [key: string]: any } = {};
-    private _dataSubject = new BehaviorSubject<Sample[]>([]);
+    private _dataSubject = new BehaviorSubject<{data: Sample[]}>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -152,7 +158,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                             levelId: TaxonomicLevelIds.SPECIES,
                             searchText: value as string,
                             searchAttribute: 'label'
-                        }).first();
+                        }).first().map(({data}) => data);
                 })
             );
 
@@ -181,7 +187,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Sample[]> {
+    ): Observable<LoadResult<Sample>> {
         if (!this.data) {
             if (this.debug) console.debug("[sample-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
@@ -206,7 +212,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 this.sortSamples(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[sample-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-                this._dataSubject.next(data);
+                this._dataSubject.next({data: data});
             });
 
         return this._dataSubject.asObservable();

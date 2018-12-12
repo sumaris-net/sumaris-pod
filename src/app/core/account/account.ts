@@ -11,6 +11,7 @@ import { Moment } from 'moment/moment';
 import { DateAdapter } from "@angular/material";
 import { Platform } from '@ionic/angular';
 import { AppFormUtils } from '../form/form.utils';
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'page-account',
@@ -28,7 +29,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     notConfirmed: false,
     sending: false,
     error: undefined
-  }
+  };
   additionalFields: AccountFieldDef[];
   settingsForm: FormGroup;
   localeMap = {
@@ -44,9 +45,9 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     protected platform: Platform,
     public formBuilder: FormBuilder,
     public accountService: AccountService,
-    public activatedRoute: ActivatedRoute,
     protected validatorService: AccountValidatorService,
-    protected settingsValidatorService: UserSettingsValidatorService
+    protected settingsValidatorService: UserSettingsValidatorService,
+    protected translate: TranslateService
   ) {
     super(dateAdapter, platform, validatorService.getFormGroup(accountService.account));
 
@@ -121,26 +122,28 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.changesSubscription = undefined;
   }
 
-  sendConfirmationEmail(event: MouseEvent) {
-    if (!this.account.email || !this.email.notConfirmed) {
+  async sendConfirmationEmail(event: MouseEvent) {
+    const json = this.form.value;
+    json.email = this.form.controls['email'].value;
+    if (!json.email || !this.email.notConfirmed) {
       event.preventDefault();
       return false;
     }
 
     this.email.sending = true;
     console.debug("[account] Sending confirmation email...");
-    this.accountService.sendConfirmationEmail(
-      this.account.email,
-      this.account.settings.locale
-    )
-      .then((res) => {
-        console.debug("[account] Confirmation email sent.");
-        this.email.sending = false;
-      })
-      .catch(err => {
-        this.email.sending = false;
-        this.email.error = err && err.message || err;
-      });
+    try {
+      await this.accountService.sendConfirmationEmail(
+        json.email,
+        json.settings && json.settings.locale || this.translate.currentLang
+      );
+      console.debug("[account] Confirmation email sent.");
+      this.email.sending = false;
+    }
+    catch(err) {
+      this.email.sending = false;
+      this.email.error = err && err.message || err;
+    }
   }
 
   async save(event: MouseEvent) {

@@ -1,21 +1,26 @@
-import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable, BehaviorSubject } from 'rxjs';
-import { map, debounceTime, startWith } from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
-import { PmfmStrategy, Sample, MeasurementUtils, getPmfmName } from "../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { SubSampleValidatorService } from "../services/sub-sample.validator";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../../environments/environment';
-import { EntityUtils, isNil, isNotNil } from "../../core/services/model";
-import { MeasurementsValidatorService } from "../services/trip.validators";
-import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import { PmfmIds } from "../../referential/services/model";
+import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
+import {BehaviorSubject, Observable} from 'rxjs';
+import {debounceTime, map, startWith} from "rxjs/operators";
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {
+  AccountService,
+  AppTable,
+  AppTableDataSource,
+  EntityUtils,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
+import {getPmfmName, MeasurementUtils, PmfmStrategy, Sample} from "../services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {PmfmIds, ProgramService, ReferentialRefService} from "../../referential/referential.module";
+import {SubSampleValidatorService} from "../services/sub-sample.validator";
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../../environments/environment';
+import {MeasurementsValidatorService} from "../services/trip.validators";
+import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
 
 const PMFM_ID_REGEXP = /\d+/;
 const SUBSAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
@@ -35,7 +40,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
     private _acquisitionLevel: string;
     private _implicitParent: Sample;
     private _availableParents: Sample[] = [];
-    private _dataSubject = new BehaviorSubject<Sample[]>([]);
+    private _dataSubject = new BehaviorSubject<LoadResult<Sample>>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -55,6 +60,10 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
 
     get value(): Sample[] {
         return this.data;
+    }
+
+    protected get dataSubject(): BehaviorSubject<LoadResult<Sample>> {
+      return this._dataSubject;
     }
 
     @Input()
@@ -196,7 +205,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Sample[]> {
+    ): Observable<LoadResult<Sample>> {
         if (!this.data) {
             if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
@@ -224,7 +233,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
                 this.sortSamples(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[sub-sample-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-                this._dataSubject.next(data);
+                this._dataSubject.next({data: data});
             });
 
         return this._dataSubject.asObservable();
@@ -308,7 +317,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
             });
 
         if (data.length > startRowCount) {
-            this._dataSubject.next(data);
+            this._dataSubject.next({data: data});
             this._dirty = true;
         }
     }
@@ -410,7 +419,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
             })
             .map(r => r.currentData);
 
-        if (hasRemovedSample) this._dataSubject.next(data);
+        if (hasRemovedSample) this._dataSubject.next({data: data});
     }
 
     protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {

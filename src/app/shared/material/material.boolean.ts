@@ -3,7 +3,7 @@ import { Platform } from '@ionic/angular';
 import { MatRadioButton, MatRadioChange, MatCheckbox, MatCheckboxChange, FloatLabelType } from '@angular/material';
 import { FormControl, FormBuilder, FormGroupDirective, NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { TranslateService } from "@ngx-translate/core";
-import { isNotNil } from '../../core/services/model';
+import { isNotNil } from '../functions';
 
 const noop = () => {
 };

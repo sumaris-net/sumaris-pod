@@ -1,12 +1,11 @@
-import { Component, ViewChild, OnInit } from "@angular/core";
-import { Router, ActivatedRoute } from "@angular/router";
-import { ModalController } from "@ionic/angular";
-import { TripService } from './services/trip.service';
-import { MatHorizontalStepper } from "@angular/material";
-import { TripPage } from "./trip.page";
-import { AlertController } from "@ionic/angular";
-import { TranslateService } from '@ngx-translate/core';
-import { DateFormatPipe } from "../shared/pipes/date-format.pipe";
+import {Component, ViewChild} from "@angular/core";
+import {ActivatedRoute, Router} from "@angular/router";
+import {AlertController, ModalController} from "@ionic/angular";
+import {TripService} from './services/trip.service';
+import {MatHorizontalStepper} from "@angular/material";
+import {TripPage} from "./trip.page";
+import {TranslateService} from '@ngx-translate/core';
+import {DateFormatPipe} from "../shared/shared.module";
 
 @Component({
   selector: 'modal-trip',

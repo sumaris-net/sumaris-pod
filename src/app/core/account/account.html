@@ -33,7 +33,7 @@
 
               <!-- Email -->
               <mat-form-field>
-                <input matInput [appAutofocus]="true" [autofocusDelay]="500" [placeholder]="'USER.EMAIL'|translate"
+                <input matInput [placeholder]="'USER.EMAIL'|translate"
                   formControlName="email" autocomplete="section-red email">
                 <mat-error *ngIf="form.controls.email.hasError('required') && form.controls.email.dirty" translate>ERROR.FIELD_REQUIRED</mat-error>
                 <mat-error *ngIf="form.controls.email.hasError('email') && form.controls.email.dirty">
@@ -72,8 +72,10 @@
 
               <!-- Last name -->
               <mat-form-field>
-                <input matInput [placeholder]="'USER.LAST_NAME'|translate" formControlName="lastName" autocomplete="section-blue family-name"
-                  required>
+                <input matInput [appAutofocus]="true" [autofocusDelay]="500" [placeholder]="'USER.LAST_NAME'|translate"
+                       formControlName="lastName"
+                       autocomplete="section-blue family-name"
+                       required>
                 <mat-error *ngIf="form.controls.lastName.hasError('required') && form.controls.lastName.dirty"
                   translate>ERROR.FIELD_REQUIRED</mat-error>
                 <mat-error *ngIf="form.controls.lastName.hasError('minlength') && form.controls.lastName.dirty">

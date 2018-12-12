@@ -1,17 +1,22 @@
-import { Component, OnInit, ViewChild, OnDestroy } from "@angular/core";
+import {Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
 
-import { Observable, BehaviorSubject } from 'rxjs';
-import { debounceTime, map } from 'rxjs/operators';
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService, AppFormUtils } from "../../core/core.module";
-import { PhysicalGearValidatorService } from "../services/physicalgear.validator";
-import { referentialToString, PhysicalGear, EntityUtils } from "../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { DataService } from "../../core/services/data-service.class";
-import { PhysicalGearForm } from "./physicalgear.form";
-import { RESERVED_START_COLUMNS } from "../../core/table/table.class";
+import {BehaviorSubject, Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {
+  AccountService,
+  AppFormUtils,
+  AppTable,
+  AppTableDataSource,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
+import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
+import {EntityUtils, PhysicalGear, referentialToString} from "../services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {PhysicalGearForm} from "./physicalgear.form";
+import {DataService, LoadResult} from "../../shared/shared.module";
 
 
 @Component({
@@ -26,7 +31,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
   private data: PhysicalGear[];
 
-  private _dataSubject = new BehaviorSubject<PhysicalGear[]>([]);
+  private _dataSubject = new BehaviorSubject<{data: PhysicalGear[]}>({data: []});
 
   detailMeasurements: Observable<string[]>;
 
@@ -122,7 +127,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     sortDirection?: string,
     filter?: any,
     options?: any
-  ): Observable<PhysicalGear[]> {
+  ): Observable<LoadResult<PhysicalGear>> {
     if (!this.data) return Observable.empty(); // Not initialized
     sortBy = sortBy != 'id' && sortBy || 'rankOrder'; // Replace 'id' with 'rankOrder'
 
@@ -138,7 +143,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       this.sortGears(data, sortBy, sortDirection);
       if (this.debug) console.debug(`[physicalgears-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-      this._dataSubject.next(data);
+      this._dataSubject.next({data: data});
     });
 
     return this._dataSubject.asObservable();
@@ -219,11 +224,15 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     this.selectedRow = row;
     this.gearForm.value = row.currentData;
 
+    if (this.enabled) {
+      this.gearForm.enable();
+    }
+
     return true;
   }
 
-  deleteSelection() {
-    super.deleteSelection();
+  async deleteSelection() {
+    await super.deleteSelection();
     this.selectedRow = undefined;
 
     this.gearForm.markAsPristine();

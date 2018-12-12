@@ -6,6 +6,7 @@ import {TranslateModule, TranslateService} from "@ngx-translate/core";
 import {IonicModule} from "@ionic/angular";
 import {AutofocusDirective} from "./directives/autofocus.directive";
 import {DateFormatPipe} from "./pipes/date-format.pipe";
+import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {LatLongFormatPipe} from "./pipes/latlong-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {ToolbarComponent} from "./toolbar/toolbar";
@@ -17,6 +18,21 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {TextMaskModule} from "angular2-text-mask";
 import {MatPaginatorIntl} from "@angular/material";
 import {MatPaginatorI18n} from "./material/material.paginator-i18n";
+import {ProgressBarService} from "./services/progress-bar.service";
+import {HTTP_INTERCEPTORS} from "@angular/common/http";
+import {ProgressInterceptor} from "./interceptors/progess.interceptor";
+import {DataService, LoadResult} from "./services/data-service.class";
+import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toDateISOString} from "./functions";
+import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
+
+
+export {
+  DataService, LoadResult,
+  isNil, isNotNil, nullIfUndefined,
+  toDateISOString, fromDateISOString,
+  fadeInAnimation, fadeInOutAnimation,
+  DateFormatPipe, ToolbarComponent
+}
 
 @NgModule({
     imports: [
@@ -32,6 +48,7 @@ import {MatPaginatorI18n} from "./material/material.paginator-i18n";
         AutofocusDirective,
         ToolbarComponent,
         DateFormatPipe,
+        DateDiffDurationPipe,
         LatLongFormatPipe,
         HighlightPipe,
         MatDateTime,
@@ -47,6 +64,7 @@ import {MatPaginatorI18n} from "./material/material.paginator-i18n";
         AutofocusDirective,
         ToolbarComponent,
         DateFormatPipe,
+        DateDiffDurationPipe,
         LatLongFormatPipe,
         HighlightPipe,
         TextMaskModule,
@@ -57,9 +75,12 @@ import {MatPaginatorI18n} from "./material/material.paginator-i18n";
         MatAutocompleteField
     ],
     providers: [
-        DateFormatPipe,
-        LatLongFormatPipe,
-        HighlightPipe,
+      DateFormatPipe,
+      DateDiffDurationPipe,
+      LatLongFormatPipe,
+      HighlightPipe,
+      ProgressBarService,
+      { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService] },
       {
         provide: MatPaginatorIntl,
         useFactory: (translate) => {

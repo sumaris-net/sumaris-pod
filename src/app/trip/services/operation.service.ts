@@ -1,15 +1,13 @@
-import { Injectable } from "@angular/core";
+import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import { Apollo } from "apollo-angular";
-import { Observable, Subject } from "rxjs-compat";
-import { Person, Operation, Referential, DataEntity, VesselPosition, Measurement, Sample, Batch } from "./trip.model";
-import { DataService, BaseDataService } from "../../core/services/data-service.class";
-import { map } from "rxjs/operators";
-import { TripService } from "../services/trip.service";
-
-import { ErrorCodes } from "./trip.errors";
-import { AccountService } from "../../core/services/account.service";
-import { Fragments, DataFragments } from "./trip.queries";
+import {Apollo} from "apollo-angular";
+import {Observable} from "rxjs-compat";
+import {Batch, DataEntity, Measurement, Operation, Person, Sample, VesselPosition} from "./trip.model";
+import {map} from "rxjs/operators";
+import {DataService, LoadResult} from "../../shared/shared.module";
+import {AccountService, BaseDataService} from "../../core/core.module";
+import {ErrorCodes} from "./trip.errors";
+import {DataFragments, Fragments} from "./trip.queries";
 
 
 export declare class OperationFilter {
@@ -145,8 +143,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
   constructor(
     protected apollo: Apollo,
-    protected accountService: AccountService,
-    protected tripService: TripService
+    protected accountService: AccountService
   ) {
     super(apollo);
 
@@ -166,7 +163,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: OperationFilter): Observable<Operation[]> {
+    filter?: OperationFilter): Observable<LoadResult<Operation>> {
     const variables: any = {
       offset: offset || 0,
       size: size || 1000,
@@ -177,24 +174,29 @@ export class OperationService extends BaseDataService implements DataService<Ope
     this._lastVariables.loadAll = variables;
 
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
-    return this.watchQuery<{ operations: Operation[] }>({
+    return this.watchQuery<{ operations?: Operation[] }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR" },
       fetchPolicy: 'cache-and-network'
     })
       .pipe(
-        map((data) => {
-          const res = (data && data.operations || []).map(Operation.fromObject);
-          if (this._debug) console.debug(`[operation-service] Loaded ${res.length} operations`);
+        map((res) => {
+          const data = (res && res.operations || []).map(Operation.fromObject);
+          if (this._debug) console.debug(`[operation-service] Loaded ${data.length} operations`);
 
           // Compute rankOrderOnPeriod, by tripId
           if (filter && filter.tripId) {
             let rankOrderOnPeriod = 1;
-            [].concat(res).sort(sortByStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
+            // apply a sorted copy (do NOT change original order), then compute rankOrder
+            data.slice().sort(sortByStartDateFn)
+              .forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
           }
 
-          return res;
+          return {
+            data: data,
+            total: data.length
+          };
         }));
   }
 
@@ -425,6 +427,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
         const source = sources.find(json => target.equals(json));
         target.id = source && source.id || target.id;
         target.updateDate = source && source.updateDate || target.updateDate;
+        target.creationDate = source && source.creationDate || target.creationDate;
         target.dirty = false;
 
         // Apply to children

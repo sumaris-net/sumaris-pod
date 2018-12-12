@@ -261,6 +261,13 @@ mat-option ion-row {
   }
 }
 
+mat-date-time {
+  // Need for errors injected using the <ng-content> tag
+  mat-error {
+    text-align: end;
+  }
+}
+
 // --------------------------------------------------
 // Material Table
 // --------------------------------------------------

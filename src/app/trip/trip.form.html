@@ -163,7 +163,14 @@
       </ion-col>
       <ion-col size="auto">
         <mat-date-time [placeholder]="'TRIP.RETURN_DATE_TIME'|translate" formControlName="returnDateTime" [required]="true">
+
+          <mat-error *ngIf="form.controls['returnDateTime'].hasError('dateIsAfter')" translate>TRIP.ERROR.FIELD_RETURN_DATE_BEFORE_DEPARTURE</mat-error>
+          <mat-hint align="end" *ngIf="form.controls['returnDateTime'].value">
+            <span translate>COMMON.DURATION_DOTS</span>{{ {startValue: form.controls['departureDateTime'].value, endValue: form.controls['returnDateTime'].value} | dateDiffDuration }}
+          </mat-hint>
         </mat-date-time>
+
+
       </ion-col>
     </ion-row>
 

@@ -1,18 +1,27 @@
-import { Injectable } from "@angular/core";
-import { KeyPair, CryptoService, base58 } from "./crypto.service";
-import { Account, UserSettings, toDateISOString, getMainProfile, UserProfileLabel, hasUpperOrEqualsProfile, ReferentialRef, StatusIds } from "./model";
-import { Subject, Subscription } from "rxjs-compat";
+import {Injectable} from "@angular/core";
+import {base58, CryptoService, KeyPair} from "./crypto.service";
+import {
+  Account,
+  getMainProfile,
+  hasUpperOrEqualsProfile,
+  Referential,
+  ReferentialRef,
+  StatusIds,
+  UserProfileLabel,
+  UserSettings
+} from "./model";
+import {Subject, Subscription} from "rxjs-compat";
 import gql from "graphql-tag";
-import { TranslateService } from "@ngx-translate/core";
-import { Apollo } from "apollo-angular";
-import { Storage } from '@ionic/storage';
-import { FetchPolicy } from "apollo-client";
+import {TranslateService} from "@ngx-translate/core";
+import {Apollo} from "apollo-angular";
+import {Storage} from '@ionic/storage';
+import {FetchPolicy} from "apollo-client";
 
-import { BaseDataService, DataService } from "./data-service.class";
-import { ErrorCodes, ServerErrorCodes } from "./errors";
-import { environment } from "../../../environments/environment";
+import {DataService, toDateISOString,} from "../../shared/shared.module";
+import {BaseDataService} from "./base.data-service.class";
+import {ErrorCodes, ServerErrorCodes} from "./errors";
+import {environment} from "../../../environments/environment";
 
-import { Referential } from "../../trip/services/trip.model";
 
 export declare interface AccountHolder {
   loaded: boolean;
@@ -56,10 +65,9 @@ const SETTINGS_STORAGE_KEY = "settings"
 /* ------------------------------------
  * GraphQL queries
  * ------------------------------------*/
-// Get account query
-const AccountQuery: any = gql`
-  query Account($pubkey: String){
-    account(pubkey: $pubkey){
+export const Fragments = {
+  account: gql`
+    fragment AccountFragment on AccountVO {
       id
       firstName
       lastName
@@ -77,14 +85,27 @@ const AccountQuery: any = gql`
         content
         nonce
         updateDate
+        __typename
       }
       department {
         id
         label
         name
+        __typename
       }
+      __typename
+    }
+  `
+};
+
+// Load account query
+const LoadQuery: any = gql`
+  query Account($pubkey: String){
+    account(pubkey: $pubkey){
+      ...AccountFragment
     }
   }
+  ${Fragments.account}
 `;
 export declare type AccountVariables = {
   pubkey: string;
@@ -105,34 +126,23 @@ export declare type IsEmailExistsVariables = {
 }
 
 // Save (create or update) account mutation
-const SaveAccountMutation: any = gql`
+const SaveMutation: any = gql`
   mutation SaveAccount($account:AccountVOInput){
     saveAccount(account: $account){
-      id
-      firstName
-      lastName
-      email
-      pubkey
-      avatar
-      statusId
-      updateDate
-      creationDate
-      profiles
-      settings {
-        id
-        locale
-        latLongFormat
-        content
-        nonce
-        updateDate
-      }
-      department {
-        id
-        label 
-        name
-      }
+      ...AccountFragment
     }
   }
+  ${Fragments.account}
+`;
+
+// Create account mutation
+const CreateMutation: any = gql`
+  mutation CreateAccount($account:AccountVOInput){
+    createAccount(account: $account){
+      ...AccountFragment
+    }
+  }
+  ${Fragments.account}
 `;
 
 // Sent confirmation email
@@ -330,8 +340,6 @@ export class AccountService extends BaseDataService {
       // Default values
       data.account.settings.locale = data.account.settings.locale || this.translate.currentLang || this.translate.defaultLang;
       data.account.settings.latLongFormat = environment.defaultLatLongFormat || 'DDMM';
-
-      // TODO: add department to register form
       data.account.department.id = data.account.department.id || environment.defaultDepartmentId;
 
       this.data.keypair = keypair;
@@ -343,23 +351,27 @@ export class AccountService extends BaseDataService {
 
       this.data.account = account;
       this.data.pubkey = account.pubkey;
+
+      // Try to auth on remote server
+      this.data.authToken = await this.authenticateAndGetToken();
+
       this.data.loaded = true;
 
       await this.saveLocally();
 
-      console.debug("[account] Account sucessfully registered in " + (new Date().getTime() - now.getTime()) + "ms");
+      console.debug("[account] Account successfully registered in " + (new Date().getTime() - now.getTime()) + "ms");
       this.onLogin.next(this.data.account);
       return this.data.account;
     }
     catch (error) {
-      console.error(error);
+      console.error(error && error.message || error);
       this.resetData();
       throw error;
     };
   }
 
   async login(data: AuthData): Promise<Account> {
-    if (!data.username || !data.username) throw "Missing required username por password";
+    if (!data.username || !data.password) throw "Missing required username or password";
 
     console.debug("[account] Trying to login...");
 
@@ -375,6 +387,16 @@ export class AccountService extends BaseDataService {
     // Store pubkey+keypair
     this.data.pubkey = base58.encode(keypair.publicKey);
     this.data.keypair = keypair;
+
+    // Try to auth on remote server
+    try {
+      this.data.authToken = await this.authenticateAndGetToken();
+    }
+    catch (error) {
+      console.error(error);
+      this.resetData();
+      throw error;
+    }
 
     // Load account data
     try {
@@ -403,9 +425,6 @@ export class AccountService extends BaseDataService {
     }
 
     try {
-      // Try to auth on remote server
-      this.data.authToken = await this.authenticateAndGetToken();
-
       // Store to local storage
       await this.saveLocally();
     }
@@ -415,8 +434,7 @@ export class AccountService extends BaseDataService {
       throw error;
     }
 
-
-    console.debug("[account] Sucessfully authenticated {" + this.data.pubkey.substr(0, 6) + "}");
+    console.debug("[account] Successfully authenticated {" + this.data.pubkey.substr(0, 6) + "}");
 
     // Emit event to observers
     this.onLogin.next(this.data.account);
@@ -427,13 +445,10 @@ export class AccountService extends BaseDataService {
   public async refresh(): Promise<Account> {
     if (!this.data.pubkey) throw new Error("User not logged");
 
-    const locale = this.translate.currentLang;
-
     await this.loadData({ fetchPolicy: 'network-only' });
-
     await this.saveLocally();
 
-    console.debug("[account] Sucessfully reload account");
+    console.debug("[account] Successfully reload account");
 
     // Emit login event to subscribers
     this.onLogin.next(this.data.account);
@@ -625,7 +640,7 @@ export class AccountService extends BaseDataService {
     var now = new Date();
 
     const res = await this.query<{ account: any }>({
-      query: AccountQuery,
+      query: LoadQuery,
       variables: {
         pubkey: pubkey
       },
@@ -675,7 +690,7 @@ export class AccountService extends BaseDataService {
 
     // Execute mutation
     const res = await this.mutate<{ saveAccount: any }>({
-      mutation: SaveAccountMutation,
+      mutation: isNew ? CreateMutation : SaveMutation,
       variables: {
         account: json
       },
@@ -761,7 +776,7 @@ export class AccountService extends BaseDataService {
         code: ErrorCodes.CONFIRM_EMAIL_FAILED,
         message: "ERROR.CONFIRM_ACCOUNT_EMAIL_FAILED"
       }
-    })
+    });
     return res && res.confirmAccountEmail;
   }
 
@@ -772,34 +787,42 @@ export class AccountService extends BaseDataService {
 
     console.debug('[account] [WS] Listening changes on {/subscriptions/websocket}...');
 
-    const subscription = this.apollo.subscribe({
+    const subscription = this.subscribe<{updateAccount: any}>({
       query: UpdateSubscription,
       variables: {
         pubkey: this.data.pubkey,
         interval: 10
+      },
+      error: {
+        code: ErrorCodes.SUBSCRIBE_ACCOUNT_ERROR,
+        message: 'ERROR.ACCOUNT.SUBSCRIBE_ACCOUNT_ERROR'
       }
     }).subscribe({
-      next({ data, errors }) {
-        if (data && data.updateAccount) {
-          const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
-          if (existingUpdateDate !== data.updateAccount.updateDate) {
-            console.debug("[account] [WS] Detected update on {" + data.updateDate + "}");
-            self.refresh();
+        async next(data) {
+          if (data && data.updateAccount) {
+            const existingUpdateDate = self.data.account && toDateISOString(self.data.account.updateDate);
+            if (existingUpdateDate !== data.updateAccount.updateDate) {
+              console.debug("[account] [WS] Detected update on {" + data.updateAccount.updateDate + "}");
+              await self.refresh();
+            }
           }
+        },
+      async error(err) {
+          if (err && err.code == ServerErrorCodes.NOT_FOUND) {
+            console.info("[account] Account not exists anymore: force user to logout...", err);
+            await self.logout();
+          }
+          else if (err && err.code == ServerErrorCodes.UNAUTHORIZED) {
+             console.info("[account] Account not authorized: force user to logout...", err);
+             await self.logout();
+          }
+          else {
+            console.warn("[account] [WS] Received error:", err);
+          }
+        },
+        complete() {
+          console.debug('[account] [WS] Completed');
         }
-      },
-      error(err) {
-        if (err && err.code == ServerErrorCodes.NOT_FOUND) {
-          console.info("[account] Account not exists anymore: force user to logout...", err);
-          this.logout();
-        }
-        else {
-          console.warn("[account] [WS] Received error:", err);
-        }
-      },
-      complete() {
-        console.debug('[account] [WS] Completed');
-      }
     });
 
     // Add log when closing WS
@@ -853,7 +876,7 @@ export class AccountService extends BaseDataService {
     if (this._debug && !counter) console.debug("[account] Authenticating on server...");
 
     if (counter > 4) {
-      if (this._debug) console.debug(`[account] Authentification failed (after ${counter} attempts)`);
+      if (this._debug) console.debug(`[account] Authentication failed (after ${counter} attempts)`);
       throw { code: ErrorCodes.AUTH_SERVER_ERROR, message: "ERROR.AUTH_SERVER_ERROR" };
     }
 

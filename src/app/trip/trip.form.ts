@@ -1,15 +1,21 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { TripValidatorService } from "./services/trip.validator";
-import { Trip, Referential, VesselFeatures, LocationLevelIds, vesselFeaturesToString } from "./services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Moment } from 'moment/moment';
-import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs';
-import { mergeMap, debounceTime, startWith } from 'rxjs/operators';
-import { merge } from "rxjs/observable/merge";
-import { AppForm } from '../core/core.module';
-import { VesselModal, VesselService, ReferentialRefService } from "../referential/referential.module";
-import { referentialToString, EntityUtils, ReferentialRef } from '../referential/services/model';
+import {Component, Input, OnInit} from '@angular/core';
+import {TripValidatorService} from "./services/trip.validator";
+import {LocationLevelIds, Referential, Trip, VesselFeatures, vesselFeaturesToString} from "./services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {Moment} from 'moment/moment';
+import {DateAdapter} from "@angular/material";
+import {Observable} from 'rxjs';
+import {debounceTime, mergeMap} from 'rxjs/operators';
+import {merge} from "rxjs/observable/merge";
+import {AppForm} from '../core/core.module';
+import {
+  EntityUtils,
+  ReferentialRef,
+  ReferentialRefService,
+  referentialToString,
+  VesselModal,
+  VesselService
+} from "../referential/referential.module";
 
 @Component({
   selector: 'form-trip',
@@ -51,7 +57,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
             {
               entityName: 'Program',
               searchText: value as string
-            }).first();
+            }).first().map(({data}) => data);
         }));
 
     // Combo: vessels
@@ -64,7 +70,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
           value = (typeof value === "string") && value || undefined;
           return this.vesselService.loadAll(0, 10, undefined, undefined,
             { searchText: value as string }
-          ).first();
+          ).first().map(({data}) => data);
         }));
 
     // Combo: sale location
@@ -83,7 +89,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
                 entityName: 'Location',
                 levelId: LocationLevelIds.PORT,
                 searchText: value as string
-              }).first();
+              }).first().map(({data}) => data);
           })
         );
   }

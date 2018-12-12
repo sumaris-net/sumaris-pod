@@ -1,5 +1,5 @@
-import * as moment from "moment/moment";
-import { Moment } from "moment/moment";
+import {Moment} from "moment/moment";
+import {fromDateISOString, isNil, toDateISOString} from "../../shared/shared.module";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -46,35 +46,8 @@ export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfil
   return expectedProfileIndex != -1 && getMainProfileIndex(actualProfiles) <= expectedProfileIndex;
 }
 
-export function isNil<T>(obj: T | null | undefined): boolean {
-  return obj === undefined || obj === null;
-}
-
-export function isNotNil<T>(obj: T | null | undefined): boolean {
-  return obj !== undefined && obj !== null;
-}
-export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
-  return obj === undefined ? null : obj;
-}
-
 export declare interface Cloneable<T> {
   clone(): T;
-}
-
-export const toDateISOString = function (value): string | undefined {
-  if (!value) return undefined;
-  if (typeof value == "string") {
-    return value;
-  }
-  if (typeof value == "object" && value.toISOString) {
-    return value.toISOString();
-  }
-  return moment(value).format(DATE_ISO_PATTERN) || undefined;
-}
-
-export const fromDateISOString = function (value): Moment | undefined {
-  return value && moment(value, DATE_ISO_PATTERN) || undefined;
-
 }
 
 export function joinProperties(obj: any, properties: String[], separator?: string): string | undefined {
@@ -305,10 +278,8 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     const target: any = super.asObject();
     target.department = this.department && this.department.asObject() || undefined;
     target.profiles = this.profiles && this.profiles.slice(0) || [];
-    // Add main profile to the list, if need
-    if (this.mainProfile && !target.profiles.find(p => p === this.mainProfile)) {
-      target.profiles = target.profiles.concat(this.mainProfile);
-    }
+    // Set profile list from the main profile
+    target.profiles = this.mainProfile && [this.mainProfile] || target.profiles || ['GUEST'];
     target.creationDate = toDateISOString(this.creationDate);
 
     if (!minify) target.mainProfile = getMainProfile(target.profiles);

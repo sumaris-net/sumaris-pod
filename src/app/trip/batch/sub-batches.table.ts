@@ -1,28 +1,33 @@
-import { Component, OnInit, Input, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable, BehaviorSubject } from 'rxjs';
-import {mergeMap, debounceTime, startWith, map} from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService } from "../../core/core.module";
+import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
+import {BehaviorSubject, Observable} from 'rxjs';
+import {debounceTime, map, mergeMap, startWith} from "rxjs/operators";
+import {TableElement, ValidatorService} from "angular4-material-table";
 import {
-  referentialToString,
-  PmfmStrategy,
-  Batch,
-  MeasurementUtils,
-  getPmfmName, Sample
-} from "../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { ReferentialRefService, ProgramService } from "../../referential/referential.module";
-import { BatchValidatorService } from "../services/batch.validator";
-import {FormBuilder, Validators} from "@angular/forms";
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../../environments/environment';
-import {EntityUtils, ReferentialRef, isNotNil, isNil} from "../../core/services/model";
-import { FormGroup } from "@angular/forms";
+  AccountService,
+  AppTable,
+  AppTableDataSource,
+  EntityUtils,
+  ReferentialRef,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
+import {Batch, getPmfmName, MeasurementUtils, PmfmStrategy, referentialToString} from "../services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {
+  PmfmIds,
+  ProgramService,
+  QualitativeLabels,
+  ReferentialRefService,
+  TaxonomicLevelIds
+} from "../../referential/referential.module";
+import {BatchValidatorService} from "../services/batch.validator";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../../../environments/environment';
 import {MeasurementsValidatorService, SubBatchValidatorService} from "../services/trip.validators";
-import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
-import {PmfmIds, QualitativeLabels, TaxonomicLevelIds} from "src/app/referential/services/model";
+import {DataService, isNil, isNotNil, LoadResult} from "../../shared/shared.module";
 
 const PMFM_ID_REGEXP = /\d+/;
 const SUBBATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -36,13 +41,13 @@ const SUBBATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
         { provide: ValidatorService, useClass: BatchValidatorService }
     ]
 })
-export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
+export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService, DataService<Batch, any> {
 
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
     private _implicitValues: { [key: string]: any } = {};
     private _availableParents: Batch[] = [];
-    private _dataSubject = new BehaviorSubject<Batch[]>([]);
+    private _dataSubject = new BehaviorSubject<LoadResult<Batch>>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -65,7 +70,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         return this.data;
     }
 
-    protected get dataSubject(): BehaviorSubject<Batch[]> {
+    protected get dataSubject(): BehaviorSubject<LoadResult<Batch>> {
         return this._dataSubject;
     }
 
@@ -188,7 +193,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
                           levelId: TaxonomicLevelIds.SPECIES,
                           searchText: value as string,
                           searchAttribute: 'label'
-                      }).first();
+                      }).first().map(({data}) => data);
               })
           );
 
@@ -226,7 +231,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
           if (!this.selectedRow) return; // Should never occur
           const row = this.selectedRow;
           const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-          if (EntityUtils.isNotEmpty(value) && value.label == QualitativeLabels.DISCARD) {
+          if (EntityUtils.isNotEmpty(value) && value.label == QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (controls[PmfmIds.DISCARD_REASON]) {
               if (row.validator.enabled) {
                 controls[PmfmIds.DISCARD_REASON].enable();
@@ -260,7 +265,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         sortDirection?: string,
         filter?: any,
         options?: any
-    ): Observable<Batch[]> {
+    ): Observable<LoadResult<Batch>> {
         if (!this.data) {
             if (this.debug) console.debug("[sub-batch-table] Unable to load row: value not set (or not started)");
             return Observable.empty(); // Not initialized
@@ -289,7 +294,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
                 this.sortBatches(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[batch-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-                this._dataSubject.next(data);
+                this._dataSubject.next({data: data});
             });
 
         return this._dataSubject.asObservable();
@@ -461,7 +466,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
       })
       .map(r => r.currentData);
 
-    if (hasRemovedBatch) this._dataSubject.next(data);
+    if (hasRemovedBatch) this._dataSubject.next({data: data});
   }
 
     protected sortBatches(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {

@@ -1,15 +1,19 @@
-import { Component, OnInit, Input, EventEmitter } from '@angular/core';
-import { OperationValidatorService } from "../services/operation.validator";
-import { Operation, Trip, PhysicalGear } from "../services/trip.model";
-import { Platform } from "@ionic/angular";
-import { Moment } from 'moment/moment';
-import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs';
-import { debounceTime, mergeMap, map } from 'rxjs/operators';
-import { merge } from "rxjs/observable/merge";
-import { AppForm, AppFormUtils } from '../../core/core.module';
-import { referentialToString, EntityUtils, ReferentialRef } from '../../referential/services/model';
-import { ReferentialRefService } from '../../referential/referential.module';
+import {Component, EventEmitter, Input, OnInit} from '@angular/core';
+import {OperationValidatorService} from "../services/operation.validator";
+import {Operation, PhysicalGear, Trip} from "../services/trip.model";
+import {Platform} from "@ionic/angular";
+import {Moment} from 'moment/moment';
+import {DateAdapter} from "@angular/material";
+import {Observable} from 'rxjs';
+import {debounceTime, map, mergeMap} from 'rxjs/operators';
+import {merge} from "rxjs/observable/merge";
+import {AppForm} from '../../core/core.module';
+import {
+  EntityUtils,
+  ReferentialRef,
+  ReferentialRefService,
+  referentialToString
+} from '../../referential/referential.module';
 
 @Component({
     selector: 'form-operation',
@@ -17,8 +21,6 @@ import { ReferentialRefService } from '../../referential/referential.module';
     styleUrls: ['./operation.form.scss']
 })
 export class OperationForm extends AppForm<Operation> implements OnInit {
-
-    labelColSize = 3;
 
     trip: Trip;
     metiers: Observable<ReferentialRef[]>;
@@ -52,13 +54,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                     map(value => {
                         // Display the selected object
                         if (EntityUtils.isNotEmpty(value)) {
-                            this.form.controls["metier"].enable();
-                            return [value];
+                          if (this.form.enabled) this.form.controls["metier"].enable()
+                          else this.form.controls["metier"].disable();
+                          return [value];
                         }
                         // Skip if no trip (or no physical gears)
                         if (!this.trip || !this.trip.gears || !this.trip.gears.length) {
-                            this.form.controls["metier"].disable();
-                            return [];
+                          this.form.controls["metier"].disable();
+                          return [];
                         }
                         value = (typeof value === "string" && value !== "*") && value || undefined;
                         // Display all trip gears
@@ -87,7 +90,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                             entityName: 'Metier',
                             levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null,
                             searchText: value as string
-                        }).first();
+                        }).first().map(({data}) => data);
                 }));
     }
 

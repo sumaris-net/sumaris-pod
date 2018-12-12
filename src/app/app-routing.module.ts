@@ -1,17 +1,15 @@
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule, ExtraOptions } from '@angular/router';
-import { HomePage } from './core/home/home';
-import { RegisterConfirmPage } from './core/register/confirm/confirm';
-import { AccountPage } from './core/account/account';
-import { AuthGuardService } from './core/core.module';
-import { UsersPage } from './admin/users/list/users';
-import { VesselsPage } from './referential/vessel/list/vessels';
-import { VesselPage } from './referential/vessel/page/page-vessel';
-import { ReferentialsPage } from './referential/list/referentials';
-import { TripsPage, TripPage } from './trip/trip.module';
-
-import { environment } from '../environments/environment';
-import { OperationPage } from './trip/operation/operation.page';
+import {NgModule} from '@angular/core';
+import {ExtraOptions, RouterModule, Routes} from '@angular/router';
+import {HomePage} from './core/home/home';
+import {RegisterConfirmPage} from './core/register/confirm/confirm';
+import {AccountPage} from './core/account/account';
+import {AuthGuardService} from './core/core.module';
+import {UsersPage} from './admin/users/list/users';
+import {VesselsPage} from './referential/vessel/list/vessels';
+import {VesselPage} from './referential/vessel/page/page-vessel';
+import {ReferentialsPage} from './referential/list/referentials';
+import {TripPage, TripsPage} from './trip/trip.module';
+import {OperationPage} from './trip/operation/operation.page';
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,

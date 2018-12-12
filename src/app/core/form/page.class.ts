@@ -1,14 +1,15 @@
-import { ViewChild, OnInit, OnDestroy } from '@angular/core';
-import { Router, ActivatedRoute, Params, NavigationEnd } from "@angular/router";
-import { MatTabChangeEvent } from "@angular/material";
-import { Entity, isNotNil } from '../services/model';
-import { AlertController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
-import { ToolbarComponent } from '../../shared/toolbar/toolbar';
-import { AppTable } from '../table/table.class';
-import { AppForm } from './form.class';
-import { FormButtonsBarComponent } from './form-buttons-bar.component';
+import {OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ActivatedRoute, Params, Router} from "@angular/router";
+import {MatTabChangeEvent} from "@angular/material";
+import {Entity} from '../services/model';
+import {AlertController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
+import {Subscription} from 'rxjs';
+import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
+import {AppTable} from '../table/table.class';
+import {AppForm} from './form.class';
+import {FormButtonsBarComponent} from './form-buttons-bar.component';
+
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
 
@@ -38,6 +39,10 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
         return (this._forms && !!this._forms.find(form => form.invalid)) || (this._tables && !!this._tables.find(table => !table.invalid));
     }
 
+    protected get tables(): AppTable<any, any>[] {
+      return this._tables;
+    }
+
     constructor(
         protected route: ActivatedRoute,
         protected router: Router,
@@ -46,10 +51,10 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     ) {
         // Listen route parameters
         this.route.queryParams.subscribe(res => {
-            const tabIndex = res["tab"];
-            if (tabIndex !== undefined) {
-                this.selectedTabIndex = parseInt(tabIndex);
-            }
+          const tabIndex = res["tab"];
+          if (isNotNil(tabIndex)) {
+            this.selectedTabIndex = parseInt(tabIndex) || 0;
+          }
         });
     }
 
@@ -129,12 +134,12 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
 
     public onTabChange(event: MatTabChangeEvent) {
-        const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
-        queryParams['tab'] = event.index;
-        this.router.navigate(['.'], {
-            relativeTo: this.route,
-            queryParams: queryParams
-        });
+      const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
+      queryParams['tab'] = event.index;
+      this.router.navigate(['.'], {
+        relativeTo: this.route,
+        queryParams: queryParams
+      });
     }
 
     async cancel() {

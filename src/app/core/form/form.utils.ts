@@ -1,6 +1,5 @@
-
-import { FormGroup, AbstractControl } from "@angular/forms";
-import { isNotNil, nullIfUndefined } from "../services/model";
+import {AbstractControl, FormGroup} from "@angular/forms";
+import {nullIfUndefined} from "../../shared/shared.module";
 
 export class AppFormUtils {
     static copyForm2Entity = copyForm2Entity;
