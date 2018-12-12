@@ -224,7 +224,7 @@
         "TITLE": "New operation"
       },
       "EDIT": {
-        "TITLE": "Operation - {{startDateTime}}",
+        "TITLE": "<small class='hidden-xs hidden-sm'>{{vessel}} - Trip {{departureDateTime}} - </small>Haul {{startDateTime}}",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
         "TAB_CATCH": "Catch",
