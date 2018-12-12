@@ -73,7 +73,7 @@
 
       <!-- tab group for batches -->
       <mat-tab-group [class.hidden]="!showBatchSamplingTables"
-                     [selectedIndex]="selectedBatchTabIndex" (selectedTabChange)="onBatchSamplingTabChange($event)" [disableRipple]="true" dynamicHeight>
+                     [selectedIndex]="selectedBatchSamplingTabIndex" (selectedTabChange)="onBatchSamplingTabChange($event)" [disableRipple]="true" dynamicHeight>
 
         <!-- TAB: species list -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
@@ -118,7 +118,7 @@
 
       <!-- tab group for survival test -->
       <mat-tab-group [class.hidden]="!showSurvivalTestTables"
-                     [selectedIndex]="selectedBatchTabIndex" (selectedTabChange)="onSurvivalTestTabChange($event)" [disableRipple]="true" dynamicHeight >
+                     [selectedIndex]="selectedSurvivalTestTabIndex" (selectedTabChange)="onSurvivalTestTabChange($event)" [disableRipple]="true" dynamicHeight >
 
         <!-- TAB: Survival tests -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">
