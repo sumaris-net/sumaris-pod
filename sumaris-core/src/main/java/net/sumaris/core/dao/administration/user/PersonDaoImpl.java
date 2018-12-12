@@ -38,7 +38,6 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.referential.UserProfileVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
@@ -57,6 +56,7 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Repository("personDao")
@@ -65,6 +65,8 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
     /** Logger. */
     private static final Logger log =
             LoggerFactory.getLogger(PersonDaoImpl.class);
+
+    private List<Listener> listeners = new CopyOnWriteArrayList<>();
 
     @Autowired
     private DepartmentDao departmentDao;
@@ -283,6 +285,9 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         getEntityManager().flush();
         getEntityManager().clear();
 
+        // Emit event to listeners
+        emitChangeEvent(source);
+
         return source;
     }
 
@@ -319,6 +324,14 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
 
         return target;
     }
+
+    @Override
+    public void addListener(Listener listener) {
+        if (!listeners.contains(listeners)) {
+            listeners.add(listener);
+        }
+    }
+
 
     /* -- protected methods -- */
 
@@ -365,11 +378,15 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
             }
             else {
                 target.getUserProfiles().clear();
-                source.getProfiles().stream()
-                        .filter(StringUtils::isNotBlank)
-                        .map(UserProfileEnum::valueOf) // to enum
-                        .filter(Objects::nonNull) // filter invalid enum
-                        .forEach(profileEnum -> target.getUserProfiles().add(load(UserProfile.class, profileEnum.id)));
+                for (String profile: source.getProfiles()) {
+                    if (StringUtils.isNotBlank(profile)) {
+                        UserProfileEnum profileEnum = UserProfileEnum.valueOf(profile);
+                        if (profileEnum != null) {
+                            UserProfile up = load(UserProfile.class, profileEnum.id);
+                            target.getUserProfiles().add(up);
+                        }
+                    }
+                }
             }
         }
 
@@ -395,5 +412,13 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         } catch (EmptyResultDataAccessException | NoResultException e) {
             return null;
         }
+    }
+
+    protected void emitChangeEvent(final PersonVO person) {
+        listeners.forEach(l -> l.onSave(person));
+    }
+
+    protected void emitDeleteEvent(final int id) {
+        listeners.forEach(l -> l.onDelete(id));
     }
 }

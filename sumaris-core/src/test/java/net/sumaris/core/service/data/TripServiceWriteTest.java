@@ -22,17 +22,12 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableMap;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.referential.LocationVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;

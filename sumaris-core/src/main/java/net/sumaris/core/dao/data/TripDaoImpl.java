@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -36,7 +36,6 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -45,7 +44,6 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,6 +182,65 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
     }
 
     @Override
+    public Long countByFilter(TripFilterVO filter) {
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
+
+        Integer programId = null;
+        if (filter != null && StringUtils.isNotBlank(filter.getProgramLabel())) {
+            programId = programDao.getByLabel(filter.getProgramLabel()).getId();
+        }
+
+        ParameterExpression<Date> startDateParam = builder.parameter(Date.class);
+        ParameterExpression<Date> endDateParam = builder.parameter(Date.class);
+        ParameterExpression<Integer> locationIdParam = builder.parameter(Integer.class);
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+
+        Root<Trip> root = criteriaQuery.from(Trip.class);
+        criteriaQuery.select(builder.count(root));
+        if (filter != null) {
+            criteriaQuery.where(builder.and(
+                    // Filter: program
+                    builder.or(
+                            builder.isNull(programIdParam),
+                            builder.equal(root.get(Trip.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                    ),
+                    // Filter: startDate
+                    builder.or(
+                            builder.isNull(startDateParam),
+                            builder.not(builder.lessThan(root.get(Trip.PROPERTY_RETURN_DATE_TIME), startDateParam))
+                    ),
+                    // Filter: endDate
+                    builder.or(
+                            builder.isNull(endDateParam),
+                            builder.not(builder.greaterThan(root.get(Trip.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
+                    ),
+                    // Filter: location
+                    builder.or(
+                            builder.isNull(locationIdParam),
+                            builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
+                            builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                    )
+            ));
+        }
+
+        if (filter != null) {
+            return getEntityManager()
+                    .createQuery(criteriaQuery)
+                    .setParameter(programIdParam, programId)
+                    .setParameter(startDateParam, filter.getStartDate())
+                    .setParameter(endDateParam, filter.getEndDate())
+                    .setParameter(locationIdParam, filter.getLocationId())
+                    .getSingleResult();
+        } else {
+            return getEntityManager()
+                    .createQuery(criteriaQuery)
+                    .getSingleResult();
+        }
+    }
+
+    @Override
     public TripVO get(int id) {
         Trip entity = get(Trip.class, id);
         return toTripVO(entity);
@@ -285,6 +342,95 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         }
 
         return target;
+    }
+
+    @Override
+    public TripVO control(TripVO source) {
+        Preconditions.checkNotNull(source);
+
+        Trip entity = get(Trip.class, source.getId());
+
+        // Check update date
+        checkUpdateDateForUpdate(source, entity);
+
+        // Lock entityName
+        lockForUpdate(entity);
+
+        // TODO CONTROL PROCESS HERE
+        Date controlDate = new Date(getDatabaseCurrentTimestamp().getTime());
+        entity.setControlDate(controlDate);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+        getEntityManager().merge(entity);
+
+        // Update source
+        source.setControlDate(controlDate);
+        source.setUpdateDate(newUpdateDate);
+
+        return source;
+    }
+
+    @Override
+    public TripVO validate(TripVO source) {
+        Preconditions.checkNotNull(source);
+
+        Trip entity = get(Trip.class, source.getId());
+
+        // Check update date
+        checkUpdateDateForUpdate(source, entity);
+
+        // Lock entityName
+//        lockForUpdate(entity);
+
+        // TODO VALIDATION PROCESS HERE
+        Date validationDate = new Date(getDatabaseCurrentTimestamp().getTime());
+        entity.setValidationDate(validationDate);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+//        getEntityManager().merge(entity);
+
+        // Update source
+        source.setValidationDate(validationDate);
+        source.setUpdateDate(newUpdateDate);
+
+        return source;
+    }
+
+    @Override
+    public TripVO unvalidate(TripVO source) {
+        Preconditions.checkNotNull(source);
+
+        Trip entity = get(Trip.class, source.getId());
+
+        // Check update date
+        checkUpdateDateForUpdate(source, entity);
+
+        // Lock entityName
+//        lockForUpdate(entity);
+
+        // TODO UNVALIDATION PROCESS HERE
+        entity.setValidationDate(null);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+//        getEntityManager().merge(entity);
+
+        // Update source
+        source.setValidationDate(null);
+        source.setUpdateDate(newUpdateDate);
+
+        return source;
     }
 
     /* -- protected methods -- */

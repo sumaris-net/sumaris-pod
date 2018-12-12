@@ -24,7 +24,6 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 
@@ -36,6 +35,8 @@ public interface TripDao {
 
     List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
+    Long countByFilter(TripFilterVO filter);
+
     TripVO get(int id);
 
     <T> T get(int id, Class<T> targetClass);
@@ -46,4 +47,9 @@ public interface TripDao {
 
     TripVO toTripVO(Trip trip);
 
+    TripVO control(TripVO trip);
+
+    TripVO validate(TripVO trip);
+
+    TripVO unvalidate(TripVO trip);
 }

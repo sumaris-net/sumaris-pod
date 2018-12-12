@@ -27,9 +27,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.SaleDao;
+import net.sumaris.core.dao.data.TripDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.data.TripDao;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.TripFilterVO;
@@ -88,6 +88,11 @@ public class TripServiceImpl implements TripService {
 	}
 
 	@Override
+	public Long countByFilter(TripFilterVO filter) {
+		return tripDao.countByFilter(filter);
+	}
+
+	@Override
 	public TripVO get(int tripId) {
 		return tripDao.get(tripId);
 	}
@@ -111,6 +116,10 @@ public class TripServiceImpl implements TripService {
 		Preconditions.checkNotNull(source.getVesselFeatures().getVesselId(), "Missing vesselFeatures.vesselId");
 		Preconditions.checkArgument(Objects.isNull(source.getSale()) || CollectionUtils.isEmpty(source.getSales()), "Must not have both 'sales' and 'sale' attributes");
 
+		// Reset control date
+		source.setControlDate(null);
+
+		// Save
 		TripVO savedTrip = tripDao.save(source);
 
 		// Save sales
@@ -173,6 +182,35 @@ public class TripServiceImpl implements TripService {
 		ids.stream()
 				.filter(Objects::nonNull)
 				.forEach(this::delete);
+	}
+
+	@Override
+	public TripVO control(TripVO trip) {
+		Preconditions.checkNotNull(trip);
+		Preconditions.checkNotNull(trip.getId());
+		Preconditions.checkArgument(trip.getControlDate() == null);
+
+		return tripDao.control(trip);
+	}
+
+	@Override
+	public TripVO validate(TripVO trip) {
+		Preconditions.checkNotNull(trip);
+		Preconditions.checkNotNull(trip.getId());
+		Preconditions.checkNotNull(trip.getControlDate());
+		Preconditions.checkArgument(trip.getValidationDate() == null);
+
+		return tripDao.validate(trip);
+	}
+
+	@Override
+	public TripVO unvalidate(TripVO trip) {
+		Preconditions.checkNotNull(trip);
+		Preconditions.checkNotNull(trip.getId());
+		Preconditions.checkNotNull(trip.getControlDate());
+		Preconditions.checkNotNull(trip.getValidationDate());
+
+		return tripDao.unvalidate(trip);
 	}
 
 	/* protected methods */

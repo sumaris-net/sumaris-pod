@@ -32,6 +32,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -65,5 +66,9 @@ public class AcquisitionLevel implements IItemReferentialEntity {
 
     @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
     private String comments;
+
+    public int hashCode() {
+        return Objects.hash(label);
+    }
 
 }

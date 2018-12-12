@@ -43,6 +43,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @FetchProfiles({
         @FetchProfile(name = "with-location",
@@ -150,4 +151,9 @@ public class Trip implements IRootDataEntity<Integer> {
                 .append(",departureDateTime=").append(departureDateTime)
                 .append(")").toString();
     }
+
+    public int hashCode() {
+        return Objects.hash(id, vessel, program, departureDateTime);
+    }
+
 }

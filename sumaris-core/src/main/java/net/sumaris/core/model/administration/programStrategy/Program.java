@@ -36,6 +36,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -73,4 +74,7 @@ public class Program implements IItemReferentialEntity {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Strategy> strategies = new ArrayList<>();
 
+    public int hashCode() {
+        return Objects.hash(label);
+    }
 }

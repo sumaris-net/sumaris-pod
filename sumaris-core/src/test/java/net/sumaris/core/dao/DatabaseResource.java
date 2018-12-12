@@ -23,10 +23,6 @@ package net.sumaris.core.dao;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-import net.sumaris.core.config.SumarisConfiguration;
-import org.nuiton.config.ApplicationConfig;
-
-
 /**
  * To be able to manage database connection for unit test.
  * 
@@ -91,13 +87,6 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 	@Override
 	protected String getI18nBundleName() {
 		return MODULE_NAME + "-i18n";
-	}
-
-	@Override
-	protected void initConfiguration(String configFilename) {
-		String[] configArgs = getConfigArgs();
-		SumarisConfiguration config = new SumarisConfiguration(configFilename, configArgs);
-		SumarisConfiguration.setInstance(config);
 	}
 
 }

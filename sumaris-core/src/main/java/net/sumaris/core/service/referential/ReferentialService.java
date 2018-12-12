@@ -59,4 +59,5 @@ public interface ReferentialService {
 
     void delete(String entityName, List<Integer> ids);
 
+    Long count(String entityName);
 }

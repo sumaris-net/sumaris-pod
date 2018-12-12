@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>0.8.2-SNAPSHOT</version>
+    <version>0.9.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-core-server</artifactId>
@@ -77,6 +77,10 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-websocket</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
@@ -335,6 +339,8 @@
 
       <properties>
         <jdbc.url>jdbc:hsqldb:hsql://localhost/sumaris</jdbc.url>
+        <!--<jdbc.url>jdbc:hsqldb:file:C:/dev/sumaris/_src/sumaris-pod/.local/db/sumaris</jdbc.url>-->
+
         <server.port>8080</server.port>
         <server.url>http://localhost:${server.port}</server.url>
         <server.account.register.confirm.url>http://localhost:8100/confirm/{email}/{code}</server.account.register.confirm.url>

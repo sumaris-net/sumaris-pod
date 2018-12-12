@@ -23,9 +23,13 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
+import net.sumaris.core.model.administration.user.Person;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 @Data
 @Entity
@@ -54,4 +58,11 @@ public class UserProfile implements IItemReferentialEntity {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    @ManyToMany(mappedBy = "userProfiles", targetEntity = Person.class)
+    private Set<Person> users = new HashSet<>();
+
+    public int hashCode() {
+        return Objects.hash(label);
+    }
 }

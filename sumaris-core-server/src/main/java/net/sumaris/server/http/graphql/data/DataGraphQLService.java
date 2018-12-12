@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.data.batch.BatchService;
@@ -38,6 +39,8 @@ import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.server.http.security.IsSupervisor;
+import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,6 +104,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "vessels", description = "Search in vessels")
     @Transactional(readOnly = true)
+    @IsUser
     public List<VesselFeaturesVO> findVesselsByFilter(@GraphQLArgument(name = "filter") VesselFilterVO filter,
                                                       @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                       @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
@@ -111,21 +116,25 @@ public class DataGraphQLService {
     }
 
     @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")
+    @IsUser
     public VesselFeaturesVO saveVessel(@GraphQLArgument(name = "vessel") VesselFeaturesVO vessel) {
         return vesselService.save(vessel);
     }
 
     @GraphQLMutation(name = "saveVessels", description = "Create or update many vessels")
+    @IsUser
     public List<VesselFeaturesVO> saveVessels(@GraphQLArgument(name = "vessels") List<VesselFeaturesVO> vessels) {
         return vesselService.save(vessels);
     }
 
     @GraphQLMutation(name = "deleteVessel", description = "Delete a vessel (by vessel features id)")
+    @IsUser
     public void deleteVessel(@GraphQLArgument(name = "id") int id) {
         vesselService.delete(id);
     }
 
     @GraphQLMutation(name = "deleteVessels", description = "Delete many vessels (by vessel features ids)")
+    @IsUser
     public void deleteVessels(@GraphQLArgument(name = "ids") List<Integer> ids) {
         vesselService.delete(ids);
     }
@@ -135,6 +144,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "trips", description = "Search in trips")
     @Transactional(readOnly = true)
+    @IsUser
     public List<TripVO> findTripsByFilter(@GraphQLArgument(name = "filter") TripFilterVO filter,
                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
@@ -145,19 +155,17 @@ public class DataGraphQLService {
         final List<TripVO> result = tripService.findByFilter(filter, offset, size, sort,
                 direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
 
-        // Add image if need
-        if (hasImageField(fields)) fillImages(result);
-
-        // Add vessel if need
-        if (hasVesselFeaturesField(fields)) {
-            result.stream().forEach( t -> {
-                if (t.getVesselFeatures().getVesselId() != null) {
-                    t.setVesselFeatures(vesselService.getByVesselIdAndDate(t.getVesselFeatures().getVesselId(), t.getDepartureDateTime()));
-                }
-            });
-        }
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
 
         return result;
+    }
+
+    @GraphQLQuery(name = "tripsCount", description = "Get total trips count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long getTripsCount(@GraphQLArgument(name = "filter") TripFilterVO filter) {
+        return tripService.countByFilter(filter);
     }
 
     // FOR DEV ONLY: Full access to database model
@@ -169,72 +177,94 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "trip", description = "Get a trip, by id")
     @Transactional(readOnly = true)
+    @IsUser
     public TripVO getTripById(@GraphQLArgument(name = "id") int id,
                               @GraphQLEnvironment() Set<String> fields) {
         final TripVO result = tripService.get(id);
 
-        // Add image if need
-        if (hasImageField(fields)) fillImages(result);
-
-        // Add vessel if need
-        if (hasVesselFeaturesField(fields) && result.getVesselFeatures() != null && result.getVesselFeatures().getVesselId() != null) {
-            result.setVesselFeatures(vesselService.getByVesselIdAndDate(result.getVesselFeatures().getVesselId(), result.getDepartureDateTime()));
-        }
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
 
         return result;
     }
 
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
+    @IsUser
     public TripVO saveTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
         final TripVO result = tripService.save(trip, false);
 
-        // Add image if need
-        if (hasImageField(fields)) fillImages(result);
-
-        // Add vessel if need
-        if (hasVesselFeaturesField(fields) && result.getVesselFeatures() != null && result.getVesselFeatures().getVesselId() != null) {
-            result.setVesselFeatures(vesselService.getByVesselIdAndDate(result.getVesselFeatures().getVesselId(), result.getDepartureDateTime()));
-        }
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
 
         return result;
     }
 
     @GraphQLMutation(name = "saveTrips", description = "Create or update many trips")
+    @IsUser
     public List<TripVO> saveTrips(@GraphQLArgument(name = "trips") List<TripVO> trips, @GraphQLEnvironment() Set<String> fields) {
         final List<TripVO> result = tripService.save(trips, false);
 
-        // Add image if need
-        if (hasImageField(fields)) fillImages(result);
-
-        // Add vessel if need
-        if (hasVesselFeaturesField(fields)) {
-            result.stream().forEach( t -> {
-                if (t.getVesselFeatures().getVesselId() != null) {
-                    t.setVesselFeatures(vesselService.getByVesselIdAndDate(t.getVesselFeatures().getVesselId(), t.getDepartureDateTime()));
-                }
-            });
-        }
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
 
         return result;
     }
 
     @GraphQLMutation(name = "deleteTrip", description = "Delete a trip")
+    @IsUser
     public void deleteTrip(@GraphQLArgument(name = "id") int id) {
         tripService.delete(id);
     }
 
     @GraphQLMutation(name = "deleteTrips", description = "Delete many trips")
+    @IsUser
     public void deleteTrips(@GraphQLArgument(name = "ids") List<Integer> ids) {
         tripService.delete(ids);
     }
 
-    @GraphQLSubscription(name = "updateTrip", description = "Subcribe to a trip update")
-    public Publisher<TripVO> updateTrip(@GraphQLArgument(name = "tripId") final int tripId,
+    @GraphQLSubscription(name = "updateTrip", description = "Subscribe to changes on a trip")
+    @IsUser
+    public Publisher<TripVO> updateTrip(@GraphQLArgument(name = "id") final int id,
                                         @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
 
-        Preconditions.checkArgument(tripId >= 0, "Invalid tripId");
-        return changesPublisherService.getPublisher(Trip.class, TripVO.class, tripId, minIntervalInSecond, true);
+        Preconditions.checkArgument(id >= 0, "Invalid id");
+        return changesPublisherService.getPublisher(Trip.class, TripVO.class, id, minIntervalInSecond, true);
     }
+
+    @GraphQLMutation(name = "controlTrip", description = "Control a trip")
+    @IsUser
+    public TripVO controlTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+        final TripVO result = tripService.control(trip);
+
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "validateTrip", description = "Validate a trip")
+    @IsSupervisor
+    public TripVO validateTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+        final TripVO result = tripService.validate(trip);
+
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "unvalidateTrip", description = "Unvalidate a trip")
+    @IsSupervisor
+    public TripVO unvalidateTrip(@GraphQLArgument(name = "trip") TripVO trip, @GraphQLEnvironment() Set<String> fields) {
+        final TripVO result = tripService.unvalidate(trip);
+
+        // Add additional properties if needed
+        fillAdditionalProperties(result, fields);
+
+        return result;
+    }
+
+    /* -- Gears -- */
 
     @GraphQLQuery(name = "gears", description = "Get operation's gears")
     public List<PhysicalGearVO> getGearsByTrip(@GraphQLContext TripVO trip) {
@@ -258,6 +288,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
     @Transactional(readOnly = true)
+    @IsUser
     public List<OperationVO> getOperationsByTripId(@GraphQLArgument(name = "filter") OperationFilterVO filter,
                                                    @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
@@ -265,7 +296,8 @@ public class DataGraphQLService {
                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
-        return operationService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        List<OperationVO> res = operationService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        return res;
     }
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -275,35 +307,60 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "operation", description = "Get an operation")
     @Transactional(readOnly = true)
+    @IsUser
     public OperationVO getOperation(@GraphQLArgument(name = "id") int id) {
         return operationService.get(id);
     }
 
     @GraphQLMutation(name = "saveOperations", description = "Save operations")
+    @IsUser
     public List<OperationVO> saveOperations(@GraphQLArgument(name = "operations") List<OperationVO> operations) {
         return operationService.save(operations);
     }
 
     @GraphQLMutation(name = "saveOperation", description = "Create or update an operation")
+    @IsUser
     public OperationVO saveOperation(@GraphQLArgument(name = "operation") OperationVO operation) {
         return operationService.save(operation);
     }
 
     @GraphQLMutation(name = "deleteOperation", description = "Delete an operation")
+    @IsUser
     public void deleteOperation(@GraphQLArgument(name = "id") int id) {
         operationService.delete(id);
     }
 
     @GraphQLMutation(name = "deleteOperations", description = "Delete many operations")
+    @IsUser
     public void deleteOperations(@GraphQLArgument(name = "ids") List<Integer> ids) {
         operationService.delete(ids);
+    }
+
+    @GraphQLSubscription(name = "updateOperation", description = "Subscribe to changes on an operation")
+    @IsUser
+    public Publisher<OperationVO> updateOperation(@GraphQLArgument(name = "id") final int id,
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+
+        Preconditions.checkArgument(id >= 0, "Invalid id");
+        return changesPublisherService.getPublisher(Operation.class, OperationVO.class, id, minIntervalInSecond, true);
     }
 
     /* -- Vessel position -- */
 
     @GraphQLQuery(name = "positions", description = "Get operation's position")
     public List<VesselPositionVO> getPositionsByOperation(@GraphQLContext OperationVO operation) {
+        // Avoid a reloading (e.g. when saving)
+        if (CollectionUtils.isNotEmpty(operation.getPositions())) {
+            return operation.getPositions();
+        }
         return vesselPositionService.getAllByOperationId(operation.getId(), 0, 100, VesselPositionVO.PROPERTY_DATE_TIME, SortDirection.ASC);
+    }
+
+    /* -- Vessel features -- */
+
+    @GraphQLQuery(name = "vesselFeatures", description = "Get trip vessel features")
+    public VesselFeaturesVO getVesselFeaturesByTrip(@GraphQLContext TripVO trip) {
+        return vesselService.getByVesselIdAndDate(trip.getVesselFeatures().getVesselId(), trip.getDepartureDateTime());
     }
 
     /* -- Sample -- */
@@ -402,14 +459,38 @@ public class DataGraphQLService {
 
     /* -- protected methods -- */
 
+    protected void fillAdditionalProperties(TripVO trip, Set<String> fields) {
+        // Add image if need
+        if (hasImageField(fields)) fillImages(trip);
+
+        // Add vessel if need
+        if (hasVesselFeaturesField(fields) && trip.getVesselFeatures() != null && trip.getVesselFeatures().getVesselId() != null) {
+            trip.setVesselFeatures(vesselService.getByVesselIdAndDate(trip.getVesselFeatures().getVesselId(), trip.getDepartureDateTime()));
+        }
+    }
+
+    protected void fillAdditionalProperties(List<TripVO> trips, Set<String> fields) {
+        // Add image if need
+        if (hasImageField(fields)) fillImages(trips);
+
+        // Add vessel if need
+        if (hasVesselFeaturesField(fields)) {
+            trips.forEach(t -> {
+                if (t.getVesselFeatures().getVesselId() != null) {
+                    t.setVesselFeatures(vesselService.getByVesselIdAndDate(t.getVesselFeatures().getVesselId(), t.getDepartureDateTime()));
+                }
+            });
+        }
+    }
+
     protected boolean hasImageField(Set<String> fields) {
-        return fields.contains(TripVO.PROPERTY_RECORDER_DEPARTMENT + "/" + DepartmentVO.PROPERTY_LOGO) ||
-                fields.contains(TripVO.PROPERTY_RECORDER_PERSON + "/" + PersonVO.PROPERTY_AVATAR);
+        return fields.contains(TripVO.PROPERTY_RECORDER_DEPARTMENT + File.separator + DepartmentVO.PROPERTY_LOGO) ||
+                fields.contains(TripVO.PROPERTY_RECORDER_PERSON + File.separator + PersonVO.PROPERTY_AVATAR);
     }
 
     protected boolean hasVesselFeaturesField(Set<String> fields) {
-        return fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + "/" + VesselFeaturesVO.PROPERTY_EXTERIOR_MARKING)
-                || fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + "/" + VesselFeaturesVO.PROPERTY_NAME);
+        return fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + File.separator + VesselFeaturesVO.PROPERTY_EXTERIOR_MARKING)
+                || fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + File.separator + VesselFeaturesVO.PROPERTY_NAME);
     }
 
     protected List<TripVO> fillImages(final List<TripVO> results) {
