@@ -5,14 +5,14 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.9.0.xml">
 
-    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-1">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-1" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="vessel_position" columnName="qualification_comments"/>
             </not>
         </preConditions>
         <addColumn tableName="vessel_position">
-            <column name="qualification_comments" type="timestamp"/>
+            <column name="qualification_comments" type="VARCHAR(2000)"/>
         </addColumn>
     </changeSet>
     
@@ -92,6 +92,7 @@
             <column name="validation_date" type="timestamp"/>
         </addColumn>
     </changeSet>
+
     
     <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-9">
         <preConditions onFail="MARK_RAN">
@@ -101,6 +102,17 @@
         </preConditions>
         <addColumn tableName="vessel_position">
             <column name="validation_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1544003712142-10" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="vessel_features" columnName="qualification_comments"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="vessel_features">
+            <column name="qualification_comments" type="VARCHAR(2000)"/>
         </addColumn>
     </changeSet>
 
