@@ -14,9 +14,10 @@ import {
   BatchValidatorService,
   MeasurementsValidatorService
 } from "../services/trip.validators";
-import {FormBuilder} from "@angular/forms";
+import {FormBuilder, FormGroup, Validator, Validators} from "@angular/forms";
 import {BatchesTable} from "./batches.table";
 import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
+import {MethodIds} from "../../referential/services/model";
 
 @Component({
     selector: 'table-batch-groups',
@@ -31,6 +32,7 @@ export class BatchGroupsTable extends BatchesTable {
     qvPmfm: PmfmStrategy;
     defaultWeightPmfm: PmfmStrategy;
     weightPmfmsByMethod: {[key: string]: PmfmStrategy};
+    weightMethodForm: FormGroup;
 
     constructor(
         route: ActivatedRoute,
@@ -74,6 +76,11 @@ export class BatchGroupsTable extends BatchesTable {
             .filter(pmfms => pmfms && pmfms.length > 0)
             .first()
             .subscribe(pmfms => {
+                let weightMethodValues = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex)=> {
+                  res[qvIndex] = false;
+                  return res;
+                }, {});
+
                 // Transform entities into object array
                 const data = this.data.map(batch => {
 
@@ -85,13 +92,17 @@ export class BatchGroupsTable extends BatchesTable {
                             if (child) {
                                 let i = qvIndex * 5;
                                 measurementValues[i++] = child && isNotNil(child.individualCount) ? child.individualCount : null;
-                                measurementValues[i++] = child && child.measurementValues[this.defaultWeightPmfm.pmfmId];
+                                const totalWeight = child && this.getWeight(child.measurementValues);
+                                measurementValues[i++] = totalWeight && !totalWeight.calculated && totalWeight.value || null;
+                                weightMethodValues[qvIndex] = weightMethodValues[qvIndex] || (totalWeight && totalWeight.estimated);
 
                                 if (child.children && child.children.length == 1) {
                                     const samplingChild = child.children[0];
                                     measurementValues[i++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio * 100 : null;
                                     measurementValues[i++] = isNotNil(samplingChild.individualCount) ? samplingChild.individualCount : null;
-                                    measurementValues[i++] = samplingChild.measurementValues[this.defaultWeightPmfm.pmfmId];
+                                    const samplingWeightWeight = this.getWeight(samplingChild.measurementValues);
+                                    measurementValues[i++] = samplingWeightWeight && !samplingWeightWeight.calculated && samplingWeightWeight.value;
+                                    weightMethodValues[qvIndex] = weightMethodValues[qvIndex] || (samplingWeightWeight && samplingWeightWeight.estimated);
                                 }
                             }
                         });
@@ -105,6 +116,12 @@ export class BatchGroupsTable extends BatchesTable {
                 this.sortBatches(data, sortBy, sortDirection);
                 if (this.debug) console.debug(`[batch-table] Rows loaded in ${Date.now() - now}ms`, data);
 
+                // Set weight is estimated ?
+                if (this.weightMethodForm) {
+                  this.weightMethodForm.setValue(weightMethodValues);
+
+                }
+
                 this.dataSubject.next({data: data});
             });
 
@@ -115,6 +132,8 @@ export class BatchGroupsTable extends BatchesTable {
         if (!this.data) throw new Error("[batch-table] Could not save table: value not set (or not started)");
 
         if (this.debug) console.debug("[batch-table] Updating data from rows...");
+
+        const estimatedWeightPmfm = this.weightPmfmsByMethod && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
 
         this.data = data.map(json => {
             const batch: Batch = json.id && this.data.find(b => b.id === json.id) || Batch.fromObject(json);
@@ -131,11 +150,14 @@ export class BatchGroupsTable extends BatchesTable {
                     const samplingIndividualCount = measurementValues[i++];
                     const samplingWeight = measurementValues[i++];
 
+                    const isEstimatedWeight = this.weightMethodForm && this.weightMethodForm.controls[qvIndex].value || false;
+
                     const childLabel = `${batch.label}.${qv.label}`;
                     const child: Batch = batch.id && (batch.children || []).find(b => b.label === childLabel) || new Batch();
                     child.rankOrder = qvIndex + 1;
+                    child.measurementValues = {};
                     child.measurementValues[this.qvPmfm.pmfmId] = qv.id.toString();
-                    child.measurementValues[this.defaultWeightPmfm.pmfmId] = weight;
+                    child.measurementValues[isEstimatedWeight ? estimatedWeightPmfm.pmfmId : this.defaultWeightPmfm.pmfmId] = weight;
                     child.individualCount = individualCount;
                     child.label = childLabel;
 
@@ -147,7 +169,8 @@ export class BatchGroupsTable extends BatchesTable {
                         samplingChild.label = samplingLabel;
                         samplingChild.samplingRatio = isNotNil(samplingRatio) ? samplingRatio / 100 : undefined;
                         samplingChild.samplingRatioText = isNotNil(samplingRatio) ? `${samplingRatio}%` : undefined;
-                        samplingChild.measurementValues[this.defaultWeightPmfm.pmfmId] = samplingWeight;
+                        samplingChild.measurementValues = {};
+                        samplingChild.measurementValues[isEstimatedWeight ? estimatedWeightPmfm.pmfmId : this.defaultWeightPmfm.pmfmId] = samplingWeight;
                         samplingChild.individualCount = samplingIndividualCount;
                         child.children = [samplingChild];
                     }
@@ -212,8 +235,24 @@ export class BatchGroupsTable extends BatchesTable {
         this.defaultWeightPmfm = defaultWeightPmfm;
 
         this.qvPmfm = pmfms.find(p => p.type == 'qualitative_value');
+        if (isNil(this.qvPmfm)) {
+          throw new Error(`[bacth-group-table] table not ready without a root qualitative PMFM`);
+        }
+
         if (isNil(weightMinRankOrder) || weightMinRankOrder < this.qvPmfm.rankOrder) {
             throw new Error(`[bacth-group-table] Unable to construct the table. No qualitative value found (before weight) in program PMFMs on acquisition level ${this.acquisitionLevel}`);
+        }
+
+        // If estimated weight is allow
+        if (!this.weightMethodForm && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER]) {
+          // Create form for estimated weight
+          this.weightMethodForm = this.formBuilder.group(this.qvPmfm.qualitativeValues.reduce((res, qv, index) => {
+            res[index] = [false, Validators.required];
+            return res;
+          }, {}));
+          this.weightMethodForm.valueChanges.subscribe(json => {
+            this._dirty = true;
+          });
         }
 
         const translations = this.translate.instant([
@@ -287,6 +326,72 @@ export class BatchGroupsTable extends BatchesTable {
     protected isOdd(pmfm: PmfmStrategy) {
         const qvIndex = Math.trunc(pmfm.pmfmId / 5);
         return (qvIndex % 2 !== 0);
+    }
+
+    protected getWeight(measurementValues: {[key: string]: any}): {methodId: number; estimated: boolean; calculated: boolean; value: any} | undefined {
+      // Use try default method
+      let value = measurementValues[this.defaultWeightPmfm.pmfmId];
+      if (isNotNil(value)) {
+        return {
+          value: value,
+          estimated: false,
+          calculated: false,
+          methodId: this.defaultWeightPmfm.methodId
+        };
+      }
+      if (!this.weightPmfmsByMethod) return undefined;
+
+      // Else, try to get estimated
+      let weightPmfm = this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER];
+      value = weightPmfm && measurementValues[weightPmfm.pmfmId];
+      if (isNotNil(value)) {
+        return {
+          value: value,
+          estimated: true,
+          calculated: false,
+          methodId: MethodIds.ESTIMATED_BY_OBSERVER
+        };
+      }
+
+      // Else, try to get calculated
+      weightPmfm = this.weightPmfmsByMethod[MethodIds.CALCULATED];
+      value = weightPmfm && measurementValues[weightPmfm.pmfmId];
+      if (isNotNil(value)) {
+        return {
+          value: value,
+          estimated: false,
+          calculated: true,
+          methodId: MethodIds.CALCULATED
+        };
+      }
+
+      return undefined
+
+    }
+
+    disable() {
+        super.disable();
+        if (this.weightMethodForm) this.weightMethodForm.disable({onlySelf: true, emitEvent: false});
+    }
+
+    enable() {
+        super.enable();
+        if (this.weightMethodForm) this.weightMethodForm.enable({onlySelf: true, emitEvent: false});
+    }
+
+    markAsPristine(){
+      super.markAsPristine();
+      if (this.weightMethodForm) this.weightMethodForm.markAsPristine({onlySelf: true});
+    }
+
+    markAsTouched(){
+      super.markAsTouched();
+      if (this.weightMethodForm) this.weightMethodForm.markAsTouched({onlySelf: true});
+    }
+
+    markAsUntouched(){
+      super.markAsUntouched();
+      if (this.weightMethodForm) this.weightMethodForm.markAsUntouched({onlySelf: true});
     }
 
     referentialToString = referentialToString;

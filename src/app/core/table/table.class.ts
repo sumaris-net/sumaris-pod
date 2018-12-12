@@ -24,7 +24,6 @@ export const RESERVED_END_COLUMNS = ['actions'];
 
 export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDestroy {
 
-    private _enable = true;
     private _initialized = false;
     private _subscriptions: Subscription[] = [];
     private _cellValueChangesDefs: {
@@ -34,6 +33,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             formPath?: string;
         }
     } = {};
+    protected _enable = true;
     protected _dirty = false;
     protected allowRowDetail = true;
     protected pageSize: number;
