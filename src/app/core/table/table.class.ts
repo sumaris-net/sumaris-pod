@@ -24,6 +24,7 @@ export const RESERVED_END_COLUMNS = ['actions'];
 
 export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDestroy {
 
+    private _enable = true;
     private _initialized = false;
     private _subscriptions: Subscription[] = [];
     private _cellValueChangesDefs: {
@@ -84,19 +85,21 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     disable() {
         if (!this._initialized || !this.table) return;
         this.table.disabled = true;
+        this._enable = false;
     }
 
     enable() {
         if (!this._initialized || !this.table) return;
         this.table.disabled = false;
+        this._enable = true;
     }
 
     get enabled(): boolean {
-      return !this.table.disabled;
+      return this._enable;
     }
 
     get disabled(): boolean {
-      return this.table.disabled;
+      return !this._enable;
     }
 
     markAsPristine() {
@@ -256,6 +259,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     addRow(event?: any): boolean {
+        if (!this._enable) return false;
         if (this.debug) console.debug("[table] Asking for new row...");
 
         // Use modal if inline edition is disabled
@@ -327,41 +331,43 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             );
     }
 
-    async deleteSelection() {
-        if (this.loading || this.selection.isEmpty()) return;
+    async deleteSelection(): Promise<void> {
+      if (!this._enable) return;
+      if (this.loading || this.selection.isEmpty()) return;
 
-        if (this.debug) console.debug("[table] Delete selection...");
+      if (this.debug) console.debug("[table] Delete selection...");
 
-        const rowsToDelete = this.selection.selected.slice()
-            // Reverse row order
-            // This is a workaround, need because row.delete() has async execution
-            // and index cache is updated with a delay)
-            .sort((a, b) => a.id > b.id ? -1 : 1);
+      const rowsToDelete = this.selection.selected.slice()
+          // Reverse row order
+          // This is a workaround, need because row.delete() has async execution
+          // and index cache is updated with a delay)
+          .sort((a, b) => a.id > b.id ? -1 : 1);
 
-        try {
-          await this.dataSource.deleteAll(rowsToDelete);
-          this.resultsLength -= rowsToDelete.length;
-          this.selection.clear();
-          this.selectedRow = undefined;
-        }
-        catch(err){
-          this.error = err && err.message || err;
-        }
+      try {
+        await this.dataSource.deleteAll(rowsToDelete);
+        this.resultsLength -= rowsToDelete.length;
+        this.selection.clear();
+        this.selectedRow = undefined;
+      }
+      catch(err){
+        this.error = err && err.message || err;
+      }
     }
 
     onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
-        if (this.selectedRow === row || event.defaultPrevented) return;
+      if (!this._enable) return false;
+      if (this.selectedRow === row || event.defaultPrevented) return;
 
-        if (!this.confirmEditCreateSelectedRow()) {
-            return false;
-        }
+      if (!this.confirmEditCreateSelectedRow()) {
+          return false;
+      }
 
-        if (!row.editing && !this.loading) {
-            this.dataSource.startEdit(row);
-        }
-        this.selectedRow = row;
-        this._dirty = true;
-        return true;
+      if (!row.editing && !this.loading) {
+          this.dataSource.startEdit(row);
+      }
+      this.selectedRow = row;
+      this._dirty = true;
+      return true;
     }
 
     onRowClick(event: MouseEvent, row: TableElement<T>): boolean {

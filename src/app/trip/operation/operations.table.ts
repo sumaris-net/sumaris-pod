@@ -115,7 +115,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     }
   }
 
-  async deleteSelection(confirm?: boolean) {
+  async deleteSelection(confirm?: boolean): Promise<void> {
     if (this.loading) return;
 
     if (!confirm) {

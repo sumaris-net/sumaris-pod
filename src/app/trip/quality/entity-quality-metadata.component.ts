@@ -49,6 +49,7 @@ export class EntityQualityMetadataComponent {
     if (event.defaultPrevented) return;
 
     if (this.data instanceof Trip) {
+      console.debug("[quality] Mark trip as controlled...");
       await this.tripService.controlTrip(this.data);
       this.onChange.emit();
     }
@@ -60,6 +61,7 @@ export class EntityQualityMetadataComponent {
     if (event.defaultPrevented) return;
 
     if (this.data instanceof Trip) {
+      console.debug("[quality] Mark trip as validated...");
       await this.tripService.validateTrip(this.data);
       this.onChange.emit();
     }
