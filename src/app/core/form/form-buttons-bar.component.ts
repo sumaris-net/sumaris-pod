@@ -15,27 +15,41 @@ export class FormButtonsBarComponent {
     disabledCancel: boolean = false;
 
     @Output()
-    onCancel: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
+    onCancel: EventEmitter<Event> = new EventEmitter<Event>();
 
     @Output()
-    onSave: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
+    onSave: EventEmitter<Event> = new EventEmitter<Event>();
 
     @Output()
-    onNext: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
+    onNext: EventEmitter<Event> = new EventEmitter<Event>();
 
     @Output()
-    onBack: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
+    onBack: EventEmitter<Event> = new EventEmitter<Event>();
 
     hotkeys(event) {
-        // Ctrl+S 
-        if (event.keyCode == 83 && event.ctrlKey) {
+
+      console.log(event);
+      if (event.repeat) return;
+
+        // Ctrl+S
+        if (event.key == 's' && event.ctrlKey) {
             if (!this.disabled) this.onSave.emit(event);
             event.preventDefault();
         }
         // Ctrl+Z 
-        if (event.keyCode == 90 && event.ctrlKey) {
+        if (event.key == 'z' && event.ctrlKey) {
             if (!this.disabled && !this.disabledCancel) this.onCancel.emit(event);
             event.preventDefault();
         }
+        // esc
+        if (event.key == 'Escape' && !FormButtonsBarComponent.isEscapeAlreadyBind(event.target)) {
+          this.onBack.emit(event);
+          event.preventDefault();
+        }
+
+    }
+
+    static isEscapeAlreadyBind(target: any): boolean {
+      return target && target.type && (target.type == 'textarea') || false
     }
 }
