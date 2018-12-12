@@ -297,7 +297,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         else {
 
             // Parse day string
-            date = json.day && this.dateAdapter.parse(json.day, this.dayPattern);
+            date = json.day && this.dateAdapter.parse(json.day, this.dayPattern) || null;
 
             // If time
             if (this.displayTime) {
