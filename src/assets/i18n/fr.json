@@ -43,10 +43,10 @@
 
     "DAY_UNIT": "j",
     "DATE": "Date",
+    "TIME": "Heure",
     "HOUR": "Heure",
     "MINUTE": "Minute",
-    "HOUR_PLACEHOLDER": "hh:mm",
-    "MINUTE_PLACEHOLDER": "mm",
+    "TIME_PLACEHOLDER": "hh:mm",
     "DURATION_DOTS": "Durée :",
 
     "YES": "Oui",

@@ -1,7 +1,5 @@
 <mat-form-field [floatLabel]="floatLabel">
 
-  <ng-content select="[matPrefix]"></ng-content>
-
   <input *ngIf="readonly" matInput hidden readonly="true" [formControl]="formControl">
   <span *ngIf="readonly" [innerHTML]="value | latLongFormat: {type: type, pattern: latLongPattern, maxDecimals: maxDecimals}"></span>
 
@@ -9,8 +7,6 @@
   <input *ngIf="!readonly" matInput type="text" [textMask]="{mask: mask, keepCharPositions: true, maxDecimals: maxDecimals, placeholderChar: placeholderChar}"
     [formControl]="textFormControl" autocomplete="off" [placeholder]="inputPlaceholder|translate" (blur)="_onBlur($event)"
     [required]="required">
-
-  <ng-content select="[matSuffix]"></ng-content>
 </mat-form-field>
 <div class="mat-form-field-subscript mat-form-field-subscript-wrapper" *ngIf="!readonly && formControl.invalid">
   <mat-error *ngIf="formControl.touched && formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

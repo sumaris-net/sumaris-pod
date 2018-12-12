@@ -25,12 +25,12 @@
     "BTN_TABLE_OPEN": "Edit in a form",
     "CREATED_ON": "Created on",
 
-    "DATE_PATTERN": "DD/MM/YYYY",
-    "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "DATE_PATTERN": "MM/DD/YYYY",
+    "DATE_TIME_PATTERN": "MM/DD/YYYY HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
-    "DATE_PLACEHOLDER": "dd/mm/yyyy",
+    "DATE_PLACEHOLDER": "mm/dd/yyyy",
 
     "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
     "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",

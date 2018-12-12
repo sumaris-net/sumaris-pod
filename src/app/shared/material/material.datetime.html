@@ -32,7 +32,7 @@
 
   <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   <mat-error *ngIf="formControl.hasError('validDate')" translate>ERROR.FIELD_NOT_VALID_DATE</mat-error>
-  <mat-error *ngIf="formControl.hasError('dateIsAfter')" translate>ERROR.FIELD_NOT_VALID_DATE_AFTER</mat-error>
+  <ng-content select="mat-error"></ng-content>
 </mat-form-field>
 
 <!-- writable + mobile + time -->
@@ -90,9 +90,9 @@
     <!-- hour -->
     <ion-col no-padding class="hour">
       <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-invalid]="form.controls.hour.invalid">
-        <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.HOUR</mat-label>
+        <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.TIME</mat-label>
         <input matInput type="text" min="0" max="23" [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar}"
-          autocomplete="off" [placeholder]="'COMMON.HOUR_PLACEHOLDER'|translate" formControlName="hour" (blur)="markAsTouched()">
+          autocomplete="off" [placeholder]="'COMMON.TIME_PLACEHOLDER'|translate" formControlName="hour" (blur)="markAsTouched()">
       </mat-form-field>
     </ion-col>
 
