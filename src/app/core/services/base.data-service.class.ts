@@ -237,22 +237,28 @@ export abstract class BaseDataService {
     variables: V
   }, propertyName: string, idsToRemove: number[]) {
 
-    const values = this.apollo.getClient().readQuery(opts);
+    try {
+      const values = this.apollo.getClient().readQuery(opts);
 
-    if (values && values[propertyName]) {
+      if (values && values[propertyName]) {
 
-      values[propertyName] = (values[propertyName] || []).reduce((result: any[], item: any) => {
-        return idsToRemove.indexOf(item['id']) === -1 ? result.concat(item) : result;
-      }, []);
-      this.apollo.getClient().writeQuery({
-        query: opts.query,
-        variables: opts.variables,
-        data: values
-      });
+        values[propertyName] = (values[propertyName] || []).reduce((result: any[], item: any) => {
+          return idsToRemove.indexOf(item['id']) === -1 ? result.concat(item) : result;
+        }, []);
+        this.apollo.getClient().writeQuery({
+          query: opts.query,
+          variables: opts.variables,
+          data: values
+        });
+
+        return;
+      }
     }
-    else {
-      console.warn("[data-service] Unable to remove ids from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
+    catch(err) {
+      // continue
+      // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
+    console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
   private onApolloError<T>(err: any): Observable<ApolloQueryResult<T>> {
