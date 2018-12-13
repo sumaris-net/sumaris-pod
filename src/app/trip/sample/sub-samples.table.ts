@@ -270,7 +270,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
 
         const row = this.dataSource.getRow(-1);
         this.data.push(row.currentData);
-        this.selectedRow = row;
+        this.editedRow = row;
 
         // Listen row value changes
         this.startListenRow(row);
@@ -300,7 +300,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
 
     async autoFillTable() {
         if (this.loading) return;
-        if (!this.confirmEditCreateSelectedRow()) return;
+        if (!this.confirmEditCreate()) return;
 
         const rows = await this.dataSource.getRows();
         const data = rows.map(r => r.currentData);

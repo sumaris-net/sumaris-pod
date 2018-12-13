@@ -510,8 +510,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.selectedBatchSamplingTabIndex = event.index;
 
       // On each tables, confirm editing row
-      this.batchGroupsTable.confirmEditCreateSelectedRow();
-      this.subBatchesTable.confirmEditCreateSelectedRow();
+      this.batchGroupsTable.confirmEditCreate();
+      this.subBatchesTable.confirmEditCreate();
     }
   }
 
@@ -527,9 +527,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.selectedSurvivalTestTabIndex = event.index;
 
       // On each tables, confirm editing row
-      this.survivalTestsTable.confirmEditCreateSelectedRow();
-      this.individualMonitoringTable.confirmEditCreateSelectedRow();
-      this.individualReleaseTable.confirmEditCreateSelectedRow();
+      this.survivalTestsTable.confirmEditCreate();
+      this.individualMonitoringTable.confirmEditCreate();
+      this.individualReleaseTable.confirmEditCreate();
     }
   }
 
@@ -556,28 +556,28 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       AppFormUtils.logFormErrors(this.catchForm.form, "[catch-form]");
     }
     if (this.survivalTestsTable.invalid) {
-      if (this.survivalTestsTable.selectedRow && this.survivalTestsTable.selectedRow.editing) {
-        AppFormUtils.logFormErrors(this.survivalTestsTable.selectedRow.validator, "[survivaltests-table]")
+      if (this.survivalTestsTable.editedRow && this.survivalTestsTable.editedRow.editing) {
+        AppFormUtils.logFormErrors(this.survivalTestsTable.editedRow.validator, "[survivaltests-table]")
       }
     }
     if (this.individualMonitoringTable.invalid) {
-      if (this.individualMonitoringTable.selectedRow && this.individualMonitoringTable.selectedRow.editing) {
-        AppFormUtils.logFormErrors(this.individualMonitoringTable.selectedRow.validator, "[monitoring-table]")
+      if (this.individualMonitoringTable.editedRow && this.individualMonitoringTable.editedRow.editing) {
+        AppFormUtils.logFormErrors(this.individualMonitoringTable.editedRow.validator, "[monitoring-table]")
       }
     }
     if (this.batchGroupsTable.invalid) {
-      if (this.batchGroupsTable.selectedRow && this.batchGroupsTable.selectedRow.editing) {
-        AppFormUtils.logFormErrors(this.batchGroupsTable.selectedRow.validator, "[batch-group-table]")
+      if (this.batchGroupsTable.editedRow && this.batchGroupsTable.editedRow.editing) {
+        AppFormUtils.logFormErrors(this.batchGroupsTable.editedRow.validator, "[batch-group-table]")
       }
     }
     if (this.subBatchesTable.invalid) {
-      if (this.subBatchesTable.selectedRow && this.subBatchesTable.selectedRow.editing) {
-        AppFormUtils.logFormErrors(this.subBatchesTable.selectedRow.validator, "[batch-table]")
+      if (this.subBatchesTable.editedRow && this.subBatchesTable.editedRow.editing) {
+        AppFormUtils.logFormErrors(this.subBatchesTable.editedRow.validator, "[batch-table]")
       }
     }
     if (this.individualReleaseTable.invalid) {
-      if (this.individualReleaseTable.selectedRow && this.individualReleaseTable.selectedRow.editing) {
-        AppFormUtils.logFormErrors(this.individualReleaseTable.selectedRow.validator, "[release-table]")
+      if (this.individualReleaseTable.editedRow && this.individualReleaseTable.editedRow.editing) {
+        AppFormUtils.logFormErrors(this.individualReleaseTable.editedRow.validator, "[release-table]")
       }
     }
   }
