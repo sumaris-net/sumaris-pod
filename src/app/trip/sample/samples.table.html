@@ -1,8 +1,8 @@
 <mat-toolbar>
-  <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+  <button mat-icon-button *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
