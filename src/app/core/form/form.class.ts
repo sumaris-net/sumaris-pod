@@ -34,13 +34,17 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   get valid(): boolean {
     return this.form.valid;
   }
-
   get empty(): boolean {
     return !this.form.dirty && !this.form.touched;
   }
-
   get untouched(): boolean {
     return this.form.untouched;
+  }
+  get enabled(): boolean {
+    return this._enable;
+  }
+  get disabled(): boolean {
+    return !this._enable;
   }
 
   disable(opts?: {
