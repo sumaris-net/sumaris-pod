@@ -1,5 +1,7 @@
 import {AbstractControl, FormGroup} from "@angular/forms";
 import {nullIfUndefined} from "../../shared/shared.module";
+import {DATE_ISO_PATTERN} from "../../shared/constants";
+import {isMoment, Moment} from "moment";
 
 export class AppFormUtils {
     static copyForm2Entity = copyForm2Entity;
@@ -35,8 +37,8 @@ export function copyForm2Entity(source: FormGroup, target: any): Object {
  * @param target 
  * @param source 
  */
-export function copyEntity2Form(source: any, target: FormGroup) {
-    target.setValue(getFormValueFromEntity(source, target));
+export function copyEntity2Form(source: any, target: FormGroup, opts?: {emitEvent?:boolean; onlySelf?:boolean; }) {
+    target.patchValue(getFormValueFromEntity(source, target), opts);
 }
 
 /**
@@ -51,7 +53,12 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
             value[key] = getFormValueFromEntity(source[key] || {}, form.controls[key] as FormGroup);
         }
         else {
+          if (isMoment(source[key])) {
+            value[key] = source[key].format(DATE_ISO_PATTERN);
+          }
+          else {
             value[key] = nullIfUndefined(source[key]); // undefined not authorized as control value
+          }
         }
     }
     return value;

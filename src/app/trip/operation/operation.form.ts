@@ -103,7 +103,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
             physicalGear = (this.trip.gears || [physicalGear])
                 .find(g => g.id == physicalGear.id)
             if (physicalGear) {
-                this.form.controls["physicalGear"].setValue(physicalGear);
+                this.form.controls["physicalGear"].patchValue(physicalGear);
             }
         }
     }
