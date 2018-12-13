@@ -4,7 +4,7 @@ import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
   AppTable,
-  AppTableDataSource,
+  AppTableDataSource, environment,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../core/core.module";
@@ -88,6 +88,9 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.canEdit = this.isAdmin || accountService.isUser();
     this.canDelete = this.isAdmin;
     this.inlineEdition = false;
+
+    // FOR DEV ONLY ----
+    //this.debug = !environment.production;
   };
 
   ngOnInit() {

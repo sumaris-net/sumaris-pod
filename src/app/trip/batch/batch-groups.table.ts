@@ -52,7 +52,7 @@ export class BatchGroupsTable extends BatchesTable {
             validatorService, measurementsValidatorService, referentialRefService, programService, translate, formBuilder
         );
         // -- For DEV only
-        this.debug = !environment.production;
+        //this.debug = !environment.production;
     };
 
     loadAll(
