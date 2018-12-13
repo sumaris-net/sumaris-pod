@@ -106,7 +106,7 @@
       </ng-template>
 
       <!-- Help (need to save first) -->
-      <ion-item [hidden]="canAccessOperations">
+      <ion-item [hidden]="showOperationTable">
         <ion-icon slot="start" name="ios-help-circle-outline" color="primary"></ion-icon>
         <ion-label>
           <ion-text>
@@ -115,7 +115,7 @@
         </ion-label>
       </ion-item>
 
-      <div no-padding [hidden]="!canAccessOperations">
+      <div no-padding [hidden]="!showOperationTable">
         <table-operations #operationTable (onOperationClick)="onOperationClick($event)" (onNewOperationClick)="onNewOperationClick($event)">
         </table-operations>
       </div>

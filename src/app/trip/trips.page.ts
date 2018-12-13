@@ -96,6 +96,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     // Programs combo (filter)
     this.programs = this.filterForm.controls['program']
       .valueChanges
+      .startWith('')
       .pipe(
         debounceTime(250),
         mergeMap(value => {

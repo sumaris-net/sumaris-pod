@@ -173,6 +173,7 @@
     "RETURN_LOCATION": "Port de retour",
     "ACTIONS": "Actions sur la ligne",
     "COMMENTS": "Commentaires",
+    "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",
     "TAB_PHYSICAL_GEAR": "Engins",
     "TAB_OPERATIONS": "Opérations",
@@ -187,12 +188,12 @@
     "LIST": {
       "TITLE": "Marées",
       "PROGRAM": "Programme",
+      "QUALITY": "État",
       "FILTER": {
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
         "LOCATION": "Port (départ ou retour)"
-      },
-      "QUALITY": "Etat"
+      }
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",
@@ -202,8 +203,7 @@
       "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée.",
       "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
       "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
-      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
-      "FIELD_RETURN_DATE_BEFORE_DEPARTURE": "Date inférieure à la date de départ"
+      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée"
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
@@ -257,8 +257,7 @@
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
-        "FIELD_END_DATE_BEFORE_START": "Date inférieure à la date de début"
+        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération."
       }
     },
     "CATCH": {

@@ -52,13 +52,13 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     return this._dirty || this.gearForm.dirty;
   }
   get invalid(): boolean {
-    if (this.selectedRow) {
+    if (this.editedRow) {
       return this.gearForm.invalid;
     }
     return false;
   }
   get valid(): boolean {
-    if (this.selectedRow) {
+    if (this.editedRow) {
       return this.gearForm.valid;
     }
     return true;
@@ -94,10 +94,10 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     // Listen detail form, to update the table
     this.gearForm.valueChanges
       .subscribe(value => {
-        if (!this.selectedRow) return;
+        if (!this.editedRow) return;
         if (this.debug) console.debug("[physicalgears-table] gearForm.valueChanges => update select row", value);
-        this.selectedRow.currentData = value;
-        AppFormUtils.copyEntity2Form(this.selectedRow.currentData, this.selectedRow.validator);
+        this.editedRow.currentData = value;
+        AppFormUtils.copyEntity2Form(this.editedRow.currentData, this.editedRow.validator);
         this._dirty = true;
       });
 
@@ -154,7 +154,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
     if (this.debug) console.debug("[physicalgears-table] Updating data from rows...");
 
-    if (this.selectedRow && this.gearForm.dirty) {
+    if (this.editedRow && this.gearForm.dirty) {
       console.warn("TODO: May need to update selected row from gear form ?");
     }
 
@@ -185,12 +185,12 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     if (this.debug) console.debug("[table] Asking for new row...");
 
     // Check gear form
-    if (this.selectedRow && this.gearForm.invalid || this.loading) {
+    if (this.editedRow && this.gearForm.invalid || this.loading) {
       return false;
     }
 
-    // Try to finish selected row first
-    if (!this.confirmEditCreateSelectedRow()) {
+    // Try to finish edited row first
+    if (!this.confirmEditCreate()) {
       return false;
     }
 
@@ -200,7 +200,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
     // Selected the new row
     const row = this.dataSource.getRow(-1);
-    this.selectedRow = row;
+    this.editedRow = row;
     this.gearForm.value = PhysicalGear.fromObject(row.currentData);
     this.gearForm.enable({onlySelf: true, emitEvent: false});
 
@@ -211,18 +211,18 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     if (!row.currentData || event.defaultPrevented) return false;
 
     // Avoid to change select row, if previous is not valid
-    if (this.selectedRow && (this.selectedRow.validator.invalid || this.gearForm.invalid)) {
+    if (this.editedRow && (this.editedRow.validator.invalid || this.gearForm.invalid)) {
       event.stopPropagation();
       return false;
     }
 
     // Avoid to change select row, if same row
-    if ((this.selectedRow && this.selectedRow === row) || this.gearForm.loading) {
+    if ((this.editedRow && this.editedRow === row) || this.gearForm.loading) {
       event.stopPropagation();
       return false;
     }
 
-    this.selectedRow = row;
+    this.editedRow = row;
     this.gearForm.value = row.currentData;
 
     if (this.enabled) {
@@ -234,14 +234,14 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
   async deleteSelection() {
     await super.deleteSelection();
-    this.selectedRow = undefined;
+    this.editedRow = undefined;
 
     this.gearForm.markAsPristine();
     this.gearForm.markAsUntouched();
   }
 
   isDetailRow(row: TableElement<PhysicalGear>): boolean {
-    return this.selectedRow && (this.selectedRow == row || this.selectedRow.currentData.id == row.currentData.id);
+    return this.editedRow && (this.editedRow == row || this.editedRow.currentData.id == row.currentData.id);
   }
 
   markAsPristine() {
@@ -276,7 +276,11 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
   public enable(): void {
     super.enable();
-    this.gearForm.enable({onlySelf: true, emitEvent: false});
+
+    // Propagate only if edited row selected, because autofocus used enable
+    if (this.editedRow) {
+      this.gearForm.enable({onlySelf: true, emitEvent: false});
+    }
   }
 
   referentialToString = referentialToString;

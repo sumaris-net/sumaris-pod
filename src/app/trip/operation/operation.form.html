@@ -119,7 +119,6 @@
           <ion-row no-padding>
             <ion-col size="12" size-lg="4">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="endDateTime">
-                <mat-error *ngIf="form.controls['endDateTime'].hasError('dateIsAfter')" translate>TRIP.OPERATION.ERROR.FIELD_END_DATE_BEFORE_START</mat-error>
                 <mat-hint align="end" *ngIf="form.controls['endDateTime'].value">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls['startDateTime'].value, endValue: form.controls['endDateTime'].value} | dateDiffDuration }}
                 </mat-hint>

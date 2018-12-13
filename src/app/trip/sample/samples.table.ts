@@ -248,7 +248,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
 
         const row = this.dataSource.getRow(-1);
         this.data.push(row.currentData);
-        this.selectedRow = row;
+        this.editedRow = row;
         return true;
     }
 

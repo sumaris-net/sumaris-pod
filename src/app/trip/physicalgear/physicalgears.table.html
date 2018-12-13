@@ -91,7 +91,7 @@
         <br />dirty (form): {{gearForm.dirty}}
       </span>
 
-      <ion-text *ngIf="selectedRow && debug">
+      <ion-text *ngIf="editedRow && debug">
         <p *ngFor="let meas of detailMeasurements | async">
           {{meas}}
         </p>
@@ -104,7 +104,7 @@
       <ion-card>
 
         <!-- Help -->
-        <ion-item [hidden]="!resultsLength || selectedRow">
+        <ion-item [hidden]="!resultsLength || editedRow">
           <ion-icon slot="start" name="ios-help-circle-outline" color="primary"></ion-icon>
           <ion-label>
             <ion-text>
@@ -115,19 +115,19 @@
           </ion-label>
         </ion-item>
         <!-- card title -->
-        <ion-item [hidden]="!selectedRow">
+        <ion-item [hidden]="!editedRow">
           <ion-label>
             <ion-text color="primary">
               <h2>
                 <span translate>TRIP.PHYSICAL_GEAR.EDIT.TITLE</span>
-                {{selectedRow?.currentData.rankOrder}}
+                {{editedRow?.currentData.rankOrder}}
               </h2>
             </ion-text>
           </ion-label>
         </ion-item>
 
         <!-- Form -->
-        <ion-card-content [hidden]="!selectedRow">
+        <ion-card-content [hidden]="!editedRow">
           <form-physical-gear [debug]="debug" #gearForm>
           </form-physical-gear>
         </ion-card-content>

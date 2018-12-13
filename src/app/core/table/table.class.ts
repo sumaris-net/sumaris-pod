@@ -47,7 +47,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     showFilter = false;
     isRateLimitReached = false;
     selection = new SelectionModel<TableElement<T>>(true, []);
-    selectedRow: TableElement<T> = undefined;
+    editedRow: TableElement<T> = undefined;
     onRefresh = new EventEmitter<any>();
     i18nColumnPrefix = 'COMMON.';
     autoLoad = true;
@@ -69,11 +69,11 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     get valid(): boolean {
-        if (this.selectedRow && this.selectedRow.editing) {
-            if (this.debug && !this.selectedRow.validator.valid) {
-                this.logRowErrors(this.selectedRow);
+        if (this.editedRow && this.editedRow.editing) {
+            if (this.debug && !this.editedRow.validator.valid) {
+                this.logRowErrors(this.editedRow);
             }
-            return this.selectedRow.validator.valid;
+            return this.editedRow.validator.valid;
         }
         return true;
     }
@@ -111,9 +111,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     markAsTouched() {
-        if (this.selectedRow && this.selectedRow.editing) {
-            this.selectedRow.validator.markAsTouched();
-            this.selectedRow.validator.updateValueAndValidity();
+        if (this.editedRow && this.editedRow.editing) {
+            this.editedRow.validator.markAsTouched();
+            this.editedRow.validator.updateValueAndValidity();
         }
     }
 
@@ -156,7 +156,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                     (any: any) => {
                         this._dirty = false;
                         this.selection.clear();
-                        this.selectedRow = undefined;
+                        this.editedRow = undefined;
                         if (any === 'skip' || !this.dataSource) {
                             return Observable.of(undefined);
                         }
@@ -233,22 +233,30 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         return this.addRow(event);
     }
 
+  /**
+   * Confirm the creation of the given row, or if not specified the currently edited row
+   * @param event
+   * @param row
+   */
     confirmEditCreate(event?: any, row?: TableElement<T>): boolean {
-        row = row || this.selectedRow;
+        row = row || this.editedRow;
         if (row && row.editing) {
-            event.stopPropagation();
+            if (event) event.stopPropagation();
             // confirmation edition or creation
             if (!row.confirmEditCreate()) {
                 if (this.debug) console.warn("[table] Row not valid: unable to confirm", row);
                 return false;
             }
-            this.selectedRow = undefined; // unselect row
+            // If edit finished, forget edited row
+            if (row === this.editedRow) {
+              this.editedRow = undefined;
+            }
         }
         return true;
     }
 
     cancelOrDelete(event: any, row: TableElement<T>) {
-        this.selectedRow = undefined; // unselect row
+        this.editedRow = undefined; // unselect row
         event.stopPropagation();
         this.dataSource.cancelOrDelete(row);
 
@@ -268,8 +276,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
             return false;
         }
 
-        // Try to finish selected row first
-        if (!this.confirmEditCreateSelectedRow()) {
+        // Try to finish edited row first
+        if (!this.confirmEditCreate()) {
             return false;
         }
 
@@ -278,13 +286,6 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         return true;
     }
 
-    confirmEditCreateSelectedRow(): boolean {
-        if (this.selectedRow && this.selectedRow.editing && !this.selectedRow.confirmEditCreate()) {
-            if (this.debug) console.warn("[table] Selected row not valid", this.selectedRow);
-            return false;
-        }
-        return true;
-    }
 
     protected addRowToTable() {
         this.focusFirstColumn = true;
@@ -295,7 +296,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     async save(): Promise<boolean> {
         this.error = undefined;
-        if (!this.confirmEditCreateSelectedRow()) {
+        if (!this.confirmEditCreate()) {
             throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
         }
         if (this.debug) console.debug("[table] Calling dataSource.save()...");
@@ -347,7 +348,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         await this.dataSource.deleteAll(rowsToDelete);
         this.resultsLength -= rowsToDelete.length;
         this.selection.clear();
-        this.selectedRow = undefined;
+        this.editedRow = undefined;
       }
       catch(err){
         this.error = err && err.message || err;
@@ -356,16 +357,16 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     onEditRow(event: MouseEvent, row: TableElement<T>): boolean {
       if (!this._enable) return false;
-      if (this.selectedRow === row || event.defaultPrevented) return;
+      if (this.editedRow === row || event.defaultPrevented) return;
 
-      if (!this.confirmEditCreateSelectedRow()) {
+      if (!this.confirmEditCreate()) {
           return false;
       }
 
       if (!row.editing && !this.loading) {
           this.dataSource.startEdit(row);
       }
-      this.selectedRow = row;
+      this.editedRow = row;
       this._dirty = true;
       return true;
     }
@@ -453,6 +454,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     public trackByFn(index: number, row: TableElement<T>) {
         return row.id;
     }
+
+    /* -- private method -- */
 
     private generateTableId() {
         const id = this.location.path(true).replace(/[?].*$/g, '').replace(/\/[\d]+/g, '_id') + "_" + this.constructor.name;

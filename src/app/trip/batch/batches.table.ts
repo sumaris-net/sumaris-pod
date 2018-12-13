@@ -287,7 +287,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
 
         const row = this.dataSource.getRow(-1);
         this.data.push(row.currentData);
-        this.selectedRow = row;
+        this.editedRow = row;
         return true;
     }
 

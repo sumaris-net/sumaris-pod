@@ -228,8 +228,8 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
       // Listening on column 'IS_DEAD' value changes
       this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
         .subscribe((value) => {
-          if (!this.selectedRow) return; // Should never occur
-          const row = this.selectedRow;
+          if (!this.editedRow) return; // Should never occur
+          const row = this.editedRow;
           const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
           if (EntityUtils.isNotEmpty(value) && value.label == QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (controls[PmfmIds.DISCARD_REASON]) {
@@ -332,7 +332,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
 
         const row = this.dataSource.getRow(-1);
         this.data.push(row.currentData);
-        this.selectedRow = row;
+        this.editedRow = row;
 
         // Listen row value changes
         this.startListenRow(row);
