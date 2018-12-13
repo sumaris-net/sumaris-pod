@@ -4,7 +4,7 @@ import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
   AppTable,
-  AppTableDataSource, environment,
+  AppTableDataSource,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../core/core.module";
@@ -16,12 +16,7 @@ import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {
-  ReferentialRefService,
-  referentialToString,
-  vesselFeaturesToString,
-  VesselService
-} from "../referential/referential.module";
+import {ReferentialRefService, referentialToString, vesselFeaturesToString} from "../referential/referential.module";
 import {debounceTime, mergeMap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 
@@ -52,7 +47,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected accountService: AccountService,
     protected validatorService: TripValidatorService,
     protected dataService: TripService,
-    protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
