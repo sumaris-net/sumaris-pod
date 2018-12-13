@@ -276,7 +276,11 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
   public enable(): void {
     super.enable();
-    this.gearForm.enable({onlySelf: true, emitEvent: false});
+
+    // Propagate only if edited row selected, because autofocus used enable
+    if (this.editedRow) {
+      this.gearForm.enable({onlySelf: true, emitEvent: false});
+    }
   }
 
   referentialToString = referentialToString;
