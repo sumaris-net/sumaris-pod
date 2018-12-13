@@ -202,6 +202,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     const row = this.dataSource.getRow(-1);
     this.selectedRow = row;
     this.gearForm.value = PhysicalGear.fromObject(row.currentData);
+    this.gearForm.enable({onlySelf: true, emitEvent: false});
 
     return true;
   }
@@ -266,6 +267,16 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       const valueB = EntityUtils.getPropertyByPath(b, sortBy);
       return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
     });
+  }
+
+  public disable(): void {
+    super.disable();
+    this.gearForm.disable({onlySelf: true, emitEvent: false});
+  }
+
+  public enable(): void {
+    super.enable();
+    this.gearForm.enable({onlySelf: true, emitEvent: false});
   }
 
   referentialToString = referentialToString;

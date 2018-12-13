@@ -1,8 +1,8 @@
 <mat-toolbar>
-  <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+  <button mat-icon-button *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
@@ -31,6 +31,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
+
 <!-- First header row -->
 <mat-table>
   <ng-container matColumnDef="select">
@@ -53,12 +54,22 @@
   </ng-container>
 
   <ng-container *ngIf="!loading">
+
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
       <mat-header-cell *matHeaderCellDef class="qv" [class.even]="pmfm.id % 2 === 0"
                        [class.odd]="pmfm.id % 2 !== 0"
                        [class.show]="pmfm.pmfmId % 5 === 0">
-        <ion-label>&nbsp;{{qvPmfm.qualitativeValues[pmfm.id].name}}</ion-label>
+        <ion-grid no-padding *ngIf="pmfm.pmfmId % 5 === 0">
+          <ion-col no-padding align="center">
+            <ion-label>{{qvPmfm.qualitativeValues[pmfm.id].name}}</ion-label>
+          </ion-col>
+          <ion-col no-padding align="center">
+            <mat-checkbox [formControl]="weightMethodForm.controls[pmfm.id]" labelPosition="before">
+              {{'TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION'|translate}}
+            </mat-checkbox>
+          </ion-col>
+        </ion-grid>
       </mat-header-cell>
     </ng-container>
   </ng-container>
@@ -133,7 +144,7 @@
     </mat-cell>
   </ng-container>
 
-  <!-- taxon name (scientific spacies) -->
+  <!-- taxon name (scientific species) -->
   <ng-container matColumnDef="taxonName">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
@@ -225,6 +236,26 @@
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid" class="left-padding"
     [class.mat-row-dirty]="row.currentData?.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>
+
+
+
+<!--<form *ngIf="!loading && weightMethodForm"-->
+      <!--[formGroup]="weightMethodForm"-->
+      <!--class="form-container" novalidate>-->
+  <!--<ng-container *ngFor="let qv of qvPmfm.qualitativeValues">-->
+
+    <!--<ion-row>-->
+      <!--<ion-col size="12" size-md="2" size-lg="3" align-self-end>-->
+        <!--<ion-label> {{'TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_FOR_DOTS'|translate: {label: qv.name} }}</ion-label>-->
+      <!--</ion-col>-->
+      <!--<ion-col no-padding>-->
+        <!--<mat-boolean-field [formControlName]="qv.label" [floatLabel]="never" [required]="true" [compact]="true"></mat-boolean-field>-->
+      <!--</ion-col>-->
+
+    <!--</ion-row>-->
+
+  <!--</ng-container>-->
+<!--</form>-->
 
 <!-- <ion-row>
   <ion-col *ngFor="let pmfm of pmfms | async">

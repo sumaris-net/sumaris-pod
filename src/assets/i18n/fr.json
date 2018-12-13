@@ -203,7 +203,7 @@
       "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
       "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
       "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
-      "FIELD_RETURN_DATE_BEFORE_DEPARTURE": "Date supérieure à la date de départ"
+      "FIELD_RETURN_DATE_BEFORE_DEPARTURE": "Date inférieure à la date de départ"
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
@@ -258,7 +258,7 @@
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
-        "FIELD_END_DATE_BEFORE_START": "Date supérieure à la date de début"
+        "FIELD_END_DATE_BEFORE_START": "Date inférieure à la date de début"
       }
     },
     "CATCH": {
@@ -280,7 +280,8 @@
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant.",
         "PARENT_BATCH": "Lot espèce",
-        "COMMENTS": "Commentaires"
+        "COMMENTS": "Commentaires",
+        "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?"
       }
     },
     "SAMPLE": {

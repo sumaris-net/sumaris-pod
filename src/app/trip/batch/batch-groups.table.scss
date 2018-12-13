@@ -18,9 +18,9 @@ mat-table {
 }
 
 .mat-header-row.first-header-row {
-  max-height: 25px;
-  min-height: 25px;
-  margin-top: -25px;
+  max-height: 58px;
+  min-height: 58px;
+  margin-top: -58px;
 
   .mat-header-cell {
     background-color: transparent;
@@ -42,6 +42,12 @@ mat-table {
 
     ion-label {
       text-align: center;
+      margin: 0;
+    }
+
+    mat-checkbox {
+      margin-left: 5px;
+      margin-right: 5px;
     }
   }
 }

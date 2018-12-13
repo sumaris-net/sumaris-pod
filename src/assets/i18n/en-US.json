@@ -202,7 +202,8 @@
       "SUBSCRIBE_TRIP_ERROR": "Error while listening trip's changes.",
       "CONTROL_TRIP_ERROR": "Error while terminating the trip",
       "VALIDATE_TRIP_ERROR": "Error while validating the trip",
-      "UNVALIDATE_TRIP_ERROR": "Error while unvalidating the trip"
+      "UNVALIDATE_TRIP_ERROR": "Error while unvalidating the trip",
+      "FIELD_RETURN_DATE_BEFORE_DEPARTURE": "Date before departure date"
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
@@ -224,7 +225,7 @@
         "TITLE": "New operation"
       },
       "EDIT": {
-        "TITLE": "Operation - {{startDateTime}}",
+        "TITLE": "<small class='hidden-xs hidden-sm'>{{vessel}} - Trip {{departureDateTime}} - </small>Haul {{startDateTime}}",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
         "TAB_CATCH": "Catch",
@@ -256,7 +257,8 @@
         "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
         "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes."
+        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
+        "FIELD_END_DATE_BEFORE_START": "End date before start date"
       }
     },
     "CATCH": {
@@ -278,7 +280,8 @@
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_WEIGHT": "Sampling weight",
         "PARENT_BATCH": "Species batch",
-        "COMMENTS": "Comments"
+        "COMMENTS": "Comments",
+        "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?"
       }
     },
     "SAMPLE": {

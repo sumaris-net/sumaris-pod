@@ -358,14 +358,29 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }
   }
 
-  public onTripControl(event: Event) {
+  public async onTripControl(event: Event) {
     // Stop if trip is not valid
     if (!this.valid) {
       // Stop the control
-      event.preventDefault();
+      event && event.preventDefault();
 
       // Open the first tab in error
       this.openFirstInvalidTab();
+    }
+    else if (this.dirty) {
+
+      // Stop the control
+      event && event.preventDefault();
+
+      console.debug("[trip] Saving trip, before control...");
+      this.save(new Event('save'))
+        .then(saved => {
+          if (saved) {
+            // Loop
+            this.qualityForm.control(new Event('control'));
+          }
+        });
+
     }
   }
 }
