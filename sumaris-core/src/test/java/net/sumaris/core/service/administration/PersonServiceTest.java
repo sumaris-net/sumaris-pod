@@ -109,4 +109,11 @@ public class PersonServiceTest extends AbstractServiceTest{
     public void delete() {
         service.delete(dbResource.getFixtures().getPersonId(0));
     }
+
+    @Test
+    public void getEmailsByProfiles() {
+        List<String> emails = service.getEmailsByProfiles(UserProfileEnum.ADMIN);
+        Assert.assertNotNull(emails);
+        Assert.assertTrue(emails.size() > 0);
+    }
 }

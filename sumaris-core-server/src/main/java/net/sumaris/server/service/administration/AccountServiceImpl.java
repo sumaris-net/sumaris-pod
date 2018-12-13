@@ -23,6 +23,7 @@ package net.sumaris.server.service.administration;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
@@ -33,7 +34,9 @@ import net.sumaris.core.dao.administration.user.UserTokenDao;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.referential.StatusId;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -256,7 +259,7 @@ public class AccountServiceImpl implements AccountService {
         filter.setEmail(email.trim());
         List<PersonVO> matches = personDao.findByFilter(filter, 0, 2, null, null);
 
-        PersonVO account;
+        PersonVO account = null;
         boolean valid = CollectionUtils.size(matches) == 1 && validSignatureHash.equals(signatureHash);
         // Check the matched account status
         if (valid) {
@@ -280,12 +283,15 @@ public class AccountServiceImpl implements AccountService {
 
         // Log success
         log.info(I18n.t("sumaris.server.account.register.confirmed", email));
+
+        // Send email to admins
+        sendRegistrationToAdmins(account);
     }
 
     @Override
     public void sendConfirmationEmail(String email, String locale) throws InvalidEmailConfirmationException {
         Preconditions.checkNotNull(email);
-        Preconditions.checkNotNull(email.trim().length() > 0);
+        Preconditions.checkArgument(email.trim().length() > 0);
 
         // Mark account as temporary
         PersonFilterVO filter = new PersonFilterVO();
@@ -428,5 +434,68 @@ public class AccountServiceImpl implements AccountService {
             return Locale.FRANCE;
         }
         return Locale.UK;
+    }
+
+    protected void sendRegistrationToAdmins(PersonVO confirmedAccount) {
+
+        try {
+
+            List<String> adminEmails = personDao.getEmailsByProfiles(
+                    ImmutableList.of(UserProfileEnum.ADMIN.getId()),
+                    ImmutableList.of(StatusId.ENABLE.getId())
+            );
+
+            // No admin: log on server
+            if (CollectionUtils.isEmpty(adminEmails) || this.mailFromAddress == null) {
+                log.warn("New account registered, but no admin to validate it !");
+                return;
+            }
+
+            // No from address: could not send email
+            if (this.mailFromAddress == null) {
+                log.warn("New account registered, but no from address configured to send to administrators!!");
+                return;
+            }
+
+            // TODO: group email by locales (get it with the email, from personService)
+
+            // Send the email
+            final Email email = DefaultEmail.builder()
+                    .from(this.mailFromAddress)
+                    .replyTo(this.mailFromAddress)
+                    .to(toInternetAddress(adminEmails))
+                    .subject(I18n.t("sumaris.server.mail.subject.prefix", config.getAppName())
+                            + " " + I18n.t("sumaris.server.account.register.admin.mail.subject"))
+                    .body(I18n.t("sumaris.server.account.register.admin.mail.body",
+                            confirmedAccount.getFirstName(),
+                            confirmedAccount.getLastName(),
+                            confirmedAccount.getEmail(),
+                            this.serverUrl,
+                            this.serverUrl + "/admin/users",
+                            config.getAppName()
+                            ))
+                    .encoding(CHARSET_UTF8.name())
+                    .build();
+
+            emailService.send(email);
+        }
+        catch(Throwable e) {
+            // Just log, but continue
+            log.error(new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendAdminEmailFailed", e.getMessage()), e));;
+        }
+    }
+
+    protected List<InternetAddress> toInternetAddress(List<String> emails) {
+        return emails.stream()
+                .map(email -> {
+                        try {
+                            return new InternetAddress(email);
+                        } catch(AddressException e) {
+                            log.debug("Invalid email address {" + email + "}: " + e.getMessage());
+                            return null;
+                        }
+                    })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

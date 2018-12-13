@@ -24,6 +24,8 @@ package net.sumaris.core.service.administration;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.UserProfile;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
@@ -59,6 +61,9 @@ public interface PersonService {
 
 	@Transactional(readOnly = true)
 	ImageAttachmentVO getAvatarByPubkey(String pubkey);
+
+	@Transactional(readOnly = true)
+	List<String> getEmailsByProfiles(UserProfileEnum... userProfiles);
 
 	List<PersonVO> save(List<PersonVO> persons);
 

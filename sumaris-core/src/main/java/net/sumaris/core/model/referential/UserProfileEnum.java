@@ -44,4 +44,24 @@ public enum UserProfileEnum {
       Optional<UserProfileEnum> enumValue = Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
       return enumValue.map(Enum::toString).orElse(null);
   }
+
+  /**
+  * Returns the database row id
+  *
+  * @return int the id
+  */
+  public String getLabel()
+    {
+        return this.label;
+    }
+
+  /**
+     * Returns the database row id
+     *
+     * @return int the id
+     */
+  public int getId()
+    {
+        return this.id;
+    }
 }

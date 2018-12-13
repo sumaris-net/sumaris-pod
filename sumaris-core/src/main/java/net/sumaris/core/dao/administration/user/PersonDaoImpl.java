@@ -23,16 +23,15 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import net.sumaris.core.dao.data.ImageAttachmentDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.IReferentialEntity;
-import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.UserProfile;
-import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.model.referential.*;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -206,6 +205,44 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
     }
 
     @Override
+    public List<String> getEmailsByProfiles(List<Integer> userProfiles, List<Integer> statusIds) {
+        Preconditions.checkNotNull(userProfiles);
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(userProfiles));
+        Preconditions.checkNotNull(statusIds);
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(statusIds));
+
+        EntityManager entityManager = getEntityManager();
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Person> query = builder.createQuery(Person.class);
+        Root<Person> root = query.from(Person.class);
+
+        Join<Person, UserProfile> upJ = root.join(Person.PROPERTY_USER_PROFILES, JoinType.INNER);
+
+        ParameterExpression<Collection> userProfileIdParam = builder.parameter(Collection.class);
+        ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
+
+        query.select(root/*.get(Person.PROPERTY_EMAIL)*/).distinct(true)
+                .where(
+                        builder.and(
+                                // user profile Ids
+                                upJ.get(IReferentialEntity.PROPERTY_ID).in(userProfileIdParam),
+                                // status Ids
+                                root.get(Person.PROPERTY_STATUS).get(IReferentialEntity.PROPERTY_ID).in(statusIdsParam)
+                        ));
+
+        // TODO: select email column only
+        return entityManager.createQuery(query)
+                .setParameter(userProfileIdParam, userProfiles)
+                .setParameter(statusIdsParam, ImmutableList.copyOf(statusIds))
+                .setMaxResults(100)
+                .getResultList()
+                .stream()
+                .map(Person::getEmail)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public boolean isExistsByEmailHash(final String hash) {
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
@@ -286,7 +323,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         getEntityManager().clear();
 
         // Emit event to listeners
-        emitChangeEvent(source);
+        emitSaveEvent(source);
 
         return source;
     }
@@ -295,6 +332,9 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
     public void delete(int id) {
         log.debug(String.format("Deleting person {id=%s}...", id));
         delete(Person.class, id);
+
+        // Emit to listener
+        emitDeleteEvent(id);
     }
 
     @Override
@@ -327,7 +367,7 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
 
     @Override
     public void addListener(Listener listener) {
-        if (!listeners.contains(listeners)) {
+        if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
     }
@@ -414,11 +454,25 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         }
     }
 
-    protected void emitChangeEvent(final PersonVO person) {
-        listeners.forEach(l -> l.onSave(person));
+    protected void emitSaveEvent(final PersonVO person) {
+        listeners.forEach(l -> {
+            try {
+                l.onSave(person);
+            } catch(Throwable t) {
+                log.error("Person listener (onSave) error: " + t.getMessage(), t);
+                // Continue, to avoid transaction cancellation
+            }
+        });
     }
 
     protected void emitDeleteEvent(final int id) {
-        listeners.forEach(l -> l.onDelete(id));
+        listeners.forEach(l -> {
+            try {
+                l.onDelete(id);
+            } catch(Throwable t) {
+                log.error("Person listener (onDelete) error: " + t.getMessage(), t);
+                // Continue, to avoid transaction cancellation
+            }
+        });
     }
 }

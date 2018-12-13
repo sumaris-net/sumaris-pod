@@ -24,10 +24,13 @@ package net.sumaris.core.service.administration;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.model.referential.StatusId;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
@@ -89,6 +92,16 @@ public class PersonServiceImpl implements PersonService {
 	public ImageAttachmentVO getAvatarByPubkey(final String pubkey) {
 		Preconditions.checkNotNull(pubkey);
 		return personDao.getAvatarByPubkey(pubkey);
+	}
+
+	@Override
+	public List<String> getEmailsByProfiles(UserProfileEnum... userProfiles) {
+		Preconditions.checkNotNull(userProfiles);
+
+		return personDao.getEmailsByProfiles(
+				ImmutableList.copyOf(userProfiles).stream().map(up -> up.id).collect(Collectors.toList()),
+				ImmutableList.of(StatusId.ENABLE.getId())
+		);
 	}
 
 	@Override
