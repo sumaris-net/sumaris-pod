@@ -39,6 +39,10 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
         return (this._forms && !!this._forms.find(form => form.invalid)) || (this._tables && !!this._tables.find(table => !table.invalid));
     }
 
+    protected get tables(): AppTable<any, any>[] {
+      return this._tables;
+    }
+
     constructor(
         protected route: ActivatedRoute,
         protected router: Router,
@@ -47,10 +51,10 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     ) {
         // Listen route parameters
         this.route.queryParams.subscribe(res => {
-            const tabIndex = res["tab"];
-            if (tabIndex !== undefined) {
-                this.selectedTabIndex = parseInt(tabIndex);
-            }
+          const tabIndex = res["tab"];
+          if (isNotNil(tabIndex)) {
+            this.selectedTabIndex = parseInt(tabIndex) || 0;
+          }
         });
     }
 
@@ -130,12 +134,12 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
 
     public onTabChange(event: MatTabChangeEvent) {
-        const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
-        queryParams['tab'] = event.index;
-        this.router.navigate(['.'], {
-            relativeTo: this.route,
-            queryParams: queryParams
-        });
+      const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
+      queryParams['tab'] = event.index;
+      this.router.navigate(['.'], {
+        relativeTo: this.route,
+        queryParams: queryParams
+      });
     }
 
     async cancel() {

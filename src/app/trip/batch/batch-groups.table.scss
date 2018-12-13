@@ -13,13 +13,42 @@
   }
 }
 
+mat-table {
+  background-color: transparent !important;
+}
+
+.mat-header-row.first-header-row {
+  max-height: 25px;
+  min-height: 25px;
+  margin-top: -25px;
+
+  .mat-header-cell {
+    background-color: transparent;
+  }
+
+  .mat-header-cell.qv {
+    display: none;
+    flex: 0;
+  }
+  .mat-header-cell.qv.even {
+    background-color: ion-color(light, base) !important;
+  }
+  .mat-header-cell.qv.odd {
+    background-color: lightgray !important;
+  }
+  .mat-header-cell.qv.show {
+    display: flex;
+    flex: 5 !important;
+
+    ion-label {
+      text-align: center;
+    }
+  }
+}
 
 .mat-header-row,
 .mat-row {
 
-  .mat-header-cell.first-header.even {
-    background-color: ion-color(light, base) !important;
-  }
 
   .mat-header-cell.total.even,
   .mat-cell.total.even {
@@ -30,10 +59,6 @@
   // .mat-cell.even {
   //   background-color: ion-color(light050, base);
   // }
-
-  .mat-header-cell.first-header.odd {
-    background-color: lightgray !important;
-  }
 
   .mat-header-cell.total.odd,
   .mat-cell.total.odd {

@@ -55,9 +55,10 @@
   <ng-container *ngIf="!loading">
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
-      <mat-header-cell *matHeaderCellDef class="first-header align-self-center" [class.even]="pmfm.id % 2 === 0"
-        [class.odd]="pmfm.id % 2 !== 0">
-        <ion-label *ngIf="pmfm.pmfmId % 5 === 0">&nbsp;{{qvPmfm.qualitativeValues[pmfm.id].name}}</ion-label>
+      <mat-header-cell *matHeaderCellDef class="qv" [class.even]="pmfm.id % 2 === 0"
+                       [class.odd]="pmfm.id % 2 !== 0"
+                       [class.show]="pmfm.pmfmId % 5 === 0">
+        <ion-label>&nbsp;{{qvPmfm.qualitativeValues[pmfm.id].name}}</ion-label>
       </mat-header-cell>
     </ng-container>
   </ng-container>
@@ -72,7 +73,7 @@
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition"></mat-header-cell>
   </ng-container>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-header-row class="first-header-row" *matHeaderRowDef="displayedColumns"></mat-header-row>
 </mat-table>
 
 <mat-table [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
