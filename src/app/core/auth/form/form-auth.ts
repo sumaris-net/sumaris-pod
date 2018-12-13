@@ -45,11 +45,10 @@ export class AuthForm implements OnInit {
 
   }
 
-
   ngOnInit() {
     // For DEV only
     if (environment.production === false) {
-      this.form.setValue({
+      this.form.patchValue({
         username: 'benoit.lavenier@e-is.pro',
         password: 'priezPourMoi!'
       });

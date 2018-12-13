@@ -170,7 +170,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
                     }
                     const json = AppFormUtils.getFormValueFromEntity(this.data, this.form);
                     json.measurementValues = MeasurementUtils.normalizeFormValues(json.measurementValues, pmfms);
-                    this.form.setValue(json, {
+                    this.form.patchValue(json, {
                         onlySelf: true,
                         emitEvent: false
                     });
