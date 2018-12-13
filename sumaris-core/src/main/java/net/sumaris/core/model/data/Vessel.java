@@ -41,7 +41,8 @@ import java.util.List;
 public class Vessel implements IRootDataEntity<Integer> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "VESSEL_SEQ")
+    @SequenceGenerator(name = "VESSEL_SEQ", sequenceName="VESSEL_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

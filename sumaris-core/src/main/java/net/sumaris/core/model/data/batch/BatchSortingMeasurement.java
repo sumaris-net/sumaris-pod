@@ -44,7 +44,8 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SORTING_MEASUREMENT_B_SEQ")
+    @SequenceGenerator(name = "SORTING_MEASUREMENT_B_SEQ", sequenceName="SORTING_MEASUREMENT_B_SEQ")
     private Integer id;
 
     @Column(name = "update_date")

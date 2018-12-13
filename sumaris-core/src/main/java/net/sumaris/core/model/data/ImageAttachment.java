@@ -39,7 +39,8 @@ import java.util.Objects;
 public class ImageAttachment implements IRootDataEntity<Integer> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "IMAGE_ATTACHMENT_SEQ")
+    @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

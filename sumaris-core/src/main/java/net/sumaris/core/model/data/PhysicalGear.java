@@ -45,7 +45,8 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PHYSICAL_GEAR_SEQ")
+    @SequenceGenerator(name = "PHYSICAL_GEAR_SEQ", sequenceName="PHYSICAL_GEAR_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

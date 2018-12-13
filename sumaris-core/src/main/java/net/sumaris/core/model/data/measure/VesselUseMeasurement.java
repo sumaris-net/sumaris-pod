@@ -44,7 +44,8 @@ public class VesselUseMeasurement implements IMeasurementEntity {
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "VESSEL_USE_MEASUREMENT_SEQ")
+    @SequenceGenerator(name = "VESSEL_USE_MEASUREMENT_SEQ", sequenceName="VESSEL_USE_MEASUREMENT_SEQ")
     private Integer id;
 
     @Column(name = "update_date")

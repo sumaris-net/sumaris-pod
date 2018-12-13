@@ -40,7 +40,8 @@ public class SampleMeasurement implements ISortedMeasurementEntity {
     public static final String PROPERTY_SAMPLE = "sample";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SAMPLE_MEASUREMENT_SEQ")
+    @SequenceGenerator(name = "SAMPLE_MEASUREMENT_SEQ", sequenceName="SAMPLE_MEASUREMENT_SEQ")
     private Integer id;
 
     @Column(name = "update_date")

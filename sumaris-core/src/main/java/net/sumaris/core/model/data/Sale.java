@@ -43,7 +43,8 @@ public class Sale implements IRootDataEntity<Integer> {
     public static final String PROPERTY_TRIP = "trip";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SALE_SEQ")
+    @SequenceGenerator(name = "SALE_SEQ", sequenceName="SALE_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

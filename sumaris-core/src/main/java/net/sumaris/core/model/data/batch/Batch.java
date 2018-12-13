@@ -46,7 +46,8 @@ public class Batch implements IDataEntity<Integer> {
     public static final String PROPERTY_QUANTIFICATION_MEASUREMENTS = "quantificationMeasurements";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "BATCH_SEQ")
+    @SequenceGenerator(name = "BATCH_SEQ", sequenceName="BATCH_SEQ")
     private Integer id;
 
     @Column(length = 40)

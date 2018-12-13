@@ -48,7 +48,8 @@ public class Sample implements IRootDataEntity<Integer> {
     public static final String PROPERTY_SAMPLE_MEASUREMENTS = "sampleMeasurements";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SAMPLE_SEQ")
+    @SequenceGenerator(name = "SAMPLE_SEQ", sequenceName="SAMPLE_SEQ")
     private Integer id;
 
     @Column(length = 40, nullable = false)

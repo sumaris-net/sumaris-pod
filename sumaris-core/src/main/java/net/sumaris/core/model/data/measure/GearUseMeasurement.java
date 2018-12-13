@@ -41,7 +41,8 @@ public class GearUseMeasurement implements IMeasurementEntity {
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "GEAR_USE_MEASUREMENT_SEQ")
+    @SequenceGenerator(name = "GEAR_USE_MEASUREMENT_SEQ", sequenceName="GEAR_USE_MEASUREMENT_SEQ")
     private Integer id;
 
     @Column(name = "update_date")

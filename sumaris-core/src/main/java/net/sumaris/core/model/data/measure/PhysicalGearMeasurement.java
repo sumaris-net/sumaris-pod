@@ -42,7 +42,8 @@ public class PhysicalGearMeasurement implements IMeasurementEntity {
     public static final String PROPERTY_PHYSICAL_GEAR = "physicalGear";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PHYSICAL_GEAR_MEASUREMENT_SEQ")
+    @SequenceGenerator(name = "PHYSICAL_GEAR_MEASUREMENT_SEQ", sequenceName="PHYSICAL_GEAR_MEASUREMENT_SEQ")
     private Integer id;
 
     @Column(name = "update_date")

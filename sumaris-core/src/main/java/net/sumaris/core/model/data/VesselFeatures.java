@@ -46,7 +46,8 @@ public class VesselFeatures implements IRootDataEntity<Integer> {
     public static final String PROPERTY_EXTERIOR_MARKING = "exteriorMarking";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "VESSEL_FEATURES_SEQ")
+    @SequenceGenerator(name = "VESSEL_FEATURES_SEQ", sequenceName="VESSEL_FEATURES_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

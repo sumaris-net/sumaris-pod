@@ -41,7 +41,8 @@ public class BatchQuantificationMeasurement implements IMeasurementEntity {
     public static final String PROPERTY_BATCH = "batch";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "QUANTIF_MEASUREMENT_B_SEQ")
+    @SequenceGenerator(name = "QUANTIF_MEASUREMENT_B_SEQ", sequenceName="QUANTIF_MEASUREMENT_B_SEQ")
     private Integer id;
 
     @Column(name = "update_date")
