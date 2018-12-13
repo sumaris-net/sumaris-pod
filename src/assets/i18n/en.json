@@ -173,6 +173,7 @@
     "RETURN_LOCATION": "Return port",
     "ACTIONS": "Actions on row",
     "COMMENTS": "Comments",
+    "QUALITY": "Form status",
     "TAB_GENERAL": "Details",
     "TAB_PHYSICAL_GEAR": "Gears",
     "TAB_OPERATIONS": "Operations",
@@ -187,12 +188,12 @@
     "LIST": {
       "TITLE": "Fishing trips",
       "PROGRAM": "Programme",
+      "QUALITY": "Status",
       "FILTER": {
         "START_DATE": "Start period",
         "END_DATE": "End period",
         "LOCATION": "Port (departure or return)"
-      },
-      "QUALITY": "State"
+      }
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Error while loading the trip.",

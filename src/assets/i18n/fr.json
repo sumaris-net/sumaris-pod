@@ -173,6 +173,7 @@
     "RETURN_LOCATION": "Port de retour",
     "ACTIONS": "Actions sur la ligne",
     "COMMENTS": "Commentaires",
+    "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",
     "TAB_PHYSICAL_GEAR": "Engins",
     "TAB_OPERATIONS": "Opérations",
@@ -187,12 +188,12 @@
     "LIST": {
       "TITLE": "Marées",
       "PROGRAM": "Programme",
+      "QUALITY": "État",
       "FILTER": {
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
         "LOCATION": "Port (départ ou retour)"
-      },
-      "QUALITY": "Etat"
+      }
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",
