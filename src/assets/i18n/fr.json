@@ -203,8 +203,7 @@
       "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée.",
       "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
       "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
-      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée",
-      "FIELD_RETURN_DATE_BEFORE_DEPARTURE": "Date inférieure à la date de départ"
+      "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée"
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
@@ -258,8 +257,7 @@
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
-        "FIELD_END_DATE_BEFORE_START": "Date inférieure à la date de début"
+        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération."
       }
     },
     "CATCH": {

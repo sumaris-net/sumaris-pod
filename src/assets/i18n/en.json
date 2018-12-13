@@ -203,8 +203,7 @@
       "SUBSCRIBE_TRIP_ERROR": "Error while listening trip's changes.",
       "CONTROL_TRIP_ERROR": "Error while terminating the trip",
       "VALIDATE_TRIP_ERROR": "Error while validating the trip",
-      "UNVALIDATE_TRIP_ERROR": "Error while unvalidating the trip",
-      "FIELD_RETURN_DATE_BEFORE_DEPARTURE": "Date before departure date"
+      "UNVALIDATE_TRIP_ERROR": "Error while unvalidating the trip"
     },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
@@ -258,8 +257,7 @@
         "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
         "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
-        "FIELD_END_DATE_BEFORE_START": "End date before start date"
+        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes."
       }
     },
     "CATCH": {
