@@ -236,7 +236,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         if (!pmfms.length) {
             // Reset form
             this.measurementValidatorService.updateFormGroup(this.form, []);
-            this.form.setValue({}, {
+            this.form.patchValue({}, {
                 onlySelf: true,
                 emitEvent: false
             });
@@ -251,7 +251,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         this.measurementValidatorService.updateFormGroup(this.form, pmfms);
         const json = MeasurementUtils.toFormValues(this.data, pmfms);
         this.data = MeasurementUtils.initAllMeasurements(this.data, pmfms);
-        this.form.setValue(json, {
+        this.form.patchValue(json, {
             onlySelf: true,
             emitEvent: false
         });

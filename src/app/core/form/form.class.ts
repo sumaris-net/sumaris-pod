@@ -2,9 +2,9 @@ import { OnInit, OnDestroy, EventEmitter, Output, Input } from '@angular/core';
 import { FormGroup } from "@angular/forms";
 import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
-import { DATE_ISO_PATTERN } from '../constants';
 import { DateAdapter } from "@angular/material";
 import { Subscription } from 'rxjs';
+import { AppFormUtils } from "./form.utils";
 
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
@@ -38,7 +38,12 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   get empty(): boolean {
     return !this.form.dirty && !this.form.touched;
   }
-
+  get enabled(): boolean {
+    return this._enable;
+  }
+  get disabled(): boolean {
+    return !this._enable;
+  }
   get untouched(): boolean {
     return this.form.untouched;
   }
@@ -98,38 +103,9 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   public setValue(data: T) {
     if (!data) return;
-
-    // Convert object to json
-    let json = this.toJsonFormValue(this.form, data);
-    if (this.debug) console.debug("[form] Updating form... ", json);
-
-    // Appply to form
-    this.form.setValue(json, { emitEvent: false });
+    AppFormUtils.copyEntity2Form(data, this.form, { emitEvent: false });
   }
 
-  /**
-   * Transform an object (e.g. an entity) into a json compatible with the given form
-   * @param form 
-   * @param data 
-   */
-  protected toJsonFormValue(form: FormGroup, data: any): Object {
-    let value = {};
-    form = form || this.form;
-    for (let key in form.controls) {
-      if (form.controls[key] instanceof FormGroup) {
-        value[key] = this.toJsonFormValue(form.controls[key] as FormGroup, data[key]);
-      }
-      else {
-        if (data[key] && typeof data[key] == "object" && data[key]._isAMomentObject) {
-          value[key] = this.dateAdapter.format(data[key], DATE_ISO_PATTERN);
-        }
-        else {
-          value[key] = data[key] || (data[key] === 0 ? 0 : null); // Do NOT replace 0 by null
-        }
-      }
-    }
-    return value;
-  }
 
   protected registerSubscription(sub: Subscription) {
     this._subscriptions = this._subscriptions || [];
