@@ -373,13 +373,11 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       event && event.preventDefault();
 
       console.debug("[trip] Saving trip, before control...");
-      this.save(new Event('save'))
-        .then(saved => {
-          if (saved) {
-            // Loop
-            this.qualityForm.control(new Event('control'));
-          }
-        });
+      const saved = await this.save(new Event('save'))
+      if (saved) {
+        // Loop
+        this.qualityForm.control(new Event('control'));
+      }
 
     }
   }
