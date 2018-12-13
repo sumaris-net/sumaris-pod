@@ -31,7 +31,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   title = new Subject<string>();
   saving: boolean = false;
   defaultBackHref: string = "/trips";
-  canAccessOperations = false;
+  showOperationTable = false;
   onRefresh = new EventEmitter<any>();
 
   @ViewChild('tripForm') tripForm: TripForm;
@@ -92,7 +92,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
       this.updateView(data, true);
       this.loading = false;
-      this.canAccessOperations = false;
+      this.showOperationTable = false;
     }
 
     // Load
@@ -100,7 +100,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       const data = await this.tripService.load(id).first().toPromise();
       this.updateView(data, true);
       this.loading = false;
-      this.canAccessOperations = true;
+      this.showOperationTable = true;
       this.startListenChanges();
     }
   }
@@ -134,6 +134,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     this.physicalGearTable.value = data && data.gears || [];
 
+    // Operations table
+    this.showOperationTable = isNotNil(data.id);
     if (updateOperations) {
       this.operationTable && this.operationTable.setTrip(data);
     }
@@ -203,17 +205,15 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       isOperationSaved && this.operationTable && this.operationTable.markAsPristine();
 
       // Update the view (e.g metadata)
-      this.updateView(updatedData, false);
+      this.updateView(updatedData, isNew/*will update tripId in filter*/);
 
       // Update route location
       if (isNew) {
         this.router.navigate(['../' + updatedData.id], {
           relativeTo: this.route,
           queryParams: this.route.snapshot.queryParams,
-          replaceUrl: true // replace the current satte in history
+          replaceUrl: true // replace the current state in history
         });
-
-        this.canAccessOperations = true;
 
         // Subscription to changes
         this.startListenChanges();
