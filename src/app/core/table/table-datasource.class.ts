@@ -207,8 +207,12 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     this.dataService.deleteAll([row.currentData], this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
-        super.delete(id);
-        this.onLoading.emit(false);
+        setTimeout(() => {
+          // make sure row has been deleted (because GrapQHl cache remove can failed)
+          const present = this.getRow(id) === row;
+          if (present) super.delete(id);
+          this.onLoading.emit(false);
+        }, 300);
       });
   }
 
@@ -220,8 +224,14 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     return this.dataService.deleteAll(data, this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
-        rows.forEach(r => super.delete(r.id));
-        this.onLoading.emit(false);
+        setTimeout(() => {
+          rows.forEach(row => {
+            // make sure row has been deleted (because GrapQHl cache remove can failed)
+            const present = this.getRow(row.id) === row;
+            if (present) super.delete(row.id);
+          });
+          this.onLoading.emit(false);
+        }, 300);
       });
   }
 
