@@ -82,12 +82,14 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       prependNewElements: false,
       onNewRow: (row) => this.onCreateNewGear(row)
     }));
+
   };
 
 
   ngOnInit() {
 
-    this.debug = true;
+    // FOR DEV ONLY ----
+    //this.debug = !environment.production;
 
     super.ngOnInit();
 
