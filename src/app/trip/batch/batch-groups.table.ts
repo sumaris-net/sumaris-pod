@@ -118,7 +118,7 @@ export class BatchGroupsTable extends BatchesTable {
 
                 // Set weight is estimated ?
                 if (this.weightMethodForm) {
-                  this.weightMethodForm.setValue(weightMethodValues);
+                  this.weightMethodForm.patchValue(weightMethodValues);
 
                 }
 

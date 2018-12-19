@@ -139,10 +139,10 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         if (obj === null) {
             this.writing = true;
             if (this.displayTime) {
-                this.form.setValue({ day: null, hour: null }, { emitEvent: false });
+                this.form.patchValue({ day: null, hour: null }, { emitEvent: false });
             }
             else {
-                this.form.setValue({ day: null }, { emitEvent: false });
+                this.form.patchValue({ day: null }, { emitEvent: false });
             }
             //this.form.updateValueAndValidity();
             this.date = undefined;
@@ -159,7 +159,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         if (this.mobile) {
             // With time
             if (this.displayTime) {
-                this.form.setValue({
+                this.form.patchValue({
                     day: {
                         year: { value: this.date.year() },
                         month: { value: this.date.month() },
@@ -171,7 +171,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
             }
             // Without time
             else {
-                this.form.setValue({
+                this.form.patchValue({
                     day: {
                         year: { value: this.date.year() },
                         month: { value: this.date.month() },
@@ -193,7 +193,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
                 let minutes: number | string = this.date.minutes();
                 minutes = minutes < 10 ? ('0' + minutes) : minutes
                 // Set form value
-                this.form.setValue({
+                this.form.patchValue({
                     day: this.date.clone().startOf('day').format(this.dayPattern),
                     hour: `${hour}:${minutes}`
                 }, { emitEvent: false });
@@ -203,7 +203,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
             else {
                 //console.log("call writeValue()", this.date, this.formControl);
                 // Set form value
-                this.form.setValue({
+                this.form.patchValue({
                     day: this.date.clone().startOf('day').format(this.dayPattern)
                 }, { emitEvent: false });
                 //this.form.updateValueAndValidity();
