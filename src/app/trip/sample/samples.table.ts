@@ -188,34 +188,48 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         filter?: any,
         options?: any
     ): Observable<LoadResult<Sample>> {
-        if (!this.data) {
-            if (this.debug) console.debug("[sample-table] Unable to load row: value not set (or not started)");
-            return Observable.empty(); // Not initialized
-        }
+      if (!this.data) {
+          if (this.debug) console.debug("[sample-table] Unable to load row: value not set (or not started)");
+          return Observable.empty(); // Not initialized
+      }
+
+      // If dirty: save first
+      if (this._dirty) {
+        console.log("[sample-table] WARN: will save table first, before reload");
+        this.save()
+          .then(saved => {
+            if (saved) {
+              this.loadAll(offset, size, sortBy, sortDirection, filter, options);
+              this._dirty = true; // restore previous state
+            }
+          });
+      }
+      else {
         sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
         const now = Date.now();
         if (this.debug) console.debug("[sample-table] Loading rows..", this.data);
 
         this.pmfms
-            .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
-            .subscribe(pmfms => {
-                // Transform entities into object array
-                const data = this.data.map(sample => {
-                    const json = sample.asObject();
-                    json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);
-                    return json;
-                });
-
-                // Sort
-                this.sortSamples(data, sortBy, sortDirection);
-                if (this.debug) console.debug(`[sample-table] Rows loaded in ${Date.now() - now}ms`, data);
-
-                this._dataSubject.next({data: data});
+          .filter(pmfms => pmfms && pmfms.length > 0)
+          .first()
+          .subscribe(pmfms => {
+            // Transform entities into object array
+            const data = this.data.map(sample => {
+              const json = sample.asObject();
+              json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);
+              return json;
             });
 
-        return this._dataSubject.asObservable();
+            // Sort
+            this.sortSamples(data, sortBy, sortDirection);
+            if (this.debug) console.debug(`[sample-table] Rows loaded in ${Date.now() - now}ms`, data);
+
+            this._dataSubject.next({data: data});
+          });
+      }
+
+      return this._dataSubject.asObservable();
     }
 
     async saveAll(data: Sample[], options?: any): Promise<Sample[]> {

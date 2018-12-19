@@ -210,37 +210,50 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         filter?: any,
         options?: any
     ): Observable<LoadResult<Sample>> {
-        if (!this.data) {
-            if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
-            return Observable.empty(); // Not initialized
-        }
+      if (!this.data) {
+          if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
+          return Observable.empty(); // Not initialized
+      }
+
+      // If dirty: save first
+      if (this._dirty) {
+        this.save()
+          .then(saved => {
+            if (saved) {
+              this.loadAll(offset, size, sortBy, sortDirection, filter, options);
+              this._dirty = true; // restore previous state
+            }
+          });
+      }
+      else {
         sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
         const now = Date.now();
         if (this.debug) console.debug("[sub-sample-table] Loading rows...", this.data);
 
         this.pmfms
-            .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
-            .subscribe(pmfms => {
-                // Transform entities into object array
-                const data = this.data.map(sample => {
-                    const json = sample.asObject();
-                    json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);
-                    return json;
-                });
-
-                // Link to parent
-                this.linkSamplesToParent(data);
-
-                // Sort
-                this.sortSamples(data, sortBy, sortDirection);
-                if (this.debug) console.debug(`[sub-sample-table] Rows loaded in ${Date.now() - now}ms`, data);
-
-                this._dataSubject.next({data: data});
+          .filter(pmfms => pmfms && pmfms.length > 0)
+          .first()
+          .subscribe(pmfms => {
+            // Transform entities into object array
+            const data = this.data.map(sample => {
+              const json = sample.asObject();
+              json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);
+              return json;
             });
 
-        return this._dataSubject.asObservable();
+            // Link to parent
+            this.linkSamplesToParent(data);
+
+            // Sort
+            this.sortSamples(data, sortBy, sortDirection);
+            if (this.debug) console.debug(`[sub-sample-table] Rows loaded in ${Date.now() - now}ms`, data);
+
+            this._dataSubject.next({data: data});
+          });
+      }
+
+      return this._dataSubject.asObservable();
     }
 
     async saveAll(data: Sample[], options?: any): Promise<Sample[]> {

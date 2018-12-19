@@ -63,67 +63,81 @@ export class BatchGroupsTable extends BatchesTable {
         filter?: any,
         options?: any
     ): Observable<LoadResult<Batch>> {
-        if (!this.data) {
-            if (this.debug) console.debug("[batch-table] Unable to load row: value not set (or not started)");
-            return Observable.empty(); // Not initialized
-        }
-        sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
+      if (!this.data) {
+        if (this.debug) console.debug("[batch-table] Unable to load row: value not set (or not started)");
+        return Observable.empty(); // Not initialized
+      }
 
-        const now = Date.now();
-        if (this.debug) console.debug("[batch-table] Loading rows..", this.data);
+      // If dirty: save first
+      if (this._dirty) {
+        this.save()
+          .then(saved => {
+            if (saved) {
+              this.loadAll(offset, size, sortBy, sortDirection, filter, options);
+              this._dirty = true; // restore previous state
+            }
+          });
+      }
+      else {
 
-        this.pmfms
+          sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
+
+          const now = Date.now();
+          if (this.debug) console.debug("[batch-table] Loading rows..", this.data);
+
+          this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
             .first()
             .subscribe(pmfms => {
-                let weightMethodValues = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex)=> {
-                  res[qvIndex] = false;
-                  return res;
-                }, {});
+              let weightMethodValues = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex) => {
+                res[qvIndex] = false;
+                return res;
+              }, {});
 
-                // Transform entities into object array
-                const data = this.data.map(batch => {
+              // Transform entities into object array
+              const data = this.data.map(batch => {
 
-                    const json = batch.asObject();
-                    if (isNotNil(this.qvPmfm)) {
-                        const measurementValues = {};
-                        this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
-                            const child = (batch.children || []).find(child => child.label === `${batch.label}.${qv.label}`);
-                            if (child) {
-                                let i = qvIndex * 5;
-                                measurementValues[i++] = child && isNotNil(child.individualCount) ? child.individualCount : null;
-                                const totalWeight = child && this.getWeight(child.measurementValues);
-                                measurementValues[i++] = totalWeight && !totalWeight.calculated && totalWeight.value || null;
-                                weightMethodValues[qvIndex] = weightMethodValues[qvIndex] || (totalWeight && totalWeight.estimated);
+                const json = batch.asObject();
+                if (isNotNil(this.qvPmfm)) {
+                  const measurementValues = {};
+                  this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
+                    const child = (batch.children || []).find(child => child.label === `${batch.label}.${qv.label}`);
+                    if (child) {
+                      let i = qvIndex * 5;
+                      measurementValues[i++] = child && isNotNil(child.individualCount) ? child.individualCount : null;
+                      const totalWeight = child && this.getWeight(child.measurementValues);
+                      measurementValues[i++] = totalWeight && !totalWeight.calculated && totalWeight.value || null;
+                      weightMethodValues[qvIndex] = weightMethodValues[qvIndex] || (totalWeight && totalWeight.estimated);
 
-                                if (child.children && child.children.length == 1) {
-                                    const samplingChild = child.children[0];
-                                    measurementValues[i++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio * 100 : null;
-                                    measurementValues[i++] = isNotNil(samplingChild.individualCount) ? samplingChild.individualCount : null;
-                                    const samplingWeightWeight = this.getWeight(samplingChild.measurementValues);
-                                    measurementValues[i++] = samplingWeightWeight && !samplingWeightWeight.calculated && samplingWeightWeight.value;
-                                    weightMethodValues[qvIndex] = weightMethodValues[qvIndex] || (samplingWeightWeight && samplingWeightWeight.estimated);
-                                }
-                            }
-                        });
-                        json.measurementValues = MeasurementUtils.normalizeFormValues(measurementValues, pmfms);
+                      if (child.children && child.children.length == 1) {
+                        const samplingChild = child.children[0];
+                        measurementValues[i++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio * 100 : null;
+                        measurementValues[i++] = isNotNil(samplingChild.individualCount) ? samplingChild.individualCount : null;
+                        const samplingWeightWeight = this.getWeight(samplingChild.measurementValues);
+                        measurementValues[i++] = samplingWeightWeight && !samplingWeightWeight.calculated && samplingWeightWeight.value;
+                        weightMethodValues[qvIndex] = weightMethodValues[qvIndex] || (samplingWeightWeight && samplingWeightWeight.estimated);
+                      }
                     }
-
-                    return json;
-                });
-
-                // Sort
-                this.sortBatches(data, sortBy, sortDirection);
-                if (this.debug) console.debug(`[batch-table] Rows loaded in ${Date.now() - now}ms`, data);
-
-                // Set weight is estimated ?
-                if (this.weightMethodForm) {
-                  this.weightMethodForm.patchValue(weightMethodValues);
-
+                  });
+                  json.measurementValues = MeasurementUtils.normalizeFormValues(measurementValues, pmfms);
                 }
 
-                this.dataSubject.next({data: data});
+                return json;
+              });
+
+              // Sort
+              this.sortBatches(data, sortBy, sortDirection);
+              if (this.debug) console.debug(`[batch-table] Rows loaded in ${Date.now() - now}ms`, data);
+
+              // Set weight is estimated ?
+              if (this.weightMethodForm) {
+                this.weightMethodForm.patchValue(weightMethodValues);
+
+              }
+
+              this.dataSubject.next({data: data});
             });
+        }
 
         return this.dataSubject.asObservable();
     }
