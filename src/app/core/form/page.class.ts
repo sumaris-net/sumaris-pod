@@ -147,8 +147,10 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
         await this.reload();
     };
 
-    onBackClick(event: MouseEvent) {
-        // Stop the go back event, to be able to overide it
+    onBackClick(event: Event) {
+        if (event.defaultPrevented) return;
+
+        // Stop the go back event, to be able to override it
         event.preventDefault();
 
         setTimeout(async () => {
@@ -230,7 +232,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
                 this.appToolbar.goBack();
             }
 
-        });
+        }, 300);
     }
 
     public async reload(confirm?: boolean) {

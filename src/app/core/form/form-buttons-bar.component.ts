@@ -26,29 +26,26 @@ export class FormButtonsBarComponent {
     @Output()
     onBack: EventEmitter<Event> = new EventEmitter<Event>();
 
-    hotkeys(event) {
+    hotkeys(event: Event) {
 
-      if (event.repeat) return;
+      if (event instanceof KeyboardEvent) {
+        if (event.repeat || event.defaultPrevented) return; // skip
 
         // Ctrl+S
-        if (event.key == 's' && event.ctrlKey) {
+        if (event.ctrlKey && event.key == 's') {
             if (!this.disabled) this.onSave.emit(event);
             event.preventDefault();
         }
-        // Ctrl+Z 
-        if (event.key == 'z' && event.ctrlKey) {
+        // Ctrl+Z
+        else if (event.ctrlKey && event.key == 'z') {
             if (!this.disabled && !this.disabledCancel) this.onCancel.emit(event);
             event.preventDefault();
         }
         // esc
-        if (event.key == 'Escape' && !FormButtonsBarComponent.isEscapeAlreadyBind(event.target)) {
+        else if (event.key == 'Escape') {
           this.onBack.emit(event);
           event.preventDefault();
         }
-
-    }
-
-    static isEscapeAlreadyBind(target: any): boolean {
-      return target && target.type && (target.type == 'textarea') || false
+      }
     }
 }

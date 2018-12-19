@@ -1,4 +1,6 @@
-<app-toolbar [title]="'VESSEL.LIST.TITLE'|translate" color="primary" (onValidate)="save() " [hasValidate]="dirty && !loading">
+<app-toolbar [title]="'VESSEL.LIST.TITLE'|translate" color="primary" (onValidate)="save() "
+             [hasValidate]="dirty && !loading"
+             [canGoBack]="false">
 </app-toolbar>
 
 <ion-content no-padding>

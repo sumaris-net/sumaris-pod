@@ -1,4 +1,5 @@
-<app-toolbar [title]="'USER.LIST.TITLE'|translate" color="primary">
+<app-toolbar [title]="'USER.LIST.TITLE'|translate" color="primary"
+             [canGoBack]="false">
 </app-toolbar>
 
 <ion-content no-padding>
@@ -229,20 +230,30 @@
         <span></span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-        <button mat-icon-button small color="light" *ngIf="row.editing && row.id != -1" [title]="'COMMON.BTN_UNDO'|translate"
-          (click)="cancelOrDelete($event, row)">
-          <mat-icon>undo</mat-icon>
+        <!-- undo or delete  -->
+        <button mat-icon-button small color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+                (click)="cancelOrDelete($event, row)">
+          <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
         </button>
-        <button mat-icon-button small color="light" *ngIf="row.editing && row.id == -1" [title]="'COMMON.BTN_ADD'|translate"
-          (click)="confirmAndAddRow($event, row)">
+        <!-- validate -->
+        <button mat-icon-button small color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
+                (click)="confirmEditCreate($event, row)">
+          <mat-icon>check</mat-icon>
+        </button>
+        <!-- add -->
+        <button mat-icon-button small color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
+                (click)="confirmAndAddRow($event, row)">
           <mat-icon>add</mat-icon>
         </button>
       </mat-cell>
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="submitted && row.validator.invalid"
-      [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"
+             [class.mat-row-error]="row.validator.invalid"
+             [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing"
+             (click)="onRowClick($event, row)"></mat-row>
   </mat-table>
 
   <!-- Paginator  -->
