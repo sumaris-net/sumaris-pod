@@ -2,12 +2,83 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
-import {Batch, DataEntity, Measurement, Operation, Person, Sample, VesselPosition} from "./trip.model";
+import {Batch, DataEntity, Measurement, Operation, Person, Sample, Trip, VesselPosition} from "./trip.model";
 import {map} from "rxjs/operators";
 import {DataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
+import {TripFragments} from "./trip.service";
+
+export const OperationFragments = {
+  lightOperation: gql`fragment LightOperationFragment on OperationVO {
+    id
+    startDateTime
+    endDateTime
+    fishingStartDateTime
+    fishingEndDateTime
+    rankOrderOnPeriod
+    physicalGearId
+    tripId
+    comments
+    hasCatch
+    updateDate
+    metier {
+      ...ReferentialFragment
+    }
+    recorderDepartment {
+      ...RecorderDepartmentFragment
+    }
+    positions {
+      ...PositionFragment
+    }
+  }
+  ${Fragments.referential}
+  ${Fragments.position}
+  ${Fragments.recorderDepartment}
+  `,
+  operation: gql`fragment OperationFragment on OperationVO {
+    id
+      startDateTime
+      endDateTime
+      fishingStartDateTime
+      fishingEndDateTime
+      rankOrderOnPeriod
+      physicalGearId
+      tripId
+      comments
+      hasCatch
+      updateDate
+      metier {
+        ...ReferentialFragment
+      }
+      recorderDepartment {
+        ...RecorderDepartmentFragment
+      }
+      positions {
+        ...PositionFragment
+      }
+      measurements {
+        ...MeasurementFragment
+      }
+      gearMeasurements {
+        ...MeasurementFragment
+      }
+      samples {
+        ...SampleFragment
+      }
+      batches {
+        ...BatchFragment
+      }
+  }
+  ${Fragments.recorderDepartment}
+  ${Fragments.position}
+  ${Fragments.measurement}
+  ${Fragments.referential}
+  ${DataFragments.sample}  
+  ${DataFragments.batch}  
+  `
+};
 
 
 export declare class OperationFilter {
@@ -16,124 +87,40 @@ export declare class OperationFilter {
 const LoadAllQuery: any = gql`
   query Operations($filter: OperationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      id
-      startDateTime
-      endDateTime
-      fishingStartDateTime
-      fishingEndDateTime
-      rankOrderOnPeriod
-      physicalGearId
-      tripId
-      comments
-      hasCatch
-      updateDate
-      metier {
-        ...ReferentialFragment
-      }
-      recorderDepartment {
-        ...RecorderDepartmentFragment
-      }
-      positions {
-        ...PositionFragment
-      }
+      ...LightOperationFragment
     }
   }
-  ${Fragments.recorderDepartment}
-  ${Fragments.position}
-  ${Fragments.referential}
+  ${OperationFragments.lightOperation}
 `;
 const LoadQuery: any = gql`
   query Operation($id: Int) {
     operation(id: $id) {
-      id
-      startDateTime
-      endDateTime
-      fishingStartDateTime
-      fishingEndDateTime
-      rankOrderOnPeriod
-      physicalGearId
-      tripId
-      comments
-      hasCatch
-      updateDate
-      metier {
-        ...ReferentialFragment
-      }
-      recorderDepartment {
-        ...RecorderDepartmentFragment
-      }
-      positions {
-        ...PositionFragment
-      }
-      measurements {
-        ...MeasurementFragment
-      }
-      gearMeasurements {
-        ...MeasurementFragment
-      }
-      samples {
-        ...SampleFragment
-      }
-      batches {
-        ...BatchFragment
-      }
+      ...OperationFragment
     }  
   }
-  ${Fragments.recorderDepartment}
-  ${Fragments.position}
-  ${Fragments.measurement}
-  ${Fragments.referential}
-  ${DataFragments.sample}  
-  ${DataFragments.batch}  
+  ${OperationFragments.operation}  
 `;
 const SaveOperations: any = gql`
   mutation saveOperations($operations:[OperationVOInput]){
     saveOperations(operations: $operations){
-      id
-      startDateTime
-      endDateTime
-      fishingStartDateTime
-      fishingEndDateTime
-      rankOrderOnPeriod      
-      physicalGearId
-      tripId
-      comments
-      hasCatch
-      updateDate
-      metier {
-        ...ReferentialFragment
-      }
-      recorderDepartment {
-        ...RecorderDepartmentFragment
-      }
-      positions {
-        ...PositionFragment
-      }    
-      measurements {
-        ...MeasurementFragment
-      }
-      gearMeasurements {
-        ...MeasurementFragment
-      }
-      samples {
-        ...SampleFragment
-      }
-      batches {
-        ...BatchFragment
-      }
+      ...OperationFragment
     }
   }
-  ${Fragments.recorderDepartment}
-  ${Fragments.position}
-  ${Fragments.measurement}
-  ${Fragments.referential}
-  ${DataFragments.sample} 
-  ${DataFragments.batch}  
+  ${OperationFragments.operation}  
 `;
 const DeleteOperations: any = gql`
   mutation deleteOperations($ids:[Int]){
     deleteOperations(ids: $ids)
   }
+`;
+
+const UpdateSubscription = gql`
+  subscription updateOperation($id: Int, $interval: Int){
+    updateOperation(id: $id, interval: $interval) {
+      ...OperationFragment
+    }
+  }
+  ${OperationFragments.operation}
 `;
 
 const sortByStartDateFn = (n1: Operation, n2: Operation) => { return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1); };
@@ -218,6 +205,34 @@ export class OperationService extends BaseDataService implements DataService<Ope
             return res;
           }
           return null;
+        })
+      );
+  }
+
+  public listenChanges(id: number): Observable<Operation> {
+    if (!id && id !== 0) throw "Missing argument 'id' ";
+
+    if (this._debug) console.debug(`[operation-service] [WS] Listening changes for trip {${id}}...`);
+
+    return this.subscribe<{ updateOperation: Operation }, { id: number, interval: number }>({
+      query: UpdateSubscription,
+      variables: {
+        id: id,
+        interval: 10
+      },
+      error: {
+        code: ErrorCodes.SUBSCRIBE_OPERATION_ERROR,
+        message: 'TRIP.OPERATION.ERROR.SUBSCRIBE_OPERATION_ERROR'
+      }
+    })
+      .pipe(
+        map(data => {
+          if (data && data.updateOperation) {
+            const res = Operation.fromObject(data.updateOperation);
+            if (this._debug) console.debug(`[operation-service] Operation {${id}} updated on server !`, res);
+            return res;
+          }
+          return null; // deleted ?
         })
       );
   }
@@ -431,7 +446,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
         target.dirty = false;
 
         // Apply to children
-        if (target.children) {
+        if (target.children && target.children.length) {
           this.copyIdAndUpdateDateOnSamples(sources, target.children);
         }
       });
@@ -452,7 +467,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
         target.dirty = false;
 
         // Apply to children
-        if (target.children) {
+        if (target.children && target.children.length) {
           this.copyIdAndUpdateDateOnBatch(sources, target.children);
         }
       });

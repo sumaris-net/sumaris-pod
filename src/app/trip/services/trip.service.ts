@@ -285,7 +285,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       },
       error: {
         code: ErrorCodes.SUBSCRIBE_TRIP_ERROR,
-        message: 'ERROR.TRIP.SUBSCRIBE_TRIP_ERROR'
+        message: 'TRIP.ERROR.SUBSCRIBE_TRIP_ERROR'
       }
     })
       .pipe(

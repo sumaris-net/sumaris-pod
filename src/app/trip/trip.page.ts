@@ -24,8 +24,6 @@ import {Moment} from "moment";
 })
 export class TripPage extends AppTabPage<Trip> implements OnInit {
 
-
-  // FIXME: aithentication error in server
   protected _enableListenChanges: boolean = true;
 
   title = new Subject<string>();

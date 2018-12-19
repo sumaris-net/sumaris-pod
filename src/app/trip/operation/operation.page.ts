@@ -21,6 +21,7 @@ import {SubBatchesTable} from "../batch/sub-batches.table";
 import {MatTabChangeEvent} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, map, startWith} from "rxjs/operators";
 import {Validators} from "@angular/forms";
+import {Moment} from "moment";
 
 
 @Component({
@@ -29,6 +30,8 @@ import {Validators} from "@angular/forms";
   styleUrls: ['./operation.page.scss']
 })
 export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {
+
+  protected _enableListenChanges: boolean = false; // FIXME: in pod, add converter on Operation => OperationVO
 
   title = new Subject<string>();
   trip: Trip;
@@ -71,10 +74,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Listen route parameters
     this.route.queryParams.subscribe(res => {
-      const subTabIndex = res["sub-tab"];
+      const subTabIndex = +res["sub-tab"];
       if (isNotNil(subTabIndex)) {
-        this.selectedBatchSamplingTabIndex = parseInt(subTabIndex) || 0;
-        this.selectedSurvivalTestTabIndex = parseInt(subTabIndex) || 0;
+        this.selectedBatchSamplingTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
+        this.selectedSurvivalTestTabIndex = subTabIndex;
+      }
+      else {
+        this.selectedBatchSamplingTabIndex = 0;
+        this.selectedSurvivalTestTabIndex = 0;
       }
     });
 
@@ -159,6 +166,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       const trip = await this.tripService.load(data.tripId).first().toPromise();
       this.updateView(data, trip);
       this.loading = false;
+      this.startListenChanges();
     }
 
     // New operation
@@ -179,6 +187,26 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     else {
       throw new Error("Missing argument 'id' or 'options.tripId'!");
     }
+  }
+
+  startListenChanges() {
+    if (!this._enableListenChanges) return;
+
+    const subscription = this.operationService.listenChanges(this.data.id)
+      .subscribe((data: Operation | undefined) => {
+        const newUpdateDate = data && (data.updateDate as Moment)|| undefined;
+        if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
+          if (this.debug) console.debug("[operation] Detected update on server", newUpdateDate);
+          if (!this.dirty) {
+            this.updateView(data, this.trip);
+          }
+        }
+      });
+
+    // Add log when closing
+    if (this.debug) subscription.add(() => console.debug('[operation] [WS] Stop to listen changes'));
+
+    this.registerSubscription(subscription);
   }
 
   updateView(data: Operation | null, trip?: Trip) {
