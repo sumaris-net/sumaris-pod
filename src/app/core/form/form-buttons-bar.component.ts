@@ -28,7 +28,6 @@ export class FormButtonsBarComponent {
 
     hotkeys(event) {
 
-      console.log(event);
       if (event.repeat) return;
 
         // Ctrl+S
