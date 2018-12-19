@@ -34,6 +34,7 @@ const routes: Routes = [
   },
   {
     path: 'account',
+    pathMatch: 'full',
     component: AccountPage,
     canActivate: [AuthGuardService]
   },
@@ -41,6 +42,7 @@ const routes: Routes = [
   // Admin
   {
     path: 'admin/users',
+    pathMatch: 'full',
     component: UsersPage,
     canActivate: [AuthGuardService],
     data: {
