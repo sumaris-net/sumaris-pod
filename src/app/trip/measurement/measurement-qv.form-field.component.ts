@@ -76,7 +76,7 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
         this.items = this.onValueChange
             .pipe(
                 startWith(this.formControl.value),
-                debounceTime(this.compact ? 100 : 250), // Not too long on compact mode
+                debounceTime(this.compact ? 0 : 250), // Not too long on compact mode
                 map(value => {
                     if (EntityUtils.isNotEmpty(value)) return [value];
                     if (!this.pmfm.qualitativeValues) return [];
