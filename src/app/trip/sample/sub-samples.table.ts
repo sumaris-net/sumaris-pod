@@ -39,6 +39,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
     private _implicitParent: Sample;
+    private _availableSortedParents: Sample[] = [];
     private _availableParents: Sample[] = [];
     private _dataSubject = new BehaviorSubject<LoadResult<Sample>>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
@@ -93,8 +94,11 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
 
     set availableParents(parents: Sample[]) {
         if (this._availableParents !== parents) {
+
+          this._availableParents = parents;
+
             // Sort parents by by Tag-ID
-            this._availableParents = this.sortSamples(parents, PmfmIds.TAG_ID.toString());
+            this._availableSortedParents = this.sortSamples(parents.slice(), PmfmIds.TAG_ID.toString());
 
             // Link samples to parent, and delete orphan
             this.linkSamplesToParentAndDeleteOrphan();
@@ -170,12 +174,12 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
                     if (EntityUtils.isNotEmpty(value)) return [value];
                     value = (typeof value === "string" && value !== "*") && value || undefined;
                     if (this.debug) console.debug("[sub-sample-table] Searching parent {" + (value || '*') + "}...");
-                    if (!value) return this._availableParents; // All
+                    if (!value) return this._availableSortedParents; // All
                     if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
-                        return this._availableParents.filter(p => p.measurementValues && (p.measurementValues[this.displayParentPmfm.pmfmId] || '').startsWith(value))
+                        return this._availableSortedParents.filter(p => p.measurementValues && (p.measurementValues[this.displayParentPmfm.pmfmId] || '').startsWith(value))
                     }
                     // Search on rankOrder
-                    return this._availableParents.filter(p => p.rankOrder && p.rankOrder.toString().startsWith(value));
+                    return this._availableSortedParents.filter(p => p.rankOrder && p.rankOrder.toString().startsWith(value));
                 })
             )
             ;
