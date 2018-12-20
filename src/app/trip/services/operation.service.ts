@@ -2,13 +2,24 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
-import {Batch, DataEntity, Measurement, Operation, Person, Sample, Trip, VesselPosition} from "./trip.model";
+import {
+  Batch,
+  DataEntity,
+  EntityUtils,
+  Measurement,
+  Operation,
+  Person,
+  Sample,
+  Trip,
+  VesselPosition
+} from "./trip.model";
 import {map} from "rxjs/operators";
 import {DataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {TripFragments} from "./trip.service";
+import {Moment} from "moment";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -125,6 +136,12 @@ const UpdateSubscription = gql`
 
 const sortByStartDateFn = (n1: Operation, n2: Operation) => { return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1); };
 
+const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
+  const d1 = n1.endDateTime || n1.startDateTime;
+  const d2 = n2.endDateTime || n2.startDateTime;
+  return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
+};
+
 @Injectable()
 export class OperationService extends BaseDataService implements DataService<Operation, OperationFilter>{
 
@@ -154,7 +171,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
     const variables: any = {
       offset: offset || 0,
       size: size || 1000,
-      sortBy: sortBy || 'startDateTime',
+      sortBy: (sortBy != 'id' && sortBy) || 'endDateTime',
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
@@ -176,8 +193,18 @@ export class OperationService extends BaseDataService implements DataService<Ope
           if (filter && filter.tripId) {
             let rankOrderOnPeriod = 1;
             // apply a sorted copy (do NOT change original order), then compute rankOrder
-            data.slice().sort(sortByStartDateFn)
+            data.slice().sort(sortByEndDateOrStartDateFn)
               .forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
+
+            // sort by rankOrderOnPeriod (aka id)
+            if (!sortBy || sortBy == 'id') {
+              const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+              data.sort((a, b) => {
+                const valueA = a.rankOrderOnPeriod;
+                const valueB = b.rankOrderOnPeriod;
+                return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+              });
+            }
           }
 
           return {
@@ -251,7 +278,7 @@ export class OperationService extends BaseDataService implements DataService<Ope
 
     // Compute rankOrderOnPeriod
     let rankOrderOnPeriod = 1;
-    entities.sort(sortByStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
+    entities.sort(sortByEndDateOrStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
 
     const json = entities.map(t => {
       // Fill default properties (as recorder department and person)

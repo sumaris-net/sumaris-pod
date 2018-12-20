@@ -1,7 +1,7 @@
 <!-- readonly -->
 <mat-form-field *ngIf="readonly">
   <input matInput hidden type="text" readonly="true" [formControl]="formControl">
-  <span>{{formControl.value|dateFormat: {time: displayTime} }}</span>
+  <span>{{formControl.value|dateFormat: {pattern: displayPattern} }}</span>
 </mat-form-field>
 
 <!-- writable + mobile + no time (day without time) -->
