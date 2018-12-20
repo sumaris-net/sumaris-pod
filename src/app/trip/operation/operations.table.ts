@@ -142,7 +142,9 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
       await alert.onDidDismiss();
     }
 
-    await super.deleteSelection();
+    if (confirm) {
+      await super.deleteSelection();
+    }
   }
 
   protected async openEditRowDetail(id: number): Promise<boolean> {
