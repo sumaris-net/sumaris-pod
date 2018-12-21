@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.9.3.xml">
+
+    <!-- change qualification_comments columns with bad data type -->
+    <!-- from timestamp to varchar(2000), should be empty -->
+
+    <!-- on BATCH -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-1" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'BATCH'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="BATCH" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on GEAR_USE_MEASUREMENT -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-2" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'GEAR_USE_MEASUREMENT'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="GEAR_USE_MEASUREMENT" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on IMAGE_ATTACHMENT -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-3" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'IMAGE_ATTACHMENT'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="IMAGE_ATTACHMENT" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on OPERATION -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-4" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'OPERATION'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="OPERATION" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on PHYSICAL_GEAR -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-5" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'PHYSICAL_GEAR'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="PHYSICAL_GEAR" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on PHYSICAL_GEAR_MEASUREMENT -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-6" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'PHYSICAL_GEAR_MEASUREMENT'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="PHYSICAL_GEAR_MEASUREMENT" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on QUANTIFICATION_MEASUREMENT_B -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-7" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'QUANTIFICATION_MEASUREMENT_B'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="QUANTIFICATION_MEASUREMENT_B" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on SALE -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-8" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'SALE'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="SALE" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on SAMPLE -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-9" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'SAMPLE'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="SAMPLE" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on SAMPLE_MEASUREMENT -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-10" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'SAMPLE_MEASUREMENT'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="SAMPLE_MEASUREMENT" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on SORTING_MEASUREMENT_B -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-11" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'SORTING_MEASUREMENT_B'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="SORTING_MEASUREMENT_B" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on TRIP -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-12" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'TRIP'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="TRIP" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on VESSEL -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-13" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'VESSEL'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="VESSEL" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on VESSEL_FEATURES -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-14" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'VESSEL_FEATURES'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="VESSEL_FEATURES" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on VESSEL_POSITION -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-15" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'VESSEL_POSITION'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="VESSEL_POSITION" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on VESSEL_USE_MEASUREMENT -->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-16" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'QUALIFICATION_COMMENTS' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'VESSEL_USE_MEASUREMENT'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="VESSEL_USE_MEASUREMENT" columnName="QUALIFICATION_COMMENTS" newDataType="VARCHAR(2000)"/>
+    </changeSet>
+
+    <!-- on USER_EVENT.ISSUER 44 characters max-->
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-17" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                <![CDATA[
+                    select count(*)
+                    from information_schema.COLUMNS
+                    where TABLE_SCHEMA = 'PUBLIC' and COLUMN_NAME = 'ISSUER' and DTD_IDENTIFIER not like 'VARCHAR%'
+                    and TABLE_NAME = 'USER_EVENT'
+                ]]>
+            </sqlCheck>
+        </preConditions>
+        <modifyDataType tableName="USER_EVENT" columnName="ISSUER" newDataType="VARCHAR(44)"/>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1543570579600-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='0.9.3'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">0.9.3</column>
+            <column name="DESCRIPTION">
+                - Modify columns QUALIFICATION_COMMENTS with bad data type
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="COMMENTS">
+                - Modify columns QUALIFICATION_COMMENTS with bad data type
+            </column>
+        </insert>
+    </changeSet>
+    
+</databaseChangeLog>

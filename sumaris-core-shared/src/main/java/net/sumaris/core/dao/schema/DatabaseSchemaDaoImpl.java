@@ -47,7 +47,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
-import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -77,11 +76,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
+import java.util.Date;
 import java.util.function.Predicate;
 
 /**
@@ -144,13 +141,16 @@ public class DatabaseSchemaDaoImpl
      */
     @Override
     public void afterPropertiesSet() {
+
+        // check database and server timezones conformity
+        checkTimezoneConformity();
+
         try {
             log.info(I18n.t("sumaris.persistence.schemaVersion", getSchemaVersion().toString()));
         } catch (VersionNotFoundException e) {
             // silent
         }
     }
-
 
     /** {@inheritDoc} */
     @Override
@@ -675,4 +675,29 @@ public class DatabaseSchemaDaoImpl
 
         return metadata.buildMetadata();
     }
+
+    /**
+     * Check server and database timezones conformity
+     * Warn if offsets differs
+     */
+    private void checkTimezoneConformity() {
+
+        // get server timezone
+        TimeZone serverTimeZone = TimeZone.getDefault();
+        log.info(I18n.t("sumaris.persistence.serverTimeZone", new Timestamp(new Date().getTime()), serverTimeZone.getID()));
+
+        // get db timezone offset in time format ex: '1:00' for 1 hour offset
+        String dbOffsetAsString = (String) Daos.sqlUnique(dataSource,"CALL DATABASE_TIMEZONE()");
+        log.info(I18n.t("sumaris.persistence.dbTimeZone", getDatabaseCurrentTimestamp(), dbOffsetAsString));
+
+        // convert db time zone offset in raw offset in milliseconds
+        int dbOffset = Integer.parseInt(dbOffsetAsString.substring(0, dbOffsetAsString.lastIndexOf(":"))) * 3600 * 1000;
+
+        // compare both offsets
+        if (dbOffset != serverTimeZone.getRawOffset()) {
+            // warn if offsets differs
+            log.warn(I18n.t("sumaris.persistence.differentTimeZone"));
+        }
+    }
+
 }

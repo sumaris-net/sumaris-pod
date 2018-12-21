@@ -25,7 +25,6 @@ package net.sumaris.core.model.data.measure;
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.model.referential.Pmfm;
 import net.sumaris.core.model.referential.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -66,7 +65,7 @@ public class PhysicalGearMeasurement implements IMeasurementEntity {
     private Date qualificationDate;
 
     @Column(name="qualification_comments", length = LENGTH_COMMENTS)
-    private Date qualificationComments;
+    private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
     @JoinColumn(name = "quality_flag_fk", nullable = false)

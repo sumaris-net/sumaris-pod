@@ -25,10 +25,8 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
@@ -66,7 +64,7 @@ public class VesselPosition implements IDataEntity<Integer> {
     private Date qualificationDate;
 
     @Column(name="qualification_comments", length = LENGTH_COMMENTS)
-    private Date qualificationComments;
+    private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
     @JoinColumn(name = "quality_flag_fk", nullable = false)
