@@ -110,7 +110,7 @@ public class Sample implements IRootDataEntity<Integer> {
     private Date qualificationDate;
 
     @Column(name="qualification_comments", length = LENGTH_COMMENTS)
-    private Date qualificationComments;
+    private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
     @JoinColumn(name = "quality_flag_fk", nullable = false)

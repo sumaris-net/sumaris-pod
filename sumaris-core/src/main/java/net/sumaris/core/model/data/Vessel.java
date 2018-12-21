@@ -30,8 +30,6 @@ import net.sumaris.core.model.referential.VesselType;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -77,7 +75,7 @@ public class Vessel implements IRootDataEntity<Integer> {
     private Date qualificationDate;
 
     @Column(name="qualification_comments", length = LENGTH_COMMENTS)
-    private Date qualificationComments;
+    private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
     @JoinColumn(name = "quality_flag_fk", nullable = false)

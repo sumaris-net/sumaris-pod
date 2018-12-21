@@ -30,8 +30,8 @@ public class UserEvent implements IUpdateDateEntityBean<Integer, Date> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(name = "issuer", nullable = false)
-    private Date issuer;
+    @Column(name = "issuer", nullable = false, length = 44)
+    private String issuer;
 
     public String toString() {
         return new StringBuilder().append(super.toString()).append(",issuer=").append(this.issuer).toString();

@@ -357,7 +357,7 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         lockForUpdate(entity);
 
         // TODO CONTROL PROCESS HERE
-        Date controlDate = new Date(getDatabaseCurrentTimestamp().getTime());
+        Date controlDate = getDatabaseCurrentTimestamp();
         entity.setControlDate(controlDate);
 
         // Update update_dt
@@ -387,7 +387,7 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 //        lockForUpdate(entity);
 
         // TODO VALIDATION PROCESS HERE
-        Date validationDate = new Date(getDatabaseCurrentTimestamp().getTime());
+        Date validationDate = getDatabaseCurrentTimestamp();
         entity.setValidationDate(validationDate);
 
         // Update update_dt

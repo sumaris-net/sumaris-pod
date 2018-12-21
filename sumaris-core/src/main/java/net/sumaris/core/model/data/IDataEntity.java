@@ -27,7 +27,6 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 public interface IDataEntity<T extends Serializable> extends Serializable, IUpdateDateEntityBean<T, Date> {
@@ -56,7 +55,7 @@ public interface IDataEntity<T extends Serializable> extends Serializable, IUpda
 
     void setQualityFlag(QualityFlag qualityFlag);
 
-    Date getQualificationComments();
+    String getQualificationComments();
 
-    void setQualificationComments(Date qualificationComments);
+    void setQualificationComments(String qualificationComments);
 }

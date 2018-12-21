@@ -7,6 +7,7 @@ export CLASSPATH="$M2_REPO/org/hsqldb/hsqldb/$HSQLDB_VERSION/hsqldb-$HSQLDB_VERS
 export DB_NAME="sumaris"
 export TEST_DB="../../../target/db"
 export DB_DIRECTORY="../../../target/db-server"
+export JAVA_OPTS="-server -Xmx2g -Duser.timezone=UTC"
 
 # Make sure test DB exists
 if [ ! -f "${TEST_DB}/${DB_NAME}.script" ]; then
@@ -29,4 +30,4 @@ export DB_OPTS="--database.0 file:${DB_DIRECTORY}/${DB_NAME} --dbname.0 ${DB_NAM
 #export DB_OPTS=$DB_OPTS --database.1 file:$DB_TEMP_DIRECTORY/${DB_NAME} --dbname.1 ${DB_NAME}-temp
 
 # run db-server
-java -classpath $CLASSPATH org.hsqldb.Server $DB_OPTS
+java $JAVA_OPTS -classpath $CLASSPATH org.hsqldb.Server $DB_OPTS

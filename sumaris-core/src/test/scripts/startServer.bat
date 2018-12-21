@@ -8,6 +8,7 @@ set DB_NAME=sumaris
 set TEST_DB=..\..\..\target\db
 set DB_DIRECTORY=..\..\..\target\db-server
 SET DB_OPTS=--database.0 file:%DB_DIRECTORY%/%DB_NAME% --dbname.0 %DB_NAME%
+SET JAVA_OPTS=-server -Xmx2g -Duser.timezone=UTC
 
 rem make sure test DB exists
 if not exist "%TEST_DB%\%DB_NAME%.script" (
@@ -24,7 +25,7 @@ PowerShell -Command "(Get-Content %DB_DIRECTORY%\%DB_NAME%.properties).replace('
 
 rem run DB server :
 echo [93mStartup HSQLDB Server [4m%HSQLDB_VERSION%[0m
-java -classpath %CLASSPATH% org.hsqldb.Server %DB_OPTS%
+java %JAVA_OPTS% -classpath %CLASSPATH% org.hsqldb.Server %DB_OPTS%
 
 rem exit this console here (eg. if the hsqldb is stopped)
 exit
