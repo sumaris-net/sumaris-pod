@@ -53,6 +53,7 @@
     <module>sumaris-test-shared</module>
     <module>sumaris-core</module>
     <module>sumaris-core-server</module>
+    <module>sumaris-core-extraction</module>
   </modules>
 
   <scm>

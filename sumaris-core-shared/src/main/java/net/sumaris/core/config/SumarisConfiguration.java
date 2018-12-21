@@ -26,9 +26,6 @@ package net.sumaris.core.config;
 
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
@@ -39,15 +36,9 @@ import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ArgumentsParserException;
 import org.nuiton.version.Version;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.StandardEnvironment;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -744,6 +735,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public Integer getSequenceStartWithValue() {
         return applicationConfig.getOptionAsInt(SumarisConfigurationOption.SEQUENCE_START_WITH.getKey());
+    }
+
+    public String getCsvSeparator() {
+        return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey());
     }
 
     /* -- protected methods -- */
