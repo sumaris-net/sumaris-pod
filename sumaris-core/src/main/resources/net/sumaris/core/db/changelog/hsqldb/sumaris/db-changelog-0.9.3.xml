@@ -18,7 +18,7 @@
     </or>
   </preConditions>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579599-1" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1543570579600-300" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <and>
         <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
@@ -155,7 +155,7 @@
   </changeSet>
 
   <!-- update date fields on trip -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579599-2" runOnChange="true">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-301" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
     </preConditions>
@@ -171,7 +171,7 @@
   </changeSet>
 
   <!-- update date fields on sale -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579599-3" runOnChange="true">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-302" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
     </preConditions>
@@ -187,7 +187,7 @@
   </changeSet>
 
   <!-- update date fields on operation -->
-  <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579599-4" runOnChange="true">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-303" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
     </preConditions>
@@ -201,6 +201,48 @@
             else cast(cast(END_DATE_TIME as timestamp with time zone) at time zone '-1' hour as timestamp) end;
     ]]></sql>
   </changeSet>
+
+  <!-- update date fields on sample -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-304" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+    </preConditions>
+    <sql endDelimiter=";"><![CDATA[
+      update sample
+      set SAMPLE_DATE = case when SAMPLE_DATE between TIMESTAMP'2018-03-25 02:00:00' and TIMESTAMP'2018-10-28 03:00:00'
+            then cast(cast(SAMPLE_DATE as timestamp with time zone) at time zone '-2' hour as timestamp)
+            else cast(cast(SAMPLE_DATE as timestamp with time zone) at time zone '-1' hour as timestamp) end;
+    ]]></sql>
+  </changeSet>
+
+  <!-- update date fields on vessel_features -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-305" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+    </preConditions>
+    <sql endDelimiter=";"><![CDATA[
+      update vessel_features
+      set START_DATE = case when START_DATE between TIMESTAMP'2018-03-25 02:00:00' and TIMESTAMP'2018-10-28 03:00:00'
+            then cast(cast(START_DATE as timestamp with time zone) at time zone '-2' hour as timestamp)
+            else cast(cast(START_DATE as timestamp with time zone) at time zone '-1' hour as timestamp) end,
+          END_DATE = case when END_DATE between TIMESTAMP'2018-03-25 02:00:00' and TIMESTAMP'2018-10-28 03:00:00'
+            then cast(cast(END_DATE as timestamp with time zone) at time zone '-2' hour as timestamp)
+            else cast(cast(END_DATE as timestamp with time zone) at time zone '-1' hour as timestamp) end;
+    ]]></sql>
+  </changeSet>
+
+	<!-- update date fields on vessel_position -->
+	<changeSet author="ludovic.pecquot@e-is.pro" id="1543570579600-306" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+		</preConditions>
+		<sql endDelimiter=";"><![CDATA[
+      update vessel_position
+      set DATE_TIME = case when DATE_TIME between TIMESTAMP'2018-03-25 02:00:00' and TIMESTAMP'2018-10-28 03:00:00'
+            then cast(cast(DATE_TIME as timestamp with time zone) at time zone '-2' hour as timestamp)
+            else cast(cast(DATE_TIME as timestamp with time zone) at time zone '-1' hour as timestamp) end;
+    ]]></sql>
+	</changeSet>
 
 
 </databaseChangeLog>
