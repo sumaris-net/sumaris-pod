@@ -7,6 +7,7 @@ import {DataService, LoadResult} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
+//import {environment} from "../../../environments/environment";
 
 export const PersonFragments = {
   person: gql`fragment PersonFragment on PersonVO {
@@ -41,14 +42,12 @@ const LoadAllQuery = gql`
   }
   ${PersonFragments.person}
 `;
-export declare type PersonsQueryResult = {
-  persons: Person[];
-}
+
 export declare class PersonFilter {
   email?: string;
   pubkey?: string;
   searchText?: string;
-};
+}
 
 const SavePersons: any = gql`
   mutation savePersons($persons:[PersonVOInput]){
@@ -71,6 +70,9 @@ export class PersonService extends BaseDataService implements DataService<Person
     protected apollo: Apollo
   ) {
     super(apollo);
+
+    // for DEV only -----
+    //this._debug = !environment.production;
   }
 
   /**
@@ -110,7 +112,7 @@ export class PersonService extends BaseDataService implements DataService<Person
         map(({persons, personsCount}) => {
           return {
             data: (persons || []).map(Person.fromObject),
-            total: personsCount
+            total: personsCount || (persons && persons.length) || 0
         }
         })
       );
