@@ -16,7 +16,12 @@ export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
 export const toDateISOString = function (value): string | undefined {
   if (!value) return undefined;
   if (typeof value == "string") {
-    return value;
+    if (value.indexOf('+')) {
+      value = fromDateISOString(value);
+    }
+    else {
+      return value;
+    }
   }
   if (typeof value == "object" && value.toISOString) {
     return value.toISOString();
