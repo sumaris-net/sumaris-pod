@@ -22,27 +22,27 @@ public abstract class TestConfiguration {
     private static final Logger log =
             LoggerFactory.getLogger(TestConfiguration.class);
 
-    @Bean
-    public static SumarisConfiguration sumarisConfiguration() {
+    protected static SumarisConfiguration initConfiguration(String configFileName) {
         SumarisConfiguration config = SumarisConfiguration.getInstance();
         if (config == null) {
-            log.warn("Sumaris configuration not exists: creating a new one");
-            config = new SumarisConfiguration("sumaris-core-test.properties");
+            log.info(String.format("Configuration file: %s", configFileName));
+            config = new SumarisConfiguration(configFileName);
             SumarisConfiguration.setInstance(config);
         }
         return config;
     }
 
-    @Resource
-    private SumarisConfiguration config;
-
     @Bean
-    public DataSource dataSource() {
+    public DataSource dataSource(SumarisConfiguration config) {
 
-        // Driver datasource
         Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcDriver()), "Missing jdbc driver in configuration");
         Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcURL()), "Missing jdbc driver in configuration");
         Preconditions.checkArgument(StringUtils.isNotBlank(config.getJdbcUsername()), "Missing jdbc username in configuration");
+
+        log.info(String.format("Database URL: %s", config.getJdbcURL()));
+        log.info(String.format("Database username: %s", config.getJdbcUsername()));
+
+        // Driver datasource
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(config.getJdbcDriver());
         dataSource.setUrl(config.getJdbcURL());
@@ -57,10 +57,5 @@ public abstract class TestConfiguration {
         }
         return dataSource;
     }
-
-//    @Bean
-//    public DatabaseFixtures databaseFixtures() {
-//        return new DatabaseFixtures();
-//    }
 
 }

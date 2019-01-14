@@ -26,7 +26,7 @@ package net.sumaris.importation;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
-import net.sumaris.core.extraction.dao.DatabaseResource;
+import net.sumaris.importation.dao.DatabaseResource;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

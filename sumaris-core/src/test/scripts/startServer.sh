@@ -7,10 +7,10 @@ export CLASSPATH="$M2_REPO/org/hsqldb/hsqldb/$HSQLDB_VERSION/hsqldb-$HSQLDB_VERS
 export DB_NAME="sumaris"
 export TEST_DB="../../../target/db"
 export DB_DIRECTORY="../../../target/db-server"
-export JAVA_OPTS="-server -Xmx2g -Duser.timezone=UTC"
+export JAVA_OPTS="-server -Xmx2g -Duser.timezone=Europe/Paris"
 
 # Make sure test DB exists
-if [ ! -f "${TEST_DB}/${DB_NAME}.script" ]; then
+if [[ ! -f "${TEST_DB}/${DB_NAME}.script" ]]; then
     echo "Test DB not exists. Please run InitTest first !"
     exit
 fi;

@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction;
+package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import org.apache.commons.logging.Log;

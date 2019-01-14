@@ -1,6 +1,5 @@
 package net.sumaris.core.extraction.service;
 
-import net.sumaris.core.extraction.AbstractServiceTest;
 import net.sumaris.core.extraction.dao.DatabaseResource;
 import org.junit.After;
 import org.junit.Before;

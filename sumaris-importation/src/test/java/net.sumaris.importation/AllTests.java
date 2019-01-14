@@ -24,20 +24,20 @@ package net.sumaris.importation;
  * #L%
  */
 
-import net.sumaris.core.extraction.service.ExtractionServiceTest;
+import net.sumaris.importation.service.ices.IcesFileImportServiceWriteTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 /**
- * Created by Ludovic on 02/02/2016.
+ * Created by Benoit Lavenier on 12/01/2018.
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
 		// DAO
 
 		// Service
-		ExtractionServiceTest.class
+		IcesFileImportServiceWriteTest.class
 })
 public class AllTests {
 
