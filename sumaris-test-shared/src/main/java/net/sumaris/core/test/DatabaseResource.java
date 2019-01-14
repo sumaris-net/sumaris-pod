@@ -99,8 +99,7 @@ public abstract class DatabaseResource implements TestRule {
      * @param beanRefFactoryReferenceId a {@link String} object.
      * @param writeDb a boolean.
      */
-    protected DatabaseResource(String configName, String beanFactoryReferenceLocation,
-                               String beanRefFactoryReferenceId,
+    protected DatabaseResource(String configName,
                                boolean writeDb) {
         this.configName = configName;
         this.writeDb = writeDb;

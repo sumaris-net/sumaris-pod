@@ -49,16 +49,6 @@ public class ServiceLocator implements Closeable {
     private static final Log log = LogFactory.getLog(ServiceLocator.class);
 
     /**
-     * The default bean reference factory location.
-     */
-    private static final String DEFAULT_BEAN_REFERENCE_LOCATION = "beanRefFactory.xml";
-
-    /**
-     * The default bean reference factory ID.
-     */
-    private static final String DEFAULT_BEAN_REFERENCE_ID = "beanRefFactory";
-
-    /**
      * The core instance of this ServiceLocator.
      */
     private static ServiceLocator instance = new ServiceLocator();

@@ -77,7 +77,7 @@ public class AbstractServiceTest {
 		try {
 			connection = Daos.createConnection(connectionProperties);
 
-			executeSqlFile(connection, "sumaris-core-test-cleanInsertedData.sql");
+			executeSqlFile(connection, "data-hsqldb-cleanInsertedData.sql");
 		} catch (SQLException sqle) {
 			log.error("Could not clean all inserted data on database", sqle);
 			Assume.assumeNoException("Could not clean all inserted data on database", sqle);
@@ -96,7 +96,7 @@ public class AbstractServiceTest {
 		try {
 			connection = Daos.createConnection(connectionProperties);
 
-			executeSqlFile(connection, "sumaris-core-test-cleanInsertedData.sql");
+			executeSqlFile(connection, "data-hsqldb-cleanInsertedData.sql");
 		} catch (SQLException sqle) {
 			log.error("Could not clean all inserted referential on database", sqle);
 			Assume.assumeNoException("Could not clean all inserted referential on database", sqle);

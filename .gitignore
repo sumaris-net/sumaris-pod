@@ -14,17 +14,12 @@ buildNumber.properties
 .idea/
 **/*.iml
 **/.gradle
+**/gradle*
 /*.log
 .local/
 
 # SUMARiS specific ignore path
 sumaris-core/src/test/db*
-sumaris-core/src/test/scripts/server.log
+sumaris-core/src/test/scripts/*.log
 sumaris-core/src/test/scripts/nohup.out
-sumaris-core/src/test/scripts/hsqldb-2.4.0.jar
-
-sumaris-core/src/test/scripts/hsqldb-2.4.1.jar
-sumaris-core-server/gradlew.bat
-sumaris-core-server/gradlew
-sumaris-core-server/gradle/wrapper/gradle-wrapper.properties
-sumaris-core-server/gradle/wrapper/gradle-wrapper.jar
+sumaris-core/src/test/scripts/hsqldb-*.jar

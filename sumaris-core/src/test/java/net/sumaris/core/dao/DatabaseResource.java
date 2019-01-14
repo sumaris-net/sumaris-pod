@@ -36,32 +36,23 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 	private final DatabaseFixtures fixtures;
 
 	public static DatabaseResource readDb() {
-		return new DatabaseResource("", null, null, false);
+		return new DatabaseResource("", false);
 	}
 
 	public static DatabaseResource readDb(String configName) {
-		return new DatabaseResource(configName, null, null, false);
+		return new DatabaseResource(configName, false);
 	}
 
 	public static DatabaseResource writeDb() {
-		return new DatabaseResource("", null, null, true);
+		return new DatabaseResource("", true);
 	}
 
 	public static DatabaseResource writeDb(String configName) {
-		return new DatabaseResource(configName, null, null, true);
+		return new DatabaseResource(configName, true);
 	}
 
-	public static DatabaseResource noDb() {
-		return noDb("");
-	}
-
-	public static DatabaseResource noDb(String configName) {
-		return new DatabaseResource(
-				configName, "beanRefFactoryWithNoDb.xml", "beanRefFactoryWithNoDb", false);
-	}
-
-	protected DatabaseResource(String configName, String beanFactoryReferenceLocation, String beanRefFactoryReferenceId, boolean writeDb) {
-		super(configName, beanFactoryReferenceLocation, beanRefFactoryReferenceId, writeDb);
+	protected DatabaseResource(String configName, boolean writeDb) {
+		super(configName, writeDb);
 		fixtures = new DatabaseFixtures();
 	}
 
