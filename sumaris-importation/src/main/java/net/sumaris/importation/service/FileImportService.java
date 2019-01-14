@@ -19,7 +19,7 @@ public interface FileImportService {
      * @return
      * @throws IOException
      */
-    public void importFile(int userId, File inputFile, SumarisTable table, String country, boolean validate, boolean appendData) throws IOException,
+    void importFile(int userId, File inputFile, SumarisTable table, String country, boolean validate, boolean appendData) throws IOException,
             FileValidationException;
 
     /**
@@ -30,5 +30,5 @@ public interface FileImportService {
      * @return
      * @throws IOException
      */
-    public ValidationErrorVO[] validateFile(int userId, File inputFile, SumarisTable table) throws IOException;
+    ValidationErrorVO[] validateFile(int userId, File inputFile, SumarisTable table) throws IOException;
 }

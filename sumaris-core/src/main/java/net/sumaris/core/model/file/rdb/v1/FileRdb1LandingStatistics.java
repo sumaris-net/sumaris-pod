@@ -38,10 +38,12 @@ import java.util.List;
 
 @Data
 @Entity
-public class FileRdbV1LandingStatistics implements Serializable, IUpdateDateEntityBean<Integer, Date> {
+@Table(name = "file_rdb1_cl")
+public class FileRdb1LandingStatistics implements Serializable, IUpdateDateEntityBean<Integer, Date> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "FILE_RDB1_CL_SEQ")
+    @SequenceGenerator(name = "FILE_RDB1_CL_SEQ", sequenceName="FILE_RDB1_CL_SEQ")
     private Integer id;
 
     @Column(nullable = false)

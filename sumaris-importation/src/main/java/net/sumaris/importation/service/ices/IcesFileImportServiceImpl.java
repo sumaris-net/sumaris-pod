@@ -17,10 +17,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-@Service("rdbV1FileImportService")
-public class RdbV1FileImportServiceImpl implements FileImportService {
+@Service("icesFileImportService")
+public class IcesFileImportServiceImpl implements FileImportService {
 
-	protected static final Log log = LogFactory.getLog(RdbV1FileImportServiceImpl.class);
+	protected static final Log log = LogFactory.getLog(IcesFileImportServiceImpl.class);
 
 	//protected List<FileColumnValueListener> listeners = Lists.newArrayList();
 	//protected Map<String, FileColumnValueListener> listenerByColumnMap = Maps.newHashMap();

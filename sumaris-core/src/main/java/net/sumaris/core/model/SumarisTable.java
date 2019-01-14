@@ -25,5 +25,8 @@ package net.sumaris.core.model;
 public enum SumarisTable {
 
     LOCATION,
-    LOCATION_LEVEL
+    LOCATION_LEVEL,
+
+    // FILE IMPORT
+    FILE_ICES_V1_CL
 }

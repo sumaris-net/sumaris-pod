@@ -24,6 +24,7 @@ package net.sumaris.importation.service;
  * #L%
  */
 
+import net.sumaris.core.service.CoreServiceLocator;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
@@ -35,59 +36,14 @@ import net.sumaris.core.service.schema.DatabaseSchemaService;
 /**
  * Locates and provides all available application services.
  */
-public class ImportationServiceLocator {
+public class ImportationServiceLocator extends CoreServiceLocator {
 
     /**
-     * <p>getDatabaseSchemaService.</p>
+     * <p>getIcesFileImportService.</p>
      *
-     * @return a {@link DatabaseSchemaService} object.
+     * @return a {@link FileImportService} object.
      */
-    public static DatabaseSchemaService getDatabaseSchemaService() {
-        return ServiceLocator.instance().getService("databaseSchemaService", DatabaseSchemaService.class);
-    }
-
-    /**
-     * <p>getTripService.</p>
-     *
-     * @return a {@link TripService} object.
-     */
-    public static TripService getTripService() {
-        return ServiceLocator.instance().getService("tripService", TripService.class);
-    }
-
-    /**
-     * <p>getTripService.</p>
-     *
-     * @return a {@link TripService} object.
-     */
-    public static OperationService getOperationService() {
-        return ServiceLocator.instance().getService("operationService", OperationService.class);
-    }
-
-    /**
-     * <p>getPersonService.</p>
-     *
-     * @return a {@link PersonService} object.
-     */
-    public static PersonService getPersonService() {
-        return ServiceLocator.instance().getService("personService", PersonService.class);
-    }
-
-    /**
-     * <p>getDepartmentService.</p>
-     *
-     * @return a {@link DepartmentService} object.
-     */
-    public static DepartmentService getDepartmentService() {
-        return ServiceLocator.instance().getService("departmentService", DepartmentService.class);
-    }
-
-    /**
-     * <p>getReferentialService.</p>
-     *
-     * @return a {@link ReferentialService} object.
-     */
-    public static ReferentialService getReferentialService() {
-        return ServiceLocator.instance().getService("referentialService", ReferentialService.class);
+    public static FileImportService getIcesFileImportService() {
+        return ServiceLocator.instance().getService("icesFileImportService", FileImportService.class);
     }
 }

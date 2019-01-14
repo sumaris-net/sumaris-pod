@@ -1,13 +1,12 @@
-package net.sumaris.importation.service.rdb.v1;
+package net.sumaris.importation.service.ices;
 
 import net.sumaris.core.model.SumarisTable;
-import net.sumaris.core.service.ServiceLocator;
-import net.sumaris.core.test.DatabaseResource;
 import net.sumaris.importation.exception.FileValidationException;
 import net.sumaris.importation.service.AbstractServiceTest;
 import net.sumaris.importation.service.FileImportService;
-import net.sumaris.importation.service.ImportationServiceLocator;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.io.File;
@@ -15,33 +14,17 @@ import java.io.IOException;
 
 public class FileImportServiceWriteTest extends AbstractServiceTest {
 
+    @Autowired
     private FileImportService fileImportService = null;
-    //private DataService dataService = null;
-
-    @ClassRule
-    public static DatabaseResource dbResource = DatabaseResource.(true);
-
-    @Before
-    public void setUp() throws Exception {
-        fileImportService = ImportationServiceLocator.getFileImportService();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        fileImportService = null;
-    }
-
 
     @Test
     public void importFile() {
         String basePath = "src/test/data/import/";
 
-
         // Import a file
         importFile_FRA_CL(basePath);
 
     }
-
 
     protected void importFile_FRA_CL(String basePath) {
         // Import a valid file

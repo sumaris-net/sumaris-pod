@@ -27,7 +27,7 @@ public abstract class TestConfiguration {
         SumarisConfiguration config = SumarisConfiguration.getInstance();
         if (config == null) {
             log.warn("Sumaris configuration not exists: creating a new one");
-            config = new SumarisConfiguration("sumaris-core-importation-test.properties");
+            config = new SumarisConfiguration("sumaris-importation-test.properties");
             SumarisConfiguration.setInstance(config);
         }
         return config;
