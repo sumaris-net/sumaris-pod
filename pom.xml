@@ -54,6 +54,7 @@
     <module>sumaris-core</module>
     <module>sumaris-core-server</module>
     <module>sumaris-importation</module>
+    <module>sumaris-core-extraction</module>
   </modules>
 
   <scm>
