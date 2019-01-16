@@ -1,0 +1,66 @@
+package net.sumaris.core.model.referential.location;
+
+/*-
+ * #%L
+ * SUMARiS:: Core
+ * %%
+ * Copyright (C) 2018 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+import lombok.Data;
+import net.sumaris.core.dao.technical.model.IEntityBean;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.Status;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
+
+@Data
+@Entity
+@Cacheable
+@Table(name="location_association")
+@IdClass(LocationAssociationId.class)
+public class LocationAssociation implements Serializable {
+
+    public static final String PROPERTY_LOCATION_LEVEL = "locationLevel";
+
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn(name = "parent_location_fk")
+    private Location parentLocation;
+
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn(name = "child_location_fk")
+    private Location childLocation;
+
+    /**
+     * Ratio de couverture (en surface) du lieu fils par rapport au lieu père. La valeur doit etre
+     * supérieure strictement à 0 et inférieur ou égale à 1.
+     * Un Lieu qui a un ratio de surface de 1 n'a donc qu'un seul lieu père direct. Un lieu qui a un
+     * ratio de surface inférieur à 1 peu avoir potentiellement plusieurs lieux pères directs.
+     * @return this.childSurfaceRatio Double
+     */
+    @Column(nullable = false)
+    private Double childSurfaceRatio = 1d;
+
+    @Column(name = "update_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updateDate;
+}

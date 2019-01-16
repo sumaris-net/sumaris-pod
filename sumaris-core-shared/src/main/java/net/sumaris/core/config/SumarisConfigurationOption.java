@@ -440,6 +440,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             String.valueOf(1),
             Integer.class),
 
+    SEQUENCE_SUFFIX(
+            "sumaris.persistence.sequence.suffix",
+            n("sumaris.config.option.persistence.sequence.suffix.description"),
+            "_SEQ",
+            String.class),
+
+
     ;
 
     /** Configuration key. */

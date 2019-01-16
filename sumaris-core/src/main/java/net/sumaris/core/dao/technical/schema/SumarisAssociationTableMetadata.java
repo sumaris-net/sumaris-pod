@@ -25,9 +25,10 @@ package net.sumaris.core.dao.technical.schema;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.tool.hbm2ddl.TableMetadata;
+import org.hibernate.mapping.Table;
 
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 
 /**
  * Specialized of {@link SumarisEntityTableMetadata} for association table.
@@ -41,13 +42,14 @@ public class SumarisAssociationTableMetadata extends SumarisTableMetadata {
 
 	private final String dataToUpdateQuery;
 
-	public SumarisAssociationTableMetadata(TableMetadata delegate,
-										   DatabaseMetaData meta) {
-		super(delegate, meta, null);
+	public SumarisAssociationTableMetadata(Table delegate,
+                                           SumarisDatabaseMetadata dbMeta,
+                                           DatabaseMetaData meta) throws SQLException {
+		super(delegate, dbMeta, meta,  null);
 		Preconditions.checkState(CollectionUtils.isNotEmpty(getPkNames()));
 		Preconditions.checkState(getPkNames().size() > 1);
 
-		StringBuilder queryParams = new StringBuilder("");
+		StringBuilder queryParams = new StringBuilder();
 		for (String columnName : getColumnNames()) {
 			queryParams.append(", ").append(columnName);
 		}

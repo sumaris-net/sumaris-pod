@@ -37,9 +37,6 @@ import java.util.Date;
 
 public class JsonMapperTest extends BaseServiceTest {
 
-    @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.noDb();
-
     @Autowired
     private ObjectMapper objectMapper;
 

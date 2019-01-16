@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.referential.LocationDao;
+import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -32,7 +32,7 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.model.referential.Location;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.vo.administration.user.DepartmentVO;

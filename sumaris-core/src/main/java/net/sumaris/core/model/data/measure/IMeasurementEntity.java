@@ -23,8 +23,8 @@ package net.sumaris.core.model.data.measure;
  */
 
 import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.referential.Pmfm;
-import net.sumaris.core.model.referential.QualitativeValue;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 
 public interface IMeasurementEntity extends IDataEntity<Integer> {
 

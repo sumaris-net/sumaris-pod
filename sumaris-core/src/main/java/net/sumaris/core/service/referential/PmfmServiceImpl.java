@@ -25,18 +25,11 @@ package net.sumaris.core.service.referential;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.PmfmDao;
-import net.sumaris.core.dao.technical.Beans;
-import net.sumaris.core.model.referential.Parameter;
-import net.sumaris.core.model.referential.Pmfm;
-import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service("pmfmService")
 public class PmfmServiceImpl implements PmfmService {

@@ -22,7 +22,7 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
-import net.sumaris.core.model.referential.Location;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;

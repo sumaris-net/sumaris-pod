@@ -27,6 +27,13 @@
 
     <!-- JDBC -->
 
+    <!-- spring boot (need by class HibernateConfig) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- hibernate -->
     <dependency>
       <groupId>org.hibernate</groupId>

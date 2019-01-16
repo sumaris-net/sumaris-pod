@@ -23,7 +23,7 @@ package net.sumaris.core.dao.referential;
  */
 
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.model.referential.Pmfm;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.springframework.cache.annotation.Cacheable;
 

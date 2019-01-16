@@ -102,6 +102,7 @@
     <stringtemplate.version>4.0.2</stringtemplate.version>
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
     <commonBeanutilsVersion>1.9.3</commonBeanutilsVersion>
+    <opencsv.version>2.4.3</opencsv.version>
 
     <hibernate.version>5.3.7.Final</hibernate.version>
     <hibernate-tools.version>5.2.9.Final</hibernate-tools.version>
@@ -308,11 +309,16 @@
         <artifactId>jaxb-api</artifactId>
         <version>${jaxbApiVersion}</version>
       </dependency>
-
       <dependency>
         <groupId>dnl.utils</groupId>
         <artifactId>j-text-utils</artifactId>
         <version>${jTextUtilsVersion}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>net.sf.opencsv</groupId>
+        <artifactId>opencsv</artifactId>
+        <version>${opencsv.version}</version>
       </dependency>
 
       <!-- Spring boot -->

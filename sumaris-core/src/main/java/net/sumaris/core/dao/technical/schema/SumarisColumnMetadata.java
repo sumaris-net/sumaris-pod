@@ -23,17 +23,53 @@ package net.sumaris.core.dao.technical.schema;
  */
 
 
-import org.hibernate.tool.hbm2ddl.ColumnMetadata;
+import org.hibernate.mapping.Column;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.StringTokenizer;
+
+/**
+ * TODO: rename getter
+ */
 public class SumarisColumnMetadata {
 
-	protected final ColumnMetadata delegate;
-
+	protected final Column delegate;
 	protected final String propertyName;
+	protected final String defaultValue;
 
-	public SumarisColumnMetadata(ColumnMetadata columnMetadata, String propertyName) {
-		this.delegate = columnMetadata;
+	// From JDBC meta
+	protected final int columnSize;
+	protected final int decimalDigits;
+	protected final int typeCode;
+	protected final String typeName;
+	protected final boolean isNullable;
+
+	public SumarisColumnMetadata(ResultSet rs, Column column, String propertyName) throws SQLException {
+		this.delegate = column;
 		this.propertyName = propertyName;
+		this.defaultValue = null;
+
+		// Add additional info from JDBC meta
+		this.columnSize = rs.getInt("COLUMN_SIZE");
+		this.decimalDigits = rs.getInt("DECIMAL_DIGITS");
+		this.typeCode = rs.getInt("DATA_TYPE");
+		this.isNullable = "YES".equalsIgnoreCase(rs.getString("IS_NULLABLE"));
+		this.typeName = (new StringTokenizer(rs.getString("TYPE_NAME"), "() ")).nextToken();
+	}
+
+	public SumarisColumnMetadata(ResultSet rs, Column column, String propertyName, String defaultValue) throws SQLException {
+		this.delegate = column;
+		this.propertyName = propertyName;
+		this.defaultValue = defaultValue;
+
+		// Add additional info from JDBC meta
+		// (see https://docs.oracle.com/javase/8/docs/api/java/sql/DatabaseMetaData.html#getColumns-java.lang.String-java.lang.String-java.lang.String-java.lang.String)
+		this.columnSize = rs.getInt("COLUMN_SIZE");
+		this.decimalDigits = rs.getInt("DECIMAL_DIGITS");
+		this.typeCode = rs.getInt("DATA_TYPE");
+		this.isNullable = "YES".equalsIgnoreCase(rs.getString("IS_NULLABLE"));
+		this.typeName = (new StringTokenizer(rs.getString("TYPE_NAME"), "() ")).nextToken();
 	}
 
 	public int hashCode() {
@@ -45,19 +81,19 @@ public class SumarisColumnMetadata {
 	}
 
 	public String getTypeName() {
-		return delegate.getTypeName();
+		return delegate.getSqlType();
 	}
 
 	public int getColumnSize() {
-		return delegate.getColumnSize();
+		return columnSize;
 	}
 
 	public int getDecimalDigits() {
-		return delegate.getDecimalDigits();
+		return decimalDigits;
 	}
 
 	public String getNullable() {
-		return delegate.getNullable();
+		return delegate.isNullable() ? "YES": "NO";
 	}
 
 	public String toString() {
@@ -65,15 +101,17 @@ public class SumarisColumnMetadata {
 	}
 
 	public int getTypeCode() {
-		return delegate.getTypeCode();
+		return typeCode;
 	}
-
 	public boolean equals(Object obj) {
 		return delegate.equals(obj);
 	}
 
 	public boolean isNullable() {
-		return !"NO".equals(delegate.getNullable());
+		return delegate.isNullable();
 	}
 
+	public String getDefaultValue() {
+		return defaultValue;
+	}
 }

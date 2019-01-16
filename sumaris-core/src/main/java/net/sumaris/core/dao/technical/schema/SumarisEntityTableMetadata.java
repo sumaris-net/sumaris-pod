@@ -25,10 +25,13 @@ package net.sumaris.core.dao.technical.schema;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.mapping.PersistentClass;
+import org.hibernate.mapping.Table;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.tool.hbm2ddl.TableMetadata;
 
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 
 /**
  * Default implementation of the {@link SumarisTableMetadata} for a
@@ -47,10 +50,11 @@ public class SumarisEntityTableMetadata extends SumarisTableMetadata {
 
 	private final String dataToUpdateQueryWithNull;
 
-	public SumarisEntityTableMetadata(TableMetadata delegate,
+	public SumarisEntityTableMetadata(Table delegate,
+									  SumarisDatabaseMetadata dbMeta,
 									  DatabaseMetaData meta,
-									  SingleTableEntityPersister entityPersister) {
-		super(delegate, meta, entityPersister);
+									  PersistentClass persistentClass) throws SQLException {
+		super(delegate, dbMeta, meta, persistentClass);
 
 		Preconditions.checkState(CollectionUtils.isNotEmpty(getPkNames()));
 		Preconditions.checkState(getPkNames().size() == 1);

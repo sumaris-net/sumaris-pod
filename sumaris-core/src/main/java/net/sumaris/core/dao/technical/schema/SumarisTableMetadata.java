@@ -26,22 +26,22 @@ package net.sumaris.core.dao.technical.schema;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.hibernate.engine.spi.SessionImplementor;
-import org.hibernate.mapping.ForeignKey;
-import org.hibernate.persister.entity.SingleTableEntityPersister;
-import org.hibernate.tool.hbm2ddl.ColumnMetadata;
-import org.hibernate.tool.hbm2ddl.ForeignKeyMetadata;
-import org.hibernate.tool.hbm2ddl.IndexMetadata;
-import org.hibernate.tool.hbm2ddl.TableMetadata;
+import net.sumaris.core.config.SumarisConfiguration;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.mapping.*;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Overrides of the {@link SumarisTableMetadata} with some improvements:
@@ -83,9 +83,11 @@ public abstract class SumarisTableMetadata {
 
 	protected final String countQuery;
 
-	protected final TableMetadata delegate;
+	protected final Table delegate;
 
-	protected final Map<String, ColumnMetadata> columns;
+	protected final Map<String, SumarisColumnMetadata> columns;
+
+	protected final Map<String, ForeignKey> foreignKeys;
 
 	protected final Set<String> pkNames;
 
@@ -101,7 +103,11 @@ public abstract class SumarisTableMetadata {
 
 	protected final boolean withUpdateDateColumn;
 
-	protected SingleTableEntityPersister entityPersister;
+	protected PersistentClass persistentClass;
+
+	protected final String sequenceName;
+
+	protected final String sequenceNextValQuery;
 
 	public abstract String getCountDataToUpdateQueryWithNull();
 
@@ -113,20 +119,22 @@ public abstract class SumarisTableMetadata {
 
 	public abstract boolean useUpdateDateColumn();
 
-	public SumarisTableMetadata(TableMetadata delegate,
-								DatabaseMetaData meta,
-								SingleTableEntityPersister entityPersister) {
-
+	public SumarisTableMetadata(Table delegate,
+								SumarisDatabaseMetadata dbMeta,
+								DatabaseMetaData jdbcDbMeta,
+								PersistentClass persistentClass) throws SQLException{
 		Preconditions.checkNotNull(delegate);
+		Preconditions.checkNotNull(dbMeta);
+		Preconditions.checkNotNull(jdbcDbMeta);
+
 		this.delegate = delegate;
-		this.entityPersister = entityPersister;
+		this.persistentClass = persistentClass;
 
 		try {
-			Field field = TableMetadata.class.getDeclaredField("columns");
-			field.setAccessible(true);
-			this.columns = (Map) field.get(delegate);
+			this.columns = initColumns(delegate, jdbcDbMeta);
+			this.foreignKeys = initForeignKeys(delegate);
 			this.withUpdateDateColumn = columns.containsKey("update_date");
-			this.pkNames = initPrimaryKeys(meta);
+			this.pkNames = initPrimaryKeys(delegate);
 			Preconditions.checkNotNull(pkNames);
 			this.pkIndexs = createPkIndex();
 			this.notNullNames = initNotNull(this.columns);
@@ -137,10 +145,11 @@ public abstract class SumarisTableMetadata {
 			this.existingPrimaryKeysQuery = String.format(QUERY_SELECT_PRIMARY_KEYS, Joiner.on(',').join(pkNames), getName());
 			this.countQuery = String.format(QUERY_SELECT_COUNT, getName());
 
-			this.hqlSelectQuery = String.format(QUERY_HQL_SELECT, this.entityPersister.getEntityName());
-
+			this.hqlSelectQuery = persistentClass != null ? String.format(QUERY_HQL_SELECT, this.persistentClass.getEntityName()) : null;
+			this.sequenceName = initSequenceName(dbMeta);
+			this.sequenceNextValQuery = createSequenceNextValQuery(dbMeta.getDialect());
 		} catch (Exception e) {
-			throw new RuntimeException("Could not init " + this, e);
+			throw new SQLException("Could not init metadata on table " + delegate.getName(), e);
 		}
 	}
 
@@ -168,16 +177,13 @@ public abstract class SumarisTableMetadata {
 		return delegate.getName();
 	}
 
-	public ForeignKeyMetadata getForeignKeyMetadata(ForeignKey fk) {
-		return delegate.getForeignKeyMetadata(fk);
+	public ForeignKey getForeignKeyMetadata(Table.ForeignKeyKey fk) {
+		return delegate.getForeignKeys().get(fk);
 	}
 
 	public SumarisColumnMetadata getColumnMetadata(String columnName) {
-		ColumnMetadata column = delegate.getColumnMetadata(columnName);
-		if (column == null) {
-			return null;
-		}
-		return new SumarisColumnMetadata(column, null);
+
+		return columns.get(columnName.toLowerCase());
 	}
 
 	public String getSchema() {
@@ -188,14 +194,28 @@ public abstract class SumarisTableMetadata {
 		return delegate.getCatalog();
 	}
 
-	public ForeignKeyMetadata getForeignKeyMetadata(String keyName) {
-		return delegate.getForeignKeyMetadata(keyName);
+	public ForeignKey getForeignKeyMetadata(String keyName) {
+		return foreignKeys.get(keyName);
 	}
 
-	public IndexMetadata getIndexMetadata(String indexName) {
-		return delegate.getIndexMetadata(indexName);
+	public Index getIndexMetadata(String indexName) {
+		return delegate.getIndex(indexName);
 	}
 
+	/**
+	 * <p>Getter for the field <code>sequenceName</code>.</p>
+	 *
+	 * @return a {@link java.lang.String} object.
+	 */
+	public String getSequenceName() {
+		return sequenceName;
+	}
+
+	/**
+	 * <p>Getter for the field <code>insertQuery</code>.</p>
+	 *
+	 * @return a {@link java.lang.String} object.
+	 */
 	public String getInsertQuery() {
 		return insertQuery;
 	}
@@ -209,9 +229,15 @@ public abstract class SumarisTableMetadata {
 		LinkedHashSet<String> columnNames = Sets.newLinkedHashSetWithExpectedSize(columns.length + 1);
 
 		// Retrieve identifier columns
-		String[] pkColumnNames = this.entityPersister.getIdentifierColumnNames();
-		columnNames.addAll(Arrays.asList(pkColumnNames));
-		if (pkColumnNames.length > 1) {
+		List<String> pkColumnNames = Lists.newArrayList();
+		for(Iterator propertyIterator = this.delegate.getIdentifierValue().getColumnIterator();
+			propertyIterator.hasNext(); ) {
+			Column column = (Column) propertyIterator.next();
+			pkColumnNames.add(column.getName());
+		}
+
+		columnNames.addAll(pkColumnNames);
+		if (pkColumnNames.size() > 1) {
 			throw new DataIntegrityViolationException("Could not compute a sql insert query when more than one identifier, for table: "
 					+ this.getName());
 		}
@@ -251,27 +277,97 @@ public abstract class SumarisTableMetadata {
 		return hqlSelectQuery;
 	}
 
-	protected Set<String> initPrimaryKeys(DatabaseMetaData meta) throws SQLException {
-
-		Set<String> result = Sets.newHashSet();
-		ResultSet rs = meta.getPrimaryKeys(getCatalog(), getSchema(), getName());
-		try {
-
-			while (rs.next()) {
-				result.add(rs.getString("COLUMN_NAME").toLowerCase());
-			}
-			rs.close();
-			return ImmutableSet.copyOf(result);
-		} finally {
-			//closeSilency
-		}
+	public String getSequenceNextValQuery() {
+		return sequenceNextValQuery;
 	}
 
-	protected Set<String> initNotNull(Map<String, ColumnMetadata> columns) throws SQLException {
+	protected Set<String> initPrimaryKeys(Table delegate) {
+		Map<String, Column> result = Maps.newLinkedHashMap();
+		for(Iterator propertyIterator = delegate.getPrimaryKey().getColumnIterator();
+			propertyIterator.hasNext(); ) {
+			Column column = (Column) propertyIterator.next();
+			result.put(column.getName(), column);
+		}
+
+		return result.keySet();
+	}
+
+//	protected Set<String> initPrimaryKeys(DatabaseMetaData meta) throws SQLException {
+//
+//		Set<String> result = Sets.newHashSet();
+//		ResultSet rs = meta.getPrimaryKeys(getCatalog(), getSchema(), getName());
+//		try {
+//
+//			while (rs.next()) {
+//				result.add(rs.getString("COLUMN_NAME").toLowerCase());
+//			}
+//			rs.close();
+//			return ImmutableSet.copyOf(result);
+//		} finally {
+//			//closeSilency
+//		}
+//	}
+
+	protected Map<String, SumarisColumnMetadata> initColumns(Table delegate, DatabaseMetaData jdbcDbMeta) throws SQLException {
+		Map<String, Column> columns = Maps.newLinkedHashMap();
+		for(Iterator propertyIterator = delegate.getColumnIterator();
+			propertyIterator.hasNext(); ) {
+			Column column = (Column) propertyIterator.next();
+			columns.put(column.getName().toLowerCase(), column);
+		}
+
+		Map<String, SumarisColumnMetadata> result = Maps.newLinkedHashMap();
+
+		ResultSet rs = null;
+
+		try {
+
+			rs = jdbcDbMeta.getColumns(delegate.getCatalog(), delegate.getSchema(), delegate.getName().toUpperCase(), "%");
+
+			while(rs.next()) {
+				String columnName = rs.getString("COLUMN_NAME").toLowerCase();
+				Column column = columns.get(columnName);
+				if (column != null) {
+					String defaultValue = SumarisConfiguration.getInstance().getColumnDefaultValue(getName(), columnName);
+
+					SumarisColumnMetadata columnMeta = new SumarisColumnMetadata(rs, column, null, defaultValue);
+					result.put(columnName.toLowerCase(), columnMeta);
+				}
+			}
+
+
+		}
+		finally {
+			if (rs != null) {
+				rs.close();
+			}
+
+		}
+		if (result.size() == 0) {
+			throw new RuntimeException("Unable to load columns metadata on table " + delegate.getName());
+		}
+
+		return result;
+	}
+
+	protected Map<String, ForeignKey> initForeignKeys(Table delegate) {
+		Map<String, ForeignKey> result = Maps.newLinkedHashMap();
+		for(Iterator foreignKeyIterator = delegate.getForeignKeyIterator();
+			foreignKeyIterator.hasNext(); ) {
+			ForeignKey foreignKey = (ForeignKey) foreignKeyIterator.next();
+
+			result.put(foreignKey.getName().toLowerCase(), foreignKey);
+		}
+
+		return result;
+	}
+
+
+	protected Set<String> initNotNull(Map<String, SumarisColumnMetadata> columns) {
 		Set<String> result = Sets.newHashSet();
 		for (String columnName : columns.keySet()) {
-			ColumnMetadata columnMetadata = columns.get(columnName);
-			if ("NO".equals(columnMetadata.getNullable()) && !pkNames.contains(columnName)) {
+			SumarisColumnMetadata column = columns.get(columnName);
+			if (!column.isNullable() && !pkNames.contains(columnName)) {
 				result.add(columnName);
 			}
 		}
@@ -343,19 +439,6 @@ public abstract class SumarisTableMetadata {
 		return result;
 	}
 
-	public Serializable generateIdentifier(SessionImplementor session) {
-
-		try {
-			Class clazz = Class.forName(entityPersister.getName());
-			Object entity = clazz.newInstance();
-			Serializable id = entityPersister.getIdentifierGenerator().generate(session, entity);
-			return id;
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
 	public String createDeleteQuery(String[] columnNames) {
 
 		String whereClause = null;
@@ -373,5 +456,52 @@ public abstract class SumarisTableMetadata {
 										getName().toUpperCase(),
 										whereClause);
 		return result;
+	}
+
+	/**
+	 * <p>initSequenceName.</p>
+	 *
+	 * @param dbMeta a {@link fr.ifremer.common.synchro.meta.SynchroDatabaseMetadata} object.
+	 * @return a {@link java.lang.String} object.
+	 */
+	protected String initSequenceName(SumarisDatabaseMetadata dbMeta) {
+		final Set<String> availableSequences = dbMeta.getSequences();
+		final String sequenceSuffix = dbMeta.getSequenceSuffix();
+		final int maxSqlNameLength = dbMeta.getDialect().getMaxAliasLength();
+
+		final String tableName = getName().toLowerCase();
+		String sequenceName;
+
+		// Compute the max size of
+		final int maxLength = maxSqlNameLength - sequenceSuffix.length();
+		if (maxLength > -0) {
+			sequenceName = (SumarisMetadataUtils.ensureMaximumNameLength(
+					tableName, maxLength) + sequenceSuffix).toLowerCase();
+			if (availableSequences.contains(sequenceName)) {
+				return sequenceName;
+			}
+		}
+
+		// If not found (with length limit), try without length limit
+		sequenceName = (tableName + sequenceSuffix).toLowerCase();
+		if (availableSequences.contains(sequenceName)) {
+			return sequenceName;
+		}
+
+		// sequence not found
+		return null;
+	}
+
+	/**
+	 * <p>createSequenceNextValQuery.</p>
+	 *
+	 * @param dialect a {@link org.hibernate.dialect.Dialect} object.
+	 * @return a {@link java.lang.String} object.
+	 */
+	protected String createSequenceNextValQuery(Dialect dialect) {
+		if (StringUtils.isBlank(sequenceName)) {
+			return null;
+		}
+		return dialect.getSequenceNextValString(sequenceName);
 	}
 }

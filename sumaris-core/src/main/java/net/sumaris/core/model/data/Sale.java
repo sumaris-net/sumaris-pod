@@ -25,7 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.Location;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.SaleType;
 

@@ -27,7 +27,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
-import net.sumaris.core.model.referential.Location;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.FetchMode;

@@ -31,19 +31,19 @@
     <class>net.sumaris.core.model.file.File</class>
     <class>net.sumaris.core.model.file.FileLine</class>
     <class>net.sumaris.core.model.file.FileStatus</class>
-    <class>net.sumaris.core.model.referential.Fraction</class>
-    <class>net.sumaris.core.model.referential.Location</class>
-    <class>net.sumaris.core.model.referential.LocationHierarchy</class>
-    <class>net.sumaris.core.model.referential.LocationLevel</class>
-    <class>net.sumaris.core.model.referential.Matrix</class>
-    <class>net.sumaris.core.model.referential.Parameter</class>
-    <class>net.sumaris.core.model.referential.Pmfm</class>
-    <class>net.sumaris.core.model.referential.QualitativeValue</class>
+    <class>net.sumaris.core.model.referential.pmfm.Fraction</class>
+    <class>net.sumaris.core.model.referential.location.Location</class>
+    <class>net.sumaris.core.model.referential.location.LocationHierarchy</class>
+    <class>net.sumaris.core.model.referential.location.LocationLevel</class>
+    <class>net.sumaris.core.model.referential.pmfm.Matrix</class>
+    <class>net.sumaris.core.model.referential.pmfm.Parameter</class>
+    <class>net.sumaris.core.model.referential.pmfm.Pmfm</class>
+    <class>net.sumaris.core.model.referential.pmfm.QualitativeValue</class>
     <class>net.sumaris.core.model.referential.QualityFlag</class>
     <class>net.sumaris.core.model.referential.SaleType</class>
     <class>net.sumaris.core.model.referential.Status</class>
     <class>net.sumaris.core.model.referential.StatusId</class>
-    <class>net.sumaris.core.model.referential.Unit</class>
+    <class>net.sumaris.core.model.referential.pmfm.Unit</class>
     <class>net.sumaris.core.model.referential.UserProfile</class>
     <class>net.sumaris.core.model.referential.UserProfileEnum</class>
     <class>net.sumaris.core.model.referential.VesselType</class>

@@ -24,7 +24,7 @@ package net.sumaris.importation;
  * #L%
  */
 
-import net.sumaris.importation.service.ices.IcesFileImportServiceWriteTest;
+import net.sumaris.importation.service.ices.IcesLoaderWriteTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -37,7 +37,7 @@ import org.junit.runners.Suite;
 		// DAO
 
 		// Service
-		IcesFileImportServiceWriteTest.class
+		IcesLoaderWriteTest.class
 })
 public class AllTests {
 

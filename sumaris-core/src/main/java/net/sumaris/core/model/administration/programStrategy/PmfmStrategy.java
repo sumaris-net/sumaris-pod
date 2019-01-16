@@ -25,11 +25,10 @@ package net.sumaris.core.model.administration.programStrategy;
 import com.google.common.collect.Sets;
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IEntityBean;
-import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Set;
 
 @Data

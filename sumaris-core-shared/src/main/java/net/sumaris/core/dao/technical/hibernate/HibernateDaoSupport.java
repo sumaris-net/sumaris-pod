@@ -99,8 +99,13 @@ public abstract class HibernateDaoSupport {
         this.entityManager = entityManager;
     }
 
+    /**
+     * @deprecated use EntityManager instead
+     * @param sf
+     */
+    @Deprecated
     protected void setSessionFactory(SessionFactory sf) {
-        logger.warn("TODO: remove call to setSessionFactory()");
+        logger.warn("TODO: remove call to deprecated setSessionFactory()");
     }
 
     /**

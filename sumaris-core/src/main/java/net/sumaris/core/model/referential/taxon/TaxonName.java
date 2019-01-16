@@ -39,6 +39,7 @@ import java.util.Date;
 @Table(name = "taxon_name")
 public class TaxonName implements IItemReferentialEntity {
 
+    public static final String PROPERTY_IS_REFERENT = "isReferent";
     public static final String PROPERTY_REFERENCE_TAXON = "referenceTaxon";
     public static final String PROPERTY_PARENT_TAXON_NAME = "parentTaxonName";
     public static final String PROPERTY_TAXONOMIC_LEVEL = "taxonomicLevel";

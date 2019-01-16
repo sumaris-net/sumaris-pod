@@ -22,8 +22,8 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import net.sumaris.core.model.referential.Parameter;
-import net.sumaris.core.model.referential.Pmfm;
+import net.sumaris.core.model.referential.pmfm.Parameter;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 
 import java.util.Objects;
 

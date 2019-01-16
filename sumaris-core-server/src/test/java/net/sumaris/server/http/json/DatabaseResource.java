@@ -36,17 +36,8 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 
 	public static final String MODULE_NAME = "sumaris-core-server";
 
-	public static DatabaseResource noDb() {
-		return noDb("");
-	}
-
-	public static DatabaseResource noDb(String configName) {
-		return new DatabaseResource(
-				configName, "beanRefFactoryWithNoDb.xml", "beanRefFactoryWithNoDb", false);
-	}
-
-	protected DatabaseResource(String configName, String beanFactoryReferenceLocation, String beanRefFactoryReferenceId, boolean writeDb) {
-		super(configName, beanFactoryReferenceLocation, beanRefFactoryReferenceId, writeDb);
+	protected DatabaseResource(String configName, boolean writeDb) {
+		super(configName, writeDb);
 	}
 
 	@Override

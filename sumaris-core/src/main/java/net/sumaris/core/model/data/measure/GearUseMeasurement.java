@@ -25,8 +25,8 @@ package net.sumaris.core.model.data.measure;
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.referential.Pmfm;
-import net.sumaris.core.model.referential.QualitativeValue;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
 
 import javax.persistence.*;

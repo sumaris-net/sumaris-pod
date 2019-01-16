@@ -1,34 +1,34 @@
 package net.sumaris.importation.exception;
 
-import net.sumaris.importation.vo.ValidationErrorVO;
+import net.sumaris.importation.service.vo.DataLoadError;
 
 public class FileValidationException extends Exception {
 
 	private static final long serialVersionUID = 4369710207426419207L;
 
-	protected final ValidationErrorVO[] fileValidationErrors;
+	protected final DataLoadError[] fileValidationDataLoadErrors;
 
 	protected final static int MAX_ERRORS_IN_DESCRIPTION = 100;
 
-	public FileValidationException(ValidationErrorVO[] fileValidationErrors) {
-		this.fileValidationErrors = fileValidationErrors;
+	public FileValidationException(DataLoadError[] fileValidationDataLoadErrors) {
+		this.fileValidationDataLoadErrors = fileValidationDataLoadErrors;
 	}
 
-	public ValidationErrorVO[] getFileValidationErrors() {
-		return fileValidationErrors;
+	public DataLoadError[] getFileValidationDataLoadErrors() {
+		return fileValidationDataLoadErrors;
 	}
 
 	@Override
 	public String getMessage() {
 		String baseMessage = "Error during file validation";
-		if (fileValidationErrors == null) {
+		if (fileValidationDataLoadErrors == null) {
 			return baseMessage;
 		}
 
 		StringBuilder sb = new StringBuilder(baseMessage);
 		sb.append(":");
 		int errorCount = 0;
-		for (ValidationErrorVO error : fileValidationErrors) {
+		for (DataLoadError error : fileValidationDataLoadErrors) {
 			if (errorCount == MAX_ERRORS_IN_DESCRIPTION) {
 				sb.append("\n\t(...)");
 				break;

@@ -26,6 +26,7 @@ package net.sumaris.core.config;
 
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
@@ -737,6 +738,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsInt(SumarisConfigurationOption.SEQUENCE_START_WITH.getKey());
     }
 
+    public String getSequenceSuffix() {
+        return applicationConfig.getOption(SumarisConfigurationOption.SEQUENCE_SUFFIX.getKey());
+    }
+
     public String getCsvSeparator() {
         return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey());
     }
@@ -785,5 +790,13 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         }
 
         return url;
+    }
+
+    public String getColumnDefaultValue(String tableName, String columnName) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(tableName));
+        Preconditions.checkArgument(StringUtils.isNotBlank(columnName));
+
+        String defaultvalue = applicationConfig.getOption("sumaris." + tableName.toUpperCase() + "." + columnName.toUpperCase() + ".defaultValue");
+        return defaultvalue;
     }
 }

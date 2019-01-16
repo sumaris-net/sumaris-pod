@@ -28,6 +28,7 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.PrintStream;
 import java.util.List;
 
 @Transactional
@@ -60,4 +61,5 @@ public interface ReferentialService {
     void delete(String entityName, List<Integer> ids);
 
     Long count(String entityName);
+
 }

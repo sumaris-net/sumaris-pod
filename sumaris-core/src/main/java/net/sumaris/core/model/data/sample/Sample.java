@@ -27,7 +27,7 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.data.batch.Batch;
-import net.sumaris.core.model.referential.Matrix;
+import net.sumaris.core.model.referential.pmfm.Matrix;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;

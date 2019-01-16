@@ -23,16 +23,11 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.Data;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.LocationLevel;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

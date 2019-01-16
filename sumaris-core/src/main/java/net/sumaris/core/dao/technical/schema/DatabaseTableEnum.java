@@ -34,22 +34,14 @@ import java.util.List;
  * @since 1.0
  */
 public enum DatabaseTableEnum {
-	FILE_VESSEL_REGISTRY,
-	FILE_FISHER, // table 1
-	FILE_ACTIVE_VESSEL_REGISTRY, // table 2
-	FILE_LOGBOOK, // table 3
-	FILE_VESSEL_VMS10, // table 4
-	FILE_AGGREGATED_VMS10, // table 5
 
-	/* Referential : */
-	METIER,
-	METIER_LEVEL,
-	SPECIES,
-	SPECIES_LEVEL,
-	LOCATION,
-	LOCATION_LEVEL,
-	FLEET,
-	FLEET_LEVEL;
+	// ICES format tables (v1)
+	FILE_ICES_LANDING, // CL
+	FILE_ICES_TRIP, // TR
+	FILE_ICES_STATION, // HH
+	FILE_ICES_SPECIES_LIST, // SL
+	FILE_ICES_SPECIES_LENGTH // HL
+	;
 
 	private final boolean association;
 
