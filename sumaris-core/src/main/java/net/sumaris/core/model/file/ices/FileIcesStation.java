@@ -56,7 +56,7 @@ public class FileIcesStation implements Serializable, IEntityBean<Integer> {
     public static final String COLUMN_POS_END_LAT = "pos_end_lat";
     public static final String COLUMN_POS_END_LONG = "pos_end_long";
     public static final String COLUMN_AREA = "area";
-    public static final String COLUMN_STATISTICAL_RECTANGLE = "statisticcal_rectangle";
+    public static final String COLUMN_STATISTICAL_RECTANGLE = "statistical_rectangle";
     public static final String COLUMN_SUB_POLYGON = "sub_polygon";
     public static final String COLUMN_MAIN_FISHING_DEPTH = "main_fishing_depth";
     public static final String COLUMN_MAIN_WATER_DEPTH = "main_water_depth";

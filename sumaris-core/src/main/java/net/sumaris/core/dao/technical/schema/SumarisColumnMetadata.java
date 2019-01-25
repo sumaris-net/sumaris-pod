@@ -44,18 +44,10 @@ public class SumarisColumnMetadata {
 	protected final int typeCode;
 	protected final String typeName;
 	protected final boolean isNullable;
+	protected final String description;
 
 	public SumarisColumnMetadata(ResultSet rs, Column column, String propertyName) throws SQLException {
-		this.delegate = column;
-		this.propertyName = propertyName;
-		this.defaultValue = null;
-
-		// Add additional info from JDBC meta
-		this.columnSize = rs.getInt("COLUMN_SIZE");
-		this.decimalDigits = rs.getInt("DECIMAL_DIGITS");
-		this.typeCode = rs.getInt("DATA_TYPE");
-		this.isNullable = "YES".equalsIgnoreCase(rs.getString("IS_NULLABLE"));
-		this.typeName = (new StringTokenizer(rs.getString("TYPE_NAME"), "() ")).nextToken();
+		this(rs, column, propertyName, null);
 	}
 
 	public SumarisColumnMetadata(ResultSet rs, Column column, String propertyName, String defaultValue) throws SQLException {
@@ -70,6 +62,7 @@ public class SumarisColumnMetadata {
 		this.typeCode = rs.getInt("DATA_TYPE");
 		this.isNullable = "YES".equalsIgnoreCase(rs.getString("IS_NULLABLE"));
 		this.typeName = (new StringTokenizer(rs.getString("TYPE_NAME"), "() ")).nextToken();
+		this.description = rs.getString("REMARKS");
 	}
 
 	public int hashCode() {
@@ -81,7 +74,7 @@ public class SumarisColumnMetadata {
 	}
 
 	public String getTypeName() {
-		return delegate.getSqlType();
+		return typeName;
 	}
 
 	public int getColumnSize() {
@@ -113,5 +106,9 @@ public class SumarisColumnMetadata {
 
 	public String getDefaultValue() {
 		return defaultValue;
+	}
+
+	public String getDescription() {
+		return description;
 	}
 }

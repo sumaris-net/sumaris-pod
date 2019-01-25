@@ -117,8 +117,8 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 		SumarisEntityTableMetadata tableMetadata = sumarisDatabaseMetadata.getEntityTable(table.name());
 
 		// Import file :
-		log.info("-----------------------------------------------");
 		log.info(FileMessageFormatter.format(tableMetadata, null, reader.getCurrentLine(), "Importing file: " + reader.getFileName()));
+
 
 		try {
 			// Read column headers :
@@ -130,6 +130,8 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 			}
 
 			Connection conn = DataSourceUtils.getConnection(dataSource);
+			boolean isTransactional = DataSourceUtils.isConnectionTransactional(conn, dataSource);
+
 			try {
 				String insertQuery = tableMetadata.getInsertQuery(headerColumns);
 				PreparedStatement insertStatement = conn.prepareStatement(insertQuery);
@@ -191,18 +193,18 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 				if (insertCount > 0 && insertCount % BATCH_ROW_COUNT != 0) {
 					insertStatement.executeBatch();
 				}
-				if (log.isDebugEnabled()) {
-					log.debug(FileMessageFormatter.format(tableMetadata, null, reader.getCurrentLine(), "INSERT count: " + insertCount));
+				if (log.isInfoEnabled()) {
+					log.info(FileMessageFormatter.format(tableMetadata, null, reader.getCurrentLine(), "INSERT count: " + insertCount));
 				}
 
-				conn.commit();
+				if (!isTransactional) conn.commit();
 
 			} catch (BatchUpdateException bue) {
-				conn.rollback();
+				if (!isTransactional) conn.rollback();
 				bue.getNextException().printStackTrace();
 				throw bue;
 			} finally {
-				DataSourceUtils.releaseConnection(conn, dataSource);
+				if (!isTransactional) DataSourceUtils.releaseConnection(conn, dataSource);
 				reader.close();
 			}
 

@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.mapping.*;
@@ -39,6 +40,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,9 +73,11 @@ public abstract class SumarisTableMetadata {
 
 	protected static final String QUERY_DELETE = "DELETE FROM %s WHERE %s";
 
+	protected static final String QUERY_SELECT_ALL = "SELECT %s FROM %s %s";
+
 	protected static final String QUERY_SELECT_PRIMARY_KEYS = "SELECT %s FROM %s";
 
-	protected static final String QUERY_SELECT_COUNT = "SELECT count(*) FROM %s";
+	protected static final String QUERY_SELECT_COUNT_ALL = "SELECT count(*) FROM %s %s";
 
 	protected static final String QUERY_HQL_SELECT = "from %s";
 
@@ -81,7 +85,7 @@ public abstract class SumarisTableMetadata {
 
 	private final String maxUpdateDateQuery;
 
-	protected final String countQuery;
+	protected final String countAllQuery;
 
 	protected final Table delegate;
 
@@ -94,6 +98,8 @@ public abstract class SumarisTableMetadata {
 	protected final Set<String> notNullNames;
 
 	protected final int[] pkIndexs;
+
+	protected final String selectAllQuery;
 
 	protected final String insertQuery;
 
@@ -139,15 +145,17 @@ public abstract class SumarisTableMetadata {
 			this.pkIndexs = createPkIndex();
 			this.notNullNames = initNotNull(this.columns);
 
+			this.countAllQuery = createAllCountQuery();
+			this.selectAllQuery = createSelectAllQuery();
 			this.insertQuery = createInsertQuery();
 			this.updateQuery = createUpdateQuery();
 			this.maxUpdateDateQuery = String.format(QUERY_SELECT_MAX_UPDATE, getName());
 			this.existingPrimaryKeysQuery = String.format(QUERY_SELECT_PRIMARY_KEYS, Joiner.on(',').join(pkNames), getName());
-			this.countQuery = String.format(QUERY_SELECT_COUNT, getName());
 
 			this.hqlSelectQuery = persistentClass != null ? String.format(QUERY_HQL_SELECT, this.persistentClass.getEntityName()) : null;
 			this.sequenceName = initSequenceName(dbMeta);
 			this.sequenceNextValQuery = createSequenceNextValQuery(dbMeta.getDialect());
+
 		} catch (Exception e) {
 			throw new SQLException("Could not init metadata on table " + delegate.getName(), e);
 		}
@@ -212,6 +220,15 @@ public abstract class SumarisTableMetadata {
 	}
 
 	/**
+	 * <p>Getter for the field <code>selectAllQuery</code>.</p>
+	 *
+	 * @return a {@link java.lang.String} object.
+	 */
+	public String getSelectAllQuery() {
+		return selectAllQuery;
+	}
+
+	/**
 	 * <p>Getter for the field <code>insertQuery</code>.</p>
 	 *
 	 * @return a {@link java.lang.String} object.
@@ -265,8 +282,8 @@ public abstract class SumarisTableMetadata {
 		return maxUpdateDateQuery;
 	}
 
-	public String getCountQuery() {
-		return countQuery;
+	public String getCountAllQuery() {
+		return countAllQuery;
 	}
 
 	public int[] getPkIndexs() {
@@ -329,6 +346,7 @@ public abstract class SumarisTableMetadata {
 				Column column = columns.get(columnName);
 				if (column != null) {
 					String defaultValue = SumarisConfiguration.getInstance().getColumnDefaultValue(getName(), columnName);
+					Number position = rs.getInt("ORDINAL_POSITION");
 
 					SumarisColumnMetadata columnMeta = new SumarisColumnMetadata(rs, column, null, defaultValue);
 					result.put(columnName.toLowerCase(), columnMeta);
@@ -398,6 +416,29 @@ public abstract class SumarisTableMetadata {
 		return result;
 	}
 
+	/**
+	 * <p>createAllCountQuery.</p>
+	 *
+	 * @return a {@link java.lang.String} object.
+	 */
+	protected String createAllCountQuery() {
+		String tableAlias = "t";
+		return String.format(QUERY_SELECT_COUNT_ALL, getName(), tableAlias);
+	}
+
+	/**
+	 * <p>createSelectAllQuery.</p>
+	 *
+	 * @return a {@link java.lang.String} object.
+	 */
+	protected String createSelectAllQuery() {
+		String tableAlias = "t";
+		return String.format(QUERY_SELECT_ALL,
+				createSelectParams(tableAlias),
+				getName(),
+				tableAlias);
+	}
+
 	protected String createInsertQuery() {
 		return createInsertQuery(getColumnNames());
 	}
@@ -456,6 +497,43 @@ public abstract class SumarisTableMetadata {
 										getName().toUpperCase(),
 										whereClause);
 		return result;
+	}
+
+	/**
+	 * <p>createSelectParams.</p>
+	 *
+	 * @param tableAlias a {@link java.lang.String} object.
+	 * @return a {@link java.lang.String} object.
+	 */
+	protected String createSelectParams(String tableAlias) {
+		return createSelectParams(getColumnNames(), tableAlias);
+	}
+
+	/**
+	 * <p>createSelectParams.</p>
+	 *
+	 * @param columnNames a {@link java.util.List} object.
+	 * @param tableAlias a {@link java.lang.String} object.
+	 * @return a {@link java.lang.String} object.
+	 */
+	protected String createSelectParams(Collection<String> columnNames,
+										String tableAlias) {
+		Preconditions.checkArgument(
+				CollectionUtils.isNotEmpty(columnNames),
+				String.format("No column found for table: %s",
+						getName()));
+
+		StringBuilder queryParams = new StringBuilder();
+
+		for (String columnName : columnNames) {
+			queryParams.append(", ");
+			if (tableAlias != null) {
+				queryParams.append(tableAlias).append(".");
+			}
+			queryParams.append(columnName);
+		}
+
+		return queryParams.substring(2);
 	}
 
 	/**

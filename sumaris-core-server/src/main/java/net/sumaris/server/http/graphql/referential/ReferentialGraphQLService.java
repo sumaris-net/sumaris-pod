@@ -66,7 +66,7 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.PROPERTY_NAME) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        return referentialService.findByFilter(entityName, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        return referentialService.findByFilter(entityName, filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
     @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")

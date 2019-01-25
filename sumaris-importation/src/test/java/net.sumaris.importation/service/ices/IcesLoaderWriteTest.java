@@ -18,44 +18,59 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
     private IcesDataLoaderServiceImpl service = null;
 
     @Test
-    public void loadLanding() {
+    public void loadTestFiles() {
         String basePath = "src/test/data/import/";
 
         // Import FRA sample file
         File file = new File(basePath, "FRA-CL-test.csv");
-        try {
-            service.loadLanding(file, "FRA", true, false);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            Assert.fail(e.getMessage());
-        }
-        finally {
-            FileUtils.deleteTemporaryFiles(file);
-        }
+        loadLanding(file, "FRA");
 
         // Import BEL sample file
         file = new File(basePath, "BEL-CL-test.csv");
-        try {
-            service.loadLanding(file, "BEL", true, false);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            Assert.fail(e.getMessage());
-        }
-        finally {
-            FileUtils.deleteTemporaryFiles(file);
-        }
+        loadLanding(file, "BEL");
 
+        // Import GBR sample file
+        file = new File(basePath, "GBR-mix-test.csv");
+        loadMixed(file, "GBR");
     }
 
     @Test
-    public void loadMixed() {
-        String basePath = "src/test/data/import/";
+    public void loadAll() {
+        //String basePath = "src/test/data/import/";
+        String basePath = "/home/blavenie/Documents/sumaris/data/";
 
-        // Import GBR sample file
-        //File file = new File(basePath, "GBR-mix-test.csv");
-        File file = new File(basePath, "GBR-all.csv");
+        // Import FRA file
+        File file = new File(basePath + "/FRA", "CL_FRA_2000-2017.csv");
+        //loadLanding(file, "FRA");
+
+        // Import BEL file
+        file = new File(basePath+ "/BEL", "CL_BEL-2.csv");
+        loadLanding(file, "BEL");
+
+        // Import GBR file
+        //file = new File(basePath+ "/GBR", "Sumaris All.txt");
+        //loadMixed(file, "GBR");
+    }
+
+    /* -- protected method -- */
+
+    private void loadLanding(File file, String country) {
+
         try {
-            service.detectFormatAndLoad(file, "GBR", true, false);
+            service.loadLanding(file, country, true, false);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            Assert.fail(e.getMessage());
+        }
+        finally {
+            FileUtils.deleteTemporaryFiles(file);
+        }
+
+    }
+
+    private void loadMixed(File file, String country) {
+        try {
+            service.loadMixed(file, country, true, false);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             Assert.fail(e.getMessage());
@@ -65,4 +80,15 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
         }
     }
 
+    private void detectFormatAndLoad(File file, String country) {
+        try {
+            service.detectFormatAndLoad(file, country, true, false);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            Assert.fail(e.getMessage());
+        }
+        finally {
+            FileUtils.deleteTemporaryFiles(file);
+        }
+    }
 }

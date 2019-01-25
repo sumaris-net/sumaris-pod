@@ -81,7 +81,8 @@ public class FileIcesSpeciesList implements Serializable, IEntityBean<Integer> {
     @Column(name = COLUMN_STATION_NUMBER, scale=6)
     private Integer stationNumber;
 
-    @Column(nullable = false, length = 25, name = COLUMN_SPECIES)
+    // TODO: reduce length to 20 (or 4 ?)
+    @Column(nullable = false, length = 100, name = COLUMN_SPECIES)
     private String species;
 
     @Column(nullable = false, length= 25, name = COLUMN_CATCH_CATEGORY)

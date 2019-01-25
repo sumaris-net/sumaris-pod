@@ -132,6 +132,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.qualitativeValue");
         I18n.n("sumaris.persistence.table.program");
         I18n.n("sumaris.persistence.table.acquisitionLevel");
+        I18n.n("sumaris.persistence.table.transcribingItem");
     }
 
     protected static Map<String, PropertyDescriptor> initLevelPropertyNameMap() {

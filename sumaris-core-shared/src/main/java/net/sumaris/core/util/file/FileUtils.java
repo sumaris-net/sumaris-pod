@@ -82,7 +82,7 @@ public class FileUtils {
 	}
 
 	public static void replaceAllInHeader(File sourceFile, File destFile, Map<String, String> regexReplacementMap) throws IOException {
-		replaceAll(sourceFile, destFile, regexReplacementMap, 0, 1);
+		replaceAll(sourceFile, destFile, regexReplacementMap, 1, 1);
 	}
 
 	public static void replaceAll(File sourceFile, Map<String, String> regexReplacementMap, int startRowNumber, int endRowNumber) throws IOException {
@@ -99,7 +99,7 @@ public class FileUtils {
 
 	public static void replaceAll(File sourceFile, File destFile, Map<String, String> regexReplacementMap, int startRowNumber, int endRowNumber) throws IOException {
 		Preconditions.checkArgument(startRowNumber >= 0);
-		Preconditions.checkArgument(endRowNumber == -1 || endRowNumber > 1);
+		Preconditions.checkArgument(endRowNumber == -1 || endRowNumber >= 1);
 
 		BufferedReader reader = new BufferedReader(new FileReader(sourceFile));
 		BufferedWriter writer = new BufferedWriter(new FileWriter(destFile));

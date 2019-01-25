@@ -9,13 +9,13 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.schema.*;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.file.ices.*;
-import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.file.FileUtils;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.importation.exception.FileValidationException;
 import net.sumaris.importation.service.DataLoaderService;
 import net.sumaris.importation.util.csv.CSVFileReader;
+import org.apache.commons.collections.primitives.ArrayShortList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +44,8 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 		@Override
 		String[] apply(DatabaseTableEnum table, String[] headers);
 	}
+
+	protected static final char DEFAULT_SEPARATOR = ',';
 
 	protected static final String MIXED_COLUMN_RECORD_TYPE = "record_type";
 
@@ -197,7 +199,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 			.put("quarter", FileIcesLandingStatistics.COLUMN_QUARTER)
 			.put("month", FileIcesLandingStatistics.COLUMN_MONTH)
 			.put("area", FileIcesLandingStatistics.COLUMN_AREA)
-			.put(",\"?rect\"?,", "," + FileIcesLandingStatistics.COLUMN_STATISTICAL_RECTANGLE + ",")
+			.put("rect", FileIcesLandingStatistics.COLUMN_STATISTICAL_RECTANGLE)
 			.put("subRect", FileIcesLandingStatistics.COLUMN_SUB_POLYGON)
 			.put("taxon", FileIcesLandingStatistics.COLUMN_SPECIES)
 			.put("landCat", FileIcesLandingStatistics.COLUMN_LANDING_CATEGORY)
@@ -226,11 +228,21 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 			.put("\"NA\"", "")
 			.put(",NA,", ",,")
 
+			// -- BEL Data
+			.put(",([0-9]{1,2})-<([0-9]{1,2}),", "$1-$2,")
+
 			// --- GBR data
-			// Convert ISO 3166-2:GB -> ISO 3166-1 alpha-3
+			// Country code ISO3166-2:GB -> ISO3166-1 alpha-3
 			.put("GB[_-]?(ENG|NIR|SCT|WLS)", "GBR")
+			// Country code ISO3166-1 alpha-2 -> ISO3166-1 alpha-3
+			.put(",BE,BE,", ",BEL,BEL,")
+			.put(",FR,FR,", ",FRA,FRA,")
+			.put(",DK,DK,", ",DNK,DNK,")
+			.put(",NL,NL,", ",NLD,NLD,")
 			// Fill metier level5 and gear_type, using metier level 6
 			.put(",([A-Z]{2,3})_([A-Z]{2,3})_0_0_0,", "$1_$2,$1_$2_0_0_0,$1,")
+			// Replace unkown metier
+			.put("XXX_XXX", "UNK_MZZ")
 
 			.build();
 
@@ -260,7 +272,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 	public void detectFormatAndLoad(File inputFile, String country, boolean validate, boolean appendData) throws IOException, FileValidationException {
 		FileUtils.checkExists(inputFile);
 
-		File tempFile = prepareFile(inputFile, null);
+		File tempFile = prepareFile(inputFile);
 
 		// Detect file format
 		CSVFileReader reader = new CSVFileReader(tempFile, true);
@@ -341,6 +353,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 			for (DatabaseTableEnum table: orderedTables) {
 				File file = files.get(table);
 				if (file != null && file.exists()) {
+					log.info("-----------------------------------------------");
 					dataLoaderService.load(file, table, validate);
 				}
 			}
@@ -375,7 +388,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
 		File tempFile = null;
 		try {
-			tempFile = prepareFile(inputFile, table);
+			tempFile = prepareFileForTable(inputFile, table, DEFAULT_SEPARATOR);
 
 			// Do load
 			dataLoaderService.load(tempFile, table, validate);
@@ -391,30 +404,61 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 		}
 	}
 
-	protected File prepareFile(File inputFile, DatabaseTableEnum table){
+	protected File prepareFileForTable(File inputFile, DatabaseTableEnum table, char separator){
+
+		File tempFile = prepareFile(inputFile, separator);
 
 		try {
 
-			// Replace in headers
-			File tempFile = FileUtils.getNewTemporaryFile(inputFile);
-			FileUtils.replaceAllInHeader(inputFile, tempFile, headerReplacements);
-
-			// Replace in lines
-			FileUtils.replaceAll(tempFile, linesReplacements, 1, -1/*all rows*/);
-
 			// If species list table
-			if (table != null && table == DatabaseTableEnum.FILE_ICES_SPECIES_LIST) {
+			if (table != null && (
+					table == DatabaseTableEnum.FILE_ICES_SPECIES_LIST
+				|| table == DatabaseTableEnum.FILE_ICES_SPECIES_LENGTH)
+			) {
 
 				// Get taxon name, to create a replacement map
 				Map<String, String> taxonNameReplacements = Maps.newHashMap();
 				for (TaxonNameVO t: taxonNameService.getAll(true)) {
-					String regexp = t.getName() + "[^,;\t\"]*,";
-					taxonNameReplacements.put(regexp, t.getLabel());
+					if (StringUtils.isNotBlank(t.getLabel())) {
+						String regexp = t.getName() + "[^,;\t\"]*" + separator;
+						String replacement = t.getLabel() + separator;
+						taxonNameReplacements.put(regexp, replacement);
+					}
 				}
 
 				// Replace in lines
 				FileUtils.replaceAll(tempFile, taxonNameReplacements, 1, -1/*all rows*/);
 			}
+
+			return tempFile;
+
+		} catch(IOException e) {
+			throw new SumarisTechnicalException("Could not preparing file: " + inputFile.getPath(), e);
+		}
+
+
+	}
+
+	protected File prepareFile(File inputFile) {
+		return prepareFile(inputFile, DEFAULT_SEPARATOR);
+	}
+
+	protected File prepareFile(File inputFile, char separator) {
+
+		try {
+			File tempFile = FileUtils.getNewTemporaryFile(inputFile);
+
+			// Replace in headers (exact match
+			Map<String, String> exactHeaderReplacements = Maps.newHashMap();
+			for (String header: headerReplacements.keySet()) {
+				String regexp = "(^|" + separator + ")\"?" + header + "\"?(" + separator + "|$)";
+				String replacement = separator + headerReplacements.get(header) + separator;
+				exactHeaderReplacements.put(regexp, replacement);
+			}
+			FileUtils.replaceAllInHeader(inputFile, tempFile, exactHeaderReplacements);
+
+			// Replace in lines
+			FileUtils.replaceAll(tempFile, linesReplacements, 1, -1/*all rows*/);
 
 			return tempFile;
 		} catch(IOException e) {
@@ -444,7 +488,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 			if (!FileUtils.isEmpty(tempFile)) {
 				tempFile = insertHeader(tempFile, table, separator, headersAdapter);
 
-				tempFile = prepareFile(tempFile, table);
+				tempFile = prepareFileForTable(tempFile, table, separator);
 
 				String recordBasename = String.format("%s-%s.%s%s", FileUtils.getNameWithoutExtension(inputFile), recordType, FileUtils.getExtension(inputFile), FileUtils.TEMPORARY_FILE_EXTENSION);
 				File recordFile = new File(inputFile.getParentFile(), recordBasename);
