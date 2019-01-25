@@ -24,13 +24,14 @@ import { IndividualMonitoringTable } from './sample/individualmonitoring/sample-
 import { MeasurementValuesForm } from './measurement/measurement-values.form.class';
 import { EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
 
-import { TripService, OperationService } from './services/trip.services';
+import {TripService, OperationService, ExtractionService} from './services/trip.services';
 
 import {
     TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService,
     MeasurementsValidatorService, BatchValidatorService, BatchGroupsValidatorService, SampleValidatorService,
     SubSampleValidatorService, SubBatchValidatorService
 } from './services/trip.validators';
+import {ExtractTable} from "./extract/extract-table.component";
 
 export { TripsPage, TripPage, MeasurementValuesForm }
 
@@ -61,7 +62,8 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         BatchesTable,
         SubBatchesTable,
         IndividualMonitoringTable,
-        EntityQualityMetadataComponent
+        EntityQualityMetadataComponent,
+        ExtractTable
     ],
     exports: [
         TripsPage,
@@ -75,7 +77,8 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         OperationPage,
         OperationTable,
         MeasurementsForm,
-        MeasurementQVFormField
+        MeasurementQVFormField,
+        ExtractTable
     ],
     entryComponents: [
         TripsPage,
@@ -86,7 +89,8 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         OperationPage,
         MeasurementsForm,
         MeasurementQVFormField,
-        MeasurementFormField
+        MeasurementFormField,
+        ExtractTable
     ],
     providers: [
         TripService,
@@ -101,7 +105,8 @@ export { TripsPage, TripPage, MeasurementValuesForm }
         SubBatchValidatorService,
         BatchGroupsValidatorService,
         SampleValidatorService,
-        SubSampleValidatorService
+        SubSampleValidatorService,
+        ExtractionService
     ]
 })
 export class TripModule {

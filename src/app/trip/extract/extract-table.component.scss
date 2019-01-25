@@ -1,0 +1,25 @@
+@import 'core';
+
+.mat-toolbar {
+  form {
+    .mat-form-field {
+      min-width: 300px;
+    }
+  }
+}
+
+mat-table  {
+  .mat-cell-numeric {
+    .ion-text {
+      text-align: end;
+    }
+  }
+
+  .mat-cell {
+    a:hover {
+      text-decoration: underline;
+      text-decoration-color: ion-color(light, base) !important;
+      cursor: pointer !important;
+    }
+  }
+}

@@ -62,7 +62,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     protected accountService: AccountService,
     protected validatorService: ReferentialValidatorService,
     protected referentialService: ReferentialService,
-    protected vesselService: VesselService,
     protected formBuilder: FormBuilder,
     protected translate: TranslateService
   ) {

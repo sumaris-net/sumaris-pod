@@ -71,6 +71,7 @@
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
     "REFERENTIALS": "Listes",
+    "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "BTN_ACCOUNT": "Compte",
     "BTN_LOGOUT": "Quitter"
@@ -422,7 +423,45 @@
       "PROGRAM": "Programme de collecte",
       "STRATEGY": "Stratégie de collecte",
       "ACQUISITION_LEVEL": "Niveau d'acquisition",
+      "TRANSCRIBING_ITEM": "Transcodage",
       "METIER": "Métier"
+    }
+  },
+  "EXTRACTION": {
+    "COMMON": {
+      "YEAR": "Année",
+      "PROJECT": "Projet",
+      "AREA": "Zone"
+    },
+    "FILTER": {
+      "CRITERION_NAME": "Colonne",
+      "CRITERION_VALUE": "Valeur",
+      "BTN_ADD_CRITERION": "Ajouter un critère de recherche"
+    },
+    "CATEGORY": {
+      "TABLE": "Extractions"
+    },
+    "TABLE": {
+      "FILE_ICES_TRIP": {
+        "TITLE": "Marées (TR)"
+      },
+      "FILE_ICES_STATION": {
+        "TITLE": "Opération de pêche (HH)"
+      },
+      "FILE_ICES_SPECIES_LIST": {
+        "TITLE": "Captures par espèce (SL)"
+      },
+      "FILE_ICES_SPECIES_LENGTH": {
+        "TITLE": "Mensuration par espèce (HL)"
+      },
+      "FILE_ICES_LANDING": {
+        "TITLE": "Statistiques de débarquement (CL)"
+      }
+
+    },
+    "ERROR": {
+      "LOAD_EXTRACTION_TYPES_ERROR": "Erreur de chargement des type d'extraction",
+      "LOAD_EXTRACTION_ROWS_ERROR": "Erreur de chargement des lignes de données."
     }
   },
   "ERROR": {

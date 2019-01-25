@@ -9,6 +9,7 @@ export const environment: Environment = {
     production: false,
     baseUrl: '/',
     remoteBaseUrl: "http://localhost:8080",
+    //remoteBaseUrl: "https://test.sumaris.net",
     defaultLocale: "en",
     defaultLatLongFormat: 'DDMM',
     version: pkg.version as string,

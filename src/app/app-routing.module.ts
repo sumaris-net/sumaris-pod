@@ -10,6 +10,7 @@ import {VesselPage} from './referential/vessel/page/page-vessel';
 import {ReferentialsPage} from './referential/list/referentials';
 import {TripPage, TripsPage} from './trip/trip.module';
 import {OperationPage} from './trip/operation/operation.page';
+import {ExtractTable} from "./trip/extract/extract-table.component";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -132,6 +133,33 @@ const routes: Routes = [
         data: {
           profile: 'USER'
         }
+      }
+    ]
+  },
+
+  {
+    path: 'extraction',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: ':category',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: '/extraction/table/file_ices_trip',
+            data: {
+              profile: 'SUPERVISOR'
+            }
+          },
+          {
+            path: ':label',
+            component: ExtractTable,
+            data: {
+              profile: 'SUPERVISOR'
+            }
+          }
+        ]
       }
     ]
   },

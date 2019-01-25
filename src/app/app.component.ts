@@ -23,6 +23,7 @@ export class AppComponent {
   menuItems: Array<MenuItem> = [
     { title: 'MENU.HOME', path: '/', icon: 'home' },
     { title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'GUEST' },
+    { title: 'MENU.EXTRACTIONS', path: '/extraction/table', icon: 'download', profile: 'SUPERVISOR' },
     { title: 'MENU.ADMINISTRATION_DIVIDER', profile: 'USER' },
     { title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN' },
     { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER' },

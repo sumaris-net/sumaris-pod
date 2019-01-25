@@ -71,6 +71,7 @@
     "USERS": "Users",
     "VESSELS": "Vessels",
     "REFERENTIALS": "Referentials",
+    "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "BTN_ACCOUNT": "Account",
     "BTN_LOGOUT": "Log out"
@@ -423,6 +424,43 @@
       "STRATEGY": "Collection strategies",
       "ACQUISITION_LEVEL": "Acquisition levels",
       "METIER": "Metiers"
+    }
+  },
+  "EXTRACTION": {
+    "COMMON": {
+      "YEAR": "Year",
+      "PROJECT": "Project",
+      "AREA": "Area"
+    },
+    "FILTER": {
+      "CRITERION_NAME": "Column",
+      "CRITERION_VALUE": "value",
+      "BTN_ADD_CRITERION": "Add a search criterion"
+    },
+    "CATEGORY": {
+      "TABLE": "Extractions"
+    },
+    "TABLE": {
+      "FILE_ICES_TRIP": {
+        "TITLE": "Trip (TR)"
+      },
+      "FILE_ICES_STATION": {
+        "TITLE": "Fishing station (HH)"
+      },
+      "FILE_ICES_SPECIES_LIST": {
+        "TITLE": "Species list (SL)"
+      },
+      "FILE_ICES_SPECIES_LENGTH": {
+        "TITLE": "Species length (HL)"
+      },
+      "FILE_ICES_LANDING": {
+        "TITLE": "Landing statistics (CL)"
+      }
+
+    },
+    "ERROR": {
+      "LOAD_EXTRACTION_TYPES_ERROR": "Error while load extraction types",
+      "LOAD_EXTRACTION_ROWS_ERROR": "Error while loading data rows."
     }
   },
   "ERROR": {
