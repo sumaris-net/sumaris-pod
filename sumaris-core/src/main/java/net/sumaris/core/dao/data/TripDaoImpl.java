@@ -73,9 +73,6 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
     private LocationDao locationDao;
 
     @Autowired
-    private OperationDao operationDao;
-
-    @Autowired
     private PersonDao personDao;
 
     @Autowired
