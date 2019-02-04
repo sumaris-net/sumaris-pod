@@ -23,7 +23,7 @@ export const DEFAULT_PAGE_SIZE = 50;
   templateUrl: './extract-table.component.html',
   styleUrls: ['./extract-table.component.scss']
 })
-export class ExtractTable /*extends AppTable<{}, {}>*/ implements OnInit {
+export class ExtractTable implements OnInit {
 
   data: ExtractionResult;
   extractionType: ExtractionType;
