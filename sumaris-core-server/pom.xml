@@ -52,6 +52,11 @@
       <artifactId>sumaris-core</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-core-extraction</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- API dependencies -->
     <dependency>

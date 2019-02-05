@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo;
+package net.sumaris.core.extraction.vo.cost;
 
 import lombok.AccessLevel;
 import lombok.Data;

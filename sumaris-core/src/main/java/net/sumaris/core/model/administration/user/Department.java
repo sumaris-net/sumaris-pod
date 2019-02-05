@@ -27,6 +27,7 @@ import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -73,6 +74,10 @@ public class Department implements IItemReferentialEntity {
 
     @Column(length = LENGTH_COMMENTS)
     private String comments;
+
+    @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
+    @JoinColumn(name = "location_fk")
+    private Location location;
 
     public String toString() {
         return label;

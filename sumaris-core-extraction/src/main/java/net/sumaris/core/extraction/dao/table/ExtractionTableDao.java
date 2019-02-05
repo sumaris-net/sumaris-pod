@@ -1,9 +1,9 @@
-package net.sumaris.core.dao.extraction.table;
+package net.sumaris.core.extraction.dao.table;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
-import net.sumaris.core.vo.extraction.ExtractionFilterVO;
-import net.sumaris.core.vo.extraction.ExtractionResultVO;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.extraction.vo.ExtractionResultVO;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo;
+package net.sumaris.core.extraction.vo.cost;
 
 import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
@@ -14,10 +14,10 @@ import java.util.List;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExtractionContextVO {
+public class ExtractionCostContextVO {
 
     long id;
-    TripFilterVO tripFilter;
+    TripFilterVO filter;
 
     String baseTableName;
     String TRTableName;
@@ -29,27 +29,27 @@ public class ExtractionContextVO {
     List<ExtractionPmfmInfoVO> pmfmInfos;
 
     public Date getStartDate() {
-        return tripFilter != null ? tripFilter.getStartDate() : null;
+        return filter != null ? filter.getStartDate() : null;
     }
 
     public Date getEndDate() {
-        return tripFilter != null ? tripFilter.getEndDate() : null;
+        return filter != null ? filter.getEndDate() : null;
     }
 
     public List<String> getProgramLabels() {
-        return tripFilter != null ? ImmutableList.of(tripFilter.getProgramLabel()) : null;
+        return filter != null ? ImmutableList.of(filter.getProgramLabel()) : null;
     }
 
     public List<Integer> getRecorderDepartmentIds() {
-        return tripFilter != null ? ImmutableList.of(tripFilter.getRecorderDepartmentId()) : null;
+        return filter != null ? ImmutableList.of(filter.getRecorderDepartmentId()) : null;
     }
 
     public List<Integer> getVesselIds() {
-        return tripFilter != null ? ImmutableList.of(tripFilter.getVesselId()) : null;
+        return filter != null ? ImmutableList.of(filter.getVesselId()) : null;
     }
 
     public List<Integer> getLocationIds() {
-        return tripFilter != null ? ImmutableList.of(tripFilter.getLocationId()) : null;
+        return filter != null ? ImmutableList.of(filter.getLocationId()) : null;
     }
 
 

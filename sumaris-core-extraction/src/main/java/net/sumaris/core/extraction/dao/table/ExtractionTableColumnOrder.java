@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.extraction.table;
+package net.sumaris.core.extraction.dao.table;
 
 import com.google.common.collect.ImmutableMap;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;

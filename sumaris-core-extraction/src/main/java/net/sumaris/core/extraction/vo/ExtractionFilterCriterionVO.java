@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.extraction;
+package net.sumaris.core.extraction.vo;
 
 /*-
  * #%L
@@ -25,16 +25,8 @@ package net.sumaris.core.vo.extraction;
 import lombok.Data;
 
 @Data
-public class ExtractionColumnMetadataVO {
+public class ExtractionFilterCriterionVO {
 
     private String name;
-
-    private String type;
-
-    private String defaultValue;
-
-    private String description;
-
-    private Integer rankOrder;
-
+    private String value;
 }

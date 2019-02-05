@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="extractionCreatePmfmTable">
+
+  <query type="create" temp="false" table="&amp;pmfmTableName">
+
+		<select alias="PARENT_ID" type="number"><![CDATA[&parentId]]></select>
+    <select alias="IS_SURVEY_MEAS" type="number">IS_SURVEY_MEAS</select>
+    <select alias="MEAS_INDIV_ID" type="number">MEAS_INDIV_ID</select>
+    <select alias="PMFM_ID" type="number">PMFM_ID</select>
+    <select alias="MEAS_NUMER_VALUE" type="number">MEAS_NUMER_VALUE</select>
+    <select alias="QUAL_VALUE_ID" type="number">QUAL_VALUE_ID</select>
+    <select alias="QUAL_VALUE_NM" type="text">QUAL_VALUE_NM</select>
+
+    <from><![CDATA[&rawTableName]]></from>
+
+    <where><![CDATA[PMFM_ID = &pmfmId]]></where>
+    <where operator="AND"><![CDATA[IS_SURVEY_MEAS = &isSurveyMeas]]></where>
+    <where operator="AND"><![CDATA[MEAS_INDIV_ID IS &measIndivId]]></where>
+
+  </query>
+
+</queries>

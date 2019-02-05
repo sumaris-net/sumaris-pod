@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.extraction.table;
+package net.sumaris.core.extraction.dao.table;
 
 /*-
  * #%L
@@ -32,13 +32,12 @@ import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisEntityTableMetadata;
-import net.sumaris.core.vo.extraction.*;
+import net.sumaris.core.extraction.vo.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.envers.query.criteria.ExtendableCriterion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 

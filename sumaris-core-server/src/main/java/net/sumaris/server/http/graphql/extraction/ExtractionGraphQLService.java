@@ -22,14 +22,14 @@ package net.sumaris.server.http.graphql.data;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.service.extraction.ExtractionService;
-import net.sumaris.core.vo.extraction.ExtractionTypeVO;
-import net.sumaris.core.vo.extraction.ExtractionFilterVO;
-import net.sumaris.core.vo.extraction.ExtractionResultVO;
-import net.sumaris.server.http.security.IsUser;
+import net.sumaris.core.extraction.service.ExtractionService;
+import net.sumaris.core.extraction.vo.ExtractionTypeVO;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,14 +51,14 @@ public class ExtractionGraphQLService {
 
     @GraphQLQuery(name = "extractionTypes", description = "Get all available extraction types")
     @Transactional(readOnly = true)
-    @IsUser
+    //@IsUser
     public List<ExtractionTypeVO> getAllExtractionTypes() {
         return extractionService.getAllTypes();
     }
 
     @GraphQLQuery(name = "extraction", description = "Extract data")
     @Transactional(readOnly = true)
-    @IsUser
+    //@IsUser
     public ExtractionResultVO getExtractionRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                                @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
@@ -66,7 +66,10 @@ public class ExtractionGraphQLService {
                                                @GraphQLArgument(name = "sortBy") String sort,
                                                @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
-        return extractionService.getRows(type, filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+        Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
+        Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
+
+        return extractionService.getRows(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
 }

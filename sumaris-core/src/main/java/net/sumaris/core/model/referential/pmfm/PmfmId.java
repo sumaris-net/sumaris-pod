@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.extraction;
+package net.sumaris.core.model.referential.pmfm;
 
 /*-
  * #%L
@@ -22,19 +22,33 @@ package net.sumaris.core.vo.extraction;
  * #L%
  */
 
-import lombok.Data;
+import java.io.Serializable;
 
-import java.util.List;
+public enum PmfmId implements Serializable  {
 
-@Data
-public class ExtractionResultVO {
+    NB_OPERATION(23);
 
-    private ExtractionTypeVO type;
+    private int id;
 
-    private List<ExtractionColumnMetadataVO> columns;
+    PmfmId(int id) {
+        this.id = id;
+    }
 
-    private List<String[]> rows;
+    /**
+     * Returns the database row id
+     *
+     * @return int the id
+     */
+    public int getId()
+    {
+        return this.id;
+    }
 
-    private Number total;
 
+    public static PmfmId valueOf(final int id) {
+        switch (id) {
+            case 23: return NB_OPERATION;
+        }
+        throw new IllegalArgumentException("Unknown PmfmId: " + id);
+    }
 }

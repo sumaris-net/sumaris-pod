@@ -1,7 +1,7 @@
 /*
  * Created on 29 juil. 2004
  */
-package net.sumaris.core.extraction.service;
+package net.sumaris.core.extraction.technical;
 
 /*-
  * #%L

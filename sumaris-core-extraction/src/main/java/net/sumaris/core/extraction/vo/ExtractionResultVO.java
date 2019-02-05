@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.extraction;
+package net.sumaris.core.extraction.vo;
 
 /*-
  * #%L
@@ -27,7 +27,14 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ExtractionFilterVO {
+public class ExtractionResultVO {
 
-    private List<ExtractionFilterCriterionVO> criteria;
+    private ExtractionTypeVO type;
+
+    private List<ExtractionColumnMetadataVO> columns;
+
+    private List<String[]> rows;
+
+    private Number total;
+
 }

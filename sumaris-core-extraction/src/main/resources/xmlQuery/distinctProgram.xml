@@ -23,7 +23,7 @@
 <queries name="extractionDistinctProgram">
 
   <query type="select" option="distinct">
-    <select alias="DISTINCT_PROGRAM_IDS" type="number">PROGRAM_ID</select>
+    <select alias="DISTINCT_PROGRAM_IDS" type="number">PROGRAM_FK</select>
     <from><![CDATA[&tableName]]></from>
   </query>
 

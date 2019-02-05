@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.extraction;
+package net.sumaris.core.extraction.vo;
 
 /*-
  * #%L
