@@ -164,8 +164,8 @@ export class ExtractTable implements OnInit {
     this.data = data;
 
     // Update columns
-    this.columns = data.columns
-    // Sort by rankOder
+    this.columns = data.columns.slice()
+      // Sort by rankOder
       .sort((col1, col2) => col1.rankOrder - col2.rankOrder)
       .map(col => col.name);
     this.displayedColumns = this.columns

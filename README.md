@@ -7,9 +7,14 @@ Technologies: SUMARiS App is an Ionic 4 + Angular 5 App.
 ## Compile from source
 
 1. Install Node.js v8+
-3. Install global dependencies: 
 ```
-npm install -g ionic@^3.20.0 cordova@^8.0.0 @angular/cli@^1.7.4
+wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+nvm use 8 
+```
+
+2. Install global dependencies: 
+```
+npm install -g ionic@^4.0.0-beta.11 cordova@^8.0.0 @angular/cli@^6.1.2
 ```
 3. Clone the repo: `git clone ...`
 4. Install project dependencies
@@ -48,3 +53,9 @@ npm run build --prod --release
 
 - Ionic 4 colors: https://www.joshmorony.com/a-primer-on-css-4-variables-for-ionic-4/
 - Migration to Ionic 4 tips: https://www.joshmorony.com/my-method-for-upgrading-from-ionic-3-to-ionic-4/
+
+
+## apt 
+```
+sudo apt-get install chromium-browser docker.io maven
+```
