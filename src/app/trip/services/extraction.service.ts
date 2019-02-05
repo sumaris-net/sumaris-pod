@@ -139,7 +139,7 @@ export class ExtractionService extends BaseDataService{
             if (this._debug) console.debug(`[extraction-service] Rows ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, res);
 
             // Compute column index
-            res.columns.forEach( (c, index) => c.index = index);
+            res.columns.forEach( (c, index) =>  c.index = index );
 
             return res;
           }
