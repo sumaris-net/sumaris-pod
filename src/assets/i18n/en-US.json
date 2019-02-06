@@ -423,10 +423,12 @@
       "PROGRAM": "Data collection programmes",
       "STRATEGY": "Collection strategies",
       "ACQUISITION_LEVEL": "Acquisition levels",
+      "TRANSCRIBING_ITEM": "Transcribing",
       "METIER": "Metiers"
     }
   },
   "EXTRACTION": {
+    "BTN_DOWNLOAD_FILE": "Download as CSV",
     "COMMON": {
       "YEAR": "Year",
       "PROJECT": "Project",
@@ -435,7 +437,12 @@
     "FILTER": {
       "CRITERION_NAME": "Column",
       "CRITERION_VALUE": "value",
-      "BTN_ADD_CRITERION": "Add a search criterion"
+      "CRITERION_START_VALUE": "Start",
+      "CRITERION_END_VALUE": "End",
+      "BTN_ADD_CRITERION": "Add a search criterion",
+      "IN": "in",
+      "NOT_IN": "not in",
+      "BETWEEN": "between"
     },
     "CATEGORY": {
       "TABLE": "Extractions"

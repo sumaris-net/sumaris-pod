@@ -6,7 +6,7 @@ import {isNil, isNotNil} from '../../shared/shared.module';
 import {TableDataSource} from "angular4-material-table";
 import {ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/extraction.model";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionService} from "../services/extraction.service";
-import {FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
@@ -14,9 +14,11 @@ import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {ModalController} from "@ionic/angular";
 import {AccountService} from "../../core/services/account.service";
 import {Location} from "@angular/common";
+import {trimEmptyToNull} from "../../shared/functions";
+import {throttleTime} from "rxjs/operators";
 
-
-export const DEFAULT_PAGE_SIZE = 50;
+export const DEFAULT_PAGE_SIZE = 20;
+export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
   selector: 'extract-table',
@@ -38,6 +40,15 @@ export class ExtractTable implements OnInit {
   dataSource: TableDataSource<ExtractionRow>;
   onRefresh = new EventEmitter<any>();
   settingsId: string;
+  operators: {symbol: String; name?: String;}[] = [
+    {symbol:'='},
+    {symbol:'!='},
+    {symbol:'>'},
+    {symbol:'>='},
+    {symbol:'<'},
+    {symbol:'<='}
+  ];
+  showHelp = true;
 
   @ViewChild(MatTable) table: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -58,9 +69,8 @@ export class ExtractTable implements OnInit {
     this.displayedColumns = []
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
     this.filterForm = formBuilder.group({
-      'extractionType': [null],
-      'criteria': formBuilder.array([]),
-      'searchText': [null]
+      'extractionType': [null, Validators.required],
+      'criteria': formBuilder.array([])
     });
 
     // Load types
@@ -94,10 +104,11 @@ export class ExtractTable implements OnInit {
 
           this.route.queryParams.first().subscribe(({q}) =>  {
             this.filterForm.get('extractionType').setValue(selectedType);
-            this.filterForm.get('searchText').setValue(q || null);
-            this.addFilterCriterion(); // Add an empty row
           })
         });
+
+        // Reset criteria
+        this.resetFilterCriteria();
 
         // Load from extraction type
         return this.load(extractionType);
@@ -107,8 +118,6 @@ export class ExtractTable implements OnInit {
   }
 
   async ngOnInit() {
-
-
 
     // If the user changes the sort order, reset back to the first page.
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
@@ -120,29 +129,67 @@ export class ExtractTable implements OnInit {
     )
       .subscribe(() => {
         if (this.loading || isNil(this.extractionType)) return; // avoid multiple load
-
-        console.debug("Refreshing...");
+        console.debug('[extract-table] Refreshing...');
         return this.load(this.extractionType);
       });
   }
 
   async load(extractionType?: ExtractionType) {
 
-    this.extractionType = extractionType || this.filterForm.controls['extractionType'].value;
-
-    this.settingsId = this.generateTableId();
-
     this.loading = true;
+    this.extractionType = extractionType || this.filterForm.controls['extractionType'].value;
+    this.settingsId = this.generateTableId();
     this.error = null;
     console.debug(`[extract-table] Loading ${this.extractionType.category} ${this.extractionType.label}`);
 
     const filter = this.filterForm.value;
     filter.criteria = (filter.criteria || [])
-      .filter(criterion => isNotNil(criterion.name) && isNotNil(criterion.value));
+      .filter(criterion => isNotNil(criterion.name) && isNotNil(trimEmptyToNull(criterion.value)))
+      .map(criterion => {
+        const isMulti = criterion.value && criterion.value.indexOf(',') != -1;
+        switch(criterion.operator) {
+          case '=':
+            if (isMulti) {
+              criterion.operator = 'IN';
+              criterion.values = (criterion.value as string)
+                .split(',')
+                .map(trimEmptyToNull)
+                .filter(isNotNil);
+              delete criterion.value;
+            }
+            break;
+          case '!=':
+            if (isMulti) {
+              criterion.operator = 'NOT IN';
+              criterion.values = (criterion.value as string)
+                .split(',')
+                .map(trimEmptyToNull)
+                .filter(isNotNil);
+              delete criterion.value;
+            }
+            break;
+          case 'BETWEEN':
+            if (isNotNil(trimEmptyToNull(criterion.endValue))) {
+              criterion.values = [criterion.value.trim(), criterion.endValue.trim()];
+            }
+            delete criterion.value;
+            break;
+        }
 
-    let data;
+        return {
+          name: criterion.name,
+          operator: criterion.operator,
+          value: criterion.value,
+          values: criterion.values
+        } as ExtractionFilterCriterion;
+      })
+      .filter(criterion => isNotNil(criterion.value) || (criterion.values && criterion.values.length))
+    ;
+
+    this.filterForm.disable();
     try {
-      data = await this.service.loadRows(this.extractionType,
+      // Load rows
+      const data = await this.service.loadRows(this.extractionType,
         this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
         this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
         this.sort && this.sort.active,
@@ -150,13 +197,16 @@ export class ExtractTable implements OnInit {
         filter
       );
 
+      // Update the view
+      await this.updateView(data)
     }
     catch(err) {
       console.error(err);
       this.error = err && err.message || err;
+      this.loading = false;
+      this.filterForm.enable();
+      this.filterForm.markAsDirty();
     }
-
-    data && await this.updateView(data)
   }
 
   async updateView(data: ExtractionResult) {
@@ -178,7 +228,12 @@ export class ExtractTable implements OnInit {
     // Update title
     await this.updateTitle();
 
-    this.dataSource.connect().first().subscribe(() => this.loading = false);
+    this.dataSource.connect().first().subscribe(() => {
+      this.loading = false;
+      this.filterForm.enable();
+      this.filterForm.markAsUntouched();
+      this.filterForm.markAsPristine();
+    });
 
   }
 
@@ -187,10 +242,12 @@ export class ExtractTable implements OnInit {
 
     extractionType = extractionType || this.filterForm.controls['extractionType'].value;
 
+    if (typeof extractionType !== 'object') return; // Skip if not an object
+
     return this.router.navigate([extractionType.category, extractionType.label], {
       relativeTo: this.route.parent.parent,
       queryParams: {
-        q: this.filterForm.value.searchText
+        q: this.getFilterAsString()
       }
     });
   }
@@ -245,9 +302,11 @@ export class ExtractTable implements OnInit {
     return message;
   }
 
-  public addFilterCriterion(criterion?: ExtractionFilterCriterion): boolean {
+  public addFilterCriterion(criterion?: ExtractionFilterCriterion, options?: {appendValue?: boolean; }): boolean {
     const control = this.filterForm.get('criteria') as FormArray;
     let hasChanged = false;
+    options = options || {};
+    options.appendValue = isNotNil(options.appendValue) ? options.appendValue : false;
 
     let existingCriterionIndex = -1;
     // Search by name on existing criteria
@@ -263,57 +322,109 @@ export class ExtractTable implements OnInit {
     // Replace the existing criterion
     if (existingCriterionIndex >= 0) {
       if (criterion && criterion.name) {
-        control.at(existingCriterionIndex).setValue({
-          name: criterion && criterion.name || null,
-          value: criterion && criterion.value || null
-        });
+        const criterionForm = control.at(existingCriterionIndex) as FormGroup;
+        const existingCriterion = criterionForm.value as ExtractionFilterCriterion;
+        options.appendValue = options.appendValue && isNotNil(criterion.value) && isNotNil(existingCriterion.value)
+          && (existingCriterion.operator == '=' || existingCriterion.operator == '!=');
+        // Append value to existing value
+        if (options.appendValue){
+          existingCriterion.value += ", " + criterion.value;
+          this.setCriterionValue(criterionForm, existingCriterion);
+        }
+        // Replace existing criterion value
+        else {
+          this.setCriterionValue(criterionForm, criterion);
+        }
         hasChanged = true;
       }
     }
+
     // Add a new criterion
     else {
       control.push(this.formBuilder.group({
         name: [criterion && criterion.name || null],
-        value: [criterion && criterion.value || null]
+        operator: [criterion && criterion.operator || '=', Validators.required],
+        value: [criterion && criterion.value || null],
+        endValue: [criterion && criterion.endValue || null]
       }));
       hasChanged = true;
     }
+
+    if (hasChanged && criterion && criterion.value) {
+      this.filterForm.markAsDirty({onlySelf: true});
+    }
+
     return hasChanged;
   }
 
-  public removeFilterCriterion(index) {
+  public hasFilterCriteria(): boolean {
+    const control = this.filterForm.get('criteria') as FormArray;
+    if (control.length > 1) return true;
+    const criterion = control.at(0).value as ExtractionFilterCriterion;
+    return trimEmptyToNull(criterion.value) && true;
+  }
+
+  public removeFilterCriterion($event: MouseEvent, index) {
     const control = this.filterForm.get('criteria') as FormArray;
 
     // Do not remove if last criterion
     if (control.length == 1) {
-      this.clearFilterCriterion(index);
+      this.clearFilterCriterion($event, index);
       return;
     }
 
     control.removeAt(index);
-    this.onRefresh.emit();
+
+    if (!$event.ctrlKey) {
+      this.onRefresh.emit();
+    }
+    else {
+      this.filterForm.markAsDirty();
+    }
   }
 
-  public clearFilterCriterion(index): boolean {
+  public clearFilterCriterion($event: MouseEvent, index): boolean {
     const control = this.filterForm.get('criteria') as FormArray;
 
     const oldValue = control.at(index).value;
     let needClear = (isNotNil(oldValue.name) || isNotNil(oldValue.value));
     if (!needClear) return false;
 
-    control.at(index).setValue({
-      name: null,
-      value: null
-    });
+    this.setCriterionValue(control.at(index), null);
 
-    this.onRefresh.emit();
+    if (!$event.ctrlKey) {
+      this.onRefresh.emit();
+    }
+    else {
+      this.filterForm.markAsDirty();
+    }
     return false;
   }
 
-  public onCellValueClick($event, column: ExtractionColumn, value: string) {
+  public resetFilterCriteria() {
+
+    // Close the filter panel
+    if (this.filterExpansionPanel && this.filterExpansionPanel.expanded) {
+      this.filterExpansionPanel.close();
+    }
+
+    // Remove all criterion
+    const control = this.filterForm.get('criteria') as FormArray;
+    while (control && control.length) {
+      control.removeAt(control.length-1);
+    }
+
+    // Add the default (empty) criterion
+    this.addFilterCriterion();
+  }
+
+  public onCellValueClick($event: MouseEvent, column: ExtractionColumn, value: string) {
     const hasChanged = this.addFilterCriterion({
       name: column.name,
+      operator: DEFAULT_CRITERION_OPERATOR,
       value: value
+    }, {
+      appendValue : $event.ctrlKey
     });
     if (!hasChanged) return;
 
@@ -321,7 +432,35 @@ export class ExtractTable implements OnInit {
       this.filterExpansionPanel.open();
     }
 
-    this.onRefresh.emit();
+    if (!$event.ctrlKey) {
+      this.onRefresh.emit();
+    }
+  }
+
+  public getI18nExtractionTypeName(type? : ExtractionType, self?: ExtractTable):string {
+    self = self || this;
+    if (isNil(type)) return undefined;
+    let key = `EXTRACTION.${type.category.toUpperCase()}.${type.label.toUpperCase()}.TITLE`;
+    let message = self.translate.instant(key);
+
+    // No I18n translation
+    if (message === key) {
+
+      // Replace underscore with space
+      message = type.label.replace(/[_-]+/g, " ").toUpperCase();
+      if (message.length > 1) {
+        // First letter as upper case
+        message = message.substring(0, 1) + message.substring(1).toLowerCase();
+      }
+    }
+    return message;
+  }
+
+  public newI18nExtractionTypeNameFn(): (type? : ExtractionType) => string {
+    const self= this;
+    return function(type? : ExtractionType): string {
+      return self.getI18nExtractionTypeName(type);
+    }
   }
 
   /* -- private method -- */
@@ -338,9 +477,21 @@ export class ExtractTable implements OnInit {
     }
   }
 
-
   private generateTableId() {
     const id = this.location.path(true).replace(/[?].*$/g, '').replace(/\/[\d]+/g, '_id') + "_" + this.constructor.name;
     return id;
+  }
+
+  private setCriterionValue(control: AbstractControl, criterion?: ExtractionFilterCriterion) {
+    control.setValue({
+      name: criterion && criterion.name || null,
+      operator: criterion && criterion.operator || DEFAULT_CRITERION_OPERATOR,
+      value: criterion && criterion.value || null,
+      endValue: criterion && criterion.endValue || null,
+    });
+  }
+
+  private getFilterAsString() {
+    return "TODO";
   }
 }

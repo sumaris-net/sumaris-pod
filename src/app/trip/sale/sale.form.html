@@ -33,7 +33,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel">
+          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel" no-padding>
             <ion-row>
               <ion-col size="3" [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
               <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
@@ -59,10 +59,8 @@
 
         <!-- Sale type combo -->
         <mat-autocomplete autoActiveFirstOption #autoSaleType="matAutocomplete" [displayWith]="entityToString">
-          <mat-option *ngFor="let saleType of saleTypes | async" [value]="saleType">
-            <ion-row>
-              <ion-col [innerHTML]="saleType.name | highlight: {search: form.controls['saleType'].value }"></ion-col>
-            </ion-row>
+          <mat-option *ngFor="let saleType of saleTypes | async" [value]="saleType"
+                      [innerHTML]="saleType.name | highlight: {search: form.controls['saleType'].value }">
           </mat-option>
         </mat-autocomplete>
       </ion-col>
@@ -82,7 +80,7 @@
         <!-- Location combo -->
         <mat-autocomplete autoActiveFirstOption #autoSaleLocation="matAutocomplete" [displayWith]="referentialToString">
           <ion-row class="mat-autocomplete-header">
-            <ion-col size="2">
+            <ion-col size="3">
               <ion-text translate>REFERENTIAL.LABEL</ion-text>
             </ion-col>
             <ion-col>
@@ -90,9 +88,9 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let location of locations | async" [value]="location">
+          <mat-option *ngFor="let location of locations | async" [value]="location" no-padding>
             <ion-row>
-              <ion-col size="2" [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
+              <ion-col size="3" [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
             </ion-row>
           </mat-option>
@@ -118,7 +116,7 @@
         <!-- Location combo -->
         <mat-autocomplete autoActiveFirstOption #autoSaleLocation="matAutocomplete" [displayWith]="displayReferential">
           <ion-row class="mat-autocomplete-header">
-            <ion-col size="2">
+            <ion-col size="3">
               <ion-text translate>REFERENTIAL.LABEL</ion-text>
             </ion-col>
             <ion-col>
@@ -126,9 +124,9 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let location of locations | async" [value]="location">
+          <mat-option *ngFor="let location of locations | async" [value]="location" no-padding>
             <ion-row>
-              <ion-col size="2" [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
+              <ion-col size="3" [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
             </ion-row>
           </mat-option>

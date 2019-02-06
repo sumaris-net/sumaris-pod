@@ -71,16 +71,16 @@
 
       <mat-autocomplete autoActiveFirstOption #autoTaxonGroup="matAutocomplete" [displayWith]="referentialToString">
         <ion-row class="mat-autocomplete-header">
-          <ion-col size="2">
+          <ion-col size="3">
             <ion-text translate>REFERENTIAL.LABEL</ion-text>
           </ion-col>
           <ion-col>
             <ion-text translate>REFERENTIAL.NAME</ion-text>
           </ion-col>
         </ion-row>
-        <mat-option *ngFor="let item of taxonNames | async" [value]="item">
+        <mat-option *ngFor="let item of taxonNames | async" [value]="item" no-padding>
           <ion-row>
-            <ion-col size="2" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
+            <ion-col size="3" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
             <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
           </ion-row>
         </mat-option>

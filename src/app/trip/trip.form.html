@@ -30,7 +30,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let item of programs | async" [value]="item">
+          <mat-option *ngFor="let item of programs | async" [value]="item" no-padding>
             <ion-row>
               <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls.program.value }"></ion-col>
               <ion-col [innerHTML]="item.name | highlight: {search: form.controls.program.value }" [title]="item.name"></ion-col>
@@ -72,7 +72,7 @@
           </ion-row>
 
 
-          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel">
+          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel" no-padding>
             <ion-row>
               <ion-col size="3" [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
               <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
@@ -105,7 +105,7 @@
         <!-- Location combo -->
         <mat-autocomplete autoActiveFirstOption #autoDepartureLocation="matAutocomplete" [displayWith]="referentialToString">
           <ion-row class="mat-autocomplete-header">
-            <ion-col size="2">
+            <ion-col size="3">
               <ion-text translate>REFERENTIAL.LABEL</ion-text>
             </ion-col>
             <ion-col>
@@ -113,9 +113,9 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let location of locations | async" [value]="location">
+          <mat-option *ngFor="let location of locations | async" [value]="location" no-padding>
             <ion-row>
-              <ion-col size="2" [innerHTML]="location.label | highlight: {search: form.controls['departureLocation'].value }"></ion-col>
+              <ion-col size="3" [innerHTML]="location.label | highlight: {search: form.controls['departureLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['departureLocation'].value }"></ion-col>
             </ion-row>
           </mat-option>
@@ -145,7 +145,7 @@
         <!-- Location combo -->
         <mat-autocomplete autoActiveFirstOption #autoReturnLocation="matAutocomplete" [displayWith]="referentialToString">
           <ion-row class="mat-autocomplete-header">
-            <ion-col size="2">
+            <ion-col size="3">
               <ion-text translate>REFERENTIAL.LABEL</ion-text>
             </ion-col>
             <ion-col>
@@ -153,9 +153,9 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let location of locations | async" [value]="location">
+          <mat-option *ngFor="let location of locations | async" [value]="location" no-padding>
             <ion-row>
-              <ion-col size="2" [innerHTML]="location.label | highlight: {search: form.controls['returnLocation'].value }"></ion-col>
+              <ion-col size="3" [innerHTML]="location.label | highlight: {search: form.controls['returnLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['returnLocation'].value }"></ion-col>
             </ion-row>
           </mat-option>

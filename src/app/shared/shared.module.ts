@@ -8,6 +8,7 @@ import {AutofocusDirective} from "./directives/autofocus.directive";
 import {DateFormatPipe} from "./pipes/date-format.pipe";
 import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
 import {LatLongFormatPipe} from "./pipes/latlong-format.pipe";
+import {NumberFormatPipe} from "./pipes/number-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
 import {ToolbarComponent} from "./toolbar/toolbar";
 import {MatDateTime} from "./material/material.datetime";
@@ -51,6 +52,7 @@ export {
         DateDiffDurationPipe,
         LatLongFormatPipe,
         HighlightPipe,
+        NumberFormatPipe,
         MatDateTime,
         MatLatLong,
         MatBooleanField,
@@ -67,6 +69,7 @@ export {
         DateDiffDurationPipe,
         LatLongFormatPipe,
         HighlightPipe,
+        NumberFormatPipe,
         TextMaskModule,
         TranslateModule,
         MatDateTime,
@@ -79,6 +82,7 @@ export {
       DateDiffDurationPipe,
       LatLongFormatPipe,
       HighlightPipe,
+      NumberFormatPipe,
       ProgressBarService,
       { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService] },
       {

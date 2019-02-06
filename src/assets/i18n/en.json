@@ -22,7 +22,8 @@
     "BTN_SEND": "Send",
     "BTN_UNDO": "Unod changes",
     "BTN_TABLE_EDIT": "Edit in the table",
-    "BTN_TABLE_OPEN": "Edit in a form",
+    "BTN_TABLE_OPEN": "Edit in a form",,
+    "BTN_SHOW_HELP": "Show help",
     "CREATED_ON": "Created on",
 
     "DATE_PATTERN": "DD/MM/YYYY",
@@ -54,6 +55,8 @@
 
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
+    "RESULT_COUNT": "{{count}} results",
+    "NO_RESULT": "No result",
 
     "DISPLAYED_COLUMNS": "Displayed columns",
 
@@ -423,19 +426,27 @@
       "PROGRAM": "Data collection programmes",
       "STRATEGY": "Collection strategies",
       "ACQUISITION_LEVEL": "Acquisition levels",
+      "TRANSCRIBING_ITEM": "Transcribing",
       "METIER": "Metiers"
     }
   },
   "EXTRACTION": {
+    "BTN_DOWNLOAD_FILE": "Download as CSV",
     "COMMON": {
       "YEAR": "Year",
       "PROJECT": "Project",
       "AREA": "Area"
     },
     "FILTER": {
+      "TITLE": "Filter criteria:",
       "CRITERION_NAME": "Column",
-      "CRITERION_VALUE": "value",
-      "BTN_ADD_CRITERION": "Add a search criterion"
+      "CRITERION_VALUE": "Value",
+      "CRITERION_START_VALUE": "Start",
+      "CRITERION_END_VALUE": "End",
+      "BTN_ADD_CRITERION": "Add a search criterion",
+      "BETWEEN": "between",
+      "NO_FILTER_PARENTHESIS": "(no filter)",
+      "WITH_FILTER_PARENTHESIS": "(filtered)"
     },
     "CATEGORY": {
       "TABLE": "Extractions"

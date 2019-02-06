@@ -3,9 +3,25 @@
 .mat-toolbar {
   form {
     .mat-form-field {
-      min-width: 300px;
+      min-width: 50px;
+      width: 300px;
     }
   }
+}
+
+.mat-form-field.operator {
+  min-width: 40px;
+  max-width: 50px;
+  text-align: center;
+}
+
+.mat-expansion-panel {
+  margin-bottom: 5px;
+
+  mat-action-row[no-padding] {
+    padding:0;
+  }
+
 }
 
 mat-table  {
@@ -13,6 +29,20 @@ mat-table  {
     .ion-text {
       text-align: end;
     }
+  }
+
+  .mat-cell-header {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mat-cell {
+    padding-left: 0.5em;
+    text-overflow: ellipsis;
+  }
+
+  .mat-column-eu_metier_level6 {
+    min-width: 120px;
   }
 
   .mat-cell {

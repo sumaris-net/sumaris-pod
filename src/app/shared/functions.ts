@@ -12,6 +12,10 @@ export function isNotNil<T>(obj: T | null | undefined): boolean {
 export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
   return obj === undefined ? null : obj;
 }
+export function trimEmptyToNull<T>(str: string | null | undefined): string | null {
+  const value = str && str.trim() || undefined;
+  return value && value.length && value || null;
+}
 
 export const toDateISOString = function (value): string | undefined {
   if (!value) return undefined;

@@ -195,7 +195,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
 
       // If dirty: save first
       if (this._dirty) {
-        console.log("[sample-table] WARN: will save table first, before reload");
+        //console.log("[sample-table] WARN: will save table first, before reload");
         this.save()
           .then(saved => {
             if (saved) {

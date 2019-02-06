@@ -228,16 +228,17 @@ mat-option ion-row {
 
 .mat-autocomplete-panel {
 
-  //--ion-grid-column-padding: 0;
   ion-row.mat-autocomplete-header {
-    --ion-grid-column-padding: 0;
     font-size: 12px;
     color: rgba(0, 0, 0, .54);
     font-weight: 500;
     height: 20px;
     line-height: 20px;
     border-bottom: 1px solid $lightBorder;
+  }
 
+  ion-row {
+    --ion-grid-column-padding: 0;
     ion-col {
       padding: 0 !important;
       padding-left: 8px !important;
@@ -246,18 +247,8 @@ mat-option ion-row {
     }
   }
 
-  .mat-option {
-    --ion-grid-column-padding: 0;
+  .mat-option[no-padding] {
     padding: 0 !important;
-
-    ion-row {
-      ion-col {
-        padding: 0 !important;
-        padding-left: 8px !important;
-        text-overflow: clip;
-        overflow: hidden;
-      }
-    }
   }
 }
 

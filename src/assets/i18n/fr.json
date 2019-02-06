@@ -23,6 +23,7 @@
     "BTN_UNDO": "Annuler les modifications",
     "BTN_TABLE_EDIT": "Editer dans le tableau",
     "BTN_TABLE_OPEN": "Editer dans un formulaire",
+    "BTN_SHOW_HELP": "Voir l'aide",
     "CREATED_ON": "Créé le ",
 
     "DATE_PATTERN": "DD/MM/YYYY",
@@ -54,6 +55,8 @@
 
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
+    "RESULT_COUNT": "{{count}} résultats",
+    "NO_RESULT": "Aucun résultat",
 
     "DISPLAYED_COLUMNS": "Colonnes visibles",
 
@@ -428,15 +431,24 @@
     }
   },
   "EXTRACTION": {
+    "BTN_DOWNLOAD_FILE": "Télécharger le fichier CSV",
+    "TYPE_PLACEHOLDER": "Type d'extraction",
     "COMMON": {
       "YEAR": "Année",
       "PROJECT": "Projet",
       "AREA": "Zone"
     },
     "FILTER": {
+      "TITLE": "Critères de recherche :",
       "CRITERION_NAME": "Colonne",
       "CRITERION_VALUE": "Valeur",
-      "BTN_ADD_CRITERION": "Ajouter un critère de recherche"
+      "CRITERION_START_VALUE": "Début",
+      "CRITERION_END_VALUE": "Fin",
+      "BTN_ADD_CRITERION": "Ajouter un critère de recherche",
+      "BETWEEN": "entre",
+      "HELP": "Pour filtrer rapidement, cliquez dans la cellule. Maintenez la touche 'Ctrl' pour filtrer sur plusieurs valeurs.",
+      "NO_FILTER_PARENTHESIS": "(non filtrés)",
+      "WITH_FILTER_PARENTHESIS": "(filtrés)"
     },
     "CATEGORY": {
       "TABLE": "Extractions"

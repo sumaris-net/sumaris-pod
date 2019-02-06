@@ -81,7 +81,7 @@
             <ion-text translate>REFERENTIAL.NAME</ion-text>
           </ion-col>
         </ion-row>
-        <mat-option *ngFor="let item of metiers | async" [value]="item">
+        <mat-option *ngFor="let item of metiers | async" [value]="item" no-padding>
           <ion-row>
             <ion-col size="2" [innerHTML]="item.label | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
             <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
