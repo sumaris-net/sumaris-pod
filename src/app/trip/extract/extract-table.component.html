@@ -28,12 +28,12 @@
       <button mat-icon-button [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
         <mat-icon>search</mat-icon>
       </button>
-      <button mat-icon-button [title]="'EXTRACTION.BTN_DOWNLOAD_FILE'|translate" (click)="downloadAsFile()">
-        <mat-icon>get_app</mat-icon>
-      </button>
-      <button mat-icon-button color="secondary" [title]="'COMMON.BTN_SHOW_HELP'|translate" (click)="showHelpModal()">
-        <mat-icon>help_outline</mat-icon>
-      </button>
+      <!--<button mat-icon-button [title]="'EXTRACTION.BTN_DOWNLOAD_FILE'|translate" (click)="downloadAsFile()">-->
+        <!--<mat-icon>get_app</mat-icon>-->
+      <!--</button>-->
+      <!--<button mat-icon-button color="secondary" [title]="'COMMON.BTN_SHOW_HELP'|translate" (click)="showHelpModal()">-->
+        <!--<mat-icon>help_outline</mat-icon>-->
+      <!--</button>-->
 
       <!-- error -->
       <ion-item *ngIf="error" hidden-xs hidden-sm>
@@ -72,7 +72,7 @@
     <form [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <div formArrayName="criteria">
-        <ng-container *ngFor="let criterionForm of filterForm.get('criteria').controls; let i=index">
+        <ng-container *ngFor="let criterionForm of filterForm.get('criteria')['controls']; let i=index">
           <ion-row [formGroupName]="i" no-padding>
 
             <!-- column name -->
