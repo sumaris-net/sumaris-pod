@@ -23,6 +23,7 @@
     "BTN_UNDO": "Unod changes",
     "BTN_TABLE_EDIT": "Edit in the table",
     "BTN_TABLE_OPEN": "Edit in a form",
+    "BTN_SHOW_HELP": "Show help",
     "CREATED_ON": "Created on",
 
     "DATE_PATTERN": "MM/DD/YYYY",
@@ -54,6 +55,8 @@
 
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
+    "RESULT_COUNT": "{{count}} results",
+    "NO_RESULT": "No result",
 
     "DISPLAYED_COLUMNS": "Displayed columns",
 
@@ -435,14 +438,15 @@
       "AREA": "Area"
     },
     "FILTER": {
+      "TITLE": "Filter criteria:",
       "CRITERION_NAME": "Column",
-      "CRITERION_VALUE": "value",
+      "CRITERION_VALUE": "Value",
       "CRITERION_START_VALUE": "Start",
       "CRITERION_END_VALUE": "End",
       "BTN_ADD_CRITERION": "Add a search criterion",
-      "IN": "in",
-      "NOT_IN": "not in",
-      "BETWEEN": "between"
+      "BETWEEN": "between",
+      "NO_FILTER_PARENTHESIS": "(no filter)",
+      "WITH_FILTER_PARENTHESIS": "(filtered)"
     },
     "CATEGORY": {
       "TABLE": "Extractions"

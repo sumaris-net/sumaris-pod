@@ -46,7 +46,8 @@ export class ExtractTable implements OnInit {
     {symbol:'>'},
     {symbol:'>='},
     {symbol:'<'},
-    {symbol:'<='}
+    {symbol:'<='},
+    {symbol:'BETWEEN', name: "EXTRACTION.FILTER.BETWEEN"}
   ];
   showHelp = true;
 

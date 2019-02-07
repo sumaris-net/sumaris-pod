@@ -89,7 +89,7 @@ export class ExtractionService extends BaseDataService{
    * @param sortDirection
    * @param filter
    */
-  loadRows(
+  async loadRows(
           type: ExtractionType,
           offset: number,
           size: number,
@@ -118,24 +118,20 @@ export class ExtractionService extends BaseDataService{
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading rows... using options:", variables);
-    return this.query<{ extraction: ExtractionResult }>({
+    const res = await this.query<{ extraction: ExtractionResult }>({
       query: LoadRowsQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_EXTRACTION_ROWS_ERROR" },
       fetchPolicy: options && options.fetchPolicy || 'network-only'
-    })
-      .then(data => {
-          const res = data && data.extraction;
-          if (res) {
-            if (this._debug) console.debug(`[extraction-service] Rows ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, res);
+    });
+    const data = res && res.extraction;
+    if (!data) return null;
 
-            // Compute column index
-            res.columns.forEach( (c, index) =>  c.index = index );
+    // Compute column index
+    data.columns.forEach( (c, index) =>  c.index = index );
+    if (this._debug) console.debug(`[extraction-service] Rows ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, res);
 
-            return res;
-          }
-          return null;
-        });
+    return data;
   }
 
 }
