@@ -398,7 +398,7 @@
         </delete>
         <insert tableName="SYSTEM_VERSION">
             <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-            <column name="LABEL">0.9.34</column>
+            <column name="LABEL">0.9.4</column>
             <column name="DESCRIPTION">
                 - Add column DEPARTMENT.LOCATION_FK
                 - Add table VALIDITY_STATUS

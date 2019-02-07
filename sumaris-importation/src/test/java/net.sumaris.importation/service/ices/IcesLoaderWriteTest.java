@@ -41,11 +41,11 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
 
         // Import FRA file
         File file = new File(basePath + "/FRA", "CL_FRA_2000-2017.csv");
-        loadLanding(file, "FRA");
+        //loadLanding(file, "FRA");
 
         // Import BEL file
         file = new File(basePath+ "/BEL", "CL_BEL-2.csv");
-        loadLanding(file, "BEL");
+        //loadLanding(file, "BEL");
 
         // Import GBR file
         file = new File(basePath+ "/GBR", "Sumaris All.txt");

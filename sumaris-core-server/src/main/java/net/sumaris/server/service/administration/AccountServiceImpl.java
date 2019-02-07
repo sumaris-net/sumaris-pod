@@ -481,7 +481,7 @@ public class AccountServiceImpl implements AccountService {
         }
         catch(Throwable e) {
             // Just log, but continue
-            log.error(new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendAdminEmailFailed", e.getMessage()), e));;
+            log.error(I18n.t("sumaris.error.account.register.sendAdminEmailFailed", e.getMessage()), new SumarisTechnicalException(e));
         }
     }
 

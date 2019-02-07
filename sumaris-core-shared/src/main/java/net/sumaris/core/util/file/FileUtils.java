@@ -3,6 +3,7 @@ package net.sumaris.core.util.file;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,9 +113,15 @@ public class FileUtils {
 
 			// Replace line content
 			if (apply) {
-				line = regexReplacementMap.keySet().stream().reduce(line, (res, regexp) ->
-						res.replaceAll(regexp, regexReplacementMap.get(regexp))
-				);
+				line = regexReplacementMap.keySet().stream().reduce(line, (res, regexp) -> {
+						try {
+							return res.replaceAll(regexp, regexReplacementMap.get(regexp));
+						} catch(Throwable t) {
+							throw new SumarisTechnicalException(
+									String.format("Error on replacement {%s}->{%s}: %s\n", regexp, regexReplacementMap.get(regexp), t.getMessage()),
+									t);
+						}
+				});
 			}
 			writer.write(line);
 			writer.newLine();

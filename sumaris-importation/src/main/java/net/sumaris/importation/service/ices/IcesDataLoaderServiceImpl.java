@@ -235,7 +235,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 			// Country code ISO3166-2:GB -> ISO3166-1 alpha-3
 			.put("GB[_-]?(ENG|NIR|SCT|WLS)", "GBR")
 			// Date format from DD/MM//YYYY -> YYYY-MM-DD
-			.put(",[0-9]{2}/[0-9]{2}/[0-9]{4},", ",$3-$2-$1,")
+			.put(",([0-9]{2})/([0-9]{2})/([0-9]{4}),", ",$3-$2-$1,")
 			// Country code ISO3166-1 alpha-2 -> ISO3166-1 alpha-3
 			.put(",BE,BE,", ",BEL,BEL,")
 			.put(",FR,FR,", ",FRA,FRA,")
