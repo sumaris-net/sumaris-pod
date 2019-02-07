@@ -593,8 +593,7 @@ public class DatabaseSchemaDaoImpl
         };
 
 
-        InputStream is = scriptResource.getInputStream();
-        try {
+        try (InputStream is = scriptResource.getInputStream()) {
             Iterator<String> lines = IOUtils.lineIterator(is, Charsets.UTF_8);
 
             while (lines.hasNext()) {
@@ -626,9 +625,7 @@ public class DatabaseSchemaDaoImpl
                     }
                 }
             }
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
+        } 
         return result;
     }
 

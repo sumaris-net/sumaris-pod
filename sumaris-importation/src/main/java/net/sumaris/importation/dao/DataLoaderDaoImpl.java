@@ -12,8 +12,8 @@ import net.sumaris.importation.service.vo.DataLoadResult;
 import net.sumaris.importation.util.csv.FileMessageFormatter;
 import net.sumaris.importation.util.csv.FileReader;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.type.BooleanType;
 import org.hibernate.type.DoubleType;
 import org.hibernate.type.FloatType;
@@ -45,8 +45,8 @@ import static net.sumaris.importation.service.vo.DataLoadError.ErrorType;
 @Repository("dataLoaderDao")
 public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoaderDao {
 
-	private static final Log log = LogFactory.getLog(DataLoaderDaoImpl.class);
-	private static final Log hibernateLog = LogFactory.getLog("org.hibernate.SQL");
+	private static final Logger log = LoggerFactory.getLogger(DataLoaderDaoImpl.class);
+	private static final Logger hibernateLog = LoggerFactory.getLogger("org.hibernate.SQL");
 
 	public final static int MAX_LOG_ERRORS = 500;
 	private final static int BATCH_ROW_COUNT = 10000;

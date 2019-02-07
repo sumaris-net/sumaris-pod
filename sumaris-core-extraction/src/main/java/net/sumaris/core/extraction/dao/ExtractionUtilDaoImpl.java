@@ -27,8 +27,8 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -52,7 +52,7 @@ import java.util.stream.Stream;
 @Repository("extractionUtilDao")
 public class ExtractionUtilDaoImpl extends HibernateDaoSupport implements ExtractionUtilDao {
 
-    private static final Log log = LogFactory.getLog(ExtractionUtilDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ExtractionUtilDaoImpl.class);
 
     @Autowired
     protected SumarisConfiguration configuration;

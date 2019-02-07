@@ -2,8 +2,8 @@ package net.sumaris.importation.service.ices;
 
 import net.sumaris.core.util.file.FileUtils;
 import net.sumaris.importation.service.AbstractServiceTest;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import java.io.File;
 
 public class IcesLoaderWriteTest extends AbstractServiceTest {
 
-    protected static final Log log = LogFactory.getLog(IcesLoaderWriteTest.class);
+    protected static final Logger log = LoggerFactory.getLogger(IcesLoaderWriteTest.class);
 
     @Autowired
     private IcesDataLoaderServiceImpl service = null;

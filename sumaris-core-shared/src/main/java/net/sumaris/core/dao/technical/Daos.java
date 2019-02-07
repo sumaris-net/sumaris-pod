@@ -32,8 +32,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.Session;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
@@ -85,7 +85,7 @@ public class Daos {
     /**
      * Logger.
      */
-    private static final Log log = LogFactory.getLog(Daos.class);
+    private static final Logger log = LoggerFactory.getLogger(Daos.class);
 
     private static final boolean debug = log.isDebugEnabled();
 

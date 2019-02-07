@@ -30,8 +30,8 @@ import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +42,7 @@ import java.util.List;
 @Transactional
 public class ExtractionGraphQLService {
 
-    private static final Log log = LogFactory.getLog(DataGraphQLService.class);
+    private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
 
     @Autowired
     private ExtractionService extractionService;

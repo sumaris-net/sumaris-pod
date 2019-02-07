@@ -36,8 +36,8 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 @Service("personService")
 public class PersonServiceImpl implements PersonService {
 
-	private static final Log log = LogFactory.getLog(PersonServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(PersonServiceImpl.class);
 
 	@Autowired
 	protected PersonDao personDao;

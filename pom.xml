@@ -131,7 +131,7 @@
     <scrypt.version>1.4.0</scrypt.version>
 
     <!-- database version management -->
-    <liquibase.version>3.5.5</liquibase.version>
+    <liquibase.version>3.6.3</liquibase.version>
     <liquibase-hibernate.version>3.6</liquibase-hibernate.version>
 
     <jmock.version>2.8.4</jmock.version>

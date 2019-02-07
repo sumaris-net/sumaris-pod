@@ -32,8 +32,8 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.http.security.IsAdmin;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +44,7 @@ import java.util.List;
 @Transactional
 public class ReferentialGraphQLService {
 
-    private static final Log log = LogFactory.getLog(ReferentialGraphQLService.class);
+    private static final Logger log = LoggerFactory.getLogger(ReferentialGraphQLService.class);
 
     @Autowired
     private ReferentialService referentialService;

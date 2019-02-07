@@ -30,8 +30,8 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
@@ -59,7 +59,7 @@ import static org.nuiton.i18n.I18n.t;
 @Configuration
 public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     /** Logger. */
-    private static final Log log = LogFactory.getLog(SumarisConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(SumarisConfiguration.class);
 
     private static final String DEFAULT_SHARED_CONFIG_FILE = "sumaris-core-shared.config";
 

@@ -38,8 +38,8 @@ import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @Service("batchService")
 public class BatchServiceImpl implements BatchService {
 
-	private static final Log log = LogFactory.getLog(BatchServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(BatchServiceImpl.class);
 
 	@Autowired
 	protected BatchDao batchDao;

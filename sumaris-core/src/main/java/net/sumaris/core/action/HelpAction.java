@@ -46,7 +46,7 @@ public class HelpAction {
 				.append("    --schema-create    --output <db_dir>    Create a new database schema").append("\n")
 				.append("    --schema-update                         Update database schema").append("\n")
 				.append("    --schema-changelog --output <file>      Generate a database changelog report (pending schema changes)").append("\n")
-				//.append("    --schema-diff      --output <file>      Generate a database schema diff report (compare database to quadrige3 data model)").append("\n")
+				//.append("    --schema-diff      --output <file>      Generate a database schema diff report (compare database and model)").append("\n")
 				.append("\n")
 				.append("with <options>:").append("\n")
 				.append(" -u --user <user>		           Database user").append("\n")

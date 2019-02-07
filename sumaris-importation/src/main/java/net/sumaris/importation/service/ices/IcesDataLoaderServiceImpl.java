@@ -18,8 +18,8 @@ import net.sumaris.importation.util.csv.CSVFileReader;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Service("icesDataLoaderService")
 public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
-	protected static final Log log = LogFactory.getLog(IcesDataLoaderServiceImpl.class);
+	protected static final Logger log = LoggerFactory.getLogger(IcesDataLoaderServiceImpl.class);
 
 	/**
 	 * Allow to override the default column headers array, on a given table

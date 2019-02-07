@@ -13,8 +13,8 @@ import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @Service("extractionService")
 public class ExtractionServiceImpl implements ExtractionService {
 
-    private static final Log LOG = LogFactory.getLog(ExtractionServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ExtractionServiceImpl.class);
 
     @Autowired
     SumarisConfiguration configuration;

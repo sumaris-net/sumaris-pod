@@ -24,8 +24,8 @@ package net.sumaris.core.dao.cache;
 
 import net.sf.ehcache.CacheManager;
 import net.sumaris.core.dao.technical.ehcache.Caches;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -43,8 +43,8 @@ public class CacheConfiguration {
     /**
      * Logger.
      */
-    protected static final Log log =
-            LogFactory.getLog(CacheConfiguration.class);
+    protected static final Logger log =
+            LoggerFactory.getLogger(CacheConfiguration.class);
 
     @Autowired(required = false)
     protected CacheManager cacheManager;

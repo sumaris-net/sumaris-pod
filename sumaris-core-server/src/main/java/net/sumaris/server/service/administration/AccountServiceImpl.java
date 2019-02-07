@@ -46,8 +46,8 @@ import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import net.sumaris.server.service.crypto.ServerCryptoService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +72,7 @@ public class AccountServiceImpl implements AccountService {
 
 
     /* Logger */
-    private static final Log log = LogFactory.getLog(AccountServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 

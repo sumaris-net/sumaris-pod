@@ -37,8 +37,8 @@ import net.sumaris.core.extraction.vo.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @Lazy
 public class ExtractionTableDaoImpl extends HibernateDaoSupport implements ExtractionTableDao {
 
-	private static final Log log = LogFactory.getLog(ExtractionTableDaoImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ExtractionTableDaoImpl.class);
 
 
 	@Autowired

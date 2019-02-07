@@ -30,10 +30,9 @@ import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,8 +48,8 @@ import java.io.IOException;
 public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
 
     /** Logger. */
-    private static final Log log =
-            LogFactory.getLog(DatabaseSchemaServiceImpl.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(DatabaseSchemaServiceImpl.class);
     
     @Autowired
 	protected SumarisConfiguration config;

@@ -35,8 +35,8 @@ import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -69,8 +69,8 @@ public abstract class HibernateDaoSupport {
     /**
      * Logger.
      */
-    protected static final Log logger =
-            LogFactory.getLog(HibernateDaoSupport.class);
+    protected static final Logger logger =
+            LoggerFactory.getLogger(HibernateDaoSupport.class);
 
     private boolean debugEntityLoad;
 

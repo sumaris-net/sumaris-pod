@@ -33,7 +33,7 @@
     <Logger name="liquibase" level="warn"/>
     <Logger name="liquibase-hibernate" level="warn"/>
 
-    <Root level="info">
+    <Root level="warn">
       <AppenderRef ref="STDOUT"/>
       <AppenderRef ref="file"/>
     </Root>

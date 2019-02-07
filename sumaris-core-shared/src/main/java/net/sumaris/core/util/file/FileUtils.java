@@ -4,8 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 public class FileUtils {
 
-	private static final Log log = LogFactory.getLog(FileUtils.class);
+	private static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
 	public static final String TEMPORARY_FILE_EXTENSION=".tmp";
 

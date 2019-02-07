@@ -26,15 +26,15 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.ImageAttachmentDao;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service("imageAttachmentService")
 public class ImageAttachmentServiceImpl implements ImageAttachmentService {
 
-	private static final Log log = LogFactory.getLog(ImageAttachmentServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ImageAttachmentServiceImpl.class);
 
 	@Autowired
 	protected ImageAttachmentDao imageAttachmentDao;

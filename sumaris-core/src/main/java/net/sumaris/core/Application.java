@@ -28,8 +28,8 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.ApplicationUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.nuiton.i18n.I18n;
 import org.nuiton.i18n.init.DefaultI18nInitializer;
 import org.nuiton.i18n.init.UserI18nInitializer;
@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
 public class Application {
 
 	/* Logger */
-	private static final Log log = LogFactory.getLog(Application.class);
+	private static final Logger log = LoggerFactory.getLogger(Application.class);
 
 	/**
 	 * <p>
@@ -117,7 +117,7 @@ public class Application {
             ConfigurableApplicationContext appContext = SpringApplication.run(Application.class, args);
             appContext.addApplicationListener(applicationEvent -> {
                 if (applicationEvent != null) {
-                    log.warn(applicationEvent);
+                    log.warn(applicationEvent.toString());
                 }
             });
 

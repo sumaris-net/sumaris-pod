@@ -27,8 +27,8 @@ import com.google.common.io.CharStreams;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +54,8 @@ import java.util.Properties;
 public class AbstractDaoTest extends net.sumaris.core.test.AbstractDaoTest {
 
 	/** Logger. */
-	private static final Log log =
-			LogFactory.getLog(AbstractDaoTest.class);
+	private static final Logger log =
+			LoggerFactory.getLogger(AbstractDaoTest.class);
 
 	@Autowired
 	protected SumarisConfiguration config;

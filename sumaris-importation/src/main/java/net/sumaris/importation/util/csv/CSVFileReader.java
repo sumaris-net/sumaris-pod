@@ -10,8 +10,8 @@ import static net.sumaris.importation.service.vo.DataLoadError.*;
 import net.sumaris.importation.service.vo.DataLoadResult;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.nuiton.i18n.I18n;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -21,7 +21,7 @@ import java.util.Arrays;
 
 public class CSVFileReader implements FileReader {
 
-	private static final Log log = LogFactory.getLog(CSVFileReader.class);
+	private static final Logger log = LoggerFactory.getLogger(CSVFileReader.class);
 
 
 	public final static int MAX_LOG_ERRORS = 500;

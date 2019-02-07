@@ -30,8 +30,8 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.VesselPositionVO;
 import net.sumaris.core.vo.data.VesselPositionVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @Service("vesselPositionService")
 public class VesselPositionServiceImpl implements VesselPositionService {
 
-	private static final Log log = LogFactory.getLog(VesselPositionServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(VesselPositionServiceImpl.class);
 
 	@Autowired
 	protected VesselPositionDao vesselPositionDao;

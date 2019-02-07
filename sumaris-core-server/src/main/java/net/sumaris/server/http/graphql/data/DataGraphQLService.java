@@ -45,8 +45,8 @@ import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,7 +61,7 @@ import java.util.Set;
 @Transactional
 public class DataGraphQLService {
 
-    private static final Log log = LogFactory.getLog(DataGraphQLService.class);
+    private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
 
     @Autowired
     private VesselService vesselService;
