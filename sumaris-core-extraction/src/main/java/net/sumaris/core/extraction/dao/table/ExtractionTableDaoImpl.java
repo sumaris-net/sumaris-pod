@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.dao.table;
  */
 
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -39,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.Query;
@@ -47,6 +49,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository("extractionTableDao")
+@Lazy
 public class ExtractionTableDaoImpl extends HibernateDaoSupport implements ExtractionTableDao {
 
 	private static final Log log = LogFactory.getLog(ExtractionTableDaoImpl.class);
@@ -221,32 +224,97 @@ public class ExtractionTableDaoImpl extends HibernateDaoSupport implements Extra
 
 	protected String getSqlWhereClause(SumarisEntityTableMetadata table, ExtractionFilterVO filter) {
 
+		if (CollectionUtils.isEmpty(filter.getCriteria())) return "";
+
 		String tableAlias = "t";
+		StringBuilder sql = new StringBuilder();
+		sql.append(" WHERE ");
 
-		String sql = "";
+		String logicalOperator = "";
 
-		if (CollectionUtils.isNotEmpty(filter.getCriteria())) {
-			sql += " WHERE 1=1";
-			for (ExtractionFilterCriterionVO criterion: filter.getCriteria()) {
+		for (ExtractionFilterCriterionVO criterion: filter.getCriteria()) {
 
-				// Get the column to filter
-				Preconditions.checkNotNull(criterion.getName());
-				SumarisColumnMetadata column = table.getColumnMetadata(criterion.getName().toLowerCase());
-				Preconditions.checkNotNull(column, String.format("Invalid criterion: '%s' is not a valid column name", criterion.getName()));
+			// Get the column to filter
+			Preconditions.checkNotNull(criterion.getName());
+			SumarisColumnMetadata column = table.getColumnMetadata(criterion.getName().toLowerCase());
+			Preconditions.checkNotNull(column, String.format("Invalid criterion: '%s' is not an existing column", criterion.getName()));
+			sql.append(String.format("%s%s.%s", logicalOperator, tableAlias, column.getName()));
 
-				if (criterion.getValue() == null) {
-					sql += String.format(" AND %s.%s IS NULL", tableAlias, column.getName());
+			// Affect logical operator, for the next criterion
+			if (StringUtils.isBlank(logicalOperator))  {
+				logicalOperator = "OR".equalsIgnoreCase(StringUtils.trim(filter.getOperator())) ? " OR " : " AND ";
+			}
+
+			ExtractionFilterOperatorEnum operator = criterion.getOperator() == null ? ExtractionFilterOperatorEnum.EQUALS :  ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
+
+			if (criterion.getValue() == null && ArrayUtils.isEmpty(criterion.getValues())) {
+				switch (operator) {
+					case NOT_IN:
+					case NOT_EQUALS:
+						sql.append(" IS NOT NULL");
+						break;
+					default:
+						sql.append(" IS NULL");
 				}
-				else {
-					if (isNumericColumn(column)) {
-						sql += String.format(" AND %s.%s = %s", tableAlias, column.getName(), criterion.getValue());
-					} else {
-						sql += String.format(" AND %s.%s = '%s'", tableAlias, column.getName(), criterion.getValue());
-					}
+			}
+			else {
+				switch (operator) {
+					case IN:
+						sql.append(String.format(" IN (%s)", getInValues(column, criterion)));
+						break;
+					case NOT_IN:
+						sql.append(String.format(" NOT IN (%s)", getInValues(column, criterion)));
+						break;
+					case EQUALS:
+						sql.append(String.format(" = %s", getSingleValue(column, criterion)));
+						break;
+					case NOT_EQUALS:
+						sql.append(String.format(" <> %s", getSingleValue(column, criterion)));
+						break;
+					case LESS_THAN:
+						sql.append(String.format(" < %s", getSingleValue(column, criterion)));
+						break;
+					case LESS_THAN_OR_EQUALS:
+						sql.append(String.format(" <= %s", getSingleValue(column, criterion)));
+						break;
+					case GREATER_THAN:
+						sql.append(String.format(" > %s", getSingleValue(column, criterion)));
+						break;
+					case GREATER_THAN_OR_EQUALS:
+						sql.append(String.format(" >= %s", getSingleValue(column, criterion)));
+						break;
+					case BETWEEN:
+						sql.append(String.format(" BETWEEN %s AND %s", getBetweenValueByIndex(column, criterion, 0), getBetweenValueByIndex(column, criterion, 1)));
+						break;
 				}
 			}
 		}
 
-		return sql;
+		return sql.toString();
 	}
+
+	protected String getSingleValue(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion) {
+		return isNumericColumn(column) ? criterion.getValue() : ("'" + criterion.getValue() + "'");
+	}
+
+	protected String getInValues(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion) {
+		if (ArrayUtils.isEmpty(criterion.getValues())) {
+			if (criterion.getValue() != null) {
+				return getSingleValue(column, criterion);
+			}
+			Preconditions.checkArgument(false, "Invalid criterion: 'values' is required for operator 'IN' or 'NOT IN'");
+		}
+		return isNumericColumn(column) ?
+				Joiner.on(',').join(criterion.getValues()) :
+				"'" + Joiner.on("','").skipNulls().join(criterion.getValues()) + "'";
+	}
+
+	protected String getBetweenValueByIndex(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion, int index) {
+		Preconditions.checkNotNull(criterion.getValues(), "Invalid criterion: 'values' is required for operator 'BETWEEN'");
+		Preconditions.checkArgument(criterion.getValues().length == 2, "Invalid criterion: 'values' array must have 2 values, for operator 'BETWEEN'");
+		Preconditions.checkArgument(index == 0 || index == 1);
+		String value = criterion.getValues()[index];
+		return isNumericColumn(column) ? value : ("'" + value + "'");
+	}
+
 }

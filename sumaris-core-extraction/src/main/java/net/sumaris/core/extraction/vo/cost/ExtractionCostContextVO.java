@@ -19,12 +19,12 @@ public class ExtractionCostContextVO {
     long id;
     TripFilterVO filter;
 
-    String baseTableName;
-    String TRTableName;
-    String HHTableName;
-    String SLTableName;
-    String HLTableName;
-    String CATableName;
+    String tripTableName;
+    String stationTableName;
+    String speciesListTableName;
+    String speciesLengthTableName;
+    String sampleTableName;
+    String survivalTestTableName;
 
     List<ExtractionPmfmInfoVO> pmfmInfos;
 

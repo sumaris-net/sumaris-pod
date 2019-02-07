@@ -15,7 +15,6 @@ import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.importation.exception.FileValidationException;
 import net.sumaris.importation.service.DataLoaderService;
 import net.sumaris.importation.util.csv.CSVFileReader;
-import org.apache.commons.collections.primitives.ArrayShortList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +48,8 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
 	protected static final String MIXED_COLUMN_RECORD_TYPE = "record_type";
 
-	protected static List<DatabaseTableEnum> orderedTables = ImmutableList.of(DatabaseTableEnum.FILE_ICES_TRIP,
+	protected static List<DatabaseTableEnum> orderedTables = ImmutableList.of(
+			DatabaseTableEnum.FILE_ICES_TRIP,
 			DatabaseTableEnum.FILE_ICES_STATION,
 			DatabaseTableEnum.FILE_ICES_SPECIES_LIST,
 			DatabaseTableEnum.FILE_ICES_SPECIES_LENGTH,
@@ -105,9 +105,9 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 					FileIcesStation.COLUMN_TIME,
 					FileIcesStation.COLUMN_FISHING_DURATION,
 					FileIcesStation.COLUMN_POS_START_LAT,
-					FileIcesStation.COLUMN_POS_START_LONG,
+					FileIcesStation.COLUMN_POS_START_LON,
 					FileIcesStation.COLUMN_POS_END_LAT,
-					FileIcesStation.COLUMN_POS_END_LONG,
+					FileIcesStation.COLUMN_POS_END_LON,
 					FileIcesStation.COLUMN_AREA,
 					FileIcesStation.COLUMN_STATISTICAL_RECTANGLE,
 					FileIcesStation.COLUMN_SUB_POLYGON,
@@ -234,6 +234,8 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 			// --- GBR data
 			// Country code ISO3166-2:GB -> ISO3166-1 alpha-3
 			.put("GB[_-]?(ENG|NIR|SCT|WLS)", "GBR")
+			// Date format from DD/MM//YYYY -> YYYY-MM-DD
+			.put(",[0-9]{2}/[0-9]{2}/[0-9]{4},", ",$3-$2-$1,")
 			// Country code ISO3166-1 alpha-2 -> ISO3166-1 alpha-3
 			.put(",BE,BE,", ",BEL,BEL,")
 			.put(",FR,FR,", ",FRA,FRA,")

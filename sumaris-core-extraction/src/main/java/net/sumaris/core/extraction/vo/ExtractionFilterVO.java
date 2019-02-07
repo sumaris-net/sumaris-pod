@@ -29,5 +29,7 @@ import java.util.List;
 @Data
 public class ExtractionFilterVO {
 
+    private String operator;
+
     private List<ExtractionFilterCriterionVO> criteria;
 }

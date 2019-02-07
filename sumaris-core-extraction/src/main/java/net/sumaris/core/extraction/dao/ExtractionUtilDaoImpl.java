@@ -30,7 +30,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -50,17 +49,16 @@ import java.util.stream.Stream;
 /**
  * @author peck7 on 28/11/2017.
  */
-@Repository("csvDao")
-@Lazy
-public class ExtractionDaoImpl extends HibernateDaoSupport implements ExtractionDao {
+@Repository("extractionUtilDao")
+public class ExtractionUtilDaoImpl extends HibernateDaoSupport implements ExtractionUtilDao {
 
-    private static final Log log = LogFactory.getLog(ExtractionDaoImpl.class);
+    private static final Log log = LogFactory.getLog(ExtractionUtilDaoImpl.class);
 
     @Autowired
     protected SumarisConfiguration configuration;
 
     @Autowired
-    public ExtractionDaoImpl() {
+    public ExtractionUtilDaoImpl() {
         super();
     }
 

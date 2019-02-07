@@ -30,7 +30,7 @@ import java.util.function.Function;
 /**
  * @author peck7 on 28/11/2017.
  */
-public interface ExtractionDao {
+public interface ExtractionUtilDao {
 
     /**
      * Constant <code>UTF8_BOM=0xFEFF</code>

@@ -8,7 +8,6 @@ import net.sumaris.core.extraction.dao.cost.ExtractionCostDao;
 import net.sumaris.core.extraction.dao.table.ExtractionTableDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
-import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.vo.cost.ExtractionCostContextVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
@@ -36,9 +35,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Autowired
     ExtractionCostDao extractionCostDao;
-
-    @Autowired
-    ExtractionDao extractionDao;
 
     @Autowired
     protected ExtractionTableDao extractionTableDao;

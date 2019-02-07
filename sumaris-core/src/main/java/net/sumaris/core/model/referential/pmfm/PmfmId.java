@@ -26,7 +26,9 @@ import java.io.Serializable;
 
 public enum PmfmId implements Serializable  {
 
-    NB_OPERATION(23);
+    NB_OPERATION(23),
+    BOTTOM_DEPTH_M(30)
+    ;
 
     private int id;
 

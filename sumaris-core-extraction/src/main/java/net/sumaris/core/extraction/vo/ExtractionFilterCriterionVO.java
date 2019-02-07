@@ -28,5 +28,7 @@ import lombok.Data;
 public class ExtractionFilterCriterionVO {
 
     private String name;
+    private String operator;
     private String value;
+    private String[] values;
 }

@@ -6,7 +6,7 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Dates;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.dao.ExtractionDao;
+import net.sumaris.core.extraction.dao.ExtractionUtilDao;
 import net.sumaris.core.extraction.dao.table.ExtractionTableDao;
 import net.sumaris.core.extraction.technical.XMLQuery;
 import net.sumaris.core.extraction.vo.cost.ExtractionCostContextVO;
@@ -21,7 +21,8 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Repository;
 
 import java.net.URL;
 import java.util.*;
@@ -32,7 +33,8 @@ import static org.nuiton.i18n.I18n.t;
 /**
  * @author peck7 on 17/12/2018.
  */
-@Service("extractionCostDao")
+@Repository("extractionCostDao")
+@Lazy
 public class ExtractionCostDaoImpl implements ExtractionCostDao {
 
     private static final Log LOG = LogFactory.getLog(ExtractionCostDaoImpl.class);
@@ -40,13 +42,12 @@ public class ExtractionCostDaoImpl implements ExtractionCostDao {
     private static final String XML_QUERY_PATH = "xmlQuery";
 
     private static final String TABLE_NAME_PREFIX = "EXT_";
-    private static final String BASE_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "B%s";
-    private static final String PMFM_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "P%s_%s";
     private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "TR%s";
     private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "HH%s";
     private static final String SL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "SL%s";
     private static final String HL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "HL%s";
     private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "CA%s";
+    private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "ST%s";
 
     @Autowired
     SumarisConfiguration configuration;
@@ -55,7 +56,7 @@ public class ExtractionCostDaoImpl implements ExtractionCostDao {
     private StrategyService strategyService;
 
     @Autowired
-    ExtractionDao extractionDao;
+    ExtractionUtilDao utilDao;
 
     @Autowired
     XMLQuery xmlQuery;
@@ -78,31 +79,37 @@ public class ExtractionCostDaoImpl implements ExtractionCostDao {
             }
         }
 
+        // Init the extraction context
         ExtractionCostContextVO context = new ExtractionCostContextVO();
         context.setFilter(filter);
         context.setId(System.currentTimeMillis());
-        context.setBaseTableName(String.format(BASE_TABLE_NAME_PATTERN, context.getId()));
-        context.setTRTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
+        context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
+        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
+        context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
 
-        long nbRowsInserted = createBaseTable(context);
+        // Fill the trip table
+        long rowCount = createTripTable(context);
+        if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
+        LOG.debug(String.format("Trip table: %s rows inserted", rowCount));
 
-        LOG.debug(String.format("Base table: %s rows inserted", nbRowsInserted));
-        if (nbRowsInserted == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
-
-        // get programs
-        List<Integer> programIds = getProgramIds(context);
-        LOG.debug("Detected program ids: " + programIds);
+        // Get programs
+        List<Integer> programIds = getTripProgramIds(context);
         Preconditions.checkArgument(CollectionUtils.isNotEmpty(programIds));
+        LOG.debug("Detected program ids: " + programIds);
 
-        // Get pmfm strategies
+        // Get PMFMs, from program strategies
         MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId = new ArrayListValuedHashMap<>();
         for (Integer programId : programIds) {
             pmfmStrategiesByProgramId.putAll(programId, strategyService.getPmfmStrategies(programId));
         }
+        List<ExtractionPmfmInfoVO> pmfmInfos = getPmfmInfos(context, pmfmStrategiesByProgramId);
+        context.setPmfmInfos(pmfmInfos);
 
-        // Get pmfms
-        buildPmfmInfos(context, pmfmStrategiesByProgramId);
-
+        // Create station table
+        createStationTable(context);
 
         return context;
 
@@ -134,7 +141,7 @@ public class ExtractionCostDaoImpl implements ExtractionCostDao {
     /* -- private methods -- */
 
 
-    private void buildPmfmInfos(ExtractionCostContextVO context, MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId) {
+    private List<ExtractionPmfmInfoVO> getPmfmInfos(ExtractionCostContextVO context, MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId) {
 
         Map<String, String> acquisitionLevelAliases = buildAcquisitionLevelAliases(
                 pmfmStrategiesByProgramId.values().stream().map(PmfmStrategyVO::getAcquisitionLevel).collect(Collectors.toSet()));
@@ -150,12 +157,12 @@ public class ExtractionCostDaoImpl implements ExtractionCostDao {
                 pmfmInfo.setRankOrder(pmfmStrategy.getRankOrder());
 
                 pmfmInfo.setAlias(acquisitionLevelAliases.get(pmfmInfo.getAcquisitionLevel()) + pmfmInfo.getPmfmId());
-                pmfmInfo.setTableName(String.format(PMFM_TABLE_NAME_PATTERN, context.getId(), pmfmInfo.getAlias()));
+                //pmfmInfo.setTableName(String.format(PMFM_TABLE_NAME_PATTERN, context.getId(), pmfmInfo.getAlias()));
                 pmfmInfos.add(pmfmInfo);
             }
         }
 
-        context.setPmfmInfos(pmfmInfos);
+        return pmfmInfos;
     }
 
     private Map<String, String> buildAcquisitionLevelAliases(Set<String> acquisitionLevels) {
@@ -181,20 +188,20 @@ public class ExtractionCostDaoImpl implements ExtractionCostDao {
         return result.toString();
     }
 
-    private List<Integer> getProgramIds(ExtractionCostContextVO context) {
+    private List<Integer> getTripProgramIds(ExtractionCostContextVO context) {
 
         XMLQuery xmlQuery = createXMLQuery("distinctProgram");
-        xmlQuery.bind("tableName", context.getBaseTableName());
+        xmlQuery.bind("tableName", context.getTripTableName());
 
-        return extractionDao.query(xmlQuery.getSQLQueryAsString(), Integer.class);
+        return utilDao.query(xmlQuery.getSQLQueryAsString(), Integer.class);
     }
 
-    private long createBaseTable(ExtractionCostContextVO context) {
+    private long createTripTable(ExtractionCostContextVO context) {
 
-        XMLQuery xmlQuery = createXMLQuery("cost/createBaseTable");
-        xmlQuery.bind("baseTableName", context.getBaseTableName());
+        XMLQuery xmlQuery = createXMLQuery("cost/createTripTable");
+        xmlQuery.bind("tripTableName", context.getTripTableName());
 
-        // Bind usefull PmfmIds
+        // Bind some PMFM ids
         xmlQuery.bind("nbOperationPmfmId", String.valueOf(PmfmId.NB_OPERATION.getId()));
 
         // Date filters
@@ -222,48 +229,34 @@ public class ExtractionCostDaoImpl implements ExtractionCostDao {
         // execute insertion
         execute(xmlQuery);
 
-        return countFrom(context.getBaseTableName());
+        return countFrom(context.getTripTableName());
     }
 
-    private long createPmfmTables(ExtractionCostContextVO context) {
+    private long createStationTable(ExtractionCostContextVO context) {
 
-        long rowCount = 0;
-        for (ExtractionPmfmInfoVO pmfmInfo: context.getPmfmInfos()) {
+        XMLQuery xmlQuery = createXMLQuery("cost/createStationTable");
+        xmlQuery.bind("tripTableName", context.getTripTableName());
+        xmlQuery.bind("stationTableName", context.getStationTableName());
 
-            XMLQuery xmlQuery = createXMLQuery("cost/createPmfmTable");
-            xmlQuery.bind("pmfmTableName", pmfmInfo.getTableName());
-            xmlQuery.bind("baseTableName", context.getBaseTableName());
-            //xmlQuery.bind("parentId", pmfmInfo.isSurvey() ? "SURVEY_ID" : "SAMPLING_OPER_ID");
-            xmlQuery.bind("pmfmId", String.valueOf(pmfmInfo.getPmfmId()));
-            //xmlQuery.bind("isSurveyMeas", pmfmInfo.isSurvey() ? "1" : "0");
-            //xmlQuery.bind("measIndivId", pmfmInfo.isIndividual() ? "NOT NULL" : "NULL");
+        // Bind some PMFM ids
+        //xmlQuery.bind("fishingDepthPmfmId", String.valueOf(PmfmId.FISHING_DEPTH.getId()));
+        xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmId.BOTTOM_DEPTH_M.getId()));
 
-            execute(xmlQuery);
 
-            // Count inserted data
-            long nbRowsInserted = countFrom(pmfmInfo.getTableName());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("%s rows of pmfm raw data inserted into %s", nbRowsInserted, pmfmInfo.getTableName()));
-            }
-            rowCount += nbRowsInserted;
+        // execute insertion
+        execute(xmlQuery);
 
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("%s rows of pmfm raw data inserted", rowCount));
-        }
-
-        return rowCount;
+        return countFrom(context.getStationTableName());
     }
 
     private int execute(XMLQuery xmlQuery) {
-        return extractionDao.queryUpdate(xmlQuery.getSQLQueryAsString());
+        return utilDao.queryUpdate(xmlQuery.getSQLQueryAsString());
     }
 
     private long countFrom(String tableName) {
         XMLQuery xmlQuery = createXMLQuery("countFrom");
         xmlQuery.bind("tableName", tableName);
-        return extractionDao.queryCount(xmlQuery.getSQLQueryAsString());
+        return utilDao.queryCount(xmlQuery.getSQLQueryAsString());
     }
 
     private XMLQuery createXMLQuery(String queryName) {

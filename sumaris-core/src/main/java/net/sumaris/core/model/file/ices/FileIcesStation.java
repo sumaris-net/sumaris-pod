@@ -52,9 +52,9 @@ public class FileIcesStation implements Serializable, IEntityBean<Integer> {
     public static final String COLUMN_TIME = "time";
     public static final String COLUMN_FISHING_DURATION = "fishing_duration";
     public static final String COLUMN_POS_START_LAT = "pos_start_lat";
-    public static final String COLUMN_POS_START_LONG = "pos_start_long";
+    public static final String COLUMN_POS_START_LON = "pos_start_lon";
     public static final String COLUMN_POS_END_LAT = "pos_end_lat";
-    public static final String COLUMN_POS_END_LONG = "pos_end_long";
+    public static final String COLUMN_POS_END_LON = "pos_end_lon";
     public static final String COLUMN_AREA = "area";
     public static final String COLUMN_STATISTICAL_RECTANGLE = "statistical_rectangle";
     public static final String COLUMN_SUB_POLYGON = "sub_polygon";
@@ -118,13 +118,13 @@ public class FileIcesStation implements Serializable, IEntityBean<Integer> {
     @Column(scale=9, precision=7, name = COLUMN_POS_START_LAT)
     private Double positionStartLatitude;
 
-    @Column(scale=10, precision=7, name = COLUMN_POS_START_LONG)
+    @Column(scale=10, precision=7, name = COLUMN_POS_START_LON)
     private Double positionStartLongitude;
 
     @Column(scale=9, precision=7, name = COLUMN_POS_END_LAT)
     private Double positionEndLatitude;
 
-    @Column(scale=10, precision=7, name = COLUMN_POS_END_LONG)
+    @Column(scale=10, precision=7, name = COLUMN_POS_END_LON)
     private Double positionEndLongitude;
 
     @Column(nullable = false, length = 25, name = COLUMN_AREA)

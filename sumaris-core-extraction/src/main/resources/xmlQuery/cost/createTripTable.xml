@@ -20,22 +20,19 @@
   #L%
   -->
 
-<queries name="extractionCreateBaseTable">
+<queries name="extractionCreateTripTable">
 
-  <query type="create" temp="false" table="&amp;baseTableName">
+  <query type="create" temp="false" table="&amp;tripTableName">
 
     <!-- PK -->
-    <!--<select alias="RECORD_TYPE" type="text">'TR'</select>-->
-    <select alias="SAMPLE_TYPE" type="text">'S'</select>
+    <select alias="RECORD_TYPE" type="text">'TR'</select>
+    <select alias="SAMPLING_TYPE" type="text">'S'</select>
     <select alias="LANDING_COUNTRY" type="text">PL.LABEL</select>
     <select alias="VESSEL_COUNTRY" type="text">VL.LABEL</select>
     <select alias="YEAR" type="number">EXTRACT(YEAR FROM T.RETURN_DATE_TIME)</select>
     <select alias="PROGRAM_FK" type="number">P.ID</select>
-    <select alias="PROGRAM_LABEL" type="text">P.LABEL</select>
-    <select alias="TRIP_FK" type="number">T.ID</select>
-
-    <select alias="OPERATION_FK" type="number">O.ID</select>
-    <select alias="BATCH_FK" type="number">B.ID</select>
+    <select alias="PROJECT" type="text">P.LABEL</select>
+    <select alias="TRIP_CODE" type="number">T.ID</select>
 
     <!-- other fields -->
     <select alias="VESSEL_LENGTH" type="number">CAST(VF.LENGTH_OVER_ALL AS DOUBLE) / 100</select>
@@ -71,11 +68,6 @@
     <from join="true">INNER JOIN DEPARTMENT D on D.ID = T.RECORDER_DEPARTMENT_FK</from>
     <from join="true">INNER JOIN LOCATION_HIERARCHY DLH on DLH.CHILD_LOCATION_FK = D.LOCATION_FK</from>
     <from join="true">INNER JOIN LOCATION DL ON DL.ID = DLH.PARENT_LOCATION_FK AND DL.LOCATION_LEVEL_FK = 1</from>
-
-    <!-- operation -->
-    <from join="true">LEFT OUTER JOIN OPERATION O ON O.TRIP_FK = T.ID</from>
-    <!-- batch -->
-    <from join="true">LEFT OUTER JOIN BATCH B ON B.OPERATION_FK = O.ID</from>
 
     <where group="startDateFilter"><![CDATA[T.RETURN_DATE_TIME >= &startDate]]></where>
     <where operator="AND" group="endDateFilter"><![CDATA[T.DEPARTURE_DATE_TIME <= &endDate]]></where>
