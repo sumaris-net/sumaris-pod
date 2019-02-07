@@ -2,6 +2,7 @@ package net.sumaris.importation.service.ices;
 
 import net.sumaris.core.util.file.FileUtils;
 import net.sumaris.importation.service.AbstractServiceTest;
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.junit.Assert;
@@ -35,9 +36,9 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
     }
 
     @Test
+    //@Ignore
     public void loadAll() {
-        //String basePath = "src/test/data/import/";
-        String basePath = "/home/blavenie/Documents/sumaris/data/";
+        String basePath = System.getProperty("user.home") + "/Documents/sumaris/data/";
 
         // Import FRA file
         File file = new File(basePath + "/FRA", "CL_FRA_2000-2017.csv");
