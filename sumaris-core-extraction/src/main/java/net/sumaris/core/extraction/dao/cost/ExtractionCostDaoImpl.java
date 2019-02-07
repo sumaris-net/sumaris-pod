@@ -67,15 +67,15 @@ public class ExtractionCostDaoImpl implements ExtractionCostDao {
     @Override
     public ExtractionCostContextVO execute(TripFilterVO filter) {
 
-        if (LOG.isInfoEnabled()) {
-            LOG.info(String.format("Beginning extraction %s", filter == null ? "without filter" : "with filters:"));
+        if (log.isInfoEnabled()) {
+            log.info(String.format("Beginning extraction %s", filter == null ? "without filter" : "with filters:"));
             if (filter != null) {
-                LOG.info(String.format("Program label: %s", filter.getProgramLabel()));
-                LOG.info(String.format("  Location Id: %s", filter.getLocationId()));
-                LOG.info(String.format("   Start date: %s", filter.getStartDate()));
-                LOG.info(String.format("     End date: %s", filter.getEndDate()));
-                LOG.info(String.format("    Vessel Id: %s", filter.getVesselId()));
-                LOG.info(String.format("    RecDep Id: %s", filter.getRecorderDepartmentId()));
+                log.info(String.format("Program label: %s", filter.getProgramLabel()));
+                log.info(String.format("  Location Id: %s", filter.getLocationId()));
+                log.info(String.format("   Start date: %s", filter.getStartDate()));
+                log.info(String.format("     End date: %s", filter.getEndDate()));
+                log.info(String.format("    Vessel Id: %s", filter.getVesselId()));
+                log.info(String.format("    RecDep Id: %s", filter.getRecorderDepartmentId()));
             }
         }
 
@@ -93,12 +93,12 @@ public class ExtractionCostDaoImpl implements ExtractionCostDao {
         // Fill the trip table
         long rowCount = createTripTable(context);
         if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
-        LOG.debug(String.format("Trip table: %s rows inserted", rowCount));
+        log.debug(String.format("Trip table: %s rows inserted", rowCount));
 
         // Get programs
         List<Integer> programIds = getTripProgramIds(context);
         Preconditions.checkArgument(CollectionUtils.isNotEmpty(programIds));
-        LOG.debug("Detected program ids: " + programIds);
+        log.debug("Detected program ids: " + programIds);
 
         // Get PMFMs, from program strategies
         MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId = new ArrayListValuedHashMap<>();

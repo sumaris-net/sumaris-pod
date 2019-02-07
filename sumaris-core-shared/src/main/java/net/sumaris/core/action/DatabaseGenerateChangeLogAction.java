@@ -49,23 +49,10 @@ public class DatabaseGenerateChangeLogAction {
      */
     public void run() {
         SumarisConfiguration config = SumarisConfiguration.getInstance();
-        
-        if (log.isInfoEnabled()) {            
-            log.info("Starting change log file generation...");        
-        }
-        ActionUtils.logConnectionProperties();
-
-        boolean isValidConnection = Daos.isValidConnectionProperties(config.getJdbcDriver(),
-                config.getJdbcURL(),
-                config.getJdbcUsername(),
-                config.getJdbcPassword()); 
-
-        if (!isValidConnection) {
-            log.warn("Connection error: could not generate changelog file.");
-            return;
-        }
-
         DatabaseSchemaService service = ServiceLocator.instance().getDatabaseSchemaService();
+
+        log.info("Starting change log file generation...");
+        ActionUtils.logConnectionProperties();
 
         // Check if database is well loaded
         if (!service.isDbLoaded()) {
@@ -81,7 +68,7 @@ public class DatabaseGenerateChangeLogAction {
 
             Version modelVersion = config.getVersion();
             log.info("Model version is: " + modelVersion.toString());
-        } catch (VersionNotFoundException e) {
+        } catch (SumarisTechnicalException e) {
             log.error("Error while getting versions.", e);
         }
 

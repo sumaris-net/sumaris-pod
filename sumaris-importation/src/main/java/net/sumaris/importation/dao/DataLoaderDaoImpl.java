@@ -745,7 +745,7 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 					log.error(error.getDescription());
 					break;
 				case FATAL:
-					log.fatal(error.getDescription());
+					log.error(error.getDescription());
 					break;
 			}
 		}

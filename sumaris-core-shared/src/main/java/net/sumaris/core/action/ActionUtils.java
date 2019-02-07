@@ -183,4 +183,22 @@ public class ActionUtils {
         }
         return I18n.t("sumaris.action.current");
     }
+
+    public static boolean checkValidConnection() {
+        SumarisConfiguration config = SumarisConfiguration.getInstance();
+
+        ActionUtils.logConnectionProperties();
+
+        boolean isValidConnection = Daos.isValidConnectionProperties(config.getJdbcDriver(),
+                config.getJdbcURL(),
+                config.getJdbcUsername(),
+                config.getJdbcPassword());
+
+        if (!isValidConnection) {
+            log.warn("Connection error: invalid connection.");
+            return false;
+        }
+
+        return true;
+    }
 }

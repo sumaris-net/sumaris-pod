@@ -54,12 +54,8 @@ public class DatabaseSchemaServiceTest extends AbstractServiceTest {
     public void updateSchema() {
         service.updateSchema();
 
-        try {
-            Version dbVersion = service.getDbVersion();
-            log.debug("DB version is now: " + dbVersion.toString());
-        } catch(VersionNotFoundException e) {
-            throw new SumarisTechnicalException(e);
-        }
+        Version dbVersion = service.getDbVersion();
+        log.debug("DB version is now: " + dbVersion.toString());
     }
 
     @Test

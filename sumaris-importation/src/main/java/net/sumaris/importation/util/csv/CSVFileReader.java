@@ -218,7 +218,7 @@ public class CSVFileReader implements FileReader {
 					log.error(error.getDescription());
 					break;
 				case FATAL:
-					log.fatal(error.getDescription());
+					log.error(error.getDescription());
 					break;
 			}
 		}

@@ -40,6 +40,7 @@ import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfigura
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -116,8 +117,8 @@ public class Application {
             // Start Spring boot
             ConfigurableApplicationContext appContext = SpringApplication.run(Application.class, args);
             appContext.addApplicationListener(applicationEvent -> {
-                if (applicationEvent != null) {
-                    log.warn(applicationEvent.toString());
+                if (applicationEvent != null && applicationEvent instanceof ContextClosedEvent) {
+					log.info("Application closed");
                 }
             });
 

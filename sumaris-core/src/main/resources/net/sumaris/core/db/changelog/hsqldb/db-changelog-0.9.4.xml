@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.9.3.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="LOCATION_ASSOCIATION"/>
+            </not>
+        </preConditions>
+        <createTable tableName="LOCATION_ASSOCIATION" >
+            <column name="child_location_fk" type="integer" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="child_surface_ratio" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_location_fk" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <primaryKeyExists tableName="location_association"/>
+            </not>
+        </preConditions>
+        <addPrimaryKey tableName="location_association"
+                       columnNames="child_location_fk, parent_location_fk" constraintName="SYS_PK_10372" />
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-3" failOnError="false">
+        <preConditions>
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK7JV79P5RQEF9AQORETVKPY83W"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="child_location_fk" baseTableName="location_association"
+                                 constraintName="FK7JV79P5RQEF9AQORETVKPY83W"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-4" failOnError="false">
+        <preConditions>
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FKBD0EM4DEQNADDIL9DNSNQ655"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="parent_location_fk" baseTableName="location_association"
+                                 constraintName="FKBD0EM4DEQNADDIL9DNSNQ655"
+                                 deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-5">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="department" columnName="location_fk"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="department">
+            <column name="location_fk" type="integer"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="blavenie (generated)" id="1549028598312-6">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="validity_status"/>
+            </not>
+        </preConditions>
+        <createTable tableName="validity_status">
+            <column autoIncrement="true" name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="validity_statusPK"/>
+            </column>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ICES file table -->
+    <changeSet author="blavenie (generated)" id="1549028598312-7">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="file_ices_landing_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="file_ices_landing_seq"/>
+    </changeSet>
+    <changeSet author="blavenie (generated)" id="1549028598312-8">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="file_ices_species_length_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="file_ices_species_length_seq"/>
+    </changeSet>
+    <changeSet author="blavenie (generated)" id="1549028598312-9">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="file_ices_species_list_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="file_ices_species_list_seq"/>
+    </changeSet>
+    <changeSet author="blavenie (generated)" id="1549028598312-10">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="file_ices_station_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="file_ices_station_seq"/>
+    </changeSet>
+    <changeSet author="blavenie (generated)" id="1549028598312-11">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="file_ices_trip_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="file_ices_trip_seq"/>
+    </changeSet>
+
+    <changeSet author="blavenie (generated)" id="1549028598312-12">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="file_ices_landing"/>
+            </not>
+        </preConditions>
+        <createTable tableName="file_ices_landing">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="file_ices_landingPK"/>
+            </column>
+            <column name="area" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comm_size_cat" type="VARCHAR(25)"/>
+            <column name="comm_size_cat_scale" type="VARCHAR(25)"/>
+            <column name="harbour" type="VARCHAR(25)"/>
+            <column name="landing_category" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="landing_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="landings_multiplier" type="DOUBLE"/>
+            <column name="official_landings_value" type="DOUBLE"/>
+            <column name="official_landings_weight" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="eu_metier_level5" type="VARCHAR(25)"/>
+            <column name="eu_metier_level6" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="area_misreported_catch_weight" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="month" type="INT"/>
+            <column name="national_metier" type="VARCHAR(25)"/>
+            <column name="quarter" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="species" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="statistical_rectangle" type="VARCHAR(25)"/>
+            <column name="sub_polygon" type="VARCHAR(25)"/>
+            <column name="unallocated_catch_weight" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vessel_flag_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vessel_length_cat" type="VARCHAR(25)"/>
+            <column name="year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="blavenie (generated)" id="1549028598312-13">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="file_ices_species_length"/>
+            </not>
+        </preConditions>
+        <createTable tableName="file_ices_species_length">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="file_ices_species_lengthPK"/>
+            </column>
+            <column name="catch_category" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comm_size_cat" type="VARCHAR(25)"/>
+            <column name="comm_size_cat_scale" type="VARCHAR(25)"/>
+            <column name="individual_sex" type="VARCHAR(1)"/>
+            <column name="landing_category" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="landing_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="length_class" type="INT"/>
+            <column name="number_at_length" type="INT"/>
+            <column name="project" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sampling_type" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sex" type="VARCHAR(1)"/>
+            <column name="species" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="station_number" type="INT"/>
+            <column name="subsampling_category" type="VARCHAR(25)"/>
+            <column name="trip_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vessel_flag_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="blavenie (generated)" id="1549028598312-14">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="file_ices_species_list"/>
+            </not>
+        </preConditions>
+        <createTable tableName="file_ices_species_list">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="file_ices_species_listPK"/>
+            </column>
+            <column name="catch_category" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comm_size_cat" type="VARCHAR(25)"/>
+            <column name="comm_size_cat_scale" type="VARCHAR(25)"/>
+            <column name="landing_category" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="landing_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="length_code" type="VARCHAR(5)"/>
+            <column name="project" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sampling_type" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sex" type="VARCHAR(1)"/>
+            <column name="species" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="station_number" type="INT"/>
+            <column name="subsampling_category" type="VARCHAR(25)"/>
+            <column name="subsampling_weight" type="DOUBLE"/>
+            <column name="trip_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vessel_flag_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="weight" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="blavenie (generated)" id="1549028598312-15">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="file_ices_station"/>
+            </not>
+        </preConditions>
+        <createTable tableName="file_ices_station">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="file_ices_stationPK"/>
+            </column>
+            <column name="aggregation_level" type="VARCHAR(1)"/>
+            <column name="area" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="catch_registration" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="VARCHAR(10)"/>
+            <column name="fishing_duration" type="INT"/>
+            <column name="fishing_validity" type="VARCHAR(1)"/>
+            <column name="gear_type" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="landing_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="main_fishing_depth" type="INT"/>
+            <column name="main_water_depth" type="INT"/>
+            <column name="mesh_size" type="INT"/>
+            <column name="mesh_size_selection_device" type="INT"/>
+            <column name="eu_metier_level5" type="VARCHAR(25)"/>
+            <column name="eu_metier_level6" type="VARCHAR(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="national_metier" type="VARCHAR(25)"/>
+            <column name="pos_end_lat" type="DOUBLE"/>
+            <column name="pos_end_lon" type="DOUBLE"/>
+            <column name="pos_start_lat" type="DOUBLE"/>
+            <column name="pos_start_lon" type="DOUBLE"/>
+            <column name="project" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sampling_type" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="selection_device" type="INT"/>
+            <column name="species_registration" type="VARCHAR(25)"/>
+            <column name="station_number" type="INT"/>
+            <column name="statistical_rectangle" type="VARCHAR(25)"/>
+            <column name="sub_polygon" type="VARCHAR(25)"/>
+            <column name="time" type="VARCHAR(8)"/>
+            <column name="trip_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vessel_flag_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="blavenie (generated)" id="1549028598312-16">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="file_ices_trip"/>
+            </not>
+        </preConditions>
+        <createTable tableName="file_ices_trip">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="file_ices_tripPK"/>
+            </column>
+            <column name="days_at_sea" type="INT"/>
+            <column name="harbour" type="VARCHAR(50)"/>
+            <column name="landing_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number_hauls" type="INT"/>
+            <column name="project" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sampling_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sampling_method" type="VARCHAR(50)"/>
+            <column name="sampling_type" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trip_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vessel_flag_country" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="vessel_identifier" type="INT"/>
+            <column name="vessel_length" type="INT"/>
+            <column name="vessel_power" type="INT"/>
+            <column name="vessel_size" type="INT"/>
+            <column name="vessel_type" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1549028598312-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='0.9.4'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">0.9.34</column>
+            <column name="DESCRIPTION">
+                - Add column DEPARTMENT.LOCATION_FK
+                - Add table VALIDITY_STATUS
+                - Add tables for FILE_ICES_*
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="COMMENTS">
+                - Add DEPARTMENT.LOCATION_FK
+                - Add table VALIDITY_STATUS
+                - Add tables for FILE_ICES_*
+            </column>
+        </insert>
+    </changeSet>
+    
+</databaseChangeLog>

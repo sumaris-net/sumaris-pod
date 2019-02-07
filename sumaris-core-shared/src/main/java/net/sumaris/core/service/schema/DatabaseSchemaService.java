@@ -46,7 +46,7 @@ public interface DatabaseSchemaService {
 	 *
 	 * @return a {@link Version} object.
 	 */
-	Version getDbVersion() throws VersionNotFoundException;
+	Version getDbVersion();
 
 	/**
 	 * Return the version of the applciation. This version comes from database updates (e.g. liquibase patch)

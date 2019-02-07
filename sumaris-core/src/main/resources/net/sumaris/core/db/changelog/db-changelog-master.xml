@@ -13,13 +13,15 @@
   <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.6.4.xml"/>
   <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.8.0.xml"/>
 
-  <!-- For an SUMARiS database instance only -->
   <include relativeToChangelogFile="true" file="${dbms}/sumaris/db-changelog-0.8.0.xml"/>
   <include relativeToChangelogFile="true" file="${dbms}/sumaris/db-changelog-0.8.1.xml"/>
 
   <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.0.xml"/>
   <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.3.xml"/>
+
   <include relativeToChangelogFile="true" file="${dbms}/sumaris/db-changelog-0.9.3.xml"/>
+
+  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.4.xml"/>
 
   <!-- Refresh schema objects (functions, procedures, triggers, ...)
   <include relativeToChangelogFile="true" file="${dbms}/db-changelog-refresh.xml"/>-->

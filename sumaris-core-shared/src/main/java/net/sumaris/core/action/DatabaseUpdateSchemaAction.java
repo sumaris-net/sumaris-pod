@@ -31,10 +31,12 @@ import net.sumaris.core.dao.schema.DatabaseSchemaDaoImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.exception.VersionNotFoundException;
+import net.sumaris.core.service.ServiceLocator;
+import net.sumaris.core.service.schema.DatabaseSchemaService;
+import org.nuiton.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 /**
  * <p>Update database schema class.</p>
@@ -47,18 +49,51 @@ public class DatabaseUpdateSchemaAction {
 	 * <p>run.</p>
 	 */
 	public void run() {
-		SumarisConfiguration config = SumarisConfiguration.getInstance();
+		DatabaseSchemaService databaseSchemaService = ServiceLocator.instance().getDatabaseSchemaService();
 
-		DatabaseSchemaDao databaseSchemaDao = new DatabaseSchemaDaoImpl(config);
+		log.info("Starting schema update...");
+		ActionUtils.logConnectionProperties();
 
+		// Check if database is well loaded
+		if (!databaseSchemaService.isDbLoaded()) {
+			log.warn("Database not start ! Could not update the schema.");
+			return;
+		}
+
+		// Getting the database version
 		try {
-			// Update the DB schema
-			databaseSchemaDao.updateSchema();
-		} catch (SumarisTechnicalException | DatabaseSchemaUpdateException e1) {
-			log.error(e1.getMessage());
+			Version actualDbVersion = databaseSchemaService.getDbVersion();
+			// result could be null, is DB is empty (mantis #21013)
+			if (actualDbVersion == null) {
+				log.warn("Could not get database schema version");
+			}
+			else {
+				log.info(String.format("Database schema version is [%s]", actualDbVersion));
+			}
 
-            // stop here
-            return;
+		} catch (SumarisTechnicalException e) {
+			log.error("Error while getting database version.", e);
+		}
+
+		// Getting the version after update
+		try {
+			Version expectedDbVersion = databaseSchemaService.getApplicationVersion();
+			if (expectedDbVersion == null) {
+				log.warn("Unable to get the database schema version AFTER the update. Nothing to update !");
+				return;
+			}
+			log.info(String.format("Database schema version AFTER the update should be [%s]", expectedDbVersion));
+		} catch (SumarisTechnicalException e) {
+			log.error("Error while getting database version AFTER the update.", e);
+		}
+
+		// Run the update process
+		try {
+			log.info("Launching update...");
+			databaseSchemaService.updateSchema();
+			log.info("Database schema successfully updated.");
+		} catch (SumarisTechnicalException e) {
+			log.error("Error while updating the database schema.", e);
 		}
 	}
 }

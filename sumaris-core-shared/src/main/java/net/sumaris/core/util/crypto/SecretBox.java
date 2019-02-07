@@ -40,7 +40,6 @@ public class SecretBox {
 
 	// Length of the key
 	private static int SEED_LENGTH = 32;
-	private static int SIGNATURE_BYTES = 64;
 	private static int SCRYPT_PARAMS_N = 4096;
 	private static int SCRYPT_PARAMS_r = 16;
 	private static int SCRYPT_PARAMS_p = 1;
@@ -56,8 +55,8 @@ public class SecretBox {
 	public SecretBox(byte[] seed) {
 		checkLength(seed, SEED_LENGTH);
 		this.seed = seed;
-        this.secretKey = CryptoUtils.zeros(SECRETKEY_BYTES * 2);
-        byte[] publicKey = CryptoUtils.zeros(PUBLICKEY_BYTES);
+        this.secretKey = CryptoUtils.zeros(CRYPTO_SIGN_ED25519_SECRETKEYBYTES);
+        byte[] publicKey = CryptoUtils.zeros(CRYPTO_SIGN_ED25519_PUBLICKEYBYTES);
         isValid(sodium().crypto_sign_ed25519_seed_keypair(publicKey, secretKey, seed),
                 "Failed to generate a key pair");
         this.pubKey = Base58.encode(publicKey);
@@ -87,32 +86,32 @@ public class SecretBox {
 	}
 	
 	public byte[] sign(byte[] message) {
-        byte[] signature = Util.prependZeros(SIGNATURE_BYTES, message);
+        byte[] signature = Util.prependZeros(CRYPTO_SIGN_ED25519_BYTES, message);
         LongLongByReference bufferLen = new LongLongByReference(0);
         sodium().crypto_sign_ed25519(signature, bufferLen, message, message.length, secretKey);
-        signature = Util.slice(signature, 0, SIGNATURE_BYTES);
+        signature = Util.slice(signature, 0, CRYPTO_SIGN_ED25519_BYTES);
         
-        checkLength(signature, SIGNATURE_BYTES);
+        checkLength(signature, CRYPTO_SIGN_ED25519_BYTES);
         return signature;
     }
 
 
     public byte[] encrypt(byte[] nonce, byte[] message) {
-        checkLength(nonce, XSALSA20_POLY1305_SECRETBOX_NONCEBYTES);
-        byte[] msg = Util.prependZeros(ZERO_BYTES, message);
+        checkLength(nonce, CRYPTO_SECRETBOX_XSALSA20POLY1305_NONCEBYTES);
+        byte[] msg = Util.prependZeros(CRYPTO_BOX_CURVE25519XSALSA20POLY1305_ZEROBYTES, message);
         byte[] ct = Util.zeros(msg.length);
         isValid(sodium().crypto_secretbox_xsalsa20poly1305(ct, msg, msg.length,
                 nonce, seed), "Encryption failed");
-        return removeZeros(BOXZERO_BYTES, ct);
+        return removeZeros(CRYPTO_BOX_CURVE25519XSALSA20POLY1305_ZEROBYTES, ct);
     }
 
     public byte[] decrypt(byte[] nonce, byte[] ciphertext) {
-        checkLength(nonce, XSALSA20_POLY1305_SECRETBOX_NONCEBYTES);
-        byte[] ct = Util.prependZeros(BOXZERO_BYTES, ciphertext);
+        checkLength(nonce, CRYPTO_SECRETBOX_XSALSA20POLY1305_NONCEBYTES);
+        byte[] ct = Util.prependZeros(CRYPTO_BOX_CURVE25519XSALSA20POLY1305_BOXZEROBYTES, ciphertext);
         byte[] message = Util.zeros(ct.length);
         isValid(sodium().crypto_secretbox_xsalsa20poly1305_open(message, ct,
                 ct.length, nonce, seed), "Decryption failed. Ciphertext failed verification");
-        return removeZeros(ZERO_BYTES, message);
+        return removeZeros(CRYPTO_BOX_CURVE25519XSALSA20POLY1305_ZEROBYTES, message);
     }
     
 	/* -- Internal methods -- */
