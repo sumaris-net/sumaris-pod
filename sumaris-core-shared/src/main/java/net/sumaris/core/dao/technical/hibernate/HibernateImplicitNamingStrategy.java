@@ -26,7 +26,9 @@ import org.hibernate.boot.model.naming.*;
 
 public class HibernateImplicitNamingStrategy extends ImplicitNamingStrategyLegacyJpaImpl implements ImplicitNamingStrategy {
 
-    private static final String FK_SUFFIX = "_fk";
+    private static final String FK_SUFFIX = "Fk";
+
+    private static final String FK_CONSTRAINT_SUFFIX = "c";
 
     @Override
     public Identifier determineJoinColumnName(ImplicitJoinColumnNameSource source) {
@@ -36,17 +38,20 @@ public class HibernateImplicitNamingStrategy extends ImplicitNamingStrategyLegac
                 && ("id".equalsIgnoreCase(source.getReferencedColumnName().getText())
                 || "code".equalsIgnoreCase(source.getReferencedColumnName().getText()))) {
             String name = this.transformAttributePath(source.getAttributePath()) + FK_SUFFIX;
-            return this.toIdentifier(name, source.getBuildingContext());
+            return IdentifierHelper.normalize(this.toIdentifier(name, source.getBuildingContext()));
         }
-        return super.determineJoinColumnName(source);
+        return IdentifierHelper.normalize(super.determineJoinColumnName(source));
     }
 
     @Override
     public Identifier determineForeignKeyName(ImplicitForeignKeyNameSource source) {
-        // TODO : voir si on peut faire une génération plus déterministe
-        return super.determineForeignKeyName(source);
+        // Genere les noms de contraintes sur les foreign keys
+        if (source.getColumnNames().size() == 1) {
+            String name = source.getTableName() + "_" + source.getColumnNames().get(0).getText() + FK_CONSTRAINT_SUFFIX;
+            return IdentifierHelper.normalize(this.toIdentifier(name, source.getBuildingContext()));
+        }
+        return IdentifierHelper.normalize(super.determineForeignKeyName(source));
     }
-
 
 
 

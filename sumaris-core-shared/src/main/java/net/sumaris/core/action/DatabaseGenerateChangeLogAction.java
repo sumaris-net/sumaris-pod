@@ -30,6 +30,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.nuiton.version.Version;
@@ -63,11 +64,11 @@ public class DatabaseGenerateChangeLogAction {
         try {
             Version actualDbVersion = service.getDbVersion();
             if (actualDbVersion != null) {
-                log.info("Database schema version is: " + actualDbVersion.toString());
+                log.info(I18n.t("sumaris.persistence.schemaVersion", actualDbVersion.toString()));
             }
 
             Version modelVersion = config.getVersion();
-            log.info("Model version is: " + modelVersion.toString());
+            log.info(I18n.t("sumaris.persistence.modelVersion", modelVersion.toString()));
         } catch (SumarisTechnicalException e) {
             log.error("Error while getting versions.", e);
         }

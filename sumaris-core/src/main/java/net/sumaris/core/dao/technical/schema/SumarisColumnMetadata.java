@@ -30,7 +30,7 @@ import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 /**
- * TODO: rename getter
+ * A database column metadata
  */
 public class SumarisColumnMetadata {
 

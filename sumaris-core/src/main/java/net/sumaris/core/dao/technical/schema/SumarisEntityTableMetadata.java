@@ -27,8 +27,6 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Table;
-import org.hibernate.persister.entity.SingleTableEntityPersister;
-import org.hibernate.tool.hbm2ddl.TableMetadata;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;

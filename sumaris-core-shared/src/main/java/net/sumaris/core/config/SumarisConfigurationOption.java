@@ -312,7 +312,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     DB_BACKUP_DIRECTORY(
             "sumaris.persistence.db.backup.directory",
             n("sumaris.config.option.persistence.db.backup.directory.description"),
-            "${sumaris.data.directory}/dbbackup",
+            "${sumaris.data.directory}/db-backup",
             File.class,
             false),
     HIBERNATE_SHOW_SQL(

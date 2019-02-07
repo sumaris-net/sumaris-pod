@@ -145,10 +145,15 @@ public class DatabaseSchemaDaoImpl
         // check database and server timezones conformity
         checkTimezoneConformity();
 
-        try {
-            log.info(I18n.t("sumaris.persistence.schemaVersion", getSchemaVersion().toString()));
-        } catch (VersionNotFoundException e) {
-            // silent
+        if (log.isInfoEnabled()) {
+            try {
+                Version schemaVersion = getSchemaVersion();
+                if (schemaVersion != null) {
+                    log.info(I18n.t("sumaris.persistence.schemaVersion", schemaVersion.toString()));
+                }
+            } catch (VersionNotFoundException e) {
+                // silent
+            }
         }
     }
 
@@ -625,7 +630,7 @@ public class DatabaseSchemaDaoImpl
                     }
                 }
             }
-        } 
+        }
         return result;
     }
 

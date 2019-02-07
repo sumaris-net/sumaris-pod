@@ -63,6 +63,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     private static final String DEFAULT_SHARED_CONFIG_FILE = "sumaris-core-shared.config";
 
+    protected static String[] args = null;
+
+    /**
+     * <p>remember app args.</p>
+     */
+    public static void setArgs(String[] sourceArgs) {
+        args = sourceArgs;
+    }
+
     /**
      * Delegate application config.
      */
@@ -93,6 +102,14 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     private File configFile;
 
     /**
+     * <p>initDefault.</p>
+     */
+    public static void initDefault(String configFile) {
+        instance = new SumarisConfiguration(configFile, args);
+        setInstance(instance);
+    }
+
+    /**
      * <p>Constructor for SumarisConfiguration.</p>
      *
      * @param applicationConfig a {@link ApplicationConfig} object.
@@ -110,6 +127,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public SumarisConfiguration(String file, String... args) {
         super();
+
         this.applicationConfig = new ApplicationConfig();
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
@@ -160,7 +178,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             appBasedir = appBasedir.getParentFile();
         }
         if (log.isInfoEnabled()) {
-            log.info("Application basedir: " + appBasedir);
+            log.info(String.format("Application basedir {%s}", appBasedir));
         }
         applicationConfig.setOption(
                 SumarisConfigurationOption.BASEDIR.getKey(),

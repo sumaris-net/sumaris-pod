@@ -25,14 +25,11 @@ package net.sumaris.core.action;
  */
 
 
-
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigActionDef;
