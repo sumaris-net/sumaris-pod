@@ -57,7 +57,7 @@ public class DatabaseGenerateChangeLogAction {
 
         // Check if database is well loaded
         if (!service.isDbLoaded()) {
-            log.warn("Database not start ! Could not generate changelog file.");
+            log.warn("Could not generate changelog file: database seems to be empty !");
             return;
         }
 

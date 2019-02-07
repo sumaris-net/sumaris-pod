@@ -130,7 +130,11 @@ public class Application {
 	@Bean
 	public static SumarisConfiguration sumarisConfiguration() {
 
-		SumarisConfiguration.initDefault(configFile);
+		SumarisConfiguration config = SumarisConfiguration.getInstance();
+		if (config == null) {
+			SumarisConfiguration.initDefault(configFile);
+			config = SumarisConfiguration.getInstance();
+		}
 
 		// Init i18n
 		try {
@@ -139,7 +143,7 @@ public class Application {
 			throw new SumarisTechnicalException("i18n initialization failed", e);
 		}
 
-		return SumarisConfiguration.getInstance();
+		return config;
 	}
 
 	/**

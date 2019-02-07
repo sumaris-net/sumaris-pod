@@ -314,7 +314,7 @@ public class DatabaseSchemaDaoImpl
         
         // Do not try to run the validation query if the DB not exists
         if (!isDbExists()) {
-            log.warn("Database directory not found. Could not load database.");
+            log.warn("Unable to check if database is empty or not: database directory not exists");
             return false;
         }
         

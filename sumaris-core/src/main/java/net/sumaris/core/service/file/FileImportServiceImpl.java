@@ -25,13 +25,13 @@ package net.sumaris.core.service.file;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
+import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.vo.ErrorType;
 import net.sumaris.core.vo.file.ValidationErrorVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.hibernate.tool.hbm2ddl.ColumnMetadata;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -92,7 +92,7 @@ public class FileImportServiceImpl implements FileImportService {
 		//return fileImportDao.validateFile(userId, inputFile, table);
 	}
 
-	protected String getLogPrefix(SumarisTableMetadata table, ColumnMetadata colMeta, int lineNumber) {
+	protected String getLogPrefix(SumarisTableMetadata table, SumarisColumnMetadata colMeta, int lineNumber) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[").append(table.getName());
 		if (colMeta != null) {

@@ -24,12 +24,17 @@ package net.sumaris.core.service.administration;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.ServiceLocator;
+import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,6 +47,9 @@ public class PersonServiceTest extends AbstractServiceTest{
 
     @Autowired
     private PersonService service;
+
+    @Autowired
+    private ReferentialService referentialService;
 
     @Test
     public void findPersons() {
@@ -107,7 +115,14 @@ public class PersonServiceTest extends AbstractServiceTest{
 
     @Test
     public void delete() {
-        service.delete(dbResource.getFixtures().getPersonId(0));
+
+        long userProfileCountBefore = CollectionUtils.size(referentialService.findByFilter(UserProfile.class.getSimpleName(), null, 0, 1000));
+
+        service.delete(dbResource.getFixtures().getPersonIdNoData());
+
+        // Make there is no cascade on user profile !!
+        long userProfileCountAfter = CollectionUtils.size(referentialService.findByFilter(UserProfile.class.getSimpleName(), null, 0, 1000));
+        Assert.assertEquals(userProfileCountBefore, userProfileCountAfter);
     }
 
     @Test

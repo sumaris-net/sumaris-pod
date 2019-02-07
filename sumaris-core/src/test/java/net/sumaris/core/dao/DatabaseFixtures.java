@@ -133,10 +133,17 @@ public class DatabaseFixtures {
 		switch (index) {
 			case 0:
 				return 1;
-
+			case 1:
+				return 2;
+			case 2:
+				return 3; // User without any data in the test DB
 			default:
 				return 1;
 		}
+	}
+
+	public Integer getPersonIdNoData() {
+		return getPersonId(2);
 	}
 
 	public Integer getMetierIdForOTB(int index) {

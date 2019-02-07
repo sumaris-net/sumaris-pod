@@ -49,20 +49,20 @@ public class DatabaseUpdateSchemaAction {
 	 * <p>run.</p>
 	 */
 	public void run() {
-		DatabaseSchemaService databaseSchemaService = ServiceLocator.instance().getDatabaseSchemaService();
+		DatabaseSchemaService service = ServiceLocator.instance().getDatabaseSchemaService();
 
 		log.info("Starting schema update...");
 		ActionUtils.logConnectionProperties();
 
 		// Check if database is well loaded
-		if (!databaseSchemaService.isDbLoaded()) {
-			log.warn("Database not start ! Could not update the schema.");
+		if (!service.isDbLoaded()) {
+			log.warn("Could not update the schema: database seems to be empty!");
 			return;
 		}
 
 		// Getting the database version
 		try {
-			Version actualDbVersion = databaseSchemaService.getDbVersion();
+			Version actualDbVersion = service.getDbVersion();
 			// result could be null, is DB is empty (mantis #21013)
 			if (actualDbVersion == null) {
 				log.warn("Could not get database schema version");
@@ -77,7 +77,7 @@ public class DatabaseUpdateSchemaAction {
 
 		// Getting the version after update
 		try {
-			Version expectedDbVersion = databaseSchemaService.getApplicationVersion();
+			Version expectedDbVersion = service.getApplicationVersion();
 			if (expectedDbVersion == null) {
 				log.warn("Unable to get the database schema version AFTER the update. Nothing to update !");
 				return;
@@ -90,7 +90,7 @@ public class DatabaseUpdateSchemaAction {
 		// Run the update process
 		try {
 			log.info("Launching update...");
-			databaseSchemaService.updateSchema();
+			service.updateSchema();
 			log.info("Database schema successfully updated.");
 		} catch (SumarisTechnicalException e) {
 			log.error("Error while updating the database schema.", e);

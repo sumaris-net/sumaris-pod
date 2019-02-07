@@ -69,7 +69,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Override
 	public List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size) {
-		return referentialDao.findByFilter(entityName, filter, offset, size,
+		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
 				IItemReferentialEntity.PROPERTY_LABEL,
 				SortDirection.ASC);
 	}
