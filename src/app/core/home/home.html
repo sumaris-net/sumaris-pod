@@ -78,13 +78,12 @@
 
   <p class="hidden-xs">&nbsp;</p>
 
+
+  <!-- Display configured Departments logos -->
   <div class="bottom-banner">
-    <img class="logo" src="./assets/img/logo/logo-interreg2seas.png">
-    <img class="logo" src="./assets/img/logo/logo-fromnord.png">
-    <img class="logo" src="./assets/img/logo/logo-ilvo-text.png">
-    <img class="logo" src="./assets/img/logo/logo-ifremer.png">
-    <img class="logo" src="./assets/img/logo/logo-nausicaa.png">
-    <img class="logo" src="./assets/img/logo/logo-redercentrale.png">
+    <a href="{{ dep.siteUrl }}" *ngFor="let dep of departements | async ">
+      <img class="logo" src="{{ dep.logo }}" alt="{{dep.label}}"  [title]="dep.name" />
+    </a>
   </div>
 
 </ion-content>
