@@ -5,6 +5,7 @@ import net.sumaris.importation.service.AbstractServiceTest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,6 +36,7 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
     }
 
     @Test
+    @Ignore
     public void loadAll() {
         //String basePath = "src/test/data/import/";
         String basePath = "/home/blavenie/Documents/sumaris/data/";
