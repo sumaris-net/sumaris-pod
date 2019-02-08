@@ -2,8 +2,9 @@ package net.sumaris.importation.service.ices;
 
 import net.sumaris.core.util.file.FileUtils;
 import net.sumaris.importation.service.AbstractServiceTest;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,7 @@ import java.io.File;
 
 public class IcesLoaderWriteTest extends AbstractServiceTest {
 
-    protected static final Log log = LogFactory.getLog(IcesLoaderWriteTest.class);
+    protected static final Logger log = LoggerFactory.getLogger(IcesLoaderWriteTest.class);
 
     @Autowired
     private IcesDataLoaderServiceImpl service = null;
@@ -35,9 +36,9 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
     }
 
     @Test
+    //@Ignore
     public void loadAll() {
-        //String basePath = "src/test/data/import/";
-        String basePath = "/home/blavenie/Documents/sumaris/data/";
+        String basePath = System.getProperty("user.home") + "/Documents/sumaris/data/";
 
         // Import FRA file
         File file = new File(basePath + "/FRA", "CL_FRA_2000-2017.csv");
@@ -45,11 +46,11 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
 
         // Import BEL file
         file = new File(basePath+ "/BEL", "CL_BEL-2.csv");
-        loadLanding(file, "BEL");
+        //loadLanding(file, "BEL");
 
         // Import GBR file
-        //file = new File(basePath+ "/GBR", "Sumaris All.txt");
-        //loadMixed(file, "GBR");
+        file = new File(basePath+ "/GBR", "Sumaris All.txt");
+        loadMixed(file, "GBR");
     }
 
     /* -- protected method -- */

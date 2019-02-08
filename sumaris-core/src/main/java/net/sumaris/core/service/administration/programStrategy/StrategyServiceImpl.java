@@ -26,8 +26,8 @@ package net.sumaris.core.service.administration.programStrategy;
 import net.sumaris.core.dao.administration.programStrategy.StrategyDao;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +37,7 @@ import java.util.List;
 @Service("strategyService")
 public class StrategyServiceImpl implements StrategyService {
 
-	private static final Log log = LogFactory.getLog(StrategyServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(StrategyServiceImpl.class);
 
 	@Autowired
 	protected StrategyDao strategyDao;

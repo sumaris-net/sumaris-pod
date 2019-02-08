@@ -26,15 +26,15 @@ package net.sumaris.core.service.referential;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.vo.referential.PmfmVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service("pmfmService")
 public class PmfmServiceImpl implements PmfmService {
 
-	private static final Log log = LogFactory.getLog(PmfmServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(PmfmServiceImpl.class);
 
 	@Autowired
 	protected PmfmDao pmfmDao;

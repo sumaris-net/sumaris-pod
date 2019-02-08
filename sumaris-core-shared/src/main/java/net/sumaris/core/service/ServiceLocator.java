@@ -25,8 +25,8 @@ package net.sumaris.core.service;
  */
 
 import net.sumaris.core.service.schema.DatabaseSchemaService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 /*import org.springframework.beans.factory.access.BeanFactoryLocator;
@@ -46,7 +46,7 @@ public class ServiceLocator implements Closeable {
     //private ApplicationContext appContext;
 
     /* Logger */
-    private static final Log log = LogFactory.getLog(ServiceLocator.class);
+    private static final Logger log = LoggerFactory.getLogger(ServiceLocator.class);
 
     /**
      * The core instance of this ServiceLocator.

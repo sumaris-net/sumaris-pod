@@ -34,8 +34,8 @@ import net.sumaris.core.model.data.measure.VesselUseMeasurement;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 @Service("tripService")
 public class TripServiceImpl implements TripService {
 
-	private static final Log log = LogFactory.getLog(TripServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(TripServiceImpl.class);
 
 	@Autowired
 	protected TripDao tripDao;

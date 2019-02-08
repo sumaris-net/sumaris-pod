@@ -23,8 +23,8 @@ package net.sumaris.core.dao.technical.schema;
  */
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.Session;
 
 import java.io.BufferedReader;
@@ -34,7 +34,7 @@ import java.io.FilenameFilter;
 
 public class LoadDatabase {
 
-	private static final Log log = LogFactory.getLog(LoadDatabase.class);
+	private static final Logger log = LoggerFactory.getLogger(LoadDatabase.class);
 
 	private static Session session;
 

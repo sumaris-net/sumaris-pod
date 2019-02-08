@@ -80,4 +80,8 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 		return MODULE_NAME + "-i18n";
 	}
 
+	@Override
+	protected String getHsqldbSrcDatabaseDirectory() {
+		return "../sumaris-core/target/db";
+	}
 }

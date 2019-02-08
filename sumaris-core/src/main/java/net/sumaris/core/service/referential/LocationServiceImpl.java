@@ -12,8 +12,8 @@ import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelLabels;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 @Service("locationService")
 public class LocationServiceImpl implements LocationService{
 
-    private static final Log log = LogFactory.getLog(ReferentialServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ReferentialServiceImpl.class);
 
     @Autowired
     protected LocationDao locationDao;

@@ -26,8 +26,8 @@ package net.sumaris.core.test;
 
 
 import net.sf.ehcache.CacheManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.junit.After;
@@ -51,7 +51,7 @@ import javax.transaction.TransactionManager;
 public abstract class AbstractDaoTest {
 
 	/** Logger. */
-	private static final Log log = LogFactory.getLog(AbstractDaoTest.class);
+	private static final Logger log = LoggerFactory.getLogger(AbstractDaoTest.class);
 
 	private TransactionStatus status;
 	

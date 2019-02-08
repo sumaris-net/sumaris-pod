@@ -11,8 +11,8 @@ import net.sumaris.importation.util.csv.FileReader;
 import static net.sumaris.importation.service.vo.DataLoadError.*;
 import net.sumaris.importation.service.vo.DataLoadError;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ import java.io.IOException;
 @Service("dataLoaderService")
 public class DataLoaderServiceImpl implements DataLoaderService {
 
-	protected static final Log log = LogFactory.getLog(DataLoaderServiceImpl.class);
+	protected static final Logger log = LoggerFactory.getLogger(DataLoaderServiceImpl.class);
 
 	@Autowired
 	protected SumarisConfiguration config;

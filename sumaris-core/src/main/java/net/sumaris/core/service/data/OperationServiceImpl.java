@@ -39,8 +39,8 @@ import net.sumaris.core.service.data.sample.SampleService;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @Service("operationService")
 public class OperationServiceImpl implements OperationService {
 
-	private static final Log log = LogFactory.getLog(OperationServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(OperationServiceImpl.class);
 
 	@Autowired
 	protected SumarisConfiguration config;

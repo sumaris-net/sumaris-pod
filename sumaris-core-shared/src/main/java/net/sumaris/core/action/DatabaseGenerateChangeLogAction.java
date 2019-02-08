@@ -30,8 +30,9 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.nuiton.i18n.I18n;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.nuiton.version.Version;
 
 import java.io.File;
@@ -42,46 +43,33 @@ import java.io.File;
  */
 public class DatabaseGenerateChangeLogAction {
     /* Logger */
-    private static final Log log = LogFactory.getLog(DatabaseCreateSchemaAction.class);
+    private static final Logger log = LoggerFactory.getLogger(DatabaseCreateSchemaAction.class);
 
     /**
      * <p>run.</p>
      */
     public void run() {
         SumarisConfiguration config = SumarisConfiguration.getInstance();
-        
-        if (log.isInfoEnabled()) {            
-            log.info("Starting change log file generation...");        
-        }
-        ActionUtils.logConnectionProperties();
-
-        boolean isValidConnection = Daos.isValidConnectionProperties(config.getJdbcDriver(),
-                config.getJdbcURL(),
-                config.getJdbcUsername(),
-                config.getJdbcPassword()); 
-
-        if (!isValidConnection) {
-            log.warn("Connection error: could not generate changelog file.");
-            return;
-        }
-
         DatabaseSchemaService service = ServiceLocator.instance().getDatabaseSchemaService();
+
+        log.info("Starting change log file generation...");
+        ActionUtils.logConnectionProperties();
 
         // Check if database is well loaded
         if (!service.isDbLoaded()) {
-            log.warn("Database not start ! Could not generate changelog file.");
+            log.warn("Could not generate changelog file: database seems to be empty !");
             return;
         }
 
         try {
             Version actualDbVersion = service.getDbVersion();
             if (actualDbVersion != null) {
-                log.info("Database schema version is: " + actualDbVersion.toString());
+                log.info(I18n.t("sumaris.persistence.schemaVersion", actualDbVersion.toString()));
             }
 
             Version modelVersion = config.getVersion();
-            log.info("Model version is: " + modelVersion.toString());
-        } catch (VersionNotFoundException e) {
+            log.info(I18n.t("sumaris.persistence.modelVersion", modelVersion.toString()));
+        } catch (SumarisTechnicalException e) {
             log.error("Error while getting versions.", e);
         }
 

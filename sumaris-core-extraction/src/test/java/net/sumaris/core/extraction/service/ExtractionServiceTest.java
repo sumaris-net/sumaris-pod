@@ -1,6 +1,7 @@
 package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.extraction.dao.DatabaseResource;
+import java.io.File;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -27,9 +28,9 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void performExtraction() {
+    public void executeToFile() {
 
-        service.performExtraction(null);
+        service.executeToFile(null, new File("target", String.format("EXT_%s.csv", System.currentTimeMillis())));
 
     }
 }

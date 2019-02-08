@@ -27,8 +27,8 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.RestPaths;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +42,7 @@ public class ImageServiceImpl implements ImageService {
 
 
     /* Logger */
-    private static final Log log = LogFactory.getLog(ImageServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ImageServiceImpl.class);
 
 
     private SumarisServerConfiguration config;

@@ -49,8 +49,8 @@ import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,7 +65,7 @@ import java.util.Set;
 @Transactional
 public class AdministrationGraphQLService {
 
-    private static final Log log = LogFactory.getLog(AdministrationGraphQLService.class);
+    private static final Logger log = LoggerFactory.getLogger(AdministrationGraphQLService.class);
 
     private String personAvatarUrl;
     private String departmentLogoUrl;

@@ -25,18 +25,16 @@ package net.sumaris.core.action;
  */
 
 
-
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigActionDef;
 import org.nuiton.i18n.I18n;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +45,7 @@ import java.util.Set;
  */
 public class ActionUtils {
     /* Logger */
-    private static final Log log = LogFactory.getLog(ActionUtils.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(ActionUtils.class);
 
     /**
      * <p>Constructor for ActionUtils.</p>
@@ -121,8 +119,20 @@ public class ActionUtils {
                 }
             }
             else {
-                log.error(I18n.t("sumaris.action.outputNotAFile.error", output.getPath()));
-                System.exit(-1);
+                // Could be force, so delete the directory
+                if (config.isForceLiquibaseOutputFile() || !config.isProduction()) {
+                    log.info(I18n.t("sumaris.action.deleteOutputFile", output.getPath()));
+                    try {
+                        FileUtils.forceDelete(output);
+                    } catch (IOException e) {
+                        log.error(e.getMessage());
+                        System.exit(-1);
+                    }
+                }
+                else {
+                    log.error(I18n.t("sumaris.action.outputNotAFile.error", output.getPath()));
+                    System.exit(-1);
+                }
             }
         }
         
@@ -169,5 +179,23 @@ public class ActionUtils {
             }
         }
         return I18n.t("sumaris.action.current");
+    }
+
+    public static boolean checkValidConnection() {
+        SumarisConfiguration config = SumarisConfiguration.getInstance();
+
+        ActionUtils.logConnectionProperties();
+
+        boolean isValidConnection = Daos.isValidConnectionProperties(config.getJdbcDriver(),
+                config.getJdbcURL(),
+                config.getJdbcUsername(),
+                config.getJdbcPassword());
+
+        if (!isValidConnection) {
+            log.warn("Connection error: invalid connection.");
+            return false;
+        }
+
+        return true;
     }
 }

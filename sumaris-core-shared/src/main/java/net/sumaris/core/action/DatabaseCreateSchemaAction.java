@@ -31,8 +31,8 @@ import net.sumaris.core.dao.schema.DatabaseSchemaDaoImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
@@ -41,7 +41,7 @@ import java.io.File;
  */
 public class DatabaseCreateSchemaAction {
 	/* Logger */
-	private static final Log log = LogFactory.getLog(DatabaseCreateSchemaAction.class);
+	private static final Logger log = LoggerFactory.getLogger(DatabaseCreateSchemaAction.class);
 
 	/**
 	 * <p>run.</p>

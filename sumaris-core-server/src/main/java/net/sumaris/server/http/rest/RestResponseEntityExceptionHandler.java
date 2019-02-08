@@ -32,8 +32,8 @@ import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.ErrorHelper;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,7 +49,7 @@ import java.util.List;
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
     /* Logger */
-    private static final Log log = LogFactory.getLog(RestResponseEntityExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(RestResponseEntityExceptionHandler.class);
 
     public RestResponseEntityExceptionHandler() {
         super();

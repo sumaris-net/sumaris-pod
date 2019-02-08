@@ -27,8 +27,8 @@ import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.*;
 public class ImageRestController {
 
     /* Logger */
-    private static final Log log = LogFactory.getLog(ImageRestController.class);
+    private static final Logger log = LoggerFactory.getLogger(ImageRestController.class);
 
     @Autowired
     private PersonService personService;

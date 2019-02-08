@@ -28,8 +28,8 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.util.ApplicationUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.nuiton.i18n.I18n;
 import org.nuiton.i18n.init.DefaultI18nInitializer;
 import org.nuiton.i18n.init.UserI18nInitializer;
@@ -40,6 +40,7 @@ import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfigura
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -72,7 +73,11 @@ import java.util.stream.Collectors;
 public class Application {
 
 	/* Logger */
-	private static final Log log = LogFactory.getLog(Application.class);
+	private static final Logger log = LoggerFactory.getLogger(Application.class);
+
+	private static String configFile;
+
+	private static String[] args;
 
 	/**
 	 * <p>
@@ -82,18 +87,17 @@ public class Application {
 	 * @param args
 	 *            an array of {@link String} objects.
 	 */
-	public static void main(String[] args) {
-		if (log.isInfoEnabled()) {
-			log.info("Starting SUMARIS :: Core with arguments: " + Arrays.toString(args));
-		}
-
+	public static void main(String[] cmdArgs) {
 		// By default, display help
-		if (args == null || args.length == 0) {
+		if (cmdArgs == null || cmdArgs.length == 0) {
 			args = new String[] { "-h" };
+		}
+		else {
+			args = cmdArgs;
 		}
 
 		// Could override config file id (useful for dev)
-		String configFile = "application.properties";
+		configFile = "application.properties";
 		if (System.getProperty(configFile) != null) {
 			configFile = System.getProperty(configFile);
 			configFile = configFile.replaceAll("\\\\", "/");
@@ -101,23 +105,14 @@ public class Application {
 			System.setProperty("spring.config.location", configFile);
 		}
 
-		// Create configuration
-		SumarisConfiguration config = new SumarisConfiguration(configFile, ApplicationUtils.adaptArgsForConfig(args));
-		SumarisConfiguration.setInstance(config);
+		SumarisConfiguration.setArgs(ApplicationUtils.adaptArgsForConfig(args));
 
-		// Init i18n
 		try {
-			initI18n(config);
-		} catch (IOException e) {
-			throw new SumarisTechnicalException("i18n initialization failed", e);
-		}
-
-        try {
             // Start Spring boot
             ConfigurableApplicationContext appContext = SpringApplication.run(Application.class, args);
             appContext.addApplicationListener(applicationEvent -> {
-                if (applicationEvent != null) {
-                    log.warn(applicationEvent);
+                if (applicationEvent != null && applicationEvent instanceof ContextClosedEvent) {
+					log.info("Application closed");
                 }
             });
 
@@ -125,12 +120,31 @@ public class Application {
             ServiceLocator.init(appContext);
 
             // Execute all action
-            SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
+			SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
         } catch (Exception e) {
             log.error("Error in action", e);
         }
 
     }
+
+	@Bean
+	public static SumarisConfiguration sumarisConfiguration() {
+
+		SumarisConfiguration config = SumarisConfiguration.getInstance();
+		if (config == null) {
+			SumarisConfiguration.initDefault(configFile);
+			config = SumarisConfiguration.getInstance();
+		}
+
+		// Init i18n
+		try {
+			initI18n();
+		} catch (IOException e) {
+			throw new SumarisTechnicalException("i18n initialization failed", e);
+		}
+
+		return config;
+	}
 
 	/**
 	 * <p>
@@ -142,7 +156,9 @@ public class Application {
 	 * @throws IOException
 	 *             if any.
 	 */
-	protected static void initI18n(SumarisConfiguration config) throws IOException {
+	protected static void initI18n() throws IOException {
+
+		SumarisConfiguration config = SumarisConfiguration.getInstance();
 
 		// --------------------------------------------------------------------//
 		// init i18n
@@ -155,14 +171,10 @@ public class Application {
 
 		FileUtils.forceMkdir(i18nDirectory);
 
-		if (log.isDebugEnabled()) {
-			log.debug("I18N directory: " + i18nDirectory);
-		}
-
 		Locale i18nLocale = config.getI18nLocale();
 
 		if (log.isInfoEnabled()) {
-			log.info(String.format("Starts i18n with locale [%s] at [%s]",
+			log.info(String.format("Starts i18n with locale {%s} at {%s}",
 					i18nLocale, i18nDirectory));
 		}
 		I18n.init(new UserI18nInitializer(
@@ -181,9 +193,6 @@ public class Application {
 		return "sumaris-core-i18n";
 	}
 
-	@Bean
-	public static SumarisConfiguration sumarisConfiguration() {
-		return SumarisConfiguration.getInstance();
-	}
+
 
 }

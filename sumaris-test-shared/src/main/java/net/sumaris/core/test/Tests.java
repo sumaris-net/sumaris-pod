@@ -27,14 +27,13 @@ package net.sumaris.core.test;
 
 import net.sumaris.core.service.ServiceLocator;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hibernate.Query;
-import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
 import org.junit.Assume;
 import org.junit.Ignore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.io.File;
 
 /**
@@ -53,7 +52,7 @@ public final class Tests {
 	}
 
 	/** Logger. */
-	private static final Log log = LogFactory.getLog(Tests.class);
+	private static final Logger log = LoggerFactory.getLogger(Tests.class);
 
 	/**
 	 * <p>checkDbExists.</p>
@@ -94,9 +93,8 @@ public final class Tests {
 	 * @return a {@link Query} object.
 	 */
 	public static Query createStatelessQuery(String hqlQuery) {
-        SessionFactory sessionFactory = getBean("sessionFactory", SessionFactory.class);
-        StatelessSession session = sessionFactory.openStatelessSession();
-		return session.createQuery(hqlQuery);
+		EntityManager entityManager = getBean("entityManager", EntityManager.class);
+		return entityManager.createQuery(hqlQuery);
     }
 
 	/**
@@ -122,6 +120,6 @@ public final class Tests {
             whereClause = " " + alias + " where " + whereClause;
         }
         Query query = createStatelessQuery("select count(*) from " + entityClass.getName() + whereClause);
-        return (Long)query.uniqueResult();
+        return (Long)query.getSingleResult();
     }
 }

@@ -25,8 +25,8 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,7 @@ import java.util.List;
 @Service("programService")
 public class ProgramServiceImpl implements ProgramService {
 
-	private static final Log log = LogFactory.getLog(ProgramServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ProgramServiceImpl.class);
 
 	@Autowired
 	protected ProgramDao  programDao;

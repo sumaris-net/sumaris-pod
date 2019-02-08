@@ -42,12 +42,12 @@ public class LocationAssociation implements Serializable {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumn(name = "parent_location_fk")
+    @JoinColumn(name = "parent_location_fk")
     private Location parentLocation;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumn(name = "child_location_fk")
+    @JoinColumn(name = "child_location_fk")
     private Location childLocation;
 
     /**
@@ -57,7 +57,7 @@ public class LocationAssociation implements Serializable {
      * ratio de surface inférieur à 1 peu avoir potentiellement plusieurs lieux pères directs.
      * @return this.childSurfaceRatio Double
      */
-    @Column(nullable = false)
+    @Column(name = "child_surface_ratio", nullable = false)
     private Double childSurfaceRatio = 1d;
 
     @Column(name = "update_date")

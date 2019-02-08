@@ -22,8 +22,7 @@ package net.sumaris.core.dao.technical.liquibase;
  * #L%
  */
 
-import liquibase.changelog.ChangeSet;
-import liquibase.changelog.DatabaseChangeLog;
+import liquibase.logging.LogType;
 import liquibase.logging.core.AbstractLogger;
 
 import org.slf4j.LoggerFactory;
@@ -32,68 +31,47 @@ import org.slf4j.LoggerFactory;
  * Liquibase finds this class by itself by doing a custom component scan (sl4fj wasn't generic enough).
  */
 public class Logger extends AbstractLogger {
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger("liquibase");
-    private String name = "";
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger("liquibase");
 
     @Override
-    public void setName(String name) {
-        this.name = name;
+    public void severe(LogType logType, String message) {
+        log.error("{} {}", logType.name(), message);
     }
 
     @Override
-    public void severe(String message) {
-        LOGGER.error("{} {}", name, message);
+    public void severe(LogType logType, String message, Throwable e) {
+        log.error("{} {}", logType.name(), message, e);
     }
 
     @Override
-    public void severe(String message, Throwable e) {
-        LOGGER.error("{} {}", name, message, e);
+    public void warning(LogType logType, String message) {
+        log.warn("{} {}", logType.name(), message);
     }
 
     @Override
-    public void warning(String message) {
-        LOGGER.warn("{} {}", name, message);
+    public void warning(LogType logType, String message, Throwable e) {
+        log.warn("{} {}", logType.name(), message, e);
     }
 
     @Override
-    public void warning(String message, Throwable e) {
-        LOGGER.warn("{} {}", name, message, e);
+    public void info(LogType logType, String message) {
+        log.info("{} {}", logType.name(), message);
     }
 
     @Override
-    public void info(String message) {
-        LOGGER.info("{} {}", name, message);
+    public void info(LogType logType, String message, Throwable e) {
+        log.info("{} {}", logType.name(), message, e);
     }
 
     @Override
-    public void info(String message, Throwable e) {
-        LOGGER.info("{} {}", name, message, e);
+    public void debug(LogType logType, String message) {
+        log.debug("{} {}", logType.name(), message);
     }
 
     @Override
-    public void debug(String message) {
-        LOGGER.debug("{} {}", name, message);
+    public void debug(LogType logType, String message, Throwable e) {
+        log.debug("{} {}", logType.name(), message, e);
     }
 
-    @Override
-    public void debug(String message, Throwable e) {
-        LOGGER.debug("{} {}", message, e);
-    }
-
-    @Override
-    public void setLogLevel(String logLevel, String logFile) {
-    }
-
-    @Override
-    public void setChangeLog(DatabaseChangeLog databaseChangeLog) {
-    }
-
-    @Override
-    public void setChangeSet(ChangeSet changeSet) {
-    }
-
-    @Override
-    public int getPriority() {
-        return Integer.MAX_VALUE;
-    }
 }

@@ -27,8 +27,8 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.PhysicalGearDao;
 import net.sumaris.core.vo.data.PhysicalGearVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +37,7 @@ import java.util.List;
 @Service("physicalGearService")
 public class PhysicalGearServiceImpl implements PhysicalGearService {
 
-	private static final Log log = LogFactory.getLog(PhysicalGearServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(PhysicalGearServiceImpl.class);
 
 	@Autowired
 	protected SumarisConfiguration config;

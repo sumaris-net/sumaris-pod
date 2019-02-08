@@ -29,8 +29,8 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.i18n.I18n;
 import org.nuiton.i18n.init.DefaultI18nInitializer;
@@ -57,17 +57,9 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
 
     /* Logger */
-    private static final Log log = LogFactory.getLog(SumarisServerConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(SumarisServerConfiguration.class);
 
     private static SumarisServerConfiguration instance;
-    private static String[] args = null;
-
-    /**
-     * <p>initDefault.</p>
-     */
-    public static void setArgs(String[] sourceArgs) {
-        args = sourceArgs;
-    }
 
     /**
      * <p>initDefault.</p>
@@ -75,7 +67,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     public static void initDefault() {
         instance = new SumarisServerConfiguration(getWebConfigFile(), args);
         setInstance(instance);
-
     }
 
     /**
@@ -274,13 +265,13 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
         Locale i18nLocale = getI18nLocale();
 
+        I18n.init(new UserI18nInitializer(
+            i18nDirectory, new DefaultI18nInitializer(getI18nBundleName())),
+            i18nLocale);
         if (log.isInfoEnabled()) {
             log.info(I18n.t("sumaris.server.init.i18n",
                     i18nLocale, i18nDirectory));
         }
-        I18n.init(new UserI18nInitializer(
-            i18nDirectory, new DefaultI18nInitializer(getI18nBundleName())),
-            i18nLocale);
     }
 
     /**
@@ -296,12 +287,20 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         // Data directory
         FileUtils.forceMkdir(getDataDirectory());
 
+        // DB attachment directory
+        FileUtils.forceMkdir(getDbAttachmentDirectory());
+
+        // DB backup directory
+        FileUtils.forceMkdir(getDbBackupDirectory());
+
         // temp directory
         File tempDirectory = getTempDirectory();
         if (tempDirectory.exists()) {
             // clean temp files
             FileUtils.cleanDirectory(tempDirectory);
         }
+
+
     }
 
     /**

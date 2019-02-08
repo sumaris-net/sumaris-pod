@@ -29,8 +29,8 @@ package net.sumaris.core.dao.technical.spring;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.*;
 import org.springframework.util.Assert;
@@ -49,7 +49,7 @@ import java.util.List;
  */
 public class Springs {
 	/** Logger. */
-	private static final Log log = LogFactory.getLog(Springs.class);
+	private static final Logger log = LoggerFactory.getLogger(Springs.class);
 
 	
 	/**

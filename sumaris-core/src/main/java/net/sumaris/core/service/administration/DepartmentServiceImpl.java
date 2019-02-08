@@ -31,8 +31,8 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -43,7 +43,7 @@ import java.util.List;
 @Service("departmentService")
 public class DepartmentServiceImpl implements DepartmentService {
 
-	private static final Log log = LogFactory.getLog(DepartmentServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(DepartmentServiceImpl.class);
 
 	@Autowired
 	protected DepartmentDao departmentDao;

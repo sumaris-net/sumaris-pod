@@ -27,8 +27,8 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.vo.security.AuthDataVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AuthGraphQLService {
 
-    private static final Log log = LogFactory.getLog(AuthGraphQLService.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthGraphQLService.class);
 
     @Autowired
     private AuthService authService;

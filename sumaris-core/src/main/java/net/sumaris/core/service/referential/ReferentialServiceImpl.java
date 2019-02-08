@@ -30,8 +30,8 @@ import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @Service("referentialService")
 public class ReferentialServiceImpl implements ReferentialService {
 
-	private static final Log log = LogFactory.getLog(ReferentialServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ReferentialServiceImpl.class);
 
 	@Autowired
 	protected ReferentialDao referentialDao;
@@ -69,7 +69,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Override
 	public List<ReferentialVO> findByFilter(String entityName, ReferentialFilterVO filter, int offset, int size) {
-		return referentialDao.findByFilter(entityName, filter, offset, size,
+		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
 				IItemReferentialEntity.PROPERTY_LABEL,
 				SortDirection.ASC);
 	}

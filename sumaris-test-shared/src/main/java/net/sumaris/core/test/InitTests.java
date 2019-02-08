@@ -36,8 +36,8 @@ import net.sumaris.core.service.ServiceLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
@@ -71,7 +71,7 @@ public class InitTests extends ExternalResource {
     private static final String DATASET_COMMON_XML_FILE = "sumaris.test.data.common";
     private static final String DATASET_ADDITIONAL_XML_FILES = "sumaris.test.data.additional";
 
-    private static final Log log = LogFactory.getLog(InitTests.class);
+    private static final Logger log = LoggerFactory.getLogger(InitTests.class);
 
     /**
      * Main method is used by clients projects, to generate and deploy a test DB

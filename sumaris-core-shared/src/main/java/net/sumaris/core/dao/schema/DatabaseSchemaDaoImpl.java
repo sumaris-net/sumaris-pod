@@ -145,10 +145,15 @@ public class DatabaseSchemaDaoImpl
         // check database and server timezones conformity
         checkTimezoneConformity();
 
-        try {
-            log.info(I18n.t("sumaris.persistence.schemaVersion", getSchemaVersion().toString()));
-        } catch (VersionNotFoundException e) {
-            // silent
+        if (log.isInfoEnabled()) {
+            try {
+                Version schemaVersion = getSchemaVersion();
+                if (schemaVersion != null) {
+                    log.info(I18n.t("sumaris.persistence.schemaVersion", schemaVersion.toString()));
+                }
+            } catch (VersionNotFoundException e) {
+                // silent
+            }
         }
     }
 
@@ -309,7 +314,7 @@ public class DatabaseSchemaDaoImpl
         
         // Do not try to run the validation query if the DB not exists
         if (!isDbExists()) {
-            log.warn("Database directory not found. Could not load database.");
+            log.warn("Unable to check if database is empty or not: database directory not exists");
             return false;
         }
         
@@ -593,8 +598,7 @@ public class DatabaseSchemaDaoImpl
         };
 
 
-        InputStream is = scriptResource.getInputStream();
-        try {
+        try (InputStream is = scriptResource.getInputStream()) {
             Iterator<String> lines = IOUtils.lineIterator(is, Charsets.UTF_8);
 
             while (lines.hasNext()) {
@@ -626,8 +630,6 @@ public class DatabaseSchemaDaoImpl
                     }
                 }
             }
-        } finally {
-            IOUtils.closeQuietly(is);
         }
         return result;
     }

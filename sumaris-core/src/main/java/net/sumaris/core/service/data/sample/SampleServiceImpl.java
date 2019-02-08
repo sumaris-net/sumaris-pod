@@ -31,8 +31,8 @@ import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.model.data.sample.SampleMeasurement;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.SampleVO;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 @Service("sampleService")
 public class SampleServiceImpl implements SampleService {
 
-	private static final Log log = LogFactory.getLog(SampleServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(SampleServiceImpl.class);
 
 	@Autowired
 	protected SampleDao sampleDao;

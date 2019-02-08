@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # ------------------------------------
 # Init variables
@@ -13,7 +13,7 @@ echo "${LOG_PREFIX} Installing [core-shared] and [test-shared]... ${LOG_PREFIX}"
 # ------------------------------------
 cd "${PROJECT_DIR}/.."
 mvn install -DskipTests -pl sumaris-core-shared,sumaris-test-shared  --quiet
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
     exit
 fi
 
@@ -25,7 +25,7 @@ PROJECT_DIR=`pwd`
 rm -rf target/db
 mvn -Prun,hsqldb -DskipTests --quiet
 #mvn -Prun,hsqldb -DskipTests --quiet | grep -P "(WARN|ERROR|FAILURE)"
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
     exit
 fi
 
@@ -34,7 +34,6 @@ echo "${LOG_PREFIX} Stopping DB server...       ${LOG_PREFIX}"
 # ------------------------------------
 cd "${SCRIPT_DIR}"
 ./stopServer.sh
-
 
 # ------------------------------------
 echo "${LOG_PREFIX} Cleaning old DB server files... ${LOG_PREFIX}"
@@ -45,7 +44,7 @@ cd "${SCRIPT_DIR}"
 # ------------------------------------
 echo "${LOG_PREFIX} Starting DB server...       ${LOG_PREFIX}"
 # ------------------------------------
-nohup ./startServer.sh &
+nohup ./startServer.sh --force &
 
 # ------------------------------------
 echo "${LOG_PREFIX} Starting DB server [OK] (log at: ${SCRIPT_DIR}/nohup.out) ${LOG_PREFIX}"
