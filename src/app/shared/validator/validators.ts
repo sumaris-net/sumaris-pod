@@ -1,7 +1,7 @@
 import {FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
-import {fromDateISOString} from "../functions";
+import {fromDateISOString, isNotNil} from "../functions";
 
 export class SharedValidators {
 
@@ -15,13 +15,13 @@ export class SharedValidators {
 
   static latitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && (value < -90 || value > 90))
+    if (isNotNil(value) && (value < -90 || value > 90))
       return { validLatitude: true };
   }
 
   static longitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && (value < -180 || value > 180))
+    if (isNotNil(value) && (value < -180 || value > 180))
       return { validLongitude: true };
   }
 
@@ -45,12 +45,13 @@ export class SharedValidators {
 
   static integer(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && Math.trunc(value) !== value)
+    if (isNotNil(value) && Math.trunc(value) !== value)
       return { integer: true };
   }
 
   static maxDecimalsPattern(maxDecimals: number): ValidatorFn {
-    return Validators.pattern(new RegExp('^[0-9]+(\.[0-9]{1,'+maxDecimals+'})?$'));
+    const regexp = maxDecimals > 1 ? `^[0-9]+(\.[0-9]{1,${maxDecimals}})?$` : `^[0-9]+(\.[0-9])?$`;
+    return Validators.pattern(new RegExp(regexp));
   }
 
   static dateIsAfter(startDateField: string, endDateField: string): ValidatorFn {

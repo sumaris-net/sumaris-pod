@@ -147,7 +147,7 @@ export class ExtractTable implements OnInit {
     filter.criteria = (filter.criteria || [])
       .filter(criterion => isNotNil(criterion.name) && isNotNil(trimEmptyToNull(criterion.value)))
       .map(criterion => {
-        const isMulti = criterion.value && criterion.value.indexOf(',') != -1;
+        const isMulti = isNotNil(criterion.value) && criterion.value.indexOf(',') != -1;
         switch(criterion.operator) {
           case '=':
             if (isMulti) {

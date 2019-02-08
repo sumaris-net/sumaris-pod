@@ -428,13 +428,13 @@ export class MeasurementUtils {
   }
 
   static toEntityValue(value: any, pmfm: PmfmStrategy): string {
-    if (value === null || value === undefined || !pmfm) return;
+    if (isNil(value) || !pmfm) return;
     switch (pmfm.type) {
       case "qualitative_value":
-        return value && value.id && value.id.toString() || undefined;
+        return isNotNil(value) && value.id && value.id.toString() || undefined;
       case "integer":
       case "double":
-        return value && value.toString() || undefined;
+        return isNotNil(value) && value.toString() || undefined;
       case "string":
         return value;
       case "boolean":

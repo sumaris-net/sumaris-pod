@@ -8,7 +8,6 @@ import {isNil, isNotNil} from '../../shared/shared.module';
 
 const REGEXP_INTEGER = /^[0-9]+$/;
 const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
-const REGEXP_DOUBLE_ONE_DECIMAL = /^[0-9]+(\.[0-9])?$/;
 
 @Injectable()
 export class MeasurementsValidatorService implements ValidatorService {
@@ -96,13 +95,10 @@ export class MeasurementsValidatorService implements ValidatorService {
       else if (pmfm.type === 'double' && isNil(pmfm.maximumNumberDecimals)) {
         pattern = REGEXP_DOUBLE;
       }
-      // Double with a 1 decimal
-      else if (pmfm.maximumNumberDecimals === 1) {
-        pattern = REGEXP_DOUBLE_ONE_DECIMAL;
-      }
       // Double with a N decimal
-      else if (pmfm.maximumNumberDecimals > 1) {
-        pattern = new RegExp('^[0-9]+(\.[0-9]{1,' + pmfm.maximumNumberDecimals + '})?$');
+      else if (pmfm.maximumNumberDecimals >= 1) {
+        const regexp = pmfm.maximumNumberDecimals > 1 ? `^[0-9]+(\.[0-9]{1,${pmfm.maximumNumberDecimals}})?$` : `^[0-9]+(\.[0-9])?$`;
+        pattern = new RegExp(regexp);
       }
       validatorFns.push(Validators.pattern(pattern));
     }
