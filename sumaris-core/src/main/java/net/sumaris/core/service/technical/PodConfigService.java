@@ -2,6 +2,7 @@ package net.sumaris.core.service.technical;
 
 import net.sumaris.core.model.system.SystemVersion;
 import net.sumaris.core.service.administration.DepartmentService;
+import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,8 @@ public class PodConfigService {
     @Autowired
     private DepartmentService departmentService;
 
+    private UserSettingsVO user;
+
     private List<String> backGroundImages;
 
     private String cssTheme ;
@@ -28,8 +31,11 @@ public class PodConfigService {
     private SystemVersion systemVersion;
 
    public PodConfigService(){
-        podURL = whatsMyIp().orElse("couldn't find IP ");
+       podURL = whatsMyIp().orElse("couldn't find IP ");
+
     }
+
+
 
     /**
      * Auto detect IP
