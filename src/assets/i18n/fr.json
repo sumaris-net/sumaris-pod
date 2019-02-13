@@ -64,6 +64,14 @@
       "OF": "sur"
     }
   },
+  "CONFIGURATION": {
+    "APP_NAME": "Nom de l'application",
+    "BASE_URL": "URL de base",
+    "REMOTE_BASE_URL": "URL distante ex: https://test.tst",
+    "VERSION": "Numéro de version ex: 0.0.1",
+    "GEO_FORMAT": "Format des Latitude & Longitude",
+    "APOLLO_POLICY" : "cache-first"
+  },
   "MENU": {
     "HOME": "Accueil",
     "TRIPS": "Marées",
@@ -71,6 +79,7 @@
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
     "REFERENTIALS": "Listes",
+    "PODCONFIG": "POD Configuration",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "BTN_ACCOUNT": "Compte",

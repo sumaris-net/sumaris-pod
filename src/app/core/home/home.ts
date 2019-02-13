@@ -44,7 +44,7 @@ export class HomePage implements OnInit, OnDestroy {
     public activatedRoute: ActivatedRoute,
     public modalCtrl: ModalController,
     public translate: TranslateService,
-    public depService: PodConfigService
+    public configurationService: PodConfigService
   ) {
     this.bgImage = getRandomImage();
     this.isLogin = accountService.isLogin();
@@ -52,7 +52,7 @@ export class HomePage implements OnInit, OnDestroy {
       this.onLogin(this.accountService.account);
     }  
  
-    this.depService.getDepartments().then(de =>{
+    this.configurationService.getDepartments().then(de =>{
       this.departements.next(de);
       console.log("depService.logos " +  de .map(d=>d.logo) );
      } );

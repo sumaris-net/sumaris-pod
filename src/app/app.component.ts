@@ -27,7 +27,9 @@ export class AppComponent {
     { title: 'MENU.ADMINISTRATION_DIVIDER', profile: 'USER' },
     { title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN' },
     { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER' },
-    { title: 'MENU.REFERENTIALS', path: '/referential/list', icon: 'list', profile: 'ADMIN' }
+    { title: 'MENU.REFERENTIALS', path: '/referential/list', icon: 'list', profile: 'ADMIN' },
+    { title: 'MENU.PODCONFIG', path: '/admin/podconfig', icon: 'settings', profile: 'ADMIN' }
+
   ];
 
   constructor(

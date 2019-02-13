@@ -8,6 +8,8 @@ import { AboutModal } from '../about/modal-about';
 
 import { environment } from '../../../environments/environment';
 import { HomePage } from '../home/home';
+import { PodConfigService } from '../services/podconfig.service';
+
 import { Subject } from 'rxjs';
 import { fadeInAnimation } from '../../shared/material/material.animations';
 
@@ -31,6 +33,7 @@ export class MenuComponent implements OnInit {
   public loading = true;
   public isLogin: boolean = false;
   public account: Account;
+  public logo: string;
 
   //filteredItems: Array<MenuItem> = [];
   filteredItems = new Subject<MenuItem[]>();
@@ -51,6 +54,7 @@ export class MenuComponent implements OnInit {
     protected accountService: AccountService,
     protected router: Router,
     protected menu: MenuController,
+    protected configurationService: PodConfigService,
     protected modalCtrl: ModalController
   ) {
 
@@ -74,6 +78,10 @@ export class MenuComponent implements OnInit {
         this.loading = false;
       }, 1000);
     }
+    this.configurationService.getConfs().then(conf =>{
+      this.logo = conf.properties.find(p=> p.name == "logo").label
+    })
+
   }
 
   onLogin(account: Account) {

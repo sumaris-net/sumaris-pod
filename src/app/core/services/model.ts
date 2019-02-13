@@ -236,6 +236,70 @@ export class ReferentialRef extends Entity<ReferentialRef>  {
 }
 
 
+export class Property extends Referential {
+ 
+  constructor() {
+    super();
+  }
+
+  copy(target: Property): Property {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(minify?: boolean): any {
+    if (minify) return { id: this.id }; // minify=keep id only
+    const target: any = super.asObject();
+    delete target.entityName;
+    return target;
+  }
+
+  fromObject(source: any): Property {
+    super.fromObject(source);
+    delete this.entityName; // not need 
+    return this;
+  }
+
+}
+
+export class Configuration extends Referential  {
+
+  static fromObject(source: Configuration): Configuration {
+    const res = new Configuration();
+    res.fromObject(source);
+    return res;
+  }
+
+  id: number;  
+  properties: Property[];
+  backGroundImages: String[];
+  
+  constructor() {
+    super();
+  }
+ 
+  copy(target: Configuration): Configuration {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(minify?: boolean): any {
+    if (minify) return { id: this.id }; // minify=keep id only
+    const target: any = super.asObject();
+    return target;
+  }
+
+  fromObject(source: any): Configuration {
+    super.fromObject(source);
+
+    this.name = source.properties && source.properties['defaultProgram'] || this.name;
+    this.label = source.properties && source.properties['remoteBaseUrl'] || this.label;
+    this.properties=source.properties;
+
+    return this;
+  }
+}
+
 
 export class Person extends Entity<Person> implements Cloneable<Person> {
 

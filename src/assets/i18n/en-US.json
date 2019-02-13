@@ -71,6 +71,7 @@
     "USERS": "Users",
     "VESSELS": "Vessels",
     "REFERENTIALS": "Referentials",
+    "PODCONFIG": "POD Configuration",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "BTN_ACCOUNT": "Account",
