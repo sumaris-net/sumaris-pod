@@ -1,4 +1,4 @@
-package net.sumaris.core.model.system;
+package net.sumaris.core.model.technical;
 
 /*-
  * #%L
@@ -23,36 +23,43 @@ package net.sumaris.core.model.system;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "system_version")
-public class SystemVersion implements IUpdateDateEntityBean<Integer, Date> {
+@Table(name = "software_property")
+public class SoftwareProperty implements IItemReferentialEntity  {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SYSTEM_VERSION_SEQ")
-    @SequenceGenerator(name = "SYSTEM_VERSION_SEQ", sequenceName="SYSTEM_VERSION_SEQ")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "APP_SETTINGS_SEQ")
+    @SequenceGenerator(name = "APP_SETTINGS_SEQ", sequenceName="APP_SETTINGS_SEQ")
     private Integer id;
 
-    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    @Column(nullable = false )
     private String label;
 
-    private String description;
+    @Column(nullable = false )
+    private String name;
 
-    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
-    private String comments;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_fk", nullable = false)
+    private Status status;
 
-    @Column(name="creation_date", nullable = false)
+    @Column(name = "creation_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
 
-    @Column(name="update_date")
+    @Column(name = "update_date")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Software.class)
+    @JoinColumn(name = "software_fk", nullable = false)
+    private Software software_fk;
 
 }

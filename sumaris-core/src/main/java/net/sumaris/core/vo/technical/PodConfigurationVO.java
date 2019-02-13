@@ -1,4 +1,4 @@
-package net.sumaris.core.model.system;
+package net.sumaris.core.vo.technical;
 
 /*-
  * #%L
@@ -23,36 +23,24 @@ package net.sumaris.core.model.system;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.vo.referential.IReferentialVO;
 
-import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
 @Data
-@Entity
-@Table(name = "system_version")
-public class SystemVersion implements IUpdateDateEntityBean<Integer, Date> {
+public class PodConfigurationVO implements IReferentialVO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SYSTEM_VERSION_SEQ")
-    @SequenceGenerator(name = "SYSTEM_VERSION_SEQ", sequenceName="SYSTEM_VERSION_SEQ")
     private Integer id;
 
-    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    private List<String> backGroundImages;
+
+    private List<PropertyVO> properties;
+
+    private String name;
+
     private String label;
 
-    private String description;
-
-    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
-    private String comments;
-
-    @Column(name="creation_date", nullable = false)
-    private Date creationDate;
-
-    @Column(name="update_date")
     private Date updateDate;
-
 
 }

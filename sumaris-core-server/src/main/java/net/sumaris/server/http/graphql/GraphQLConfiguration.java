@@ -29,6 +29,7 @@ import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
+import net.sumaris.server.http.graphql.administration.PodConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
 import net.sumaris.server.http.graphql.data.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
@@ -52,6 +53,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
     @Autowired
     private AdministrationGraphQLService administrationService;
+
+    @Autowired
+    private PodConfigurationGraphQLService podConfigurationService;
 
     @Autowired
     private DataGraphQLService dataService;
@@ -80,6 +84,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
                 .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
                 .withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class)
+                .withOperationsFromSingleton(podConfigurationService, PodConfigurationGraphQLService.class)
 
                 .withValueMapperFactory(new JacksonValueMapperFactory.Builder().withPrototype(objectMapper).build())
                 .generate();

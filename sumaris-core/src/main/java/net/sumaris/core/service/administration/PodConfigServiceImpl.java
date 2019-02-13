@@ -1,8 +1,8 @@
-package net.sumaris.core.service.technical;
+package net.sumaris.core.service.administration;
 
-import net.sumaris.core.model.system.SystemVersion;
-import net.sumaris.core.service.administration.DepartmentService;
-import net.sumaris.core.vo.administration.user.UserSettingsVO;
+ import net.sumaris.core.dao.technical.SoftwarePropertyRepository;
+ import net.sumaris.core.vo.technical.PropertyVO;
+ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -10,31 +10,22 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+ import java.util.Optional;
+
 
 @Component("podConfigService")
-public class PodConfigService {
+public class PodConfigServiceImpl implements PodConfigService {
 
     @Autowired
     private DepartmentService departmentService;
 
-    private UserSettingsVO user;
-
-    private List<String> backGroundImages;
-
-    private String cssTheme ;
-
-    private String podURL;
-
     @Autowired
-    private SystemVersion systemVersion;
+    private SoftwarePropertyRepository softwareProperty;
 
-   public PodConfigService(){
-       podURL = whatsMyIp().orElse("couldn't find IP ");
 
-    }
-
+    public PodConfigServiceImpl() { }
 
 
     /**
@@ -52,6 +43,22 @@ public class PodConfigService {
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+
+    @Override
+    public List<DepartmentVO> listDepartments() {
+        return departmentService.findByFilter(null, 0, 100, null, null);
+    }
+
+    @Override
+    public List<String> listBackgrounds() {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<PropertyVO> propertiesVO(String name) {
+        return softwareProperty.propertiesVO(name);
     }
 
 }
