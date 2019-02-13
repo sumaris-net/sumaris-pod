@@ -21,6 +21,9 @@
     <input matInput autocomplete="off" type="number" [min]="pmfm.minValue" [max]="pmfm.maxValue" [placeholder]="placeholder"
            (keypress)="filterNumberInput($event, true)"
       [step]="computeNumberInputStep(pmfm)" [formControl]="formControl" [required]="pmfm.isMandatory">
+
+      <ion-label> {{pmfm.type}} {{pmfm.unit}}</ion-label> 
+
     <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.errors?.min">
       {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:{min: pmfm.minValue} }}</mat-error>

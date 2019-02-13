@@ -105,7 +105,10 @@
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.type=='date'">
-        <ion-label>{{getPmfmColumnHeader(pmfm)}}
+          <ion-label>{{getPmfmColumnHeader(pmfm)}} 
+         <!--  
+          <ion-label>{{pmfm}} {{pmfm.type}} {{pmfm.unit}}</ion-label>
+        -->
           <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
         </ion-label>
       </mat-header-cell>

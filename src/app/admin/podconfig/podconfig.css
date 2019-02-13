@@ -1,0 +1,13 @@
+
+.carousel{
+  position: relative;
+}
+
+.closeButton{
+  display: block; 
+  position: absolute; 
+  width: 20px;
+  height: 20 px;
+  top:-10px; 
+  right: -10px;
+}

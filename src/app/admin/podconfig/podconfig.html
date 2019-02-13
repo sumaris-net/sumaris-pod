@@ -1,0 +1,77 @@
+<app-toolbar [title]="'MENU.PODCONFIG' | translate" color="primary" [canGoBack]="false">
+</app-toolbar>
+
+<ion-content>
+
+  <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+
+    <mat-form-field>
+      <input matInput [placeholder]="'CONFIGURATION.APP_NAME' | translate" formControlName="defaultProgram" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput [placeholder]="'CONFIGURATION.BASE_URL' | translate" formControlName="baseUrl" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput [placeholder]="'CONFIGURATION.REMOTE_BASE_URL' | translate" formControlName="remoteBaseUrl" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput [placeholder]="'CONFIGURATION.VERSION' | translate" formControlName="version" readonly/>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput [placeholder]="'CONFIGURATION.GEO_FORMAT' | translate" formControlName="defaultLatLongFormat" />
+    </mat-form-field>
+
+
+
+    <!--div formArrayName="properties">
+          <div *ngFor="let proerty of form.get('properties').controls; let i=index">
+            <div class="form-container" [formGroupName]="i">
+                <mat-form-field>
+                    <input matInput [placeholder]=" 'EXTRACTION.FILTER.CRITERION_VALUE'|translate" formControlName="name">
+                  </mat-form-field>
+
+                <mat-form-field>
+                  <input matInput [placeholder]=" 'EXTRACTION.FILTER.CRITERION_VALUE'|translate" formControlName="label">
+                </mat-form-field>
+            </div>
+          </div>
+      </div>-->
+
+
+
+    <!-- Display configured Departments logos -->
+    <div class="bottom-banner">
+      <div class="carousel" *ngFor="let dep of departements | async ">
+        <img class="logo" src="{{ dep.logo }}" alt="{{dep.label}}" [title]="dep.name" width="150" />
+        <mat-icon class="mat-icon material-icons mat-icon-no-color closeButton" (click)="removeIcon(dep.logo)">close</mat-icon>
+      </div>
+
+    </div>
+  </form>
+
+  <!--ion-fab right bottom>
+    <button ion-fab color="light" (click)="openTripModal()"><ion-icon name="md-add"></ion-icon></button>
+  </ion-fab-->
+</ion-content>
+
+<carousel-list>
+
+</carousel-list>
+
+
+<ion-footer hidden-xs hidden-sm>
+
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
+
+    <!-- error -->
+    <ion-item *ngIf="error">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </form-buttons-bar>
+</ion-footer>

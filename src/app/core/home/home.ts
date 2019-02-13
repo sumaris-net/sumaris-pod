@@ -2,10 +2,13 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { RegisterModal } from '../register/modal/modal-register';
-import { Subscription } from 'rxjs';
+import { Subscription, BehaviorSubject } from 'rxjs';
 import { AccountService } from '../services/account.service';
-import { Account } from '../services/model';
+import { Account, Department } from '../services/model';
 import { TranslateService } from '@ngx-translate/core';
+import { PodConfigService }from '../services/podconfig.service';
+
+
 
 export function getRandomImage() {
 
@@ -33,26 +36,34 @@ export class HomePage implements OnInit, OnDestroy {
   displayName: String = '';
   isLogin: boolean;
   subscriptions: Subscription[] = [];
+  departements = new BehaviorSubject<Department[]>(null);
+ 
 
   constructor(
     public accountService: AccountService,
     public activatedRoute: ActivatedRoute,
     public modalCtrl: ModalController,
-    public translate: TranslateService
+    public translate: TranslateService,
+    public configurationService: PodConfigService
   ) {
     this.bgImage = getRandomImage();
     this.isLogin = accountService.isLogin();
     if (this.isLogin) {
       this.onLogin(this.accountService.account);
-    }
-
+    }  
+ 
+    this.configurationService.getDepartments().then(de =>{
+      this.departements.next(de);
+      console.log("depService.logos " +  de .map(d=>d.logo) );
+     } );
+    
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
     this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
-  };
-
-  ngOnInit(): void {
-    // Workaround need on Firefox Browser
+  }; 
+  
+  ngOnInit() {
+    // Workaround needed on Firefox Browser
     const pageElements = document.getElementsByTagName('page-home');
     if (pageElements && pageElements.length == 1) {
       const pageElement: Element = pageElements[0];
@@ -60,7 +71,7 @@ export class HomePage implements OnInit, OnDestroy {
         console.warn("[home] FIXME Applying workaround on page visibility (see issue #1)");
         pageElement.classList.remove('ion-page-invisible');
       }
-    }
+    } 
   }
 
   ngOnDestroy() {

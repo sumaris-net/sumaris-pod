@@ -34,7 +34,10 @@
     </ion-toolbar>
   </div>
 
-  <p class="hidden-xs" padding>&nbsp;<br /><br /></p>
+  <p class="hidden-xs" padding>&nbsp;
+    <br/>
+    <br/>
+  </p>
   <p class="hidden-xs">&nbsp;</p>
 
   <ion-card>
@@ -43,7 +46,7 @@
       <h1 translate>HOME.WELCOME</h1>
       <ion-text color="primary">
         <img class="logo" src="./assets/img/logo.png" [title]="'APP_NAME'|translate" />
-        <br />
+        <br/>
         <span [innerHTML]="'HOME.DESCRIPTION'|translate"></span>
       </ion-text>
     </ion-card-content>
@@ -68,7 +71,7 @@
 
       <p *ngIf="isLogin" ion-text color="primary" class="hidden-xs hidden-sm">
         <span [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></span>
-        <br />
+        <br/>
         <a ion-text color="danger" href="#" (click)="logout($event)">
           <span translate>HOME.BTN_DISCONNECT</span>
         </a>
@@ -78,13 +81,12 @@
 
   <p class="hidden-xs">&nbsp;</p>
 
+
+  <!-- Display configured Departments logos -->
   <div class="bottom-banner">
-    <img class="logo" src="./assets/img/logo/logo-interreg2seas.png">
-    <img class="logo" src="./assets/img/logo/logo-fromnord.png">
-    <img class="logo" src="./assets/img/logo/logo-ilvo-text.png">
-    <img class="logo" src="./assets/img/logo/logo-ifremer.png">
-    <img class="logo" src="./assets/img/logo/logo-nausicaa.png">
-    <img class="logo" src="./assets/img/logo/logo-redercentrale.png">
+    <a href="{{ dep.siteUrl }}" *ngFor="let dep of departements | async ">
+      <img class="logo" src="{{ dep.logo }}" alt="{{dep.label}}"  [title]="dep.name" />
+    </a>
   </div>
 
 </ion-content>

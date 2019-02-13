@@ -11,6 +11,7 @@ import {ReferentialsPage} from './referential/list/referentials';
 import {TripPage, TripsPage} from './trip/trip.module';
 import {OperationPage} from './trip/operation/operation.page';
 import {ExtractTable} from "./trip/extract/extract-table.component";
+import { PodConfigPage } from './admin/podconfig/podconfig';
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -45,6 +46,15 @@ const routes: Routes = [
     path: 'admin/users',
     pathMatch: 'full',
     component: UsersPage,
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'ADMIN'
+    }
+  },
+  {
+    path: 'admin/podconfig',
+    pathMatch: 'full',
+    component: PodConfigPage,
     canActivate: [AuthGuardService],
     data: {
       profile: 'ADMIN'
