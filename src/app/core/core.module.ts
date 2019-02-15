@@ -73,7 +73,8 @@ export {
   Entity, Cloneable, EntityUtils,
   AcquisitionLevelCodes, StatusIds, LocationLevelIds,
   Referential, ReferentialRef, Department, Person, DataService, LoadResult,
-  toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined, entityToString, referentialToString
+  toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined, entityToString, referentialToString,
+ 
 }
 
 export function HttpLoaderFactory(http: HttpClient) {

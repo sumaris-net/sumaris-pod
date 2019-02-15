@@ -43,11 +43,11 @@
   <ion-card>
     <ion-card-content>
 
-      <h1 translate>HOME.WELCOME</h1>
+      <h1 [innerHTML]="'HOME.WELCOME'|translate: {appName: appName}"></h1>
       <ion-text color="primary">
-        <img class="logo" src="./assets/img/logo.png" [title]="'APP_NAME'|translate" />
+        <img class="logo" src="{{ logo }}" [title]="appName" />
         <br/>
-        <span [innerHTML]="'HOME.DESCRIPTION'|translate"></span>
+        <span [innerHTML]="'HOME.DESCRIPTION'|translate: {appName: appName}"></span>
       </ion-text>
     </ion-card-content>
 
@@ -84,7 +84,7 @@
 
   <!-- Display configured Departments logos -->
   <div class="bottom-banner">
-    <a href="{{ dep.siteUrl }}" *ngFor="let dep of departements | async ">
+    <a href="{{ dep.siteUrl }}" *ngFor="let dep of partners | async ">
       <img class="logo" src="{{ dep.logo }}" alt="{{dep.label}}"  [title]="dep.name" />
     </a>
   </div>

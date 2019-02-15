@@ -3,27 +3,27 @@
 
 <ion-content>
 
-  <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+  <form class="form-container" padding [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
 
     <mat-form-field>
-      <input matInput [placeholder]="'CONFIGURATION.APP_NAME' | translate" formControlName="defaultProgram" />
+      <input matInput [placeholder]="'CONFIGURATION.APP_NAME' | translate" formControlName="name" />
     </mat-form-field>
 
-    <mat-form-field>
+    <!-- <mat-form-field>
       <input matInput [placeholder]="'CONFIGURATION.BASE_URL' | translate" formControlName="baseUrl" />
     </mat-form-field>
 
     <mat-form-field>
       <input matInput [placeholder]="'CONFIGURATION.REMOTE_BASE_URL' | translate" formControlName="remoteBaseUrl" />
-    </mat-form-field>
+    </mat-form-field> -->
 
     <mat-form-field>
-      <input matInput [placeholder]="'CONFIGURATION.VERSION' | translate" formControlName="version" readonly/>
+      <input matInput [placeholder]="'CONFIGURATION.VERSION' | translate" formControlName="label" readonly/>
     </mat-form-field>
 
-    <mat-form-field>
+    <!-- <mat-form-field>
       <input matInput [placeholder]="'CONFIGURATION.GEO_FORMAT' | translate" formControlName="defaultLatLongFormat" />
-    </mat-form-field>
+    </mat-form-field> -->
 
 
 
@@ -45,7 +45,7 @@
 
     <!-- Display configured Departments logos -->
     <div class="bottom-banner">
-      <div class="carousel" *ngFor="let dep of departements | async ">
+      <div class="carousel" *ngFor="let dep of partners | async ">
         <img class="logo" src="{{ dep.logo }}" alt="{{dep.label}}" [title]="dep.name" width="150" />
         <mat-icon class="mat-icon material-icons mat-icon-no-color closeButton" (click)="removeIcon(dep.logo)">close</mat-icon>
       </div>
@@ -55,13 +55,13 @@
 
   <!--ion-fab right bottom>
     <button ion-fab color="light" (click)="openTripModal()"><ion-icon name="md-add"></ion-icon></button>
-  </ion-fab-->
+  </ion-fab
+  <carousel-list>  </carousel-list>
+
+-->
+
 </ion-content>
-
-<carousel-list>
-
-</carousel-list>
-
+ 
 
 <ion-footer hidden-xs hidden-sm>
 

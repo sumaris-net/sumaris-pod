@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 
-
 import { ModalController, Platform } from "@ionic/angular";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Subscription, BehaviorSubject } from 'rxjs';
@@ -24,18 +23,7 @@ export function getBrandCSS(styles: string[]): string[] {
   }
   return styles;
 }
-export function getFormValueFromEntityProperty(source: Configuration, form: FormGroup): { [key: string]: string } {
-  const value = {};
-  source.properties.forEach(prop => {
-    let key = prop['name'];
-    let val = prop['label'];
-    console.log(key,val);
-    if(form.controls[key])
-      value[key] = val;
-  });
-  return value;
-}
-
+ 
 
 @Component({
   moduleId: module.id.toString(),
@@ -44,12 +32,11 @@ export function getFormValueFromEntityProperty(source: Configuration, form: Form
   styleUrls: ['./podconfig.css']
 })
 export class PodConfigPage implements OnInit {
-  departements = new BehaviorSubject<Department[]>(null);
+  partners = new BehaviorSubject<Department[]>(null);
   data: Configuration;
   form: FormGroup;
   loading: boolean = true;
   error: string;
-  
 
 
   constructor(
@@ -62,19 +49,9 @@ export class PodConfigPage implements OnInit {
       ) {
  
      this.form =  formBuilder.group({   
-       'defaultProgram': [''],
-       'baseUrl': [''],
-       'remoteBaseUrl': [''],
-       'version': [''],
-       'defaultLatLongFormat': ['']
+       'name': [''], 
+       'label': [''], 
      });
-
-     
-     this.configurationService.getDepartments().then(de =>{
-      this.departements.next(de);
-      console.log("depService.logos " +  de .map(d=>d.logo) );
-     } );
-    
 
   };
 
@@ -84,28 +61,40 @@ export class PodConfigPage implements OnInit {
 
   async load() {
 
+    // this.configurationService.getDepartments().then(de =>{
+    //   this.departements.next(de);
+    //   console.log("depService.logos " +  de .map(d=>d.logo) );
+    // });
+
     const data = await this.configurationService.getConfs();
     console.dir(data);
+
+
 
     this.updateView(data);
   }
 
-  removeIcon(icon: string){
-    console.log(icon);
+  removeIcon(icon: String){
+    console.log("remove Icon " + icon);
   }
+
+  // removeBG(bgImage: string){
+  //   console.log("remove BackGround " + bgImage);
+  //   this.configurationService.removeBackGround();
+  // }
 
   updateView(data: Configuration) {
 
     console.dir(data);
     this.data = data;
 
-    const json = getFormValueFromEntityProperty(data, this.form);
+    const json = AppFormUtils.getFormValueFromEntity(data, this.form);
     this.form.setValue(json);
+
+    this.partners.next(data.partners);
 
     this.loading = false;
   }
-
- 
 
   save($event: any) {
 
@@ -127,10 +116,9 @@ export class PodConfigPage implements OnInit {
     }
     finally {
       this.form.enable();
-    }
-
-    
+    }    
   }
+
 
   get dirty(): boolean {
     return this.form.dirty;

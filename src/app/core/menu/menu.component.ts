@@ -33,7 +33,9 @@ export class MenuComponent implements OnInit {
   public loading = true;
   public isLogin: boolean = false;
   public account: Account;
-  public logo: string;
+  @Input() logo: String;
+
+  @Input() appName: String;
 
   //filteredItems: Array<MenuItem> = [];
   filteredItems = new Subject<MenuItem[]>();
@@ -79,7 +81,8 @@ export class MenuComponent implements OnInit {
       }, 1000);
     }
     this.configurationService.getConfs().then(conf =>{
-      this.logo = conf.properties.find(p=> p.name == "logo").label
+      this.logo = conf.logo;
+      this.appName = conf.name;
     })
 
   }

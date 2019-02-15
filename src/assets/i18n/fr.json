@@ -97,7 +97,7 @@
     "DEVELOPED_BY": "Développé par :"
   },
   "HOME": {
-    "WELCOME": "Bienvenue sur le site web SUMARiS !",
+    "WELCOME": "Bienvenue sur le site web {{appName}} !",
     "DESCRIPTION": "Base de données européenne partagée<br/>pour la gestion des stocks de raies.",
     "BTN_TRIPS": "Recherche de marées",
     "NOT_THIS_ACCOUNT_QUESTION": "Vous n'êtes pas <b>{{displayName}}</b> ?",

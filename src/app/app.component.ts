@@ -4,6 +4,7 @@ import {MenuItem} from './core/menu/menu.component';
 import {HomePage} from './core/home/home';
 import {AccountService, DataService} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
+import { PodConfigService } from './core/services/podconfig.service';
 // import { StatusBar } from "@ionic-native/status-bar";
 // import { SplashScreen } from "@ionic-native/splash-screen";
 // import { Keyboard } from "@ionic-native/keyboard";
@@ -20,6 +21,8 @@ import {ReferentialRefService} from './referential/referential.module';
 export class AppComponent {
 
   root: any = HomePage;
+  logo: String;
+  appName: String;
   menuItems: Array<MenuItem> = [
     { title: 'MENU.HOME', path: '/', icon: 'home' },
     { title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'GUEST' },
@@ -35,7 +38,8 @@ export class AppComponent {
   constructor(
     private platform: Platform,
     private accountService: AccountService,
-    private referentialRefService: ReferentialRefService
+    private referentialRefService: ReferentialRefService,
+    private configurationService: PodConfigService
     // TODO: waiting ionic-native release
     // private statusBar: StatusBar, 
     // private splashScreen: SplashScreen,
@@ -55,6 +59,8 @@ export class AppComponent {
       keyboard.disableScroll(true);
       */
 
+      this.initConfig();
+
       this.addAccountFields();
     });
 
@@ -71,6 +77,32 @@ export class AppComponent {
         window.clearInterval(scrollToTop);
       }
     }, 16);
+  }
+
+  protected async initConfig() {
+
+    const config = await this.configurationService.getConfs();
+
+    this.logo = config.logo;
+    this.appName = config.label;
+    this.updateColors(    
+      config.properties["sumaris.site.color.primary"],
+      config.properties["sumaris.site.color.secondary"],
+      config.properties["sumaris.site.color.tertiary"]
+    );
+
+  }
+
+  updateColors(primary, secondary, tertiary) {
+
+    console.log("Updating Colors based on configuration - 1- " + primary + " 2- " + secondary + " 3- "+ tertiary );
+
+    document.documentElement.style.setProperty(`--ion-color-primary`, primary);
+
+    document.documentElement.style.setProperty(`--ion-color-light`, secondary); 
+    document.documentElement.style.setProperty(`--ion-color-secondary`, secondary); 
+    
+    document.documentElement.style.setProperty(`--ion-color-tertiary`, tertiary);
   }
 
   protected addAccountFields() {

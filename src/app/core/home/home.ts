@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, Inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { RegisterModal } from '../register/modal/modal-register';
@@ -6,23 +6,17 @@ import { Subscription, BehaviorSubject } from 'rxjs';
 import { AccountService } from '../services/account.service';
 import { Account, Department } from '../services/model';
 import { TranslateService } from '@ngx-translate/core';
-import { PodConfigService }from '../services/podconfig.service';
+import { PodConfigService } from '../services/podconfig.service';
+import { DOCUMENT } from '@angular/platform-browser';
 
+export function getBackgroundImage() {
+  return this.bgImage; 
+ };
 
-
-export function getRandomImage() {
-
-  const kinds = {
-    'ray': 7,
-    'boat': 3
-  };
-  const kind = (Math.random() < 0.3) ? 'ray' : 'boat';
-  const imageCount = kinds[kind];
-
-  if (imageCount == 0) return getRandomImage();
-  var imageIndex = Math.floor(Math.random() * imageCount) + 1;
-  return './assets/img/bg/' + kind + '-' + imageIndex + '.jpg';
-};
+export function getRandomImage(files : String[]) {
+  let imgIndex = Math.floor(Math.random() * files.length)  ;
+   return files[imgIndex]; 
+ };
 
 @Component({
   moduleId: module.id.toString(),
@@ -36,32 +30,45 @@ export class HomePage implements OnInit, OnDestroy {
   displayName: String = '';
   isLogin: boolean;
   subscriptions: Subscription[] = [];
-  departements = new BehaviorSubject<Department[]>(null);
- 
+  partners = new BehaviorSubject<Department[]>(null);
+  logo: String;
+  appName: string;
+  partLogos: string[];
 
   constructor(
+    @Inject(DOCUMENT) private _document: HTMLDocument,
     public accountService: AccountService,
     public activatedRoute: ActivatedRoute,
     public modalCtrl: ModalController,
     public translate: TranslateService,
+
     public configurationService: PodConfigService
   ) {
-    this.bgImage = getRandomImage();
+    
     this.isLogin = accountService.isLogin();
     if (this.isLogin) {
       this.onLogin(this.accountService.account);
-    }  
+    }
  
-    this.configurationService.getDepartments().then(de =>{
-      this.departements.next(de);
-      console.log("depService.logos " +  de .map(d=>d.logo) );
-     } );
-    
+    this.configurationService.getConfs().then(conf => {
+      this.appName = conf.label;
+      this._document.getElementById('appTitle').textContent = conf.name;
+
+      let fav = conf.properties["favicon"];
+      if(fav){
+        this._document.getElementById('appFavicon').setAttribute('href', fav); 
+      }
+
+      this.logo = conf.logo;
+      this.partners.next(conf.partners);
+      this.bgImage = getRandomImage(conf.backgroundImages);
+    })
+
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
     this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
-  }; 
-  
+  };
+
   ngOnInit() {
     // Workaround needed on Firefox Browser
     const pageElements = document.getElementsByTagName('page-home');
@@ -71,7 +78,7 @@ export class HomePage implements OnInit, OnDestroy {
         console.warn("[home] FIXME Applying workaround on page visibility (see issue #1)");
         pageElement.classList.remove('ion-page-invisible');
       }
-    } 
+    }
   }
 
   ngOnDestroy() {

@@ -271,9 +271,12 @@ export class Configuration extends Referential  {
   }
 
   id: number;  
-  properties: Property[];
-  backGroundImages: String[];
-  
+  public properties:Map<String,String>;
+  backgroundImages: String[];
+  partners: Department[];
+  defaultProgram: String;
+  logo: String;
+ 
   constructor() {
     super();
   }
@@ -294,8 +297,10 @@ export class Configuration extends Referential  {
 
     this.name = source.properties && source.properties['defaultProgram'] || this.name;
     this.label = source.properties && source.properties['remoteBaseUrl'] || this.label;
-    this.properties=source.properties;
-
+    this.properties = source.properties;
+    this.backgroundImages = source.backgroundImages;
+    this.partners = source.partners;
+    this.logo = source.logo;
     return this;
   }
 }
@@ -372,6 +377,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
 
 export class Department extends Referential implements Cloneable<Department>{
   logo: string;
+  id: number ;
 
   constructor() {
     super();

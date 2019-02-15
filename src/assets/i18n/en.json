@@ -1,5 +1,5 @@
 {
-  "APP_NAME": "SUMARiS",
+  "APP_NAME": "{{appName}}",
   "COMMON": {
     "BTN_CANCEL": "Cancel",
     "BTN_ABORT_CHANGES": "Abort the changes",
@@ -97,7 +97,7 @@
     "DEVELOPED_BY": "Developed by:"
   },
   "HOME": {
-    "WELCOME": "Welcome to the SUMARiS web site!",
+    "WELCOME": "Welcome to the {{appName}} web site!",
     "DESCRIPTION": "European shared database for management of skate stocks.",
     "BTN_TRIPS": "Search trips",
     "NOT_THIS_ACCOUNT_QUESTION": "You are not <b>{{displayName}}</b>?",
@@ -108,7 +108,7 @@
     "TITLE": "Authentication",
     "BTN_LOGIN": "Log In",
     "BTN_REGISTER": "Sign up",
-    "NO_ACCOUNT_QUESTION": "Don't have a account?"
+    "NO_ACCOUNT_QUESTION": "Don't have an account?"
   },
   "REGISTER": {
     "TITLE": "Registration",

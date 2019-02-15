@@ -5,7 +5,7 @@ import { Injectable } from "@angular/core";
  import { Referential, Configuration } from "./model";
  import { environment } from "../../../environments/environment";
 import { Department } from "src/app/trip/services/trip.model";
-
+import {ErrorCodes} from "./errors";
  
 /* ------------------------------------
  * GraphQL queries
@@ -14,6 +14,7 @@ import { Department } from "src/app/trip/services/trip.model";
 const DepartmentsQuery: any = gql`
 query Departments {
   departments {
+    id
     logo
     name
     hasLogo
@@ -26,23 +27,40 @@ query Departments {
 const ConfigurationQuery: any = gql`
 query confs {
   configuration{
-    
-    name
+    id
     label
-    properties{
-      name
-      label
+    name    
+    logo
+    defaultProgram
+    backgroundImages
+    partners {
+      id
+      logo
+      siteUrl
     }
-    backGroundImages
+    properties
   }
 }
 `;  
+
+const DeletePartner: any = gql`
+  mutation deletePartner($app:String, $partner:String){
+    deletePartner(app: $app,  partner: $partner)
+  }
+`;
+
+const DeleteBackground: any = gql`
+mutation deleteBG($app:String, $bg:String){
+  deleteBG(app: $app,  bg: $bg)
+}
+`;
 
 
 @Injectable()
 export class PodConfigService extends BaseDataService {
  
   configuration: Configuration;
+   
 
   constructor(
     protected apollo: Apollo,
@@ -66,22 +84,38 @@ export class PodConfigService extends BaseDataService {
     return res;
   }
 
+  // async removeBackGround(){
+  //   const data = await this.mutate<any>({
+  //     mutation:  DeleteBackground,
+  //     variables: { app: "ADAP", bg: "2"}
+  //   }); 
 
-  /**
-  * get Logos for all Departments configured 
-  */
-   async getDepartments(): Promise<Department[]> {
+  // }
 
-    const defaultDep = environment.defaultDepartmentId;
-    //TODO: filter 
+  // async removePartnerLogo() : Promise<Configuration> {
+  //   const data = await this.mutate<any>({
+  //     mutation:  DeletePartner,
+  //     variables: { app: "ADAP", partner: "2"}
+  //   }); 
+ 
+  //   return this.getConfs();
+  // }
 
-    const data = await this.query<{ departments: Department[] } >({
-      query: DepartmentsQuery,
-      variables: {
-      }
-    }); 
-    return data.departments;
-  };
+  // /**
+  // * get Logos for all Departments configured 
+  // */
+  //  async getDepartments(): Promise<Department[]> {
+
+  //   const defaultDep = environment.defaultDepartmentId;
+  //   //TODO: filter 
+
+  //   const data = await this.query<{ departments: Department[] } >({
+  //     query: DepartmentsQuery,
+  //     variables: {
+  //     }
+  //   }); 
+  //   return data.departments;
+  // };
 }
 
 
