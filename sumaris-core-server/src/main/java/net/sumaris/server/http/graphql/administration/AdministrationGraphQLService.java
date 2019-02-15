@@ -325,6 +325,12 @@ public class AdministrationGraphQLService {
 
     }
 
+    public void fillLogo(DepartmentVO department) {
+        if (department == null) return;
+        if (department.isHasLogo() && StringUtils.isNotBlank(department.getLabel())) {
+            department.setLogo(departmentLogoUrl.replace("{label}", department.getLabel()));
+        }
+    }
 
     /* -- Protected methods -- */
 
@@ -339,11 +345,5 @@ public class AdministrationGraphQLService {
         }
     }
 
-    protected void fillLogo(DepartmentVO department) {
-        if (department == null) return;
-        if (department.isHasLogo() && StringUtils.isNotBlank(department.getLabel())) {
-            department.setLogo(departmentLogoUrl.replace("{label}", department.getLabel()));
-        }
-    }
 
 }

@@ -29,7 +29,7 @@ import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
-import net.sumaris.server.http.graphql.administration.PodConfigurationGraphQLService;
+import net.sumaris.server.http.graphql.technical.PodConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
 import net.sumaris.server.http.graphql.data.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;

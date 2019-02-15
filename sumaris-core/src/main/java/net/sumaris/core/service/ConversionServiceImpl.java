@@ -44,7 +44,7 @@ public class ConversionServiceImpl extends GenericConversionService {
     private PersonDao personDao;
 
     @PostConstruct
-    void initConverters() {
+    private void initConverters() {
 
         // Entity->VO converters
         addConverter(Trip.class, TripVO.class, tripDao::toTripVO);

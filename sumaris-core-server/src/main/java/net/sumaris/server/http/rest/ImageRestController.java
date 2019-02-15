@@ -26,6 +26,7 @@ package net.sumaris.server.http.rest;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
+import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,6 +46,9 @@ public class ImageRestController {
 
     @Autowired
     private DepartmentService departmentService;
+
+    @Autowired
+    private ImageService imageService;
 
     @ResponseBody
     @RequestMapping(value = RestPaths.PERSON_AVATAR_PATH, method = RequestMethod.GET,
@@ -67,6 +71,22 @@ public class ImageRestController {
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<byte[]> getDepartmentLogo(@PathVariable(name="label") String label) {
         ImageAttachmentVO image = departmentService.getLogoByLabel(label);
+        if (image == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        byte[] bytes = Base64.decodeBase64(image.getContent());
+        return ResponseEntity.ok()
+                .contentLength(bytes.length)
+                .contentType(MediaType.parseMediaType(image.getContentType()))
+                .body(bytes);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = RestPaths.IMAGE_PATH, method = RequestMethod.GET,
+            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public ResponseEntity<byte[]> getImage(@PathVariable(name="id") String id) {
+        ImageAttachmentVO image = imageService.get(Integer.parseInt(id));
         if (image == null) {
             return ResponseEntity.notFound().build();
         }

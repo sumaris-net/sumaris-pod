@@ -23,24 +23,37 @@ package net.sumaris.core.vo.technical;
  */
 
 import lombok.Data;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class PodConfigurationVO implements IReferentialVO {
 
+    public static final String PROPERTY_PROPERTIES = "properties";
+    public static final String PROPERTY_PARTNERS = "partners";
+    public static final String PROPERTY_BACKGROUND_IMAGES = "backgroundImages";
+    public static final String PROPERTY_LOGO = "logo";
+
     private Integer id;
-
-    private List<String> backGroundImages;
-
-    private List<PropertyVO> properties;
-
-    private String name;
 
     private String label;
 
+    private String name;
+
+    private String logo;
+
+    private String defaultProgram;
+
     private Date updateDate;
+
+    private Map<String, String> properties;
+
+    private List<String> backgroundImages;
+
+    private List<DepartmentVO> partners;
 
 }

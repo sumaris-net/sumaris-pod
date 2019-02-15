@@ -32,4 +32,6 @@ public interface RestPaths {
 
     String DEPARTMENT_LOGO_PATH = BASE_PATH + "/logo/{label}";
 
+    String IMAGE_PATH = BASE_PATH + "/image/{id}";
+
 }

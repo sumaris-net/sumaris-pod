@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
 
 public class InitTests extends net.sumaris.core.test.InitTests {
 

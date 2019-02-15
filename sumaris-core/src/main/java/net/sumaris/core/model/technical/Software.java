@@ -1,10 +1,13 @@
 package net.sumaris.core.model.technical;
 
 import lombok.Data;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -37,6 +40,9 @@ public class Software implements IItemReferentialEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SoftwareProperty.class, mappedBy = SoftwareProperty.PROPERTY_SOFTWARE)
+    @Cascade({org.hibernate.annotations.CascadeType.DELETE})
+    private List<SoftwareProperty> properties = new ArrayList<>();
 
 //    @OneToMany(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "software_fk", nullable = false)

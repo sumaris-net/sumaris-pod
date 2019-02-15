@@ -38,7 +38,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service("departmentService")
 public class DepartmentServiceImpl implements DepartmentService {
@@ -64,6 +67,14 @@ public class DepartmentServiceImpl implements DepartmentService {
 	@Override
 	public DepartmentVO get(int departmentId) {
 		return departmentDao.get(departmentId);
+	}
+
+	@Override
+	public List<DepartmentVO> getByIds(int... ids) {
+		return Arrays.stream(ids)
+				.mapToObj(departmentDao::get)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 	}
 
 	@Override

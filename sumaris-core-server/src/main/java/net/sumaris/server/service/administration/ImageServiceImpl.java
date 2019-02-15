@@ -22,9 +22,11 @@ package net.sumaris.server.service.administration;
  * #L%
  */
 
+import net.sumaris.core.dao.data.ImageAttachmentDao;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.RestPaths;
 import org.apache.commons.logging.Log;
@@ -35,17 +37,17 @@ import org.springframework.stereotype.Service;
 @Service("imageService")
 public class ImageServiceImpl implements ImageService {
 
-    private String personAvatarUrl;
-    private String departmentLogoUrl;
-
-    private final static String GRAVATAR_URL = "https://www.gravatar.com/avatar/%s";
-
-
     /* Logger */
     private static final Log log = LogFactory.getLog(ImageServiceImpl.class);
 
+    private final static String GRAVATAR_URL = "https://www.gravatar.com/avatar/%s";
 
+    private String personAvatarUrl;
+    private String departmentLogoUrl;
     private SumarisServerConfiguration config;
+
+    @Autowired
+    private ImageAttachmentDao dao;
 
 
     @Autowired
@@ -55,6 +57,11 @@ public class ImageServiceImpl implements ImageService {
         // Prepare URL for String formatter
         personAvatarUrl = config.getServerUrl() + RestPaths.PERSON_AVATAR_PATH;
         departmentLogoUrl = config.getServerUrl() + RestPaths.DEPARTMENT_LOGO_PATH;
+    }
+
+    @Override
+    public ImageAttachmentVO get(int id) {
+        return dao.get(id);
     }
 
     public void fillAvatar(PersonVO person) {

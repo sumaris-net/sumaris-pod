@@ -24,11 +24,14 @@ package net.sumaris.server.service.administration;
 
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 
 import javax.transaction.Transactional;
 
 @Transactional
 public interface ImageService {
+
+    ImageAttachmentVO get(int id);
 
     void fillAvatar(PersonVO person);
 

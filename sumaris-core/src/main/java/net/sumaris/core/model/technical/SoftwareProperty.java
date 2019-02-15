@@ -34,15 +34,17 @@ import java.util.Date;
 @Table(name = "software_property")
 public class SoftwareProperty implements IItemReferentialEntity  {
 
+    public static final String PROPERTY_SOFTWARE = "software";
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "APP_SETTINGS_SEQ")
     @SequenceGenerator(name = "APP_SETTINGS_SEQ", sequenceName="APP_SETTINGS_SEQ")
     private Integer id;
 
-    @Column(nullable = false )
+    @Column(nullable = false, length = 255)
     private String label;
 
-    @Column(nullable = false )
+    @Column(nullable = false, length = 255)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,9 +59,8 @@ public class SoftwareProperty implements IItemReferentialEntity  {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Software.class)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "software_fk", nullable = false)
-    private Software software_fk;
+    private Software software;
 
 }

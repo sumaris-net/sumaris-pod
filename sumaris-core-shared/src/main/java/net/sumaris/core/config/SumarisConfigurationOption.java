@@ -206,7 +206,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             Boolean.FALSE.toString(),
             boolean.class),
 
-
     SITE_URL(
             "sumaris.site.url",
             n("sumaris.config.option.site.url.description"),
