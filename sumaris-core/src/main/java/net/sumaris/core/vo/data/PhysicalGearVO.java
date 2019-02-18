@@ -42,6 +42,7 @@ public class PhysicalGearVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private Integer rankOrder;
     private ReferentialVO gear;
+    private ReferentialVO defaultMetier;
     private List<MeasurementVO> measurements;
 
     private String comments;

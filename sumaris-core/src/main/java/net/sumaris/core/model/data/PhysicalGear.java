@@ -28,6 +28,7 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.measure.PhysicalGearMeasurement;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.metier.Metier;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
@@ -97,6 +98,13 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Gear.class)
     @JoinColumn(name = "gear_fk", nullable = false)
     private Gear gear;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Metier.class)
+    @JoinColumn(name = "default_metier_fk", nullable = true)
+    /**
+     * The default target species (as a metier)
+     */
+    private Metier defaultMetier;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGearMeasurement.class, mappedBy = "physicalGear")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)

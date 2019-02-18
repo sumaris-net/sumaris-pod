@@ -28,6 +28,7 @@
   <!-- Programs / strategies -->
   <PROGRAM ID="1" LABEL="SUMARiS" NAME="European shared database for management of skate stocks" DESCRIPTION="Web site: https://www.sumaris.net" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
   <PROGRAM ID="2" LABEL="SANDBOX" NAME="Fake program, to test database tools" DESCRIPTION="Test site: https://test.sumaris.net" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
+
   <STRATEGY ID="1" PROGRAM_FK="1" LABEL="V6" NAME="version 6 - 2018-07-9" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
 
   <STRATEGY2GEAR STRATEGY_FK="1" GEAR_FK="1"/>

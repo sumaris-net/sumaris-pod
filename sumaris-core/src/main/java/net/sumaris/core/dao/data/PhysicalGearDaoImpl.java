@@ -33,6 +33,7 @@ import net.sumaris.core.model.data.measure.PhysicalGearMeasurement;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
@@ -186,6 +187,10 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
         target.setGear(gear);
 
         if (withDetails) {
+            // Default metier
+            ReferentialVO defaultMetier = referentialDao.toReferentialVO(source.getDefaultMetier());
+            target.setDefaultMetier(defaultMetier);
+
             // Quality flag
             target.setQualityFlagId(source.getQualityFlag().getId());
 
@@ -222,6 +227,17 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
         // Gear
         target.setGear(load(Gear.class, source.getGear().getId()));
 
+        // Default metier
+        Integer metierId = source.getDefaultMetier() != null ? source.getDefaultMetier().getId() : null;
+        if (copyIfNull || (metierId != null)) {
+            if (metierId == null) {
+                target.setDefaultMetier(null);
+            }
+            else {
+                target.setDefaultMetier(load(Metier.class, metierId));
+            }
+        }
+
         // Trip
         Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
         if (copyIfNull || (tripId != null)) {
@@ -232,7 +248,6 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
                 target.setTrip(load(Trip.class, tripId));
             }
         }
-
 
         // Recorder department
         if (copyIfNull || source.getRecorderDepartment() != null) {
