@@ -69,6 +69,20 @@ public class Beans {
     }
 
     /**
+     * <p>getList.</p>
+     *
+     * @param list a {@link Collection} object.
+     * @param <E> a E object.
+     * @return a {@link List} object.
+     */
+    public static <E> Stream<E> getStream(Collection<E> list) {
+        if (list == null) {
+            return Stream.empty();
+        }
+        return list.stream();
+    }
+
+    /**
      * <p>getListWithoutNull.</p>
      *
      * @param list a {@link Collection} object.

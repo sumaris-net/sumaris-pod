@@ -40,6 +40,9 @@ public interface DepartmentService {
     DepartmentVO get(int id);
 
     @Transactional(readOnly = true)
+    List<DepartmentVO> getByIds(int[] ids);
+
+    @Transactional(readOnly = true)
     ImageAttachmentVO getLogoByLabel(String label);
 
     void delete(int id);

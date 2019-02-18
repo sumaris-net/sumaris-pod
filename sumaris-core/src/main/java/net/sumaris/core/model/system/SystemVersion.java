@@ -32,7 +32,7 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "SYSTEM_VERSION")
+@Table(name = "system_version")
 public class SystemVersion implements IUpdateDateEntityBean<Integer, Date> {
 
     @Id
@@ -53,5 +53,6 @@ public class SystemVersion implements IUpdateDateEntityBean<Integer, Date> {
 
     @Column(name="update_date")
     private Date updateDate;
+
 
 }

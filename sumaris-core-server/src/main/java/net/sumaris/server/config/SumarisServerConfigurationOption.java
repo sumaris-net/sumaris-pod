@@ -86,17 +86,45 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
 
     AUTH_CHALLENGE_LIFE_TIME(
             "sumaris.auth.challenge.lifeTime",
-            n("sumaris.config.option.auth.challenge.lifeTime"),
+            n("sumaris.config.option.auth.challenge.lifeTime.description"),
             "120", // a challenge leave 2 minutes
             Integer.class,
             false),
 
     AUTH_TOKEN_LIFE_TIME(
             "sumaris.auth.session.duration",
-            n("sumaris.config.option.auth.session.duration"),
+            n("sumaris.config.option.auth.session.duration.description"),
             "14400", // = 4 hours
             Integer.class,
-            false);
+            false),
+
+    DEFAULT_PROGRAM(
+            "sumaris.program.default",
+            n("sumaris.config.option.program.default.description"),
+            "SANDBOX",
+            String.class,
+            false),
+
+    SITE_LOGO_ID(
+            "sumaris.site.logo.image.id",
+            n("sumaris.config.option.logo.image.id.description"),
+            null,
+            Integer.class,
+            false),
+
+    SITE_PARTNERS_DEPARTMENT_IDS(
+            "sumaris.site.partners.department.ids",
+            n("sumaris.config.option.site.partners.department.ids.description"),
+            "1",
+            String.class),
+
+    SITE_BACKGROUND_IMAGE_IDS(
+            "sumaris.site.background.image.ids",
+            n("sumaris.config.option.site.background.image.ids.description"),
+            "1",
+            String.class),
+
+    ;
 
     /** Configuration key. */
     private final String key;

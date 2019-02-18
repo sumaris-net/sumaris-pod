@@ -14,4 +14,8 @@ public class MD5UtilTest {
         Assert.assertEquals("67655fe01f8693efeea27497939394d7", emailMd5);
 
     }
+
+
+
+
 }
