@@ -30,6 +30,7 @@ import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
+import net.sumaris.core.service.technical.PodConfigService;
 
 /**
  * Locates and provides all available application services.
@@ -88,5 +89,14 @@ public class CoreServiceLocator {
      */
     public static ReferentialService getReferentialService() {
         return ServiceLocator.instance().getService("referentialService", ReferentialService.class);
+    }
+
+    /**
+     * <p>getDatabaseSchemaService.</p>
+     *
+     * @return a {@link DatabaseSchemaService} object.
+     */
+    public static PodConfigService getPodConfigService() {
+        return ServiceLocator.instance().getService("podConfigService", PodConfigService.class);
     }
 }

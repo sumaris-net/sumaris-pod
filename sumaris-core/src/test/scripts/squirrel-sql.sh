@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export JAVA_HOME=/usr/lib/jvm/java-8-oracle/
-export SQUIRREL_HOME=/opt/squirrel-sql-3.5.2
+export SQUIRREL_HOME=/home/ben/snap/squirrelsql/current
 
 DIRNAME=`pwd`
 HSQLDB_JAR=`ls | grep hsqldb*.jar`
