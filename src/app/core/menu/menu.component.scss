@@ -70,7 +70,14 @@ ion-menu {
 
   ion-footer {
     ion-toolbar {
-      text-align: center;
+      ion-row {
+        padding: 0;
+        cursor: pointer;
+        ion-col {
+          padding: 0;
+          text-align: center;
+        }
+      }
       cursor: pointer;
     }
   }

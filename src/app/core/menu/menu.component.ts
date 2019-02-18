@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import {Component, OnInit, Input, ViewChild} from '@angular/core';
 import { MenuController, ModalController } from "@ionic/angular";
 
 import { Router } from "@angular/router";
@@ -10,6 +10,8 @@ import { environment } from '../../../environments/environment';
 import { HomePage } from '../home/home';
 import { Subject } from 'rxjs';
 import { fadeInAnimation } from '../../shared/material/material.animations';
+import {Components} from "@ionic/core";
+import IonSplitPane = Components.IonSplitPane;
 
 export interface MenuItem {
   title: string;
@@ -19,6 +21,8 @@ export interface MenuItem {
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
 }
+
+const SPLIT_PANE_SHOW_WHEN = 'lg';
 
 @Component({
   selector: 'app-menu',
@@ -32,7 +36,6 @@ export class MenuComponent implements OnInit {
   public isLogin: boolean = false;
   public account: Account;
 
-  //filteredItems: Array<MenuItem> = [];
   filteredItems = new Subject<MenuItem[]>();
 
   @Input()
@@ -46,6 +49,8 @@ export class MenuComponent implements OnInit {
 
   @Input()
   items: Array<MenuItem>;
+
+  @ViewChild('splitPane') splitPane: IonSplitPane;
 
   constructor(
     protected accountService: AccountService,
@@ -74,6 +79,9 @@ export class MenuComponent implements OnInit {
         this.loading = false;
       }, 1000);
     }
+
+    this.splitPane.when=SPLIT_PANE_SHOW_WHEN;
+
   }
 
   onLogin(account: Account) {
@@ -136,6 +144,20 @@ export class MenuComponent implements OnInit {
 
   trackByFn(index, item) {
     return item.title;
+  }
+
+  toggleSplitPane($event: MouseEvent) {
+    if (this.splitPane.when === SPLIT_PANE_SHOW_WHEN) {
+      this.splitPane.when = false;
+    }
+    else {
+      this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
+    }
+    $event.preventDefault();
+  }
+
+  isSplitPaneOpened() {
+    return this.splitPane.when === SPLIT_PANE_SHOW_WHEN;
   }
 }
 

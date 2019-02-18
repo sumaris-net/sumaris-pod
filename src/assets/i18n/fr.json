@@ -24,6 +24,8 @@
     "BTN_TABLE_EDIT": "Editer dans le tableau",
     "BTN_TABLE_OPEN": "Editer dans un formulaire",
     "BTN_SHOW_HELP": "Voir l'aide",
+    "BTN_HIDE_MENU": "Masquer le menu",
+    "BTN_SHOW_MENU": "Afficher le menu",
     "CREATED_ON": "Créé le ",
 
     "DATE_PATTERN": "DD/MM/YYYY",

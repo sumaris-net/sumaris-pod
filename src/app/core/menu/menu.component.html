@@ -1,6 +1,6 @@
-<ion-split-pane>
+<ion-split-pane #splitPane>
 
-  <ion-menu side="start" content="content">
+  <ion-menu side="start" content="content" menuId="main">
     <ion-header>
 
       <mat-toolbar padding *ngIf="!isLogin">
@@ -54,8 +54,8 @@
 
       <ion-list no-lines>
         <ng-container *ngFor="let item of filteredItems | async; trackBy: trackByFn">
-          <ion-item menuClose tappable class="text-1x" [routerLink]="item.path" routerDirection="root" routerLinkActive="selected"
-            (click)="menu.close()" [routerLinkActiveOptions]="{exact: (item.path == '/')}" *ngIf="!loading && item.path"
+          <ion-item tappable class="text-1x" [routerLink]="item.path" routerDirection="root" routerLinkActive="selected"
+                    (click)="menu.close()" [routerLinkActiveOptions]="{exact: (item.path == '/')}" *ngIf="!loading && item.path"
             [@fadeInAnimation]>
             <ion-icon color="primary" slot="start" [name]="item.icon"></ion-icon>
             <ion-label color="primary">{{item.title|translate}}</ion-label>
@@ -71,12 +71,29 @@
 
 
     <ion-footer>
-      <ion-toolbar (click)="openAboutModal($event)">
-        <ion-icon name="ios-help-circle-outline" color="primary"></ion-icon>&nbsp;
-        <span>
+      <mat-toolbar >
+
+        <button mat-icon-button
+                (click)="openAboutModal($event)">
+          <mat-icon color="primary">help_outline</mat-icon>
+        </button>
+
+        <span ion-text>
           {{'MENU.FOOTER_VERSION_ABOUT'| translate: {version: appVersion} }}
         </span>
-      </ion-toolbar>
+
+        <div class="toolbar-spacer"></div>
+
+        <!--<div class="hidden sm hidden-sm>-->
+          <!--<button mat-icon-button [title]="'COMMON.BTN_HIDE_MENU'|translate" *ngIf="isSplitPaneOpened()"-->
+                  <!--(click)="toggleSplitPane($event)"-->
+                  <!--class="hidden sm hidden-sm">&#xab;</button>-->
+          <button mat-icon-button [title]="'COMMON.BTN_SHOW_MENU'|translate" *ngIf="!isSplitPaneOpened()"
+                  (click)="toggleSplitPane($event)">
+            <mat-icon color="primary">arrow_forward</mat-icon>
+          </button>
+        <!--</div>-->
+      </mat-toolbar>
     </ion-footer>
   </ion-menu>
 
