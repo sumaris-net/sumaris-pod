@@ -3,6 +3,8 @@ import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 
 import {AccountFieldDef, AccountService} from './services/account.service';
+import {PodConfigService} from './services/podconfig.service';
+
 import {AccountValidatorService} from './services/account.validator';
 import {UserSettingsValidatorService} from './services/user-settings.validator';
 import {AuthGuardService} from './services/auth-guard.service';
@@ -71,7 +73,8 @@ export {
   Entity, Cloneable, EntityUtils,
   AcquisitionLevelCodes, StatusIds, LocationLevelIds,
   Referential, ReferentialRef, Department, Person, DataService, LoadResult,
-  toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined, entityToString, referentialToString
+  toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined, entityToString, referentialToString,
+ 
 }
 
 export function HttpLoaderFactory(http: HttpClient) {
@@ -142,7 +145,8 @@ export function HttpLoaderFactory(http: HttpClient) {
         AuthGuardService,
         CryptoService,
         AccountValidatorService,
-        UserSettingsValidatorService
+        UserSettingsValidatorService,
+        PodConfigService
     ]
 })
 export class CoreModule {

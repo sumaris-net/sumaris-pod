@@ -8,6 +8,8 @@ import { AboutModal } from '../about/modal-about';
 
 import { environment } from '../../../environments/environment';
 import { HomePage } from '../home/home';
+import { PodConfigService } from '../services/podconfig.service';
+
 import { Subject } from 'rxjs';
 import { fadeInAnimation } from '../../shared/material/material.animations';
 import {Components} from "@ionic/core";
@@ -35,6 +37,9 @@ export class MenuComponent implements OnInit {
   public loading = true;
   public isLogin: boolean = false;
   public account: Account;
+  @Input() logo: String;
+
+  @Input() appName: String;
 
   filteredItems = new Subject<MenuItem[]>();
 
@@ -56,6 +61,7 @@ export class MenuComponent implements OnInit {
     protected accountService: AccountService,
     protected router: Router,
     protected menu: MenuController,
+    protected configurationService: PodConfigService,
     protected modalCtrl: ModalController
   ) {
 
@@ -81,6 +87,11 @@ export class MenuComponent implements OnInit {
     }
 
     this.splitPane.when=SPLIT_PANE_SHOW_WHEN;
+
+    this.configurationService.getConfs().then(conf =>{
+      this.logo = conf.logo;
+      this.appName = conf.name;
+    })
 
   }
 

@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { AccountService } from '../../services/account.service';
 import { Location } from '@angular/common';
-import { getRandomImage } from '../../home/home';
+import { getBackgroundImage } from '../../home/home';
 
 @Component({
   selector: 'page-register-confirm',
@@ -24,7 +24,7 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute) {
 
     this.isLogin = accountService.isLogin();
-    this.bgImage = getRandomImage();
+    this.bgImage = getBackgroundImage();
 
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.isLogin = true));
