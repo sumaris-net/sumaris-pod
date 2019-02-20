@@ -22,21 +22,17 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
-import net.sumaris.core.vo.technical.PodConfigurationVO;
-import net.sumaris.core.vo.technical.PropertyVO;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.technical.ConfigurationVO;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Transactional
 public interface SoftwareService {
 
-    PodConfigurationVO getDefault();
+    ConfigurationVO getDefault();
 
-    PodConfigurationVO get(String label);
+    ConfigurationVO get(String label);
 
-    PodConfigurationVO save(PodConfigurationVO configuration);
+    ConfigurationVO save(ConfigurationVO configuration);
 
 }
 

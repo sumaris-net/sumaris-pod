@@ -2,14 +2,18 @@ package net.sumaris.core.service.technical;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SoftwareDao;
-import net.sumaris.core.vo.technical.PodConfigurationVO;
+import net.sumaris.core.exception.VersionNotFoundException;
+import net.sumaris.core.vo.technical.ConfigurationVO;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
+import org.nuiton.version.Version;
+import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -24,13 +28,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-@Component("podConfigService")
+@Component("softwareService")
 public class SoftwareServiceImpl implements SoftwareService {
 
     private static final Log log = LogFactory.getLog(SoftwareServiceImpl.class);
 
     @Autowired
     private SoftwareDao dao;
+
+    @Autowired
+    private DatabaseSchemaDao databaseSchemaDao;
 
     private String defaultSoftwareLabel;
 
@@ -42,10 +49,68 @@ public class SoftwareServiceImpl implements SoftwareService {
 
     @PostConstruct
     protected void afterPropertiesSet() {
-        ApplicationConfig appConfig = SumarisConfiguration.getInstance().getApplicationConfig();
 
+        loadConfigurationFromServer();
+    }
+
+    @Override
+    public ConfigurationVO getDefault() {
+        return dao.get(defaultSoftwareLabel);
+    }
+
+    @Override
+    public ConfigurationVO get(String label) {
+        Preconditions.checkNotNull(label);
+
+        return dao.get(label);
+    }
+
+    @Override
+    public ConfigurationVO save(ConfigurationVO configuration) {
+        Preconditions.checkNotNull(configuration);
+        Preconditions.checkNotNull(configuration.getLabel());
+
+        // TODO Save properties
+
+        return dao.save(configuration);
+    }
+
+    /**
+     * Auto detect IP
+     *
+     * @return the IP address or null
+     */
+    @Bean
+    private Optional<String> whatsMyIp() {
+
+        try {
+            URL whatismyip = new URL("http://checkip.amazonaws.com");
+            BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+            return Optional.of(in.readLine());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    protected void loadConfigurationFromServer() {
+
+        try {
+            Version dbVersion = databaseSchemaDao.getSchemaVersion();
+            Version minVersion = VersionBuilder.create("0.9.5").build();
+
+            // Test if software table exists, if not, skip
+            if (dbVersion == null || minVersion.after(dbVersion)) {
+                log.warn(String.format("Skipping configuration override from database (expected min schema version {%s})", minVersion.toString()));
+                return; // skip
+            }
+        } catch(VersionNotFoundException e) {
+            // ok, continue (schema should be a new one ?)
+        }
+
+
+        ApplicationConfig appConfig = SumarisConfiguration.getInstance().getApplicationConfig();
         // Override the configuration existing in the config file, using DB
-        PodConfigurationVO dbConfig = getDefault();
+        ConfigurationVO dbConfig = getDefault();
         if (dbConfig == null) {
             log.warn("No software found in DB, with label=" + defaultSoftwareLabel);
         }
@@ -78,46 +143,6 @@ public class SoftwareServiceImpl implements SoftwareService {
                             appConfig.setOption(entry.getKey(), entry.getValue());
                         }
                     });
-        }
-
-    }
-
-    @Override
-    public PodConfigurationVO getDefault() {
-        return dao.get(defaultSoftwareLabel);
-    }
-
-    @Override
-    public PodConfigurationVO get(String label) {
-        Preconditions.checkNotNull(label);
-
-        return dao.get(label);
-    }
-
-    @Override
-    public PodConfigurationVO save(PodConfigurationVO configuration) {
-        Preconditions.checkNotNull(configuration);
-        Preconditions.checkNotNull(configuration.getLabel());
-
-        // TODO Save properties
-
-        return dao.save(configuration);
-    }
-
-    /**
-     * Auto detect IP
-     *
-     * @return the IP address or null
-     */
-    @Bean
-    private Optional<String> whatsMyIp() {
-
-        try {
-            URL whatismyip = new URL("http://checkip.amazonaws.com");
-            BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
-            return Optional.of(in.readLine());
-        } catch (Exception e) {
-            return Optional.empty();
         }
     }
 

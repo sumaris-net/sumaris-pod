@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.9.5.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1550674128910-1">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SOFTWARE_PROPERTY_SEQ"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="SOFTWARE_PROPERTY_SEQ"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1550674128910-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SOFTWARE_SEQ"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="SOFTWARE_SEQ"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1550674128910-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="software"/>
+            </not>
+        </preConditions>
+        <createTable tableName="software">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="softwarePK"/>
+            </column>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1550674128910-4">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="software_property"/>
+            </not>
+        </preConditions>
+        <createTable tableName="software_property">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="software_propertyPK"/>
+            </column>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(2000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="software_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1550674128910-5">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="location_association" columnName="update_date"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="location_association">
+            <column name="update_date" type="TIMESTAMP"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1550674128910-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='0.9.5'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">0.9.5</column>
+            <column name="DESCRIPTION">
+                - Add tables SOFTWARE and SOFTWARE_PROPERTY
+                - Add column LOCATION_ASSOCIATION_UPDATE_DATE
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="COMMENTS">
+                - Add tables SOFTWARE and SOFTWARE_PROPERTY
+                - Add column LOCATION_ASSOCIATION_UPDATE_DATE
+            </column>
+        </insert>
+    </changeSet>
+    
+</databaseChangeLog>

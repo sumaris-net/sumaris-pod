@@ -98,44 +98,37 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             Integer.class,
             false),
 
-    DEFAULT_PROGRAM(
-            "sumaris.program.default",
-            n("sumaris.config.option.program.default.description"),
-            "SANDBOX",
-            String.class,
-            false),
-
-    SITE_DESCRIPTION(
-            "sumaris.site.description",
-            n("sumaris.config.option.site.description.description"),
-            null,
+    SITE_FAVICON(
+            "sumaris.favicon",
+            n("sumaris.config.option.favicon.description"),
+            "${sumaris.site.url}/favicon.ico",
             Integer.class,
             false),
 
-    SITE_LOGO_IMAGE_ID(
-            "sumaris.site.logo.image.id",
-            n("sumaris.config.option.site.logo.image.id.description"),
-            null,
+    SITE_LOGO_SMALL(
+            "sumaris.logo",
+            n("sumaris.config.option.logo.description"),
+            "${sumaris.site.url}/assets/img/logo-menu.png",
             Integer.class,
             false),
 
-    SITE_LOGO_LARGE_IMAGE_ID(
-            "sumaris.site.logo.large.image.id",
-            n("sumaris.config.option.site.logo.large.image.id.description"),
-            null,
+    LOGO_LARGE(
+            "sumaris.logo.large",
+            n("sumaris.config.option.logo.large.description"),
+            "${sumaris.site.logo}",
             Integer.class,
             false),
 
-    SITE_PARTNERS_DEPARTMENT_IDS(
-            "sumaris.site.partners.department.ids",
-            n("sumaris.config.option.site.partners.department.ids.description"),
+    SITE_PARTNER_DEPARTMENTS(
+            "sumaris.partner.departments",
+            n("sumaris.config.option.partner.departments.description"),
             "1",
             String.class,
             false),
 
-    SITE_BACKGROUND_IMAGE_IDS(
-            "sumaris.site.background.image.ids",
-            n("sumaris.config.option.site.background.image.ids.description"),
+    SITE_BACKGROUND_IMAGES(
+            "sumaris.background.images",
+            n("sumaris.config.option.site.background.images.description"),
             "1",
             String.class,
             false),

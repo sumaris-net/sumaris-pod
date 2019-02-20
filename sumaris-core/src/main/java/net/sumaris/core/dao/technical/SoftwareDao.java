@@ -22,13 +22,13 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
-import net.sumaris.core.vo.technical.PodConfigurationVO;
+import net.sumaris.core.vo.technical.ConfigurationVO;
 
 public interface SoftwareDao {
 
 
-    PodConfigurationVO get(String label) ;
+    ConfigurationVO get(String label) ;
 
-    PodConfigurationVO save(PodConfigurationVO configurationVO) ;
+    ConfigurationVO save(ConfigurationVO configurationVO) ;
 
 }

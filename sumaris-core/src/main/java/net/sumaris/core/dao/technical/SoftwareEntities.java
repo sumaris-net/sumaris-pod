@@ -24,12 +24,9 @@ package net.sumaris.core.dao.technical;
 
 import net.sumaris.core.model.technical.Software;
 import net.sumaris.core.model.technical.SoftwareProperty;
-import net.sumaris.core.vo.technical.PropertyVO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 @Repository("softwareEntities")
 public interface SoftwareEntities extends JpaRepository<SoftwareProperty, Integer> {

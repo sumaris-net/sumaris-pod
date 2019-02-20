@@ -209,7 +209,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     SITE_URL(
             "sumaris.site.url",
             n("sumaris.config.option.site.url.description"),
-            "http://www.ifremer.fr/maven/reports/sumaris",
+            "https://www.sumaris.net",
             URL.class),
 
     ORGANIZATION_NAME(

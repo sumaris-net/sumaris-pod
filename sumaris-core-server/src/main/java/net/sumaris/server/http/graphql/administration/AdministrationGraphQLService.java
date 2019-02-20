@@ -303,6 +303,8 @@ public class AdministrationGraphQLService {
         Preconditions.checkNotNull(programLabel, "Missing program");
         ProgramVO program = programService.getByLabel(programLabel);
 
+        if (program == null) throw new SumarisTechnicalException(String.format("Program {%s} not found", programLabel));
+
         // ALl pmfm from the program
         if (StringUtils.isBlank(acquisitionLevel)) {
             List<PmfmStrategyVO> res = strategyService.getPmfmStrategies(program.getId());
@@ -321,15 +323,17 @@ public class AdministrationGraphQLService {
         Preconditions.checkNotNull(programLabel, "Missing program");
         ProgramVO program = programService.getByLabel(programLabel);
 
+        if (program == null) throw new SumarisTechnicalException(String.format("Program {%s} not found", programLabel));
+
         return strategyService.getGears(program.getId());
 
     }
 
-    public void fillLogo(DepartmentVO department) {
-        if (department == null) return;
-        if (department.isHasLogo() && StringUtils.isNotBlank(department.getLabel())) {
+    public DepartmentVO fillLogo(DepartmentVO department) {
+        if (department != null && department.isHasLogo() && StringUtils.isBlank(department.getLogo()) && StringUtils.isNotBlank(department.getLabel())) {
             department.setLogo(departmentLogoUrl.replace("{label}", department.getLabel()));
         }
+        return department;
     }
 
     /* -- Protected methods -- */

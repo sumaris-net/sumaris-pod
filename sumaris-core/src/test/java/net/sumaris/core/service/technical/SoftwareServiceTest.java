@@ -24,20 +24,13 @@ package net.sumaris.core.service.technical;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.schema.DatabaseSchemaService;
-import net.sumaris.core.vo.technical.PodConfigurationVO;
-import org.apache.commons.io.FileUtils;
+import net.sumaris.core.vo.technical.ConfigurationVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.nuiton.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.File;
-import java.io.IOException;
 
 public class SoftwareServiceTest extends AbstractServiceTest {
 
@@ -53,7 +46,7 @@ public class SoftwareServiceTest extends AbstractServiceTest {
 
     @Test
     public void getDefault() {
-        PodConfigurationVO config = service.getDefault();
+        ConfigurationVO config = service.getDefault();
         Assert.assertNotNull(config);
 
         // Test properties

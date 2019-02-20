@@ -28,6 +28,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;
@@ -77,7 +78,11 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
 
         TypedQuery<Program> q = getEntityManager().createQuery(query)
                 .setParameter(labelParam, label);
-        return toProgramVO(q.getSingleResult());
+        try {
+            return toProgramVO(q.getSingleResult());
+        } catch(EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     @Override

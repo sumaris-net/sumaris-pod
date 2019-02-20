@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class PodConfigurationVO implements IReferentialVO {
+public class ConfigurationVO implements IReferentialVO {
 
     public static final String PROPERTY_PROPERTIES = "properties";
     public static final String PROPERTY_PARTNERS = "partners";
@@ -45,12 +45,10 @@ public class PodConfigurationVO implements IReferentialVO {
 
     private String name;
 
-    private String description;
-
     private String smallLogo;
     private String largeLogo;
-
-    private String defaultProgram;
+    // TODO: add a map by resolution (e.g. hdpi, mdpi, ...)
+    //private Map<String, String> logo;
 
     private Date updateDate;
 

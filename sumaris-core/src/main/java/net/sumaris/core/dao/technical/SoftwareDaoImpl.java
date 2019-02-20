@@ -25,7 +25,7 @@ package net.sumaris.core.dao.technical;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.technical.Software;
-import net.sumaris.core.vo.technical.PodConfigurationVO;
+import net.sumaris.core.vo.technical.ConfigurationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -39,11 +39,11 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
     @Autowired
     private SoftwareEntities entities;
 
-    public PodConfigurationVO get(String label) {
+    public ConfigurationVO get(String label) {
         return toVO(entities.getSoftware(label));
     }
 
-    public PodConfigurationVO save(PodConfigurationVO source)  {
+    public ConfigurationVO save(ConfigurationVO source)  {
 
         Software target = toEntity(source);
 
@@ -60,8 +60,8 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
     /* -- protected methods -- */
 
-    protected PodConfigurationVO toVO(Software source) {
-        PodConfigurationVO target = new PodConfigurationVO();
+    protected ConfigurationVO toVO(Software source) {
+        ConfigurationVO target = new ConfigurationVO();
 
         Beans.copyProperties(source, target);
 
@@ -83,7 +83,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
         return target;
     }
 
-    protected Software toEntity(PodConfigurationVO source) {
+    protected Software toEntity(ConfigurationVO source) {
         Software target = entities.getSoftware(source.getLabel());
 
         Beans.copyProperties(source, target);
