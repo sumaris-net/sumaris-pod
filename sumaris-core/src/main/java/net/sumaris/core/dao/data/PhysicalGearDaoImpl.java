@@ -187,9 +187,6 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
         target.setGear(gear);
 
         if (withDetails) {
-            // Default metier
-            ReferentialVO defaultMetier = referentialDao.toReferentialVO(source.getDefaultMetier());
-            target.setDefaultMetier(defaultMetier);
 
             // Quality flag
             target.setQualityFlagId(source.getQualityFlag().getId());
@@ -226,17 +223,6 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
 
         // Gear
         target.setGear(load(Gear.class, source.getGear().getId()));
-
-        // Default metier
-        Integer metierId = source.getDefaultMetier() != null ? source.getDefaultMetier().getId() : null;
-        if (copyIfNull || (metierId != null)) {
-            if (metierId == null) {
-                target.setDefaultMetier(null);
-            }
-            else {
-                target.setDefaultMetier(load(Metier.class, metierId));
-            }
-        }
 
         // Trip
         Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);

@@ -36,7 +36,8 @@ public class PodConfigurationVO implements IReferentialVO {
     public static final String PROPERTY_PROPERTIES = "properties";
     public static final String PROPERTY_PARTNERS = "partners";
     public static final String PROPERTY_BACKGROUND_IMAGES = "backgroundImages";
-    public static final String PROPERTY_LOGO = "logo";
+    public static final String PROPERTY_SMALL_LOGO = "smallLogo";
+    public static final String PROPERTY_LARGE_LOGO = "largeLogo";
 
     private Integer id;
 
@@ -44,7 +45,10 @@ public class PodConfigurationVO implements IReferentialVO {
 
     private String name;
 
-    private String logo;
+    private String description;
+
+    private String smallLogo;
+    private String largeLogo;
 
     private String defaultProgram;
 

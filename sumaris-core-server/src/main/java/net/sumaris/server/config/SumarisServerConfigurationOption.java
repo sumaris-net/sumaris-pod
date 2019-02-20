@@ -105,9 +105,23 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
-    SITE_LOGO_ID(
+    SITE_DESCRIPTION(
+            "sumaris.site.description",
+            n("sumaris.config.option.site.description.description"),
+            null,
+            Integer.class,
+            false),
+
+    SITE_LOGO_IMAGE_ID(
             "sumaris.site.logo.image.id",
-            n("sumaris.config.option.logo.image.id.description"),
+            n("sumaris.config.option.site.logo.image.id.description"),
+            null,
+            Integer.class,
+            false),
+
+    SITE_LOGO_LARGE_IMAGE_ID(
+            "sumaris.site.logo.large.image.id",
+            n("sumaris.config.option.site.logo.large.image.id.description"),
             null,
             Integer.class,
             false),
@@ -116,13 +130,15 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "sumaris.site.partners.department.ids",
             n("sumaris.config.option.site.partners.department.ids.description"),
             "1",
-            String.class),
+            String.class,
+            false),
 
     SITE_BACKGROUND_IMAGE_IDS(
             "sumaris.site.background.image.ids",
             n("sumaris.config.option.site.background.image.ids.description"),
             "1",
-            String.class),
+            String.class,
+            false),
 
     ;
 

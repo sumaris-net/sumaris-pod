@@ -99,13 +99,6 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
     @JoinColumn(name = "gear_fk", nullable = false)
     private Gear gear;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Metier.class)
-    @JoinColumn(name = "default_metier_fk", nullable = true)
-    /**
-     * The default target species (as a metier)
-     */
-    private Metier defaultMetier;
-
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGearMeasurement.class, mappedBy = "physicalGear")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PhysicalGearMeasurement> measurements = new ArrayList<>();

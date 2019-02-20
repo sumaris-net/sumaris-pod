@@ -18,8 +18,8 @@ public class Software implements IItemReferentialEntity {
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "APP_CONF_SEQ")
-    @SequenceGenerator(name = "APP_CONF_SEQ", sequenceName="APP_CONF_SEQ")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SOFTWARE_SEQ")
+    @SequenceGenerator(name = "SOFTWARE_SEQ", sequenceName="SOFTWARE_SEQ")
     private Integer id;
 
     @Column(nullable = false )
@@ -40,12 +40,8 @@ public class Software implements IItemReferentialEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = SoftwareProperty.class, mappedBy = SoftwareProperty.PROPERTY_SOFTWARE)
-    @Cascade({org.hibernate.annotations.CascadeType.DELETE})
+    @OneToMany(fetch = FetchType.EAGER, targetEntity = SoftwareProperty.class, mappedBy = SoftwareProperty.PROPERTY_SOFTWARE)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<SoftwareProperty> properties = new ArrayList<>();
-
-//    @OneToMany(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "software_fk", nullable = false)
-//    private List<SoftwareProperty> configProperties;
 
 }

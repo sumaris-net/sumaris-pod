@@ -2,15 +2,14 @@ package net.sumaris.core.service.technical;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.dao.technical.SoftwareDao;
-import net.sumaris.core.dao.technical.SoftwareEntities;
-import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.vo.technical.PodConfigurationVO;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.nuiton.config.ApplicationConfig;
+import org.nuiton.config.ApplicationConfigHelper;
+import org.nuiton.config.ApplicationConfigProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -19,8 +18,8 @@ import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,20 +29,10 @@ public class SoftwareServiceImpl implements SoftwareService {
 
     private static final Log log = LogFactory.getLog(SoftwareServiceImpl.class);
 
-
-    @Autowired
-    private DepartmentService departmentService;
-
     @Autowired
     private SoftwareDao dao;
 
-    @Autowired
-    private SoftwareEntities repository;
-
     private String defaultSoftwareLabel;
-
-    private final List<String> bgADAP = Stream.of("boat-1.jpg", "boat-2.jpg", "boat-3.jpg", "boat-4.jpg", "ray-1.jpg").collect(Collectors.toList());
-    private final List<String> bgSumaris = Stream.of("boat-1.jpg", "boat-2.jpg", "boat-3.jpg", "boat-4.jpg", "boat-5.jpg", "boat-6.jpg", "boat-7.jpg", "ray-1.jpg", "ray-2.jpg", "ray-3.jpg").collect(Collectors.toList());
 
 
     public SoftwareServiceImpl(SumarisConfiguration configuration) {
@@ -60,11 +49,35 @@ public class SoftwareServiceImpl implements SoftwareService {
         if (dbConfig == null) {
             log.warn("No software found in DB, with label=" + defaultSoftwareLabel);
         }
-        if (MapUtils.isNotEmpty(dbConfig.getProperties())) {
-            dbConfig.getProperties()
-                    .entrySet().forEach(entry -> {
-                appConfig.setOption(entry.getKey(), entry.getValue());
-            });
+        else if (MapUtils.isNotEmpty(dbConfig.getProperties())) {
+            log.info(String.format("Overriding configuration options, using those found in database for {%s}", defaultSoftwareLabel));
+
+            // Load options from configuration providers
+            Set<ApplicationConfigProvider> providers =
+                    ApplicationConfigHelper.getProviders(null,
+                            null,
+                            null,
+                            true);
+            Set<String> optionKeys = providers.stream().flatMap(p -> Stream.of(p.getOptions()))
+                    .map(o -> o.getKey()).collect(Collectors.toSet());
+            Set<String> transientOptionKeys = providers.stream().flatMap(p -> Stream.of(p.getOptions()))
+                    .filter(o -> o.isTransient())
+                    .map(o -> o.getKey()).collect(Collectors.toSet());
+
+            dbConfig.getProperties().entrySet()
+                    .forEach(entry -> {
+                        if (!optionKeys.contains(entry.getKey())) {
+                            if (log.isDebugEnabled()) log.debug(String.format(" - Skipping unknown configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));
+                        }
+                        else if (transientOptionKeys.contains(entry.getKey())) {
+                            if (log.isDebugEnabled()) log.debug(String.format(" - Skipping transient configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));
+                        }
+                        else {
+                            if (log.isDebugEnabled()) log.debug(String.format(" - Applying option {%s=%s}", entry.getKey(), entry.getValue()));
+
+                            appConfig.setOption(entry.getKey(), entry.getValue());
+                        }
+                    });
         }
 
     }

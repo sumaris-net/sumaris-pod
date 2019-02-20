@@ -23,8 +23,6 @@ package net.sumaris.server.http.graphql.technical;
  */
 
 import io.leangen.graphql.annotations.*;
-import net.sumaris.core.config.SumarisConfigurationOption;
-import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -78,27 +76,48 @@ public class PodConfigurationGraphQLService {
     ){
         PodConfigurationVO result  = service.getDefault();
 
+        if (result == null) return null;
+
         // Fill partners departments
-        if (result != null && fields.contains(PodConfigurationVO.PROPERTY_PARTNERS)) {
+        if (fields.contains(PodConfigurationVO.PROPERTY_PARTNERS)) {
             this.fillPartners(result);
         }
 
         // Fill background images URLs
-        if (result != null && fields.contains(PodConfigurationVO.PROPERTY_BACKGROUND_IMAGES)) {
+        if (fields.contains(PodConfigurationVO.PROPERTY_BACKGROUND_IMAGES)) {
             this.fillBackgroundImages(result);
         }
+
+        // Fill name
+        result.setName(getProperty(result, SumarisServerConfigurationOption.SITE_DESCRIPTION.getKey()));
 
         // Fill default program
         result.setDefaultProgram(getProperty(result, SumarisServerConfigurationOption.DEFAULT_PROGRAM.getKey()));
 
-        // Fill logo
-        String logoId = getProperty(result, SumarisServerConfigurationOption.SITE_LOGO_ID.getKey());
-        result.setLogo(getImageUrl(logoId));
+        // Fill logo URL
+        String logoId = getProperty(result, SumarisServerConfigurationOption.SITE_LOGO_IMAGE_ID.getKey());
+        if (StringUtils.isNotBlank(logoId)) {
+            String logoUrl = getImageUrl(logoId);
+            result.getProperties().put(
+                    SumarisServerConfigurationOption.SITE_LOGO_IMAGE_ID.getKey(),
+                    logoUrl);
+            result.setSmallLogo(logoUrl);
+        }
 
-        // Fill favicon
+        // Fill large logo
+        String largeLogoId = getProperty(result, SumarisServerConfigurationOption.SITE_LOGO_LARGE_IMAGE_ID.getKey());
+        if (StringUtils.isNotBlank(largeLogoId)) {
+            String largeLogoUrl = getImageUrl(largeLogoId);
+            result.getProperties().put(
+                    SumarisServerConfigurationOption.SITE_LOGO_LARGE_IMAGE_ID.getKey(),
+                    largeLogoUrl);
+            result.setLargeLogo(largeLogoUrl);
+        }
+
+        // Replace favicon ID by an URL
         result.getProperties().put("favicon",  getImageUrl(getProperty(result, "favicon") ));
 
-        return result ;
+        return result;
     }
 
     @GraphQLMutation(name = "saveConfiguration", description = "Save the pod configuration")

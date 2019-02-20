@@ -22,14 +22,15 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
+import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.technical.Software;
 import net.sumaris.core.vo.technical.PodConfigurationVO;
-import net.sumaris.core.vo.technical.PropertyVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Objects;
 
 @Repository("softwareDao")
 public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
@@ -65,11 +66,19 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
         Beans.copyProperties(source, target);
 
         // properties
-        target.setProperties(
-            Beans.getStream(source.getProperties())
-                .collect(Collectors.toMap(
-                        sourceProperty -> sourceProperty.getLabel(),
-                        sourceProperty -> sourceProperty.getName())));
+        Map<String, String> properties = Maps.newHashMap();
+        Beans.getStream(source.getProperties())
+                .filter(prop -> Objects.nonNull(prop)
+                        && Objects.nonNull(prop.getLabel())
+                        && Objects.nonNull(prop.getName())
+                )
+                .forEach(prop -> {
+                    if (properties.containsKey(prop.getLabel())) {
+                        logger.warn(String.format("Duplicate software property with label {%s}. Overriding existing value with {%s}", prop.getLabel(), prop.getName()));
+                    }
+                    properties.put(prop.getLabel(), prop.getName());
+                });
+        target.setProperties(properties);
 
         return target;
     }

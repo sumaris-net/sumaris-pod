@@ -125,7 +125,7 @@ public class Trip implements IRootDataEntity<Integer> {
     private Program program;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Operation.PROPERTY_TRIP)
-    @Cascade({org.hibernate.annotations.CascadeType.DELETE})
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Operation> operations = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.PROPERTY_TRIP)

@@ -232,25 +232,29 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "sumaris.enumeration.StatusId.TEMPORARY",
             n("sumaris.enumeration.StatusId.TEMPORARY.description"),
             "2",
-            String.class),
+            String.class,
+            false),
 
     STATUS_ID_ENABLE(
             "sumaris.enumeration.StatusId.ENABLE",
             n("sumaris.enumeration.StatusId.ENABLE.description"),
             "1",
-            String.class),
+            String.class,
+            false),
 
     UNIT_ID_NONE(
             "sumaris.enumeration.UnitId.NONE",
             n("sumaris.enumeration.UnitId.NONE.description"),
             "0",
-            Integer.class),
+            Integer.class,
+            false),
 
     MATRIX_ID_INDIVIDUAL(
             "sumaris.enumeration.MatrixId.INDIVIDUAL",
             n("sumaris.enumeration.MatrixId.INDIVIDUAL.description"),
             "2",
-            Integer.class),
+            Integer.class,
+            false),
 
     IMPORT_NB_YEARS_DATA_HISTORY (
             "sumaris.synchro.import.nbYearDataHistory",
@@ -270,25 +274,29 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "sumaris.synchro.export.updateDate.offset",
             n("sumaris.config.option.synchro.export.data.updateDate.offset.description"),
             String.valueOf(5 * 60), /* 5 min */
-            Integer.class),
+            Integer.class,
+            false),
 
     EXPORT_DATA_UPDATE_DATE_SHORT_DELAY(
             "sumaris.synchro.export.updateDate.offset.short",
             n("sumaris.config.option.synchro.export.data.updateDate.offset.short.description"),
             String.valueOf(30), /* 30 sec */
-            Integer.class),
+            Integer.class,
+            false),
 
     IMPORT_REFERENTIAL_UPDATE_DATE_OFFSET(
             "sumaris.synchro.import.updateDate.offset",
             n("sumaris.config.option.synchro.import.referential.updateDate.offset.description"),
             String.valueOf(-60), /* -1 min */
-            Integer.class),
+            Integer.class,
+            false),
 
     IMPORT_REFERENTIAL_STATUS_INCLUDES(
             "sumaris.synchro.import.referential.status.includes",
             n("sumaris.config.option.synchro.import.referential.status.includes.description"),
             null, /* all */
-            String.class),
+            String.class,
+            false),
 
     SYNCHRO_PROGRAM_CODES_INCLUDES(
             "sumaris.synchro.program.codes",
