@@ -232,34 +232,6 @@ export class ReferentialRef extends Entity<ReferentialRef>  {
     this.entityName = source.entityName;
     return this;
   }
-
-}
-
-
-export class Property extends Referential {
- 
-  constructor() {
-    super();
-  }
-
-  copy(target: Property): Property {
-    target.fromObject(this);
-    return target;
-  }
-
-  asObject(minify?: boolean): any {
-    if (minify) return { id: this.id }; // minify=keep id only
-    const target: any = super.asObject();
-    delete target.entityName;
-    return target;
-  }
-
-  fromObject(source: any): Property {
-    super.fromObject(source);
-    delete this.entityName; // not need 
-    return this;
-  }
-
 }
 
 export class Configuration extends Referential  {
@@ -271,12 +243,12 @@ export class Configuration extends Referential  {
   }
 
   id: number;  
-  public properties:Map<String,String>;
-  backgroundImages: String[];
+  smallLogo: string;
+  largeLogo: string;
+  properties:Map<String,String>;
+  backgroundImages: string[];
   partners: Department[];
-  defaultProgram: String;
-  logo: String;
- 
+
   constructor() {
     super();
   }
@@ -295,12 +267,11 @@ export class Configuration extends Referential  {
   fromObject(source: any): Configuration {
     super.fromObject(source);
 
-    this.name = source.properties && source.properties['defaultProgram'] || this.name;
-    this.label = source.properties && source.properties['remoteBaseUrl'] || this.label;
+    this.smallLogo = source.smallLogo;
+    this.largeLogo = source.largeLogo;
     this.properties = source.properties;
     this.backgroundImages = source.backgroundImages;
-    this.partners = source.partners;
-    this.logo = source.logo;
+    this.partners = (source.partners || []).map(Department.fromObject);
     return this;
   }
 }
@@ -376,8 +347,15 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
 }
 
 export class Department extends Referential implements Cloneable<Department>{
+
   logo: string;
-  id: number ;
+  siteUrl: string;
+
+  static fromObject(source: any): Department {
+    const res = new Department();
+    res.fromObject(source);
+    return res;
+  }
 
   constructor() {
     super();
@@ -402,6 +380,7 @@ export class Department extends Referential implements Cloneable<Department>{
   fromObject(source: any): Department {
     super.fromObject(source);
     this.logo = source.logo;
+    this.siteUrl = source.siteUrl;
     delete this.entityName; // not need 
     return this;
   }

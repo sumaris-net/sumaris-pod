@@ -1,16 +1,14 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import {Component, OnInit} from "@angular/core";
 
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Subscription, BehaviorSubject } from 'rxjs';
-
-import { Location } from '@angular/common';
-import { FormGroup, FormBuilder } from "@angular/forms";
-import { environment } from '../../../environments/environment';
-import { Configuration, Property, Department } from '../../core/services/model';
-import { PodConfigService } from "src/app/core/services/podconfig.service";
-import { AppFormUtils } from "src/app/core/core.module";
-import { CarouselComponent } from "./carousel/carousel.component";
+import {ModalController} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {BehaviorSubject} from 'rxjs';
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {environment} from '../../../environments/environment';
+import {Configuration, Department} from '../../core/services/model';
+import {PodConfigService} from "src/app/core/services/podconfig.service";
+import {AppFormUtils} from "src/app/core/core.module";
+import {CarouselComponent} from "./carousel/carousel.component";
 
 //Function that calculates de css to load
 export function getBrandCSS(styles: string[]): string[] {

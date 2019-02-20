@@ -83,26 +83,32 @@ export class AppComponent {
 
     const config = await this.configurationService.getConfs();
 
-    this.logo = config.logo;
+    this.logo = config.smallLogo || config.largeLogo;
     this.appName = config.label;
-    this.updateColors(    
-      config.properties["sumaris.site.color.primary"],
-      config.properties["sumaris.site.color.secondary"],
-      config.properties["sumaris.site.color.tertiary"]
-    );
+
+    // this.updateTheme({
+    //   colors: {
+    //     primary: config.properties["sumaris.color.primary"],
+    //     secondary: config.properties["sumaris.color.secondary"],
+    //     tertiary: config.properties["sumaris.color.tertiary"]
+    //   }
+    // });
 
   }
 
-  updateColors(primary, secondary, tertiary) {
+  updateTheme(options: {colors?: {primary?: string; secondary?: string; tertiary?: string;}}) {
+    if (!options)  return;
 
-    console.log("Updating Colors based on configuration - 1- " + primary + " 2- " + secondary + " 3- "+ tertiary );
+    console.info("[app] Changing theme colors ", options);
 
-    document.documentElement.style.setProperty(`--ion-color-primary`, primary);
-
-    document.documentElement.style.setProperty(`--ion-color-light`, secondary); 
-    document.documentElement.style.setProperty(`--ion-color-secondary`, secondary); 
-    
-    document.documentElement.style.setProperty(`--ion-color-tertiary`, tertiary);
+    // Settings colors
+    if (options.colors) {
+      Object.getOwnPropertyNames(options.colors).forEach(color => {
+        if (color !== undefined && color !== null) {
+          document.documentElement.style.setProperty(`--ion-color-${color}`, color);
+        }
+      });
+    }
   }
 
   protected addAccountFields() {

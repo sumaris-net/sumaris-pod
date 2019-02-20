@@ -2,12 +2,13 @@ import { Environment } from "./environment.class";
 const pkg = require('../../package.json')
 
 export const environment: Environment = {
-    production: true,
-    baseUrl: '/',
-    remoteBaseUrl: "https://test.sumaris.net",
-    defaultLocale: 'en',
-    defaultLatLongFormat: 'DDMM',
-    version: (pkg.version as string),
-    defaultProgram: "SUMARiS",
-    apolloFetchPolicy: 'cache-first'
+  name: (pkg.name as string),
+  version: (pkg.version as string),
+  production: true,
+  baseUrl: '/',
+  remoteBaseUrl: "https://adap.e-is.pro",
+  defaultLocale: 'fr',
+  defaultLatLongFormat: 'DDMM',
+  defaultProgram: "ADAP-MER",
+  apolloFetchPolicy: 'cache-first'
 };

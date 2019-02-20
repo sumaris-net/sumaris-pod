@@ -4,10 +4,11 @@ import { ModalController } from '@ionic/angular';
 import { RegisterModal } from '../register/modal/modal-register';
 import { Subscription, BehaviorSubject } from 'rxjs';
 import { AccountService } from '../services/account.service';
-import { Account, Department } from '../services/model';
+import {Account, Configuration, Department} from '../services/model';
 import { TranslateService } from '@ngx-translate/core';
 import { PodConfigService } from '../services/podconfig.service';
 import { DOCUMENT } from '@angular/platform-browser';
+import {fadeInAnimation, isNotNil} from "../../shared/shared.module";
 
 export function getBackgroundImage() {
   return this.bgImage; 
@@ -22,23 +23,25 @@ export function getRandomImage(files : String[]) {
   moduleId: module.id.toString(),
   selector: 'page-home',
   templateUrl: 'home.html',
-  styleUrls: ['./home.scss']
+  styleUrls: ['./home.scss'],
+  animations: [fadeInAnimation]
 })
 export class HomePage implements OnInit, OnDestroy {
 
+  loading = true;
   bgImage: String;
   displayName: String = '';
   isLogin: boolean;
   subscriptions: Subscription[] = [];
   partners = new BehaviorSubject<Department[]>(null);
   logo: String;
+  description: String;
   appName: string;
-  partLogos: string[];
+  contentStyle = {};
 
   constructor(
     @Inject(DOCUMENT) private _document: HTMLDocument,
     public accountService: AccountService,
-    public activatedRoute: ActivatedRoute,
     public modalCtrl: ModalController,
     public translate: TranslateService,
 
@@ -49,20 +52,35 @@ export class HomePage implements OnInit, OnDestroy {
     if (this.isLogin) {
       this.onLogin(this.accountService.account);
     }
- 
-    this.configurationService.getConfs().then(conf => {
-      this.appName = conf.label;
-      this._document.getElementById('appTitle').textContent = conf.name;
 
-      let fav = conf.properties["favicon"];
-      if(fav){
-        this._document.getElementById('appFavicon').setAttribute('href', fav); 
+    this.configurationService.getConfs().then(config => {
+
+      this.appName = config.label;
+
+      const title = isNotNil(config.name) ? `${config.label} - ${config.name}` : config.label;
+      this._document.getElementById('appTitle').textContent = title;
+
+      const favicon = config.properties && config.properties["sumaris.favicon"];
+      if(favicon){
+        this._document.getElementById('appFavicon').setAttribute('href', favicon);
       }
 
-      this.logo = conf.logo;
-      this.partners.next(conf.partners);
-      this.bgImage = getRandomImage(conf.backgroundImages);
-    })
+      this.logo = config.largeLogo || config.smallLogo;
+      this.description = config.name || config.description;
+
+      this.partners.next(config.partners);
+
+      if (config.backgroundImages && config.backgroundImages.length) {
+        const bgImage = getRandomImage(config.backgroundImages);
+        this.contentStyle = {'background-image' : `url(${bgImage})`};
+      }
+      else {
+        const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
+        this.contentStyle = {'background-color' : primaryColor};
+      }
+
+      this.loading = false;
+    });
 
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));

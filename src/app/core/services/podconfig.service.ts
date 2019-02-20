@@ -10,31 +10,20 @@ import {ErrorCodes} from "./errors";
 /* ------------------------------------
  * GraphQL queries
  * ------------------------------------*/
-// New auth challenge query
-const DepartmentsQuery: any = gql`
-query Departments {
-  departments {
-    id
-    logo
-    name
-    hasLogo
-    siteUrl
-    label
-  }
-}
-`;  
 
-const ConfigurationQuery: any = gql`
-query confs {
+const LoadQuery: any = gql`
+query Configuration {
   configuration{
     id
     label
     name    
-    logo
-    defaultProgram
+    smallLogo
+    largeLogo
     backgroundImages
     partners {
       id
+      label
+      name
       logo
       siteUrl
     }
@@ -43,23 +32,11 @@ query confs {
 }
 `;  
 
-const DeletePartner: any = gql`
-  mutation deletePartner($app:String, $partner:String){
-    deletePartner(app: $app,  partner: $partner)
-  }
-`;
-
-const DeleteBackground: any = gql`
-mutation deleteBG($app:String, $bg:String){
-  deleteBG(app: $app,  bg: $bg)
-}
-`;
-
 
 @Injectable()
 export class PodConfigService extends BaseDataService {
  
-  configuration: Configuration;
+  data: Configuration;
    
 
   constructor(
@@ -74,48 +51,35 @@ export class PodConfigService extends BaseDataService {
 
 
   async getConfs() : Promise<Configuration> {
-    const data = await this.query<{ configuration: Configuration} >({
-      query: ConfigurationQuery,
-      variables: { },
-    }); 
 
-    const res = Configuration.fromObject(data.configuration);
+    if (this.data) return Promise.resolve(this.data);
 
-    return res;
+    try {
+      const res = await this.query<{ configuration: Configuration} >({
+        query: LoadQuery,
+        variables: { },
+      });
+
+      if (res && res.configuration) {
+        this.data = Configuration.fromObject(res && res.configuration);
+        console.info("[config] Configuration loaded (from pod): ", this.data);
+      }
+    }
+    catch(err) {
+      console.error(err && err.message || err);
+    }
+
+    if (!this.data) this.data = Configuration.fromObject(environment as any);
+
+    // Make sure name if filled
+    this.data.label = this.data.label || environment.name;
+
+    // Reset name if same
+    if (this.data.name === this.data.label) this.data.name = undefined;
+
+    return this.data;
   }
 
-  // async removeBackGround(){
-  //   const data = await this.mutate<any>({
-  //     mutation:  DeleteBackground,
-  //     variables: { app: "ADAP", bg: "2"}
-  //   }); 
-
-  // }
-
-  // async removePartnerLogo() : Promise<Configuration> {
-  //   const data = await this.mutate<any>({
-  //     mutation:  DeletePartner,
-  //     variables: { app: "ADAP", partner: "2"}
-  //   }); 
- 
-  //   return this.getConfs();
-  // }
-
-  // /**
-  // * get Logos for all Departments configured 
-  // */
-  //  async getDepartments(): Promise<Department[]> {
-
-  //   const defaultDep = environment.defaultDepartmentId;
-  //   //TODO: filter 
-
-  //   const data = await this.query<{ departments: Department[] } >({
-  //     query: DepartmentsQuery,
-  //     variables: {
-  //     }
-  //   }); 
-  //   return data.departments;
-  // };
 }
 
 

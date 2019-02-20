@@ -37,6 +37,7 @@ export class MenuComponent implements OnInit {
   public loading = true;
   public isLogin: boolean = false;
   public account: Account;
+
   @Input() logo: String;
 
   @Input() appName: String;
@@ -87,11 +88,6 @@ export class MenuComponent implements OnInit {
     }
 
     this.splitPane.when=SPLIT_PANE_SHOW_WHEN;
-
-    this.configurationService.getConfs().then(conf =>{
-      this.logo = conf.logo;
-      this.appName = conf.name;
-    })
 
   }
 
