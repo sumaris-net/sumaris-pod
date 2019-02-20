@@ -27,7 +27,7 @@
 
   <!-- Programs / strategies -->
   <PROGRAM ID="10" LABEL="ADAP-MER" NAME="Application d’assistance à l’auto-échantillonnage en mer" DESCRIPTION="Auto-échantillonnage en mer pour les Pêcheurs de Bretagne" STATUS_FK="1" CREATION_DATE="2019-02-15" UPDATE_DATE="2019-02-15"/>
-  <PROGRAM ID="11" LABEL="ADAP-CRIEE" NAME="Application d’assistance aux contrôles en criées" DESCRIPTION="Contrôles criées pour les Pêcheurs de Bretagne" STATUS_FK="1" CREATION_DATE="2019-02-15" UPDATE_DATE="2019-02-15"/>
+  <!--<PROGRAM ID="11" LABEL="ADAP-CRIEE" NAME="Application d’assistance aux contrôles en criées" DESCRIPTION="Contrôles criées pour les Pêcheurs de Bretagne" STATUS_FK="1" CREATION_DATE="2019-02-15" UPDATE_DATE="2019-02-15"/>-->
 
   <!-- ADAP strategy -->
   <STRATEGY ID="10" PROGRAM_FK="10" LABEL="V1" NAME="version 1 - 2019-02-15" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
@@ -44,7 +44,7 @@
   <!-- Trawl type -->
   <PMFM_STRATEGY ID="221"  STRATEGY_FK="10" ACQUISITION_LEVEL_FK="2" PMFM_FK="8" RANK_ORDER="2" ACQUISITION_NUMBER="1" IS_MANDATORY="1"></PMFM_STRATEGY>
   <!-- Selective device -->
-  <PMFM_STRATEGY ID="222"  STRATEGY_FK="10" ACQUISITION_LEVEL_FK="2" PMFM_FK="4" RANK_ORDER="3" ACQUISITION_NUMBER="1" IS_MANDATORY="1"></PMFM_STRATEGY>
+  <PMFM_STRATEGY ID="222"  STRATEGY_FK="10" ACQUISITION_LEVEL_FK="2" PMFM_FK="4" RANK_ORDER="3" ACQUISITION_NUMBER="1" IS_MANDATORY="0"></PMFM_STRATEGY>
 
 
   <!-- PmfmStrategy / Operation -->
