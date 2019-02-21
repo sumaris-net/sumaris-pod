@@ -3,7 +3,7 @@ import {ModalController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
-import {Account, Department} from '../services/model';
+import {Account, Configuration, Department} from '../services/model';
 import {TranslateService} from '@ngx-translate/core';
 import {PodConfigService} from '../services/podconfig.service';
 import {fadeInAnimation} from "../../shared/shared.module";
@@ -45,27 +45,10 @@ export class HomePage implements OnInit, OnDestroy {
       this.onLogin(this.accountService.account);
     }
 
-    this.configurationService.getConfs().then(config => {
-
-      this.appName = config.label;
-
-
-
-      this.logo = config.largeLogo || config.smallLogo;
-      this.description = config.name || config.description;
-
-      this.partners.next(config.partners);
-
-      if (config.backgroundImages && config.backgroundImages.length) {
-        const bgImage = getRandomImage(config.backgroundImages);
-        this.contentStyle = {'background-image' : `url(${bgImage})`};
-      }
-      else {
-        const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
-        this.contentStyle = {'background-color' : primaryColor};
-      }
-
-      this.loading = false;
+    this.configurationService.getConfs()
+      .then(config => {
+        this.onConfigReady(config);
+        this.loading = false;
     });
 
     // Subscriptions
@@ -88,6 +71,22 @@ export class HomePage implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subscriptions.forEach(s => s.unsubscribe());
     this.subscriptions = [];
+  }
+
+  onConfigReady(config: Configuration) {
+    this.appName = config.label;
+    this.logo = config.largeLogo || config.smallLogo;
+    this.description = config.name || config.description;
+    this.partners.next(config.partners.filter(p => p && p.logo));
+
+    if (config.backgroundImages && config.backgroundImages.length) {
+      const bgImage = getRandomImage(config.backgroundImages);
+      this.contentStyle = {'background-image' : `url(${bgImage})`};
+    }
+    else {
+      const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
+      this.contentStyle = {'background-color' : primaryColor};
+    }
   }
 
   onLogin(account: Account) {
