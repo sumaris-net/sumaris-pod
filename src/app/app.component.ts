@@ -1,10 +1,12 @@
-import {Component} from '@angular/core';
+import {Component, Inject} from '@angular/core';
 import {Platform} from "@ionic/angular";
 import {MenuItem} from './core/menu/menu.component';
 import {HomePage} from './core/home/home';
-import {AccountService, DataService} from './core/core.module';
+import {AccountService, DataService, isNotNil} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
 import { PodConfigService } from './core/services/podconfig.service';
+import {DOCUMENT} from "@angular/platform-browser";
+import {Configuration} from "./core/services/model";
 // import { StatusBar } from "@ionic-native/status-bar";
 // import { SplashScreen } from "@ionic-native/splash-screen";
 // import { Keyboard } from "@ionic-native/keyboard";
@@ -36,6 +38,7 @@ export class AppComponent {
   ];
 
   constructor(
+    @Inject(DOCUMENT) private _document: HTMLDocument,
     private platform: Platform,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
@@ -46,23 +49,25 @@ export class AppComponent {
     // private keyboard: Keyboard
   ) {
 
-    platform.ready().then(() => {
-      console.info("[app] Setting cordova plugins...");
+    platform.ready()
+      .then(() => this.configurationService.getConfs())
+      .then((config) => {
+        this.onConfigReady(config)
 
-      /*
-      statusBar.styleDefault();
-      splashScreen.hide();
+        console.info("[app] Setting cordova plugins...");
 
-      statusBar.overlaysWebView(false);
+        /*
+        statusBar.styleDefault();
+        splashScreen.hide();
 
-      // Control Keyboard
-      keyboard.disableScroll(true);
-      */
+        statusBar.overlaysWebView(false);
 
-      this.initConfig();
+        // Control Keyboard
+        keyboard.disableScroll(true);
+        */
 
-      this.addAccountFields();
-    });
+        this.addAccountFields();
+      });
 
   }
 
@@ -79,12 +84,20 @@ export class AppComponent {
     }, 16);
   }
 
-  protected async initConfig() {
-
-    const config = await this.configurationService.getConfs();
+  protected onConfigReady(config: Configuration) {
 
     this.logo = config.smallLogo || config.largeLogo;
     this.appName = config.label;
+
+    // Set document title
+    const title = isNotNil(config.name) ? `${config.label} - ${config.name}` : config.label;
+    this._document.getElementById('appTitle').textContent = title;
+
+    // Set document favicon
+    const favicon = config.properties && config.properties["sumaris.favicon"];
+    if (isNotNil(favicon)){
+      this._document.getElementById('appFavicon').setAttribute('href', favicon);
+    }
 
     // this.updateTheme({
     //   colors: {
@@ -96,7 +109,7 @@ export class AppComponent {
 
   }
 
-  updateTheme(options: {colors?: {primary?: string; secondary?: string; tertiary?: string;}}) {
+  protected updateTheme(options: {colors?: {primary?: string; secondary?: string; tertiary?: string;}}) {
     if (!options)  return;
 
     console.info("[app] Changing theme colors ", options);

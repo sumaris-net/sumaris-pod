@@ -37,6 +37,7 @@ export class MenuComponent implements OnInit {
   public loading = true;
   public isLogin: boolean = false;
   public account: Account;
+  public splitPaneOpened: boolean = true;
 
   @Input() logo: String;
 
@@ -62,7 +63,6 @@ export class MenuComponent implements OnInit {
     protected accountService: AccountService,
     protected router: Router,
     protected menu: MenuController,
-    protected configurationService: PodConfigService,
     protected modalCtrl: ModalController
   ) {
 
@@ -154,17 +154,14 @@ export class MenuComponent implements OnInit {
   }
 
   toggleSplitPane($event: MouseEvent) {
-    if (this.splitPane.when === SPLIT_PANE_SHOW_WHEN) {
+    this.splitPaneOpened = !this.splitPaneOpened;
+    if (!this.splitPaneOpened) {
       this.splitPane.when = false;
     }
     else {
       this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     }
     $event.preventDefault();
-  }
-
-  isSplitPaneOpened() {
-    return this.splitPane.when === SPLIT_PANE_SHOW_WHEN;
   }
 }
 

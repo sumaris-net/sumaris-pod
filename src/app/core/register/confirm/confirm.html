@@ -2,7 +2,7 @@
 </app-toolbar>
 
 
-<ion-content padding class="bg-image-cover center" [ngStyle]="{'background-image': 'url('+bgImage+')'}">
+<ion-content padding class="bg-image-cover center" [ngStyle]="contentStyle">
 
   <p class="hidden-xs" padding>&nbsp;<br /><br /></p>
   <p class="hidden-xs">&nbsp;</p>
@@ -28,10 +28,10 @@
       </div>
 
       <div *ngIf="!loading && !error">
-        <h4>
+        <h3>
           <ion-icon name="checkmark"></ion-icon>
-          <span translate>REGISTER.CONFIRMED.SUB_TITLE</span>
-        </h4>
+          <b translate>REGISTER.CONFIRMED.SUB_TITLE</b>
+        </h3>
 
         <ion-text>
           <p [innerHTML]="'REGISTER.CONFIRMED.SUCCESS'|translate: {email: email}"></p>

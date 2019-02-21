@@ -11,6 +11,7 @@ export const environment: Environment = {
     production: false,
     baseUrl: '/',
     remoteBaseUrl: "http://localhost:8080",
+  //remoteBaseUrl: "https://adap.e-is.pro",
     //remoteBaseUrl: "https://test.sumaris.net",
     defaultLocale: "fr",
     defaultLatLongFormat: 'DDMM',

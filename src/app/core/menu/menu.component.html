@@ -79,21 +79,18 @@
           <mat-icon color="primary">help_outline</mat-icon>
         </button>
 
-        <span ion-text>
+        <h4>
           {{'MENU.FOOTER_VERSION_ABOUT'| translate: {version: appVersion} }}
-        </span>
+        </h4>
 
-        <div class="toolbar-spacer"></div>
+        <div class="toolbar-spacer hidden-xs hidden-sm"></div>
 
-        <!--<div class="hidden sm hidden-sm>-->
-          <!--<button mat-icon-button [title]="'COMMON.BTN_HIDE_MENU'|translate" *ngIf="isSplitPaneOpened()"-->
-                  <!--(click)="toggleSplitPane($event)"-->
-                  <!--class="hidden sm hidden-sm">&#xab;</button>-->
-          <button mat-icon-button [title]="'COMMON.BTN_SHOW_MENU'|translate" *ngIf="!isSplitPaneOpened()"
-                  (click)="toggleSplitPane($event)">
-            <mat-icon color="primary">arrow_forward</mat-icon>
-          </button>
-        <!--</div>-->
+        <button mat-icon-button *ngIf="splitPaneOpened" (click)="toggleSplitPane($event)" class="hidden-xs hidden-sm">
+          <mat-icon color="primary" >keyboard_arrow_left</mat-icon>
+        </button>
+        <button mat-icon-button *ngIf="!splitPaneOpened" (click)="toggleSplitPane($event)" class="hidden-xs hidden-sm">
+          <mat-icon color="primary" >keyboard_arrow_right</mat-icon>
+        </button>
       </mat-toolbar>
     </ion-footer>
   </ion-menu>

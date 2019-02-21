@@ -1,18 +1,12 @@
-import { Component, OnDestroy, OnInit, Inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { ModalController } from '@ionic/angular';
-import { RegisterModal } from '../register/modal/modal-register';
-import { Subscription, BehaviorSubject } from 'rxjs';
-import { AccountService } from '../services/account.service';
-import {Account, Configuration, Department} from '../services/model';
-import { TranslateService } from '@ngx-translate/core';
-import { PodConfigService } from '../services/podconfig.service';
-import { DOCUMENT } from '@angular/platform-browser';
-import {fadeInAnimation, isNotNil} from "../../shared/shared.module";
-
-export function getBackgroundImage() {
-  return this.bgImage; 
- };
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ModalController} from '@ionic/angular';
+import {RegisterModal} from '../register/modal/modal-register';
+import {BehaviorSubject, Subscription} from 'rxjs';
+import {AccountService} from '../services/account.service';
+import {Account, Department} from '../services/model';
+import {TranslateService} from '@ngx-translate/core';
+import {PodConfigService} from '../services/podconfig.service';
+import {fadeInAnimation} from "../../shared/shared.module";
 
 export function getRandomImage(files : String[]) {
   let imgIndex = Math.floor(Math.random() * files.length)  ;
@@ -29,7 +23,6 @@ export function getRandomImage(files : String[]) {
 export class HomePage implements OnInit, OnDestroy {
 
   loading = true;
-  bgImage: String;
   displayName: String = '';
   isLogin: boolean;
   subscriptions: Subscription[] = [];
@@ -40,7 +33,6 @@ export class HomePage implements OnInit, OnDestroy {
   contentStyle = {};
 
   constructor(
-    @Inject(DOCUMENT) private _document: HTMLDocument,
     public accountService: AccountService,
     public modalCtrl: ModalController,
     public translate: TranslateService,
@@ -57,13 +49,7 @@ export class HomePage implements OnInit, OnDestroy {
 
       this.appName = config.label;
 
-      const title = isNotNil(config.name) ? `${config.label} - ${config.name}` : config.label;
-      this._document.getElementById('appTitle').textContent = title;
 
-      const favicon = config.properties && config.properties["sumaris.favicon"];
-      if(favicon){
-        this._document.getElementById('appFavicon').setAttribute('href', favicon);
-      }
 
       this.logo = config.largeLogo || config.smallLogo;
       this.description = config.name || config.description;

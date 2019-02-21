@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { AccountService } from '../../services/account.service';
-import { Location } from '@angular/common';
-import { getBackgroundImage } from '../../home/home';
+import {getRandomImage} from '../../home/home';
+import {PodConfigService} from "../../services/podconfig.service";
 
 @Component({
   selector: 'page-register-confirm',
@@ -17,14 +17,14 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
   loading: boolean = true;
   error: String;
   email: String;
-  bgImage: String;
+  contentStyle = {};
 
   constructor(
     private accountService: AccountService,
-    private activatedRoute: ActivatedRoute) {
+    private activatedRoute: ActivatedRoute,
+    private configurationService: PodConfigService) {
 
     this.isLogin = accountService.isLogin();
-    this.bgImage = getBackgroundImage();
 
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.isLogin = true));
@@ -32,6 +32,21 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
     this.subscriptions.push(this.activatedRoute.paramMap.subscribe(params =>
       this.doConfirm(params.get("email"), params.get("code"))
     ));
+
+    this.configurationService.getConfs()
+      .then(config => {
+
+        if (config && config.backgroundImages && config.backgroundImages.length) {
+          const bgImage = getRandomImage(config.backgroundImages);
+          this.contentStyle = {'background-image' : `url(${bgImage})`};
+        }
+        else {
+          const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
+          this.contentStyle = {'background-color' : primaryColor};
+        }
+
+        this.loading = false;
+      });
   }
 
   ngOnInit(): void {
