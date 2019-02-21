@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author peck7 on 17/12/2018.
  */
-@Transactional
 public interface ExtractionCostDao {
 
     ExtractionCostContextVO execute(TripFilterVO filter);

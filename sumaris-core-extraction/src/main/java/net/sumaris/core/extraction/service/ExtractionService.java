@@ -17,6 +17,7 @@ import java.util.List;
 public interface ExtractionService {
 
 
+    @Transactional
     void executeToFile(TripFilterVO filter, File outputFile);
 
     @Transactional(readOnly = true)

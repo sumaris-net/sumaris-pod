@@ -921,7 +921,7 @@
   <FILE_STATUS ID="3" LABEL="2" NAME="Success" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
   <FILE_STATUS ID="4" LABEL="3" NAME="Error" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
 
-  <!-- tables to delete -->
+  <!-- tables to clean -->
   <PROGRAM/>
   <STRATEGY/>
   <STRATEGY2GEAR/>
@@ -949,5 +949,12 @@
   <FILE_LINE/>
   <SOFTWARE/>
   <SOFTWARE_PROPERTY/>
+
+  <!-- Extraction tables -->
+  <FILE_ICES_TRIP/>
+  <FILE_ICES_STATION/>
+  <FILE_ICES_SPECIES_LENGTH/>
+  <FILE_ICES_SPECIES_LIST/>
+  <FILE_ICES_LANDING/>
 
 </dataset>

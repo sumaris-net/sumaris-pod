@@ -17,7 +17,7 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    ExtractionService service;
+    private ExtractionService service;
 
     @Before
     public void setUp() throws Exception {

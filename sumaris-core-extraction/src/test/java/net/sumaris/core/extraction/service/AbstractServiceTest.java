@@ -16,7 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
 @TestPropertySource(locations="classpath:sumaris-core-extraction-test.properties")
-public class AbstractServiceTest {
+public abstract class AbstractServiceTest {
 
     /** Logger. */
     private static final Logger log =

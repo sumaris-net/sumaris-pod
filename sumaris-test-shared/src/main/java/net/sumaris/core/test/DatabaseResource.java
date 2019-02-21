@@ -236,7 +236,7 @@ public abstract class DatabaseResource implements TestRule {
                 String jdbcUrl = p.getProperty(SumarisConfigurationOption.JDBC_URL.getKey());
                 boolean serverMode = jdbcUrl != null && jdbcUrl.startsWith("jdbc:hsqldb:hsql://");
 
-                // If hsqld run on server mode
+                // If running on server mode
                 if (serverMode) {
                     // Do not copy DB files, but display a warn
                     log.warn(String.format("Database running in server mode ! Please remove the property '%s' in file %s, to use a file database.",
@@ -253,19 +253,11 @@ public abstract class DatabaseResource implements TestRule {
             } else {
                 // Load db config properties
                 File dbConfig = new File(dbDirectory, getTestDbName() + ".properties");
-                Properties p = new Properties();
-                BufferedReader reader = Files.newReader(dbConfig, Charsets.UTF_8);
-                p.load(reader);
-                reader.close();
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Db config: " + dbConfig + "\n" + p);
-                }
-
-                // make sure db is on readonly mode
-                String readonly = p.getProperty("readonly");
-                Preconditions.checkNotNull(readonly, "Could not find readonly property on db confg: " + dbConfig);
-                Preconditions.checkState("true".equals(readonly), "readonly property must be at true value in read mode test in  db confg: "
+                // Make readonly=true
+                String readonly = getProperty(dbConfig, "readonly");
+                Preconditions.checkNotNull(readonly, "Could not find readonly property on db config: " + dbConfig);
+                Preconditions.checkState("true".equals(readonly), "readonly property must be at true value in read mode test in  db config: "
                         + dbConfig);
             }
         }
@@ -286,6 +278,14 @@ public abstract class DatabaseResource implements TestRule {
      */
     public void addToDestroy(File dir) {
         toDestroy.add(dir);
+    }
+
+    public String getProperty(File file, String key) throws IOException {
+        Properties p = new Properties();
+        try (BufferedReader reader = Files.newReader(file, Charsets.UTF_8)) {
+            p.load(reader);
+            return p.getProperty(key);
+        }
     }
 
     /**

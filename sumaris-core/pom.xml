@@ -113,20 +113,6 @@
       <artifactId>spring-boot-autoconfigure</artifactId>
     </dependency>
 
-    <!-- Logging -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.fusesource.jansi</groupId>
-      <artifactId>jansi</artifactId>
-    </dependency>
-
     <!-- Unit test -->
     <dependency>
       <groupId>net.sumaris</groupId>
@@ -484,18 +470,8 @@
                 <version>${slf4j.version}</version>
               </dependency>
               <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>${slf4j.version}</version>
-              </dependency>
-              <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>${logback.version}</version>
-              </dependency>
-              <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-core</artifactId>
                 <version>${logback.version}</version>
               </dependency>
               <dependency>

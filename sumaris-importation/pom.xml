@@ -8,6 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>sumaris-importation</artifactId>
+  <description>SUMARiS :: Core Importation</description>
 
   <dependencies>
     <dependency>
@@ -15,14 +16,13 @@
       <artifactId>sumaris-core</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <dependency>
-      <groupId>net.sf.opencsv</groupId>
-      <artifactId>opencsv</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
     </dependency>
 
     <!-- Unit test -->

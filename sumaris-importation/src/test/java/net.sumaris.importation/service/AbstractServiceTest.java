@@ -52,7 +52,7 @@ import java.util.Properties;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
 @TestPropertySource(locations="classpath:sumaris-importation-test.properties")
-public class AbstractServiceTest {
+public abstract class AbstractServiceTest {
 
 	/** Logger. */
 	private static final Logger log =
