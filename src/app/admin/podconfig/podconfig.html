@@ -3,7 +3,7 @@
 
 <ion-content>
 
-  <form class="form-container" padding [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+  <form class="form-container" padding [formGroup]="form" (ngSubmit)="save($event, form.value)">
 
     <mat-form-field>
       <input matInput [placeholder]="'CONFIGURATION.APP_NAME' | translate" formControlName="name" />

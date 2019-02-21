@@ -8,20 +8,7 @@ import {environment} from '../../../environments/environment';
 import {Configuration, Department} from '../../core/services/model';
 import {PodConfigService} from "src/app/core/services/podconfig.service";
 import {AppFormUtils} from "src/app/core/core.module";
-import {CarouselComponent} from "./carousel/carousel.component";
 
-//Function that calculates de css to load
-export function getBrandCSS(styles: string[]): string[] {
-  alert("getBrandCSS " + environment.defaultProgram + "    " + styles);
-
-  for (let i = 0; i < styles.length; i++) {
-    //alert("getBrandCSS "+ environment.defaultProgram + "    " +styles);
-    //console.log(environment.defaultProgram + "    " + styles[i]);
-    styles[i] = environment.defaultProgram + '.' + styles[i];
-  }
-  return styles;
-}
- 
 
 @Component({
   moduleId: module.id.toString(),
@@ -40,7 +27,6 @@ export class PodConfigPage implements OnInit {
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
-    protected carousel: CarouselComponent,
     public modalCtrl: ModalController,
     protected configurationService: PodConfigService,
     protected formBuilder: FormBuilder 
@@ -59,15 +45,10 @@ export class PodConfigPage implements OnInit {
 
   async load() {
 
-    // this.configurationService.getDepartments().then(de =>{
-    //   this.departements.next(de);
-    //   console.log("depService.logos " +  de .map(d=>d.logo) );
-    // });
+    this.loading = true;
 
     const data = await this.configurationService.getConfs();
     console.dir(data);
-
-
 
     this.updateView(data);
   }
@@ -94,9 +75,9 @@ export class PodConfigPage implements OnInit {
     this.loading = false;
   }
 
-  save($event: any) {
+  save($event: any, json: any) {
 
-    const json = this.form.value;
+    json = json || this.form.value;
     this.data.fromObject(json);
 
     this.form.disable();
@@ -120,6 +101,11 @@ export class PodConfigPage implements OnInit {
 
   get dirty(): boolean {
     return this.form.dirty;
+  }
+
+  cancel() {
+    // TODO
+    this.load();
   }
 }
 
