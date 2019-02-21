@@ -74,7 +74,7 @@ export class PodConfigPage implements OnInit {
     this.loading = false;
   }
 
-  save($event: any, json: any) {
+  save($event: any, json?: any) {
 
     json = json || this.form.value;
     this.data.fromObject(json);
