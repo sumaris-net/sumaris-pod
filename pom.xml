@@ -160,7 +160,7 @@
     <!-- release config -->
     <autoVersionSubmodules>true</autoVersionSubmodules>
     <goals>deploy</goals>
-    <arguments>-DperformFullRelease -Denv=hsqldb -DskipTests</arguments>
+    <arguments>-DperformFullRelease -Denv=hsqldb</arguments>
     <preparationGoals>verify</preparationGoals>
 
     <!-- Last JRE version to use -->
