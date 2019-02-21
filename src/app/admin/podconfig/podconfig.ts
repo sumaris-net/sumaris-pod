@@ -4,7 +4,6 @@ import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {BehaviorSubject} from 'rxjs';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {environment} from '../../../environments/environment';
 import {Configuration, Department} from '../../core/services/model';
 import {PodConfigService} from "src/app/core/services/podconfig.service";
 import {AppFormUtils} from "src/app/core/core.module";

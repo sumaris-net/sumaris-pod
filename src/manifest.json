@@ -2,7 +2,7 @@
   "name": "SUMARiS",
   "short_name": "SUMARiS",
   "manifest_version": 1,
-  "version": "0.9.5",
+  "version": "0.9.6",
   "default_locale": "en",
   "description": "Shared database for management halieutic stocks.",
   "icons": [{
