@@ -1,9 +1,6 @@
 @import 'core';
 
 
-
-
-
 ion-menu {
 
   .user-avatar {
@@ -16,10 +13,10 @@ ion-menu {
     background-color: ion-color(secondary, base);
     border: solid 1px ion-color(primary, base);
     overflow: hidden !important;
-    font-size: 80px !important;
-    line-height: 80px;
-    height: 80px !important;
-    width: 80px !important;
+    font-size: var(--avatar-size, 60px) !important;
+    line-height: var(--avatar-size, 60px);
+    height: var(--avatar-size, 60px) !important;
+    width: var(--avatar-size, 60px) !important;
     border-radius: 50%;
     display: inline-block;
   }
@@ -70,22 +67,37 @@ ion-menu {
 
   ion-footer {
     ion-toolbar {
-      ion-row {
-        padding: 0;
+      //padding: 0;
+
+
+      ion-title {
         cursor: pointer;
-        ion-col {
-          padding: 0;
-          text-align: center;
-        }
+        font-size: 12pt;
+        font-weight: normal;
+        text-align: center;
+        padding: 0px 50px;
       }
-      cursor: pointer;
+
+      ion-button {
+        --width: 40px;
+      }
     }
   }
 }
 
 
 @media screen and (min-width: $screen-sm) {
-  ion-menu ion-scroll {
-    overflow-y: auto !important;
+
+  ion-menu {
+    ion-scroll {
+      overflow-y: auto !important;
+    }
+
+    .user-avatar {
+      font-size: var(--avatar-size, 80px) !important;
+      line-height: var(--avatar-size, 80px);
+      height: var(--avatar-size, 80px) !important;
+      width: var(--avatar-size, 80px) !important;
+    }
   }
 }

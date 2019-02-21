@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons left start>
+    <ion-buttons slot="start">
       <button ion-button class="visible-xs visible-sm" (click)="cancel()">
         {{'COMMON.BTN_CANCEL'|translate}}
       </button>
@@ -10,7 +10,7 @@
       {{(!!data?.id ? 'TRIP.EDIT.TITLE' : 'TRIP.NEW.TITLE') |translate}}
     </ion-title>
 
-    <ion-buttons end>
+    <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
       <button ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading && stepper.selectedIndex === 0" (click)="tripForm.doSubmit($event, tripForm.value)">

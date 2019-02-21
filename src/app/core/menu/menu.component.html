@@ -72,26 +72,26 @@
 
 
     <ion-footer>
-      <mat-toolbar >
+      <ion-toolbar>
 
-        <button mat-icon-button
-                (click)="openAboutModal($event)">
-          <mat-icon color="primary">help_outline</mat-icon>
-        </button>
+        <ion-buttons slot="start" >
+          <ion-button color="secondary" (click)="openAboutModal($event)">
+            <ion-icon slot="icon-only" color="primary" name="help-circle-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
 
-        <h4>
+        <ion-title (click)="openAboutModal($event)">
           {{'MENU.FOOTER_VERSION_ABOUT'| translate: {version: appVersion} }}
-        </h4>
+        </ion-title>
 
-        <div class="toolbar-spacer hidden-xs hidden-sm"></div>
-
-        <button mat-icon-button *ngIf="splitPaneOpened" (click)="toggleSplitPane($event)" class="hidden-xs hidden-sm">
-          <mat-icon color="primary" >keyboard_arrow_left</mat-icon>
-        </button>
-        <button mat-icon-button *ngIf="!splitPaneOpened" (click)="toggleSplitPane($event)" class="hidden-xs hidden-sm">
-          <mat-icon color="primary" >keyboard_arrow_right</mat-icon>
-        </button>
-      </mat-toolbar>
+        <ion-buttons slot="end">
+          <ion-button  color="secondary" (click)="toggleSplitPane($event)"
+                       hidden-xs hidden-sm
+                       [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
+            <h2 slot="icon-only">{{splitPaneOpened ? '&#xab;' : '&#xbb;'}}</h2>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
     </ion-footer>
   </ion-menu>
 
