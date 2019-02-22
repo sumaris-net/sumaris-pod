@@ -41,9 +41,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.ServletWebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
+import org.springframework.web.util.UrlPathHelper;
 
 @Configuration
 @EnableWebSocket
@@ -101,7 +103,8 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         log.info(String.format("Starting GraphQL websocket handler at {%s}...", GraphQLPaths.SUBSCRIPTION_PATH));
 
-        webSocketHandlerRegistry.addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
+        webSocketHandlerRegistry
+                .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
                 .setAllowedOrigins("*")
                 .withSockJS();
     }

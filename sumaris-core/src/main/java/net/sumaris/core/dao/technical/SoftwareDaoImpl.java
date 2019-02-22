@@ -25,8 +25,11 @@ package net.sumaris.core.dao.technical;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.technical.Software;
+import net.sumaris.core.model.technical.SoftwareProperty;
 import net.sumaris.core.vo.technical.ConfigurationVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -35,12 +38,11 @@ import java.util.Objects;
 @Repository("softwareDao")
 public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
-
     @Autowired
-    private SoftwareEntities entities;
+    private SoftwareRepository repository;
 
     public ConfigurationVO get(String label) {
-        return toVO(entities.getSoftware(label));
+        return toVO(repository.getSoftware(label));
     }
 
     public ConfigurationVO save(ConfigurationVO source)  {
@@ -61,6 +63,8 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
     /* -- protected methods -- */
 
     protected ConfigurationVO toVO(Software source) {
+        if (source == null) return null;
+
         ConfigurationVO target = new ConfigurationVO();
 
         Beans.copyProperties(source, target);
@@ -84,7 +88,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
     }
 
     protected Software toEntity(ConfigurationVO source) {
-        Software target = entities.getSoftware(source.getLabel());
+        Software target = repository.getSoftware(source.getLabel());
 
         Beans.copyProperties(source, target);
 

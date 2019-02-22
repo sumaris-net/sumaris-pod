@@ -63,7 +63,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     BASEDIR(
             "sumaris.basedir",
             n("sumaris.config.option.basedir.description"),
-            "${user.home}/.sumaris",
+            "${user.home}/.${sumaris.name}",
             File.class),
 
     DATA_DIRECTORY(

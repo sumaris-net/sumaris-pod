@@ -2,6 +2,7 @@ package net.sumaris.core.service.technical;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SoftwareDao;
 import net.sumaris.core.exception.VersionNotFoundException;
@@ -50,7 +51,7 @@ public class SoftwareServiceImpl implements SoftwareService {
     @PostConstruct
     protected void afterPropertiesSet() {
 
-        loadConfigurationFromServer();
+        loadConfigurationFromDatabase();
     }
 
     @Override
@@ -92,7 +93,7 @@ public class SoftwareServiceImpl implements SoftwareService {
         }
     }
 
-    protected void loadConfigurationFromServer() {
+    protected void loadConfigurationFromDatabase() {
 
         try {
             Version dbVersion = databaseSchemaDao.getSchemaVersion();
@@ -107,14 +108,13 @@ public class SoftwareServiceImpl implements SoftwareService {
             // ok, continue (schema should be a new one ?)
         }
 
-
         ApplicationConfig appConfig = SumarisConfiguration.getInstance().getApplicationConfig();
         // Override the configuration existing in the config file, using DB
-        ConfigurationVO dbConfig = getDefault();
-        if (dbConfig == null) {
-            log.warn("No software found in DB, with label=" + defaultSoftwareLabel);
+        ConfigurationVO configurationFromDb = getDefault();
+        if (configurationFromDb == null) {
+            log.info(String.format("No configuration for {%s} found in database. to enable configuration override from database, make sure to set the option '%s' to an existing row of the table SOFTWARE (column LABEL).", defaultSoftwareLabel, SumarisConfigurationOption.APP_NAME.getKey()));
         }
-        else if (MapUtils.isNotEmpty(dbConfig.getProperties())) {
+        else if (MapUtils.isNotEmpty(configurationFromDb.getProperties())) {
             log.info(String.format("Overriding configuration options, using those found in database for {%s}", defaultSoftwareLabel));
 
             // Load options from configuration providers
@@ -129,7 +129,7 @@ public class SoftwareServiceImpl implements SoftwareService {
                     .filter(o -> o.isTransient())
                     .map(o -> o.getKey()).collect(Collectors.toSet());
 
-            dbConfig.getProperties().entrySet()
+            configurationFromDb.getProperties().entrySet()
                     .forEach(entry -> {
                         if (!optionKeys.contains(entry.getKey())) {
                             if (log.isDebugEnabled()) log.debug(String.format(" - Skipping unknown configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));

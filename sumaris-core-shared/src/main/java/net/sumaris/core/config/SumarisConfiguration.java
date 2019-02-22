@@ -178,7 +178,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             appBasedir = appBasedir.getParentFile();
         }
         if (log.isInfoEnabled()) {
-            log.info(String.format("Application basedir {%s}", appBasedir));
+            String appName = applicationConfig.getOption(SumarisConfigurationOption.APP_NAME.getKey());
+            log.info(String.format("Starting {%s} on basedir {%s}", appName, appBasedir));
         }
         applicationConfig.setOption(
                 SumarisConfigurationOption.BASEDIR.getKey(),
