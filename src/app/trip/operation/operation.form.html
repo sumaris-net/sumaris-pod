@@ -101,6 +101,9 @@
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
               <mat-latlong formControlName="longitude" type="longitude" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
+                <button type="button" mat-icon-button matSuffix (click)="fillPosition('startPosition')" *ngIf="enableGps">
+                  <mat-icon>gps_fixed</mat-icon>
+                </button>
               </mat-latlong>
             </ion-col>
           </ion-row>
@@ -130,6 +133,9 @@
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
               <mat-latlong formControlName="longitude" type="longitude" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
+                <button type="button" mat-icon-button matSuffix (click)="fillPosition('endPosition')" *ngIf="enableGps">
+                  <mat-icon>gps_fixed</mat-icon>
+                </button>
               </mat-latlong>
             </ion-col>
           </ion-row>

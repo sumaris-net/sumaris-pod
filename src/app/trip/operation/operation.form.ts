@@ -1,19 +1,22 @@
 import {Component, EventEmitter, Input, OnInit} from '@angular/core';
 import {OperationValidatorService} from "../services/operation.validator";
-import {Operation, PhysicalGear, Trip} from "../services/trip.model";
+import {Operation, PhysicalGear, toDateISOString, Trip} from "../services/trip.model";
 import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
 import {debounceTime, map, mergeMap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
-import {AppForm} from '../../core/core.module';
+import {AccountService, AppForm} from '../../core/core.module';
 import {
   EntityUtils,
   ReferentialRef,
   ReferentialRefService,
   referentialToString
 } from '../../referential/referential.module';
+import {UsageMode} from "../../core/services/model";
+import {FormGroup} from "@angular/forms";
+import * as moment from "moment";
 
 @Component({
     selector: 'form-operation',
@@ -29,14 +32,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     onFocusPhysicalGear: EventEmitter<any> = new EventEmitter<any>();
     onFocusMetier: EventEmitter<any> = new EventEmitter<any>();
 
+    @Input() usageMode: UsageMode;
     @Input() showComment: boolean = true;
     @Input() showError: boolean = true;
+
+    enableGps: boolean;
 
     constructor(
         protected dateAdapter: DateAdapter<Moment>,
         protected platform: Platform,
         protected physicalGearValidatorService: OperationValidatorService,
-        protected referentialRefService: ReferentialRefService
+        protected referentialRefService: ReferentialRefService,
+        protected accountService: AccountService
     ) {
 
         super(dateAdapter, platform, physicalGearValidatorService.getFormGroup());
@@ -44,6 +51,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
 
     ngOnInit() {
+        this.usageMode = this.usageMode || (this.accountService.isUsageMode('FIELD') ? 'FIELD' : 'DESK');
+        this.enableGps = (this.usageMode === 'FIELD') /* TODO: && platform has sensor */
+
         // Combo: physicalGears
         this.physicalGears =
             merge(
@@ -112,6 +122,35 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     physicalGearToString(physicalGear: PhysicalGear) {
         return physicalGear && physicalGear.id ? ("#" + physicalGear.rankOrder + " - " + referentialToString(physicalGear.gear)) : undefined;
     }
+
+    /**
+     * Get the position by GPS sensor
+     * @param fieldName
+     */
+    fillPosition(fieldName: string) {
+      const positionGroup = this.form.controls[fieldName];
+      if (positionGroup && positionGroup instanceof FormGroup) {
+        positionGroup.patchValue(this.getGPSPosition(), {emitEvent: false, onlySelf: true});
+      }
+      // Set also the end date time
+      if (fieldName == 'endPosition') {
+        this.form.controls['endDateTime'].setValue(moment(), {emitEvent: false, onlySelf: true});
+      }
+      this.form.markAsDirty({onlySelf: true});
+    }
+
+  /**
+   * Get the position by GPS sensor
+   * @param fieldName
+   */
+  getGPSPosition() : {latitude: number, longitude: number} {
+    // TODO : access GPS sensor
+    console.log("TODO: get GPS position use FAKE values !!");
+    return {
+      latitude: 50.11,
+      longitude: 0.11
+    };
+  }
 
     referentialToString = referentialToString;
 }

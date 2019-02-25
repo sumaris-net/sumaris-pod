@@ -27,7 +27,7 @@
         <ion-row no-padding>
           <ion-col padding>
             <!-- form -->
-            <form-operation (onSubmit)="save($event)" [showError]="false" #opeForm [debug]="debug">
+            <form-operation (onSubmit)="save($event)" [showError]="false" #opeForm [debug]="debug" [usageMode]="usageMode">
 
               <!-- Other features -->
               <ion-row ng-if="data">

@@ -11,7 +11,7 @@ import {SamplesTable} from '../sample/samples.table';
 import {SubSamplesTable} from '../sample/sub-samples.table';
 import {AlertController} from "@ionic/angular";
 import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes} from '../../core/services/model';
+import {AcquisitionLevelCodes, UsageMode} from '../../core/services/model';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {PmfmIds, QualitativeLabels} from '../../referential/referential.module';
 import {Subject} from 'rxjs';
@@ -43,6 +43,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   defaultBackHref: string;
   showBatchSamplingTables: boolean = false;
   showSurvivalTestTables: boolean = false;
+  usageMode: UsageMode;
 
   @ViewChild('opeForm') opeForm: OperationForm;
 
@@ -156,16 +157,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       if (!options || isNil(options.tripId)) throw new Error("Missing argument 'options.tripId'!");
 
       const trip = await this.tripService.load(options.tripId).first().toPromise();
+      this.usageMode = this.computeUsageMode(trip);
 
       const data = new Operation();
 
-      const isOnFieldMode = this.accountService.isUsageMode('FIELD')
-        && isNotNil(trip.departureDateTime)
-        /*TODO: && isNil(trip.returnDateTime)*/
-        &&  trip.departureDateTime.diff(moment(), "day") < 15;
       // If is on field mode, fill default values
-      if (isOnFieldMode) {
-        // Field default value
+      if (this.usageMode) {
         data.startDateTime = moment();
       }
 
@@ -193,6 +190,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       if (this.debug) console.debug("[page-operation] Operation loaded", data);
 
       const trip = await this.tripService.load(data.tripId).first().toPromise();
+      this.usageMode = this.computeUsageMode(trip);
+
       this.updateView(data, trip);
       this.loading = false;
       this.startListenChanges();
@@ -706,5 +705,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         }
       }
     }
+  }
+
+  protected computeUsageMode(trip: Trip): UsageMode {
+    return this.accountService.isUsageMode('FIELD')
+      && isNotNil(trip && trip.departureDateTime)
+      /*TODO: && isNil(trip.returnDateTime)*/
+      &&  trip.departureDateTime.diff(moment(), "day") < 15 ? 'FIELD' : 'DESK';
   }
 }
