@@ -54,7 +54,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     private _dataSubject = new BehaviorSubject<LoadResult<Sample>>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
-    loading = true;
+    loading = false;
     loadingPmfms = true;
     pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
     measurementValuesFormGroupConfig: { [key: string]: any };
@@ -74,11 +74,10 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
 
     @Input()
     set program(value: string) {
-        if (this._program === value) return; // Skip if same
+      if (this._program !== value && isNotNil(value)) {
         this._program = value;
-        if (!this.loading) {
-            this._onRefreshPmfms.emit('set program');
-        }
+        if (!this.loading) this._onRefreshPmfms.emit('set program');
+      }
     }
 
     get program(): string {
@@ -133,17 +132,15 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     async ngOnInit(): Promise<void> {
       super.ngOnInit();
 
-        this._onRefreshPmfms
-            .pipe(
-                startWith('ngOnInit')
-            )
-            .subscribe((event) => {
-                this.refreshPmfms(event)
-            });
+      this.registerSubscription(
+        this._onRefreshPmfms.asObservable()
+            .subscribe(() => this.refreshPmfms('ngOnInit'))
+      );
 
+      this.registerSubscription(
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
+            //.first()
             .subscribe(pmfms => {
                 this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
                 let displayedColumns = pmfms.map(p => p.pmfmId.toString());
@@ -157,7 +154,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
                 this.loading = false;
 
                 if (this.data) this.onRefresh.emit();
-            });
+            }));
 
       // Taxon name combo
       this.taxonNames = this.registerCellValueChanges('taxonName')
@@ -354,8 +351,10 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
           return undefined;
       }
 
-        this.loading = true;
-        this.loadingPmfms = true;
+      console.log("SAMPLE refreshPmfms");
+
+      this.loading = true;
+      this.loadingPmfms = true;
 
       // Load pmfms
       const pmfms = (await this.programService.loadProgramPmfms(

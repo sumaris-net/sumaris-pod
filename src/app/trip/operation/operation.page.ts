@@ -37,6 +37,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   title = new Subject<string>();
   trip: Trip;
+  programSubject = new Subject<string>();
   saving: boolean = false;
   rankOrder: number;
   selectedBatchSamplingTabIndex: number = 0;
@@ -163,6 +164,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       if (!options || isNil(options.tripId)) throw new Error("Missing argument 'options.tripId'!");
 
       const trip = await this.tripService.load(options.tripId).first().toPromise();
+      this.programSubject.next(trip && trip.program && trip.program.label);
       this.usageMode = this.computeUsageMode(trip);
 
       const data = new Operation();
@@ -196,6 +198,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       if (this.debug) console.debug("[page-operation] Operation loaded", data);
 
       const trip = await this.tripService.load(data.tripId).first().toPromise();
+      this.programSubject.next(trip.program && trip.program.label);
       this.usageMode = this.computeUsageMode(trip);
 
       this.updateView(data, trip);

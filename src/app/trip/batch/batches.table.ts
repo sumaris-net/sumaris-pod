@@ -149,7 +149,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
 
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
+            //.first()
             .subscribe(pmfms => {
                 this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
                 let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
@@ -185,9 +185,10 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
                 })
             );
 
-        this.taxonGroups.subscribe(items => {
-            this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined;
-        });
+        this.registerSubscription(
+          this.taxonGroups.subscribe(items => {
+              this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined;
+          }));
 
         // Taxon name combo
         this.taxonNames = this.registerCellValueChanges('taxonName')
@@ -207,9 +208,10 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
                 })
             );
 
+      this.registerSubscription(
         this.taxonNames.subscribe(items => {
             this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined;
-        });
+        }));
 
     }
 
