@@ -21,7 +21,9 @@ export class UserSettingsValidatorService implements ValidatorService {
       updateDate: [data && data.updateDate || null],
       locale: [data && data.locale || null, Validators.required],
       latLongFormat: [data && data.latLongFormat || null, Validators.required],
-      content: [data && data.content || null],
+      content: this.formBuilder.group({
+        usageMode: [data && data.content && data.content.usageMode || 'DESK', Validators.required],
+      }),
       nonce: [data && data.nonce || null]
     });
   }

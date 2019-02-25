@@ -369,14 +369,21 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                   }
                   else {
                     console.debug("[operation-page] Disable batch sampling tables");
-                      this.showSurvivalTestTables=false;
-                      this.showBatchSamplingTables=false;
+                    this.showSurvivalTestTables=false;
+                    this.showBatchSamplingTables=false;
                   }
                 })
             );
           }
 
-          // Abnormal trip type => enable/disable some tables
+          // Default
+          if (isNil(samplingTypeControl) && isNil(isSamplingControl)) {
+            console.debug("[operation-page] Enable batch sampling tables");
+            this.showSurvivalTestTables = false;
+            this.showBatchSamplingTables = true;
+          }
+
+          // Abnormal trip => set comment as required
           const tripProgressControl = formGroup && formGroup.controls[PmfmIds.TRIP_PROGRESS];
           if (isNotNil(samplingTypeControl)) {
             this.registerSubscription(

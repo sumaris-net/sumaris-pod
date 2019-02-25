@@ -58,6 +58,23 @@
         <input matInput [placeholder]=" 'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate" formControlName="searchText">
       </mat-form-field>
 
+      <!-- level -->
+      <mat-form-field>
+        <mat-select formControlName="levelId" [placeholder]=" 'REFERENTIAL.LEVEL'|translate" >
+          <mat-option *ngFor="let level of levels | async" [value]="level.id">{{level.label}} - {{level.name}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- status -->
+      <mat-form-field>
+        <mat-select formControlName="statusId" [placeholder]=" 'REFERENTIAL.STATUS'|translate" >
+          <mat-option *ngFor="let item of statusList" [value]="item.id">
+            <ion-icon [name]="item.icon"></ion-icon>
+            {{ item.label |translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
       <button mat-raised-button [color]="filterForm.dirty ? 'primary' : undefined" (click)="onRefresh.emit(true)">{{'COMMON.BTN_SEARCH'|translate}}</button>
 
     </form>

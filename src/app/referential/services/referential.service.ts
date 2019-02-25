@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {Referential} from "./model";
+import {isNil, isNotNil, Referential, StatusIds} from "./model";
 import {DataService, LoadResult} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {Apollo} from "apollo-angular";
@@ -18,6 +18,7 @@ export declare class ReferentialFilter {
   levelId?: number;
   searchText?: string;
   searchAttribute?: string;
+  statusId?: number;
 }
 const LoadAllQuery: any = gql`
   query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -119,7 +120,8 @@ export class ReferentialService extends BaseDataService implements DataService<R
         name: filter.name,
         searchText: filter.searchText,
         searchAttribute: filter.searchAttribute,
-        levelId: filter.levelId
+        levelId: filter.levelId,
+        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : null
       }
     };
 

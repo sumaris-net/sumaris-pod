@@ -148,7 +148,10 @@
       "TITLE": "Préférences",
       "DESCRIPTION": "Voici les réglages possibles pour l'usage de l'application :",
       "LOCALE": "Langue",
-      "LAT_LONG_FORMAT": "Format latitude/longitude"
+      "LAT_LONG_FORMAT": "Format latitude/longitude",
+      "USAGE_MODE": "Mode de fonctionnement",
+      "USAGE_MODE_FIELD": "Saisie sur le terrain",
+      "USAGE_MODE_DESK": "Saisie au bureau (a posteriori)"
     },
     "ERROR": {
       "SUBSCRIBE_ACCOUNT_ERROR": "Echec de l'abonnement distant au compte utilisateur."

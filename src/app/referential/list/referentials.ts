@@ -1,19 +1,18 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Observable, Subject } from "rxjs";
-import { map } from "rxjs/operators";
-import { ValidatorService } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AppFormUtils } from "../../core/core.module";
-import { ReferentialValidatorService } from "../services/referential.validator";
-import { ReferentialService, ReferentialFilter } from "../services/referential.service";
-import { Referential, StatusIds, ReferentialRef } from "../services/model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { VesselService } from '../services/vessel-service';
-import { AccountService } from '../../core/services/account.service';
-import { Location } from '@angular/common';
-import { FormGroup, FormBuilder } from "@angular/forms";
-import { TranslateService } from "@ngx-translate/core";
-import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../core/table/table.class";
+import {Component, OnDestroy, OnInit} from "@angular/core";
+import {Observable} from "rxjs";
+import {map} from "rxjs/operators";
+import {ValidatorService} from "angular4-material-table";
+import {AppTable, AppTableDataSource, isNotNil} from "../../core/core.module";
+import {ReferentialValidatorService} from "../services/referential.validator";
+import {ReferentialFilter, ReferentialService} from "../services/referential.service";
+import {Referential, ReferentialRef, StatusIds} from "../services/model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {AccountService} from '../../core/services/account.service';
+import {Location} from '@angular/common';
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {TranslateService} from "@ngx-translate/core";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 
 
 const DEFAULT_ENTITY_NAME = "Location";
@@ -92,7 +91,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     this.filterForm = formBuilder.group({
       'entityName': [''],
-      'searchText': [null]
+      'searchText': [null],
+      'levelId': [null],
+      'statusId': [null]
     });
 
     this.route.params.subscribe(res => {
@@ -104,8 +105,14 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         });
       }
       else {
-        //this.filterForm.controls['entityName'].setValue(entityName);
-        this.filterForm.setValue({ entityName: entityName, searchText: res["q"] || null });
+        this.route.queryParams.first().subscribe(queryParams => {
+          this.filterForm.setValue({
+            entityName: entityName,
+            searchText: queryParams["q"] || null,
+            levelId: isNotNil(queryParams["level"]) ? parseInt(queryParams["level"]) : null,
+            statusId: isNotNil(queryParams["status"]) ? parseInt(queryParams["status"]) : null
+          });
+        });
       }
     });
 

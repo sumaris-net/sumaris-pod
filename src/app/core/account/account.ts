@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AccountService, AccountFieldDef } from '../services/account.service';
-import { Account, StatusIds, referentialToString } from '../services/model';
+import {Account, StatusIds, referentialToString, UsageMode} from '../services/model';
 import { UserSettingsValidatorService } from '../services/user-settings.validator';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { AccountValidatorService } from '../services/account.validator';
@@ -38,6 +38,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   };
   locales: String[] = [];
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
+  usageModes: UsageMode[] = ['FIELD', 'DESK'];
   saving: boolean = false;
 
   constructor(

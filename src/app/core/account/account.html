@@ -165,13 +165,28 @@
               <mat-form-field>
                 <mat-select [placeholder]="'ACCOUNT.SETTINGS.LAT_LONG_FORMAT'|translate" formControlName="latLongFormat"
                   required>
-                  <mat-option *ngFor="let latLongFormat of latLongFormats" [value]="latLongFormat">
-                    {{'COMMON.'+latLongFormat+'_PLACEHOLDER'|translate}}
+                  <mat-option *ngFor="let item of latLongFormats" [value]="item">
+                    {{'COMMON.'+item+'_PLACEHOLDER'|translate}}
                   </mat-option>
                 </mat-select>
                 <mat-error *ngIf="settingsForm.controls.latLongFormat.hasError('required') && settingsForm.controls.latLongFormat.dirty"
                   translate>ERROR.FIELD_REQUIRED</mat-error>
               </mat-form-field>
+
+              <div formGroupName="content">
+
+                <!-- Usage mode -->
+                <mat-form-field>
+                  <mat-select [placeholder]="'ACCOUNT.SETTINGS.USAGE_MODE'|translate" formControlName="usageMode"
+                              required>
+                    <mat-option *ngFor="let item of usageModes" [value]="item">
+                      {{'ACCOUNT.SETTINGS.USAGE_MODE_'+item|translate}}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="settingsForm.controls.content.controls.usageMode.hasError('required') && settingsForm.controls.content.controls.usageMode.dirty"
+                             translate>ERROR.FIELD_REQUIRED</mat-error>
+                </mat-form-field>
+              </div>
             </ion-col>
 
             <!-- right margin -->

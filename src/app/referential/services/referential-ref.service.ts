@@ -2,8 +2,8 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {DataService, LoadResult} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
+import {DataService, isNotNil, LoadResult} from "../../shared/shared.module";
+import {BaseDataService, StatusIds} from "../../core/core.module";
 import {Apollo} from "apollo-angular";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -65,7 +65,8 @@ export class ReferentialRefService extends BaseDataService implements DataServic
         name: filter.name,
         searchText: filter.searchText,
         searchAttribute: filter.searchAttribute,
-        levelId: filter.levelId
+        levelId: filter.levelId,
+        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : [StatusIds.ENABLE]
       }
     };
 

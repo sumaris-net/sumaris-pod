@@ -1,5 +1,5 @@
 import {Moment} from "moment/moment";
-import {fromDateISOString, isNil, toDateISOString} from "../../shared/shared.module";
+import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../shared/shared.module";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -7,7 +7,8 @@ export const StatusIds = {
   DISABLE: 0,
   ENABLE: 1,
   TEMPORARY: 2,
-  DELETED: 3
+  DELETED: 3,
+  ALL: 99
 }
 
 export const LocationLevelIds = {
@@ -26,6 +27,8 @@ export const AcquisitionLevelCodes = {
   INDIVIDUAL_MONITORING: 'INDIVIDUAL_MONITORING',
   INDIVIDUAL_RELEASE: 'INDIVIDUAL_RELEASE'
 }
+
+export type UsageMode = 'DESK' | 'FIELD';
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';
 
@@ -389,8 +392,8 @@ export class Department extends Referential implements Cloneable<Department>{
 export class UserSettings extends Entity<UserSettings> implements Cloneable<UserSettings> {
   locale: string;
   latLongFormat: string;
-
-  content: string;
+  usageMode: string;
+  content: {usageMode?: UsageMode};
   nonce: string;
 
   clone(): UserSettings {
@@ -402,6 +405,7 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
     const res: any = super.asObject();
     delete res.dirty;
     delete res.__typename;
+    res.content = this.content && JSON.stringify(res.content) || undefined;
     return res;
   }
 
@@ -409,7 +413,12 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
     super.fromObject(source);
     this.locale = source.locale;
     this.latLongFormat = source.latLongFormat;
-    this.content = source.content;
+    if (isNil(source.content) || typeof source.content === 'object') {
+      this.content = source.content || {usageMode: 'DESK'};
+    }
+    else {
+      this.content = source.content && JSON.parse(source.content) || {usageMode: 'DESK'};
+    }
     this.nonce = source.nonce;
     return this;
   }

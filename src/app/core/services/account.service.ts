@@ -6,7 +6,7 @@ import {
   hasUpperOrEqualsProfile,
   Referential,
   ReferentialRef,
-  StatusIds,
+  StatusIds, UsageMode,
   UserProfileLabel,
   UserSettings
 } from "./model";
@@ -17,7 +17,7 @@ import {Apollo} from "apollo-angular";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {DataService, toDateISOString,} from "../../shared/shared.module";
+import {DataService, isNotNil, toDateISOString,} from "../../shared/shared.module";
 import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
@@ -291,6 +291,15 @@ export class AccountService extends BaseDataService {
 
   public isUser(): boolean {
     return this.hasProfileAndIsEnable('USER');
+  }
+
+  public isUsageMode(mode: UsageMode): boolean {
+    if (!this.isLogin()) return false;
+    return (this.data.account
+      && this.data.account.settings
+      && isNotNil(this.data.account.settings.content) ?
+      (this.data.account.settings.content.usageMode === mode) :
+      (mode === 'DESK')); //  Default mode
   }
 
   public isOnlyGuest(): boolean {
@@ -831,10 +840,17 @@ export class AccountService extends BaseDataService {
     return subscription;
   }
 
-  public getPageSettings(pageId: string, propertyName?: string): string[] {
-    const key = pageId.replace(/[/]/g, '__');
-    return this.data.localSettings && this.data.localSettings.pages
-      && this.data.localSettings.pages[key] && (propertyName && this.data.localSettings.pages[key][propertyName] || this.data.localSettings.pages[key]);
+  public getLocalSettings(key: string, defaultValue?: string): string {
+    return this.data.localSettings && isNotNil(this.data.localSettings[key]) && this.data.localSettings[key] || defaultValue;
+  }
+
+  public async saveLocalSettings(key: string, value: any) {
+    this.data.localSettings = this.data.localSettings || {};
+
+    this.data.localSettings[key] = value;
+
+    // Update local settings
+    await this.storeLocalSettings();
   }
 
   public async savePageSetting(pageId: string, value: any, propertyName?: string) {
