@@ -173,7 +173,7 @@
                   translate>ERROR.FIELD_REQUIRED</mat-error>
               </mat-form-field>
 
-              <div formGroupName="content">
+              <form formGroupName="content" #contentForm>
 
                 <!-- Usage mode -->
                 <mat-form-field>
@@ -183,10 +183,10 @@
                       {{'ACCOUNT.SETTINGS.USAGE_MODE_'+item|translate}}
                     </mat-option>
                   </mat-select>
-                  <mat-error *ngIf="settingsForm.controls.content.controls.usageMode.hasError('required') && settingsForm.controls.content.controls.usageMode.dirty"
+                  <mat-error *ngIf="contentForm.controls['usageMode'].hasError('required') && contentForm.controls['usageMode'].dirty"
                              translate>ERROR.FIELD_REQUIRED</mat-error>
                 </mat-form-field>
-              </div>
+              </form>
             </ion-col>
 
             <!-- right margin -->
