@@ -100,6 +100,10 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     this.onSubmit.emit(event);
   }
 
+  public setForm(form: FormGroup) {
+    this.form = form;
+  }
+
   public setValue(data: T) {
     if (!data) return;
 

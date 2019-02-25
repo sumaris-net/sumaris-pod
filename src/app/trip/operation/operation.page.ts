@@ -5,7 +5,7 @@ import {OperationForm} from './operation.form';
 import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppFormUtils, AppTabPage} from '../../core/core.module';
+import {AccountService, AppFormUtils, AppTabPage} from '../../core/core.module';
 import {CatchForm} from '../catch/catch.form';
 import {SamplesTable} from '../sample/samples.table';
 import {SubSamplesTable} from '../sample/sub-samples.table';
@@ -22,7 +22,7 @@ import {MatTabChangeEvent} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, map, startWith} from "rxjs/operators";
 import {Validators} from "@angular/forms";
 import {Moment} from "moment";
-
+import * as moment from "moment";
 
 @Component({
   selector: 'page-operation',
@@ -67,6 +67,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     alterCtrl: AlertController,
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
+    protected accountService: AccountService,
     protected operationService: OperationService,
     protected tripService: TripService
   ) {
@@ -148,14 +149,42 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   async load(id?: number, options?: { tripId: number }) {
     this.error = null;
 
-    // Existing operation
-    if (id) {
+    // New operation
+    if (isNil(id)) {
+      if (this.debug) console.debug("[page-operation] Creating new operation...");
 
-      if (this.debug) console.debug("[page-operation] Loading operation...");
+      if (!options || isNil(options.tripId)) throw new Error("Missing argument 'options.tripId'!");
+
+      const trip = await this.tripService.load(options.tripId).first().toPromise();
+
+      const data = new Operation();
+
+      const isOnFieldMode = this.accountService.isUsageMode('FIELD')
+        && isNotNil(trip.departureDateTime)
+        /*TODO: && isNil(trip.returnDateTime)*/
+        &&  trip.departureDateTime.diff(moment(), "day") < 15;
+      // If is on field mode, fill default values
+      if (isOnFieldMode) {
+        // Field default value
+        data.startDateTime = moment();
+      }
+
+      // Use the default gear, if only one
+      if (trip.gears.length == 1) {
+        data.physicalGear = Object.assign({}, trip.gears[0]);
+      }
+
+      this.updateView(data, trip);
+      this.loading = false;
+    }
+
+    // Load existing operation
+    else {
+      if (this.debug) console.debug(`[page-operation] Loading operation with id {${id}}...`);
 
       const data = await this.operationService.load(id).first().toPromise();
       if (!data || !data.tripId) {
-        console.error("Unable to load operation with id:" + id);
+        console.error(`[page-operation] Unable to load operation with id {${id}}`);
         this.error = "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR";
         this.loading = false;
         return;
@@ -167,25 +196,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.updateView(data, trip);
       this.loading = false;
       this.startListenChanges();
-    }
-
-    // New operation
-    else if (options && options.tripId) {
-      if (this.debug) console.debug("[page-operation] Creating new operation...");
-      const trip = await this.tripService.load(options.tripId).first().toPromise();
-
-      const data = new Operation();
-
-      // Use the default gear, if only one
-      if (trip.gears.length == 1) {
-        data.physicalGear = Object.assign({}, trip.gears[0]);
-      }
-
-      this.updateView(data, trip);
-      this.loading = false;
-    }
-    else {
-      throw new Error("Missing argument 'id' or 'options.tripId'!");
     }
   }
 

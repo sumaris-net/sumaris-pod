@@ -4,11 +4,11 @@ import {AlertController} from "@ionic/angular";
 
 import {TripService} from './services/trip.service';
 import {TripForm} from './trip.form';
-import {Trip} from './services/trip.model';
+import {ReferentialRef, Trip} from './services/trip.model';
 import {SaleForm} from './sale/sale.form';
 import {OperationTable} from './operation/operations.table';
 import {MeasurementsForm} from './measurement/measurements.form.component';
-import {AppFormUtils, AppTabPage} from '../core/core.module';
+import {AccountService, AppFormUtils, AppTabPage} from '../core/core.module';
 import {PhysicalGearTable} from './physicalgear/physicalgears.table';
 import {TranslateService} from '@ngx-translate/core';
 import {environment} from '../../environments/environment';
@@ -16,6 +16,7 @@ import {Subject} from 'rxjs';
 import {DateFormatPipe, isNil, isNotNil} from '../shared/shared.module';
 import {EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
 import {Moment} from "moment";
+import * as moment from "moment";
 
 @Component({
   selector: 'page-trip',
@@ -50,6 +51,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     alertCtrl: AlertController,
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
+    protected accountService: AccountService,
     protected tripService: TripService
   ) {
     super(route, router, alertCtrl, translate);
@@ -80,20 +82,26 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   async load(id?: number, options?: any) {
     this.error = null;
-    // new
-    if (!id) {
+
+    // New trip
+    if (isNil(id)) {
 
       // Create using default values
-      const data = Trip.fromObject({
-        program: { label: environment.defaultProgram }
-      });
+      const data = new Trip();
+
+      const isOnFieldMode = this.accountService.isUsageMode('FIELD');
+      // If is on field mode, fill default values
+      if (isOnFieldMode) {
+        data.departureDateTime = moment();
+        data.program = ReferentialRef.fromObject({label: environment.defaultProgram});
+      }
 
       this.updateView(data, true);
       this.loading = false;
       this.showOperationTable = false;
     }
 
-    // Load
+    // Load existing trip
     else {
       const data = await this.tripService.load(id).first().toPromise();
       this.updateView(data, true);

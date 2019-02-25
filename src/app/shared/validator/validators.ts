@@ -1,7 +1,7 @@
 import {FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
-import {fromDateISOString, isNotNil} from "../functions";
+import {fromDateISOString, isNil, isNotNil} from "../functions";
 
 export class SharedValidators {
 
@@ -66,5 +66,18 @@ export class SharedValidators {
       return null;
     };
   }
+
+  static requiredIf(fieldName: string, anotherFieldToCheck: string): ValidatorFn {
+    return (group: FormGroup): { [key: string]: boolean } | null => {
+      const control = group.get(fieldName);
+      if (isNil(control.value) && isNotNil(group.get(anotherFieldToCheck).value)) {
+        const error = { required: true};
+        control.setErrors(error);
+        return error;
+      }
+      return null;
+    };
+  }
+
 
 }

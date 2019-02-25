@@ -37,7 +37,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
   }
 
   get valid(): any {
-    return this.required ? this.form.valid : (this.form.valid || this.empty);
+    return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
   }
 
   constructor(
@@ -51,6 +51,11 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
   }
 
   ngOnInit() {
+    super.ngOnInit();
+
+    // Set if required or not
+    this.saleValidatorService.setRequired(this.form, this.required);
+
     // Combo: vessels (if need)
     if (this.showVessel) {
       this.vessels = this.form.controls['vesselFeatures']
