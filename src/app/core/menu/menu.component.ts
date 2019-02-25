@@ -1,17 +1,16 @@
-import {Component, OnInit, Input, ViewChild} from '@angular/core';
-import { MenuController, ModalController } from "@ionic/angular";
+import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {MenuController, ModalController} from "@ionic/angular";
 
-import { Router } from "@angular/router";
-import { Account, UserProfileLabel } from "../services/model";
-import { AccountService } from "../services/account.service";
-import { AboutModal } from '../about/modal-about';
+import {Router} from "@angular/router";
+import {Account, UserProfileLabel} from "../services/model";
+import {AccountService} from "../services/account.service";
+import {AboutModal} from '../about/modal-about';
 
-import { environment } from '../../../environments/environment';
-import { HomePage } from '../home/home';
-import { PodConfigService } from '../services/podconfig.service';
+import {environment} from '../../../environments/environment';
+import {HomePage} from '../home/home';
 
-import { Subject } from 'rxjs';
-import { fadeInAnimation } from '../../shared/material/material.animations';
+import {Subject} from 'rxjs';
+import {fadeInAnimation} from '../../shared/material/material.animations';
 import {Components} from "@ionic/core";
 import IonSplitPane = Components.IonSplitPane;
 
