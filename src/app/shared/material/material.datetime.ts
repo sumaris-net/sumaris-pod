@@ -86,7 +86,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         @Optional() private formGroupDir: FormGroupDirective
     ) {
         this.touchUi = platform.is('tablet');
-        this.mobile = platform.is('mobile');
+        this.mobile = !this.touchUi && platform.is('mobile');
         console.log(`touchUI: ${this.touchUi} - mobile: ${this.mobile}`);
         this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
     }

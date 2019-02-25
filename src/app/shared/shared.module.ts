@@ -25,7 +25,7 @@ import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {DataService, LoadResult} from "./services/data-service.class";
 import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toDateISOString} from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
-
+import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 
 export {
   DataService, LoadResult,
@@ -43,7 +43,8 @@ export {
         ReactiveFormsModule,
         TextMaskModule,
         IonicModule,
-        TranslateModule.forChild()
+        TranslateModule.forChild(),
+        NgxMaterialTimepickerModule.forRoot()
     ],
     declarations: [
         AutofocusDirective,

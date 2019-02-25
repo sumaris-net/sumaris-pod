@@ -1,17 +1,34 @@
-import { NgModule } from "@angular/core";
-import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
+import {NgModule} from "@angular/core";
+import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {
-  MatPaginatorModule, MatTableModule, MatSortModule, MatFormFieldModule, MatInputModule,
-  MatAutocompleteModule, MatCheckboxModule, MatExpansionModule, MatToolbarModule, MatDialogModule, MatIconModule,
-  MatButtonModule, MatMenuModule, MatSelectModule, MatCardModule, MatTabsModule, MatListModule, MatStepperModule,
-  MatButtonToggleModule, MatProgressSpinnerModule, MatProgressBarModule, MatRadioModule
+  MatAutocompleteModule,
+  MatButtonModule,
+  MatButtonToggleModule,
+  MatCardModule,
+  MatCheckboxModule,
+  MatDialogModule,
+  MatExpansionModule,
+  MatFormFieldModule,
+  MatIconModule,
+  MatInputModule,
+  MatListModule,
+  MatMenuModule,
+  MatPaginatorModule,
+  MatProgressBarModule,
+  MatProgressSpinnerModule,
+  MatRadioModule,
+  MatSelectModule,
+  MatSortModule,
+  MatStepperModule,
+  MatTableModule,
+  MatTabsModule,
+  MatToolbarModule
 } from "@angular/material";
-import { CdkTableModule } from "@angular/cdk/table";
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import {CdkTableModule} from "@angular/cdk/table";
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatMomentDateModule} from '@angular/material-moment-adapter';
 
-import { fadeInAnimation, slideInOutAnimation } from './material.animations';
-
+import {fadeInAnimation, slideInOutAnimation} from './material.animations';
 
 const modules: any[] = [
   MatTableModule,
