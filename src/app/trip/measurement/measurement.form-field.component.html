@@ -9,7 +9,7 @@
     <mat-error *ngIf="formControl.errors?.min">
       {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate:{min: pmfm.minValue} }}</mat-error>
     <mat-error *ngIf="formControl.errors?.max">
-      {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAN') | translate:{max: pmfm.maxValue} }}</mat-error>
+      {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:{max: pmfm.maxValue} }}</mat-error>
     <mat-error *ngIf="formControl.errors?.pattern">
       {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
     <mat-error *ngIf="formControl.errors?.integer">
@@ -25,7 +25,7 @@
     <mat-error *ngIf="formControl.errors?.min">
       {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:{min: pmfm.minValue} }}</mat-error>
     <mat-error *ngIf="formControl.errors?.max">
-      {{ (compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAN')| translate:{max: pmfm.maxValue} }}</mat-error>
+      {{ (compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX')| translate:{max: pmfm.maxValue} }}</mat-error>
     <mat-error *ngIf="formControl.errors?.pattern">
       {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max:
       pmfm.maximumNumberDecimals} }}</mat-error>
