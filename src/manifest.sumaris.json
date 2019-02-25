@@ -1,0 +1,18 @@
+{
+  "name": "SUMARiS",
+  "short_name": "SUMARiS",
+  "manifest_version": 1,
+  "version": "0.9.7",
+  "default_locale": "en",
+  "description": "Shared database for management halieutic stocks.",
+  "icons": [{
+    "src": "assets/img/logo.png",
+    "sizes": "183x120",
+    "type": "image/png"
+  }],
+  "background_color": "#4e8ef7",
+  "theme_color": "#4e8ef7",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}

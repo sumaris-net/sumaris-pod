@@ -45,18 +45,12 @@ export class HomePage implements OnInit, OnDestroy {
       this.onLogin(this.accountService.account);
     }
 
-    this.configurationService.getConfs()
-      .then(config => {
-        this.onConfigReady(config);
-        this.loading = false;
-    });
-
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
     this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
   };
 
-  ngOnInit() {
+  async ngOnInit() {
     // Workaround needed on Firefox Browser
     const pageElements = document.getElementsByTagName('page-home');
     if (pageElements && pageElements.length == 1) {
@@ -66,6 +60,10 @@ export class HomePage implements OnInit, OnDestroy {
         pageElement.classList.remove('ion-page-invisible');
       }
     }
+
+    const config = await this.configurationService.getConfs();
+    this.onConfigReady(config);
+    this.loading = false;
   }
 
   ngOnDestroy() {

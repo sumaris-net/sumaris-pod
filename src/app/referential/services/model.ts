@@ -37,7 +37,8 @@ export const PmfmIds = {
   IS_DEAD: 94,
   DISCARD_REASON: 95,
   DEATH_TIME: 101,
-  VERTEBRAL_COLUMN_ANALYSIS: 102
+  VERTEBRAL_COLUMN_ANALYSIS: 102,
+  IS_SAMPLING: 121
 }
 
 export const QualitativeLabels = {

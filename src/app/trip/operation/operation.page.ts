@@ -308,7 +308,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         .subscribe(() => {
           const formGroup = this.measurementsForm.form;
 
-          // Sampling type => enable/disable some tables
+          // Sampling type (SUMARiS) => enable/disable some tables
           const samplingTypeControl = formGroup && formGroup.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
           if (isNotNil(samplingTypeControl)) {
             this.registerSubscription(
@@ -345,7 +345,38 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
             );
           }
 
-          // Anormal trip type => enable/disable some tables
+          // Is Sampling ? (ADAP) => enable/disable some tables
+          const isSamplingControl = formGroup && formGroup.controls[PmfmIds.IS_SAMPLING];
+          if (isNotNil(isSamplingControl)) {
+            this.registerSubscription(
+              isSamplingControl.valueChanges
+                .debounceTime(400)
+                .pipe(
+                  startWith(isSamplingControl.value),
+                  filter(value => isNotNil(value)),
+                  distinctUntilChanged()
+                )
+                .subscribe(isSampling => {
+                  // Force first tab index
+                  this.selectedBatchSamplingTabIndex=0;
+                  this.selectedSurvivalTestTabIndex=0;
+                  console.debug("[operation-page] Detected PMFM changes value for IS_SAMPLING: ", isSampling);
+
+                  if (isSampling) {
+                    console.debug("[operation-page] Enable batch sampling tables");
+                    this.showSurvivalTestTables = false;
+                    this.showBatchSamplingTables = true;
+                  }
+                  else {
+                    console.debug("[operation-page] Disable batch sampling tables");
+                      this.showSurvivalTestTables=false;
+                      this.showBatchSamplingTables=false;
+                  }
+                })
+            );
+          }
+
+          // Abnormal trip type => enable/disable some tables
           const tripProgressControl = formGroup && formGroup.controls[PmfmIds.TRIP_PROGRESS];
           if (isNotNil(samplingTypeControl)) {
             this.registerSubscription(
