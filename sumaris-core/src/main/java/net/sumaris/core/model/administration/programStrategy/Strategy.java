@@ -87,4 +87,8 @@ public class Strategy implements IItemReferentialEntity {
             inverseJoinColumns = {
                     @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
     private Set<Gear> gears = Sets.newHashSet();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.PROPERTY_STRATEGY)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<ReferenceTaxonStrategy> referenceTaxons = new ArrayList<>();
 }
