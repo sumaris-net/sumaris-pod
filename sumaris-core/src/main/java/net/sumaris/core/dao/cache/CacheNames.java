@@ -35,6 +35,8 @@ public interface CacheNames {
     String PMFM_BY_ID= "net.sumaris.core.dao.referential.pmfmByIdCache";
     String PMFM_BY_PROGRAM_ID= "net.sumaris.core.dao.administration.programStrategy.pmfmByProgramIdCache";
 
+    String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";
+
     String QUERY_CACHE_NAME = "org.hibernate.cache.spi.QueryResultsRegion";
     String TIMESTAMPS_REGION_CACHE_NAME = "org.hibernate.cache.spi.TimestampsRegion";
 }

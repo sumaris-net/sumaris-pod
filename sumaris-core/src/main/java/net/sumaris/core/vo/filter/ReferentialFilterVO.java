@@ -32,4 +32,5 @@ public class ReferentialFilterVO {
     private Integer levelId;
     private String searchText;
     private String searchAttribute;
+    private Integer[] statusIds;
 }

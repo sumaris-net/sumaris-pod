@@ -26,6 +26,9 @@
 
   <include relativeToChangelogFile="true" file="${dbms}/sumaris/db-changelog-0.9.5.xml"/>
 
+
+  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.7.xml"/>
+
   <!-- Refresh schema objects (functions, procedures, triggers, ...)
   <include relativeToChangelogFile="true" file="${dbms}/db-changelog-refresh.xml"/>-->
   

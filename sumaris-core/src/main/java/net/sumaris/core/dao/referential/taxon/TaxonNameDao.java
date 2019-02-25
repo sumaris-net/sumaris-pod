@@ -22,7 +22,9 @@ package net.sumaris.core.dao.referential.taxon;
  * #L%
  */
 
+import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -31,6 +33,7 @@ public interface TaxonNameDao {
 
     List<TaxonNameVO> getAll(boolean withSynonyms);
 
+    @Cacheable(cacheNames = CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, unless = "#result == null")
     TaxonNameVO getTaxonNameReferent(Integer referenceTaxonId);
 
 }

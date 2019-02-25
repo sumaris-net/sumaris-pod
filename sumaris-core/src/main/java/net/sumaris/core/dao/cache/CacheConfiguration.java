@@ -50,7 +50,8 @@ public class CacheConfiguration {
     protected CacheManager cacheManager;
 
     @PostConstruct
-    public void afterContruct() {
+    protected void afterPropertiesSet() {
+        log.info("Initializing referential caches...");
         if (this.cacheManager == null)
             this.cacheManager = ehcache();
     }
@@ -116,6 +117,11 @@ public class CacheConfiguration {
     @Bean
     public EhCacheFactoryBean pmfmByIdCache() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_BY_ID, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean taxonNameByTaxonReferenceId() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, 600);
     }
 
     /* protected */

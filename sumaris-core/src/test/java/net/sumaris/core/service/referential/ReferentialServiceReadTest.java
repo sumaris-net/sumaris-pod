@@ -22,10 +22,12 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
+import net.sumaris.core.model.referential.StatusId;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +44,21 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         ReferentialFilterVO filter = new ReferentialFilterVO();
 
         filter.setSearchText("XB");
+        filter.setStatusIds(new Integer[]{StatusId.ENABLE.getId()});
 
         List<ReferentialVO> results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
         Assert.assertNotNull(results);
         Assert.assertTrue(results.size() > 0);
     }
 
+    @Test
+    public void findByFilterWithStatus() {
+        ReferentialFilterVO filter = new ReferentialFilterVO();
+
+        filter.setSearchText("XB");
+        filter.setStatusIds(new Integer[]{StatusId.DISABLE.getId()});
+
+        List<ReferentialVO> results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
+        Assert.assertTrue(CollectionUtils.size(results) == 0);
+    }
 }

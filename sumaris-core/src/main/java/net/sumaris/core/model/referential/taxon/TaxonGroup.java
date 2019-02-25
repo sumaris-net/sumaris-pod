@@ -64,7 +64,7 @@ public class TaxonGroup implements IItemReferentialEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(nullable = false, length = LENGTH_LABEL)
+    @Column(length = LENGTH_LABEL)
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

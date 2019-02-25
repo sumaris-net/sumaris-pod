@@ -31,6 +31,7 @@ import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevelId;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -88,7 +89,13 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
 
         TypedQuery<TaxonName> q = getEntityManager().createQuery(query)
                 .setParameter(idParam, referenceTaxonId);
-        return toTaxonNameVO(q.getSingleResult());
+        List<TaxonName> referenceTaxons = q.getResultList();
+        if (CollectionUtils.isEmpty(referenceTaxons)) return null;
+        if (referenceTaxons.size() > 1)  {
+            log.warn(String.format("ReferenceTaxon {id=%} has more than one TaxonNames, with IS_REFERENT=1. Will use the first found.", referenceTaxonId));
+        }
+
+        return toTaxonNameVO(referenceTaxons.get(0));
     }
 
     /* -- protected methods -- */

@@ -130,6 +130,7 @@ public class Application {
 	@Bean
 	public static SumarisConfiguration sumarisConfiguration() {
 
+
 		SumarisConfiguration config = SumarisConfiguration.getInstance();
 		if (config == null) {
 			SumarisConfiguration.initDefault(configFile);

@@ -150,7 +150,7 @@ public class ConfigurationGraphQLService {
         try {
             return objectMapper.readValue(value, String[].class);
         } catch (IOException e) {
-            log.warn(String.format("Unable to deserialize array value for option {%s}: %s", propertyName, value), e);
+            log.warn(String.format("Unable to deserialize array value for option {%s}: %s", propertyName, value));
             return value.split(",");
         }
     }
