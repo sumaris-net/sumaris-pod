@@ -32,6 +32,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   };
   additionalFields: AccountFieldDef[];
   settingsForm: FormGroup;
+  settingsContentForm: FormGroup;
   localeMap = {
     'fr': 'Français',
     'en': 'English'
@@ -54,7 +55,9 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
 
     // Add settings fo form 
     this.settingsForm = settingsValidatorService.getFormGroup(accountService.account && accountService.account.settings);
+    this.settingsContentForm = (this.settingsForm.controls['content'] as FormGroup);
     this.form.addControl('settings', this.settingsForm);
+
 
     // Store additional fields
     this.additionalFields = accountService.additionalAccountFields;
