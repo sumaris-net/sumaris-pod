@@ -19,7 +19,7 @@
       <ion-col size="12" size-md="4" size-lg="3">
         <mat-form-field>
           <input matInput [placeholder]="'TRIP.OPERATION.LIST.PHYSICAL_GEAR'|translate" [matAutocomplete]="autoPhysicalGear"
-            (focus)="onFocusPhysicalGear.emit()" formControlName="physicalGear">
+            (focus)="onFocusPhysicalGear.emit()" formControlName="physicalGear" required>
           <mat-error *ngIf="form.controls['physicalGear']?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['physicalGear']?.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
@@ -56,9 +56,9 @@
       <ion-col size="12" size-md="6">
         <mat-form-field>
           <input matInput [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate" [matAutocomplete]="autoMetier"
-            formControlName="metier" (focus)="onFocusMetier.emit()">
-          <mat-error *ngIf="form.controls['metier']?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls['metier']?.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+            formControlName="metier" (focus)="onFocusMetier.emit()" required>
+          <mat-error *ngIf="form.controls['metier'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['metier'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Metier combo -->

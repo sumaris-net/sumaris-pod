@@ -24,7 +24,7 @@ export class TripValidatorService implements ValidatorService {
 
     return this.formBuilder.group({
       'id': [''],
-      'program': ['', Validators.required],
+      'program': ['', Validators.compose([Validators.required, SharedValidators.entity])],
       'updateDate': [''],
       'creationDate': [''],
       'vesselFeatures': ['', Validators.compose([Validators.required, SharedValidators.entity])],
