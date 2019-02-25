@@ -853,6 +853,12 @@ export class AccountService extends BaseDataService {
     await this.storeLocalSettings();
   }
 
+  public getPageSettings(pageId: string, propertyName?: string): string[] {
+    const key = pageId.replace(/[/]/g, '__');
+    return this.data.localSettings && this.data.localSettings.pages
+      && this.data.localSettings.pages[key] && (propertyName && this.data.localSettings.pages[key][propertyName] || this.data.localSettings.pages[key]);
+  }
+
   public async savePageSetting(pageId: string, value: any, propertyName?: string) {
     const key = pageId.replace(/[/]/g, '__');
 
