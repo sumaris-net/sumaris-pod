@@ -45,7 +45,7 @@ import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
-import net.sumaris.core.model.referential.transcribing.TranscribingItem;
+import net.sumaris.core.model.referential.transcribing.*;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
@@ -104,9 +104,13 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     // Program/strategy
                     Program.class,
                     Strategy.class,
-                    AcquisitionLevel.class
-                    //test
-                    , TranscribingItem.class
+                    AcquisitionLevel.class,
+
+                    // Transcribing
+                    TranscribingItemType.class,
+                    TranscribingSide.class,
+                    TranscribingSystem.class,
+                    ObjectType.class
             ), Class::getSimpleName);
 
     private Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
@@ -132,7 +136,11 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.qualitativeValue");
         I18n.n("sumaris.persistence.table.program");
         I18n.n("sumaris.persistence.table.acquisitionLevel");
-        I18n.n("sumaris.persistence.table.transcribingItem");
+        //I18n.n("sumaris.persistence.table.transcribingItem");
+        I18n.n("sumaris.persistence.table.transcribingItemType");
+        I18n.n("sumaris.persistence.table.transcribingSystem");
+        I18n.n("sumaris.persistence.table.transcribingSide");
+        I18n.n("sumaris.persistence.table.objectType");
     }
 
     protected static Map<String, PropertyDescriptor> initLevelPropertyNameMap() {
@@ -154,6 +162,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         result.put(TaxonName.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonName.PROPERTY_TAXONOMIC_LEVEL));
         result.put(Strategy.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Strategy.class, Strategy.PROPERTY_PROGRAM));
         result.put(Metier.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Metier.class, Metier.PROPERTY_GEAR));
+        result.put(TranscribingItemType.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TranscribingItemType.class, TranscribingItemType.PROPERTY_OBJECT_TYPE));
 
         return result;
     }

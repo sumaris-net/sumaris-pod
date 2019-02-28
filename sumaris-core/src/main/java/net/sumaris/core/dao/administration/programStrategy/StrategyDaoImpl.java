@@ -35,6 +35,7 @@ import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.service.referential.TranslationService;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -61,6 +62,11 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
     @Autowired
     private ReferentialDao referentialDao;
 
+
+    @Autowired
+    private TranslationService translate;
+
+
     private int unitIdNone;
 
     @PostConstruct
@@ -69,7 +75,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
     }
 
     @Override
-    public List<PmfmStrategyVO> getPmfmStrategies(int programId) {
+    public List<PmfmStrategyVO> getPmfmStrategies(int programId, String locale) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<PmfmStrategy> query = builder.createQuery(PmfmStrategy.class);
@@ -93,6 +99,10 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                 .setParameter(programIdParam, programId)
                 .getResultStream()
                 .map(this::toPmfmStrategyVO)
+                .map(x->{
+                    translate.translateReferentials(x.getQualitativeValues(), "fr");
+                    return x;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -123,6 +133,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                 .setParameter(acquisitionLevelIdParam, acquisitionLevelId)
                 .getResultStream()
                 .map(this::toPmfmStrategyVO)
+
                 .collect(Collectors.toList());
     }
 

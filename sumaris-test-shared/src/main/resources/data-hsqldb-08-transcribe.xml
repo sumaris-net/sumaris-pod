@@ -1,0 +1,209 @@
+<dataset>
+
+    <!-- ================  SAMPLE data  ================  -->
+
+    <OBJECT_TYPE ID="1" LABEL="PARAMETER" NAME="PARAMETER" DESCRIPTION="PARAMETER" UPDATE_DATE="2019-02-11"
+                 CREATION_DATE="2018-03-08" STATUS_FK="1"/>
+    <OBJECT_TYPE ID="2" LABEL="QUALITATIVE_VALUE" NAME="QUALITATIVE_VALUE" DESCRIPTION="QUALITATIVE_VALUE"
+                 UPDATE_DATE="2019-02-11" CREATION_DATE="2018-03-08" STATUS_FK="1"/>
+    <OBJECT_TYPE ID="3" LABEL="OTHER" NAME="OTHER" DESCRIPTION="OTHER"
+                 UPDATE_DATE="2019-02-11" CREATION_DATE="2018-03-08" STATUS_FK="1"/>
+    <OBJECT_TYPE ID="4" LABEL="GEAR" NAME="GEAR" DESCRIPTION="GEAR"
+                 UPDATE_DATE="2019-02-11" CREATION_DATE="2018-03-08" STATUS_FK="1"/>
+
+    <TRANSCRIBING_SIDE ID="1" NAME="OUT" LABEL="OUT" UPDATE_DATE="2012-04-10" CREATION_DATE="2018-03-08"
+                       DESCRIPTION="Transcodage valable uniquement depuis Harmonie vers un système externe" STATUS_FK="1"/>
+    <TRANSCRIBING_SIDE ID="2" NAME="IN" LABEL="IN" UPDATE_DATE="2012-04-10" CREATION_DATE="2018-03-08"
+                       DESCRIPTION="Transcodage valable uniquement depuis un système externe vers Harmonie" STATUS_FK="1"/>
+    <TRANSCRIBING_SIDE ID="3" NAME="IN/OUT" LABEL="IN/OUT" UPDATE_DATE="2012-04-10" CREATION_DATE="2018-03-08"
+                       DESCRIPTION="Transcodage valable dans les deux sens" STATUS_FK="1"/>
+
+
+    <TRANSCRIBING_ITEM_TYPE ID="1" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="2" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="SIPA-ZONE_REGL.CODE" NAME="SIPA-ZONE_REGL.CODE" CREATION_DATE="2018-03-08"
+                            DESCRIPTION="SIPA : équivalence des zones réglementaires dans Adagio, avec les codes SIPA des zones réglementaires (pour les flux SACAPT)"/>
+    <TRANSCRIBING_ITEM_TYPE ID="2" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="2" TRANSCRIBING_SIDE_FK="1"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="SIPA-SECTEUR.CODE-OUT" NAME="SIPA-SECTEUR.CODE-OUT" CREATION_DATE="2018-03-08"
+                            DESCRIPTION="SIPA : équivalence des zones en mer Adagio avec les codes secteurs SIPA en sortie (pour les sortie SACROIS, etc.)"/>
+    <TRANSCRIBING_ITEM_TYPE ID="3" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="2" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="SIPA-SECTEUR.CODE-IN" NAME="SIPA-SECTEUR.CODE-IN" CREATION_DATE="2018-03-08"
+                            DESCRIPTION="SIPA : équivalence des zones en mer Adagio avec les codes secteurs SIPA (pour les flux SACAPT, etc.)"/>
+    <TRANSCRIBING_ITEM_TYPE ID="4" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="2" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="SIPA-PORT.CODE" NAME="SIPA-PORT.CODE" CREATION_DATE="2018-03-08"
+                            DESCRIPTION="SIPA : équivalence des ports dans Adagio avec les codes SIPA (pour les flux SACAPT)"/>
+    <TRANSCRIBING_ITEM_TYPE ID="5" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="2" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="SIPA-DEPARTEMENT.CODE" NAME="SIPA-DEPARTEMENT.CODE" CREATION_DATE="2018-03-08"
+                            DESCRIPTION="SIPA : équivalence des départements Adagio avec les codes SIPA des départements francais (pour les flux SACAPT)"/>
+    <TRANSCRIBING_ITEM_TYPE ID="6" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="2" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="SIPA-xxx.VALEUR" NAME="SIPA-xxx.VALEUR" CREATION_DATE="2018-03-08"
+                            DESCRIPTION="SIPA : Correspondance entre une valeur qualitative Adagio et une valeur alphanumérique prédéfinie SIPA (flux SACAPT, etc.)"/>
+    <TRANSCRIBING_ITEM_TYPE ID="7" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="3" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="OFIMER-ZONE_ECO_ERS.CODE" NAME="OFIMER-ZONE_ECO_ERS.CODE" CREATION_DATE="2018-03-08"
+                            DESCRIPTION="OFIMER : équivalence des zones réglementaires Adagio avec les zones économiques ERS"/>
+    <TRANSCRIBING_ITEM_TYPE ID="8" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="3" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="OFIMER-SECTEUR_ERS.CODE" NAME="OFIMER-SECTEUR_ERS.CODE" CREATION_DATE="2018-03-08"
+                            DESCRIPTION="OFIMER : équivalence des secteurs Adagio avec la codification ERS"/>
+    <TRANSCRIBING_ITEM_TYPE ID="9" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="3" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="OFIMER-PORT_ERS_LOCODE.CODE" NAME="OFIMER-PORT_ERS_LOCODE.CODE"
+                            CREATION_DATE="2018-03-08"
+                            DESCRIPTION="OFIMER : équivalence des ports Adagio avec la codification ERS/LOCODE"/>
+    <TRANSCRIBING_ITEM_TYPE ID="10" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="3" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="3"
+                            LABEL="OFIMER-xxx.VALEUR" NAME="OFIMER-xxx.VALEUR" CREATION_DATE="2018-03-08"
+                            DESCRIPTION="OFIMER : Correspondance entre les valeurs qualitatives Adagio et les liste de valeurs OFIMER (flux vente, etc.)"/>
+
+
+    <TRANSCRIBING_SYSTEM ID="1" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="HARMONIE1" LABEL="HARMONIE1"
+                         DESCRIPTION="Base de données Harmonie"/>
+    <TRANSCRIBING_SYSTEM ID="2" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="SIPA" LABEL="SIPA"
+                         DESCRIPTION="Système d'information pêche et aquaculture"/>
+    <TRANSCRIBING_SYSTEM ID="3" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="OFIMER" LABEL="OFIMER"
+                         DESCRIPTION="Système d'information de  l'OFIMER"/>
+    <TRANSCRIBING_SYSTEM ID="4" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="FAO" LABEL="FAO"
+                         DESCRIPTION="Food and Agriculture Organization"/>
+    <TRANSCRIBING_SYSTEM ID="5" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="Harmonie-SIG" LABEL="Harmonie-SIG"
+                         DESCRIPTION="Base de données Harmonie pour le SIG (ex: transcodage des codes secteurs)"/>
+    <TRANSCRIBING_SYSTEM ID="6" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="Allegro" LABEL="Allegro"
+                         DESCRIPTION="Allegro V1 (transcodage des variables d'enquete, etc.)"/>
+    <TRANSCRIBING_SYSTEM ID="7" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="ARPEGE" LABEL="ARPEGE"
+                         DESCRIPTION="Base de données ARPEGE"/>
+    <TRANSCRIBING_SYSTEM ID="8" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="OBSDEB" LABEL="OBSDEB"
+                         DESCRIPTION="Observation des marées au débarquement (transcodage complémentaire à Harmonie1)"/>
+    <TRANSCRIBING_SYSTEM ID="9" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="COST" LABEL="COST"
+                         DESCRIPTION="Format d'échange standard de l'UE pour les outils COST (http://wwz.ifremer.fr/cost)"/>
+    <TRANSCRIBING_SYSTEM ID="10" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="DCF" LABEL="DCF"
+                         DESCRIPTION="UE/DCF - Niveau de zone de mer (Level), Metier, etc."/>
+    <TRANSCRIBING_SYSTEM ID="11" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="UE/DCF" LABEL="UE/DCF"
+                         DESCRIPTION="UE/DCF - Metier niveau 5 (ATTENTION : Utilisé uniquement dans l'attente de la gestion des métiers agrégés dans H2)"/>
+    <TRANSCRIBING_SYSTEM ID="12" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="ACTIPRED" LABEL="ACTIPRED"
+                         DESCRIPTION="Prédocumentation électronique (transcodage des métiers)"/>
+    <TRANSCRIBING_SYSTEM ID="13" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="OBSMER-HISTORIQUE"
+                         LABEL="OBSMER-HISTORIQUE"
+                         DESCRIPTION="Base de données historique OBSMER (avant migration Adagio)"/>
+    <TRANSCRIBING_SYSTEM ID="14" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="H1-CAM_CAR_OPERATION.CARO_VALEUR"
+                         LABEL="H1-CAM_CAR_OPERATION.CARO_VALEUR"
+                         DESCRIPTION="Transcodage qualitative value des paramètres d'opérations	"/>
+    <TRANSCRIBING_SYSTEM ID="15" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="H1-CAM_CLASSIFICATION_LOT.CLAL_VALEUR"
+                         LABEL="H1-CAM_CLASSIFICATION_LOT.CLAL_VALEUR"
+                         DESCRIPTION="Transcodage qualitative value des paramètres de lots d'échantillonnages"/>
+    <TRANSCRIBING_SYSTEM ID="16" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="UE" LABEL="UE"
+                         DESCRIPTION="Union Européenne"/>
+    <TRANSCRIBING_SYSTEM ID="17" STATUS_FK="2" CREATION_DATE="2019-02-11" NAME="SIH_CAM" LABEL="SIH_CAM"
+                         DESCRIPTION="Campagnes halieutiques Ifremer"/>
+    <TRANSCRIBING_SYSTEM ID="18" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="INSEE" LABEL="INSEE"
+                         DESCRIPTION="Institut National de la Statistique et des Etudes Economiques"/>
+    <TRANSCRIBING_SYSTEM ID="19" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="TAXINOMIE" LABEL="TAXINOMIE"
+                         DESCRIPTION="Transcodages des espèces scientifiques"/>
+    <TRANSCRIBING_SYSTEM ID="20" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="ISO" LABEL="ISO"
+                         DESCRIPTION="Normes ISO"/>
+
+
+    <!-- ================  BUSINESS data  ================  -->
+
+    <!-- PARAMETERS -->
+    <TRANSCRIBING_SYSTEM ID="21" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="PARAMETER.NAME_FR"
+                         LABEL="PARAMETER.NAME_FR"
+                         DESCRIPTION="SUMARiS transcription and translation system for parameter values"/>
+
+    <TRANSCRIBING_ITEM_TYPE ID="11" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="21" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="1" CREATION_DATE="2018-03-08"
+                            LABEL="PARAMETER_FR" NAME="PARAMETER_FR"
+                            DESCRIPTION="Translate PARAMETER names to French "/>
+
+    <TRANSCRIBING_ITEM ID="1" EXTERNAL_CODE="Type de chalut" UPDATE_DATE="2019-02-11" TRANSCRIBING_ITEM_TYPE_FK="11"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="8"/>
+    <TRANSCRIBING_ITEM ID="2" EXTERNAL_CODE="Vitesse engin" UPDATE_DATE="2019-02-11" TRANSCRIBING_ITEM_TYPE_FK="11"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="9"/>
+    <TRANSCRIBING_ITEM ID="3" EXTERNAL_CODE="Forme de la têtière" UPDATE_DATE="2019-02-11"
+                       TRANSCRIBING_ITEM_TYPE_FK="11" VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="10"/>
+    <TRANSCRIBING_ITEM ID="4" EXTERNAL_CODE="Type de gréement" UPDATE_DATE="2019-02-11" TRANSCRIBING_ITEM_TYPE_FK="11"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="11"/>
+    <TRANSCRIBING_ITEM ID="5" EXTERNAL_CODE="Longueur cumulée corde de dos ou des perches" UPDATE_DATE="2019-02-11"
+                       TRANSCRIBING_ITEM_TYPE_FK="11" VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="12"/>
+
+    <!-- GEARS -->
+
+    <TRANSCRIBING_SYSTEM ID="22" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="GEAR.NAME_FR"
+                         LABEL="GEAR.NAME_FR"
+                         DESCRIPTION="SUMARiS transcription and translation system for qualitative value "/>
+
+    <TRANSCRIBING_ITEM_TYPE ID="12" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="22" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="4" CREATION_DATE="2018-03-08"
+                            LABEL="GEAR.FR" NAME="GEAR.FR"
+                            DESCRIPTION="Translate GEAR names to French"/>
+
+    <TRANSCRIBING_ITEM ID="11" EXTERNAL_CODE="Chaluts de fond à panneaux" UPDATE_DATE="2019-02-11"
+                       TRANSCRIBING_ITEM_TYPE_FK="12"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="6"/>
+    <TRANSCRIBING_ITEM ID="12" EXTERNAL_CODE="Chaluts jumeaux à panneaux" UPDATE_DATE="2019-02-11"
+                       TRANSCRIBING_ITEM_TYPE_FK="12"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="7"/>
+
+
+    <!-- QUALITATIVE_VALUE -->
+
+    <TRANSCRIBING_SYSTEM ID="23" STATUS_FK="1" CREATION_DATE="2019-02-11" NAME="QUALITATIVE_VALUE.NAME_FR"
+                         LABEL="QUALITATIVE_VALUE.NAME_FR"
+                         DESCRIPTION="SUMARiS transcription and translation system for qualitative value "/>
+
+    <TRANSCRIBING_ITEM_TYPE ID="13" STATUS_FK="1" TRANSCRIBING_SYSTEM_FK="23" TRANSCRIBING_SIDE_FK="2"
+                            OBJECT_TYPE_FK="2" CREATION_DATE="2018-03-08"
+                            LABEL="QUALITATIVE_VALUE_FR" NAME="QUALITATIVE_VALUE_FR"
+                            DESCRIPTION="Translate QUALITATIVE_VALUE names to French"/>
+
+    <!-- Trawl Type -->
+    <TRANSCRIBING_ITEM ID="21" EXTERNAL_CODE="Irlandais" UPDATE_DATE="2019-02-11" TRANSCRIBING_ITEM_TYPE_FK="13"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="1"/>
+    <TRANSCRIBING_ITEM ID="22" EXTERNAL_CODE="Canadien (cascadeur)" UPDATE_DATE="2019-02-11"
+                       TRANSCRIBING_ITEM_TYPE_FK="13"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="2"/>
+    <TRANSCRIBING_ITEM ID="23" EXTERNAL_CODE="GOV (Boche) Chalut de fond à grande ouverture verticale"
+                       UPDATE_DATE="2019-02-11" TRANSCRIBING_ITEM_TYPE_FK="13"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="3"/>
+    <TRANSCRIBING_ITEM ID="24" EXTERNAL_CODE="Fond (Carré)" UPDATE_DATE="2019-02-11" TRANSCRIBING_ITEM_TYPE_FK="13"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="4"/>
+    <TRANSCRIBING_ITEM ID="25" EXTERNAL_CODE="Autre" UPDATE_DATE="2019-02-11" TRANSCRIBING_ITEM_TYPE_FK="13"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="5"/>
+
+    <!-- Selectivity Type -->
+    <TRANSCRIBING_ITEM ID="35" EXTERNAL_CODE="Panneau maille carrée" UPDATE_DATE="2019-02-11"
+                       TRANSCRIBING_ITEM_TYPE_FK="13"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="10"/>
+
+    <TRANSCRIBING_ITEM ID="36" EXTERNAL_CODE="Maille losange T90 rallonge" UPDATE_DATE="2019-02-11"
+                       TRANSCRIBING_ITEM_TYPE_FK="13"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="27"/>
+
+    <TRANSCRIBING_ITEM ID="37" EXTERNAL_CODE="Maille losange T90 cul" UPDATE_DATE="2019-02-11"
+                       TRANSCRIBING_ITEM_TYPE_FK="13"
+                       VALIDITY_STATUS_FK="1"
+                       OBJECT_ID="28"/>
+
+    <VALIDITY_STATUS ID="1" LABEL="WORKING" NAME="WORKING" CREATION_DATE="2019-02-11" UPDATE_DATE="2019-02-11" />
+
+
+    <!-- Acoustic Type / Ground Drop type -->
+</dataset>

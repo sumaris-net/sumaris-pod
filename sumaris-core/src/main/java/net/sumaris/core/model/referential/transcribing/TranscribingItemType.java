@@ -29,10 +29,17 @@ import net.sumaris.core.model.referential.Status;
 import javax.persistence.*;
 import java.util.Date;
 
+
 @Data
 @Entity
-@Table(name = "transcribing_item_type")
+@Table(name = "transcribing_item_type", uniqueConstraints={
+        @UniqueConstraint(columnNames = {"status_fk", "transcribing_side_fk", "transcribing_system_fk", "object_type_fk", "label"}),
+})
 public class TranscribingItemType implements IItemReferentialEntity  {
+
+    public static final String PROPERTY_SYSTEM = "system";
+    public static final String PROPERTY_SIDE = "side";
+    public static final String PROPERTY_OBJECT_TYPE = "objectType";
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -64,4 +71,12 @@ public class TranscribingItemType implements IItemReferentialEntity  {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transcribing_system_fk")
     private TranscribingSystem system;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "transcribing_side_fk", nullable = false)
+    private TranscribingSide side;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "object_type_fk", nullable = false)
+    private ObjectType objectType;
 }

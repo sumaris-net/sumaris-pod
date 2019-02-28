@@ -36,7 +36,7 @@ import java.util.List;
 public interface StrategyDao {
 
     @Cacheable(cacheNames = CacheNames.PMFM_BY_PROGRAM_ID, key = "#programId", unless = "#result == null")
-    List<PmfmStrategyVO> getPmfmStrategies(int programId);
+    List<PmfmStrategyVO> getPmfmStrategies(int programId, String locale);
 
     List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId);
 

@@ -23,48 +23,43 @@ package net.sumaris.core.model.referential.transcribing;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.ValidityStatus;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "transcribing_item", uniqueConstraints={
-        @UniqueConstraint(columnNames = {"object_id", "external_code", "transcribing_item_type_fk"})
-})
-public class TranscribingItem implements IUpdateDateEntityBean<Integer, Date> {
+@Table(name = "transcribing_side")
+public class TranscribingSide implements IItemReferentialEntity {
 
-    public static final String PROPERTY_TYPE = "type";
-    public static final String PROPERTY_EXTERNAL_CODE = "externalCode";
-    public static final String PROPERTY_OBJECT_ID = "objectId";
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "validity_status_fk", nullable = false)
-    private ValidityStatus validityStatus;
+    @Column(name = "creation_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date creationDate;
 
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(name = "object_id", nullable = false)
-    private Integer objectId;
+    @Column(nullable = false, length = LENGTH_LABEL)
+    private String label;
 
-    @Column(name = "external_code", nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
-    private String externalCode;
+    @Column(nullable = false, length = LENGTH_NAME)
+    private String name;
 
-    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
+    @Column
+    private String description;
+
+    @Column(length = LENGTH_COMMENTS)
     private String comments;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transcribing_item_type_fk", nullable = false)
-    private TranscribingItemType type;
-
+    @JoinColumn(name = "status_fk", nullable = false)
+    private Status status;
 }

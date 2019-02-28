@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.9.9.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1542622068012-22">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="TRANSCRIBING_ITEM"/>
+        </preConditions>
+        <dropTable tableName="TRANSCRIBING_ITEM"/>
+
+        <createTable tableName="TRANSCRIBING_ITEM">
+            <column autoIncrement="true" name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="transcribing_item_pk"/>
+            </column>
+            <column name="comments" type="VARCHAR(2000)"/>
+
+            <column name="external_code" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="object_id" type="INT"/>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="validity_status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="transcribing_item_type_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1543570579600-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='0.9.6'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">0.9.6</column>
+            <column name="DESCRIPTION">
+                - Modify TRANSCRIBING_ITEM
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="COMMENTS">
+                - Modify TRANSCRIBING_ITEM with bad data type
+            </column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -23,6 +23,7 @@ package net.sumaris.server.http.graphql;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -37,12 +38,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 @RestController
 public class GraphQLRestController {
 
     private static final Logger log = LoggerFactory.getLogger(GraphQLRestController.class);
+
+    private static final List<Locale> AVAILABLE_LANG =  Lists.newArrayList( Locale.FRENCH, Locale.ENGLISH  );
 
     private final GraphQL graphQL;
 
@@ -59,16 +63,55 @@ public class GraphQLRestController {
     @PostMapping(value = GraphQLPaths.BASE_PATH, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public Map<String, Object> indexFromAnnotated(@RequestBody Map<String, Object> request, HttpServletRequest rawRequest) {
+
+
+        Map<String, Object> variables = GraphQLHelper.getVariables(request, objectMapper);
+
+        String lang = findLanguageFromHttpHeaders(rawRequest, AVAILABLE_LANG);
+
         ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
                 .query((String)request.get("query"))
                 .operationName((String)request.get("operationName"))
-                .variables(GraphQLHelper.getVariables(request, objectMapper))
-                .context(rawRequest)
+                .variables(variables)
+                .context(lang)
                 .build());
 
         return GraphQLHelper.processExecutionResult(executionResult);
     }
 
     /* -- private methods -- */
+
+    /**
+     * This method sort languages by the book
+     *  ex : Accept-Language: de; q=1.0, en; q=0.5
+     * would prioritize 'de' because 'q=1.0' is higher priority than 'q=0.5'
+     *
+     * @param rawRequest the httpRequest containing the Accept-Language headers to use
+     * @return the lang suffix
+     */
+    protected String findLanguageFromHttpHeaders(HttpServletRequest rawRequest, List<Locale> available){
+        String acceptedLang = rawRequest.getHeader("Accept-Language");
+        return Stream.of(acceptedLang.split(","))
+                .map(s -> {
+                    String[] split = s.trim().split(";");
+                    if (!(split.length > 1))
+                        return null;
+                    String[] subSplit = split[1].split("=");
+                    if (!(subSplit.length > 1))
+                        return null;
+
+                    Double v = Double.parseDouble(subSplit[1]);
+                    return new AbstractMap.SimpleEntry<>(split[0], v);
+
+                })
+                .filter(Objects::nonNull)
+                .filter(l ->  available.stream() .anyMatch(loca ->
+                        l.getKey().startsWith(loca.toString())))
+                .sorted((f1, f2) -> Double.compare(f2.getValue(), f1.getValue() ))
+                .map(AbstractMap.SimpleEntry::getKey)
+                .findFirst()
+                .orElse("en-GB"); // FIXME default value from ... ?
+
+    }
 
 }

@@ -25,6 +25,7 @@ package net.sumaris.core.service.referential;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.TranslationDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -45,6 +46,9 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Autowired
 	protected ReferentialDao referentialDao;
+
+	@Autowired
+	protected TranslationService translate;
 
 	@Override
 	public List<ReferentialTypeVO> getAllTypes() {
@@ -78,7 +82,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 	public ReferentialVO findByUniqueLabel(String entityName, String label) {
 		Preconditions.checkNotNull(entityName);
 		Preconditions.checkNotNull(label);
-		return referentialDao.findByUniqueLabel(entityName, label);
+		return translate.translateReferential(referentialDao.findByUniqueLabel(entityName, label), "fr");
 	}
 
 	@Override

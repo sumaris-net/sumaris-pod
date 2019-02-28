@@ -38,10 +38,6 @@ public class TranscribingSystem implements IItemReferentialEntity  {
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_fk", nullable = false)
-    private Status status;
-
     @Column(name = "creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
@@ -60,4 +56,8 @@ public class TranscribingSystem implements IItemReferentialEntity  {
 
     @Column(length = LENGTH_COMMENTS)
     private String comments;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_fk", nullable = false)
+    private Status status;
 }

@@ -43,8 +43,8 @@ public class StrategyServiceImpl implements StrategyService {
 	protected StrategyDao strategyDao;
 
 	@Override
-	public List<PmfmStrategyVO> getPmfmStrategies(int programId) {
-		return strategyDao.getPmfmStrategies(programId);
+	public List<PmfmStrategyVO> getPmfmStrategies(int programId , String locale) {
+		return strategyDao.getPmfmStrategies(programId, locale);
 	}
 
 	@Override

@@ -43,7 +43,7 @@ public interface StrategyService {
 
 
 	@Transactional(readOnly = true)
-	List<PmfmStrategyVO> getPmfmStrategies(int programId);
+	List<PmfmStrategyVO> getPmfmStrategies(int programId, String locale);
 
 	@Transactional(readOnly = true)
 	List<PmfmStrategyVO> getPmfmStrategiesByAcquisitionLevel(int programId, int acquisitionLevelId);
