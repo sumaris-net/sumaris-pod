@@ -39,4 +39,9 @@ public interface CacheNames {
 
     String QUERY_CACHE_NAME = "org.hibernate.cache.spi.QueryResultsRegion";
     String TIMESTAMPS_REGION_CACHE_NAME = "org.hibernate.cache.spi.TimestampsRegion";
+
+    String TRANSLATIONS = "net.sumaris.core.dao.referential.Translations";
+
+    String TRANSLATIONS_BY_ID = "net.sumaris.core.dao.referential.TranslationsById";
+
 }

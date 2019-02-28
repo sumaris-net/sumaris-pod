@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import net.sf.ehcache.CacheManager;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
@@ -33,6 +34,7 @@ import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.service.technical.EhCacheStatistics;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -46,6 +48,7 @@ import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.RestPaths;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsGuest;
+import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.lang3.StringUtils;
@@ -59,6 +62,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -299,7 +303,7 @@ public class AdministrationGraphQLService {
     public List<PmfmStrategyVO> getProgramPmfms(
             @GraphQLArgument(name = "program", description = "A valid program code") String programLabel,
             @GraphQLArgument(name = "acquisitionLevel", description = "A valid acquisition level (e.g. 'TRIP', 'OPERATION', 'PHYSICAL_GEAR')") String acquisitionLevel
-            ) {
+            , String locale) {
         Preconditions.checkNotNull(programLabel, "Missing program");
         ProgramVO program = programService.getByLabel(programLabel);
 
@@ -307,7 +311,7 @@ public class AdministrationGraphQLService {
 
         // ALl pmfm from the program
         if (StringUtils.isBlank(acquisitionLevel)) {
-            List<PmfmStrategyVO> res = strategyService.getPmfmStrategies(program.getId());
+            List<PmfmStrategyVO> res = strategyService.getPmfmStrategies(program.getId(), locale);
             return res;
         }
 
@@ -328,6 +332,16 @@ public class AdministrationGraphQLService {
         return strategyService.getGears(program.getId());
 
     }
+
+    @Autowired
+    protected EhCacheStatistics cacheStatistics;
+
+
+    @GraphQLQuery(name = "getCacheStats", description = "Get cache statistics")
+    public Map<String,Long> getCacheStats( ) {
+        return cacheStatistics.getCacheDetails();
+    }
+
 
     public DepartmentVO fillLogo(DepartmentVO department) {
         if (department != null && department.isHasLogo() && StringUtils.isBlank(department.getLogo()) && StringUtils.isNotBlank(department.getLabel())) {

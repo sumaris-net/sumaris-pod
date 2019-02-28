@@ -133,6 +133,34 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+
+    SECURITY_MOCK_USERNAME(
+            "sumaris.server.security.mock.username",
+            "sumaris.server.config.option.security.mock.username.description",
+            "demo",
+            String.class,
+            false),
+    SECURITY_MOCK_PASSWORD(
+            "sumaris.server.security.mock.password",
+            "sumaris.server.config.option.security.mock.password.description",
+            "demo",
+            String.class,
+            false),
+    SECURITY_MOCK_USER_ID(
+            "sumaris.server.security.mock.userId",
+            "sumaris.server.config.option.security.mock.userId.description",
+            "263",
+            Integer.class,
+            false),
+    UI_SECURITY_TYPE(
+            "sumaris.server.security.type",
+            "sumaris.server.config.option.security.type.description",
+            "mock",
+            String.class,
+            false),
+
+
+
     ;
 
     /** Configuration key. */

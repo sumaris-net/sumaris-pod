@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -80,7 +81,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
                 .setParameter(labelParam, label);
         try {
             return toProgramVO(q.getSingleResult());
-        } catch(EmptyResultDataAccessException e) {
+        } catch(NoResultException | EmptyResultDataAccessException e) {
             return null;
         }
     }

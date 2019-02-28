@@ -124,6 +124,18 @@ public class CacheConfiguration {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, 600);
     }
 
+
+    @Bean
+    public EhCacheFactoryBean translationsAll() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.TRANSLATIONS, 2);
+    }
+
+
+    @Bean
+    public EhCacheFactoryBean translationsById() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.TRANSLATIONS_BY_ID, 600);
+    }
+
     /* protected */
     protected net.sf.ehcache.CacheManager ehcache() {
         return cacheManager != null ? cacheManager : ehcacheFactory().getObject();
