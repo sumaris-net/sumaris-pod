@@ -7,13 +7,17 @@ import net.sumaris.core.extraction.vo.ExtractionResultVO;
 
 import java.util.List;
 
+/**
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
+ */
 public interface ExtractionTableDao {
 
     String CATEGORY = "table";
 
     List<String> getAllTableNames();
 
-    ExtractionResultVO getTable(DatabaseTableEnum table);
+    ExtractionResultVO getTable(String tableName);
 
-    ExtractionResultVO getTableRows(DatabaseTableEnum table, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction);
+    ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction);
+
 }

@@ -228,7 +228,6 @@ public abstract class DatabaseResource implements TestRule {
             if (!defaultDbName) {
                 dbDirectory += configName;
             }
-            Tests.checkDbExists(testClass, dbDirectory);
 
             if (writeDb) {
                 Properties p = new Properties();
@@ -243,6 +242,7 @@ public abstract class DatabaseResource implements TestRule {
                             SumarisConfigurationOption.JDBC_URL.getKey(), configFilename));
                 }
                 else {
+                    Tests.checkDbExists(testClass, dbDirectory);
                     // Copy DB files into test directory
                     copyDb(new File(dbDirectory), "db", false, null);
 
@@ -251,6 +251,7 @@ public abstract class DatabaseResource implements TestRule {
                     dbDirectory = dbDirectory.replaceAll("[\\\\]", "/");
                 }
             } else {
+                Tests.checkDbExists(testClass, dbDirectory);
                 // Load db config properties
                 File dbConfig = new File(dbDirectory, getTestDbName() + ".properties");
 

@@ -26,7 +26,7 @@ package net.sumaris.core.service.data.sample;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleDao;
-import net.sumaris.core.dao.technical.Beans;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.model.data.sample.SampleMeasurement;
 import net.sumaris.core.vo.data.MeasurementVO;

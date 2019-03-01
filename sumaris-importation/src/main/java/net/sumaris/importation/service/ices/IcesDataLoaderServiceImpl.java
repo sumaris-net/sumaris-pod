@@ -10,7 +10,7 @@ import net.sumaris.core.dao.technical.schema.*;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.file.ices.*;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
-import net.sumaris.core.util.file.FileUtils;
+import net.sumaris.core.util.Files;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.importation.exception.FileValidationException;
 import net.sumaris.importation.service.DataLoaderService;
@@ -272,7 +272,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
 	@Override
 	public void detectFormatAndLoad(File inputFile, String country, boolean validate, boolean appendData) throws IOException, FileValidationException {
-		FileUtils.checkExists(inputFile);
+		Files.checkExists(inputFile);
 
 		File tempFile = prepareFile(inputFile);
 
@@ -333,7 +333,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
 	@Override
 	public void loadMixed(File inputFile, String country, boolean validate, boolean appendData) throws IOException, FileValidationException {
-		FileUtils.checkExists(inputFile);
+		Files.checkExists(inputFile);
 
 		// If not append : then remove old data
 		if (!appendData) {
@@ -376,7 +376,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 	/* -- protected methods -- */
 
 	protected void loadTable(File inputFile, DatabaseTableEnum table, String country, boolean validate, boolean appendData) throws IOException, FileValidationException {
-		FileUtils.checkExists(inputFile);
+		Files.checkExists(inputFile);
 
 		// If not append : then remove old data
 		if (!appendData) {
@@ -400,9 +400,9 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 			throw e;
 		}
 		finally {
-			FileUtils.deleteQuietly(tempFile);
+			Files.deleteQuietly(tempFile);
 
-			FileUtils.deleteFiles(inputFile.getParentFile(), "^.*.tmp[0-9]+$");
+			Files.deleteFiles(inputFile.getParentFile(), "^.*.tmp[0-9]+$");
 		}
 	}
 
@@ -429,7 +429,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 				}
 
 				// Replace in lines
-				FileUtils.replaceAll(tempFile, taxonNameReplacements, 1, -1/*all rows*/);
+				Files.replaceAll(tempFile, taxonNameReplacements, 1, -1/*all rows*/);
 			}
 
 			return tempFile;
@@ -448,7 +448,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 	protected File prepareFile(File inputFile, char separator) {
 
 		try {
-			File tempFile = FileUtils.getNewTemporaryFile(inputFile);
+			File tempFile = Files.getNewTemporaryFile(inputFile);
 
 			// Replace in headers (exact match
 			Map<String, String> exactHeaderReplacements = Maps.newHashMap();
@@ -457,10 +457,10 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 				String replacement = separator + headerReplacements.get(header) + separator;
 				exactHeaderReplacements.put(regexp, replacement);
 			}
-			FileUtils.replaceAllInHeader(inputFile, tempFile, exactHeaderReplacements);
+			Files.replaceAllInHeader(inputFile, tempFile, exactHeaderReplacements);
 
 			// Replace in lines
-			FileUtils.replaceAll(tempFile, linesReplacements, 1, -1/*all rows*/);
+			Files.replaceAll(tempFile, linesReplacements, 1, -1/*all rows*/);
 
 			return tempFile;
 		} catch(IOException e) {
@@ -476,27 +476,27 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 		reader.close();
 
 		// Delete previous temp files
-		FileUtils.deleteTemporaryFiles(inputFile);
+		Files.deleteTemporaryFiles(inputFile);
 
 		Map<DatabaseTableEnum, File> result = Maps.newHashMap();
 		for(String recordType: tableByRecordTypeMap.keySet()) {
 			DatabaseTableEnum table = tableByRecordTypeMap.get(recordType);
-			File tempFile = FileUtils.getNewTemporaryFile(inputFile);
+			File tempFile = Files.getNewTemporaryFile(inputFile);
 			List<String> prefixes = ImmutableList.of(recordType+separator, "\""+recordType+"\""+separator);
-			FileUtils.filter(inputFile, tempFile, (line) ->
+			Files.filter(inputFile, tempFile, (line) ->
 				prefixes.stream().filter(prefix -> line.startsWith(prefix)).findFirst().isPresent()
 			);
 
-			if (!FileUtils.isEmpty(tempFile)) {
+			if (!Files.isEmpty(tempFile)) {
 				tempFile = insertHeader(tempFile, table, separator, headersAdapter);
 
 				tempFile = prepareFileForTable(tempFile, table, separator);
 
-				String recordBasename = String.format("%s-%s.%s%s", FileUtils.getNameWithoutExtension(inputFile), recordType, FileUtils.getExtension(inputFile), FileUtils.TEMPORARY_FILE_EXTENSION);
+				String recordBasename = String.format("%s-%s.%s%s", Files.getNameWithoutExtension(inputFile), recordType, Files.getExtension(inputFile), Files.TEMPORARY_FILE_DEFAULT_EXTENSION);
 				File recordFile = new File(inputFile.getParentFile(), recordBasename);
-				FileUtils.copyFile(tempFile, recordFile);
+				Files.copyFile(tempFile, recordFile);
 
-				FileUtils.deleteTemporaryFiles(inputFile);
+				Files.deleteTemporaryFiles(inputFile);
 
 				result.put(table, recordFile);
 			}
@@ -520,9 +520,9 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 			}
 		}
 
-		File tempFile = FileUtils.getNewTemporaryFile(inputFile);
+		File tempFile = Files.getNewTemporaryFile(inputFile);
 		String headerLine = Joiner.on(separator).join(headers);
-		FileUtils.prependLines(inputFile, tempFile, headerLine);
+		Files.prependLines(inputFile, tempFile, headerLine);
 		return tempFile;
 	}
 

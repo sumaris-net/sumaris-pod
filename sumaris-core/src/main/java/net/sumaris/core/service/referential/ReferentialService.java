@@ -23,6 +23,7 @@ package net.sumaris.core.service.referential;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -45,6 +46,9 @@ public interface ReferentialService {
 
     @Transactional(readOnly = true)
     ReferentialVO findByUniqueLabel(String entityName, String label);
+
+    @Transactional(readOnly = true)
+    Integer getIdByUniqueLabel(Class<? extends IItemReferentialEntity> entityClass, String label);
 
     @Transactional(readOnly = true)
     List<ReferentialVO> getAllLevels(String entityName);

@@ -28,6 +28,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Geometries;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -522,8 +524,6 @@ public class Daos {
                 connectionProperties.getProperty(Environment.PASS));
     }
 
-    private static final double EARTH_RADIUS = 6378288.0;
-
     private static final MathContext MATH_CONTEXT_4_DIGIT = new MathContext(4);
 
     private static DecimalFormatSymbols symbols;
@@ -531,28 +531,21 @@ public class Daos {
     private static DecimalFormat decimalFormat;
 
     /**
-     * <p>computeDistanceInMeters.</p>
+     * <p>getDistanceInMeters.</p>
      *
      * @param startLatitude  a {@link Float} object.
      * @param startLongitude a {@link Float} object.
      * @param endLatitude    a {@link Float} object.
      * @param endLongitude   a {@link Float} object.
      * @return a int.
+     * @deprecated use {@link Geometries} instead
      */
+    @Deprecated
     public static int computeDistanceInMeters(Float startLatitude,
                                               Float startLongitude,
                                               Float endLatitude,
                                               Float endLongitude) {
-
-        double sLat = startLatitude * Math.PI / 180.0;
-        double sLong = startLongitude * Math.PI / 180.0;
-        double eLat = endLatitude * Math.PI / 180.0;
-        double eLong = endLongitude * Math.PI / 180.0;
-
-        Double d = EARTH_RADIUS
-                * (Math.PI / 2 - Math.asin(Math.sin(eLat) * Math.sin(sLat)
-                + Math.cos(eLong - sLong) * Math.cos(eLat) * Math.cos(sLat)));
-        return d.intValue();
+        return Geometries.getDistanceInMeters(startLatitude, startLongitude, endLatitude, endLongitude);
     }
 
     /**
@@ -560,17 +553,11 @@ public class Daos {
      *
      * @param distance a {@link Float} object.
      * @return a {@link String} object.
+     * @deprecated use {@link Geometries} instead
      */
+    @Deprecated
     public static String getDistanceInMiles(Float distance) {
-        String distanceText;
-        if (distance != null) {
-            Float distanceInMiles = distance / 1852;
-            distanceText = String.format("%.3f", distanceInMiles);
-
-        } else {
-            distanceText = "";
-        }
-        return distanceText;
+        return Geometries.getDistanceInMilles(distance);
     }
 
     /**
@@ -1491,5 +1478,6 @@ public class Daos {
             ps.close();
         }
     }
+
 
 }

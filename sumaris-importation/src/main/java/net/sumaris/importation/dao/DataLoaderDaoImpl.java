@@ -114,7 +114,7 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 			if (!result.isSuccess()) return result.getErrors();
 		}
 
-		SumarisEntityTableMetadata tableMetadata = sumarisDatabaseMetadata.getEntityTable(table.name());
+		SumarisTableMetadata tableMetadata = sumarisDatabaseMetadata.getTable(table.name());
 
 		// Import file :
 		log.info(FileMessageFormatter.format(tableMetadata, null, reader.getCurrentLine(), "Importing file: " + reader.getFileName()));
@@ -220,7 +220,7 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 
 	protected void validate(FileReader reader, DatabaseTableEnum table, DataLoadResult result ) throws IOException {
 
-		SumarisEntityTableMetadata tableMetadata = sumarisDatabaseMetadata.getEntityTable(table.name());
+		SumarisTableMetadata tableMetadata = sumarisDatabaseMetadata.getTable(table.name());
 
 		if (log.isInfoEnabled()) {
 			log.info(FileMessageFormatter.format(tableMetadata, null,  reader.getCurrentLine(), "Starting file validation... " + reader.getFileName()));
@@ -248,9 +248,9 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 
 
 	private boolean setParameterValue(int parameterIndex, PreparedStatement insertStatement, FileReader reader,
-									  SumarisEntityTableMetadata tableMetadata,
-									  SumarisColumnMetadata columnMetadata, int columnNumber, String cellValue,
-									  DataLoadResult result) throws SQLException {
+                                      SumarisTableMetadata tableMetadata,
+                                      SumarisColumnMetadata columnMetadata, int columnNumber, String cellValue,
+                                      DataLoadResult result) throws SQLException {
 		int sqlType = columnMetadata.getTypeCode();
 		try {
 
@@ -430,9 +430,9 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 	}
 
 	protected SumarisColumnMetadata[] getColumnMetadataFromHeaders(FileReader reader,
-																   DataLoadResult result,
-																   SumarisTableMetadata tableMetadata,
-																   String[] headers) {
+                                                                         DataLoadResult result,
+                                                                         SumarisTableMetadata tableMetadata,
+                                                                         String[] headers) {
 		if (headers == null || headers.length == 0) {
 
 			addError(reader, result, tableMetadata, null,
@@ -468,8 +468,8 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 					addError(reader, result, tableMetadata, null,
 							-1,
 							ErrorType.WARNING,
-							"UNKWOWN_COLUMN_NAME",
-							I18n.t("import.validation.error.UNKWOWN_COLUMN_NAME",
+							"UNKNOWN_COLUMN_NAME",
+							I18n.t("import.validation.error.UNKNOWN_COLUMN_NAME",
 									columnName, tableMetadata.getColumnNames().toString() ));
 				}
 			}
@@ -644,7 +644,7 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 
 	@Override
 	public int removeData(DatabaseTableEnum table, String[] filteredColumns, Object[] filteredValues) {
-		SumarisEntityTableMetadata tableMetadata = sumarisDatabaseMetadata.getEntityTable(table.name());
+		SumarisTableMetadata tableMetadata = sumarisDatabaseMetadata.getTable(table.name());
 		Preconditions.checkNotNull(tableMetadata);
 
 		Connection conn = DataSourceUtils.getConnection(dataSource);
@@ -674,7 +674,7 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 					log.info(String.format("Removing rows on table {%s} using filter {%s}", table.name(), logBuilder.substring(0, logBuilder.length() - 2)));
 				}
 
-				deleteQuery = tableMetadata.createDeleteQuery(filteredColumns);
+				deleteQuery = tableMetadata.getDeleteQuery(filteredColumns);
 				PreparedStatement deleteStatement = conn.prepareStatement(deleteQuery);
 				int paramIndex = 1;
 				for (SumarisColumnMetadata column : columns) {
@@ -687,7 +687,7 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 					log.info(String.format("Removing ALL rows on table {%s}", table.name()));
 				}
 
-				deleteQuery = tableMetadata.createDeleteQuery(null);
+				deleteQuery = tableMetadata.getDeleteQuery(null);
 				PreparedStatement deleteStatement = conn.prepareStatement(deleteQuery);
 				return deleteStatement.executeUpdate();
 			}

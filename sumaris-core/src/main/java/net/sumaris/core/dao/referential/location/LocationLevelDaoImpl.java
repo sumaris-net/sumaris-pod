@@ -25,12 +25,13 @@ package net.sumaris.core.dao.referential.location;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.StatusId;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -47,14 +48,14 @@ public class LocationLevelDaoImpl extends HibernateDaoSupport implements Locatio
     @Override
     public LocationLevel create(LocationLevel level) {
         Preconditions.checkNotNull(level);
-        Preconditions.checkNotNull(level.getId());
+        //Preconditions.checkNotNull(level.getId());
         Preconditions.checkNotNull(level.getLabel());
         Preconditions.checkNotNull(level.getName());
 
 
         // Default value
         if (level.getStatus() == null) {
-            level.setStatus(load(Status.class, StatusId.ENABLE.getId()));
+            level.setStatus(load(Status.class, StatusEnum.ENABLE.getId()));
         }
 
         getEntityManager().persist(level);
@@ -68,8 +69,10 @@ public class LocationLevelDaoImpl extends HibernateDaoSupport implements Locatio
         try {
             return getByLabel(label);
         }
+        catch(NoResultException e) {
+            return null;
+        }
         catch(Exception e) {
-            log.error(e.getMessage(), e);
             return null;
         }
     }

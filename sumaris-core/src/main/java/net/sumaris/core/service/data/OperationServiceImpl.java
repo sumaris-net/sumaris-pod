@@ -29,7 +29,7 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.OperationDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
-import net.sumaris.core.dao.technical.Beans;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.measure.GearUseMeasurement;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;

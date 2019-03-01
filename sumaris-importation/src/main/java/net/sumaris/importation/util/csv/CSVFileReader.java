@@ -2,7 +2,7 @@ package net.sumaris.importation.util.csv;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
+import net.sumaris.core.dao.technical.schema.SumarisHibernateColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.util.type.SequenceIterator;
 import net.sumaris.importation.service.vo.DataLoadError;
@@ -181,18 +181,18 @@ public class CSVFileReader implements FileReader {
 	 * @param description
 	 */
 	protected void addErrorOnce(
-			SumarisTableMetadata tableMetadata, SumarisColumnMetadata colMeta,
-			int columnNumber,
-			ErrorType errorType,
-			String errorCode, String description) {
+            SumarisTableMetadata tableMetadata, SumarisHibernateColumnMetadata colMeta,
+            int columnNumber,
+            ErrorType errorType,
+            String errorCode, String description) {
 		addError(createError(tableMetadata, colMeta, columnNumber, errorType, errorCode, description), true);
 	}
 
 	protected void addError(
-			SumarisTableMetadata tableMetadata, SumarisColumnMetadata colMeta,
-			int columnNumber,
-			ErrorType errorType,
-			String errorCode, String description) {
+            SumarisTableMetadata tableMetadata, SumarisHibernateColumnMetadata colMeta,
+            int columnNumber,
+            ErrorType errorType,
+            String errorCode, String description) {
 
 		addError(createError(tableMetadata, colMeta, columnNumber, errorType, errorCode, description),
 				false);
@@ -225,10 +225,10 @@ public class CSVFileReader implements FileReader {
 	}
 
 	protected DataLoadError createError(
-			SumarisTableMetadata tableMetadata, SumarisColumnMetadata colMeta,
-			int columnNumber,
-			ErrorType errorType,
-			String errorCode, String description) {
+            SumarisTableMetadata tableMetadata, SumarisHibernateColumnMetadata colMeta,
+            int columnNumber,
+            ErrorType errorType,
+            String errorCode, String description) {
 
 		DataLoadError error = DataLoadError.Builder.create(tableMetadata, colMeta, lineCounter.getCurrentValue(), description)
 				.setColumnNumber(columnNumber != -1 ? columnNumber : null)

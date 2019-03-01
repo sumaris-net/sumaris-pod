@@ -4,6 +4,8 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFormat;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +20,7 @@ public interface ExtractionService {
 
 
     @Transactional
-    void executeToFile(TripFilterVO filter, File outputFile);
+    File exportTripsToFile(ExtractionTripFormat format, ExtractionTripFilterVO filter);
 
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> getAllTypes();

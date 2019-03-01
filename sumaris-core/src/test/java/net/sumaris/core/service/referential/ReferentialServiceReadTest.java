@@ -22,7 +22,7 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
-import net.sumaris.core.model.referential.StatusId;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -44,7 +44,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         ReferentialFilterVO filter = new ReferentialFilterVO();
 
         filter.setSearchText("XB");
-        filter.setStatusIds(new Integer[]{StatusId.ENABLE.getId()});
+        filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});
 
         List<ReferentialVO> results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
         Assert.assertNotNull(results);
@@ -56,7 +56,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         ReferentialFilterVO filter = new ReferentialFilterVO();
 
         filter.setSearchText("XB");
-        filter.setStatusIds(new Integer[]{StatusId.DISABLE.getId()});
+        filter.setStatusIds(new Integer[]{StatusEnum.DISABLE.getId()});
 
         List<ReferentialVO> results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
         Assert.assertTrue(CollectionUtils.size(results) == 0);

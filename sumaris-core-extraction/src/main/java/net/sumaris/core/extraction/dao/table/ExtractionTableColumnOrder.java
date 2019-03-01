@@ -1,16 +1,19 @@
 package net.sumaris.core.extraction.dao.table;
 
 import com.google.common.collect.ImmutableMap;
-import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 import net.sumaris.core.model.file.ices.*;
 
 import java.util.Map;
 
+/**
+ * Determine a default order for columns
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
+ */
 public final class ExtractionTableColumnOrder {
 
 
-    public static Map<DatabaseTableEnum, String[]> COLUMNS_BY_TABLE = ImmutableMap.<DatabaseTableEnum, String[]>builder()
-            .put(FileIcesTrip.TABLE, new String[]{
+    public static Map<String, String[]> COLUMNS_BY_TABLE = ImmutableMap.<String, String[]>builder()
+            .put(FileIcesTrip.TABLE.name(), new String[]{
                     FileIcesTrip.COLUMN_SAMPLING_TYPE,
                     FileIcesTrip.COLUMN_VESSEL_FLAG_COUNTRY,
                     FileIcesTrip.COLUMN_LANDING_COUNTRY,
@@ -28,7 +31,7 @@ public final class ExtractionTableColumnOrder {
                     FileIcesTrip.COLUMN_SAMPLING_COUNTRY,
                     FileIcesTrip.COLUMN_SAMPLING_METHOD
             })
-            .put(FileIcesStation.TABLE, new String[]{
+            .put(FileIcesStation.TABLE.name(), new String[]{
                     FileIcesStation.COLUMN_SAMPLING_TYPE,
                     FileIcesStation.COLUMN_VESSEL_FLAG_COUNTRY,
                     FileIcesStation.COLUMN_LANDING_COUNTRY,
@@ -60,7 +63,7 @@ public final class ExtractionTableColumnOrder {
                     FileIcesStation.COLUMN_SELECTION_DEVICE,
                     FileIcesStation.COLUMN_MESH_SIZE_SELECTION_DEVICE
             })
-            .put(FileIcesSpeciesList.TABLE, new String[]{
+            .put(FileIcesSpeciesList.TABLE.name(), new String[]{
                     FileIcesSpeciesList.COLUMN_SAMPLING_TYPE,
                     FileIcesSpeciesList.COLUMN_VESSEL_FLAG_COUNTRY,
                     FileIcesSpeciesList.COLUMN_LANDING_COUNTRY,
@@ -79,7 +82,7 @@ public final class ExtractionTableColumnOrder {
                     FileIcesSpeciesList.COLUMN_SUBSAMPLING_WEIGHT,
                     FileIcesSpeciesList.COLUMN_LENGTH_CODE
             })
-            .put(FileIcesSpeciesLength.TABLE, new String[]{
+            .put(FileIcesSpeciesLength.TABLE.name(), new String[]{
                     FileIcesSpeciesLength.COLUMN_SAMPLING_TYPE,
                     FileIcesSpeciesLength.COLUMN_VESSEL_FLAG_COUNTRY,
                     FileIcesSpeciesLength.COLUMN_LANDING_COUNTRY,
@@ -99,7 +102,7 @@ public final class ExtractionTableColumnOrder {
                     FileIcesSpeciesLength.COLUMN_NUMBER_AT_LENGTH
             })
             // TODO CA
-            .put(FileIcesLandingStatistics.TABLE, new String[]{
+            .put(FileIcesLandingStatistics.TABLE.name(), new String[]{
                     FileIcesLandingStatistics.COLUMN_VESSEL_FLAG_COUNTRY,
                     FileIcesLandingStatistics.COLUMN_LANDING_COUNTRY,
                     FileIcesLandingStatistics.COLUMN_YEAR,

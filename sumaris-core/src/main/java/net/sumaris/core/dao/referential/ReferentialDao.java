@@ -52,6 +52,7 @@ public interface ReferentialDao {
                                      String sortAttribute,
                                      SortDirection sortDirection);
 
+    @Cacheable(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, key = "#entityName:#label", condition = "#entityName == 'LocationLevel'")
     ReferentialVO findByUniqueLabel(String entityName, String label);
 
     <T extends IReferentialEntity> ReferentialVO toReferentialVO(T source);
@@ -64,7 +65,8 @@ public interface ReferentialDao {
             @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#id", condition = "#entityName == 'Person'"),
             @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id", condition = "#entityName == 'Department'"),
             @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
-            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#id", condition = "#entityName == 'Program'")
+            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#id", condition = "#entityName == 'Program'"),
+            @CacheEvict(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'")
     })
     void delete(String entityName, int id);
 

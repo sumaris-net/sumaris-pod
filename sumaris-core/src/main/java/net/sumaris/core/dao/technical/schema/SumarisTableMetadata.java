@@ -26,12 +26,12 @@ package net.sumaris.core.dao.technical.schema;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.mapping.*;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -41,19 +41,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Overrides of the {@link SumarisTableMetadata} with some improvements:
- * <ul>
- * <li>Obtains number of columns via {@link #getColumnsCount()}</li>
- * <li>Obtains all columns names available via {@link #getColumnNames()}</li>
- * <li>Obtains primary key column names via {@link #getPkNames()}</li>
- * </ul>
- * <p/>
- * And others methods used to synchronize referentials:
+ * Metadata on a database table. Useful to request a table:
  * <p/>
  * <ul>
  * <li>Obtains query to update a row of the table (column names order is the one introduced by method {@link #getColumnNames()}: {@link #getUpdateQuery()}</li>
@@ -63,101 +55,74 @@ import java.util.Set;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  * @since 1.0
  */
-public abstract class SumarisTableMetadata {
-
-	protected static final String QUERY_SELECT_MAX_UPDATE = "SELECT max(update_date) FROM %s";
+public class SumarisTableMetadata {
 
 	protected static final String QUERY_INSERT = "INSERT INTO %s (%s) VALUES (%s)";
-
 	protected static final String QUERY_UPDATE = "UPDATE %s SET %s WHERE %s";
-
 	protected static final String QUERY_DELETE = "DELETE FROM %s WHERE %s";
-
 	protected static final String QUERY_SELECT_ALL = "SELECT %s FROM %s %s";
-
 	protected static final String QUERY_SELECT_PRIMARY_KEYS = "SELECT %s FROM %s";
-
 	protected static final String QUERY_SELECT_COUNT_ALL = "SELECT count(*) FROM %s %s";
-
+	protected static final String QUERY_SELECT_MAX = "SELECT max(%s) FROM %s";
 	protected static final String QUERY_HQL_SELECT = "from %s";
 
-	protected final String existingPrimaryKeysQuery;
+	protected final QualifiedTableName tableName;
+	protected String existingPrimaryKeysQuery;
+	protected String maxUpdateDateQuery;
+	protected String countAllQuery;
+	protected Map<String, SumarisColumnMetadata> columns;
+	protected Set<String> pkNames;
+	protected Set<String> notNullNames;
+	protected int[] pkIndexs;
+	protected String selectAllQuery;
+	protected String insertQuery;
+	protected String updateQuery;
+	protected boolean withUpdateDateColumn;
+	protected String sequenceName;
+	protected String sequenceNextValQuery;
+	protected String countDataToUpdateQuery;
+	protected String dataToUpdateQuery;
 
-	private final String maxUpdateDateQuery;
-
-	protected final String countAllQuery;
-
-	protected final Table delegate;
-
-	protected final Map<String, SumarisColumnMetadata> columns;
-
-	protected final Map<String, ForeignKey> foreignKeys;
-
-	protected final Set<String> pkNames;
-
-	protected final Set<String> notNullNames;
-
-	protected final int[] pkIndexs;
-
-	protected final String selectAllQuery;
-
-	protected final String insertQuery;
-
-	protected final String updateQuery;
-
-	protected final String hqlSelectQuery;
-
-	protected final boolean withUpdateDateColumn;
-
-	protected PersistentClass persistentClass;
-
-	protected final String sequenceName;
-
-	protected final String sequenceNextValQuery;
-
-	public abstract String getCountDataToUpdateQueryWithNull();
-
-	public abstract String getDataToUpdateQueryWithNull();
-
-	public abstract String getCountDataToUpdateQuery();
-
-	public abstract String getDataToUpdateQuery();
-
-	public abstract boolean useUpdateDateColumn();
-
-	public SumarisTableMetadata(Table delegate,
-								SumarisDatabaseMetadata dbMeta,
-								DatabaseMetaData jdbcDbMeta,
-								PersistentClass persistentClass) throws SQLException{
-		Preconditions.checkNotNull(delegate);
+	protected SumarisTableMetadata(QualifiedTableName tableName,
+								   SumarisDatabaseMetadata dbMeta,
+								   DatabaseMetaData jdbcDbMeta) throws SQLException{
+		Preconditions.checkNotNull(tableName);
 		Preconditions.checkNotNull(dbMeta);
 		Preconditions.checkNotNull(jdbcDbMeta);
 
-		this.delegate = delegate;
-		this.persistentClass = persistentClass;
+		this.tableName = tableName;
 
+		init(dbMeta, jdbcDbMeta);
+	}
+
+	protected void init(SumarisDatabaseMetadata dbMeta, DatabaseMetaData jdbcDbMeta) throws SQLException {
 		try {
-			this.columns = initColumns(delegate, jdbcDbMeta);
-			this.foreignKeys = initForeignKeys(delegate);
-			this.withUpdateDateColumn = columns.containsKey("update_date");
-			this.pkNames = initPrimaryKeys(delegate);
+			// Retrieve some data on the table
+			this.columns = initColumns(tableName, jdbcDbMeta);
+			this.withUpdateDateColumn = columns.containsKey(dbMeta.getDefaultUpdateDateColumnName().toLowerCase());
+			this.pkNames = initPrimaryKeys(jdbcDbMeta);
 			Preconditions.checkNotNull(pkNames);
 			this.pkIndexs = createPkIndex();
 			this.notNullNames = initNotNull(this.columns);
 
+			// Create basic SQL queries (select/insert/update)
 			this.countAllQuery = createAllCountQuery();
 			this.selectAllQuery = createSelectAllQuery();
 			this.insertQuery = createInsertQuery();
 			this.updateQuery = createUpdateQuery();
-			this.maxUpdateDateQuery = String.format(QUERY_SELECT_MAX_UPDATE, getName());
 			this.existingPrimaryKeysQuery = String.format(QUERY_SELECT_PRIMARY_KEYS, Joiner.on(',').join(pkNames), getName());
 
-			this.hqlSelectQuery = persistentClass != null ? String.format(QUERY_HQL_SELECT, this.persistentClass.getEntityName()) : null;
+			// Create SQL queries using the update date column (if exists on table)
+			this.dataToUpdateQuery = createSelectAllToUpdateQuery(dbMeta);
+			this.countDataToUpdateQuery = createCountDataToUpdateQuery(dbMeta);
+			this.maxUpdateDateQuery = String.format(QUERY_SELECT_MAX, dbMeta.getDefaultUpdateDateColumnName(), getName());
+
+			// Retrieve how to generate an identifier
 			this.sequenceName = initSequenceName(dbMeta);
 			this.sequenceNextValQuery = createSequenceNextValQuery(dbMeta.getDialect());
 
 		} catch (Exception e) {
-			throw new SQLException("Could not init metadata on table " + delegate.getName(), e);
+			throw new SQLException("Could not init metadata on table " + getName(), e);
 		}
 	}
 
@@ -177,16 +142,12 @@ public abstract class SumarisTableMetadata {
 		return columns.size();
 	}
 
-	public SortedSet<String> getColumnNames() {
-		return Sets.newTreeSet(columns.keySet());
+	public Set<String> getColumnNames() {
+		return columns.keySet();
 	}
 
 	public String getName() {
-		return delegate.getName();
-	}
-
-	public ForeignKey getForeignKeyMetadata(Table.ForeignKeyKey fk) {
-		return delegate.getForeignKeys().get(fk);
+		return tableName.getTableName().getText();
 	}
 
 	public SumarisColumnMetadata getColumnMetadata(String columnName) {
@@ -195,19 +156,11 @@ public abstract class SumarisTableMetadata {
 	}
 
 	public String getSchema() {
-		return delegate.getSchema();
+		return tableName.getSchemaName().getText();
 	}
 
 	public String getCatalog() {
-		return delegate.getCatalog();
-	}
-
-	public ForeignKey getForeignKeyMetadata(String keyName) {
-		return foreignKeys.get(keyName);
-	}
-
-	public Index getIndexMetadata(String indexName) {
-		return delegate.getIndex(indexName);
+		return tableName.getCatalogName().getText();
 	}
 
 	/**
@@ -241,34 +194,6 @@ public abstract class SumarisTableMetadata {
 		return createInsertQuery(columnNames);
 	}
 
-	public String getInsertQuery(SumarisColumnMetadata[] columns) {
-		Preconditions.checkNotNull(columns);
-		LinkedHashSet<String> columnNames = Sets.newLinkedHashSetWithExpectedSize(columns.length + 1);
-
-		// Retrieve identifier columns
-		List<String> pkColumnNames = Lists.newArrayList();
-		for(Iterator propertyIterator = this.delegate.getIdentifierValue().getColumnIterator();
-			propertyIterator.hasNext(); ) {
-			Column column = (Column) propertyIterator.next();
-			pkColumnNames.add(column.getName());
-		}
-
-		columnNames.addAll(pkColumnNames);
-		if (pkColumnNames.size() > 1) {
-			throw new DataIntegrityViolationException("Could not compute a sql insert query when more than one identifier, for table: "
-					+ this.getName());
-		}
-
-		// Add given columns
-		for (SumarisColumnMetadata column : columns) {
-			// If column is not empty (column could be skip)
-			if (column != null) {
-				columnNames.add(column.getName());
-			}
-		}
-
-		return createInsertQuery(columnNames);
-	}
 
 	public String getUpdateQuery() {
 		return updateQuery;
@@ -290,96 +215,105 @@ public abstract class SumarisTableMetadata {
 		return pkIndexs;
 	}
 
-	public String getSelectHQLQuery() {
-		return hqlSelectQuery;
-	}
-
 	public String getSequenceNextValQuery() {
 		return sequenceNextValQuery;
 	}
 
-	protected Set<String> initPrimaryKeys(Table delegate) {
-		Map<String, Column> result = Maps.newLinkedHashMap();
-		for(Iterator propertyIterator = delegate.getPrimaryKey().getColumnIterator();
-			propertyIterator.hasNext(); ) {
-			Column column = (Column) propertyIterator.next();
-			result.put(column.getName(), column);
-		}
-
-		return result.keySet();
+	public String getDataToUpdateQuery() {
+		return dataToUpdateQuery;
 	}
 
-//	protected Set<String> initPrimaryKeys(DatabaseMetaData meta) throws SQLException {
-//
-//		Set<String> result = Sets.newHashSet();
-//		ResultSet rs = meta.getPrimaryKeys(getCatalog(), getSchema(), getName());
-//		try {
-//
-//			while (rs.next()) {
-//				result.add(rs.getString("COLUMN_NAME").toLowerCase());
-//			}
-//			rs.close();
-//			return ImmutableSet.copyOf(result);
-//		} finally {
-//			//closeSilency
-//		}
-//	}
+	public String getCountDataToUpdateQuery() {
+		return countDataToUpdateQuery;
+	}
 
-	protected Map<String, SumarisColumnMetadata> initColumns(Table delegate, DatabaseMetaData jdbcDbMeta) throws SQLException {
-		Map<String, Column> columns = Maps.newLinkedHashMap();
-		for(Iterator propertyIterator = delegate.getColumnIterator();
-			propertyIterator.hasNext(); ) {
-			Column column = (Column) propertyIterator.next();
-			columns.put(column.getName().toLowerCase(), column);
+	public String getInsertQuery(SumarisColumnMetadata[] columns) {
+		Preconditions.checkNotNull(columns);
+		LinkedHashSet<String> columnNames = Sets.newLinkedHashSetWithExpectedSize(columns.length + 1);
+
+		Set<String> pkColumnNames = getPkNames();
+		if (pkColumnNames.size() > 1) {
+			throw new DataIntegrityViolationException("Could not compute a sql insert query when more than one identifier, for table: "
+					+ this.getName());
+		}
+		columnNames.addAll(pkColumnNames);
+
+		// Add given columns
+		for (SumarisColumnMetadata column : columns) {
+			// If column is not empty (column could be skip)
+			if (column != null) {
+				columnNames.add(column.getName());
+			}
 		}
 
-		Map<String, SumarisColumnMetadata> result = Maps.newLinkedHashMap();
+		return createInsertQuery(columnNames);
+	}
 
-		ResultSet rs = null;
+	public String getDeleteQuery(String[] columnNames) {
+
+		String whereClause = null;
+		if (columnNames == null || columnNames.length == 0) {
+			whereClause = "1==1";
+		} else {
+			StringBuilder whereClauseBuilder = new StringBuilder();
+			for (String columnName : columnNames) {
+				whereClauseBuilder.append("AND ").append(columnName).append(" = ?");
+			}
+			whereClause = whereClauseBuilder.substring(4);
+		}
+
+		String result = String.format(QUERY_DELETE,
+				getName().toUpperCase(),
+				whereClause);
+		return result;
+	}
+
+	/* -- protected methods -- */
+
+	protected Set<String> initPrimaryKeys(DatabaseMetaData jdbcDbMeta) throws SQLException {
+
+		Set<String> result = Sets.newHashSet();
+		ResultSet rs = jdbcDbMeta.getPrimaryKeys(getCatalog(), getSchema(), getName().toUpperCase());
+		try {
+			while (rs.next()) {
+				result.add(rs.getString("COLUMN_NAME").toLowerCase());
+			}
+			rs.close();
+			return ImmutableSet.copyOf(result);
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+		}
+	}
+
+
+	protected Map<String, SumarisColumnMetadata> initColumns(QualifiedTableName tableName, DatabaseMetaData jdbcDbMeta) throws SQLException {
+
+		Map<String, SumarisColumnMetadata> result = Maps.newLinkedHashMap();
+		ResultSet rs = jdbcDbMeta.getColumns(getCatalog(), getSchema(), getName().toUpperCase(), "%");
 
 		try {
-
-			rs = jdbcDbMeta.getColumns(delegate.getCatalog(), delegate.getSchema(), delegate.getName().toUpperCase(), "%");
-
 			while(rs.next()) {
 				String columnName = rs.getString("COLUMN_NAME").toLowerCase();
-				Column column = columns.get(columnName);
-				if (column != null) {
-					String defaultValue = SumarisConfiguration.getInstance().getColumnDefaultValue(getName(), columnName);
-					Number position = rs.getInt("ORDINAL_POSITION");
+				String defaultValue = SumarisConfiguration.getInstance().getColumnDefaultValue(getName(), columnName);
 
-					SumarisColumnMetadata columnMeta = new SumarisColumnMetadata(rs, column, null, defaultValue);
-					result.put(columnName.toLowerCase(), columnMeta);
-				}
+				// Create column meta
+				SumarisColumnMetadata columnMeta = new SumarisColumnMetadata(rs, defaultValue);
+				result.put(columnName.toLowerCase(), columnMeta);
 			}
-
-
 		}
 		finally {
 			if (rs != null) {
 				rs.close();
 			}
-
 		}
 		if (result.size() == 0) {
-			throw new RuntimeException("Unable to load columns metadata on table " + delegate.getName());
+			throw new RuntimeException("Unable to load columns metadata on table " + getName());
 		}
 
 		return result;
 	}
-
-	protected Map<String, ForeignKey> initForeignKeys(Table delegate) {
-		Map<String, ForeignKey> result = Maps.newLinkedHashMap();
-		for(Iterator foreignKeyIterator = delegate.getForeignKeyIterator();
-			foreignKeyIterator.hasNext(); ) {
-			ForeignKey foreignKey = (ForeignKey) foreignKeyIterator.next();
-
-			result.put(foreignKey.getName().toLowerCase(), foreignKey);
-		}
-
-		return result;
-	}
-
 
 	protected Set<String> initNotNull(Map<String, SumarisColumnMetadata> columns) {
 		Set<String> result = Sets.newHashSet();
@@ -462,6 +396,9 @@ public abstract class SumarisTableMetadata {
 
 	protected String createUpdateQuery() {
 
+		// Skip if no PK (if no pk - e.g. extraction tables)
+		if (CollectionUtils.isEmpty(getPkNames())) return null;
+
 		StringBuilder updateParams = new StringBuilder();
 		StringBuilder pkParams = new StringBuilder();
 
@@ -477,25 +414,6 @@ public abstract class SumarisTableMetadata {
 										getName(),
 										updateParams.substring(2),
 										pkParams.substring(4));
-		return result;
-	}
-
-	public String createDeleteQuery(String[] columnNames) {
-
-		String whereClause = null;
-		if (columnNames == null || columnNames.length == 0) {
-			whereClause = "1==1";
-		} else {
-			StringBuilder whereClauseBuilder = new StringBuilder();
-			for (String columnName : columnNames) {
-				whereClauseBuilder.append("AND ").append(columnName).append(" = ?");
-			}
-			whereClause = whereClauseBuilder.substring(4);
-		}
-
-		String result = String.format(QUERY_DELETE,
-										getName().toUpperCase(),
-										whereClause);
 		return result;
 	}
 
@@ -539,7 +457,7 @@ public abstract class SumarisTableMetadata {
 	/**
 	 * <p>initSequenceName.</p>
 	 *
-	 * @param dbMeta a {@link fr.ifremer.common.synchro.meta.SynchroDatabaseMetadata} object.
+	 * @param dbMeta a {@link SumarisDatabaseMetadata} object.
 	 * @return a {@link java.lang.String} object.
 	 */
 	protected String initSequenceName(SumarisDatabaseMetadata dbMeta) {
@@ -582,4 +500,42 @@ public abstract class SumarisTableMetadata {
 		}
 		return dialect.getSequenceNextValString(sequenceName);
 	}
+
+	protected String createSelectAllToUpdateQuery(SumarisDatabaseMetadata dbMeta) {
+		String tableAlias = "t";
+		String query = String.format(QUERY_SELECT_ALL,
+				createSelectParams(tableAlias),
+				getName(),
+				tableAlias);
+
+		// add a filter on update date column
+		if (isWithUpdateDateColumn()) {
+
+			String updateDateColumn = dbMeta.getDefaultUpdateDateColumnName();
+
+			query += String.format(" WHERE (%s.%s IS NULL OR %s.%s > ?)",
+					tableAlias, updateDateColumn,
+					tableAlias, updateDateColumn);
+		}
+		return query;
+	}
+
+	protected String createCountDataToUpdateQuery(SumarisDatabaseMetadata dbMeta) {
+		String tableAlias = "t";
+		String query = String.format(QUERY_SELECT_COUNT_ALL,
+				getName(),
+				tableAlias);
+
+		// add a filter on update date column
+		if (isWithUpdateDateColumn()) {
+
+			String updateDateColumn = dbMeta.getDefaultUpdateDateColumnName();
+
+			query += String.format(" WHERE (%s.%s IS NULL OR %s.%s > ?)",
+					tableAlias, updateDateColumn,
+					tableAlias, updateDateColumn);
+		}
+		return query;
+	}
+
 }

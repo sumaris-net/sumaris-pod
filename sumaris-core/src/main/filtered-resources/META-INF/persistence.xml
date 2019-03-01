@@ -42,7 +42,7 @@
     <class>net.sumaris.core.model.referential.QualityFlag</class>
     <class>net.sumaris.core.model.referential.SaleType</class>
     <class>net.sumaris.core.model.referential.Status</class>
-    <class>net.sumaris.core.model.referential.StatusId</class>
+    <class>net.sumaris.core.model.referential.StatusEnum</class>
     <class>net.sumaris.core.model.referential.pmfm.Unit</class>
     <class>net.sumaris.core.model.referential.UserProfile</class>
     <class>net.sumaris.core.model.referential.UserProfileEnum</class>

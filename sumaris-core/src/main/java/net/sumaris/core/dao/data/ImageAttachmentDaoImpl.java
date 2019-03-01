@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
-import net.sumaris.core.dao.technical.Beans;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.ImageAttachment;

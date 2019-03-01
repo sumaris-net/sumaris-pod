@@ -23,8 +23,8 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.technical.Beans;
-import net.sumaris.core.dao.technical.Dates;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.model.administration.user.UserSettings;

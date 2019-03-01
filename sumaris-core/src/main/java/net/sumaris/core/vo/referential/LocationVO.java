@@ -26,4 +26,6 @@ import lombok.Data;
 
 @Data
 public class LocationVO extends ReferentialVO {
+
+    private Integer validityStatusId;
 }

@@ -25,19 +25,15 @@ package net.sumaris.core.service.data.batch;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import net.sumaris.core.dao.administration.programStrategy.StrategyDao;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.batch.BatchDao;
-import net.sumaris.core.dao.referential.PmfmDao;
-import net.sumaris.core.dao.technical.Beans;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.model.data.batch.BatchQuantificationMeasurement;
 import net.sumaris.core.model.data.batch.BatchSortingMeasurement;
 import net.sumaris.core.model.data.measure.IMeasurementEntity;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.referential.PmfmVO;
-import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +42,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service("batchService")

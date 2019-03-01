@@ -23,9 +23,8 @@ package net.sumaris.core.dao.referential.taxon;
  */
 
 import com.google.common.collect.ImmutableList;
-import net.sumaris.core.dao.technical.Beans;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;

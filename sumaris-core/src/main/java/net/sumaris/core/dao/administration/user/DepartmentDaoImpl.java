@@ -23,7 +23,7 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.technical.Beans;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;

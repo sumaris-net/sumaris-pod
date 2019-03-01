@@ -29,7 +29,7 @@ import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
-import net.sumaris.core.model.referential.StatusId;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -100,7 +100,7 @@ public class PersonServiceImpl implements PersonService {
 
 		return personDao.getEmailsByProfiles(
 				ImmutableList.copyOf(userProfiles).stream().map(up -> up.id).collect(Collectors.toList()),
-				ImmutableList.of(StatusId.ENABLE.getId())
+				ImmutableList.of(StatusEnum.ENABLE.getId())
 		);
 	}
 

@@ -26,13 +26,9 @@ package net.sumaris.core.extraction.dao.table;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
-import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
-import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
-import net.sumaris.core.dao.technical.schema.SumarisEntityTableMetadata;
+import net.sumaris.core.dao.technical.schema.*;
+import net.sumaris.core.extraction.dao.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.vo.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -48,15 +44,15 @@ import java.sql.Types;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Allow to export rows from a table (in VO), with metadata on each columns
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
+ */
 @Repository("extractionTableDao")
 @Lazy
-public class ExtractionTableDaoImpl extends HibernateDaoSupport implements ExtractionTableDao {
+public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements ExtractionTableDao {
 
 	private static final Logger log = LoggerFactory.getLogger(ExtractionTableDaoImpl.class);
-
-
-	@Autowired
-	protected SumarisConfiguration config;
 
 	@Autowired
 	protected SumarisDatabaseMetadata databaseMetadata;
@@ -67,16 +63,15 @@ public class ExtractionTableDaoImpl extends HibernateDaoSupport implements Extra
 	}
 
 	@Override
-	public ExtractionResultVO getTable(DatabaseTableEnum table) {
-		return getTableRows(table, null, 0, 0, null, null);
+	public ExtractionResultVO getTable(String tableName) {
+		return getTableRows(tableName, null, 0, 0, null, null);
 	}
 
 	@Override
-	public ExtractionResultVO getTableRows(DatabaseTableEnum tableEnum, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
-		Preconditions.checkNotNull(tableEnum);
-		String tableName = tableEnum.name().toLowerCase();
+	public ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
+		Preconditions.checkNotNull(tableName);
 
-		SumarisEntityTableMetadata table = databaseMetadata.getEntityTable(tableName);
+		SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
 		Preconditions.checkNotNull(table, "Unknown table: " + tableName);
 
 		ExtractionResultVO result = new ExtractionResultVO();
@@ -93,7 +88,7 @@ public class ExtractionTableDaoImpl extends HibernateDaoSupport implements Extra
 		result.setColumns(columns);
 
 		// Compute the rank order
-		String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableEnum);
+		String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableName);
 		if (ArrayUtils.isNotEmpty(orderedColumnNames)) {
 			int maxRankOrder = -1;
 			for (ExtractionColumnMetadataVO column : columns) {
@@ -125,12 +120,9 @@ public class ExtractionTableDaoImpl extends HibernateDaoSupport implements Extra
 		return result;
 	}
 
-
-
-
 	/* -- protected method -- */
 
-	protected Number getRowCount(SumarisEntityTableMetadata table, String whereClause) {
+	protected Number getRowCount(SumarisTableMetadata table, String whereClause) {
 
 		String sql = table.getCountAllQuery();
 
@@ -144,7 +136,7 @@ public class ExtractionTableDaoImpl extends HibernateDaoSupport implements Extra
 		return total;
 	}
 
-	protected List<String[]> getRows(SumarisEntityTableMetadata table, String whereClause, int offset, int size, String sort, SortDirection direction) {
+	protected List<String[]> getRows(SumarisTableMetadata table, String whereClause, int offset, int size, String sort, SortDirection direction) {
 
 		String tableAlias = "t";
 
@@ -222,7 +214,7 @@ public class ExtractionTableDaoImpl extends HibernateDaoSupport implements Extra
 				|| column.getTypeCode() == Types.FLOAT;
 	}
 
-	protected String getSqlWhereClause(SumarisEntityTableMetadata table, ExtractionFilterVO filter) {
+	protected String getSqlWhereClause(SumarisTableMetadata table, ExtractionFilterVO filter) {
 
 		if (CollectionUtils.isEmpty(filter.getCriteria())) return "";
 
