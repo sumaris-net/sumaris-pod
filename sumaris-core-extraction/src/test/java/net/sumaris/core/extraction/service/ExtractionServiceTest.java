@@ -1,7 +1,11 @@
 package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.extraction.dao.DatabaseResource;
+
+import java.awt.font.FontRenderContext;
 import java.io.File;
+
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -28,9 +32,18 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void executeToFile() {
+    public void exportTripToFileIces() {
 
-        service.executeToFile(null, new File("target", String.format("EXT_%s.csv", System.currentTimeMillis())));
+        // ICES export:
+        service.exportTripsToFile(ExtractionTripFormat.ICES, null);
 
     }
+
+    @Test
+    public void exportTripToFileSurvivalTest() {
+
+        // Survival test:
+        service.exportTripsToFile(ExtractionTripFormat.SURVIVAL_TEST, null);
+    }
+
 }

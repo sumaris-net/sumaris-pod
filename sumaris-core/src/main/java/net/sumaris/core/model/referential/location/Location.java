@@ -25,6 +25,7 @@ package net.sumaris.core.model.referential.location;
 import lombok.Data;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.ValidityStatus;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -60,10 +61,20 @@ public class Location implements IItemReferentialEntity {
 
     private String description;
 
+    private Float bathymetry;
+
+    private Short utFormat;
+
+    private Boolean daylightSavingTime;
+
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = LocationLevel.class)
     @JoinColumn(name = "location_level_fk")
     private LocationLevel locationLevel;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "validity_status_fk", nullable = false)
+    private ValidityStatus validityStatus;
 }

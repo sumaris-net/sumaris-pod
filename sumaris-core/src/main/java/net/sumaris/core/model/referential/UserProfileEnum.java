@@ -27,40 +27,49 @@ import java.util.Optional;
 
 public enum UserProfileEnum {
 
-  ADMIN(1, "ADMIN"),
-  USER(2, "USER"),
-  SUPERVISOR(3, "SUPERVISOR"),
-  GUEST(4, "GUEST");
+    ADMIN(1, "ADMIN"),
+    USER(2, "USER"),
+    SUPERVISOR(3, "SUPERVISOR"),
+    GUEST(4, "GUEST");
 
-  public final int id;
-  public final String label;
+    public static UserProfileEnum valueOf(final int id) {
+        return Arrays.stream(values())
+                .filter(level -> level.id == id)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown UserProfileEnum: " + id));
+    }
 
-  UserProfileEnum(int id, String label) {
+
+    public static Optional<String> getLabelById(int id) {
+        Optional<UserProfileEnum> enumValue = Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
+        return enumValue.map(Enum::toString);
+    }
+
+    public final int id;
+    public final String label;
+
+    UserProfileEnum(int id, String label) {
       this.id = id;
       this.label = label;
-  }
+    }
 
-  public static String byId(int id) {
-      Optional<UserProfileEnum> enumValue = Arrays.stream(values()).filter(userProfileEnum -> userProfileEnum.id == id).findFirst();
-      return enumValue.map(Enum::toString).orElse(null);
-  }
 
-  /**
-  * Returns the database row id
-  *
-  * @return int the id
-  */
-  public String getLabel()
+    /**
+    * Returns the database row id
+    *
+    * @return int the id
+    */
+    public String getLabel()
     {
         return this.label;
     }
 
-  /**
+    /**
      * Returns the database row id
      *
      * @return int the id
      */
-  public int getId()
+    public int getId()
     {
         return this.id;
     }

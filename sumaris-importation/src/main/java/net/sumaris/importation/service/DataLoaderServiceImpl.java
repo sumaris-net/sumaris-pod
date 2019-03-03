@@ -3,7 +3,7 @@ package net.sumaris.importation.service;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
-import net.sumaris.core.util.file.FileUtils;
+import net.sumaris.core.util.Files;
 import net.sumaris.importation.dao.DataLoaderDao;
 import net.sumaris.importation.exception.FileValidationException;
 import net.sumaris.importation.util.csv.CSVFileReader;
@@ -47,7 +47,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 	public void load(File inputFile, DatabaseTableEnum table, boolean validate) throws IOException,
 			FileValidationException {
 		DataLoadError[] errors;
-		FileUtils.checkExists(inputFile);
+		Files.checkExists(inputFile);
 
 		// Validate if need
 		if (validate) {
@@ -70,7 +70,7 @@ public class DataLoaderServiceImpl implements DataLoaderService {
 
 	@Override
 	public void validate(File inputFile, DatabaseTableEnum table) throws IOException, FileValidationException {
-		FileUtils.checkExists(inputFile);
+		Files.checkExists(inputFile);
 
 		FileReader reader = new CSVFileReader(inputFile, true);
 

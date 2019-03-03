@@ -38,7 +38,7 @@ import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.hibernate.HibernateImplicitNamingStrategy;
 import net.sumaris.core.dao.technical.hibernate.HibernatePhysicalNamingStrategy;
 import net.sumaris.core.dao.technical.liquibase.Liquibase;
-import net.sumaris.core.dao.technical.spring.Springs;
+import net.sumaris.core.util.Springs;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;

@@ -22,7 +22,7 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.Dates;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;

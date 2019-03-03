@@ -23,10 +23,12 @@ package net.sumaris.core.dao.referential.location;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.technical.Beans;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.StatusId;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.ValidityStatus;
+import net.sumaris.core.model.referential.ValidityStatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -91,24 +93,48 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
 
         TypedQuery<Location> q = getEntityManager().createQuery(query)
                 .setParameter(levelIdParam, locationLevelId);
-        return q.getResultList().stream().map(this::toLocationVO).collect(Collectors.toList());
+        return q.getResultStream().map(this::toLocationVO).collect(Collectors.toList());
     }
 
     @Override
     public Location create(Location location) {
         Preconditions.checkNotNull(location);
-        Preconditions.checkNotNull(location.getId());
         Preconditions.checkNotNull(location.getLabel());
         Preconditions.checkNotNull(location.getName());
 
-        // Default value
+        // Default status
         if (location.getStatus() == null) {
-            location.setStatus(load(Status.class, StatusId.ENABLE.getId()));
+            location.setStatus(load(Status.class, StatusEnum.ENABLE.getId()));
+        }
+
+        // Default validity status
+        if (location.getValidityStatus() == null) {
+            location.setValidityStatus(load(ValidityStatus.class, ValidityStatusEnum.VALID.getId()));
         }
 
         getEntityManager().persist(location);
 
         return location;
+    }
+
+    @Override
+    public Location update(Location location) {
+        Preconditions.checkNotNull(location);
+        Preconditions.checkNotNull(location.getId());
+        Preconditions.checkNotNull(location.getLabel());
+        Preconditions.checkNotNull(location.getName());
+
+        // Default status
+        if (location.getStatus() == null) {
+            location.setStatus(load(Status.class, StatusEnum.ENABLE.getId()));
+        }
+
+        // Default validity status
+        if (location.getValidityStatus() == null) {
+            location.setValidityStatus(load(ValidityStatus.class, ValidityStatusEnum.VALID.getId()));
+        }
+
+        return getEntityManager().merge(location);
     }
 
     @Override
@@ -125,6 +151,10 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
 
         if (source.getStatus() != null) {
             target.setStatusId(source.getStatus().getId());
+        }
+
+        if (source.getValidityStatus() != null) {
+            target.setValidityStatusId(source.getValidityStatus().getId());
         }
 
         return target;

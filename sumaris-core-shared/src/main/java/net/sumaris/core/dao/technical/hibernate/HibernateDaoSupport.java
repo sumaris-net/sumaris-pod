@@ -28,7 +28,7 @@ package net.sumaris.core.dao.technical.hibernate;
 import com.google.common.collect.Multimap;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.Dates;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.dao.technical.model.IEntityBean;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.BadUpdateDateException;

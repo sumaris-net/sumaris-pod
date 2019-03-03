@@ -26,10 +26,13 @@ package net.sumaris.core.service.referential;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +82,15 @@ public class ReferentialServiceImpl implements ReferentialService {
 		Preconditions.checkNotNull(entityName);
 		Preconditions.checkNotNull(label);
 		return referentialDao.findByUniqueLabel(entityName, label);
+	}
+
+	@Override
+	public Integer getIdByUniqueLabel(Class<? extends IItemReferentialEntity> entityClass, String label) {
+		Preconditions.checkNotNull(entityClass);
+		Preconditions.checkNotNull(label);
+		ReferentialVO entity = referentialDao.findByUniqueLabel(entityClass.getSimpleName(), label);
+		if (entity == null) throw new DataNotFoundException(I18n.t("sumaris.error.entity.notfoundByLabel", entityClass.getSimpleName(), label));
+		return entity.getId();
 	}
 
 	@Override

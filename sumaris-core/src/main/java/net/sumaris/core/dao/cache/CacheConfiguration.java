@@ -110,11 +110,6 @@ public class CacheConfiguration {
     }
 
     @Bean
-    public EhCacheFactoryBean entityNamesCache() {
-        return Caches.createEternalHeapCache(ehcache(), CacheNames.REFERENTIAL_TYPES, 600);
-    }
-
-    @Bean
     public EhCacheFactoryBean pmfmByIdCache() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.PMFM_BY_ID, 600);
     }
@@ -122,6 +117,16 @@ public class CacheConfiguration {
     @Bean
     public EhCacheFactoryBean taxonNameByTaxonReferenceId() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean referentialTypesCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.REFERENTIAL_TYPES, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean referentialLevelByUniqueLabel() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, 600);
     }
 
     /* protected */

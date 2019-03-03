@@ -83,6 +83,8 @@ public class SumarisDatabaseMetadata {
 
 	protected boolean isQuoted = false;
 
+	protected String defaultUpdateDateColumnName;
+
 	@Autowired
 	public SumarisDatabaseMetadata(DataSource dataSource, SumarisConfiguration configuration) {
 		super();
@@ -97,6 +99,8 @@ public class SumarisDatabaseMetadata {
 		this.defaultCatalogName = configuration.getJdbcCatalog();
 		this.sequenceSuffix = configuration.getSequenceSuffix();
 
+		this.defaultUpdateDateColumnName = "update_date"; // TODO: load it from configuration
+
 		tables = Maps.newTreeMap();
 		entities = Maps.newHashMap();
 
@@ -107,14 +111,8 @@ public class SumarisDatabaseMetadata {
 		return getTable(name, defaultSchemaName, defaultCatalogName);
 	}
 
-	public SumarisEntityTableMetadata getEntityTable(String name) throws HibernateException {
-		SumarisTableMetadata table = getTable(name);
-		return (SumarisEntityTableMetadata) table;
-	}
-
-	public SumarisAssociationTableMetadata getAssociationTable(String name) throws HibernateException {
-		SumarisTableMetadata table = getTable(name);
-		return (SumarisAssociationTableMetadata) table;
+	public SumarisHibernateTableMetadata getHibernateTable(String name) throws HibernateException {
+		return (SumarisHibernateTableMetadata) getTable(name);
 	}
 
 	public int getTableCount() {
@@ -141,12 +139,15 @@ public class SumarisDatabaseMetadata {
 		return dialect;
 	}
 
-	public String getQualifiedTableName(String catalog, String schema, String tableName) {
+	public QualifiedTableName getQualifiedTableName(String catalog, String schema, String tableName) {
 		return new QualifiedTableName(
 				new Identifier(catalog, isQuoted),
 				new Identifier(schema, isQuoted),
-				new Identifier(tableName, isQuoted))
-				.render().toLowerCase();
+				new Identifier(tableName, isQuoted));
+	}
+
+	public String getDefaultUpdateDateColumnName() {
+		return defaultUpdateDateColumnName;
 	}
 
 	/* -- protected methods -- */
@@ -221,7 +222,7 @@ public class SumarisDatabaseMetadata {
 
 			String catalog = StringUtils.isBlank(table.getCatalog()) ? defaultCatalogName : table.getCatalog();
 			String schema = StringUtils.isBlank(table.getSchema()) ? defaultSchemaName : table.getSchema();
-			String qualifiedTableName = getQualifiedTableName(catalog, schema, table.getName());
+			String qualifiedTableName = getQualifiedTableName(catalog, schema, table.getName()).render().toLowerCase();
 			persistentClassMap.put(qualifiedTableName, persistentClass);
 
 			for(Iterator propertyIterator = persistentClass.getPropertyIterator();
@@ -250,7 +251,7 @@ public class SumarisDatabaseMetadata {
 				if (log.isDebugEnabled()) {
 					log.debug("Load metas of table: " + tableName);
 				}
-				String qualifiedTableName = getQualifiedTableName(defaultCatalogName, defaultSchemaName, tableName);
+				String qualifiedTableName = getQualifiedTableName(defaultCatalogName, defaultSchemaName, tableName).render().toLowerCase();
 				PersistentClass persistentClass = persistentClassMap.get(qualifiedTableName);
 				entities.put(qualifiedTableName, persistentClass);
 
@@ -266,53 +267,59 @@ public class SumarisDatabaseMetadata {
 		}
 	}
 
-	protected SumarisTableMetadata getTable(String name,
-											String schema,
-											String catalog,
+	protected SumarisTableMetadata getTable(QualifiedTableName qualifiedTableName,
 											DatabaseMetaData jdbcMeta,
 											PersistentClass persistentClass) throws HibernateException, SQLException {
+		Preconditions.checkNotNull(qualifiedTableName);
 		Preconditions.checkNotNull(jdbcMeta);
 
-		String qualifiedTableName = getQualifiedTableName(catalog, schema, name);
-		SumarisTableMetadata sumarisTableMetadata = tables.get(qualifiedTableName);
+		String fullTableName = qualifiedTableName.render().toLowerCase();
+		SumarisTableMetadata sumarisTableMetadata = tables.get(fullTableName);
 		if (sumarisTableMetadata == null) {
-
+			// Try to retrieve the persistence class
 			if (persistentClass == null) {
-				persistentClass = entities.get(qualifiedTableName);
-				Preconditions.checkNotNull(persistentClass,
-						"Could not find db table " + name);
+				persistentClass = entities.get(fullTableName);
 			}
-			Table table = persistentClass.getTable();
-			table.setCatalog("PUBLIC");
-			table.setSchema("PUBLIC");
-			DatabaseTableEnum tableEnum = DatabaseTableEnum.valueOf(name.toUpperCase());
-			Preconditions.checkNotNull(tableEnum,
-					"Could not find db table " + tableEnum);
-			if (tableEnum.isAssociation()) {
-				sumarisTableMetadata = new SumarisAssociationTableMetadata(table, this, jdbcMeta);
-			} else {
-				sumarisTableMetadata = new SumarisEntityTableMetadata(table, this, jdbcMeta, persistentClass);
+
+			// If persistence class exists
+			if (persistentClass != null) {
+				// Get the table mapping
+				Table table = persistentClass.getTable();
+				table.setCatalog(qualifiedTableName.getCatalogName().getText());
+				table.setSchema(qualifiedTableName.getSchemaName().getText());
+				sumarisTableMetadata = new SumarisHibernateTableMetadata(table, this, jdbcMeta, persistentClass);
 			}
-			Preconditions.checkNotNull(sumarisTableMetadata,
-					"Could not find db table " + name);
-			tables.put(qualifiedTableName, sumarisTableMetadata);
+
+			// No persistence class: load as JDBC table
+			else {
+				sumarisTableMetadata = new SumarisTableMetadata(qualifiedTableName, this, jdbcMeta);
+			}
+
+			tables.put(fullTableName, sumarisTableMetadata);
 		}
 		return sumarisTableMetadata;
 	}
 
 	protected SumarisTableMetadata getTable(String name,
 											String schema,
+											String catalog,
+											DatabaseMetaData jdbcMeta,
+											PersistentClass persistentClass) throws HibernateException, SQLException {
+		return getTable(getQualifiedTableName(catalog, schema, name), jdbcMeta, persistentClass);
+	}
+
+	protected SumarisTableMetadata getTable(String name,
+											String schema,
 											String catalog) throws HibernateException {
-		String qualifiedTableName = getQualifiedTableName(catalog, schema, name);
-		SumarisTableMetadata sumarisTableMetadata = tables.get(qualifiedTableName);
+		QualifiedTableName qualifiedTableName = getQualifiedTableName(catalog, schema, name);
+		SumarisTableMetadata sumarisTableMetadata = tables.get(qualifiedTableName.render().toLowerCase());
 		if (sumarisTableMetadata == null) {
 			// Create a new connection then retrieve the metadata :
 			Connection conn = null;
 			try {
 				conn = DataSourceUtils.getConnection(dataSource);
 				DatabaseMetaData jdbcMeta = conn.getMetaData();
-				PersistentClass persistentClass = entities.get(name);
-				return getTable(name, schema, catalog, jdbcMeta, persistentClass);
+				return getTable(qualifiedTableName, jdbcMeta, null);
 			} catch (SQLException e) {
 				throw new RuntimeException(
 						"Could not init database meta on connection " + conn, e);

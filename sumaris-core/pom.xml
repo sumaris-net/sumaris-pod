@@ -63,6 +63,10 @@
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-spatial</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
       <artifactId>hibernate-search-orm</artifactId>
     </dependency>
     <dependency>
@@ -336,6 +340,37 @@
         <jdbc.driver>org.hsqldb.jdbcDriver</jdbc.driver>
         <jdbc.schema>PUBLIC</jdbc.schema>
         <hibernate.dialect>org.hibernate.dialect.HSQLDialect</hibernate.dialect>
+        <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>org.hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>h2</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>env</name>
+          <value>h2</value>
+        </property>
+      </activation>
+
+      <properties>
+        <sumaris.persistence.db.directory>target/db</sumaris.persistence.db.directory>
+        <sumaris.persistence.db.name>sumaris</sumaris.persistence.db.name>
+        <jdbc.url>jdbc:h2:file:${sumaris.persistence.db.directory}/${sumaris.persistence.db.name}</jdbc.url>
+        <jdbc.driver.jar>${settings.localRepository}/org/h2/h2/${h2.version}/h2-${hsqldb.version}.jar</jdbc.driver.jar>
+        <jdbc.username>sa</jdbc.username>
+        <jdbc.password />
+        <jdbc.driver>org.h2.Driver</jdbc.driver>
+        <jdbc.schema>PUBLIC</jdbc.schema>
+        <hibernate.dialect>org.hibernate.spatial.dialect.h2geodb.GeoDBDialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
 

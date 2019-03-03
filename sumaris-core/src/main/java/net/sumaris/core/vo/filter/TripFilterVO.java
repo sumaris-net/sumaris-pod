@@ -30,6 +30,7 @@ import java.util.Date;
 public class TripFilterVO {
 
     private Date startDate;
+
     private Date endDate;
 
     private String programLabel;

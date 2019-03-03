@@ -25,8 +25,6 @@ package net.sumaris.core.dao.administration.user;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.StatusId;
-import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;

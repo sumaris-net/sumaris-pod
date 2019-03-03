@@ -88,6 +88,7 @@
 
     <!-- Commons versions -->
     <hsqldb.version>2.4.1</hsqldb.version>
+    <h2.version>1.4.198</h2.version>
     <ojdbc7.version>12.1.0.2.0</ojdbc7.version>
     <pgsql.version>42.2.1</pgsql.version>
 
@@ -375,6 +376,11 @@
         <version>${rxjava.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.vividsolutions</groupId>
+        <artifactId>jts-core</artifactId>
+        <version>${jts.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-autoconfigure</artifactId>
         <version>${spring-boot.version}</version>
@@ -559,11 +565,6 @@
         <version>${hibernate-search.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.vividsolutions</groupId>
-        <artifactId>jts-core</artifactId>
-        <version>${jts.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
         <version>${lombok.version}</version>
@@ -663,6 +664,11 @@
         <groupId>org.hsqldb</groupId>
         <artifactId>hsqldb</artifactId>
         <version>${hsqldb.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>${h2.version}</version>
       </dependency>
       <dependency>
         <groupId>com.oracle</groupId>

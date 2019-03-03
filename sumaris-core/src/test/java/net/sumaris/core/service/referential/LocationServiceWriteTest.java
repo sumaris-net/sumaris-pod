@@ -22,7 +22,9 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
+import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +38,18 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
     @Autowired
     private LocationService service;
 
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
+
     @Test
-    public void updateRectanglesAndSquares() {
-        service.updateRectanglesAndSquares();
+    public void insertOrUpdateRectangleLocations() {
+        // Create rectangles
+        service.insertOrUpdateRectangleLocations();
+
+        // Insert geometry
+        service.insertOrUpdateRectangleAndSquareAreas();
+
+        //service.updateLocationHierarchy();
     }
 
     @Test

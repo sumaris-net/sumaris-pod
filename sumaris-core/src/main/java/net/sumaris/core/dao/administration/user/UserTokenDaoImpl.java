@@ -23,21 +23,11 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.technical.Beans;
-import net.sumaris.core.dao.technical.Dates;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.exception.BadUpdateDateException;
-import net.sumaris.core.exception.DataNotFoundException;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.administration.user.UserSettings;
 import net.sumaris.core.model.administration.user.UserToken;
 import net.sumaris.core.model.referential.IReferentialEntity;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.administration.user.UserSettingsVO;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
@@ -47,10 +37,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("userTokenDao")

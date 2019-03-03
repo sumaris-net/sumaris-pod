@@ -17,7 +17,7 @@ public class IdentifierHelper {
         // Replace case change by an underscore
         String regex = "([a-z])([A-Z])";
         String replacement = "$1_$2";
-        String newName = identifier.getText().replaceAll(regex, replacement).toLowerCase();
+        String newName = identifier.getText().replaceAll(regex, replacement);
 
         // change to lower case
         newName = newName.toLowerCase();

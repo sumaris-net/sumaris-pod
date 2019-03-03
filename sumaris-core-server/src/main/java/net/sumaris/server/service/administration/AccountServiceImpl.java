@@ -34,9 +34,8 @@ import net.sumaris.core.dao.administration.user.UserTokenDao;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.StatusId;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
-import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -442,7 +441,7 @@ public class AccountServiceImpl implements AccountService {
 
             List<String> adminEmails = personDao.getEmailsByProfiles(
                     ImmutableList.of(UserProfileEnum.ADMIN.getId()),
-                    ImmutableList.of(StatusId.ENABLE.getId())
+                    ImmutableList.of(StatusEnum.ENABLE.getId())
             );
 
             // No admin: log on server

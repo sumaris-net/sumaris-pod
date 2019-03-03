@@ -23,10 +23,10 @@ package net.sumaris.core.dao.technical.schema;
  */
 
 
-import org.hibernate.mapping.Column;
-
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 /**
@@ -34,8 +34,12 @@ import java.util.StringTokenizer;
  */
 public class SumarisColumnMetadata {
 
-	protected final Column delegate;
-	protected final String propertyName;
+	protected final String catalog;
+	protected final String schema;
+	protected final String table;
+	protected final String name;
+	protected final boolean nullable;
+
 	protected final String defaultValue;
 
 	// From JDBC meta
@@ -46,17 +50,20 @@ public class SumarisColumnMetadata {
 	protected final boolean isNullable;
 	protected final String description;
 
-	public SumarisColumnMetadata(ResultSet rs, Column column, String propertyName) throws SQLException {
-		this(rs, column, propertyName, null);
+	public SumarisColumnMetadata(ResultSet rs) throws SQLException {
+		this(rs, null);
 	}
 
-	public SumarisColumnMetadata(ResultSet rs, Column column, String propertyName, String defaultValue) throws SQLException {
-		this.delegate = column;
-		this.propertyName = propertyName;
+	public SumarisColumnMetadata(ResultSet rs, String defaultValue) throws SQLException {
 		this.defaultValue = defaultValue;
 
 		// Add additional info from JDBC meta
 		// (see https://docs.oracle.com/javase/8/docs/api/java/sql/DatabaseMetaData.html#getColumns-java.lang.String-java.lang.String-java.lang.String-java.lang.String)
+		this.catalog = rs.getString("TABLE_CAT");
+		this.schema = rs.getString("TABLE_SCHEM");
+		this.table = rs.getString("TABLE_NAME");
+		this.name = rs.getString("COLUMN_NAME");
+		this.nullable = rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable;
 		this.columnSize = rs.getInt("COLUMN_SIZE");
 		this.decimalDigits = rs.getInt("DECIMAL_DIGITS");
 		this.typeCode = rs.getInt("DATA_TYPE");
@@ -66,11 +73,19 @@ public class SumarisColumnMetadata {
 	}
 
 	public int hashCode() {
-		return delegate.hashCode();
+		return this.name.hashCode();
 	}
 
 	public String getName() {
-		return delegate.getName();
+		return this.name;
+	}
+
+	public String getNullable() {
+		return nullable ? "YES": "NO";
+	}
+
+	public boolean isNullable() {
+		return nullable;
 	}
 
 	public String getTypeName() {
@@ -85,23 +100,8 @@ public class SumarisColumnMetadata {
 		return decimalDigits;
 	}
 
-	public String getNullable() {
-		return delegate.isNullable() ? "YES": "NO";
-	}
-
-	public String toString() {
-		return delegate.toString();
-	}
-
 	public int getTypeCode() {
 		return typeCode;
-	}
-	public boolean equals(Object obj) {
-		return delegate.equals(obj);
-	}
-
-	public boolean isNullable() {
-		return delegate.isNullable();
 	}
 
 	public String getDefaultValue() {
@@ -111,4 +111,31 @@ public class SumarisColumnMetadata {
 	public String getDescription() {
 		return description;
 	}
+
+
+	public String toString() {
+		return new StringBuilder()
+				.append(catalog).append('.')
+				.append(schema).append('.')
+				.append(table).append('.')
+				.append(name)
+				.toString();
+	}
+
+	public boolean equals(Object other) {
+
+		if (this == other) return true;
+		if ( !(other instanceof SumarisColumnMetadata) ) return false;
+
+		final SumarisColumnMetadata bean = (SumarisColumnMetadata) other;
+
+		if (!Objects.equals(bean.catalog, catalog) ||
+			!Objects.equals(bean.schema, schema) ||
+			!Objects.equals(bean.table, table) ||
+			!Objects.equals(bean.name, name)) return false;
+
+		return true;
+	}
+
+
 }

@@ -25,7 +25,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.technical.Beans;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
@@ -142,7 +142,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                                 // program
                                 builder.equal(gearInnerJoin.get(Strategy.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam),
                                 // Status (temporary or valid)
-                                builder.in(gearInnerJoin.get(Gear.PROPERTY_STATUS).get(Status.PROPERTY_ID)).value(ImmutableList.of(StatusId.ENABLE.getId(), StatusId.TEMPORARY.getId()))
+                                builder.in(gearInnerJoin.get(Gear.PROPERTY_STATUS).get(Status.PROPERTY_ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
                         ));
 
         // Sort by rank order

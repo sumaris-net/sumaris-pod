@@ -25,11 +25,9 @@ package net.sumaris.core.dao.technical;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.technical.Software;
-import net.sumaris.core.model.technical.SoftwareProperty;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.ConfigurationVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;

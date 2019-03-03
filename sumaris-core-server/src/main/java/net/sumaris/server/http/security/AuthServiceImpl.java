@@ -24,13 +24,10 @@ package net.sumaris.server.http.security;
 
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.administration.user.UserTokenDao;
-import net.sumaris.core.dao.technical.Beans;
 import net.sumaris.core.exception.DataNotFoundException;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.StatusId;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.crypto.CryptoUtils;
-import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
@@ -41,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -54,6 +50,7 @@ import javax.annotation.PostConstruct;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -208,7 +205,10 @@ public class AuthServiceImpl implements AuthService {
     private List<GrantedAuthority> getAuthorities(String pubkey) {
         List<Integer> profileIds = accountService.getProfileIdsByPubkey(pubkey);
 
-        return new ArrayList<>(authoritiesMapper.getGrantedAuthorities(profileIds.stream().map(UserProfileEnum::byId).collect(Collectors.toSet())));
+        return new ArrayList<>(authoritiesMapper.getGrantedAuthorities(profileIds.stream()
+                .map(id -> UserProfileEnum.getLabelById(id).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet())));
 
     }
 
@@ -219,8 +219,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Cannot auth if user has been deleted or is disable
-        StatusId status = StatusId.valueOf(person.getStatusId());
-        if (StatusId.DISABLE.equals(status) || StatusId.DELETED.equals(status)) {
+        StatusEnum status = StatusEnum.valueOf(person.getStatusId());
+        if (StatusEnum.DISABLE.equals(status) || StatusEnum.DELETED.equals(status)) {
             return false;
         }
 

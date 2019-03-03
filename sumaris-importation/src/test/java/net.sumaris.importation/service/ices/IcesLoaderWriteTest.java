@@ -1,12 +1,11 @@
 package net.sumaris.importation.service.ices;
 
-import net.sumaris.core.util.file.FileUtils;
+import net.sumaris.core.util.Files;
 import net.sumaris.importation.service.AbstractServiceTest;
 import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,7 +65,7 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
             Assert.fail(e.getMessage());
         }
         finally {
-            FileUtils.deleteTemporaryFiles(file);
+            Files.deleteTemporaryFiles(file);
         }
 
     }
@@ -79,7 +78,7 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
             Assert.fail(e.getMessage());
         }
         finally {
-            FileUtils.deleteTemporaryFiles(file);
+            Files.deleteTemporaryFiles(file);
         }
     }
 
@@ -91,7 +90,7 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
             Assert.fail(e.getMessage());
         }
         finally {
-            FileUtils.deleteTemporaryFiles(file);
+            Files.deleteTemporaryFiles(file);
         }
     }
 }

@@ -38,6 +38,8 @@ public interface LocationDao {
 
     Location create(Location location);
 
+    Location update(Location location);
+
     LocationVO toLocationVO(Location source);
 
     /**

@@ -57,7 +57,7 @@ public enum DatabaseTableEnum {
 		return association;
 	}
 
-	public static DatabaseTableEnum[] getEntityTables() {
+	public static DatabaseTableEnum[] getTables() {
 		List<DatabaseTableEnum> result = Lists.newArrayList();
 		for (DatabaseTableEnum table : values()) {
 			if (!table.isAssociation()) {
@@ -67,13 +67,4 @@ public enum DatabaseTableEnum {
 		return result.toArray(new DatabaseTableEnum[result.size()]);
 	}
 
-	public static DatabaseTableEnum[] getAssociationTables() {
-		List<DatabaseTableEnum> result = Lists.newArrayList();
-		for (DatabaseTableEnum table : values()) {
-			if (table.isAssociation()) {
-				result.add(table);
-			}
-		}
-		return result.toArray(new DatabaseTableEnum[result.size()]);
-	}
 }
