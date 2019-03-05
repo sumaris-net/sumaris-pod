@@ -20,9 +20,9 @@
   #L%
   -->
 
-<queries name="extractionCreateSurvivalTestTable">
+<queries name="extractionCreateReleaseTable">
 
-  <query type="create" temp="false" table="&amp;survivalTestTableName">
+  <query type="create" temp="false" table="&amp;releaseTableName">
 
     <with alias="SAMPLE_WITH_MEAS">
       <subquery>

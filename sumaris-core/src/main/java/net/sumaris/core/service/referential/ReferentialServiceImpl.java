@@ -113,6 +113,12 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
+	public Long countByLevelId(String entityName, Integer... levelIds) {
+		Preconditions.checkNotNull(entityName);
+		return referentialDao.countByLevelId(entityName, levelIds);
+	}
+
+	@Override
 	public ReferentialVO save(ReferentialVO source) {
 		Preconditions.checkNotNull(source);
 		Preconditions.checkNotNull(source.getStatusId(), "Missing statusId");

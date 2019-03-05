@@ -31,4 +31,6 @@ public class ExtractionTypeVO {
 
     private String category;
 
+    private String[] sheetNames;
+
 }

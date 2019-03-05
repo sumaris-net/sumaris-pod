@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.table;
+package net.sumaris.core.extraction.dao.technical.table;
 
 import com.google.common.collect.ImmutableMap;
 import net.sumaris.core.model.file.ices.*;

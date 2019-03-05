@@ -93,7 +93,7 @@
     <insert tableName="SOFTWARE_PROPERTY">
       <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
       <column name="LABEL" value="sumaris.partner.departments"/>
-      <column name="NAME" value="department:2,department:3,department:4,department:5,department:6,department:7"/>
+      <column name="NAME" value='["{\"id\":999, \"logo\":\"./assets/img/logo/logo-interreg2seas.png\"}","{\"id\":2, \"logo\":\"./assets/img/logo/logo-fromnord.png\"}","{\"id\":4, \"logo\":\"./assets/img/logo/logo-ilvo-text.png\"}","{\"id\":3, \"logo\":\"./assets/img/logo/logo-ifremer.png\"}","{\"id\":5, \"logo\":\"./assets/img/logo/logo-nausicaa.png\"}","{\"id\":6, \"logo\":\"./assets/img/logo/logo-redercentrale.png\"}"]'/>
       <column name="SOFTWARE_FK" valueNumeric="1"/>
       <column name="STATUS_FK" valueNumeric="1"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -112,42 +112,6 @@
       <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
       <column name="LABEL" value="sumaris.favicon"/>
       <column name="NAME" value="favicon.ico"/>
-      <column name="SOFTWARE_FK" valueNumeric="1"/>
-      <column name="STATUS_FK" valueNumeric="1"/>
-      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-      <column name="CREATION_DATE" valueComputed="sysdate" />
-    </insert>
-    <insert tableName="SOFTWARE_PROPERTY">
-      <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
-      <column name="LABEL" value="sumaris.defaultLocale"/>
-      <column name="NAME" value="en"/>
-      <column name="SOFTWARE_FK" valueNumeric="1"/>
-      <column name="STATUS_FK" valueNumeric="1"/>
-      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-      <column name="CREATION_DATE" valueComputed="sysdate" />
-    </insert>
-    <insert tableName="SOFTWARE_PROPERTY">
-      <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
-      <column name="LABEL" value="sumaris.defaultLocale"/>
-      <column name="NAME" value="en"/>
-      <column name="SOFTWARE_FK" valueNumeric="1"/>
-      <column name="STATUS_FK" valueNumeric="1"/>
-      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-      <column name="CREATION_DATE" valueComputed="sysdate" />
-    </insert>
-    <insert tableName="SOFTWARE_PROPERTY">
-      <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
-      <column name="LABEL" value="sumaris.defaultLocale"/>
-      <column name="NAME" value="en"/>
-      <column name="SOFTWARE_FK" valueNumeric="1"/>
-      <column name="STATUS_FK" valueNumeric="1"/>
-      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-      <column name="CREATION_DATE" valueComputed="sysdate" />
-    </insert>
-    <insert tableName="SOFTWARE_PROPERTY">
-      <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
-      <column name="LABEL" value="sumaris.defaultLocale"/>
-      <column name="NAME" value="en"/>
       <column name="SOFTWARE_FK" valueNumeric="1"/>
       <column name="STATUS_FK" valueNumeric="1"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>

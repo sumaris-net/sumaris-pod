@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao;
+package net.sumaris.core.extraction.dao.technical;
 
 /*-
  * #%L
@@ -21,16 +21,10 @@ package net.sumaris.core.extraction.dao;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.service.referential.ReferentialService;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

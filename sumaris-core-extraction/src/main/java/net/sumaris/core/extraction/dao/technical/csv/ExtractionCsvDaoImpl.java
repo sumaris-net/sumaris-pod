@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.csv;
+package net.sumaris.core.extraction.dao.technical.csv;
 
 /*-
  * #%L
@@ -23,9 +23,8 @@ package net.sumaris.core.extraction.dao.csv;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import au.com.bytecode.opencsv.ResultSetHelperService;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.extraction.dao.ExtractionBaseDaoImpl;
+import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

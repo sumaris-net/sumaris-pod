@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<query type="select">
+
+  <select alias="MAIN_OBSERVED_METIER" type="text">(SELECT VUM.ALPHANUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;mainMetierPmfmId)</select>
+  <select alias="HAS_CONVEYOR_BELT" type="text">(SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'Y', 0, 'N', null) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;conveyorBeltPmfmId)</select>
+  <select alias="NB_FISHERMEN" type="number">(SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;nbFishermenPmfmId)</select>
+  <select alias="SAMPLING_HAUL_COUNT" type="number">(SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;nbSamplingOperPmfmId)</select>
+  <select alias="IS_RANDOM_SAMPLING" type="number">(SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'Y', 0, 'N', null) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;randomSamplingOperPmfmId)</select>
+
+</query>

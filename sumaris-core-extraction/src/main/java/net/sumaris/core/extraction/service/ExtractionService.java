@@ -25,7 +25,7 @@ public interface ExtractionService {
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> getAllTypes();
 
-    @Transactional(readOnly = true)
+    @Transactional
     ExtractionResultVO getRows(ExtractionTypeVO type,
                                ExtractionFilterVO filter,
                                int offset,

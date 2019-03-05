@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Geometries;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -78,6 +79,7 @@ public class Daos {
     private final static String JDBC_URL_PREFIX_HSQLDB = JDBC_URL_PREFIX + "hsqldb:";
     private final static String JDBC_URL_PREFIX_ORACLE = JDBC_URL_PREFIX + "oracle:";
     private final static String JDBC_URL_PREFIX_HSQLDB_FILE = JDBC_URL_PREFIX_HSQLDB + "file:";
+
 
     /**
      * Constant <code>DB_DIRECTORY="db"</code>
@@ -360,6 +362,17 @@ public class Daos {
     public static boolean isOracleDatabase(String jdbcUrl) {
         Preconditions.checkNotNull(jdbcUrl);
         return jdbcUrl.startsWith(JDBC_URL_PREFIX_ORACLE);
+    }
+
+    public static boolean isOracleDatabase(Connection conn) {
+        Preconditions.checkNotNull(conn);
+        try {
+            String jdbcUrl = conn.getMetaData().getURL();
+            return isOracleDatabase(jdbcUrl);
+        }
+        catch(SQLException e) {
+            throw new SumarisTechnicalException(e);
+        }
     }
 
     /**

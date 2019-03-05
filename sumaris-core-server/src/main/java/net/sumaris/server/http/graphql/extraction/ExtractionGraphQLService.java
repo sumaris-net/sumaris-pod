@@ -57,7 +57,7 @@ public class ExtractionGraphQLService {
     }
 
     @GraphQLQuery(name = "extraction", description = "Extract data")
-    @Transactional(readOnly = true)
+    @Transactional
     //@IsUser
     public ExtractionResultVO getExtractionRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                                @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
@@ -66,6 +66,8 @@ public class ExtractionGraphQLService {
                                                @GraphQLArgument(name = "sortBy") String sort,
                                                @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
+        Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
+        Preconditions.checkNotNull(type.getLabel(), "Argument 'type.label' must not be null.");
         Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
         Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
 

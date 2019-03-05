@@ -1,25 +1,23 @@
 package net.sumaris.core.extraction.dao.trip.ices;
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripFormat;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.dao.ExtractionBaseDaoImpl;
-import net.sumaris.core.extraction.technical.Daos;
-import net.sumaris.core.extraction.technical.XMLQuery;
-import net.sumaris.core.extraction.vo.trip.ices.ExtractionIcesContextVO;
+import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
+import net.sumaris.core.extraction.dao.technical.Daos;
+import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.vo.trip.ExtractionPmfmInfoVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripContextVO;
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.trip.ices.ExtractionIcesContextVO;
 import net.sumaris.core.extraction.vo.trip.ices.ExtractionIcesVersion;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -48,7 +46,6 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionIcesDaoImpl.class);
 
-    public static final String FORMAT = StringUtils.underscoreToChangeCase(ExtractionTripFormat.ICES.name());
     private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "TR_%s";
     private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "HH_%s";
     private static final String SL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "SL_%s";
@@ -59,6 +56,9 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
     @Autowired
     protected StrategyService strategyService;
+
+    @Autowired
+    protected ProgramService programService;
 
     @Autowired
     protected XMLQuery xmlQuery;
@@ -84,7 +84,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         // Init context
         C context = createNewContext();
         context.setFilter(filter);
-        context.setFormatName(FORMAT);
+        context.setFormatName(ICES_FORMAT);
         context.setFormatVersion(ExtractionIcesVersion.VERSION_1_3.getLabel());
         context.setId(System.currentTimeMillis());
         context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
@@ -93,32 +93,37 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
         context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
 
+        // Expected sheet name
+        String sheetName = filter != null ? filter.getSheetName() : null;
+
         // Trip
         long rowCount = createTripTable(context);
         if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
-        log.debug(String.format("Trip table: %s rows inserted", rowCount));
-
-        // Stop here
-        if (filter != null && filter.isFirstTableOnly()) return context;
+        if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         // Get programs from trips
-        List<Integer> programIds = getTripProgramIds(context);
-        Preconditions.checkArgument(CollectionUtils.isNotEmpty(programIds));
-        log.debug("Detected program ids: " + programIds);
+        List<String> programLabels = getTripProgramLabels(context);
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(programLabels));
+        log.debug("Detected programs: " + programLabels);
 
         // Get PMFMs from strategies
-        MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId = new ArrayListValuedHashMap<>();
-        for (Integer programId : programIds) {
-            pmfmStrategiesByProgramId.putAll(programId, strategyService.getPmfmStrategies(programId));
-        }
+        final MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId = new ArrayListValuedHashMap<>();
+        programLabels.stream()
+                .map(programService::getByLabel)
+                .map(ProgramVO::getId)
+                .forEach(programId -> pmfmStrategiesByProgramId.putAll(programId, strategyService.getPmfmStrategies(programId)));
         List<ExtractionPmfmInfoVO> pmfmInfos = getPmfmInfos(context, pmfmStrategiesByProgramId);
         context.setPmfmInfos(pmfmInfos);
 
         // Station
-        createStationTable(context);
+        rowCount = createStationTable(context);
+        if (rowCount == 0) return context;
+        if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         // Species List
-        createSpeciesListTable(context);
+        rowCount = createSpeciesListTable(context);
+        if (rowCount == 0) return context;
+        if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         // Species Length
         createSpeciesLengthTable(context);
@@ -148,7 +153,9 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
     protected List<ExtractionPmfmInfoVO> getPmfmInfos(ExtractionIcesContextVO context, MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId) {
 
         Map<String, String> acquisitionLevelAliases = buildAcquisitionLevelAliases(
-                pmfmStrategiesByProgramId.values().stream().map(PmfmStrategyVO::getAcquisitionLevel).collect(Collectors.toSet()));
+                pmfmStrategiesByProgramId.values().stream()
+                        .map(PmfmStrategyVO::getAcquisitionLevel)
+                        .collect(Collectors.toSet()));
 
 
         List<ExtractionPmfmInfoVO> pmfmInfos = new ArrayList<>();
@@ -192,46 +199,18 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return result.toString();
     }
 
-    protected List<Integer> getTripProgramIds(ExtractionIcesContextVO context) {
+    protected List<String> getTripProgramLabels(ExtractionIcesContextVO context) {
 
-        XMLQuery xmlQuery = createXMLQuery("distinctProgram");
+        XMLQuery xmlQuery = createXMLQuery(context,"distinctTripProgram");
         xmlQuery.bind("tableName", context.getTripTableName());
 
-        return query(xmlQuery.getSQLQueryAsString(), Integer.class);
+        return query(xmlQuery.getSQLQueryAsString(), String.class);
     }
 
     protected long createTripTable(ExtractionIcesContextVO context) {
 
-        XMLQuery xmlQuery = createXMLQuery(context, "createTripTable");
-        xmlQuery.bind("tripTableName", context.getTripTableName());
 
-        // Bind some referential ids
-        xmlQuery.bind("nbOperationPmfmId", String.valueOf(PmfmEnum.NB_OPERATION.getId()));
-        xmlQuery.bind("countryLocationLevelId", String.valueOf(getReferentialIdByUniqueLabel(LocationLevel.class, LocationLevelEnum.COUNTRY.getLabel())));
-
-        // Date filters
-        xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
-        xmlQuery.bind("startDate", Dates.formatDate(context.getStartDate(), "dd/MM/yyy"));
-        xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
-        xmlQuery.bind("endDate", Dates.formatDate(context.getEndDate(), "dd/MM/yyy"));
-
-        // Program filter
-        xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
-        xmlQuery.bind("progLabels", Daos.getInStatementFromStringCollection(context.getProgramLabels()));
-
-        // Location Filter
-        xmlQuery.setGroup("locationFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
-        xmlQuery.bind("locationIds", Daos.getInStatementFromIntegerCollection(context.getLocationIds()));
-
-        // Recorder Department filter
-        xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
-        xmlQuery.bind("recDepIds", Daos.getInStatementFromIntegerCollection(context.getRecorderDepartmentIds()));
-
-        // Vessel filter
-        xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
-        xmlQuery.bind("vesselIds", Daos.getInStatementFromIntegerCollection(context.getVesselIds()));
-
-        // TODO bind sort, offset, etc ?
+        XMLQuery xmlQuery = createTripQuery(context);
 
         // execute insertion
         execute(xmlQuery);
@@ -239,11 +218,64 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         long count = countFrom(context.getTripTableName());
         if (count > 0) {
             context.addTableName(context.getTripTableName(), "TR");
+            log.debug(String.format("Trip table: %s rows inserted", count));
         }
         return count;
     }
 
+    protected XMLQuery createTripQuery(ExtractionIcesContextVO context){
+        XMLQuery xmlQuery = createXMLQuery(context, "createTripTable");
+        xmlQuery.bind("tripTableName", context.getTripTableName());
+
+        // Bind some referential ids
+        xmlQuery.bind("nbOperationPmfmId", String.valueOf(PmfmEnum.NB_OPERATION.getId()));
+        Integer countryLocationLevelId = getReferentialIdByUniqueLabel(LocationLevel.class, LocationLevelEnum.COUNTRY.getLabel());
+        xmlQuery.bind("countryLocationLevelId", String.valueOf(countryLocationLevelId));
+
+        // Date filters
+        xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
+        xmlQuery.bind("startDate", Daos.getSqlToDate(context.getStartDate()));
+        xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
+        xmlQuery.bind("endDate", Daos.getSqlToDate(context.getEndDate()));
+
+        // Program filter
+        xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
+        xmlQuery.bind("progLabels", Daos.getSqlInValueFromStringCollection(context.getProgramLabels()));
+
+        // Location Filter
+        xmlQuery.setGroup("locationFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
+        xmlQuery.bind("locationIds", Daos.getSqlInValueFromIntegerCollection(context.getLocationIds()));
+
+        // Recorder Department filter
+        xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
+        xmlQuery.bind("recDepIds", Daos.getSqlInValueFromIntegerCollection(context.getRecorderDepartmentIds()));
+
+        // Vessel filter
+        xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
+        xmlQuery.bind("vesselIds", Daos.getSqlInValueFromIntegerCollection(context.getVesselIds()));
+
+
+        // TODO bind sort, offset, etc ?
+
+        return xmlQuery;
+    }
+
     protected long createStationTable(ExtractionIcesContextVO context) {
+
+        XMLQuery xmlQuery = createStationQuery(context);
+
+        // execute insertion
+        execute(xmlQuery);
+
+        long count = countFrom(context.getStationTableName());
+        if (count > 0) {
+            context.addTableName(context.getStationTableName(), "HH");
+            log.debug(String.format("Station table: %s rows inserted", count));
+        }
+        return count;
+    }
+
+    protected XMLQuery createStationQuery(ExtractionIcesContextVO context) {
 
         XMLQuery xmlQuery = createXMLQuery(context, "createStationTable");
         xmlQuery.bind("tripTableName", context.getTripTableName());
@@ -253,16 +285,9 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         xmlQuery.bind("meshSizePmfmId", String.valueOf(PmfmEnum.SMALLER_MESH_GAUGE_MM.getId()));
         xmlQuery.bind("mainFishingDepthPmfmId", String.valueOf(PmfmEnum.GEAR_DEPTH_M.getId()));
         xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmEnum.BOTTOM_DEPTH_M.getId()));
+        xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
 
-
-        // execute insertion
-        execute(xmlQuery);
-
-        long count = countFrom(context.getStationTableName());
-        if (count > 0) {
-            context.addTableName(context.getStationTableName(), "HH");
-        }
-        return count;
+        return xmlQuery;
     }
 
     protected long createSpeciesListTable(ExtractionIcesContextVO context) {
@@ -281,6 +306,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         long count = countFrom(context.getSpeciesListTableName());
         if (count > 0) {
             context.addTableName(context.getSpeciesListTableName(), "SL");
+            log.debug(String.format("Species list table: %s rows inserted", count));
         }
         return count;
     }
@@ -297,6 +323,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         long count = countFrom(context.getSpeciesLengthTableName());
         if (count > 0) {
             context.addTableName(context.getSpeciesLengthTableName(), "HL");
+            log.debug(String.format("Species length table: %s rows inserted", count));
         }
         return count;
     }
@@ -331,6 +358,10 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         XMLQuery query = xmlQuery;
         query.setQuery(getXMLQueryClasspathURL(queryName));
         return query;
+    }
+
+    protected URL getXMLQueryURL(ExtractionTripContextVO context, String queryName) {
+        return getXMLQueryClasspathURL(getQueryFullName(context, queryName));
     }
 
     protected URL getXMLQueryClasspathURL(String queryName) {

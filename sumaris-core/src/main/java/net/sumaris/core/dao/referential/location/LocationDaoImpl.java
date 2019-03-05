@@ -23,6 +23,7 @@ package net.sumaris.core.dao.referential.location;
  */
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.Status;
@@ -162,6 +163,12 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
 
     @Override
     public void updateLocationHierarchy() {
+
+        // If running on HSQLDB: skip (no stored procedure define)
+        if (Daos.isHsqlDatabase(config.getJdbcURL())) {
+            log.warn("Skipping location hierarchy (Stored procedure P_FILL_LOCATION_HIERARCHY not exists)");
+            return;
+        }
 
         Query q = getEntityManager().createNamedQuery("fillLocationHierarchy");
         q.getResultList();

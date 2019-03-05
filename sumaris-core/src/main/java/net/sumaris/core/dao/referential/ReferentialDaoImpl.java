@@ -276,6 +276,36 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
     }
 
     @Override
+    public Long countByLevelId(String entityName, Integer... levelIds) {
+        Preconditions.checkNotNull(entityName, "Missing entityName argument");
+
+        // Get entity class from entityName
+        Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
+
+        Root<? extends IReferentialEntity> entityRoot = criteriaQuery.from(entityClass);
+        criteriaQuery.select(builder.count(entityRoot));
+
+        // Level ids
+        Predicate levelClause = null;
+        ParameterExpression<Collection> levelIdsParam = builder.parameter(Collection.class);
+        PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
+        if (pd != null && ArrayUtils.isNotEmpty(levelIds)) {
+            levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID)).value(levelIdsParam);
+            criteriaQuery.where(levelClause);
+        }
+
+        TypedQuery<Long> query = getEntityManager().createQuery(criteriaQuery);
+        if (levelClause != null) {
+            query.setParameter(levelIdsParam, ImmutableList.copyOf(levelIds));
+        }
+
+        return query.getSingleResult();
+    }
+
+    @Override
     public ReferentialVO save(final ReferentialVO source) {
         Preconditions.checkNotNull(source);
 
@@ -403,21 +433,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         Predicate levelClause = null;
         ParameterExpression<Integer> levelParam = builder.parameter(Integer.class);
         if (levelId != null) {
-            // Location
-            if (Location.class.isAssignableFrom(entityClass)) {
-                levelClause = builder.equal(entityRoot.get(Location.PROPERTY_LOCATION_LEVEL).get(IReferentialEntity.PROPERTY_ID), levelParam);
-            }
-
-            // Gear
-            else if (Gear.class.isAssignableFrom(entityClass)) {
-                levelClause = builder.equal(entityRoot.get(Gear.PROPERTY_GEAR_LEVEL).get(IReferentialEntity.PROPERTY_ID), levelParam);
-            }
-
-            else {
-                PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
-                if (pd != null) {
-                    levelClause = builder.equal(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID), levelParam);
-                }
+            PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
+            if (pd != null) {
+                levelClause = builder.equal(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID), levelParam);
             }
         }
 

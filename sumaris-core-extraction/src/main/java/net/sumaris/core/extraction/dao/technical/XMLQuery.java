@@ -1,7 +1,7 @@
 /*
  * Created on 29 juil. 2004
  */
-package net.sumaris.core.extraction.technical;
+package net.sumaris.core.extraction.dao.technical;
 
 /*-
  * #%L

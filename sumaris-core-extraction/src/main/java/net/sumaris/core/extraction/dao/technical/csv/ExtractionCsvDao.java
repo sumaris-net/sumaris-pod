@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.csv;
+package net.sumaris.core.extraction.dao.technical.csv;
 
 /*-
  * #%L

@@ -61,10 +61,12 @@ public class Location implements IItemReferentialEntity {
 
     private String description;
 
-    private Float bathymetry;
+    private Double bathymetry;
 
+    @Column(name = "ut_format")
     private Short utFormat;
 
+    @Column(name = "daylight_saving_time")
     private Boolean daylightSavingTime;
 
     @Column(length = LENGTH_COMMENTS)

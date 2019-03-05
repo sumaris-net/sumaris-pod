@@ -12,5 +12,7 @@ public class ExtractionTripFilterVO extends TripFilterVO {
 
     private boolean firstTableOnly;
 
+    private String sheetName;
+
     private Pageable pageable;
 }

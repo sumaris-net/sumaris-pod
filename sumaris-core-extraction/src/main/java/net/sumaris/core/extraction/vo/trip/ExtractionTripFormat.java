@@ -5,6 +5,20 @@ package net.sumaris.core.extraction.vo.trip;
  */
 public enum ExtractionTripFormat {
 
-    ICES,
-    SURVIVAL_TEST
+    ICES ("TR", "HH", "SL", "HL", "CA"),
+    SURVIVAL_TEST("TR", "HH", "ST", "RL")
+    ;
+
+    private String[] sheetNames;
+
+    ExtractionTripFormat(String... sheetNames) {
+        this.sheetNames = sheetNames;
+    }
+    ExtractionTripFormat() {
+        this.sheetNames = null;
+    }
+
+    public String[] getSheetNames() {
+        return sheetNames;
+    }
 }

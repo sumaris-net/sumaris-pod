@@ -30,7 +30,6 @@
     <select alias="LANDING_COUNTRY" type="text">PL.LABEL</select>
     <select alias="VESSEL_COUNTRY" type="text">VL.LABEL</select>
     <select alias="YEAR" type="number">EXTRACT(YEAR FROM T.RETURN_DATE_TIME)</select>
-    <select alias="PROGRAM_FK" type="number">P.ID</select>
     <select alias="PROJECT" type="text">P.LABEL</select>
     <select alias="TRIP_CODE" type="number">T.ID</select>
 
@@ -69,7 +68,8 @@
     <from join="true">LEFT OUTER JOIN LOCATION_HIERARCHY DLH on DLH.CHILD_LOCATION_FK = D.LOCATION_FK</from>
     <from join="true">LEFT OUTER JOIN LOCATION DL ON DL.ID = DLH.PARENT_LOCATION_FK AND DL.LOCATION_LEVEL_FK = &amp;countryLocationLevelId</from>
 
-    <where group="startDateFilter"><![CDATA[T.RETURN_DATE_TIME >= &startDate]]></where>
+    <where>1=1</where>
+    <where operator="AND" group="startDateFilter"><![CDATA[T.RETURN_DATE_TIME >= &startDate]]></where>
     <where operator="AND" group="endDateFilter"><![CDATA[T.DEPARTURE_DATE_TIME <= &endDate]]></where>
 
     <where operator="AND" group="programFilter">

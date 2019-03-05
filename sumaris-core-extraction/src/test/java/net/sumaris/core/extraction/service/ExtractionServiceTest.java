@@ -4,8 +4,12 @@ import net.sumaris.core.extraction.dao.DatabaseResource;
 
 import java.awt.font.FontRenderContext;
 import java.io.File;
+import java.io.IOException;
 
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFormat;
+import net.sumaris.core.util.Files;
+import net.sumaris.core.util.ZipUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -43,7 +47,20 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     public void exportTripToFileSurvivalTest() {
 
         // Survival test:
-        service.exportTripsToFile(ExtractionTripFormat.SURVIVAL_TEST, null);
+        File outputFile = service.exportTripsToFile(ExtractionTripFormat.SURVIVAL_TEST, null);
+
+        File debugFile = new File("target/result.zip");
+        File debugDirectory = new File("target/result");
+        try {
+            Files.deleteQuietly(debugFile);
+            Files.copyFile(outputFile, debugFile);
+
+            FileUtils.forceMkdir(debugDirectory);
+            ZipUtils.uncompressFileToPath(debugFile, debugDirectory.getPath(), true);
+        }
+        catch(IOException e) {
+            // Silent
+        }
     }
 
 }

@@ -19,4 +19,6 @@ public class ExtractionSurvivalTestContextVO extends ExtractionIcesContextVO {
 
     String survivalTestTableName; // ST (survival test) table
 
+    String releaseTableName; // RL (release) table
+
 }

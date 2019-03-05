@@ -3,7 +3,7 @@ package net.sumaris.core.util;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public class StringUtils {
+public class StringUtils extends org.apache.commons.lang3.StringUtils {
 
     public static String underscoreToChangeCase(String columnName) {
         if (org.apache.commons.lang3.StringUtils.isBlank(columnName)) return columnName;

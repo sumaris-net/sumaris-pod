@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<query type="select">
+
+  <select alias="SUBSTRATE_TYPE" type="text"> <![CDATA[
+  (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
+    WHERE
+      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&substrateTypePmfmId)]]></select>
+
+  <select alias="SEA_STATE" type="text"><![CDATA[
+  (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
+    WHERE
+      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&seaStatePmfmId)]]></select>
+
+  <select alias="NORMAL_PROGRESS" type="number"><![CDATA[(SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'Y', 0, 'N', null) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&normalProgressPmfmId)]]></select>
+
+  <select alias="SURVIVAL_SAMPLING_TYPE" type="text"><![CDATA[
+  (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
+    WHERE
+      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&survivalSamplingTypePmfmId)]]></select>
+
+</query>

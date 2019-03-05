@@ -122,7 +122,7 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     SITE_PARTNER_DEPARTMENTS(
             "sumaris.partner.departments",
             n("sumaris.config.option.partner.departments.description"),
-            "1",
+            "department:1",
             String.class,
             false),
 

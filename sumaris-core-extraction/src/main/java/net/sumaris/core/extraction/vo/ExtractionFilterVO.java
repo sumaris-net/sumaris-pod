@@ -32,4 +32,6 @@ public class ExtractionFilterVO {
     private String operator;
 
     private List<ExtractionFilterCriterionVO> criteria;
+
+    private String sheetName;
 }

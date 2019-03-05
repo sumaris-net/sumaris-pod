@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.9.9.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-1">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="location_area"/></not>
+        </preConditions>
+        <createTable tableName="location_area">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="location_areaPK"/>
+            </column>
+            <column name="position" type="LONGVARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-2">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="location_area" constraintName="FK_location_area_id" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-3">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="reference_taxon_strategy"/></not>
+        </preConditions>
+        <createTable tableName="reference_taxon_strategy">
+            <column name="priority_level" type="INT"/>
+            <column name="strategy_id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="reference_taxon_strategyPK"/>
+            </column>
+            <column name="reference_taxon_fk" type="INT">
+                <constraints primaryKey="true" primaryKeyName="reference_taxon_strategyPK"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-4">
+        <addForeignKeyConstraint baseColumnNames="strategy_id" baseTableName="reference_taxon_strategy" constraintName="FK3xxfmafvns6svllao5an8etl8" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="strategy"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-5">
+        <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="reference_taxon_strategy" constraintName="FK9u7h3v3rbpc1k9plc414e52xn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-5-1">
+        <preConditions onFail="MARK_RAN">
+            <rowCount tableName="validity_status" expectedRows="0"/>
+        </preConditions>
+        <insert tableName="validity_status">
+            <column name="ID" valueNumeric="0"/>
+            <column name="LABEL">INVALID</column>
+            <column name="NAME">Invalide (refusé)</column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+        </insert>
+        <insert tableName="validity_status">
+            <column name="ID" valueNumeric="1"/>
+            <column name="LABEL">VALID</column>
+            <column name="NAME">Validé (accepté)</column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+        </insert>
+        <insert tableName="validity_status">
+            <column name="ID" valueNumeric="2"/>
+            <column name="LABEL">PENDING</column>
+            <column name="NAME">En attente de validation</column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+        </insert>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-6" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="location" columnName="bathymetry"/></not>
+        </preConditions>
+        <addColumn tableName="location">
+            <column name="bathymetry" type="double"/>
+            <column name="daylight_saving_time" type="boolean"/>
+            <column name="ut_format" type="smallint"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-6-1">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="location" columnName="validity_status_fk"/></not>
+        </preConditions>
+        <addColumn tableName="location">
+            <column name="validity_status_fk" type="integer"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-6-2">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select COUNT(*) from location where validity_status_fk is null</sqlCheck>
+        </preConditions>
+        <sql>UPDATE location set VALIDITY_STATUS_FK=1 where validity_status_fk is null</sql>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-6-3" failOnError="false">
+        <addNotNullConstraint tableName="location" columnName="validity_status_fk"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-6-4">
+        <addForeignKeyConstraint baseColumnNames="validity_status_fk" baseTableName="location" constraintName="FKlocation_validity_status" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="validity_status"/>
+    </changeSet>
+
+    <!-- Add missing foreign keys -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-8">
+        <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="software" constraintName="FK41tiuwdumptj9xxdh5w4oevh0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-9">
+        <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="department" constraintName="FKmd1362ey14pw4x8ao9j9ha6ke" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Location"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-10">
+        <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="software_property" constraintName="FKmrjne137ia0xve3nlrowwe0pm" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-11">
+        <addForeignKeyConstraint baseColumnNames="software_fk" baseTableName="software_property" constraintName="FKpxomm7bna4x36f7j013sifxrt" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="software"/>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='0.9.9'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">0.9.9</column>
+            <column name="DESCRIPTION">
+                - Add table REFERENCE_TAXON_STRATEGY
+                - Add table LOCATION_AREA
+                - Add missing column on LOCATION.x
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="COMMENTS">
+                - Add missing column on LOCATION.x
+                - Add table LOCATION_AREA
+                - Add table REFERENCE_TAXON_STRATEGY
+            </column>
+        </insert>
+    </changeSet>
+    
+</databaseChangeLog>

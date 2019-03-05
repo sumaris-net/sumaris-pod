@@ -9,8 +9,9 @@ import java.util.Arrays;
  */
 public enum ValidityStatusEnum implements Serializable {
 
-    NOT_VALID(0),
-    VALID(1);
+    INVALID(0),
+    VALID(1),
+    PENDING(2);
 
     public static ValidityStatusEnum valueOf(final int id) {
         return Arrays.stream(values())

@@ -64,6 +64,11 @@ public interface ReferentialService {
 
     void delete(String entityName, List<Integer> ids);
 
+    @Transactional(readOnly = true)
     Long count(String entityName);
+
+    @Transactional(readOnly = true)
+    Long countByLevelId(String entityName, Integer... levelIds);
+
 
 }

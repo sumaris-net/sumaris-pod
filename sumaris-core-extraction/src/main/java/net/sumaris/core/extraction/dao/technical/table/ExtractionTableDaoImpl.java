@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.dao.table;
+package net.sumaris.core.extraction.dao.technical.table;
 
 /*-
  * #%L
@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.*;
-import net.sumaris.core.extraction.dao.ExtractionBaseDaoImpl;
+import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.vo.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -142,6 +142,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
 		String sql = table.getSelectAllQuery();
 
+		// Where clause
 		if (StringUtils.isNotBlank(whereClause)) {
 			sql += whereClause;
 		}
@@ -216,7 +217,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
 	protected String getSqlWhereClause(SumarisTableMetadata table, ExtractionFilterVO filter) {
 
-		if (CollectionUtils.isEmpty(filter.getCriteria())) return "";
+		if (filter == null || CollectionUtils.isEmpty(filter.getCriteria())) return "";
 
 		String tableAlias = "t";
 		StringBuilder sql = new StringBuilder();

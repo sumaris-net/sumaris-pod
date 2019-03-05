@@ -1,21 +1,26 @@
 package net.sumaris.core.service.referential;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.MultiPolygon;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ValidityStatusDao;
 import net.sumaris.core.dao.referential.location.LocationAreaDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.referential.location.LocationLevelDao;
-import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.dao.referential.location.Locations;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.referential.ValidityStatus;
 import net.sumaris.core.model.referential.ValidityStatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationArea;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
-import net.sumaris.core.dao.referential.location.Locations;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -33,7 +38,7 @@ import java.util.stream.Collectors;
 @Service("locationService")
 public class LocationServiceImpl implements LocationService{
 
-    private static final Logger log = LoggerFactory.getLogger(ReferentialServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(LocationServiceImpl.class);
 
     @Autowired
     protected LocationDao locationDao;
@@ -56,7 +61,9 @@ public class LocationServiceImpl implements LocationService{
     @Override
     public void insertOrUpdateRectangleLocations() {
 
-        log.info("Adding missing rectangle locations...");
+        if (log.isInfoEnabled()) {
+            log.info("Checking all statistical rectangles exists...");
+        }
 
         // Retrieve location levels
         Map<String, LocationLevel> locationLevels = createAndGetLocationLevels(ImmutableMap.<String, String>builder()
@@ -69,7 +76,7 @@ public class LocationServiceImpl implements LocationService{
         LocationLevel cgpmRquareLocationLevel = locationLevels.get(LocationLevelEnum.RECTANGLE_CGPM_GFCM.getLabel());
         Objects.requireNonNull(cgpmRquareLocationLevel);
 
-        ValidityStatus notValidStatus = validityStatusDao.getOne(ValidityStatusEnum.NOT_VALID.getId());
+        ValidityStatus validStatus = validityStatusDao.getOne(ValidityStatusEnum.VALID.getId());
 
         // ICES rectangles
         List<LocationVO> existingLocations = locationLevels.values().stream()
@@ -109,8 +116,9 @@ public class LocationServiceImpl implements LocationService{
                 else {
                     location.setLocationLevel(icesRectangleLocationLevel);
                 }
-                location.setValidityStatus(notValidStatus);
+                location.setValidityStatus(validStatus);
                 locationDao.create(location);
+                locationInsertCount++;
             }
         }
         if (log.isInfoEnabled()) {
@@ -130,7 +138,7 @@ public class LocationServiceImpl implements LocationService{
         LocationLevel squareLocationLevel = locationLevels.get(LocationLevelEnum.SQUARE_10.getLabel());
         Preconditions.checkNotNull(squareLocationLevel);
 
-        ValidityStatus notValidStatus = validityStatusDao.getOne(ValidityStatusEnum.NOT_VALID.getId());
+        ValidityStatus notValidStatus = validityStatusDao.getOne(ValidityStatusEnum.INVALID.getId());
         Pattern rectangleLabelPattern = Pattern.compile("[M]?[0-9]{2,3}[A-Z][0-9]");
 
         Map<String, LocationVO> rectangleByLabelMap = Maps.newHashMap();

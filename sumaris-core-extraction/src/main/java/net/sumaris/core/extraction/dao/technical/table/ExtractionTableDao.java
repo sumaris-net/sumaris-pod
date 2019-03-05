@@ -1,7 +1,6 @@
-package net.sumaris.core.extraction.dao.table;
+package net.sumaris.core.extraction.dao.technical.table;
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 

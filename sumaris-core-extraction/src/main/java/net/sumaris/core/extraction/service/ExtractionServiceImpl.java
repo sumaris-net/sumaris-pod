@@ -2,17 +2,16 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.model.IEntityBean;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
-import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.dao.csv.ExtractionCsvDao;
-import net.sumaris.core.extraction.dao.table.ExtractionTableDao;
+import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
+import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
 import net.sumaris.core.extraction.dao.trip.ices.ExtractionIcesDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
@@ -22,36 +21,38 @@ import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripContextVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFormat;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.service.referential.LocationService;
+import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.ZipUtils;
-import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 17/12/2018.
  */
 @Service("extractionService")
+@Lazy
 public class ExtractionServiceImpl implements ExtractionService {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionServiceImpl.class);
-
-
-    private interface TripExtractionDao {
-        ExtractionTripContextVO execute(TripFilterVO filter);
-    }
 
     @Autowired
     SumarisConfiguration configuration;
@@ -69,27 +70,53 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected ExtractionCsvDao extractionCsvDao;
 
     @Autowired
+    protected LocationService locationService;
+
+    @Autowired
+    protected ReferentialService referentialService;
+
+    @Autowired
     protected SumarisDatabaseMetadata databaseMetadata;
 
-    private Map<ExtractionTripFormat, Function<ExtractionTripFilterVO, ExtractionTripContextVO>> tripExtractionsByFormat =
-            ImmutableMap.of(
-            ExtractionTripFormat.ICES, tripFilterVO -> extractionIcesDao.execute(tripFilterVO),
-            ExtractionTripFormat.SURVIVAL_TEST, tripFilterVO -> extractionSurvivalTestDao.execute(tripFilterVO));
+    private List<ExtractionTypeVO> extractionTypes;
 
-
-    @Override
-    public List<ExtractionTypeVO> getAllTypes() {
-        return ImmutableList.<ExtractionTypeVO>builder()
+    @PostConstruct
+    protected void afterPropertiesSet() {
+        // Init extractions types
+        extractionTypes = ImmutableList.<ExtractionTypeVO>builder()
                 .addAll(getTableExtractionTypes())
                 .addAll(getTripExtractionTypes())
                 .build();
+
+        // Make sure statistical rectangle exists (need by trip extraction)
+        initRectangleLocations();
+    }
+
+    @Override
+    public List<ExtractionTypeVO> getAllTypes() {
+        return extractionTypes;
     }
 
     @Override
     public ExtractionResultVO getRows(ExtractionTypeVO type, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
-        Preconditions.checkNotNull(type);
-        Preconditions.checkNotNull(type.getLabel());
-        Preconditions.checkNotNull(type.getCategory());
+        Preconditions.checkNotNull(type, "Missing argument 'type' ");
+        Preconditions.checkNotNull(type.getLabel(), "Missing argument 'type.label'");
+
+        // Retrieve the extraction type, from list
+        final String extractionLabel = type.getLabel();
+        if (type.getCategory() == null) {
+            type = this.extractionTypes.stream()
+                    .filter(aType -> aType.getLabel().equalsIgnoreCase(extractionLabel))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type label {%s}", extractionLabel)));
+        }
+        else {
+            final String extractionCategory = type.getCategory();
+            type = this.extractionTypes.stream()
+                    .filter(aType -> aType.getLabel().equalsIgnoreCase(extractionLabel) && aType.getCategory().equalsIgnoreCase(extractionCategory))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type category/label {%s/%s}", extractionCategory, extractionLabel)));
+        }
 
         switch (type.getCategory()) {
             case ExtractionTableDao.CATEGORY:
@@ -97,7 +124,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             case ExtractionTripDao.CATEGORY:
                 return getTripRows(type.getLabel(), filter, offset, size, sort, direction)    ;
             default:
-                throw new IllegalArgumentException("Unknown extraction category: " + type.getCategory());
+                throw new SumarisTechnicalException(String.format("Extraction of category %s not implemented yet !", type.getCategory()));
         }
     }
 
@@ -105,15 +132,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Override
     public File exportTripsToFile(ExtractionTripFormat format, ExtractionTripFilterVO filter) {
 
-        Function<ExtractionTripFilterVO, ExtractionTripContextVO> function = tripExtractionsByFormat.get(format);
-        ExtractionTripContextVO context;
-        try {
-            context = function.apply(filter);
-        } catch (DataNotFoundException e) {
-            log.info("No data exported");
-            // No data: skip
-            return null;
-        }
+        ExtractionTripContextVO context = exportTripsToTables(format, filter);
 
         // Write the table
         return writeTablesToFile(context);
@@ -132,16 +151,48 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected List<ExtractionTypeVO> getTripExtractionTypes() {
-        return tripExtractionsByFormat.keySet().stream()
+        return Arrays.stream(ExtractionTripFormat.values())
                 .map(format -> {
                     ExtractionTypeVO type = new ExtractionTypeVO();
                     type.setLabel(format.name().toLowerCase());
                     type.setCategory(ExtractionTripDao.CATEGORY);
+                    type.setSheetNames(format.getSheetNames());
                     return type;
                 })
                 .collect(Collectors.toList());
     }
 
+
+    protected ExtractionResultVO getTripRows(String formatStr, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
+        Preconditions.checkNotNull(formatStr);
+
+        ExtractionTripFilterVO tripFilter = toTripFilterVO(filter);
+        ExtractionTripFormat format = ExtractionTripFormat.valueOf(formatStr.toUpperCase());
+
+        // Get only the first table, when possible
+        if (StringUtils.isBlank(filter.getSheetName())) {
+            tripFilter.setFirstTableOnly(true);
+        }
+
+        // Replace default sort attribute
+        if (IEntityBean.PROPERTY_ID.equalsIgnoreCase(sort)) {
+            sort = null;
+        }
+
+        // Export data to temp tables
+        ExtractionTripContextVO context = exportTripsToTables(format, tripFilter);
+
+        String selectedTableName = context.getTableNames().iterator().next();
+        if (StringUtils.isNotBlank(filter.getSheetName())) {
+            selectedTableName = context.getTableNameBySheetName(filter.getSheetName());
+        }
+
+        // Missing the expected sheet = no data
+        if (selectedTableName == null) return createEmptyResult();
+
+        // Return the selected table rows
+        return extractionTableDao.getTableRows(selectedTableName, filter, offset, size, sort, direction);
+    }
 
     protected ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
         Preconditions.checkNotNull(tableName);
@@ -155,18 +206,10 @@ public class ExtractionServiceImpl implements ExtractionService {
         return extractionTableDao.getTableRows(tableName, filter != null ? filter : new ExtractionFilterVO(), offset, size, sort, direction);
     }
 
-   
-    protected ExtractionResultVO getTripRows(String format, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
-        Preconditions.checkNotNull(format);
-        
-        ExtractionTripFormat formatEnum = ExtractionTripFormat.valueOf(format.toUpperCase());
-        Function<ExtractionTripFilterVO, ExtractionTripContextVO> function = tripExtractionsByFormat.get(formatEnum);
+    protected ExtractionTripContextVO exportTripsToTables(ExtractionTripFormat format, ExtractionTripFilterVO tripFilter) {
 
-        ExtractionTripFilterVO tripFilter = toTripFilterVO(filter);
-
-        log.warn("TODO: Limit trip extraction rows view to first table, and limit row");
         // TODO: limit to the first table, and execute as a view, without table ?
-        ExtractionTripContextVO context =  function.apply(tripFilter);
+        log.warn("TODO: Limit trip extraction rows view to first table, and limit row");
 
 //        Pageable pageable = Pageable.builder()
 //                .setOffset(offset)
@@ -175,9 +218,24 @@ public class ExtractionServiceImpl implements ExtractionService {
 //                .setSortDirection(direction)
 //                .build();
 
-        String firstTable = context.getTableNames().iterator().next();
-        return extractionTableDao.getTableRows(firstTable, null, offset, size, sort, direction);
+
+        ExtractionTripContextVO context;
+
+        switch (format) {
+            case ICES:
+                context = extractionIcesDao.execute(tripFilter);
+                break;
+            case SURVIVAL_TEST:
+                context = extractionSurvivalTestDao.execute(tripFilter);
+                break;
+            default:
+                throw new SumarisTechnicalException("Unknown extraction type: " + format);
+        }
+
+        return context;
     }
+
+
 
     protected File writeTablesToFile(ExtractionTripContextVO context) {
         Preconditions.checkNotNull(context);
@@ -191,7 +249,7 @@ public class ExtractionServiceImpl implements ExtractionService {
                     .map(tableName -> {
                         try {
 
-                            File tempCsvFile = new File(outputDirectory, context.getUserFriendlyName(tableName) + ".csv");
+                            File tempCsvFile = new File(outputDirectory, context.getSheetName(tableName) + ".csv");
                             writeTableToFile(tableName, tempCsvFile);
                             return tempCsvFile;
                         } catch (IOException e) {
@@ -248,6 +306,18 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     }
 
+
+    protected void initRectangleLocations() {
+        long rectCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_ICES.getId());
+        if (rectCount == 0) {
+            // Insert missing rectangle
+            locationService.insertOrUpdateRectangleLocations();
+
+            // Update location hierarchy
+            locationService.updateLocationHierarchy();
+        }
+    }
+
     protected File createTempDirectory(ExtractionTripContextVO context) {
         try {
             File outputDirectory = new File(configuration.getTempDirectory(), String.valueOf(context.getId()));
@@ -265,19 +335,50 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected Map<String, String> getFieldNameAlias(SumarisTableMetadata table) {
         return table.getColumnNames().stream()
                 .collect(Collectors.toMap(
-                        columnName -> columnName,
+                        columnName -> columnName.toUpperCase(),
                         StringUtils::underscoreToChangeCase));
     }
 
     protected List<String> getIgnoredFields(SumarisTableMetadata table) {
         return table.getColumnNames().stream()
                 // Exclude internal FK columns
-                .filter(columnName -> columnName.endsWith("_FK"))
+                .filter(columnName -> columnName.toLowerCase().endsWith("_fk"))
                 .collect(Collectors.toList());
     }
 
     protected ExtractionTripFilterVO toTripFilterVO(ExtractionFilterVO source){
-        log.warn("TODO: implement conversion of generic filter to TripFilterVO");
-        return null;
+        ExtractionTripFilterVO target = new ExtractionTripFilterVO();
+        if (source == null) return target;
+
+        target.setSheetName(source.getSheetName());
+
+        if (CollectionUtils.isNotEmpty(source.getCriteria())) {
+
+            source.getCriteria().stream()
+                    .filter(criterion ->
+                            org.apache.commons.lang3.StringUtils.isNotBlank(criterion.getValue())
+                            && "=".equals(criterion.getOperator()))
+                    .forEach(criterion -> {
+                        switch (criterion.getName().toLowerCase()) {
+                            case "project":
+                                target.setProgramLabel(criterion.getValue());
+                                break;
+                            case "year":
+                                int year = Integer.parseInt(criterion.getValue());
+                                target.setStartDate(Dates.getFirstDayOfYear(year));
+                                target.setEndDate(Dates.getLastSecondOfYear(year));
+                                break;
+                        }
+                    });
+        }
+        return target;
+    }
+
+    protected ExtractionResultVO createEmptyResult() {
+        ExtractionResultVO result = new ExtractionResultVO();
+        result.setColumns(ImmutableList.of());
+        result.setTotal(0);
+        result.setRows(ImmutableList.of());
+        return result;
     }
 }
