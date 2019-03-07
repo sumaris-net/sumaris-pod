@@ -1,4 +1,4 @@
-package net.sumaris.core.config;
+package net.sumaris.server.config;
 
 /*-
  * #%L
@@ -24,6 +24,8 @@ package net.sumaris.core.config;
  * #L%
  */
 
+import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.config.SumarisCoreConfigurationAction;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigActionDef;
 import org.nuiton.config.ConfigOptionDef;
@@ -38,29 +40,29 @@ import static org.nuiton.i18n.I18n.l;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  * @since 1.0
  */
-public class SumarisCoreConfigurationProvider implements ApplicationConfigProvider {
+public class SumarisServerConfigurationProvider implements ApplicationConfigProvider {
 
 	/** {@inheritDoc} */
 	@Override
 	public String getName() {
-		return "sumaris-core";
+		return "sumaris-server";
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public String getDescription(Locale locale) {
-		return l(locale, "sumaris.core.config.actions");
+		return l(locale, "sumaris.server.config");
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public ConfigOptionDef[] getOptions() {
-		return new ConfigOptionDef[0];
+		return SumarisServerConfigurationOption.values();
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public ConfigActionDef[] getActions() {
-		return SumarisCoreConfigurationAction.values();
+		return new ConfigActionDef[0];
 	}
 }

@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo.trip;
+package net.sumaris.core.extraction.vo.live;
 
 import lombok.AccessLevel;
 import lombok.Data;

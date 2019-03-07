@@ -29,6 +29,8 @@ import java.util.List;
 @Data
 public class ExtractionFilterVO {
 
+    private boolean preview;
+
     private String operator;
 
     private List<ExtractionFilterCriterionVO> criteria;

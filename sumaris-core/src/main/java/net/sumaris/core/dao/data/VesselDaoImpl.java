@@ -84,7 +84,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         // Apply sorting
         addSorting(query, cb, root, sortAttribute, sortDirection);
 
-        // No filter: execute request
+        // No tripFilter: execute request
         if (filter == null) {
             TypedQuery<VesselFeatures> q = getEntityManager().createQuery(query)
                     .setFirstResult(offset)
@@ -92,7 +92,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             return toVesselFeaturesVOs(q.getResultList());
         }
 
-        // Apply filter
+        // Apply tripFilter
         ParameterExpression<Date> dateParam = cb.parameter(Date.class);
         ParameterExpression<Integer> vesselIdParam = cb.parameter(Integer.class);
         ParameterExpression<Integer> vesselFeaturesIdParam = cb.parameter(Integer.class);

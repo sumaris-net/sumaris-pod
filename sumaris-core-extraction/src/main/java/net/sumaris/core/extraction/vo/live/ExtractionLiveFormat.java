@@ -1,9 +1,9 @@
-package net.sumaris.core.extraction.vo.trip;
+package net.sumaris.core.extraction.vo.live;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public enum ExtractionTripFormat {
+public enum ExtractionLiveFormat {
 
     ICES ("TR", "HH", "SL", "HL", "CA"),
     SURVIVAL_TEST("TR", "HH", "ST", "RL")
@@ -11,10 +11,10 @@ public enum ExtractionTripFormat {
 
     private String[] sheetNames;
 
-    ExtractionTripFormat(String... sheetNames) {
+    ExtractionLiveFormat(String... sheetNames) {
         this.sheetNames = sheetNames;
     }
-    ExtractionTripFormat() {
+    ExtractionLiveFormat() {
         this.sheetNames = null;
     }
 

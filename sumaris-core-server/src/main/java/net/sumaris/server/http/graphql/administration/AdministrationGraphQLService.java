@@ -185,8 +185,8 @@ public class AdministrationGraphQLService {
     /* TODO: enable when pagination will be manage in the client app
     @GraphQLQuery(name = "countPersons", description = "Search in persons")
     @Transactional(readOnly = true)
-    public Long countPersonsByFilter(@GraphQLArgument(name = "filter") PersonFilterVO filter) {
-        return personService.countByFilter(filter);
+    public Long countPersonsByFilter(@GraphQLArgument(name = "tripFilter") PersonFilterVO tripFilter) {
+        return personService.countByFilter(tripFilter);
     }*/
 
     @GraphQLQuery(name = "account", description = "Load a user account")

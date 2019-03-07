@@ -30,12 +30,17 @@ import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.http.rest.DownloadController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 @Service
@@ -45,7 +50,13 @@ public class ExtractionGraphQLService {
     private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
 
     @Autowired
+    private SumarisServerConfiguration configuration;
+
+    @Autowired
     private ExtractionService extractionService;
+
+    @Autowired
+    private DownloadController downloadController;
 
     /* -- Extraction / table -- */
 
@@ -56,7 +67,7 @@ public class ExtractionGraphQLService {
         return extractionService.getAllTypes();
     }
 
-    @GraphQLQuery(name = "extraction", description = "Extract data")
+    @GraphQLQuery(name = "extractionRows", description = "Preview some extraction rows")
     @Transactional
     //@IsUser
     public ExtractionResultVO getExtractionRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
@@ -74,4 +85,18 @@ public class ExtractionGraphQLService {
         return extractionService.getRows(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
+    @GraphQLQuery(name = "extractionFile", description = "Execute extraction to a file")
+    @Transactional
+    //@IsUser
+    public String getExtractionFile(@GraphQLArgument(name = "type") ExtractionTypeVO type,
+                                 @GraphQLArgument(name = "filter") ExtractionFilterVO filter
+    ) throws IOException {
+        Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
+        Preconditions.checkNotNull(type.getLabel(), "Argument 'type.label' must not be null.");
+
+        File tempFile = extractionService.getFile(type, filter);
+        String fileServerPath = downloadController.registerFile(tempFile, true);
+
+       return fileServerPath;
+    }
 }

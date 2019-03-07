@@ -98,7 +98,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     /**
-     * Disable Spring boot automatic filter registration.
+     * Disable Spring boot automatic tripFilter registration.
      */
     @Bean
     FilterRegistrationBean disableAutoRegistration(final TokenAuthenticationFilter filter) {

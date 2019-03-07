@@ -150,6 +150,14 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
+     * <p>getDownloadDirectory</p>
+     * @return a {@link File} object.
+     */
+    public File getDownloadDirectory() {
+        return applicationConfig.getOptionAsFile(SumarisServerConfigurationOption.DOWNLOAD_DIRECTORY.getKey());
+    }
+
+    /**
      * <p>getServerAddress.</p>
      *
      * @return a {@link String} object.
@@ -292,6 +300,9 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
         // DB backup directory
         FileUtils.forceMkdir(getDbBackupDirectory());
+
+        // Download directory
+        FileUtils.forceMkdir(getDownloadDirectory());
 
         // temp directory
         File tempDirectory = getTempDirectory();

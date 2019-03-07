@@ -66,6 +66,9 @@ public class SumarisDatabaseMetadata {
 	private static final Logger log =
 			LoggerFactory.getLogger(SumarisDatabaseMetadata.class);
 
+	@Autowired
+	protected SumarisDatabaseMetadata databaseMetadata;
+
 	protected final Map<String, SumarisTableMetadata> tables;
 	protected final Map<String, PersistentClass> entities;
 
@@ -212,7 +215,7 @@ public class SumarisDatabaseMetadata {
 
 	protected void initTables(Connection conn) {
 		Map<String, PersistentClass> persistentClassMap = Maps.newHashMap();
-		for ( PersistentClass persistentClass : metadata.getEntityBindings()) {
+		for (PersistentClass persistentClass: metadata.getEntityBindings()) {
 
 			Table table = persistentClass.getTable();
 
@@ -295,7 +298,11 @@ public class SumarisDatabaseMetadata {
 				sumarisTableMetadata = new SumarisTableMetadata(qualifiedTableName, this, jdbcMeta);
 			}
 
-			tables.put(fullTableName, sumarisTableMetadata);
+			// Add to cached (if not extraction)
+			// TODO: use include/exclude pattern, by configuration
+			if (!qualifiedTableName.getTableName().getText().toUpperCase().startsWith("EXT_")) {
+				tables.put(fullTableName, sumarisTableMetadata);
+			}
 		}
 		return sumarisTableMetadata;
 	}

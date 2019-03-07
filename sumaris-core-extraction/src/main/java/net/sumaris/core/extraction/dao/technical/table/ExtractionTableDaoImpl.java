@@ -28,7 +28,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.*;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
+import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -37,9 +40,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.Query;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,6 +64,9 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
 	@Autowired
 	protected SumarisDatabaseMetadata databaseMetadata;
+
+	@Autowired
+	protected DataSource dataSource = null;
 
 	@Override
 	public List<String> getAllTableNames() {
@@ -75,10 +86,6 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 		Preconditions.checkNotNull(table, "Unknown table: " + tableName);
 
 		ExtractionResultVO result = new ExtractionResultVO();
-
-		ExtractionTypeVO type = new ExtractionTypeVO();
-		type.setLabel(table.getName().toLowerCase());
-		type.setCategory(CATEGORY);
 
 		// Set columns metadata
 		List<ExtractionColumnMetadataVO> columns = table.getColumnNames().stream()
@@ -106,7 +113,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 			}
 		}
 
-		String whereClause = getSqlWhereClause(table, filter);
+		String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
 
 		// Count rows
 		Number total = getRowCount(table, whereClause);
@@ -118,6 +125,26 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 		}
 
 		return result;
+	}
+
+	@Override
+	public void dropTable(String tableName) {
+		Preconditions.checkNotNull(tableName);
+		Preconditions.checkArgument(tableName.toUpperCase().startsWith("EXT_"));
+
+		log.debug(String.format("Dropping extraction table {%s}...", tableName));
+		Connection conn = DataSourceUtils.getConnection(dataSource);
+		try {
+			Statement stmt = conn.createStatement();
+			stmt.executeUpdate("DROP TABLE " + tableName.toUpperCase());
+
+		}
+		catch (SQLException e) {
+			throw new SumarisTechnicalException(String.format("Cannot drop extraction table {%s}...", tableName), e);
+		}
+		finally {
+			DataSourceUtils.releaseConnection(conn, dataSource);
+		}
 	}
 
 	/* -- protected method -- */
@@ -206,108 +233,6 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 		return column;
 	}
 
-	protected boolean isNumericColumn(SumarisColumnMetadata column) {
-		return column.getTypeCode() == Types.NUMERIC
-				|| column.getTypeCode() == Types.INTEGER
-				|| column.getTypeCode() == Types.DOUBLE
-				|| column.getTypeCode() == Types.BIGINT
-				|| column.getTypeCode() == Types.DECIMAL
-				|| column.getTypeCode() == Types.FLOAT;
-	}
 
-	protected String getSqlWhereClause(SumarisTableMetadata table, ExtractionFilterVO filter) {
-
-		if (filter == null || CollectionUtils.isEmpty(filter.getCriteria())) return "";
-
-		String tableAlias = "t";
-		StringBuilder sql = new StringBuilder();
-		sql.append(" WHERE ");
-
-		String logicalOperator = "";
-
-		for (ExtractionFilterCriterionVO criterion: filter.getCriteria()) {
-
-			// Get the column to filter
-			Preconditions.checkNotNull(criterion.getName());
-			SumarisColumnMetadata column = table.getColumnMetadata(criterion.getName().toLowerCase());
-			Preconditions.checkNotNull(column, String.format("Invalid criterion: '%s' is not an existing column", criterion.getName()));
-			sql.append(String.format("%s%s.%s", logicalOperator, tableAlias, column.getName()));
-
-			// Affect logical operator, for the next criterion
-			if (StringUtils.isBlank(logicalOperator))  {
-				logicalOperator = "OR".equalsIgnoreCase(StringUtils.trim(filter.getOperator())) ? " OR " : " AND ";
-			}
-
-			ExtractionFilterOperatorEnum operator = criterion.getOperator() == null ? ExtractionFilterOperatorEnum.EQUALS :  ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
-
-			if (criterion.getValue() == null && ArrayUtils.isEmpty(criterion.getValues())) {
-				switch (operator) {
-					case NOT_IN:
-					case NOT_EQUALS:
-						sql.append(" IS NOT NULL");
-						break;
-					default:
-						sql.append(" IS NULL");
-				}
-			}
-			else {
-				switch (operator) {
-					case IN:
-						sql.append(String.format(" IN (%s)", getInValues(column, criterion)));
-						break;
-					case NOT_IN:
-						sql.append(String.format(" NOT IN (%s)", getInValues(column, criterion)));
-						break;
-					case EQUALS:
-						sql.append(String.format(" = %s", getSingleValue(column, criterion)));
-						break;
-					case NOT_EQUALS:
-						sql.append(String.format(" <> %s", getSingleValue(column, criterion)));
-						break;
-					case LESS_THAN:
-						sql.append(String.format(" < %s", getSingleValue(column, criterion)));
-						break;
-					case LESS_THAN_OR_EQUALS:
-						sql.append(String.format(" <= %s", getSingleValue(column, criterion)));
-						break;
-					case GREATER_THAN:
-						sql.append(String.format(" > %s", getSingleValue(column, criterion)));
-						break;
-					case GREATER_THAN_OR_EQUALS:
-						sql.append(String.format(" >= %s", getSingleValue(column, criterion)));
-						break;
-					case BETWEEN:
-						sql.append(String.format(" BETWEEN %s AND %s", getBetweenValueByIndex(column, criterion, 0), getBetweenValueByIndex(column, criterion, 1)));
-						break;
-				}
-			}
-		}
-
-		return sql.toString();
-	}
-
-	protected String getSingleValue(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion) {
-		return isNumericColumn(column) ? criterion.getValue() : ("'" + criterion.getValue() + "'");
-	}
-
-	protected String getInValues(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion) {
-		if (ArrayUtils.isEmpty(criterion.getValues())) {
-			if (criterion.getValue() != null) {
-				return getSingleValue(column, criterion);
-			}
-			Preconditions.checkArgument(false, "Invalid criterion: 'values' is required for operator 'IN' or 'NOT IN'");
-		}
-		return isNumericColumn(column) ?
-				Joiner.on(',').join(criterion.getValues()) :
-				"'" + Joiner.on("','").skipNulls().join(criterion.getValues()) + "'";
-	}
-
-	protected String getBetweenValueByIndex(SumarisColumnMetadata column, ExtractionFilterCriterionVO criterion, int index) {
-		Preconditions.checkNotNull(criterion.getValues(), "Invalid criterion: 'values' is required for operator 'BETWEEN'");
-		Preconditions.checkArgument(criterion.getValues().length == 2, "Invalid criterion: 'values' array must have 2 values, for operator 'BETWEEN'");
-		Preconditions.checkArgument(index == 0 || index == 1);
-		String value = criterion.getValues()[index];
-		return isNumericColumn(column) ? value : ("'" + value + "'");
-	}
 
 }

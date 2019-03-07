@@ -34,4 +34,5 @@ public interface RestPaths {
 
     String IMAGE_PATH = BASE_PATH + "/image/{id}";
 
+    String DOWNLOAD_PATH = "/download";
 }

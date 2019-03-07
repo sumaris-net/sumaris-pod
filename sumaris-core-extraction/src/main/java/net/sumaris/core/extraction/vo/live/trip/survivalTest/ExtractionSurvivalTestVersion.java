@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo.trip.survivalTest;
+package net.sumaris.core.extraction.vo.live.trip.survivalTest;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*

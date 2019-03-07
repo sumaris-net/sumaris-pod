@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.dao.technical;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.service.referential.ReferentialService;
 import org.slf4j.Logger;

@@ -2,11 +2,10 @@ package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.extraction.dao.DatabaseResource;
 
-import java.awt.font.FontRenderContext;
 import java.io.File;
 import java.io.IOException;
 
-import net.sumaris.core.extraction.vo.trip.ExtractionTripFormat;
+import net.sumaris.core.extraction.vo.live.ExtractionLiveFormat;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ZipUtils;
 import org.apache.commons.io.FileUtils;
@@ -39,15 +38,14 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     public void exportTripToFileIces() {
 
         // ICES export:
-        service.exportTripsToFile(ExtractionTripFormat.ICES, null);
-
+        service.getFile(ExtractionLiveFormat.ICES, null);
     }
 
     @Test
     public void exportTripToFileSurvivalTest() {
 
         // Survival test:
-        File outputFile = service.exportTripsToFile(ExtractionTripFormat.SURVIVAL_TEST, null);
+        File outputFile = service.getFile(ExtractionLiveFormat.SURVIVAL_TEST, null);
 
         File debugFile = new File("target/result.zip");
         File debugDirectory = new File("target/result");

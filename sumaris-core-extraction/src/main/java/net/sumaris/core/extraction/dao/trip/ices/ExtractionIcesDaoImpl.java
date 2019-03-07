@@ -1,21 +1,26 @@
 package net.sumaris.core.extraction.dao.trip.ices;
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
-import net.sumaris.core.extraction.vo.trip.ExtractionPmfmInfoVO;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripContextVO;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.trip.ices.ExtractionIcesContextVO;
-import net.sumaris.core.extraction.vo.trip.ices.ExtractionIcesVersion;
+import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.extraction.vo.live.ExtractionPmfmInfoVO;
+import net.sumaris.core.extraction.vo.live.trip.ExtractionTripContextVO;
+import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.live.trip.ices.ExtractionIcesContextVO;
+import net.sumaris.core.extraction.vo.live.trip.ices.ExtractionIcesVersion;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -46,11 +51,16 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionIcesDaoImpl.class);
 
-    private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "TR_%s";
-    private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "HH_%s";
-    private static final String SL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "SL_%s";
-    private static final String HL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "HL_%s";
-    private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "CA_%s";
+    private static final String HH_SHEET_NAME = "HH";
+    private static final String SL_SHEET_NAME = "SL";
+    private static final String HL_SHEET_NAME = "HL";
+    private static final String CA_SHEET_NAME = "CA";
+
+    private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + TR_SHEET_NAME + "_%s";
+    private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HH_SHEET_NAME + "_%s";
+    private static final String SL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + SL_SHEET_NAME + "_%s";
+    private static final String HL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HL_SHEET_NAME + "_%s";
+    private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + CA_SHEET_NAME + "_%s";
 
     protected static final String XML_QUERY_PATH = "xmlQuery";
 
@@ -66,11 +76,14 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
     @Autowired
     protected ResourceLoader resourceLoader;
 
+    @Autowired
+    protected SumarisDatabaseMetadata databaseMetadata;
+
     @Override
-    public C execute(ExtractionTripFilterVO filter) {
+    public C execute(ExtractionTripFilterVO filter, ExtractionFilterVO genericFilter) {
 
         if (log.isInfoEnabled()) {
-            log.info(String.format("Beginning extraction %s", filter == null ? "without filter" : "with filters:"));
+            log.info(String.format("Beginning extraction %s", filter == null ? "without tripFilter" : "with filters:"));
             if (filter != null) {
                 log.info(String.format("Program label: %s", filter.getProgramLabel()));
                 log.info(String.format("  Location Id: %s", filter.getLocationId()));
@@ -83,7 +96,8 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
         // Init context
         C context = createNewContext();
-        context.setFilter(filter);
+        context.setTripFilter(filter);
+        context.setFilter(genericFilter);
         context.setFormatName(ICES_FORMAT);
         context.setFormatVersion(ExtractionIcesVersion.VERSION_1_3.getLabel());
         context.setId(System.currentTimeMillis());
@@ -94,7 +108,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
 
         // Expected sheet name
-        String sheetName = filter != null ? filter.getSheetName() : null;
+        String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
 
         // Trip
         long rowCount = createTripTable(context);
@@ -209,15 +223,20 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
     protected long createTripTable(ExtractionIcesContextVO context) {
 
-
         XMLQuery xmlQuery = createTripQuery(context);
 
         // execute insertion
         execute(xmlQuery);
-
         long count = countFrom(context.getTripTableName());
+
+        // Clean row using generic tripFilter
         if (count > 0) {
-            context.addTableName(context.getTripTableName(), "TR");
+            count -= cleanRow(context.getTripTableName(), context.getFilter(), TR_SHEET_NAME);
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(context.getTripTableName(), TR_SHEET_NAME);
             log.debug(String.format("Trip table: %s rows inserted", count));
         }
         return count;
@@ -238,7 +257,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
         xmlQuery.bind("endDate", Daos.getSqlToDate(context.getEndDate()));
 
-        // Program filter
+        // Program tripFilter
         xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
         xmlQuery.bind("progLabels", Daos.getSqlInValueFromStringCollection(context.getProgramLabels()));
 
@@ -246,16 +265,13 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         xmlQuery.setGroup("locationFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
         xmlQuery.bind("locationIds", Daos.getSqlInValueFromIntegerCollection(context.getLocationIds()));
 
-        // Recorder Department filter
+        // Recorder Department tripFilter
         xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
         xmlQuery.bind("recDepIds", Daos.getSqlInValueFromIntegerCollection(context.getRecorderDepartmentIds()));
 
-        // Vessel filter
+        // Vessel tripFilter
         xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
         xmlQuery.bind("vesselIds", Daos.getSqlInValueFromIntegerCollection(context.getVesselIds()));
-
-
-        // TODO bind sort, offset, etc ?
 
         return xmlQuery;
     }
@@ -266,10 +282,16 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
         // execute insertion
         execute(xmlQuery);
-
         long count = countFrom(context.getStationTableName());
+
+        // Clean row using generic tripFilter
         if (count > 0) {
-            context.addTableName(context.getStationTableName(), "HH");
+            count -= cleanRow(context.getStationTableName(), context.getFilter(), HH_SHEET_NAME);
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(context.getStationTableName(), HH_SHEET_NAME);
             log.debug(String.format("Station table: %s rows inserted", count));
         }
         return count;
@@ -301,11 +323,16 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
         // execute insertion
         execute(xmlQuery);
-
-
         long count = countFrom(context.getSpeciesListTableName());
+
+        // Clean row using generic tripFilter
         if (count > 0) {
-            context.addTableName(context.getSpeciesListTableName(), "SL");
+            count -= cleanRow(context.getSpeciesListTableName(), context.getFilter(), SL_SHEET_NAME);
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(context.getSpeciesListTableName(), SL_SHEET_NAME);
             log.debug(String.format("Species list table: %s rows inserted", count));
         }
         return count;
@@ -319,10 +346,16 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
         // execute insertion
         execute(xmlQuery);
-
         long count = countFrom(context.getSpeciesLengthTableName());
+
+        // Clean row using generic tripFilter
         if (count > 0) {
-            context.addTableName(context.getSpeciesLengthTableName(), "HL");
+            count -= cleanRow(context.getSpeciesLengthTableName(), context.getFilter(), HL_SHEET_NAME);
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(context.getSpeciesLengthTableName(), HL_SHEET_NAME);
             log.debug(String.format("Species length table: %s rows inserted", count));
         }
         return count;
@@ -374,5 +407,19 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         catch(IOException e) {
             throw new SumarisTechnicalException(e);
         }
+    }
+
+    protected int cleanRow(String tableName, ExtractionFilterVO filter, String sheetName) {
+        Preconditions.checkNotNull(tableName);
+        if (filter == null) return 0;
+
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
+        Preconditions.checkNotNull(table);
+
+        String whereClauseContent = SumarisTableMetadatas.getSqlWhereClauseContent(table, filter, sheetName, null/*no alias*/);
+        if (StringUtils.isBlank(whereClauseContent)) return 0;
+
+        String deleteQuery = table.getDeleteQuery(String.format("NOT(%s)", whereClauseContent));
+        return queryUpdate(deleteQuery);
     }
 }

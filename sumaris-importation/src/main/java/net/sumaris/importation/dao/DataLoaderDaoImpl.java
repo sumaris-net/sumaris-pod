@@ -671,7 +671,7 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 				}
 
 				if (log.isInfoEnabled()) {
-					log.info(String.format("Removing rows on table {%s} using filter {%s}", table.name(), logBuilder.substring(0, logBuilder.length() - 2)));
+					log.info(String.format("Removing rows on table {%s} using tripFilter {%s}", table.name(), logBuilder.substring(0, logBuilder.length() - 2)));
 				}
 
 				deleteQuery = tableMetadata.getDeleteQuery(filteredColumns);
@@ -687,7 +687,7 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 					log.info(String.format("Removing ALL rows on table {%s}", table.name()));
 				}
 
-				deleteQuery = tableMetadata.getDeleteQuery(null);
+				deleteQuery = tableMetadata.getDeleteQuery();
 				PreparedStatement deleteStatement = conn.prepareStatement(deleteQuery);
 				return deleteStatement.executeUpdate();
 			}

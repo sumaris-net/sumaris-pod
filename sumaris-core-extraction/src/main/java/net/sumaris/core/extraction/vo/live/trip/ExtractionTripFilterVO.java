@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo.trip;
+package net.sumaris.core.extraction.vo.live.trip;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.Pageable;
@@ -10,7 +10,7 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 @Data
 public class ExtractionTripFilterVO extends TripFilterVO {
 
-    private boolean firstTableOnly;
+    private boolean preview;
 
     private String sheetName;
 

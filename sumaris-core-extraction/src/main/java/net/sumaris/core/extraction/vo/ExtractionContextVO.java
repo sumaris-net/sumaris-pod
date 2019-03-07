@@ -1,13 +1,10 @@
-package net.sumaris.core.extraction.vo.trip;
+package net.sumaris.core.extraction.vo;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.filter.TripFilterVO;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -17,42 +14,16 @@ import java.util.*;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public abstract class ExtractionTripContextVO {
+public abstract class ExtractionContextVO {
 
     long id;
-    TripFilterVO filter;
 
-    String formatName;
-    String formatVersion;
-
-    List<ExtractionPmfmInfoVO> pmfmInfos;
+    ExtractionFilterVO filter;
 
     @FieldNameConstants.Exclude
     Map<String, String> tableNames = new LinkedHashMap<>();
 
-    public Date getStartDate() {
-        return filter != null ? filter.getStartDate() : null;
-    }
-
-    public Date getEndDate() {
-        return filter != null ? filter.getEndDate() : null;
-    }
-
-    public List<String> getProgramLabels() {
-        return filter != null && StringUtils.isNotBlank(filter.getProgramLabel()) ? ImmutableList.of(filter.getProgramLabel()) : null;
-    }
-
-    public List<Integer> getRecorderDepartmentIds() {
-        return filter != null && filter.getRecorderDepartmentId() != null ? ImmutableList.of(filter.getRecorderDepartmentId()) : null;
-    }
-
-    public List<Integer> getVesselIds() {
-        return filter != null && filter.getVesselId() != null ? ImmutableList.of(filter.getVesselId()) : null;
-    }
-
-    public List<Integer> getLocationIds() {
-        return filter != null && filter.getLocationId() != null ? ImmutableList.of(filter.getLocationId()) : null;
-    }
+    public abstract String getLabel();
 
     /**
      * Register a table (with rows inside)

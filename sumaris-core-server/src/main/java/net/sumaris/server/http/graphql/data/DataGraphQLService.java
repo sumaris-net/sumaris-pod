@@ -294,8 +294,8 @@ public class DataGraphQLService {
                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                    @GraphQLArgument(name = "sortBy", defaultValue = OperationVO.PROPERTY_START_DATE_TIME) String sort,
                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
-        Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
+        Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
+        Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
         List<OperationVO> res = operationService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
         return res;
     }

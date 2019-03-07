@@ -3,11 +3,12 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.trip.ices.ExtractionIcesDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.trip.ices.ExtractionIcesContextVO;
-import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripContextVO;
-import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestVersion;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.live.trip.ices.ExtractionIcesContextVO;
+import net.sumaris.core.extraction.vo.live.trip.survivalTest.ExtractionSurvivalTestContextVO;
+import net.sumaris.core.extraction.vo.live.trip.ExtractionTripContextVO;
+import net.sumaris.core.extraction.vo.live.trip.survivalTest.ExtractionSurvivalTestVersion;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,17 +26,20 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
     private static final String XML_QUERY_ST_PATH = "survivalTest/v%s/%s";
 
-    private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "ST_%s"; // Survival test table
-    private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + "RL_%s"; // Release table
+    public static final String ST_SHEET_NAME = "ST"; // Survival test
+    public static final String RL_SHEET_NAME = "RL"; // Release
+
+    private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ST_SHEET_NAME + "_%s";
+    private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
     private String version = ExtractionSurvivalTestVersion.VERSION_1_0.getLabel();
 
     @Override
-    public C execute(ExtractionTripFilterVO filter) {
+    public C execute(ExtractionTripFilterVO filter, ExtractionFilterVO genericFilter) {
         String sheetName = filter != null ? filter.getSheetName() : null;
 
         // Execute ICES extraction
-        C context = super.execute(filter);
+        C context = super.execute(filter, genericFilter);
 
         // Stop here
         if (sheetName != null && context.hasSheet(sheetName)) return context;
@@ -143,10 +147,16 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
         // execute insertion
         execute(xmlQuery);
-
         long count = countFrom(context.getSurvivalTestTableName());
+
+        // Clean row using generic tripFilter
         if (count > 0) {
-            context.addTableName(context.getSurvivalTestTableName(), "ST");
+            count -= cleanRow(context.getSurvivalTestTableName(), context.getFilter(), ST_SHEET_NAME);
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(context.getSurvivalTestTableName(), ST_SHEET_NAME);
             log.debug(String.format("Survival test table: %s rows inserted", count));
         }
         return count;
@@ -161,10 +171,16 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
         // execute insertion
         execute(xmlQuery);
-
         long count = countFrom(context.getReleaseTableName());
+
+        // Clean row using generic tripFilter
         if (count > 0) {
-            context.addTableName(context.getReleaseTableName(), "ST");
+            count -= cleanRow(context.getReleaseTableName(), context.getFilter(), RL_SHEET_NAME);
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(context.getReleaseTableName(), RL_SHEET_NAME);
             log.debug(String.format("Release table: %s rows inserted", count));
         }
         return count;

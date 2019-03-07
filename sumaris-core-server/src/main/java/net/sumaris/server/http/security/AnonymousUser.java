@@ -10,7 +10,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
  *
  * @author peck7 on 03/12/2018.
  */
-class AnonymousUser extends AuthUser {
+public class AnonymousUser extends AuthUser {
 
     static final AnonymousUser INSTANCE = new AnonymousUser();
 

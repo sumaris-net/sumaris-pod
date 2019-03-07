@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo.trip.ices;
+package net.sumaris.core.extraction.vo.live.trip.ices;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*

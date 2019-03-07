@@ -1,14 +1,9 @@
-package net.sumaris.core.extraction.vo.trip.survivalTest;
+package net.sumaris.core.extraction.vo.live.trip.survivalTest;
 
-import com.google.common.collect.ImmutableSet;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import net.sumaris.core.extraction.vo.trip.ices.ExtractionIcesContextVO;
-
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import net.sumaris.core.extraction.vo.live.trip.ices.ExtractionIcesContextVO;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>

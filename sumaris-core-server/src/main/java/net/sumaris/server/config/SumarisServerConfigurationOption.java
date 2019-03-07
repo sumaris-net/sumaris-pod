@@ -24,6 +24,8 @@ package net.sumaris.server.config;
 
 import org.nuiton.config.ConfigOptionDef;
 
+import java.io.File;
+
 import static org.nuiton.i18n.I18n.n;
 
 public enum SumarisServerConfigurationOption implements ConfigOptionDef {
@@ -42,10 +44,17 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+    SERVER_PROTOCOL(
+            "server.protocol",
+            n("sumaris.config.option.server.protocol.description"),
+            "http",
+            String.class,
+            false),
+
     SERVER_URL(
             "server.url",
             n("sumaris.config.option.server.url.description"),
-            "http://${server.host}://${server.port}",
+            "${server.protocol}://${server.host}://${server.port}",
             String.class,
             false),
 
@@ -97,6 +106,12 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "14400", // = 4 hours
             Integer.class,
             false),
+
+    DOWNLOAD_DIRECTORY(
+            "sumaris.download.directory",
+            n("sumaris.config.option.download.directory.description"),
+            "${sumaris.data.directory}/download",
+            File.class),
 
     SITE_FAVICON(
             "sumaris.favicon",

@@ -1,14 +1,9 @@
-package net.sumaris.core.extraction.vo.trip.ices;
+package net.sumaris.core.extraction.vo.live.trip.ices;
 
-import com.google.common.collect.ImmutableSet;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripContextVO;
-
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import net.sumaris.core.extraction.vo.live.trip.ExtractionTripContextVO;
 
 /**
  * @author peck7 on 17/12/2018.

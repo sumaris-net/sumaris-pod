@@ -4446,7 +4446,7 @@ function hintList(cursor, token, list) {
   return results;
 }
 
-// Given a list of hint entries and currently typed text, sort and filter to
+// Given a list of hint entries and currently typed text, sort and tripFilter to
 // provide a concise list.
 function filterAndSortList(list, text) {
   var sorted = !text ? list : list.map(function (entry) {
@@ -9546,7 +9546,7 @@ CodeMirror.registerHelper("fold", "include", function(cm, start) {
       te.style.cssText = "position: absolute; width: 30px; height: 30px; top: " + (e.clientY - wrapperBox.top - 5) +
         "px; left: " + (e.clientX - wrapperBox.left - 5) + "px; z-index: 1000; background: " +
         (ie ? "rgba(255, 255, 255, .05)" : "transparent") +
-        "; outline: none; border-width: 0; outline: none; overflow: hidden; opacity: .05; filter: alpha(opacity=5);";
+        "; outline: none; border-width: 0; outline: none; overflow: hidden; opacity: .05; tripFilter: alpha(opacity=5);";
       if (webkit) var oldScrollY = window.scrollY; // Work around Chrome issue (#2712)
       display.input.focus();
       if (webkit) window.scrollTo(null, oldScrollY);
@@ -16106,7 +16106,7 @@ CodeMirror.registerHelper("fold", "include", function(cm, start) {
     return !out ? spans : out.length ? out : null;
   }
 
-  // Retrieve and filter the old marked spans stored in a change event.
+  // Retrieve and tripFilter the old marked spans stored in a change event.
   function getOldSpans(doc, change) {
     var found = change["spans_" + doc.id];
     if (!found) return null;
@@ -17843,7 +17843,7 @@ module.exports = function(IS_INCLUDES){
 },{"./_to-index":129,"./_to-iobject":131,"./_to-length":132}],66:[function(require,module,exports){
 // 0 -> Array#forEach
 // 1 -> Array#map
-// 2 -> Array#filter
+// 2 -> Array#tripFilter
 // 3 -> Array#some
 // 4 -> Array#every
 // 5 -> Array#find
@@ -17878,7 +17878,7 @@ module.exports = function(TYPE, $create){
           case 3: return true;                    // some
           case 5: return val;                     // find
           case 6: return index;                   // findIndex
-          case 2: result.push(val);               // filter
+          case 2: result.push(val);               // tripFilter
         } else if(IS_EVERY)return false;          // every
       }
     }

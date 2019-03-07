@@ -11,12 +11,11 @@ import java.util.List;
  */
 public interface ExtractionTableDao {
 
-    String CATEGORY = "table";
-
     List<String> getAllTableNames();
 
     ExtractionResultVO getTable(String tableName);
 
     ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction);
 
+    void dropTable(String tableName);
 }

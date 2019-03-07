@@ -1,15 +1,16 @@
 package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.extraction.vo.ExtractionContextVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.trip.ExtractionTripFormat;
-import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.live.ExtractionLiveFormat;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -18,9 +19,6 @@ import java.util.List;
 @Transactional
 public interface ExtractionService {
 
-
-    @Transactional
-    File exportTripsToFile(ExtractionTripFormat format, ExtractionTripFilterVO filter);
 
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> getAllTypes();
@@ -33,5 +31,14 @@ public interface ExtractionService {
                                String sort,
                                SortDirection direction) ;
 
+    @Transactional(rollbackFor = IOException.class)
+    File getFile(ExtractionTypeVO type,
+                 ExtractionFilterVO filter) throws IOException;
+
+    @Transactional
+    File getFile(ExtractionLiveFormat format, ExtractionTripFilterVO filter);
+
+    @Transactional
+    void clean(ExtractionContextVO context);
 
 }
