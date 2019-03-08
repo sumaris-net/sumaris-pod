@@ -6,7 +6,9 @@ package net.sumaris.core.extraction.vo.product;
 public enum ExtractionProduct {
 
     ICES ("ICES",
-            "TR", "HH", "SL", "HL", "CA", "CL", "CE")
+            "TR", "HH", "SL", "HL", "CL"
+            // TODO add "CA", "CE"
+            )
     ;
 
     private String label;
