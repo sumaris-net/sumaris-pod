@@ -339,9 +339,9 @@
   },
   "QUALITY": {
     "MODIFIED": "Being edited",
-    "CONTROLLED": "Controlled",
-    "CONTROLLED_ON": "Controlled on ",
-    "CONTROL": "Terminate",
+    "CONTROLLED": "Completed",
+    "CONTROLLED_ON": "Completed on ",
+    "CONTROL": "Complete input",
     "VALIDATED": "Validated",
     "VALIDATED_ON": "Validated on ",
     "VALIDATE": "Validate",
