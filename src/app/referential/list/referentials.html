@@ -6,7 +6,7 @@
   <mat-toolbar>
     <mat-toolbar-row>
       <form [formGroup]="filterForm" novalidate (ngSubmit)="onEntityNameChange(filterForm.value.entityName)">
-        <mat-form-field>
+        <mat-form-field floatLabel="never">
           <mat-select formControlName="entityName" (ngModelChange)="onEntityNameChange($event)">
             <mat-option *ngFor="let item of entities | async" [value]="item.id">{{ item.label | translate }}</mat-option>
           </mat-select>

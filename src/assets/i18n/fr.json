@@ -446,7 +446,6 @@
   },
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Télécharger le fichier CSV",
-    "TYPE_PLACEHOLDER": "Type d'extraction",
     "COMMON": {
       "YEAR": "Année",
       "PROJECT": "Projet",
@@ -465,30 +464,49 @@
       "WITH_FILTER_PARENTHESIS": "(filtrés)"
     },
     "CATEGORY": {
-      "TABLE": "Extractions"
+      "PRODUCT": "Data call",
+      "LIVE": "Temp réel"
     },
-    "TABLE": {
-      "FILE_ICES_TRIP": {
-        "TITLE": "Marées (TR)"
-      },
-      "FILE_ICES_STATION": {
-        "TITLE": "Opération de pêche (HH)"
-      },
-      "FILE_ICES_SPECIES_LIST": {
-        "TITLE": "Captures par espèce (SL)"
-      },
-      "FILE_ICES_SPECIES_LENGTH": {
-        "TITLE": "Mensuration par espèce (HL)"
-      },
-      "FILE_ICES_LANDING": {
-        "TITLE": "Statistiques de débarquement (CL)"
+    "PRODUCT": {
+      "ICES": {
+        "TITLE": "Data call (format ICES v1.3)",
+        "SHEET": {
+          "TR": "Marées (TR)",
+          "HH": "Opérations (HH)",
+          "SL": "Captures (SL)",
+          "HL": "Mensurations (HL)",
+          "CA": "Sex-Age (CA)",
+          "CL": "Débarquements (CL)",
+          "CE": "Efforts (CE)"
+        }
       }
-
+    },
+    "LIVE": {
+      "ICES": {
+        "TITLE": "Live data (format ICES v1.3)",
+        "SHEET": {
+          "TR": "Marées (TR)",
+          "HH": "Opérations (HH)",
+          "SL": "Captures (SL)",
+          "HL": "Mensurations (HL)"
+        }
+      },
+      "SURVIVAL_TEST": {
+        "TITLE": "Live data (format SUMARiS v1.0)",
+        "SHEET": {
+          "TR": "Marées (TR)",
+          "HH": "Opérations (HH)",
+          "SL": "Captures (SL)",
+          "HL": "Mensurations (HL)",
+          "ST": "Tests de survie (ST)",
+          "RL": "Relachés (RL)"
+        }
+      }
     },
     "ERROR": {
       "LOAD_EXTRACTION_TYPES_ERROR": "Erreur de chargement des type d'extraction",
       "LOAD_EXTRACTION_ROWS_ERROR": "Erreur de chargement des lignes de données.",
-      "DOWNLOAD_EXTRACTION_ROWS_ERROR": "Erreur de téléchargement du fichier."
+      "DOWNLOAD_EXTRACTION_FILE_ERROR": "Erreur de téléchargement du fichier d'extraction."
     }
   },
   "ERROR": {

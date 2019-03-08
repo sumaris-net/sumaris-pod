@@ -5,6 +5,7 @@ export declare class ExtractionType {
   label: string;
   category: string;
   name?: string;
+  sheetNames?: string[];
 }
 
 export declare class ExtractionResult {

@@ -157,7 +157,7 @@ const routes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: '/extraction/table/file_ices_trip',
+            redirectTo: '/extraction/product/ices',
             data: {
               profile: 'SUPERVISOR'
             }

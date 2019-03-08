@@ -15,7 +15,8 @@ export const environment: Environment = {
     //remoteBaseUrl: "https://test.sumaris.net",
     defaultLocale: "fr",
     defaultLatLongFormat: 'DDMM',
-    defaultProgram: "ADAP-MER",
+  //defaultProgram: "ADAP-MER",
+    defaultProgram: "SUMARiS",
     apolloFetchPolicy: 'cache-first'
 };
 

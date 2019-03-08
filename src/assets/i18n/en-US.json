@@ -24,6 +24,8 @@
     "BTN_TABLE_EDIT": "Edit in the table",
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",
+    "BTN_HIDE_MENU": "Hide menu",
+    "BTN_SHOW_MENU": "Show menu",
     "CREATED_ON": "Created on",
 
     "DATE_PATTERN": "MM/DD/YYYY",
@@ -66,6 +68,14 @@
       "PREVIOUS_PAGE":"Previous page",
       "OF": "sur"
     }
+  },
+  "CONFIGURATION": {
+    "APP_NAME": "Application Name",
+    "BASE_URL": "Base URL",
+    "REMOTE_BASE_URL": "Remote URL ex: https://test.tst",
+    "VERSION": "Version tag ex: 0.0.1",
+    "GEO_FORMAT": "Latitude & Longitude Format",
+    "APOLLO_POLICY" : "cache-first"
   },
   "MENU": {
     "HOME": "Home",
@@ -138,7 +148,10 @@
       "TITLE": "Settings",
       "DESCRIPTION": "Here are the possible settings for the use of the application:",
       "LOCALE": "Language",
-      "LAT_LONG_FORMAT": "Latitude/longitude format"
+      "LAT_LONG_FORMAT": "Latitude/longitude format",
+      "USAGE_MODE": "Usage mode",
+      "USAGE_MODE_FIELD": "On field",
+      "USAGE_MODE_DESK": "In office"
     },
     "ERROR": {
       "SUBSCRIBE_ACCOUNT_ERROR": "Error while listening account's changes."
@@ -446,33 +459,54 @@
       "CRITERION_END_VALUE": "End",
       "BTN_ADD_CRITERION": "Add a search criterion",
       "BETWEEN": "between",
+      "HELP": "To filter quickly, click in the cell. Hold 'Ctrl' to filter on multiple values.",
       "NO_FILTER_PARENTHESIS": "(no filter)",
       "WITH_FILTER_PARENTHESIS": "(filtered)"
     },
     "CATEGORY": {
-      "TABLE": "Extractions"
+      "PRODUCT": "Data call",
+      "LIVE": "Live data"
     },
-    "TABLE": {
-      "FILE_ICES_TRIP": {
-        "TITLE": "Trip (TR)"
-      },
-      "FILE_ICES_STATION": {
-        "TITLE": "Fishing station (HH)"
-      },
-      "FILE_ICES_SPECIES_LIST": {
-        "TITLE": "Species list (SL)"
-      },
-      "FILE_ICES_SPECIES_LENGTH": {
-        "TITLE": "Species length (HL)"
-      },
-      "FILE_ICES_LANDING": {
-        "TITLE": "Landing statistics (CL)"
+    "PRODUCT": {
+      "ICES": {
+        "TITLE": "Data call (format ICES v1.3)",
+        "SHEET": {
+          "TR": "Trips (TR)",
+          "HH": "Fishing stations (HH)",
+          "SL": "Species list (SL)",
+          "HL": "Species length (HL)",
+          "CA": "Sex-Age (CA)",
+          "CL": "Landings (CL)",
+          "CE": "Efforts (CE)"
+        }
       }
-
+    },
+    "LIVE": {
+      "ICES": {
+        "TITLE": "Live data (format ICES v1.3)",
+        "SHEET": {
+          "TR": "Trips (TR)",
+          "HH": "Fishing stations (HH)",
+          "SL": "Species list (SL)",
+          "HL": "Species length (HL)"
+        }
+      },
+      "SURVIVAL_TEST": {
+        "TITLE": "Live data (format SUMARiS v1.0)",
+        "SHEET": {
+          "TR": "Trips (TR)",
+          "HH": "Fishing stations (HH)",
+          "SL": "Species list (SL)",
+          "HL": "Species length (HL)",
+          "ST": "Survival tests (ST)",
+          "RL": "Releases (RL)"
+        }
+      }
     },
     "ERROR": {
       "LOAD_EXTRACTION_TYPES_ERROR": "Error while load extraction types",
-      "LOAD_EXTRACTION_ROWS_ERROR": "Error while loading data rows."
+      "LOAD_EXTRACTION_ROWS_ERROR": "Error while loading data rows.",
+      "DOWNLOAD_EXTRACTION_FILE_ERROR": "Error while dowbnloading extraction file."
     }
   },
   "ERROR": {

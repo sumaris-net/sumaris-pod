@@ -6,7 +6,7 @@ import {isNil, isNotNil} from '../../shared/shared.module';
 import {TableDataSource} from "angular4-material-table";
 import {ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/extraction.model";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionService} from "../services/extraction.service";
-import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
@@ -15,7 +15,7 @@ import {ModalController} from "@ionic/angular";
 import {AccountService} from "../../core/services/account.service";
 import {Location} from "@angular/common";
 import {trimEmptyToNull} from "../../shared/functions";
-import {throttleTime} from "rxjs/operators";
+import {distinct, filter, map} from "rxjs/operators";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -32,6 +32,7 @@ export class ExtractTable implements OnInit {
   loading: boolean = true;
   filterForm: FormGroup;
   $extractionTypes: Observable<ExtractionType[]>;
+  $sheetNames: Observable<string[]|undefined>;
   error: string;
   $title = new Subject<string>();
   columns: string[];
@@ -56,6 +57,10 @@ export class ExtractTable implements OnInit {
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
 
+  get sheetName(): string {
+    return this.filterForm.get('sheetName').value;
+  }
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -71,6 +76,7 @@ export class ExtractTable implements OnInit {
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
     this.filterForm = formBuilder.group({
       'extractionType': [null, Validators.required],
+      'sheetName': [null],
       'criteria': formBuilder.array([])
     });
 
@@ -98,22 +104,25 @@ export class ExtractTable implements OnInit {
           });
         })
       }
-      else {
-        this.$extractionTypes.first().subscribe(types => {
-          // Select the exact type object in the filter form
-          const selectedType = types.find(type => type.label === extractionType.label && type.category === extractionType.category);
 
-          this.route.queryParams.first().subscribe(({q}) =>  {
-            this.filterForm.get('extractionType').setValue(selectedType);
-          })
+      this.$extractionTypes.first().subscribe(types => {
+        // Select the exact type object in the filter form
+        const selectedType = types.find(type => type.label === extractionType.label && type.category === extractionType.category);
+
+        this.route.queryParams.first().subscribe(({q}) =>  {
+          this.filterForm.get('extractionType').setValue(selectedType);
+          if (selectedType && selectedType.sheetNames && selectedType.sheetNames.length) {
+            this.filterForm.get('sheetName').setValue(selectedType.sheetNames[0]);
+          }
+
+          // Reset criteria
+          this.$sheetNames = this.$sheetNames && Observable.of(selectedType.sheetNames);
+          this.resetFilterCriteria();
+
+          // Load from extraction type
+          return this.load(selectedType);
         });
-
-        // Reset criteria
-        this.resetFilterCriteria();
-
-        // Load from extraction type
-        return this.load(extractionType);
-      }
+      });
     });
 
   }
@@ -133,61 +142,43 @@ export class ExtractTable implements OnInit {
         console.debug('[extract-table] Refreshing...');
         return this.load(this.extractionType);
       });
+
+    this.$sheetNames = this.filterForm.get('extractionType').valueChanges
+      .pipe(
+        map((extractionType: any) => {
+          if (isNotNil(extractionType) && extractionType.sheetNames) {
+            return (extractionType as ExtractionType).sheetNames || [];
+          }
+          return [];
+        })
+      );
+
+    this.filterForm.get('extractionType').valueChanges
+      .pipe(
+        distinct()
+      )
+      .subscribe(()=> this.onExtractionTypeChange());
+
+
+    // this.$criteria = this.filterForm.get('sheetName').valueChanges
+    //   .pipe(
+    //     map((_) => (this.filterForm.get('criteria') as FormArray).controls),
+    //     filter(controls => control.value )
+    //   )
   }
 
   async load(extractionType?: ExtractionType) {
 
     this.loading = true;
-    this.extractionType = extractionType || this.filterForm.controls['extractionType'].value;
+    this.extractionType = extractionType || this.filterForm.get('extractionType').value;
+
     this.settingsId = this.generateTableId();
     this.error = null;
     console.debug(`[extract-table] Loading ${this.extractionType.category} ${this.extractionType.label}`);
 
     const filter = this.filterForm.value;
-    filter.criteria = (filter.criteria || [])
-      .filter(criterion => isNotNil(criterion.name) && isNotNil(trimEmptyToNull(criterion.value)))
-      .map(criterion => {
-        const isMulti = isNotNil(criterion.value) && criterion.value.indexOf(',') != -1;
-        switch(criterion.operator) {
-          case '=':
-            if (isMulti) {
-              criterion.operator = 'IN';
-              criterion.values = (criterion.value as string)
-                .split(',')
-                .map(trimEmptyToNull)
-                .filter(isNotNil);
-              delete criterion.value;
-            }
-            break;
-          case '!=':
-            if (isMulti) {
-              criterion.operator = 'NOT IN';
-              criterion.values = (criterion.value as string)
-                .split(',')
-                .map(trimEmptyToNull)
-                .filter(isNotNil);
-              delete criterion.value;
-            }
-            break;
-          case 'BETWEEN':
-            if (isNotNil(trimEmptyToNull(criterion.endValue))) {
-              criterion.values = [criterion.value.trim(), criterion.endValue.trim()];
-            }
-            delete criterion.value;
-            break;
-        }
-
-        return {
-          name: criterion.name,
-          operator: criterion.operator,
-          value: criterion.value,
-          values: criterion.values
-        } as ExtractionFilterCriterion;
-      })
-      .filter(criterion => isNotNil(criterion.value) || (criterion.values && criterion.values.length))
-    ;
-
     this.filterForm.disable();
+
     try {
       // Load rows
       const data = await this.service.loadRows(this.extractionType,
@@ -195,7 +186,7 @@ export class ExtractTable implements OnInit {
         this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
         this.sort && this.sort.active,
         this.sort && this.sort.direction,
-        filter
+        filter as ExtractionFilter
       );
 
       // Update the view
@@ -238,12 +229,15 @@ export class ExtractTable implements OnInit {
 
   }
 
-  public async onExtractionTypeChange(extractionType?: ExtractionType): Promise<any> {
+  async onExtractionTypeChange(extractionType?: ExtractionType): Promise<any> {
     if (this.loading) return; // skip
 
-    extractionType = extractionType || this.filterForm.controls['extractionType'].value;
+    const json = this.filterForm.value;
 
-    if (typeof extractionType !== 'object') return; // Skip if not an object
+    extractionType = extractionType || (json.extractionType as ExtractionType);
+
+    // Skip empty or same
+    if (!extractionType || (this.extractionType && extractionType.label == this.extractionType.label)) return;
 
     return this.router.navigate([extractionType.category, extractionType.label], {
       relativeTo: this.route.parent.parent,
@@ -251,6 +245,52 @@ export class ExtractTable implements OnInit {
         q: this.getFilterAsString()
       }
     });
+  }
+
+  onSheetTabChange(sheetName: string) {
+    console.log("onSheetTabChange", sheetName);
+    if (this.loading || isNil(sheetName)) return; // skip
+
+    // Skip if same
+    if (this.filterForm.get('sheetName').value === sheetName) return;
+
+    // Set sheet name
+    this.filterForm.get('sheetName').setValue(sheetName);
+
+    this.onRefresh.emit();
+  }
+
+  async downloadAsFile() {
+    if (this.loading) return;
+
+    this.loading = true;
+    const extractionType = this.filterForm.get('extractionType').value;
+
+    this.error = null;
+    console.debug(`[extract-table] Downloading ${this.extractionType.category} ${this.extractionType.label}...`);
+
+    const filter = this.filterForm.value;
+
+    delete filter.sheetName; // Force to download all sheets
+
+    this.filterForm.disable();
+
+    try {
+      // Download file
+      const file = await this.service.downloadFile(extractionType, filter);
+      if (isNotNil((file))) {
+            window.open(file);
+      }
+
+    }
+    catch(err) {
+      console.error(err);
+      this.error = err && err.message || err;
+    }
+    finally {
+      this.loading = false;
+      this.filterForm.enable();
+    }
   }
 
   public async openSelectColumnsModal(event: any): Promise<any> {
@@ -310,14 +350,22 @@ export class ExtractTable implements OnInit {
     options.appendValue = isNotNil(options.appendValue) ? options.appendValue : false;
 
     let existingCriterionIndex = -1;
+
     // Search by name on existing criteria
     if (criterion && isNotNil(criterion.name)) {
-      existingCriterionIndex = (control.value || []).findIndex(c => c.name === criterion.name);
+      existingCriterionIndex = (control.value || []).findIndex(c => (c.name === criterion.name) && (!criterion.sheetName || c.sheetName === criterion.sheetName));
     }
-    // If first criterion has no value: use it
+
+    // If last criterion has no value: use it
     if (existingCriterionIndex == -1 && control.length){
-      let lastCriterion = control.at(control.length - 1 ).value;
-      existingCriterionIndex = lastCriterion && isNil(lastCriterion.name) && isNil(lastCriterion.value) ? control.length - 1 : -1;
+      // Find last criterion (so reverse array order)
+      let lastCriterionInverseIndex = (control.value || []).reverse().findIndex(c => !criterion || c.sheetName === criterion.sheetName);
+      if (lastCriterionInverseIndex >= 0) {
+        // Get the real (not reverse index)
+        const lastCriterionIndex = (control.length-1) - lastCriterionInverseIndex;
+        const lastCriterion = control.at(lastCriterionIndex).value;
+        existingCriterionIndex = isNil(lastCriterion.name) && isNil(lastCriterion.value) ? lastCriterionIndex : -1;
+      }
     }
 
     // Replace the existing criterion
@@ -327,11 +375,13 @@ export class ExtractTable implements OnInit {
         const existingCriterion = criterionForm.value as ExtractionFilterCriterion;
         options.appendValue = options.appendValue && isNotNil(criterion.value) && isNotNil(existingCriterion.value)
           && (existingCriterion.operator == '=' || existingCriterion.operator == '!=');
+
         // Append value to existing value
         if (options.appendValue){
           existingCriterion.value += ", " + criterion.value;
           this.setCriterionValue(criterionForm, existingCriterion);
         }
+
         // Replace existing criterion value
         else {
           this.setCriterionValue(criterionForm, criterion);
@@ -346,11 +396,13 @@ export class ExtractTable implements OnInit {
         name: [criterion && criterion.name || null],
         operator: [criterion && criterion.operator || '=', Validators.required],
         value: [criterion && criterion.value || null],
-        endValue: [criterion && criterion.endValue || null]
+        endValue: [criterion && criterion.endValue || null],
+        sheetName: [criterion && criterion.sheetName || this.sheetName]
       }));
       hasChanged = true;
     }
 
+    // Mark filter form as dirty (if need)
     if (hasChanged && criterion && criterion.value) {
       this.filterForm.markAsDirty({onlySelf: true});
     }
@@ -358,11 +410,25 @@ export class ExtractTable implements OnInit {
     return hasChanged;
   }
 
-  public hasFilterCriteria(): boolean {
+  public hasFilterCriteria(sheetName?: string): boolean {
     const control = this.filterForm.get('criteria') as FormArray;
-    if (control.length > 1) return true;
-    const criterion = control.at(0).value as ExtractionFilterCriterion;
-    return trimEmptyToNull(criterion.value) && true;
+    if (isNil(sheetName)) {
+      if (control.length === 1) {
+        const criterion = control.at(0).value as ExtractionFilterCriterion;
+        return trimEmptyToNull(criterion.value) && true;
+      }
+      return control.length > 1;
+    }
+    else {
+      return control.controls
+        .map(c => c.value)
+        .findIndex(criterion => trimEmptyToNull(criterion.value) && criterion.sheetName === sheetName) >= 0;
+    }
+
+  }
+
+  public isFilterCriterionForSheet(criterion: any, sheetName?: string): boolean {
+    return trimEmptyToNull(criterion.value) && criterion.sheetName === sheetName;
   }
 
   public removeFilterCriterion($event: MouseEvent, index) {
@@ -415,15 +481,22 @@ export class ExtractTable implements OnInit {
       control.removeAt(control.length-1);
     }
 
-    // Add the default (empty) criterion
-    this.addFilterCriterion();
+    // Add the default (empty)
+    //this.addFilterCriterion();
+    // TODO : Add the default (empty) criterion (on every sheet)
+    this.$sheetNames && this.$sheetNames.first().subscribe(sheetNames => {
+     console.debug("ADDING default empty criteria");
+     (sheetNames||[]).forEach(sheetName => this.addFilterCriterion({name: null, operator: '=', sheetName: sheetName}));
+    });
+
   }
 
   public onCellValueClick($event: MouseEvent, column: ExtractionColumn, value: string) {
     const hasChanged = this.addFilterCriterion({
       name: column.name,
       operator: DEFAULT_CRITERION_OPERATOR,
-      value: value
+      value: value,
+      sheetName: this.sheetName
     }, {
       appendValue : $event.ctrlKey
     });
@@ -457,6 +530,22 @@ export class ExtractTable implements OnInit {
     return message;
   }
 
+  public getI18nSheetName(sheetName?: string, self?: ExtractTable):string {
+    self = self || this;
+    if (isNil(sheetName) || isNil(self.extractionType)) return undefined;
+    const type = self.filterForm.controls['extractionType'].value;
+    let key = `EXTRACTION.${type.category.toUpperCase()}.${type.label.toUpperCase()}.SHEET.${sheetName}`;
+    let message = self.translate.instant(key);
+
+    // No I18n translation
+    if (message === key) {
+
+      // Replace underscore with space
+      message = sheetName.replace(/[_-]+/g, " ").toUpperCase();
+    }
+    return message;
+  }
+
   public newI18nExtractionTypeNameFn(): (type? : ExtractionType) => string {
     const self= this;
     return function(type? : ExtractionType): string {
@@ -484,15 +573,18 @@ export class ExtractTable implements OnInit {
   }
 
   private setCriterionValue(control: AbstractControl, criterion?: ExtractionFilterCriterion) {
+    const sheetName = this.filterForm.get('sheetName').value;
     control.setValue({
       name: criterion && criterion.name || null,
       operator: criterion && criterion.operator || DEFAULT_CRITERION_OPERATOR,
       value: criterion && criterion.value || null,
       endValue: criterion && criterion.endValue || null,
+      sheetName: criterion && sheetName || null
     });
   }
 
   private getFilterAsString() {
-    return "TODO";
+    return ""; // TODO
   }
+
 }
