@@ -87,7 +87,7 @@
 
 
   <!-- Display configured Departments logos -->
-  <div class="bottom-banner" *ngIf="!loading" [@fadeInAnimation]>
+  <div class="bottom-banner" *ngIf="!loadingBanner" [@fadeInAnimation]>
     <a href="{{ item.siteUrl }}" *ngFor="let item of partners | async ">
       <img class="logo" src="{{ item.logo }}" alt="{{item.label}}"  [title]="item.label" />
     </a>

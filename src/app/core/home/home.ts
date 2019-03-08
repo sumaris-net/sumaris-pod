@@ -27,6 +27,7 @@ export class HomePage implements OnInit, OnDestroy {
   isLogin: boolean;
   subscriptions: Subscription[] = [];
   partners = new BehaviorSubject<Department[]>(null);
+  loadingBanner = true;
   logo: String;
   description: String;
   appName: string;
@@ -75,7 +76,10 @@ export class HomePage implements OnInit, OnDestroy {
     this.appName = config.label;
     this.logo = config.largeLogo || config.smallLogo;
     this.description = config.name || config.description;
-    this.partners.next(config.partners.filter(p => p && p.logo));
+
+    const partners = (config.partners || []).filter(p => p && p.logo);
+    this.partners.next(partners);
+    this.loadingBanner = (partners.length === 0);
 
     if (config.backgroundImages && config.backgroundImages.length) {
       const bgImage = getRandomImage(config.backgroundImages);
