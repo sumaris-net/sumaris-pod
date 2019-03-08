@@ -26,32 +26,30 @@
 
     <!-- PK -->
     <select alias="RECORD_TYPE" type="text">'HL'</select>
-    <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
-    <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
-    <select alias="VESSEL_COUNTRY" type="text">S.VESSEL_COUNTRY</select>
-    <select alias="YEAR" type="number">S.YEAR</select>
-    <select alias="PROJECT" type="text">S.PROJECT</select>
-    <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
-    <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
+    <select alias="SAMPLING_TYPE" type="text">SL.SAMPLING_TYPE</select>
+    <select alias="LANDING_COUNTRY" type="text">SL.LANDING_COUNTRY</select>
+    <select alias="VESSEL_COUNTRY" type="text">SL.VESSEL_COUNTRY</select>
+    <select alias="YEAR" type="number">SL.YEAR</select>
+    <select alias="PROJECT" type="text">SL.PROJECT</select>
+    <select alias="TRIP_CODE" type="number">SL.TRIP_CODE</select>
+    <select alias="STATION_NUMBER" type="number">SL.STATION_NUMBER</select>
+    <select alias="SPECIES" type="text">SL.SPECIES</select>
+    <select alias="CATCH_CATEGORY" type="text">SL.CATCH_CATEGORY</select>
+    <select alias="LANDING_CATEGORY" type="text">SL.LANDING_CATEGORY</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">SL.COMMERCIAL_SIZE_CATEGORY_SCALE</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">SL.COMMERCIAL_SIZE_CATEGORY</select>
+    <select alias="SUBSAMPLING_CATEGORY" type="text">SL.SUBSAMPLING_CATEGORY</select>
+    <select alias="SEX" type="text">SL.SEX</select>
 
     <!-- other fields -->
-    <select alias="SPECIES" type="text">TG.LABEL</select>
-    <!--<select alias="SEX" type="text">null</select>-->
-    <!--<select alias="CATCH_CATEGORY" type="text">null</select>-->
-    <!--<select alias="LANDING_CATEGORY" type="text">null</select>-->
-    <!--<select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">null</select>-->
-    <!--<select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select>-->
-    <!--<select alias="SUBSAMPLING_CATEGORY" type="text">null</select>-->
-    <!--<select alias="WEIGHT" type="number">null</select>-->
-    <!--<select alias="SUBSAMPLE_WEIGHT" type="number">null</select>-->
-    <!--<select alias="LENGTH_CODE" type="number">null</select>-->
+    <select alias="INDIVIDUAL_SEX" type="text">(SELECT QV.LABEL FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK WHERE SM.BATCH_FK = B.ID and SM.PMFM_FK=&amp;sexPmfmId)</select>
+    <select alias="LENGTH_CLASS" type="number">(SELECT SM.NUMERICAL_VALUE FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK = B.ID and SM.PMFM_FK=&amp;lengthTotalPmfmId)</select>
+    <select alias="NUMBER_AT_LENGTH" type="number">B.INDIVIDUAL_COUNT</select>
 
+    <from alias="SL">&amp;speciesListTableName</from>
+    <from join="true">INNER JOIN BATCH B ON B.PARENT_BATCH_FK=SL.SAMPLE_NUMBER AND B.LABEL LIKE 'SORTING_BATCH_INDIVIDUAL#%'</from>
 
-    <from alias="S">&amp;stationTableName</from>
-    <from join="true">INNER JOIN BATCH B ON B.OPERATION_FK = S.STATION_NUMBER</from>
-    <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = B.TAXON_GROUP_FK</from>
-
-    <orderby direction="ASC">B.ID</orderby>
+    <orderby direction="ASC">SL.STATION_NUMBER, SL.SAMPLE_NUMBER, B.RANK_ORDER</orderby>
 
   </query>
 

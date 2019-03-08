@@ -29,6 +29,7 @@ public enum PmfmEnum implements Serializable  {
 
     SMALLER_MESH_GAUGE_MM(3, "SMALLER_MESH_GAUGE_MM"),
     BOTTOM_DEPTH_M(30, "BOTTOM_DEPTH_M"),
+    BOTTOM_TEMP_C(32, "BOTTOM_TEMP_C"),
     GEAR_DEPTH_M(36, "GEAR_DEPTH_M"),
     DISCARD_OR_LANDING(90, "DISCARD_OR_LANDING"),
 
@@ -51,6 +52,12 @@ public enum PmfmEnum implements Serializable  {
     ON_DECK_DATE_TIME(53, "ON_DECK_DATE_TIME"),
     SORTING_START_DATE_TIME(54, "SORTING_START_DATE_TIME"),
     SORTING_END_DATE_TIME(55, "SORTING_END_DATE_TIME"),
+
+    SEX(80, "SEX"),
+    TAG_ID(82, "TAG_ID"),
+    LENGTH_TOTAL_CM(81, "LENGTH_TOTAL_CM"),
+    IS_DEAD(94, "IS_DEAD"),
+    DISCARD_REASON(95, "DISCARD_REASON")
     ;
 
     public static PmfmEnum valueOf(final int id) {

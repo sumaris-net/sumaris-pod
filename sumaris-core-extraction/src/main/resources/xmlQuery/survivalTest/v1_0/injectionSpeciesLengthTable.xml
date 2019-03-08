@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<query type="select">
+
+  <select alias="IS_DEAD" type="text">(SELECT DECODE(SM.NUMERICAL_VALUE, 1, 'Y', 0, 'N') FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;isDeadPmfmId)</select>
+  <select alias="DISCARD_REASON" type="text"><![CDATA[(SELECT QV.LABEL FROM SORTING_MEASUREMENT_B SM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
+    WHERE
+      SM.BATCH_FK=B.ID and SM.PMFM_FK=&discardReasonPmfmId)]]>
+  </select>
+  <select alias="TAG_ID" type="text">(SELECT SM.ALPHANUMERICAL_VALUE FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;tagIdPmfmId)</select>
+  <select alias="COMMENTS" type="text">B.COMMENTS</select>
+</query>

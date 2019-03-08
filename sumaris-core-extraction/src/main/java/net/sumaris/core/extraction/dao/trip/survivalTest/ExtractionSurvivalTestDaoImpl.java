@@ -115,15 +115,18 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     }
 
     @Override
-    protected long createSpeciesListTable(ExtractionIcesContextVO context) {
-        // SKIP
-        return 0;
-    }
+    protected XMLQuery createSpeciesLengthQuery(ExtractionIcesContextVO context) {
+        XMLQuery xmlQuery = super.createSpeciesLengthQuery(context);
 
-    @Override
-    protected long createSpeciesLengthTable(ExtractionIcesContextVO context) {
-        // SKIP
-        return 0;
+        // Inject specific select clause
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"));
+
+        // Bind PMFM ids
+        xmlQuery.bind("isDeadPmfmId", String.valueOf(PmfmEnum.IS_DEAD.getId()));
+        xmlQuery.bind("tagIdPmfmId", String.valueOf(PmfmEnum.TAG_ID.getId()));
+        xmlQuery.bind("discardReasonPmfmId", String.valueOf(PmfmEnum.DISCARD_REASON.getId()));
+
+        return xmlQuery;
     }
 
     @Override
@@ -139,6 +142,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         switch (queryName) {
             case "injectionTripTable":
             case "injectionStationTable":
+            case "injectionSpeciesLengthTable":
             case "createSurvivalTestTable":
             case "createReleaseTable":
                 return String.format(XML_QUERY_ST_PATH, versionStr, queryName);

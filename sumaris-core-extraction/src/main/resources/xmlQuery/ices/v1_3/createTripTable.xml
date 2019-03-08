@@ -22,7 +22,7 @@
 
 <queries name="extractionCreateTripTable">
 
-  <query type="create" temp="false" table="&amp;tripTableName">
+  <query type="create" temp="false" table="&amp;tripTableName" option="DISTINCT">
 
     <!-- PK -->
     <select alias="RECORD_TYPE" type="text">'TR'</select>

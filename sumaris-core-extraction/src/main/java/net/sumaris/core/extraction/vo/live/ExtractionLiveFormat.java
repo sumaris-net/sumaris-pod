@@ -6,7 +6,7 @@ package net.sumaris.core.extraction.vo.live;
 public enum ExtractionLiveFormat {
 
     ICES ("TR", "HH", "SL", "HL"),
-    SURVIVAL_TEST("TR", "HH", "ST", "RL")
+    SURVIVAL_TEST("TR", "HH", "SL", "HL", "ST", "RL")
     ;
 
     private String[] sheetNames;

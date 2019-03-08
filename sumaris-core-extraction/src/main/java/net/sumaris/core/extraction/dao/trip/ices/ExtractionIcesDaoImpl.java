@@ -314,12 +314,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
     protected long createSpeciesListTable(ExtractionIcesContextVO context) {
 
-        XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");
-        xmlQuery.bind("stationTableName", context.getStationTableName());
-        xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
-
-        // Bind some ids
-        xmlQuery.bind("landingPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
+        XMLQuery xmlQuery = createSpeciesListQuery(context);
 
         // execute insertion
         execute(xmlQuery);
@@ -338,11 +333,21 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return count;
     }
 
+    protected XMLQuery createSpeciesListQuery(ExtractionIcesContextVO context) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");
+        xmlQuery.bind("stationTableName", context.getStationTableName());
+        xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
+
+        // Bind some ids
+        xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
+
+        return xmlQuery;
+    }
+
+
     protected long createSpeciesLengthTable(ExtractionIcesContextVO context) {
 
-        XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesLengthTable");
-        xmlQuery.bind("stationTableName", context.getStationTableName());
-        xmlQuery.bind("speciesLengthTableName", context.getSpeciesLengthTableName());
+        XMLQuery xmlQuery = createSpeciesLengthQuery(context);
 
         // execute insertion
         execute(xmlQuery);
@@ -361,6 +366,18 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return count;
     }
 
+    protected XMLQuery createSpeciesLengthQuery(ExtractionIcesContextVO context) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesLengthTable");
+        xmlQuery.bind("stationTableName", context.getStationTableName());
+        xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
+        xmlQuery.bind("speciesLengthTableName", context.getSpeciesLengthTableName());
+
+        // Bind some ids
+        xmlQuery.bind("sexPmfmId", String.valueOf(PmfmEnum.SEX.getId()));
+        xmlQuery.bind("lengthTotalPmfmId", String.valueOf(PmfmEnum.LENGTH_TOTAL_CM.getId()));
+
+        return xmlQuery;
+    }
 
     protected int execute(XMLQuery xmlQuery) {
         return queryUpdate(xmlQuery.getSQLQueryAsString());

@@ -22,7 +22,7 @@
 
 <queries name="extractionCreateStationTable">
 
-  <query type="create" temp="false" table="&amp;stationTableName">
+  <query type="create" temp="false" table="&amp;stationTableName" option="DISTINCT">
 
     <!-- PK -->
     <select alias="RECORD_TYPE" type="text">'HH'</select>
