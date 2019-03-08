@@ -218,7 +218,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
     filter?: TripFilter): Observable<LoadResult<Trip>> {
     const variables: any = {
       offset: offset || 0,
-      size: size || 100,
+      size: size || 20,
       sortBy: sortBy || 'departureDateTime',
       sortDirection: sortDirection || 'asc',
       filter: filter
@@ -226,7 +226,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
 
     this._lastVariables.loadAll = variables;
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[trip-service] Loading trips... using options:", variables);
     return this.watchQuery<{ trips: Trip[]; tripsCount: number }>({
       query: LoadAllQuery,
@@ -238,7 +238,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         map(res => {
           const data = (res && res.trips || []).map(Trip.fromObject);
           const total = res && res.tripsCount || 0;
-          if (this._debug) console.debug("[trip-service] Loaded {" + (data.length || 0) + "} trips in " + (new Date().getTime() - now.getTime()) + "ms", data);
+          if (this._debug) console.debug(`[trip-service] Loaded {${data.length || 0}} trips in ${Date.now() - now}ms`, data);
           return {
             data: data,
             total: total

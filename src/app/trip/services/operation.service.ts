@@ -2,24 +2,12 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
-import {
-  Batch,
-  DataEntity,
-  EntityUtils,
-  Measurement,
-  Operation,
-  Person,
-  Sample,
-  Trip,
-  VesselPosition
-} from "./trip.model";
+import {Batch, DataEntity, Measurement, Operation, Person, Sample, VesselPosition} from "./trip.model";
 import {map} from "rxjs/operators";
 import {DataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
-import {TripFragments} from "./trip.service";
-import {Moment} from "moment";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {

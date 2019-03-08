@@ -10,13 +10,17 @@ export const environment: Environment = {
     version: (pkg.version as string),
     production: false,
     baseUrl: '/',
+
     remoteBaseUrl: "http://localhost:8080",
-  //remoteBaseUrl: "https://adap.e-is.pro",
-    //remoteBaseUrl: "https://test.sumaris.net",
+    //remoteBaseUrl: "https://adap.e-is.pro",
+    //remoteBaseUrl: "https://www.sumaris.net",
+
     defaultLocale: "fr",
     defaultLatLongFormat: 'DDMM',
-  //defaultProgram: "ADAP-MER",
+
+    //defaultProgram: "ADAP-MER",
     defaultProgram: "SUMARiS",
+
     apolloFetchPolicy: 'cache-first'
 };
 
