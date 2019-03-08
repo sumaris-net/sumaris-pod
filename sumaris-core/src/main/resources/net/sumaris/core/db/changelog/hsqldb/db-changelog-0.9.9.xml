@@ -37,10 +37,20 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-4">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-4" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="reference_taxon_strategy" foreignKeyName="FK3xxfmafvns6svllao5an8etl8"/>
+            </not>
+        </preConditions>
         <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="reference_taxon_strategy" constraintName="FK3xxfmafvns6svllao5an8etl8" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="strategy"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-5">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-5" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="reference_taxon_strategy" foreignKeyName="FK9u7h3v3rbpc1k9plc414e52xn"/>
+            </not>
+        </preConditions>
         <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="reference_taxon_strategy" constraintName="FK9u7h3v3rbpc1k9plc414e52xn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon"/>
     </changeSet>
 
@@ -98,21 +108,21 @@
     <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-6-3" failOnError="false">
         <addNotNullConstraint tableName="location" columnName="validity_status_fk"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-6-4">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-6-4" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="validity_status_fk" baseTableName="location" constraintName="FKlocation_validity_status" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="validity_status"/>
     </changeSet>
 
     <!-- Add missing foreign keys -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-8">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-8" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="software" constraintName="FK41tiuwdumptj9xxdh5w4oevh0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-9">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-9" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="department" constraintName="FKmd1362ey14pw4x8ao9j9ha6ke" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Location"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-10">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-10" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="software_property" constraintName="FKmrjne137ia0xve3nlrowwe0pm" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-11">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-11" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="software_fk" baseTableName="software_property" constraintName="FKpxomm7bna4x36f7j013sifxrt" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="software"/>
     </changeSet>
 
