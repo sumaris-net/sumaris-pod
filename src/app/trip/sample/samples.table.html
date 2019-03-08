@@ -95,8 +95,8 @@
       <ion-label translate>TRIP.SAMPLE.TABLE.SAMPLE_DATE</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="mat-cell-date-time">
-      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['sampleDate']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-        [compact]="true" [readonly]="!row.editing" [required]="true"></mat-date-time>
+        <mat-date-time  floatLabel="never" [formControl]="row.validator.controls['sampleDate']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
+          [compact]="true" [readonly]="!row.editing" [required]="true"></mat-date-time>
     </mat-cell>
   </ng-container>
 
@@ -105,10 +105,7 @@
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.type=='date'">
-          <ion-label>{{getPmfmColumnHeader(pmfm)}} 
-         <!--  
-          <ion-label>{{pmfm}} {{pmfm.type}} {{pmfm.unit}}</ion-label>
-        -->
+          <ion-label>{{getPmfmColumnHeader(pmfm)}}
           <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
         </ion-label>
       </mat-header-cell>

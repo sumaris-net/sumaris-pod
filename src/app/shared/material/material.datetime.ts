@@ -87,7 +87,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     ) {
         this.touchUi = platform.is('tablet');
         this.mobile = !this.touchUi && platform.is('mobile');
-        console.log(`touchUI: ${this.touchUi} - mobile: ${this.mobile}`);
         this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
     }
 
@@ -121,14 +120,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         //this.formControl.updateValueAndValidity({ emitEvent: false, onlySelf: true });
 
         // Get patterns to display date and date+time
-        this.translate.get(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN'])
-            .subscribe(patterns => {
-                this.displayPattern = (this.displayTime) ?
-                    (patterns['COMMON.DATE_TIME_PATTERN'] != 'COMMON.DATE_TIME_PATTERN' ? patterns['COMMON.DATE_TIME_PATTERN'] : 'L LT') :
-                    (this.displayPattern = patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
-                this.dayPattern = (patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
-                this.writing = false;
-            });
+        const patterns = this.translate.instant(['COMMON.DATE_PATTERN', 'COMMON.DATE_TIME_PATTERN']);
+        this.updatePattern(patterns);
 
         this.form.valueChanges
             .subscribe((value) => this.onFormChange(value));
@@ -234,6 +227,14 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
             this.form.enable({ onlySelf: true, emitEvent: false });
         }
         this.disabling = false;
+    }
+
+    private updatePattern(patterns: string[]) {
+      this.displayPattern = (this.displayTime) ?
+        (patterns['COMMON.DATE_TIME_PATTERN'] != 'COMMON.DATE_TIME_PATTERN' ? patterns['COMMON.DATE_TIME_PATTERN'] : 'L LT') :
+        (this.displayPattern = patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+      this.dayPattern = (patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+      this.writing = false;
     }
 
     private onFormChange(json): void {
