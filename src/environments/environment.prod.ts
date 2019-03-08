@@ -9,6 +9,6 @@ export const environment: Environment = {
   remoteBaseUrl: "https://adap.e-is.pro",
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
-  defaultProgram: "ADAP-MER",
+  defaultProgram: "SUMARiS",
   apolloFetchPolicy: 'cache-first'
 };
