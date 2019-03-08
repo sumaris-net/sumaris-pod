@@ -37,12 +37,13 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
     }
 
     @Test
-    @Ignore
+    //@Ignore
     public void loadAll() {
         String basePath = System.getProperty("user.home") + "/Documents/sumaris/data/";
+        File file;
 
         // Import FRA file
-        File file = new File(basePath + "/FRA", "CL_FRA_2000-2017.csv");
+        file = new File(basePath + "/FRA", "CL_FRA_2000-2017.csv");
         loadLanding(file, "FRA");
 
         // Import BEL file

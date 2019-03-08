@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
@@ -52,62 +53,69 @@ public class SumarisTableMetadatas {
             // Get the column to tripFilter
             Preconditions.checkNotNull(criterion.getName());
             SumarisColumnMetadata column = table.getColumnMetadata(criterion.getName().toLowerCase());
-            Preconditions.checkNotNull(column, String.format("Invalid criterion: column '%s' not found", criterion.getName()));
-            sql.append(logicalOperator.toString())
-                    .append(aliasWithPoint)
-                    .append(column.getName());
-
-            // Affect logical operator, for the next criterion
-            if (logicalOperator.length() == 0)  {
-                if ("OR".equalsIgnoreCase(StringUtils.trim(filter.getOperator()))) {
-                    logicalOperator.append(" OR ");
+            if (column == null) {
+                if (sheetName != null) {
+                    throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found", criterion.getName()));
                 }
                 else {
-                    logicalOperator.append(" AND ");
-                }
-            }
-
-            ExtractionFilterOperatorEnum operator = criterion.getOperator() == null ? ExtractionFilterOperatorEnum.EQUALS :  ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
-
-            if (criterion.getValue() == null && ArrayUtils.isEmpty(criterion.getValues())) {
-                switch (operator) {
-                    case NOT_IN:
-                    case NOT_EQUALS:
-                        sql.append(" IS NOT NULL");
-                        break;
-                    default:
-                        sql.append(" IS NULL");
+                    // Continue (=skip)
                 }
             }
             else {
-                switch (operator) {
-                    case IN:
-                        sql.append(String.format(" IN (%s)", getInValues(column, criterion)));
-                        break;
-                    case NOT_IN:
-                        sql.append(String.format(" NOT IN (%s)", getInValues(column, criterion)));
-                        break;
-                    case EQUALS:
-                        sql.append(String.format(" = %s", getSingleValue(column, criterion)));
-                        break;
-                    case NOT_EQUALS:
-                        sql.append(String.format(" <> %s", getSingleValue(column, criterion)));
-                        break;
-                    case LESS_THAN:
-                        sql.append(String.format(" < %s", getSingleValue(column, criterion)));
-                        break;
-                    case LESS_THAN_OR_EQUALS:
-                        sql.append(String.format(" <= %s", getSingleValue(column, criterion)));
-                        break;
-                    case GREATER_THAN:
-                        sql.append(String.format(" > %s", getSingleValue(column, criterion)));
-                        break;
-                    case GREATER_THAN_OR_EQUALS:
-                        sql.append(String.format(" >= %s", getSingleValue(column, criterion)));
-                        break;
-                    case BETWEEN:
-                        sql.append(String.format(" BETWEEN %s AND %s", getBetweenValueByIndex(column, criterion, 0), getBetweenValueByIndex(column, criterion, 1)));
-                        break;
+                sql.append(logicalOperator.toString())
+                        .append(aliasWithPoint)
+                        .append(column.getName());
+
+                // Affect logical operator, for the next criterion
+                if (logicalOperator.length() == 0) {
+                    if ("OR".equalsIgnoreCase(StringUtils.trim(filter.getOperator()))) {
+                        logicalOperator.append(" OR ");
+                    } else {
+                        logicalOperator.append(" AND ");
+                    }
+                }
+
+                ExtractionFilterOperatorEnum operator = criterion.getOperator() == null ? ExtractionFilterOperatorEnum.EQUALS : ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
+
+                if (criterion.getValue() == null && ArrayUtils.isEmpty(criterion.getValues())) {
+                    switch (operator) {
+                        case NOT_IN:
+                        case NOT_EQUALS:
+                            sql.append(" IS NOT NULL");
+                            break;
+                        default:
+                            sql.append(" IS NULL");
+                    }
+                } else {
+                    switch (operator) {
+                        case IN:
+                            sql.append(String.format(" IN (%s)", getInValues(column, criterion)));
+                            break;
+                        case NOT_IN:
+                            sql.append(String.format(" NOT IN (%s)", getInValues(column, criterion)));
+                            break;
+                        case EQUALS:
+                            sql.append(String.format(" = %s", getSingleValue(column, criterion)));
+                            break;
+                        case NOT_EQUALS:
+                            sql.append(String.format(" <> %s", getSingleValue(column, criterion)));
+                            break;
+                        case LESS_THAN:
+                            sql.append(String.format(" < %s", getSingleValue(column, criterion)));
+                            break;
+                        case LESS_THAN_OR_EQUALS:
+                            sql.append(String.format(" <= %s", getSingleValue(column, criterion)));
+                            break;
+                        case GREATER_THAN:
+                            sql.append(String.format(" > %s", getSingleValue(column, criterion)));
+                            break;
+                        case GREATER_THAN_OR_EQUALS:
+                            sql.append(String.format(" >= %s", getSingleValue(column, criterion)));
+                            break;
+                        case BETWEEN:
+                            sql.append(String.format(" BETWEEN %s AND %s", getBetweenValueByIndex(column, criterion, 0), getBetweenValueByIndex(column, criterion, 1)));
+                            break;
+                    }
                 }
             }
         });

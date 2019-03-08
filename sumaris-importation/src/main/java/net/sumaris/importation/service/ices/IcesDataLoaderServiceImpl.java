@@ -1,10 +1,7 @@
 package net.sumaris.importation.service.ices;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.schema.*;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -226,25 +223,35 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
 	protected static final Map<String, String> linesReplacements = ImmutableMap.<String, String>builder()
 			.put("\"NA\"", "")
+			.put(",NA,NA,", ",,,")
 			.put(",NA,", ",,")
 
+			// -- FRA Data
+			//.put(",u10,", ",0-10,")
+			.put(",o40,", ",>40,")
+			.put(",([0-9]{1,2})-([0-9]{1,2}),", ",$1-<$2,")
+
 			// -- BEL Data
-			.put(",([0-9]{1,2})-<([0-9]{1,2}),", "$1-$2,")
+			.put(",([0-9]{1,2})-<([0-9]{1,2}),", ",$1-$2,")
 
 			// --- GBR data
 			// Country code ISO3166-2:GB -> ISO3166-1 alpha-3
 			.put("GB[_-]?(ENG|NIR|SCT|WLS)", "GBR")
-			// Date format from DD/MM//YYYY -> YYYY-MM-DD
+			// Date format from DD/MM/YYYY -> YYYY-MM-DD
 			.put(",([0-9]{2})/([0-9]{2})/([0-9]{4}),", ",$3-$2-$1,")
 			// Country code ISO3166-1 alpha-2 -> ISO3166-1 alpha-3
 			.put(",BE,BE,", ",BEL,BEL,")
 			.put(",FR,FR,", ",FRA,FRA,")
 			.put(",DK,DK,", ",DNK,DNK,")
 			.put(",NL,NL,", ",NLD,NLD,")
-			// Fill metier level5 and gear_type, using metier level 6
-			.put(",([A-Z]{2,3})_([A-Z]{2,3})_0_0_0,", "$1_$2,$1_$2_0_0_0,$1,")
-			// Replace unkown metier
+			// Replace unknown metier
 			.put("XXX_XXX", "UNK_MZZ")
+
+			// GBR + BEL
+			// - If metier level5 is empty, fill using metier level 6
+			.put(",,([A-Z]{2,3})_([A-Z]{2,3})_0_0_0,", ",$1_$2,$1_$2_0_0_0,")
+			// - If gear is empty, fill using metier level 6
+			.put(",([A-Z]{2,3})_([A-Z]{2,3})_0_0_0,,", ",$1_$2_0_0_0,$1,")
 
 			.build();
 

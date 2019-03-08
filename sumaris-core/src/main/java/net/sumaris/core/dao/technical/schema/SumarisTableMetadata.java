@@ -61,7 +61,7 @@ public class SumarisTableMetadata {
 
 	protected static final String QUERY_INSERT = "INSERT INTO %s (%s) VALUES (%s)";
 	protected static final String QUERY_UPDATE = "UPDATE %s SET %s WHERE %s";
-	protected static final String QUERY_DELETE = "DELETE FROM %s WHERE %s";
+	protected static final String QUERY_DELETE = "DELETE FROM %s %s WHERE %s";
 	protected static final String QUERY_SELECT_ALL = "SELECT %s FROM %s %s";
 	protected static final String QUERY_SELECT_PRIMARY_KEYS = "SELECT %s FROM %s";
 	protected static final String QUERY_SELECT_COUNT_ALL = "SELECT count(*) FROM %s %s";
@@ -282,6 +282,7 @@ public class SumarisTableMetadata {
 	public String getDeleteQuery(String whereClauseContent) {
 		String result = String.format(QUERY_DELETE,
 				getName().toUpperCase(),
+				tableAlias,
 				whereClauseContent == null ? "1=1" : whereClauseContent);
 		return result;
 	}
