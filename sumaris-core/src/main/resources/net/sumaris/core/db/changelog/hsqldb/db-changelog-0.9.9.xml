@@ -29,7 +29,7 @@
         </preConditions>
         <createTable tableName="reference_taxon_strategy">
             <column name="priority_level" type="INT"/>
-            <column name="strategy_id" type="INT">
+            <column name="strategy_fk" type="INT">
                 <constraints primaryKey="true" primaryKeyName="reference_taxon_strategyPK"/>
             </column>
             <column name="reference_taxon_fk" type="INT">
@@ -38,7 +38,7 @@
         </createTable>
     </changeSet>
     <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-4">
-        <addForeignKeyConstraint baseColumnNames="strategy_id" baseTableName="reference_taxon_strategy" constraintName="FK3xxfmafvns6svllao5an8etl8" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="strategy"/>
+        <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="reference_taxon_strategy" constraintName="FK3xxfmafvns6svllao5an8etl8" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="strategy"/>
     </changeSet>
     <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-5">
         <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="reference_taxon_strategy" constraintName="FK9u7h3v3rbpc1k9plc414e52xn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon"/>
