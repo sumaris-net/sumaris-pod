@@ -57,11 +57,11 @@ public class ExtractionServiceImpl implements ExtractionService {
     private static final Logger log = LoggerFactory.getLogger(ExtractionServiceImpl.class);
 
     private static Map<String, String> icesProductTableBySheet = ImmutableMap.<String, String>builder()
-            .put("TR", DatabaseTableEnum.FILE_ICES_TRIP.name())
-            .put("HH", DatabaseTableEnum.FILE_ICES_STATION.name())
-            .put("SL", DatabaseTableEnum.FILE_ICES_SPECIES_LIST.name())
-            .put("HL", DatabaseTableEnum.FILE_ICES_SPECIES_LENGTH.name())
-            .put("CL", DatabaseTableEnum.FILE_ICES_LANDING.name())
+            .put("TR", DatabaseTableEnum.P01_ICES_TRIP.name())
+            .put("HH", DatabaseTableEnum.P01_ICES_STATION.name())
+            .put("SL", DatabaseTableEnum.P01_ICES_SPECIES_LIST.name())
+            .put("HL", DatabaseTableEnum.P01_ICES_SPECIES_LENGTH.name())
+            .put("CL", DatabaseTableEnum.P01_ICES_LANDING.name())
             .build();
 
     @Autowired

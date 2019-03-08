@@ -1,4 +1,4 @@
-package net.sumaris.core.model.file.ices;
+package net.sumaris.core.model.product.ices;
 
 /*-
  * #%L
@@ -31,10 +31,10 @@ import java.io.Serializable;
 
 @Data
 @Entity
-@Table(name = "file_ices_trip")
-public class FileIcesTrip implements Serializable, IEntityBean<Integer> {
+@Table(name = "p01_ices_trip")
+public class ProductIcesTrip implements Serializable, IEntityBean<Integer> {
 
-    public static final DatabaseTableEnum TABLE = DatabaseTableEnum.FILE_ICES_TRIP;
+    public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_ICES_TRIP;
 
     public static final String COLUMN_SAMPLING_TYPE = "sampling_type";
     public static final String COLUMN_VESSEL_FLAG_COUNTRY = "vessel_flag_country";
@@ -54,8 +54,8 @@ public class FileIcesTrip implements Serializable, IEntityBean<Integer> {
     public static final String COLUMN_SAMPLING_METHOD = "sampling_method";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "file_ices_trip_seq")
-    @SequenceGenerator(name = "file_ices_trip_seq", sequenceName="file_ices_trip_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "p01_ices_trip_seq")
+    @SequenceGenerator(name = "p01_ices_trip_seq", sequenceName="p01_ices_trip_seq")
     private Integer id;
 
     @Column(nullable = false, length = 2, name = COLUMN_SAMPLING_TYPE)

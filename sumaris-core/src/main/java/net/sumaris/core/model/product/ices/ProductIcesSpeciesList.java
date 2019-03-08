@@ -1,4 +1,4 @@
-package net.sumaris.core.model.file.ices;
+package net.sumaris.core.model.product.ices;
 
 /*-
  * #%L
@@ -31,33 +31,33 @@ import java.io.Serializable;
 
 @Data
 @Entity
-@Table(name = "file_ices_species_length")
-public class FileIcesSpeciesLength implements Serializable, IEntityBean<Integer> {
+@Table(name = "p01_ices_species_list")
+public class ProductIcesSpeciesList implements Serializable, IEntityBean<Integer> {
 
-    public static final DatabaseTableEnum TABLE = DatabaseTableEnum.FILE_ICES_SPECIES_LENGTH;
+    public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_ICES_SPECIES_LIST;
 
-    public static final String COLUMN_SAMPLING_TYPE = FileIcesStation.COLUMN_SAMPLING_TYPE;
-    public static final String COLUMN_VESSEL_FLAG_COUNTRY = FileIcesStation.COLUMN_VESSEL_FLAG_COUNTRY;
-    public static final String COLUMN_LANDING_COUNTRY = FileIcesStation.COLUMN_LANDING_COUNTRY;
-    public static final String COLUMN_YEAR = FileIcesStation.COLUMN_YEAR;
-    public static final String COLUMN_PROJECT = FileIcesStation.COLUMN_PROJECT;
-    public static final String COLUMN_TRIP_CODE = FileIcesStation.COLUMN_TRIP_CODE;
-    public static final String COLUMN_STATION_NUMBER = FileIcesStation.COLUMN_STATION_NUMBER;
+    public static final String COLUMN_SAMPLING_TYPE = ProductIcesStation.COLUMN_SAMPLING_TYPE;
+    public static final String COLUMN_VESSEL_FLAG_COUNTRY = ProductIcesStation.COLUMN_VESSEL_FLAG_COUNTRY;
+    public static final String COLUMN_LANDING_COUNTRY = ProductIcesStation.COLUMN_LANDING_COUNTRY;
+    public static final String COLUMN_YEAR = ProductIcesStation.COLUMN_YEAR;
+    public static final String COLUMN_PROJECT = ProductIcesStation.COLUMN_PROJECT;
+    public static final String COLUMN_TRIP_CODE = ProductIcesStation.COLUMN_TRIP_CODE;
+    public static final String COLUMN_STATION_NUMBER = ProductIcesStation.COLUMN_STATION_NUMBER;
 
-    public static final String COLUMN_SPECIES = FileIcesSpeciesList.COLUMN_SPECIES;
-    public static final String COLUMN_CATCH_CATEGORY = FileIcesSpeciesList.COLUMN_CATCH_CATEGORY;
-    public static final String COLUMN_LANDING_CATEGORY = FileIcesSpeciesList.COLUMN_LANDING_CATEGORY;
-    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE = FileIcesSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE;
-    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY = FileIcesSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY;
-    public static final String COLUMN_SUBSAMPLING_CATEGORY = FileIcesSpeciesList.COLUMN_SUBSAMPLING_CATEGORY;
-    public static final String COLUMN_SEX = FileIcesSpeciesList.COLUMN_SEX;
-    public static final String COLUMN_INDIVIDUAL_SEX = "individual_sex";
-    public static final String COLUMN_LENGTH_CLASS = "length_class";
-    public static final String COLUMN_NUMBER_AT_LENGTH = "number_at_length";
+    public static final String COLUMN_SPECIES = "species";
+    public static final String COLUMN_SEX = "sex";
+    public static final String COLUMN_CATCH_CATEGORY = "catch_category";
+    public static final String COLUMN_LANDING_CATEGORY = "landing_category";
+    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE = "comm_size_cat_scale";
+    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY = "comm_size_cat";
+    public static final String COLUMN_SUBSAMPLING_CATEGORY = "subsampling_category";
+    public static final String COLUMN_WEIGHT= "weight";
+    public static final String COLUMN_SUBSAMPLING_WEIGHT = "subsampling_weight";
+    public static final String COLUMN_LENGTH_CODE = "length_code";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "file_ices_species_length_seq")
-    @SequenceGenerator(name = "file_ices_species_length_seq", sequenceName="file_ices_species_length_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "p01_ices_species_list_seq")
+    @SequenceGenerator(name = "p01_ices_species_list_seq", sequenceName="p01_ices_species_list_seq")
     private Integer id;
 
     @Column(nullable = false, length = 2, name = COLUMN_SAMPLING_TYPE)
@@ -103,12 +103,12 @@ public class FileIcesSpeciesLength implements Serializable, IEntityBean<Integer>
     @Column(name = COLUMN_SEX , length=1)
     private String sex;
 
-    @Column(name = COLUMN_INDIVIDUAL_SEX , length=1)
-    private String individualSex;
+    @Column(nullable = false, scale = 12, precision = 2, name = COLUMN_WEIGHT)
+    private Double weight;
 
-    @Column(scale = 5, name = COLUMN_LENGTH_CLASS)
-    private Integer lengthClass; // in mm
+    @Column( scale = 12, precision = 2, name = COLUMN_SUBSAMPLING_WEIGHT)
+    private Double subsamplingWeight;
 
-    @Column(scale = 5, name = COLUMN_NUMBER_AT_LENGTH)
-    private Integer numberAtLength;
+    @Column(length = 5, name = COLUMN_LENGTH_CODE)
+    private String lengthCode;
 }

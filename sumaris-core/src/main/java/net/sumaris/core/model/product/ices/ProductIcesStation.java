@@ -1,4 +1,4 @@
-package net.sumaris.core.model.file.ices;
+package net.sumaris.core.model.product.ices;
 
 /*-
  * #%L
@@ -31,17 +31,17 @@ import java.io.Serializable;
 
 @Data
 @Entity
-@Table(name = "file_ices_station")
-public class FileIcesStation implements Serializable, IEntityBean<Integer> {
+@Table(name = "p01_ices_station")
+public class ProductIcesStation implements Serializable, IEntityBean<Integer> {
 
-    public static final DatabaseTableEnum TABLE = DatabaseTableEnum.FILE_ICES_STATION;
+    public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_ICES_STATION;
 
-    public static final String COLUMN_SAMPLING_TYPE = FileIcesTrip.COLUMN_SAMPLING_TYPE;
-    public static final String COLUMN_VESSEL_FLAG_COUNTRY = FileIcesTrip.COLUMN_VESSEL_FLAG_COUNTRY;
-    public static final String COLUMN_LANDING_COUNTRY = FileIcesTrip.COLUMN_LANDING_COUNTRY;
-    public static final String COLUMN_YEAR = FileIcesTrip.COLUMN_YEAR;
-    public static final String COLUMN_PROJECT = FileIcesTrip.COLUMN_PROJECT;
-    public static final String COLUMN_TRIP_CODE = FileIcesTrip.COLUMN_TRIP_CODE;
+    public static final String COLUMN_SAMPLING_TYPE = ProductIcesTrip.COLUMN_SAMPLING_TYPE;
+    public static final String COLUMN_VESSEL_FLAG_COUNTRY = ProductIcesTrip.COLUMN_VESSEL_FLAG_COUNTRY;
+    public static final String COLUMN_LANDING_COUNTRY = ProductIcesTrip.COLUMN_LANDING_COUNTRY;
+    public static final String COLUMN_YEAR = ProductIcesTrip.COLUMN_YEAR;
+    public static final String COLUMN_PROJECT = ProductIcesTrip.COLUMN_PROJECT;
+    public static final String COLUMN_TRIP_CODE = ProductIcesTrip.COLUMN_TRIP_CODE;
 
     public static final String COLUMN_STATION_NUMBER = "station_number";
     public static final String COLUMN_FISHING_VALIDITY = "fishing_validity";
@@ -69,8 +69,8 @@ public class FileIcesStation implements Serializable, IEntityBean<Integer> {
     public static final String COLUMN_MESH_SIZE_SELECTION_DEVICE  = "mesh_size_selection_device";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "file_ices_station_seq")
-    @SequenceGenerator(name = "file_ices_station_seq", sequenceName="file_ices_station_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "p01_ices_station_seq")
+    @SequenceGenerator(name = "p01_ices_station_seq", sequenceName="p01_ices_station_seq")
     private Integer id;
 
     @Column(nullable = false, length = 2, name = COLUMN_SAMPLING_TYPE)

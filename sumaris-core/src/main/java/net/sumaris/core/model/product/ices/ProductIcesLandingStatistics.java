@@ -1,4 +1,4 @@
-package net.sumaris.core.model.file.ices;
+package net.sumaris.core.model.product.ices;
 
 /*-
  * #%L
@@ -31,27 +31,27 @@ import java.io.Serializable;
 
 @Data
 @Entity
-@Table(name = "file_ices_landing")
-public class FileIcesLandingStatistics implements Serializable, IEntityBean<Integer> {
+@Table(name = "p01_ices_landing")
+public class ProductIcesLandingStatistics implements Serializable, IEntityBean<Integer> {
 
-    public static final DatabaseTableEnum TABLE = DatabaseTableEnum.FILE_ICES_LANDING;
+    public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_ICES_LANDING;
 
-    public static final String COLUMN_VESSEL_FLAG_COUNTRY = FileIcesTrip.COLUMN_VESSEL_FLAG_COUNTRY;
-    public static final String COLUMN_LANDING_COUNTRY = FileIcesTrip.COLUMN_LANDING_COUNTRY;
-    public static final String COLUMN_YEAR = FileIcesTrip.COLUMN_YEAR;
+    public static final String COLUMN_VESSEL_FLAG_COUNTRY = ProductIcesTrip.COLUMN_VESSEL_FLAG_COUNTRY;
+    public static final String COLUMN_LANDING_COUNTRY = ProductIcesTrip.COLUMN_LANDING_COUNTRY;
+    public static final String COLUMN_YEAR = ProductIcesTrip.COLUMN_YEAR;
     public static final String COLUMN_QUARTER = "quarter";
     public static final String COLUMN_MONTH = "month";
-    public static final String COLUMN_AREA = FileIcesStation.COLUMN_AREA;
-    public static final String COLUMN_STATISTICAL_RECTANGLE = FileIcesStation.COLUMN_STATISTICAL_RECTANGLE;
-    public static final String COLUMN_SUB_POLYGON = FileIcesStation.COLUMN_SUB_POLYGON;
+    public static final String COLUMN_AREA = ProductIcesStation.COLUMN_AREA;
+    public static final String COLUMN_STATISTICAL_RECTANGLE = ProductIcesStation.COLUMN_STATISTICAL_RECTANGLE;
+    public static final String COLUMN_SUB_POLYGON = ProductIcesStation.COLUMN_SUB_POLYGON;
     public static final String COLUMN_SPECIES = "species";
-    public static final String COLUMN_LANDING_CATEGORY = FileIcesSpeciesList.COLUMN_LANDING_CATEGORY;
-    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE = FileIcesSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE;
-    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY = FileIcesSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY;
-    public static final String COLUMN_NATIONAL_METIER = FileIcesStation.COLUMN_NATIONAL_METIER;
-    public static final String COLUMN_EU_METIER_LEVEL5 = FileIcesStation.COLUMN_EU_METIER_LEVEL5;
-    public static final String COLUMN_EU_METIER_LEVEL6 = FileIcesStation.COLUMN_EU_METIER_LEVEL6;
-    public static final String COLUMN_HARBOUR = FileIcesTrip.COLUMN_HARBOUR;
+    public static final String COLUMN_LANDING_CATEGORY = ProductIcesSpeciesList.COLUMN_LANDING_CATEGORY;
+    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE = ProductIcesSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE;
+    public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY = ProductIcesSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY;
+    public static final String COLUMN_NATIONAL_METIER = ProductIcesStation.COLUMN_NATIONAL_METIER;
+    public static final String COLUMN_EU_METIER_LEVEL5 = ProductIcesStation.COLUMN_EU_METIER_LEVEL5;
+    public static final String COLUMN_EU_METIER_LEVEL6 = ProductIcesStation.COLUMN_EU_METIER_LEVEL6;
+    public static final String COLUMN_HARBOUR = ProductIcesTrip.COLUMN_HARBOUR;
     public static final String COLUMN_VESSEL_LENGTH_CATEGORY = "vessel_length_cat";
     public static final String COLUMN_UNALLOCATED_CATCH_WEIGHT = "unallocated_catch_weight";
     public static final String COLUMN_AREA_MISREPORTED_CATCH_WEIGHT = "area_misreported_catch_weight";
@@ -60,8 +60,8 @@ public class FileIcesLandingStatistics implements Serializable, IEntityBean<Inte
     public static final String COLUMN_OFFICIAL_LANDINGS_VALUE = "official_landings_value";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "file_ices_landing_seq")
-    @SequenceGenerator(name = "file_ices_landing_seq", sequenceName="file_ices_landing_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "p01_ices_landing_seq")
+    @SequenceGenerator(name = "p01_ices_landing_seq", sequenceName="p01_ices_landing_seq")
     private Integer id;
 
     @Column(nullable = false, length = 3, name = COLUMN_LANDING_COUNTRY)
