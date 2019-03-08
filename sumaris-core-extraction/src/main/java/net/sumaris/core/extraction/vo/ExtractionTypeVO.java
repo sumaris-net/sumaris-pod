@@ -27,10 +27,8 @@ import lombok.Data;
 @Data
 public class ExtractionTypeVO {
 
-    private String label;
-
     private String category;
-
+    private String label;
     private String[] sheetNames;
 
 }

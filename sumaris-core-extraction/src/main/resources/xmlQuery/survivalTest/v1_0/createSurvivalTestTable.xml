@@ -93,9 +93,9 @@
     <select alias="MONITORING_BOX_ID" type="text">MAX(DECODE(T.PMFM_LABEL, 'MONITORING_BOX_ID', T.ALPHA_VALUE))</select>
     <!-- INDIVIDUAL MONITORING -->
     <select alias="IS_DEAD" type="text">MAX(DECODE(T.PMFM_LABEL, 'IS_DEAD', DECODE(T.NUM_VALUE, 1, 'Y', 0, 'N')))</select>
-    <select alias="DEATH_TIME" type="text">MAX(DECODE(T.PMFM_LABEL, 'DEATH_TIME', TO_TIMESTAMP(T.ALPHA_VALUE, 'YYYY-MM-DDTHH24:MI:SS.SSS')))</select>
+    <select alias="DEATH_TIME" type="text">MAX(DECODE(T.PMFM_LABEL, 'DEATH_TIME', TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''))))</select>
     <select alias="VERTEBRAL_COLUMN_ANALYSIS" type="text">MAX(DECODE(T.PMFM_LABEL, 'VERTEBRAL_COLUMN_ANALYSIS', DECODE(T.NUM_VALUE, 1, 'Y', 0, 'N')))</select>
-    <select alias="MEASURE_TIME" type="text">MAX(DECODE(T.PMFM_LABEL, 'MEASURE_TIME', TIMESTAMP (REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''))))</select>
+    <select alias="MEASURE_TIME" type="text">MAX(DECODE(T.PMFM_LABEL, 'MEASURE_TIME', TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''))))</select>
     <select alias="DO_PCT" type="text">MAX(DECODE(T.PMFM_LABEL, 'DO_PCT', T.NUM_VALUE))</select>
     <select alias="SAL_PSU" type="text">MAX(DECODE(T.PMFM_LABEL, 'SAL_PSU', T.NUM_VALUE))</select>
     <select alias="WATER_TEMP_C" type="text">MAX(DECODE(T.PMFM_LABEL, 'WATER_TEMP_C', T.NUM_VALUE))</select>

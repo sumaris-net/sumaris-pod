@@ -5,7 +5,7 @@ package net.sumaris.core.extraction.vo.live;
  */
 public enum ExtractionLiveFormat {
 
-    ICES ("TR", "HH", "SL", "HL", "CA"),
+    ICES ("TR", "HH", "SL", "HL"),
     SURVIVAL_TEST("TR", "HH", "ST", "RL")
     ;
 

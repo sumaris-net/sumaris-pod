@@ -103,6 +103,13 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("normalProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
         xmlQuery.bind("survivalSamplingTypePmfmId", String.valueOf(PmfmEnum.SURVIVAL_SAMPLING_TYPE.getId()));
 
+        xmlQuery.bind("landingWeightPmfmId", String.valueOf(PmfmEnum.LANDING_WEIGHT.getId()));
+        xmlQuery.bind("sandStonesWeightRangePmfmId", String.valueOf(PmfmEnum.SAND_STONES_WEIGHT_RANGE.getId()));
+        xmlQuery.bind("benthosWeightRangePmfmId", String.valueOf(PmfmEnum.BENTHOS_WEIGHT_RANGE.getId()));
+        xmlQuery.bind("onDeckDateTimePmfmId", String.valueOf(PmfmEnum.ON_DECK_DATE_TIME.getId()));
+        xmlQuery.bind("sortingDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_START_DATE_TIME.getId()));
+        xmlQuery.bind("sortingEndDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_END_DATE_TIME.getId()));
+
         return xmlQuery;
     }
 
@@ -129,9 +136,10 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
         String versionStr = version.replaceAll("[.]", "_");
         switch (queryName) {
-            case "createSurvivalTestTable":
             case "injectionTripTable":
             case "injectionStationTable":
+            case "createSurvivalTestTable":
+            case "createReleaseTable":
                 return String.format(XML_QUERY_ST_PATH, versionStr, queryName);
             default:
                 return super.getQueryFullName(context, queryName);

@@ -188,6 +188,7 @@ public class ExtractionServiceImpl implements ExtractionService {
                     ExtractionTypeVO type = new ExtractionTypeVO();
                     type.setLabel(product.name().toLowerCase());
                     type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
+                    type.setSheetNames(product.getSheetNames());
                     return type;
                 }).collect(Collectors.toList());
     }
