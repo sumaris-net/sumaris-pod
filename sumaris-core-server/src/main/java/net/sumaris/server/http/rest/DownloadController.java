@@ -105,6 +105,12 @@ public class DownloadController {
         FileUtils.forceMkdir(userDirectory);
         File targetFile = new File(userDirectory, sourceFile.getName());
 
+        int counter = 1;
+        while(targetFile.exists()) {
+            targetFile = new File(userDirectory, sourceFile.getName() + "-" + counter);
+            counter++;
+        }
+
         if (moveSourceFile) {
             FileUtils.moveFile(sourceFile, targetFile);
         }
