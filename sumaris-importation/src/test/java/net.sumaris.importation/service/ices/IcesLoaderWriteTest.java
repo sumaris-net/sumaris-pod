@@ -37,7 +37,7 @@ public class IcesLoaderWriteTest extends AbstractServiceTest {
     }
 
     @Test
-    //@Ignore
+    @Ignore
     public void loadAll() {
         String basePath = System.getProperty("user.home") + "/Documents/sumaris/data/";
         File file;
