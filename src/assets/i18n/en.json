@@ -71,11 +71,8 @@
   },
   "CONFIGURATION": {
     "APP_NAME": "Application Name",
-    "BASE_URL": "Base URL",
-    "REMOTE_BASE_URL": "Remote URL ex: https://test.tst",
-    "VERSION": "Version tag ex: 0.0.1",
-    "GEO_FORMAT": "Latitude & Longitude Format",
-    "APOLLO_POLICY" : "cache-first"
+    "DESCRIPTION": "Description (home page)",
+    "LOGO_PARTNERS": "Partners logo (home page):"
   },
   "MENU": {
     "HOME": "Home",
@@ -83,8 +80,8 @@
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Users",
     "VESSELS": "Vessels",
-    "REFERENTIALS": "Referentials",
-    "PODCONFIG": "POD Configuration",
+    "REFERENTIALS": "Referential",
+    "PODCONFIG": "Server configuration",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "BTN_ACCOUNT": "Account",
