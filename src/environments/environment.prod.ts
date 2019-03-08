@@ -6,7 +6,7 @@ export const environment: Environment = {
   version: (pkg.version as string),
   production: true,
   baseUrl: '/',
-  remoteBaseUrl: "https://adap.e-is.pro",
+  remoteBaseUrl: "https://www.sumaris.net",
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
   defaultProgram: "SUMARiS",
