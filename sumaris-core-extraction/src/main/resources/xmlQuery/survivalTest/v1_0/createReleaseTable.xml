@@ -62,7 +62,7 @@
           </subquery>
         </union>
 
-        <!-- TODO add relase linked to batch (on TAG_ID) -->
+        <!-- TODO add release linked to batch (on TAG_ID) -->
       </subquery>
     </with>
 

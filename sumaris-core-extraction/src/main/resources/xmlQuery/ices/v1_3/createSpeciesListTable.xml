@@ -54,7 +54,7 @@
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=1)
       )]]>
     </select>
-    <select alias="LENGTH_CODE" type="text">'scm'</select>
+    <select alias="LENGTH_CODE" type="text">'mm'</select>
 
     <!-- need to link other tables -->
     <select alias="SAMPLE_NUMBER" type="hidden">COALESCE(SAMPLING_B.ID, SORTING_B.ID)</select>

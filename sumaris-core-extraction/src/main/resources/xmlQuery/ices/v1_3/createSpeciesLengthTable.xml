@@ -43,8 +43,8 @@
 
     <!-- other fields -->
     <select alias="INDIVIDUAL_SEX" type="text">(SELECT QV.LABEL FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK WHERE SM.BATCH_FK = B.ID and SM.PMFM_FK=&amp;sexPmfmId)</select>
-    <select alias="LENGTH_CLASS" type="number">(SELECT SM.NUMERICAL_VALUE FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK = B.ID and SM.PMFM_FK=&amp;lengthTotalPmfmId)</select>
-    <select alias="NUMBER_AT_LENGTH" type="number">B.INDIVIDUAL_COUNT</select>
+    <select alias="LENGTH_CLASS" type="number">(SELECT SM.NUMERICAL_VALUE*10 FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK = B.ID and SM.PMFM_FK=&amp;lengthTotalPmfmId)</select>
+    <select alias="NUMBER_AT_LENGTH" type="number">COALESCE(B.INDIVIDUAL_COUNT,1)</select>
 
     <from alias="SL">&amp;speciesListTableName</from>
     <from join="true">INNER JOIN BATCH B ON B.PARENT_BATCH_FK=SL.SAMPLE_NUMBER AND B.LABEL LIKE 'SORTING_BATCH_INDIVIDUAL#%'</from>
