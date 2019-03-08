@@ -237,7 +237,9 @@ export class ExtractTable implements OnInit {
     extractionType = extractionType || (json.extractionType as ExtractionType);
 
     // Skip empty or same
-    if (!extractionType || (this.extractionType && extractionType.label == this.extractionType.label)) return;
+    if (!extractionType || (this.extractionType
+      && extractionType.category == this.extractionType.category
+      && extractionType.label == this.extractionType.label)) return;
 
     return this.router.navigate([extractionType.category, extractionType.label], {
       relativeTo: this.route.parent.parent,
@@ -248,7 +250,6 @@ export class ExtractTable implements OnInit {
   }
 
   onSheetTabChange(sheetName: string) {
-    console.log("onSheetTabChange", sheetName);
     if (this.loading || isNil(sheetName)) return; // skip
 
     // Skip if same
