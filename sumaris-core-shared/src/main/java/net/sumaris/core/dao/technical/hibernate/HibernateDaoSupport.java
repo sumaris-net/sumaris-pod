@@ -155,12 +155,12 @@ public abstract class HibernateDaoSupport {
     protected <T> T load(Class<T> clazz, Serializable id) {
 
         if (debugEntityLoad) {
-            T load = getEntityManager().find(clazz, id);
+            T load = entityManager.find(clazz, id);
             if (load == null) {
                 throw new DataIntegrityViolationException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
             }
         }
-        return getEntityManager().getReference(clazz, id);
+        return entityManager.getReference(clazz, id);
     }
 
     /**
@@ -187,8 +187,8 @@ public abstract class HibernateDaoSupport {
      */
     @SuppressWarnings("unchecked")
     protected <T extends Serializable> T get(Class<? extends T> clazz, Serializable id, LockModeType lockModeType) {
-        T entity = getEntityManager().find(clazz, id);
-        getEntityManager().lock(entity, lockModeType);
+        T entity = entityManager.find(clazz, id);
+        entityManager.lock(entity, lockModeType);
         return entity;
     }
 
@@ -251,7 +251,7 @@ public abstract class HibernateDaoSupport {
                     queryString = String.format(countQueryString, tableName, columnName, source);
                 }
 
-                query = getEntityManager().createNativeQuery(queryString);
+                query = entityManager.createNativeQuery(queryString);
                 if (logger.isDebugEnabled()) {
                     logger.debug(queryString);
                 }
@@ -325,7 +325,7 @@ public abstract class HibernateDaoSupport {
                     queryString = String.format(updateQueryString, tableName, columnName, target, columnName, source);
                 }
 
-                query = getEntityManager().createNativeQuery(queryString);
+                query = entityManager.createNativeQuery(queryString);
                 if (logger.isDebugEnabled()) {
                     logger.debug(queryString);
                 }
@@ -377,7 +377,7 @@ public abstract class HibernateDaoSupport {
     protected void lockForUpdate(IEntityBean<?> entity, LockModeType modeType) {
         // Lock entityName
         try {
-            getEntityManager().lock(entity, modeType);
+            entityManager.lock(entity, modeType);
         } catch (LockTimeoutException e) {
             throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
                     getTableName(entity.getClass().getSimpleName()), entity.getId()), e);
@@ -385,6 +385,6 @@ public abstract class HibernateDaoSupport {
     }
 
     protected void delete(IEntityBean<?> entity) {
-        getEntityManager().remove(entity);
+        entityManager.remove(entity);
     }
 }

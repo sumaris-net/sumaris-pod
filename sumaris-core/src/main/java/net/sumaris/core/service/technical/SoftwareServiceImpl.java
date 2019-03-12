@@ -6,7 +6,7 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SoftwareDao;
 import net.sumaris.core.exception.VersionNotFoundException;
-import net.sumaris.core.vo.technical.ConfigurationVO;
+import net.sumaris.core.vo.technical.SoftwareVO;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,25 +55,23 @@ public class SoftwareServiceImpl implements SoftwareService {
     }
 
     @Override
-    public ConfigurationVO getDefault() {
+    public SoftwareVO getDefault() {
         return dao.get(defaultSoftwareLabel);
     }
 
     @Override
-    public ConfigurationVO get(String label) {
+    public SoftwareVO get(String label) {
         Preconditions.checkNotNull(label);
 
         return dao.get(label);
     }
 
     @Override
-    public ConfigurationVO save(ConfigurationVO configuration) {
-        Preconditions.checkNotNull(configuration);
-        Preconditions.checkNotNull(configuration.getLabel());
+    public SoftwareVO save(SoftwareVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel());
 
-        // TODO Save properties
-
-        return dao.save(configuration);
+        return dao.save(source);
     }
 
     /**
@@ -110,11 +108,11 @@ public class SoftwareServiceImpl implements SoftwareService {
 
         ApplicationConfig appConfig = SumarisConfiguration.getInstance().getApplicationConfig();
         // Override the configuration existing in the config file, using DB
-        ConfigurationVO configurationFromDb = getDefault();
-        if (configurationFromDb == null) {
+        SoftwareVO software = getDefault();
+        if (software == null) {
             log.info(String.format("No configuration for {%s} found in database. to enable configuration override from database, make sure to set the option '%s' to an existing row of the table SOFTWARE (column LABEL).", defaultSoftwareLabel, SumarisConfigurationOption.APP_NAME.getKey()));
         }
-        else if (MapUtils.isNotEmpty(configurationFromDb.getProperties())) {
+        else if (MapUtils.isNotEmpty(software.getProperties())) {
             log.info(String.format("Overriding configuration options, using those found in database for {%s}", defaultSoftwareLabel));
 
             // Load options from configuration providers
@@ -129,7 +127,7 @@ public class SoftwareServiceImpl implements SoftwareService {
                     .filter(o -> o.isTransient())
                     .map(o -> o.getKey()).collect(Collectors.toSet());
 
-            configurationFromDb.getProperties().entrySet()
+            software.getProperties().entrySet()
                     .forEach(entry -> {
                         if (!optionKeys.contains(entry.getKey())) {
                             if (log.isDebugEnabled()) log.debug(String.format(" - Skipping unknown configuration option {%s=%s} found in database for {%s}.", entry.getKey(), entry.getValue(), defaultSoftwareLabel));

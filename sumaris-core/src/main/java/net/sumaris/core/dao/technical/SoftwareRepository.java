@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository("softwareRepository")
 public interface SoftwareRepository extends JpaRepository<Software, Integer> {
 
-    @Query(value="FROM Software WHERE label = ?1")
-    Software getSoftware(String label) ;
+    @Query //(value="FROM Software WHERE label = ?1")
+    Software getOneByLabel(String label) ;
+
 }

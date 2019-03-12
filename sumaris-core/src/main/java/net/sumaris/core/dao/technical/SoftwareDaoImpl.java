@@ -22,16 +22,24 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import net.sumaris.core.dao.referential.StatusRepository;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.Software;
+import net.sumaris.core.model.technical.SoftwareProperty;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.technical.ConfigurationVO;
+import net.sumaris.core.vo.technical.SoftwareVO;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.Map;
-import java.util.Objects;
+import javax.persistence.EntityManager;
+import java.sql.Timestamp;
+import java.util.*;
 
 @Repository("softwareDao")
 public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
@@ -39,33 +47,140 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
     @Autowired
     private SoftwareRepository repository;
 
-    public ConfigurationVO get(String label) {
-        return toVO(repository.getSoftware(label));
+    @Autowired
+    private StatusRepository statusRepository;
+
+    public SoftwareVO get(String label) {
+        return toVO(repository.getOneByLabel(label));
     }
 
-    public ConfigurationVO save(ConfigurationVO source)  {
+    public SoftwareVO save(SoftwareVO source)  {
 
-        Software target = toEntity(source);
-
-        if (source.getId() == null) {
-            getEntityManager().persist(target);
-            source.setId(target.getId());
+        EntityManager entityManager = getEntityManager();
+        Software entity = null;
+        if (source.getId() != null) {
+            entity = get(Software.class, source.getId());
         }
+        boolean isNew = (entity == null);
+        if (isNew) {
+            entity = new Software();
+        }
+
         else {
-            getEntityManager().merge(target);
+            // Check update date
+            checkUpdateDateForUpdate(source, entity);
+
+            // Lock entityName
+            lockForUpdate(entity);
         }
+
+        // VO -> Entity
+        softwareVOToEntity(source, entity, false);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+        if (isNew) {
+            // Force creation date
+            entity.setCreationDate(newUpdateDate);
+            source.setCreationDate(newUpdateDate);
+
+            entityManager.persist(entity);
+            source.setId(entity.getId());
+        }
+
+        source.setUpdateDate(newUpdateDate);
+
+        // Save properties
+        saveProperties(source.getProperties(), entity, newUpdateDate);
+
+        // Final merge
+        entityManager.merge(entity);
 
         return source;
     }
 
     /* -- protected methods -- */
 
-    protected ConfigurationVO toVO(Software source) {
-        if (source == null) return null;
-
-        ConfigurationVO target = new ConfigurationVO();
+    protected void softwareVOToEntity(SoftwareVO source, Software target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
+
+        // status
+        if (copyIfNull || source.getStatusId() != null) {
+            if (source.getStatusId() == null) {
+                target.setStatus(null);
+            }
+            else {
+                target.setStatus(load(Status.class, source.getStatusId()));
+            }
+        }
+    }
+
+    protected void saveProperties(Map<String, String> source, Software parent, Timestamp updateDate) {
+        if (MapUtils.isEmpty(source)) {
+            if (parent.getProperties() != null) {
+                parent.getProperties().clear();
+            }
+        }
+        else {
+            Map<String, SoftwareProperty> existingProperties = Beans.splitByProperty(
+                    Beans.getList(parent.getProperties()),
+                    SoftwareProperty.PROPERTY_LABEL);
+            final EntityManager em = getEntityManager();
+            final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
+            if (parent.getProperties() == null) {
+                parent.setProperties(Lists.newArrayList());
+            }
+            final List<SoftwareProperty> targetProperties = parent.getProperties();
+
+            // Transform each entry into SoftwareProperty
+            source.entrySet().stream()
+                    .filter(e -> Objects.nonNull(e.getKey())
+                            && Objects.nonNull(e.getValue())
+                    )
+                    .map(e -> {
+                        SoftwareProperty prop = existingProperties.remove(e.getKey());
+                        boolean isNew = (prop == null);
+                        if (isNew) {
+                            prop = new SoftwareProperty();
+                            prop.setLabel(e.getKey());
+                            prop.setSoftware(parent);
+                            prop.setCreationDate(updateDate);
+                        }
+                        prop.setName(e.getValue());
+                        prop.setStatus(enableStatus);
+                        prop.setUpdateDate(updateDate);
+                        if (isNew) {
+                            em.persist(prop);
+                        }
+                        else {
+                            em.merge(prop);
+                        }
+                        return prop;
+                    })
+                    .forEach(targetProperties::add);
+
+            // Remove old properties
+            if (MapUtils.isNotEmpty(existingProperties)) {
+                parent.getProperties().removeAll(existingProperties.values());
+                existingProperties.values().stream().forEach(em::remove);
+            }
+
+        }
+    }
+
+    protected SoftwareVO toVO(Software source) {
+        if (source == null) return null;
+
+        SoftwareVO target = new SoftwareVO();
+
+        Beans.copyProperties(source, target);
+
+        // Status
+        target.setStatusId(source.getStatus().getId());
 
         // properties
         Map<String, String> properties = Maps.newHashMap();
@@ -82,13 +197,23 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
                 });
         target.setProperties(properties);
 
+
         return target;
     }
 
-    protected Software toEntity(ConfigurationVO source) {
-        Software target = repository.getSoftware(source.getLabel());
+    protected Software toEntity(SoftwareVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel());
 
-        Beans.copyProperties(source, target);
+        Software target;
+        if (source.getId() != null) {
+            target = repository.getOneByLabel(source.getLabel());
+        }
+        else {
+            target = new Software();
+        }
+
+        softwareVOToEntity(source, target, true);
 
         return target;
     }

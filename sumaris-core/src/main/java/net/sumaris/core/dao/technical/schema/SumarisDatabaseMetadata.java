@@ -228,19 +228,21 @@ public class SumarisDatabaseMetadata {
 			String qualifiedTableName = getQualifiedTableName(catalog, schema, table.getName()).render().toLowerCase();
 			persistentClassMap.put(qualifiedTableName, persistentClass);
 
-			for(Iterator propertyIterator = persistentClass.getPropertyIterator();
-				propertyIterator.hasNext(); ) {
-				Property property = (Property) propertyIterator.next();
+			if (log.isDebugEnabled()) {
+				for (Iterator propertyIterator = persistentClass.getPropertyIterator();
+					 propertyIterator.hasNext(); ) {
+					Property property = (Property) propertyIterator.next();
 
-				for(Iterator columnIterator = property.getColumnIterator();
-					columnIterator.hasNext(); ) {
-					Column column = (Column) columnIterator.next();
+					for (Iterator columnIterator = property.getColumnIterator();
+						 columnIterator.hasNext(); ) {
+						Column column = (Column) columnIterator.next();
 
-					log.debug( String.format("Property: %s is mapped on table column: %s of type: %s",
-							property.getName(),
-							column.getName(),
-							column.getSqlType())
-					);
+						log.debug(String.format("Property: %s is mapped on table column: %s of type: %s",
+								property.getName(),
+								column.getName(),
+								column.getSqlType())
+						);
+					}
 				}
 			}
 		}

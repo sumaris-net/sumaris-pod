@@ -1,4 +1,4 @@
-package net.sumaris.core.service.technical;
+package net.sumaris.core.vo.technical;
 
 /*-
  * #%L
@@ -10,30 +10,44 @@ package net.sumaris.core.service.technical;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import net.sumaris.core.vo.technical.SoftwareVO;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.Data;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.referential.IReferentialVO;
 
-@Transactional
-public interface SoftwareService {
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
-    SoftwareVO getDefault();
+@Data
+public class SoftwareVO implements IReferentialVO {
 
-    SoftwareVO get(String label);
+    public static final String PROPERTY_PROPERTIES = "properties";
 
-    SoftwareVO save(SoftwareVO configuration);
+    private Integer id;
+
+    private String label;
+
+    private String name;
+
+    private Date updateDate;
+
+    private Date creationDate;
+
+    private Integer statusId;
+
+    private Map<String, String> properties;
 
 }
-
-

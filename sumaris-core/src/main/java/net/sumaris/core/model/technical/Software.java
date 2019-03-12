@@ -22,10 +22,10 @@ public class Software implements IItemReferentialEntity {
     @SequenceGenerator(name = "SOFTWARE_SEQ", sequenceName="SOFTWARE_SEQ")
     private Integer id;
 
-    @Column(nullable = false )
+    @Column(nullable = false, length = LENGTH_LABEL, unique = true)
     private String label;
 
-    @Column(nullable = false )
+    @Column(nullable = false, length = LENGTH_NAME)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)

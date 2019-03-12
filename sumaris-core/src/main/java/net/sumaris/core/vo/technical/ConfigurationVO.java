@@ -23,15 +23,18 @@ package net.sumaris.core.vo.technical;
  */
 
 import lombok.Data;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 @Data
-public class ConfigurationVO implements IReferentialVO {
+public class ConfigurationVO extends SoftwareVO {
 
     public static final String PROPERTY_PROPERTIES = "properties";
     public static final String PROPERTY_PARTNERS = "partners";
@@ -39,14 +42,16 @@ public class ConfigurationVO implements IReferentialVO {
     public static final String PROPERTY_SMALL_LOGO = "smallLogo";
     public static final String PROPERTY_LARGE_LOGO = "largeLogo";
 
-    private Integer id;
-
-    private String label;
-
-    private String name;
-
     private String smallLogo;
     private String largeLogo;
+
+    public ConfigurationVO() {
+    }
+
+    public ConfigurationVO(SoftwareVO source) {
+        Beans.copyProperties(source, this);
+    }
+
     // TODO: add a map by resolution (e.g. hdpi, mdpi, ...)
     //private Map<String, String> logo;
 

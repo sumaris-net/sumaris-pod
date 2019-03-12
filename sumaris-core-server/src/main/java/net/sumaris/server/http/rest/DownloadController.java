@@ -25,6 +25,7 @@ package net.sumaris.server.http.rest;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.MediaTypes;
@@ -105,10 +106,16 @@ public class DownloadController {
         FileUtils.forceMkdir(userDirectory);
         File targetFile = new File(userDirectory, sourceFile.getName());
 
-        int counter = 1;
-        while(targetFile.exists()) {
-            targetFile = new File(userDirectory, sourceFile.getName() + "-" + counter);
-            counter++;
+        if (targetFile.exists()) {
+            int counter = 1;
+            String baseName = Files.getNameWithoutExtension(sourceFile);
+            String extension = Files.getExtension(sourceFile);
+            do {
+                targetFile = new File(userDirectory, String.format("%s-%s.%s",
+                        baseName,
+                        counter++,
+                        extension));
+            } while (targetFile.exists());
         }
 
         if (moveSourceFile) {

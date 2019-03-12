@@ -28,6 +28,7 @@ import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.ConfigurationVO;
+import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
@@ -83,12 +84,27 @@ public class ConfigurationGraphQLService {
     @GraphQLQuery(name = "configuration", description = "A software configuration")
     @Transactional(readOnly = true)
     public ConfigurationVO getConfiguration(
-            @GraphQLArgument(name = "software") String software,
+            @GraphQLArgument(name = "software") String softwareLabel,
             @GraphQLEnvironment() Set<String> fields
     ){
-        ConfigurationVO result  = StringUtils.isBlank(software) ? service.getDefault() : service.get(software);
+        SoftwareVO software  = StringUtils.isBlank(softwareLabel) ? service.getDefault() : service.get(softwareLabel);
+        return toConfiguration(software, fields);
+    }
 
-        if (result == null) return null;
+    @GraphQLMutation(name = "saveConfiguration", description = "Save a software configuration")
+    @Transactional
+    public ConfigurationVO save(@GraphQLArgument(name = "config") ConfigurationVO configuration,
+                     @GraphQLEnvironment() Set<String> fields){
+
+        SoftwareVO software = service.save(configuration);
+        return toConfiguration(software, fields);
+    }
+
+    /* -- protected methods -- */
+
+    protected ConfigurationVO toConfiguration(SoftwareVO software,  Set<String> fields) {
+        if (software == null) return null;
+        ConfigurationVO result = new ConfigurationVO(software);
 
         // Fill partners departments
         if (fields.contains(ConfigurationVO.PROPERTY_PARTNERS)) {
@@ -129,14 +145,6 @@ public class ConfigurationGraphQLService {
 
         return result;
     }
-
-    @GraphQLMutation(name = "saveConfiguration", description = "Save the pod configuration")
-    @Transactional
-    public void save(@GraphQLArgument(name = "app") ConfigurationVO configuration){
-        service.save(configuration);
-    }
-
-    /* -- protected methods -- */
 
     protected String getProperty(ConfigurationVO config, String propertyName) {
         return MapUtils.getString(config.getProperties(), propertyName);

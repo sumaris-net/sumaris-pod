@@ -22,15 +22,21 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
+import com.google.common.collect.Maps;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.technical.ConfigurationVO;
+import net.sumaris.core.vo.technical.SoftwareVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Map;
+import java.util.Properties;
 
 public class SoftwareServiceTest extends AbstractServiceTest {
 
@@ -46,12 +52,56 @@ public class SoftwareServiceTest extends AbstractServiceTest {
 
     @Test
     public void getDefault() {
-        ConfigurationVO config = service.getDefault();
-        Assert.assertNotNull(config);
+        SoftwareVO result = service.getDefault();
+        Assert.assertNotNull(result);
 
         // Test properties
-        Assert.assertNotNull(config.getProperties());
-        Assert.assertTrue(config.getProperties().size() > 1);
+        Assert.assertNotNull(result.getProperties());
+        Assert.assertTrue(result.getProperties().size() > 1);
 
+    }
+
+    @Test
+    public void save() {
+
+        SoftwareVO software = new SoftwareVO();
+        software.setLabel("test");
+        software.setName("test");
+        software.setStatusId(StatusEnum.ENABLE.getId());
+
+        Map<String, String> props = Maps.newHashMap();
+        props.put("property.1", "value1");
+        props.put("property.2", "value2");
+        software.setProperties(props);
+
+        // Insert
+        SoftwareVO savedSoftware = service.save(software);
+        Assert.assertNotNull(savedSoftware);
+        Assert.assertNotNull(savedSoftware.getId());
+        Assert.assertNotNull(savedSoftware.getUpdateDate());
+        Assert.assertNotNull(savedSoftware.getCreationDate());
+
+        // Reload
+        SoftwareVO reloadSoftware = service.get(software.getLabel());
+        Assert.assertNotNull(savedSoftware);
+        Assert.assertNotNull(savedSoftware.getProperties());
+        Assert.assertEquals(savedSoftware.getId(), reloadSoftware.getId());
+        Assert.assertEquals(props.size(), reloadSoftware.getProperties().size());
+
+        // Update
+        software.setName("new name");
+        props = Maps.newHashMap();
+        props.put("property.2", "value22");
+        props.put("property.3", "value3");
+        software.setProperties(props);
+        savedSoftware = service.save(software);
+
+        // Reload
+        reloadSoftware = service.get(software.getLabel());
+        Assert.assertNotNull(savedSoftware);
+        Assert.assertNotNull(savedSoftware.getProperties());
+        Assert.assertEquals(savedSoftware.getId(), reloadSoftware.getId());
+        Assert.assertEquals(software.getName(), reloadSoftware.getName());
+        Assert.assertEquals(props.size(), reloadSoftware.getProperties().size());
     }
 }
