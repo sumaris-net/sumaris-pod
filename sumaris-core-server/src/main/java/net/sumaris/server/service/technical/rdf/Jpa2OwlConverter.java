@@ -6,6 +6,7 @@ import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
+import net.sumaris.server.config.Jpa2OwlConfig;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntProperty;
@@ -29,6 +30,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,7 +48,6 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
     Map<Class, Resource> TYPE_CONVERTER = initConverters();
     Map<Resource, Class> TYPE_CONVERTER2 = initConverters2();
     AtomicInteger ai = new AtomicInteger(0);
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 
 
     static Map<Resource, Class> initConverters2() {
@@ -130,7 +131,7 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
         return null;
     }
 
-    default String classToURI(Class c) {
+    static String classToURI(Class c) {
         String uri = SCHEMA_URL + c.getTypeName();
         if (uri.substring(1).contains("<")) {
             uri = uri.substring(0, uri.indexOf("<"));
@@ -138,29 +139,31 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
         if (uri.endsWith("<java.lang.Integer, java.util.Date>")) {
             uri = uri.replace("<java.lang.Integer, java.util.Date>", "");
         }
+
+        if(uri.contains("$")){
+            LOG.error("Inner classes not handled " + uri);
+        }
+
         return uri;
     }
 
-    EntityManager getEntityManager();
 
-    default Method setterOfField(Class t, String field) {
+    default Optional<Method> setterOfField(Class t, String field) {
         try {
-
-
             Field f = fieldOf(t, field);
-            return t.getMethod("set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1), f.getType());
-
-        } catch (NoSuchMethodException  e) {
-            LOG.error("NoSuchMethodException setterOfField " + field + " - " + e.getMessage());
-        }catch (NullPointerException  e) {
-            LOG.error("NullPointerException setterOfField " + field + " - " + e.getMessage());
+            Method met = t.getMethod("set" + f.getName().substring(0, 1).toUpperCase() + f.getName().substring(1), f.getType());
+            return Optional.of(met);
+        } catch (NoSuchMethodException e) {
+            LOG.error("NoSuchMethodException setterOfField " + field + " - ", e);
+        } catch (NullPointerException e) {
+            LOG.error("NullPointerException setterOfField " + field + " - ", e);
         }
-        return null;
+        return Optional.empty();
     }
 
     default Field fieldOf(Class t, String name) {
         try {
-            return map.get(classToURI(t)).getDeclaredField(name);
+            return URI_2_CLASS.get(classToURI(t)).getDeclaredField(name);
         } catch (NoSuchFieldException e) {
             LOG.error("error fieldOf " + t.getSimpleName() + " " + name + " - " + e.getMessage());
         }
@@ -168,7 +171,7 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
     }
 
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         net.sumaris.core.model.referential.Status s = new Status();
 
     }
@@ -306,20 +309,6 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
     }
 
 
-    Map<String, Class> map = fill();
-
-    static Map<String, Class> fill() {
-        Map<String, Class> res = new HashMap<>();
-        res.put("http://www.e-is.pro/2019/03/schema/net.sumaris.core.model.referential.gear.Gear", Gear.class);
-        res.put("http://www.e-is.pro/2019/03/schema/net.sumaris.core.model.referential.taxon.ReferenceTaxon", ReferenceTaxon.class);
-        res.put("http://www.e-is.pro/2019/03/schema/net.sumaris.core.model.referential.taxon.TaxonName", TaxonName.class);
-        res.put("http://www.e-is.pro/2019/03/schema/net.sumaris.core.model.referential.taxon.TaxonomicLevel", TaxonomicLevel.class);
-        res.put("http://www.e-is.pro/2019/03/schema/net.sumaris.core.model.referential.Status", Status.class);
-        res.put("http://www.e-is.pro/2019/03/schema/net.sumaris.core.dao.technical.model.IUpdateDateEntityBean", IUpdateDateEntityBean.class);
-
-        return res;
-    }
-
     //default <T> List<? super T> castListSafe(List<?> data, Class<T> listType) {
 //    default  <T> Class<T> classFromURI(String uri, Class<T> cast ) {
 //
@@ -393,16 +382,15 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
         }
 
 
-        Class clazz = map.get(uri);
+        Class clazz = URI_2_CLASS.get(uri);
 
-        if(clazz == null){
-            LOG.error(" clazz not mapped for uri " + uri );
-
+        if (clazz == null) {
+            LOG.warn(" clazz not mapped for uri " + uri);
             return Optional.empty();
         }
 
         if (clazz.isInterface()) {
-            LOG.error(" corresponding Type is interface, skip instance " + clazz);
+            LOG.warn(" corresponding Type is interface, skip instances " + clazz);
             return Optional.empty();
         }
         return Optional.of(clazz);
@@ -410,7 +398,7 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
     }
 
     default Optional<Object> individualToInstance(OntResource ontResource, Class clazz) {
-        LOG.info("processing ont Instance " + ontResource +" - "+
+        LOG.info("processing ont Instance " + ontResource + " - " +
                 ontResource
                         .asIndividual()
                         .listProperties().toList().size());
@@ -425,56 +413,52 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
                     .forEach(stmt -> {
                         String pred = stmt.getPredicate().getURI();
                         RDFNode val = stmt.getObject();
-                        if (pred.startsWith(SCHEMA_URL) && pred.contains("#")) {
+                        if ((pred.startsWith(SCHEMA_URL) || pred.startsWith(ADAGIO_URL)) && pred.contains("#")) {
                             String fName = pred.substring(pred.indexOf("#") + 1);
                             fName = fName.substring(0, 1).toLowerCase() + fName.substring(1);
                             try {
-                                Method me;
-                                if(fName.equals("id")){
+                                Method setter;
+                                if (fName.equals("id")) {
                                     LOG.warn("searching id field ");
-                                    me = findSetterAnnotatedID(clazz);
-                                }else{
-                                    me = setterOfField(clazz, fName);
+                                    setter = findSetterAnnotatedID(clazz);
+                                } else {
+                                    setter = setterOfField(clazz, fName).get();
                                 }
-                                if(me == null){
+                                if (setter == null) {
                                     LOG.warn("no setter found for field " + fName + " on class " + clazz);
                                     return;
                                 }
-                                Class<?> setterParam = me.getParameterTypes()[0];
+                                Class<?> setterParam = setter.getParameterTypes()[0];
                                 // LOG.info("trying to insert  " + fName + " => " + val + " using method " + me + " !!  " + huhu);
 
                                 if (classEquals(setterParam, String.class)) {
-                                    me.invoke(obj, val.asLiteral().getString());
+                                    setter.invoke(obj, val.asLiteral().getString());
                                 } else if (classEquals(setterParam, Long.class) || classEquals(setterParam, long.class)) {
-                                    me.invoke(obj, val.asLiteral().getLong());
+                                    setter.invoke(obj, val.asLiteral().getLong());
                                 } else if (classEquals(setterParam, Integer.class) || classEquals(setterParam, int.class)) {
-                                    me.invoke(obj, Integer.parseInt(val.toString()));
+                                    setter.invoke(obj, Integer.parseInt(val.toString()));
                                 } else if (classEquals(setterParam, Date.class)) {
-                                    me.invoke(obj, sdf.parse(val.asLiteral().getString()));
+                                    setter.invoke(obj, sdf.parse(val.asLiteral().getString()));
                                 } else if (classEquals(setterParam, Boolean.class) || classEquals(setterParam, boolean.class)) {
-                                    me.invoke(obj, val.asLiteral().getBoolean());
-                                } else {
-                                    ai.getAndIncrement();
-
-                                    LOG.warn("mapping getEntityManager().getReference " + val );
-                                    Object ref = getEntityManager().getReference(setterParam, new Integer(val.toString()));
-                                    me.invoke(obj, ref);
-                                    //me.invoke(x, huhu.cast(val.as(TYPE_CONVERTER2.get(classToURI(huhu)))));
+                                    setter.invoke(obj, val.asLiteral().getBoolean());
+                                }
+//                              else if (val.isURIResource()) {
+//                                  setter.invoke(obj, val.asLiteral().getBoolean());
+//                              }
+                                else {
+                                    setter.invoke(obj, getTranslatedReference(val, setterParam, obj));
                                 }
                                 //myAccessor.setPropertyValue(fName,safeCastRDFNode(val, fName,clazz));
                             } catch (Exception e) {
-                                LOG.error(e.getClass().getSimpleName() + " on field " + fName + " => " + val + " using class " + clazz+ " using method " + setterOfField(clazz, fName) + " " + e.getMessage(), e);
+                                LOG.error(e.getClass().getSimpleName() + " on field " + fName + " => " + val + " using class " + clazz + " using method " + setterOfField(clazz, fName) + " " + e.getMessage(), e);
                             }
 
                             //values.put(fName, safeCastRDFNode(val, fName, clazz));
                         }
 
                     });
-
             //getEntityManager().merge(obj);
-
-            LOG.info("  - created object " + obj + " - " + ontResource.toString() + " of class " + ontResource.getClass() + "  - " + ai.get());
-
+            LOG.info("  - created object " + ontResource + " - " + " of class " + ontResource.getClass() + "  - " + ai.get());
             return Optional.of(obj);
         } catch (Exception e) {
             LOG.error(" processing individual " + ontResource + " - " + clazz, e);
@@ -482,21 +466,69 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
         return Optional.empty();
     }
 
+
+    default Object getTranslatedReference(RDFNode val, Class<?> setterParam, Object obj) {
+        ai.getAndIncrement();
+
+        String identifier = val.toString();
+        if (identifier.contains("#"))
+            identifier = identifier.substring(identifier.indexOf("#") + 1);
+
+        if (setterParam == TaxonomicLevel.class) {
+
+            LOG.warn("TaxonomicLevel " + getCacheTL().size());
+            for (Object ctl : getCacheTL()) {
+                String lab = ((TaxonomicLevel) ctl).getLabel();
+                if (identifier.endsWith(lab)) {
+                    return ctl;
+                }
+            }
+
+            // if none were cached, create a new TaxonLevel
+            TaxonomicLevel tl = new TaxonomicLevel();
+            tl.setLabel(identifier);
+            getEntityManager().persist(tl);
+
+            return URI_2_OBJ_REF.putIfAbsent(val.toString(), tl);
+        }
+
+
+        // Default case, try to fetch reference (@Id) as Integer or String
+        LOG.warn("mapping getEntityManager().getReference " + identifier + " - " + val + " - " + obj);
+        Object ref;
+        try {
+            Integer asInt = Integer.parseInt(identifier);
+            ref = getEntityManager().getReference(setterParam, asInt);
+        } catch (NumberFormatException e) {
+            ref = getEntityManager().getReference(setterParam, identifier);
+        }
+        return ref;
+    }
+
     default List<Object> fromModel(OntModel m) {
 
         List<Object> ret = new ArrayList<>();
 
         for (OntClass ontClass : m.listClasses().toList()) {
+
+
             ontToJavaClass(ontClass).ifPresent(clazz -> {
                 for (OntResource ontResource : ontClass.listInstances().toList()) {
-                    individualToInstance(ontResource, clazz)
-                            .ifPresent(ret::add);
+
+                    Function<OntResource, Object> f = ARBITRARY_MAPPER.get(ontClass.getURI());
+                    if (f != null) {
+                        ret.add(f.apply(ontResource));
+                    } else {
+                        individualToInstance(ontResource, clazz).ifPresent(ret::add);
+                    }
+
                 }
             });
+
+
         }
         return ret;
     }
-
 
 
     default Method findGetterAnnotatedID(Class clazz) {
@@ -513,13 +545,12 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
         for (Field f : clazz.getDeclaredFields())
             for (Annotation an : f.getDeclaredAnnotations())
                 if (an instanceof Id)
-                    return setterOfField(clazz, f.getName());
+                    return setterOfField(clazz, f.getName()).get();
 
         return null;
     }
 
     default Resource toModel(OntModel model, Object obj, int depth) {
-
 
         String classURI = classToURI(obj.getClass());
         OntClass ontClazz = model.getOntClass(classURI);
@@ -534,9 +565,9 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
             Method m = findGetterAnnotatedID(obj.getClass());
             objectIdentifier = classURI + "#" + m.invoke(obj);
             LOG.info("Created objectIdentifier " + objectIdentifier);
-        } catch (NullPointerException | IllegalAccessException | InvocationTargetException e) {
+        } catch (Exception e) {
             objectIdentifier = "";
-            LOG.error(e.getClass().getName() + " " + classURI + " " + obj);
+            LOG.error(e.getClass().getName() + " toModel " + classURI + " - ");
         }
         Resource individual = ontClazz.createIndividual(objectIdentifier); // model.createResource(node);
         if (depth < 0) {
@@ -568,11 +599,13 @@ public interface Jpa2OwlConverter extends Jpa2OwlConfig {
                             individual.addProperty(pred, invoked + "");
                         } else if ("getClass".equals(met.getName())) {
                             individual.addProperty(RDF.type, pred);
+                        } else if ( invoked.getClass().getCanonicalName().contains("$")) {
+                            //skip inner classes. mostly handles generated code issues
                         } else if (!isJavaType(met)) {
 
                             //LOG.info("not java generic, recurse on node..." + invoked);
                             Resource recurse = toModel(model, invoked, (depth - 1));
-                            LOG.warn("recurse null for " + met.getName() + "  " + invoked + "  ");
+                            LOG.warn("recurse null for " + met.getName() + "  " + invoked.getClass() + "  ");
                             if (recurse != null)
                                 individual.addProperty(pred, recurse);
                         } else if (met.getGenericReturnType() instanceof ParameterizedType) {

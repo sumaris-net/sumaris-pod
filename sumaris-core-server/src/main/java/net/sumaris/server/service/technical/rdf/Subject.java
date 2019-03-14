@@ -7,15 +7,8 @@ import java.lang.annotation.*;
 @Target(ElementType.FIELD)
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RDF {
+public @interface Subject {
 
 
-    String namespace() default "";
-
-    String label() default "";
-
-    String description() default "";
-
-    String[] sameAs() default {} ;
 }
 

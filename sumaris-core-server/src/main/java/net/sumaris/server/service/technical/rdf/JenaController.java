@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
@@ -91,7 +92,6 @@ public class JenaController implements Jpa2OwlConverter {
                     }
                 });
 
-
     }
 
 
@@ -130,13 +130,13 @@ public class JenaController implements Jpa2OwlConverter {
                 .forEach(status -> toModel(model, status, 2));
 
 
-        entityManager
-                .createQuery("from Gear")
-                .getResultList()
-                .forEach(ti -> {
-                    //LOG.info("TI ============= ");
-                    toModel(model, ti, 2);
-                });
+//        entityManager
+//                .createQuery("from Gear")
+//                .getResultList()
+//                .forEach(ti -> {
+//                    //LOG.info("TI ============= ");
+//                    toModel(model, ti, 2);
+//                });
 
 
         entityManager
@@ -156,13 +156,35 @@ public class JenaController implements Jpa2OwlConverter {
         return " elapsed " + seconds;
     }
 
+    @Override
+    public List getCacheStatus() {
+        return cacheStatus;
+    }
+
+    @Override
+    public List getCacheTL() {
+        return cacheTL;
+    }
+
+    List cacheStatus;
+    List cacheTL;
+
+    @Transactional
     @GetMapping(value = "/sync", produces = {"application/xml", "application/rdf+xml"})
     public @ResponseBody
-    String kick() {
+    String sync() {
+        cacheStatus = entityManager
+                .createQuery("from Status")
+                .getResultList();
+
+        cacheTL = entityManager
+                .createQuery("from TaxonomicLevel")
+                .getResultList();
+
 
         long start = System.nanoTime();
 
-        OntModel m = ModelFactory.createOntologyModel();
+        OntModel m = ontModelWithMetadata();
         new JenaReader().read(m, "http://localhost:8081/jena/rdf");
         LOG.info("Found " + m.size() + " triples remotely, reconstructing model now " + delta(start));
 
@@ -197,9 +219,9 @@ public class JenaController implements Jpa2OwlConverter {
 //                    LOG.warn("statement not recomposed " +  ii.getAndIncrement() + " " + s);
 //                }
 //            });
-
         }
 
+       // recomposed.forEach(obj->getEntityManager().persist(obj));
 
         return doWrite(m2, null);
     }
