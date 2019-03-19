@@ -102,4 +102,5 @@ public class TaxonName implements IItemReferentialEntity {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonName.class)
     @JoinColumn(name = "parent_taxon_name_fk")
     private TaxonName parentTaxonName;
+
 }

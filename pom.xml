@@ -139,6 +139,7 @@
     <jmock.version>2.8.4</jmock.version>
     <dbunit.version>2.5.4</dbunit.version>
 
+
     <nuitonConfigVersion>3.4</nuitonConfigVersion>
     <nuitonVersionVersion>1.0-rc-2</nuitonVersionVersion>
     <nuitonUtilsVersion>3.0</nuitonUtilsVersion>

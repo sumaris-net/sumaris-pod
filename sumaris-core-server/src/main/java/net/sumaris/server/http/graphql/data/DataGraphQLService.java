@@ -415,7 +415,7 @@ public class DataGraphQLService {
         return measurementService.getSampleMeasurements(sample.getId());
     }
 
-    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value URI_2_CLASS, using pmfmId as key)")
     public Map<Integer, String> getSampleMeasurementValues(@GraphQLContext SampleVO sample) {
         if (MapUtils.isEmpty(sample.getMeasurementValues())) {
             return measurementService.getSampleMeasurementsMap(sample.getId());
@@ -423,7 +423,7 @@ public class DataGraphQLService {
         return sample.getMeasurementValues();
     }
 
-    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value URI_2_CLASS, using pmfmId as key)")
     public Map<Integer, String> getBatchMeasurementValues(@GraphQLContext BatchVO batch) {
         if (MapUtils.isEmpty(batch.getMeasurementValues())) {
             Map<Integer, String> map = Maps.newHashMap();
@@ -434,20 +434,20 @@ public class DataGraphQLService {
         return batch.getMeasurementValues();
     }
 
-//    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+//    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value URI_2_CLASS, using pmfmId as key)")
 //    public List<Map.Entry<Integer, Object>> getBatchMeasurementsValues(@GraphQLContext BatchVO sample) {
-//        Map<Integer, Object> map = Maps.newHashMap();
-//        map.putAll(measurementService.getBatchSortingMeasurementsMap(sample.getId()));
-//        map.putAll(measurementService.getBatchQuantificationMeasurementsMap(sample.getId()));
-//        return ImmutableList.copyOf(map.entrySet());
+//        Map<Integer, Object> URI_2_CLASS = Maps.newHashMap();
+//        URI_2_CLASS.putAll(measurementService.getBatchSortingMeasurementsMap(sample.getId()));
+//        URI_2_CLASS.putAll(measurementService.getBatchQuantificationMeasurementsMap(sample.getId()));
+//        return ImmutableList.copyOf(URI_2_CLASS.entrySet());
 //    }
 
     // TODO: remove if not used
-//    @GraphQLQuery(name = "sortingMeasurementValues", description = "Get sorting measurement values (as a key/value map, using pmfmId as key)")
+//    @GraphQLQuery(name = "sortingMeasurementValues", description = "Get sorting measurement values (as a key/value URI_2_CLASS, using pmfmId as key)")
 //    public Map<Integer, Object> getSortingMeasurementsMap(@GraphQLContext BatchVO sample) {
 //        return measurementService.getBatchSortingMeasurementsMap(sample.getId());
 //    }
-//    @GraphQLQuery(name = "quantificationMeasurementValues", description = "Get quantification measurement values (as a key/value map, using pmfmId as key)")
+//    @GraphQLQuery(name = "quantificationMeasurementValues", description = "Get quantification measurement values (as a key/value URI_2_CLASS, using pmfmId as key)")
 //    public Map<Integer, Object> getQuantificationMeasurementsMap(@GraphQLContext BatchVO sample) {
 //        return measurementService.getBatchQuantificationMeasurementsMap(sample.getId());
 //    }

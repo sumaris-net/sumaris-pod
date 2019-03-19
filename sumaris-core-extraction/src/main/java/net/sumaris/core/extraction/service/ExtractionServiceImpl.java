@@ -31,6 +31,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 17/12/2018.
  */
 @Service("extractionService")
+@Lazy
 public class ExtractionServiceImpl implements ExtractionService {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionServiceImpl.class);

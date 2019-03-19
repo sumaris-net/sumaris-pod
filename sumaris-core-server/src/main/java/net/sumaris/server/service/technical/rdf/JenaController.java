@@ -189,7 +189,7 @@ public class JenaController {
         switch (q) {
             case "referentials":
                 String query = NAMED_QUERIES.getOrDefault(name, "from Status");
-                res = sync.ontOfData(sync.MY_PREFIX + "queried",
+                res = sync.ontOfData(sync.MY_PREFIX + name,
                         entityManager.createQuery(query)
                                 .setMaxResults(1000)
                                 .getResultList(),

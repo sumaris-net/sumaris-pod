@@ -59,7 +59,7 @@ public class PmfmStrategy implements IEntityBean<Integer> {
     @Column(name = "default_value")
     private Double defaultValue;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pmfm_fk", nullable = false)
     private Pmfm pmfm;
 
@@ -74,7 +74,7 @@ public class PmfmStrategy implements IEntityBean<Integer> {
     @JoinColumn(name = "acquisition_level_fk", nullable = false)
     private AcquisitionLevel acquisitionLevel;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "pmfm_strategy2gear", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {

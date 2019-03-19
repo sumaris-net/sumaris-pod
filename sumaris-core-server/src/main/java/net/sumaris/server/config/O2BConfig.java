@@ -116,8 +116,8 @@ public interface O2BConfig {
                 " join fetch tn.status st" +
                 " where tn.updateDate > '2015-01-01 23:59:50'");
         NAMED_QUERIES.put("transcriptions", "select ti from TranscribingItem ti" +
-                " join fetch TranscribingItemType tit " +
-                " join fetch l.status st");
+                " join fetch ti.type tit " +
+                " join fetch ti.status st");
         NAMED_QUERIES.put("locations", "select l from Location l " +
                 " join fetch l.locationLevel ll " +
                 " join fetch l.validityStatus vs " +

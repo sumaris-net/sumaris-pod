@@ -105,11 +105,11 @@ public class Gear implements IItemReferentialEntity {
     @ManyToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = "gears")
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<Strategy> strategies;
-
-    public String toString() {
-        return new StringBuilder().append(super.toString())
-                .append(",id=").append(this.id)
-                .append(",label=").append(this.label)
-                .toString();
-    }
+//
+//    public String toString() {
+//        return new StringBuilder().append(super.toString())
+//                .append(",id=").append(this.id)
+//                .append(",label=").append(this.label)
+//                .toString();
+//    }
 }

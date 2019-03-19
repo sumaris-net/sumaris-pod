@@ -10,12 +10,12 @@ package net.sumaris.server.http.graphql;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -27,6 +27,7 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
+import net.sumaris.server.service.technical.rdf.JenaController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+
 
 @RestController
 public class GraphQLRestController {
@@ -56,12 +58,14 @@ public class GraphQLRestController {
         log.info(String.format("Starting GraphQL rest controller at {%s}...", GraphQLPaths.BASE_PATH));
     }
 
+
+
     @PostMapping(value = GraphQLPaths.BASE_PATH, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public Map<String, Object> indexFromAnnotated(@RequestBody Map<String, Object> request, HttpServletRequest rawRequest) {
         ExecutionResult executionResult = graphQL.execute(ExecutionInput.newExecutionInput()
-                .query((String)request.get("query"))
-                .operationName((String)request.get("operationName"))
+                .query((String) request.get("query"))
+                .operationName((String) request.get("operationName"))
                 .variables(GraphQLHelper.getVariables(request, objectMapper))
                 .context(rawRequest)
                 .build());
