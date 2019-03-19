@@ -15,7 +15,7 @@ import {ModalController} from "@ionic/angular";
 import {AccountService} from "../../core/services/account.service";
 import {Location} from "@angular/common";
 import {trimEmptyToNull} from "../../shared/functions";
-import {distinct, filter, map} from "rxjs/operators";
+import {distinct, first, map} from "rxjs/operators";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -61,6 +61,10 @@ export class ExtractTable implements OnInit {
     return this.filterForm.get('sheetName').value;
   }
 
+  get criteriaForm(): FormArray {
+    return this.filterForm.get('sheets').get(this.sheetName) as FormArray;
+  }
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -77,7 +81,7 @@ export class ExtractTable implements OnInit {
     this.filterForm = formBuilder.group({
       'extractionType': [null, Validators.required],
       'sheetName': [null],
-      'criteria': formBuilder.array([])
+      'sheets': formBuilder.group({})
     });
 
     // Load types
@@ -109,15 +113,19 @@ export class ExtractTable implements OnInit {
         // Select the exact type object in the filter form
         const selectedType = types.find(type => type.label === extractionType.label && type.category === extractionType.category);
 
-        this.route.queryParams.first().subscribe(({q}) =>  {
+        this.route.queryParams.first().subscribe(({sheet, q}) =>  {
           this.filterForm.get('extractionType').setValue(selectedType);
-          if (selectedType && selectedType.sheetNames && selectedType.sheetNames.length) {
-            this.filterForm.get('sheetName').setValue(selectedType.sheetNames[0]);
-          }
+
+          const sheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
+          this.filterForm.get('sheetName').setValue(sheetName);
 
           // Reset criteria
-          this.$sheetNames = this.$sheetNames && Observable.of(selectedType.sheetNames);
+          this.$sheetNames = this.$sheetNames && selectedType && Observable.of(selectedType.sheetNames) || Observable.empty();
           this.resetFilterCriteria();
+
+          if (q) {
+            console.log("TODO: parse queryParams:", q);
+          }
 
           // Load from extraction type
           return this.load(selectedType);
@@ -176,7 +184,7 @@ export class ExtractTable implements OnInit {
     this.error = null;
     console.debug(`[extract-table] Loading ${this.extractionType.category} ${this.extractionType.label}`);
 
-    const filter = this.filterForm.value;
+    const filter = this.getFilterValue();
     this.filterForm.disable();
 
     try {
@@ -186,7 +194,7 @@ export class ExtractTable implements OnInit {
         this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
         this.sort && this.sort.active,
         this.sort && this.sort.direction,
-        filter as ExtractionFilter
+        filter
       );
 
       // Update the view
@@ -243,9 +251,7 @@ export class ExtractTable implements OnInit {
 
     return this.router.navigate([extractionType.category, extractionType.label], {
       relativeTo: this.route.parent.parent,
-      queryParams: {
-        q: this.getFilterAsString()
-      }
+      queryParams: {}
     });
   }
 
@@ -255,8 +261,24 @@ export class ExtractTable implements OnInit {
     // Skip if same
     if (this.filterForm.get('sheetName').value === sheetName) return;
 
+
+    const sheetsForm = this.filterForm.get('sheets') as FormGroup;
+    let criteriaForm = sheetsForm.get(sheetName);
+    if (!criteriaForm) {
+      criteriaForm = this.formBuilder.array([]);
+      sheetsForm.addControl(sheetName, criteriaForm);
+    }
+
     // Set sheet name
     this.filterForm.get('sheetName').setValue(sheetName);
+
+    setTimeout(() => {
+      this.router.navigate(['.'], {
+        relativeTo: this.route,
+        skipLocationChange: false,
+        queryParams: this.getFilterAsQueryParams()
+      });
+    }, 500);
 
     this.onRefresh.emit();
   }
@@ -270,8 +292,7 @@ export class ExtractTable implements OnInit {
     this.error = null;
     console.debug(`[extract-table] Downloading ${this.extractionType.category} ${this.extractionType.label}...`);
 
-    const filter = this.filterForm.value;
-
+    const filter = this.getFilterValue();
     delete filter.sheetName; // Force to download all sheets
 
     this.filterForm.disable();
@@ -345,34 +366,39 @@ export class ExtractTable implements OnInit {
   }
 
   public addFilterCriterion(criterion?: ExtractionFilterCriterion, options?: {appendValue?: boolean; }): boolean {
-    const control = this.filterForm.get('criteria') as FormArray;
-    let hasChanged = false;
     options = options || {};
     options.appendValue = isNotNil(options.appendValue) ? options.appendValue : false;
+    console.debug("[extract-table] Adding filter criterion");
 
+    let hasChanged = false;
     let existingCriterionIndex = -1;
 
-    // Search by name on existing criteria
-    if (criterion && isNotNil(criterion.name)) {
-      existingCriterionIndex = (control.value || []).findIndex(c => (c.name === criterion.name) && (!criterion.sheetName || c.sheetName === criterion.sheetName));
+    const sheetName = criterion && criterion.sheetName || this.sheetName;
+    const sheetsForm = this.filterForm.get('sheets') as FormGroup;
+    let criteriaControl = sheetsForm.get(sheetName) as FormArray;
+    if (!criteriaControl) {
+      criteriaControl = this.formBuilder.array([]);
+      sheetsForm.addControl(sheetName, criteriaControl);
     }
+    else {
 
-    // If last criterion has no value: use it
-    if (existingCriterionIndex == -1 && control.length){
-      // Find last criterion (so reverse array order)
-      let lastCriterionInverseIndex = (control.value || []).reverse().findIndex(c => !criterion || c.sheetName === criterion.sheetName);
-      if (lastCriterionInverseIndex >= 0) {
-        // Get the real (not reverse index)
-        const lastCriterionIndex = (control.length-1) - lastCriterionInverseIndex;
-        const lastCriterion = control.at(lastCriterionIndex).value;
-        existingCriterionIndex = isNil(lastCriterion.name) && isNil(lastCriterion.value) ? lastCriterionIndex : -1;
+      // Search by name on existing criteria
+      if (criterion && isNotNil(criterion.name)) {
+        existingCriterionIndex = (criteriaControl.value || []).findIndex(c => (c.name === criterion.name));
+      }
+
+      // If last criterion has no value: use it
+      if (existingCriterionIndex == -1 && criteriaControl.length){
+        // Find last criterion (so reverse array order)
+        const lastCriterion = criteriaControl.at(criteriaControl.length-1).value as ExtractionFilterCriterion;
+        existingCriterionIndex = isNil(lastCriterion.name) && isNil(lastCriterion.value) ? criteriaControl.length-1 : -1;
       }
     }
 
     // Replace the existing criterion
     if (existingCriterionIndex >= 0) {
       if (criterion && criterion.name) {
-        const criterionForm = control.at(existingCriterionIndex) as FormGroup;
+        const criterionForm = criteriaControl.at(existingCriterionIndex) as FormGroup;
         const existingCriterion = criterionForm.value as ExtractionFilterCriterion;
         options.appendValue = options.appendValue && isNotNil(criterion.value) && isNotNil(existingCriterion.value)
           && (existingCriterion.operator == '=' || existingCriterion.operator == '!=');
@@ -393,7 +419,7 @@ export class ExtractTable implements OnInit {
 
     // Add a new criterion
     else {
-      control.push(this.formBuilder.group({
+      criteriaControl.push(this.formBuilder.group({
         name: [criterion && criterion.name || null],
         operator: [criterion && criterion.operator || '=', Validators.required],
         value: [criterion && criterion.value || null],
@@ -412,28 +438,24 @@ export class ExtractTable implements OnInit {
   }
 
   public hasFilterCriteria(sheetName?: string): boolean {
-    const control = this.filterForm.get('criteria') as FormArray;
     if (isNil(sheetName)) {
-      if (control.length === 1) {
+      const control = this.filterForm.get('sheets').get(this.sheetName) as FormArray;
+      if (control && control.length === 1) {
         const criterion = control.at(0).value as ExtractionFilterCriterion;
         return trimEmptyToNull(criterion.value) && true;
       }
-      return control.length > 1;
+      return control && control.length > 1;
     }
     else {
-      return control.controls
+      const control = this.filterForm.get('sheets').get(sheetName) as FormArray;
+      return control && control.controls
         .map(c => c.value)
-        .findIndex(criterion => trimEmptyToNull(criterion.value) && criterion.sheetName === sheetName) >= 0;
+        .findIndex(criterion => trimEmptyToNull(criterion.value) && true) >= 0;
     }
-
-  }
-
-  public isFilterCriterionForSheet(criterion: any, sheetName?: string): boolean {
-    return trimEmptyToNull(criterion.value) && criterion.sheetName === sheetName;
   }
 
   public removeFilterCriterion($event: MouseEvent, index) {
-    const control = this.filterForm.get('criteria') as FormArray;
+    const control = this.filterForm.get('sheets').get(this.sheetName) as FormArray;
 
     // Do not remove if last criterion
     if (control.length == 1) {
@@ -452,7 +474,7 @@ export class ExtractTable implements OnInit {
   }
 
   public clearFilterCriterion($event: MouseEvent, index): boolean {
-    const control = this.filterForm.get('criteria') as FormArray;
+    const control = this.filterForm.get('sheets').get(this.sheetName) as FormArray;
 
     const oldValue = control.at(index).value;
     let needClear = (isNotNil(oldValue.name) || isNotNil(oldValue.value));
@@ -477,16 +499,11 @@ export class ExtractTable implements OnInit {
     }
 
     // Remove all criterion
-    const control = this.filterForm.get('criteria') as FormArray;
-    while (control && control.length) {
-      control.removeAt(control.length-1);
-    }
+    const control = this.filterForm.get('sheets') as FormGroup;
+    Object.getOwnPropertyNames(control.controls).forEach(sheetName => control.removeControl(sheetName));
 
     // Add the default (empty)
-    //this.addFilterCriterion();
-    // TODO : Add the default (empty) criterion (on every sheet)
-    this.$sheetNames && this.$sheetNames.first().subscribe(sheetNames => {
-     console.debug("ADDING default empty criteria");
+    this.$sheetNames && this.$sheetNames.pipe(first()).subscribe(sheetNames => {
      (sheetNames||[]).forEach(sheetName => this.addFilterCriterion({name: null, operator: '=', sheetName: sheetName}));
     });
 
@@ -584,8 +601,33 @@ export class ExtractTable implements OnInit {
     });
   }
 
-  private getFilterAsString() {
-    return ""; // TODO
+  private getFilterValue(): ExtractionFilter {
+    const filter = this.filterForm.value;
+    if (!filter) return undefined;
+    filter.criteria = filter.sheets && Object.getOwnPropertyNames(filter.sheets).reduce((res, sheetName) => {
+      return res.concat(filter.sheets[sheetName]);
+    }, []);
+    delete filter.sheets;
+    return this.service.prepareFilter(filter);
+  }
+
+  private getFilterAsQueryParams(): any {
+    const filter = this.getFilterValue();
+    const params: any = {};
+    if (filter.sheetName) {
+      params.sheet=filter.sheetName;
+    }
+    if (filter.criteria && filter.criteria.length) {
+      params.q = filter.criteria.reduce((res, criterion)=> {
+        if (criterion.endValue) {
+          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}:${criterion.endValue}`);
+        }
+        else {
+          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}`);
+        }
+      }, []).join(";");
+    }
+    return params;
   }
 
 }

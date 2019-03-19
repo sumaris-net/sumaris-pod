@@ -46,7 +46,7 @@
   <nav mat-tab-nav-bar >
     <a mat-tab-link *ngFor="let item of $sheetNames | async"
        (click)="onSheetTabChange(item)"
-       [active]="filterForm.get('sheetName').value == item">
+       [active]="item === sheetName">
       <ion-text>{{getI18nSheetName(item)}}</ion-text>
       <mat-icon *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
     </a>
@@ -75,12 +75,10 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
 
-    <form [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
-
-      <div formArrayName="criteria">
-        <ng-container *ngFor="let criterionForm of filterForm.get('criteria')['controls']; let i=index">
-          <ion-row no-padding [formGroupName]="i" *ngIf="criterionForm.value.sheetName == sheetName">
-
+    <form [formGroup]="filterForm.get('sheets')" (ngSubmit)="onRefresh.emit()" *ngIf="filterForm.get('sheets').get(sheetName) && true">
+      <div [formArrayName]="sheetName">
+        <ng-container *ngFor="let criterionForm of criteriaForm?.controls; let i=index">
+          <ion-row no-padding [formGroupName]="i">
             <!-- column name -->
             <mat-form-field>
               <mat-select formControlName="name" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_NAME'|translate">
@@ -106,17 +104,32 @@
             </mat-form-field>
 
             <button type="button" mat-icon-button color="light" [disabled]="loading" [title]="'COMMON.BTN_DELETE'|translate"
-                    (click)="removeFilterCriterion($event, i)">
+            (click)="removeFilterCriterion($event, i)">
               <mat-icon>close</mat-icon>
             </button>
 
-            <button type="button" mat-icon-button color="light" [disabled]="loading" *ngIf="i === filterForm.get('criteria').length-1" [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
-                    (click)="addFilterCriterion()">
+            <button type="button" mat-icon-button color="light" [disabled]="loading" *ngIf="i == criteriaForm?.length-1" [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
+            (click)="addFilterCriterion()">
               <mat-icon>add</mat-icon>
             </button>
           </ion-row>
         </ng-container>
       </div>
+    </form>
+
+      <!--<form [formGroup]="sheets" #sheetsForm>-->
+        <!--<div [formArrayName]="sheetName + '.criteria'">-->
+          <!--<ng-container *ngFor="let criterionForm of sheetsForm.get(sheetName||'default')?.controls; let i=index">-->
+            <!--<ion-row no-padding [formGroupName]="i">-->
+
+              <!--index: {{i}}-->
+
+
+
+            <!--</ion-row>-->
+          <!--</ng-container>-->
+        <!--</div>-->
+      <!--</form>-->
 
       <mat-action-row no-padding>
         <ion-row no-padding style="width: 100%">
@@ -135,7 +148,7 @@
           </ion-col>
         </ion-row>
       </mat-action-row>
-    </form>
+    <!--</form>-->
 
 
   </mat-expansion-panel>

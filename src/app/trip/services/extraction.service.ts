@@ -74,9 +74,8 @@ export class ExtractionService extends BaseDataService{
   /**
    * Load extraction types
    */
-  loadTypes(category?: string): Observable<ExtractionType[]> {
+  loadTypes(): Observable<ExtractionType[]> {
     if (this._debug) console.debug("[extraction-service] Loading extractions...");
-    const now = Date.now();
     return this.watchQuery<{ extractionTypes: ExtractionType[] }>({
       query: LoadTypes,
       variables: null,
@@ -84,9 +83,7 @@ export class ExtractionService extends BaseDataService{
     })
       .pipe(
         map((data) => {
-          const types = (data && data.extractionTypes || []);
-          if (this._debug) console.debug(`[extraction-service] Extraction types loaded in ${Date.now() - now}...`, types);
-          return types;
+          return  (data && data.extractionTypes || []);
         })
       );
   }
@@ -119,7 +116,7 @@ export class ExtractionService extends BaseDataService{
       size: size || 100,
       sortBy: sortBy || 'id',
       sortDirection: sortDirection || 'asc',
-      filter: this.prepareFilter(filter)
+      filter: filter
     };
 
     this._lastVariables.loadAll = variables;
@@ -160,7 +157,7 @@ export class ExtractionService extends BaseDataService{
         category: type.category,
         label: type.label
       },
-      filter: this.prepareFilter(filter)
+      filter: filter
     };
 
     this._lastVariables.loadAll = variables;
@@ -181,7 +178,7 @@ export class ExtractionService extends BaseDataService{
     return fileUrl;
   }
 
-  protected prepareFilter(source?: ExtractionFilter): ExtractionFilter {
+  prepareFilter(source?: ExtractionFilter|any): ExtractionFilter {
     if (isNil(source)) return undefined;
 
     const target:ExtractionFilter = {
@@ -229,7 +226,7 @@ export class ExtractionService extends BaseDataService{
           sheetName: criterion.sheetName
         } as ExtractionFilterCriterion;
       })
-      .filter(criterion => isNotNil(criterion.value) || (criterion.values && criterion.values.length))
+      .filter(criterion => isNotNil(criterion.value) || (criterion.values && criterion.values.length));
 
     return target;
   }
