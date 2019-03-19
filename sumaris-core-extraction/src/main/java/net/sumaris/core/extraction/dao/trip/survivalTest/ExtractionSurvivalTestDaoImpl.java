@@ -101,7 +101,6 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("substrateTypePmfmId", String.valueOf(PmfmEnum.SUBSTRATE_TYPE.getId()));
         xmlQuery.bind("bottomTempPmfmId", String.valueOf(PmfmEnum.BOTTOM_TEMP_C.getId()));
         xmlQuery.bind("seaStatePmfmId", String.valueOf(PmfmEnum.SEA_STATE.getId()));
-        xmlQuery.bind("normalProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
         xmlQuery.bind("survivalSamplingTypePmfmId", String.valueOf(PmfmEnum.SURVIVAL_SAMPLING_TYPE.getId()));
 
         xmlQuery.bind("landingWeightPmfmId", String.valueOf(PmfmEnum.LANDING_WEIGHT.getId()));
@@ -112,6 +111,11 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("sortingEndDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_END_DATE_TIME.getId()));
 
         return xmlQuery;
+    }
+
+    @Override
+    protected XMLQuery createSpeciesListQuery(ExtractionIcesContextVO context, boolean excludeInvalidStation) {
+        return super.createSpeciesListQuery(context, false/*Always include invalid station*/);
     }
 
     @Override

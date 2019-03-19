@@ -35,7 +35,7 @@
     <select alias="STATION_NUMBER" type="number">O.ID</select>
 
     <!-- other fields -->
-    <select alias="FISHING_VALIDITY" type="text">null</select>
+    <select alias="FISHING_VALIDITY" type="text"><![CDATA[(SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'V', 0, 'I', null) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&normalProgressPmfmId)]]></select>
     <select alias="AGGREGATION_LEVEL" type="text">'H'</select>
     <select alias="CATCH_REGISTRATION" type="text">'All'</select><!-- TODO : check batch lan/dis -->
     <select alias="SPECIES_REGISTRATION" type="text">'Par'</select><!-- TODO : check batch exhaustiveness -->

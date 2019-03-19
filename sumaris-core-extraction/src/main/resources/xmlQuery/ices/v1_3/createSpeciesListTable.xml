@@ -67,6 +67,9 @@
     <from join="true">INNER JOIN BATCH SORTING_B ON SORTING_B.PARENT_BATCH_FK = SPECIE_B.ID</from>
     <from join="true">LEFT OUTER JOIN BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SORTING_B.ID AND SAMPLING_B.LABEL LIKE 'SORTING_BATCH#%'</from>
 
+    <where>1=1</where>
+    <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != 'I']]></where>
+
     <orderby direction="ASC">S.STATION_NUMBER, SORTING_B.RANK_ORDER</orderby>
 
   </query>

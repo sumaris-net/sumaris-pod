@@ -308,13 +308,14 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         xmlQuery.bind("mainFishingDepthPmfmId", String.valueOf(PmfmEnum.GEAR_DEPTH_M.getId()));
         xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmEnum.BOTTOM_DEPTH_M.getId()));
         xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
+        xmlQuery.bind("normalProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
 
         return xmlQuery;
     }
 
     protected long createSpeciesListTable(ExtractionIcesContextVO context) {
 
-        XMLQuery xmlQuery = createSpeciesListQuery(context);
+        XMLQuery xmlQuery = createSpeciesListQuery(context, true/*exclude invalid station*/);
 
         // execute insertion
         execute(xmlQuery);
@@ -333,13 +334,16 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return count;
     }
 
-    protected XMLQuery createSpeciesListQuery(ExtractionIcesContextVO context) {
+    protected XMLQuery createSpeciesListQuery(ExtractionIcesContextVO context, boolean excludeInvalidStation) {
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
 
         // Bind some ids
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
+
+        // Exclude not valid station
+        xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
 
         return xmlQuery;
     }
