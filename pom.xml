@@ -52,9 +52,9 @@
     <module>sumaris-core-shared</module>
     <module>sumaris-test-shared</module>
     <module>sumaris-core</module>
-    <module>sumaris-core-server</module>
-    <module>sumaris-importation</module>
+    <module>sumaris-core-importation</module>
     <module>sumaris-core-extraction</module>
+    <module>sumaris-server</module>
   </modules>
 
   <scm>
@@ -90,7 +90,7 @@
     <hsqldb.version>2.4.1</hsqldb.version>
     <h2.version>1.4.198</h2.version>
     <ojdbc7.version>12.1.0.2.0</ojdbc7.version>
-    <pgsql.version>42.2.1</pgsql.version>
+    <pgsql.version>42.2.5</pgsql.version>
 
     <slf4j.version>1.7.25</slf4j.version>
     <logback.version>1.2.0</logback.version>
@@ -501,7 +501,7 @@
 
       <!-- Hibernate -->
       <dependency>
-        <groupId>org.hibernate</groupId>
+        <groupId>org.hibernate.validator</groupId>
         <artifactId>hibernate-validator</artifactId>
         <version>${hibernate-validator.version}</version>
       </dependency>
