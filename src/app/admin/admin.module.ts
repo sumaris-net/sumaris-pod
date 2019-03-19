@@ -4,8 +4,8 @@ import { CoreModule } from '../core/core.module';
 import { PersonService } from './services/person.service';
 import { PersonValidatorService } from './services/person.validator';
 import { UsersPage } from './users/list/users';
-import { PodConfigPage } from './podconfig/podconfig';
- import { CarouselComponent } from './podconfig/carousel/carousel.component';
+import { ConfigPage } from './config/config.component';
+ import { CarouselComponent } from './config/carousel/carousel.component';
 export {
     PersonService, PersonValidatorService, UsersPage
 }
@@ -17,12 +17,12 @@ export {
     ],
     declarations: [
         UsersPage,
-        PodConfigPage,
+      ConfigPage,
         CarouselComponent
     ],
     exports: [
-        UsersPage, 
-        PodConfigPage
+        UsersPage,
+      ConfigPage
     ],
     entryComponents: [
     ],

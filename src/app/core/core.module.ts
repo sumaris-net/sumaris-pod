@@ -3,10 +3,11 @@ import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 
 import {AccountFieldDef, AccountService} from './services/account.service';
-import {PodConfigService} from './services/podconfig.service';
+import {ConfigService} from './services/config.service';
 
 import {AccountValidatorService} from './services/account.validator';
 import {UserSettingsValidatorService} from './services/user-settings.validator';
+import {ConfigValidatorService} from './services/config.validator';
 import {AuthGuardService} from './services/auth-guard.service';
 import {CryptoService} from './services/crypto.service';
 import {BaseDataService} from './services/base.data-service.class';
@@ -67,7 +68,7 @@ import {HttpClient, HttpClientModule} from '@angular/common/http';
 
 export {
   environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
-  AccountService, AccountFieldDef, BaseDataService, AccountValidatorService, UserSettingsValidatorService,
+  AccountService, AccountFieldDef, BaseDataService, AccountValidatorService, UserSettingsValidatorService, ConfigValidatorService,
   AuthGuardService, EntityMetadataComponent, FormButtonsBarComponent,
   RESERVED_START_COLUMNS, RESERVED_END_COLUMNS,
   Entity, Cloneable, EntityUtils,
@@ -146,7 +147,8 @@ export function HttpLoaderFactory(http: HttpClient) {
         CryptoService,
         AccountValidatorService,
         UserSettingsValidatorService,
-        PodConfigService
+        ConfigService,
+        ConfigValidatorService
     ]
 })
 export class CoreModule {

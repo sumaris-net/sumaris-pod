@@ -107,12 +107,6 @@ const LoadQuery: any = gql`
   }
   ${Fragments.account}
 `;
-export declare type AccountVariables = {
-  pubkey: string;
-}
-export declare type AccountResult = {
-  account: Account;
-}
 
 // Check email query
 const IsEmailExistsQuery: any = gql`

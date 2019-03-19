@@ -5,7 +5,7 @@ import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
 import {Account, Configuration, Department} from '../services/model';
 import {TranslateService} from '@ngx-translate/core';
-import {PodConfigService} from '../services/podconfig.service';
+import {ConfigService} from '../services/config.service';
 import {fadeInAnimation} from "../../shared/shared.module";
 
 export function getRandomImage(files : String[]) {
@@ -37,8 +37,7 @@ export class HomePage implements OnInit, OnDestroy {
     public accountService: AccountService,
     public modalCtrl: ModalController,
     public translate: TranslateService,
-
-    public configurationService: PodConfigService
+    public configurationService: ConfigService
   ) {
     
     this.isLogin = accountService.isLogin();
@@ -49,6 +48,10 @@ export class HomePage implements OnInit, OnDestroy {
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
     this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
+    this.subscriptions.push(this.configurationService.get().subscribe(config => {
+      this.onConfigReady(config);
+      this.loading = false;
+    }));
   };
 
   async ngOnInit() {
@@ -61,10 +64,6 @@ export class HomePage implements OnInit, OnDestroy {
         pageElement.classList.remove('ion-page-invisible');
       }
     }
-
-    const config = await this.configurationService.getConfs();
-    this.onConfigReady(config);
-    this.loading = false;
   }
 
   ngOnDestroy() {
@@ -75,7 +74,7 @@ export class HomePage implements OnInit, OnDestroy {
   onConfigReady(config: Configuration) {
     this.appName = config.label;
     this.logo = config.largeLogo || config.smallLogo;
-    this.description = config.name || config.description;
+    this.description = config.name;
 
     const partners = (config.partners || []).filter(p => p && p.logo);
     this.partners.next(partners);

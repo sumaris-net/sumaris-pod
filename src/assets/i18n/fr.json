@@ -72,7 +72,27 @@
   "CONFIGURATION": {
     "APP_NAME": "Nom de l'application",
     "DESCRIPTION": "Description (page d'accueil)",
-    "LOGO_PARTNERS": "Logo des partenaires (page d'accueil)"
+    "LOGO_PARTNERS": "Logo des partenaires (page d'accueil) :",
+    "PROPERTIES": "Options :",
+    "PROPERTY_KEY": "Clé",
+    "PROPERTY_VALUE": "Valeur",
+    "BTN_ADD_PROPERTY": "Ajouter une option",
+    "OPTIONS": {
+      "LOGO": "Logo (largeur max 110px)",
+      "FAVICON": "favicon",
+      "DEFAULT_LOCALE": "Langue par défaut",
+      "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
+      "HOME": {
+        "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
+        "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
+        "BACKGROUND_IMAGES": "Accueil > Images de fond"
+      },
+      "COLORS": {
+        "PRIMARY": "Thème > Couleur principale",
+        "SECONDARY": "Thème > Couleur secondaire",
+        "TERTIARY": "Thème > Couleur tertiaire"
+      }
+    }
   },
   "MENU": {
     "HOME": "Accueil",
@@ -80,8 +100,8 @@
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
-    "REFERENTIALS": "Listes",
-    "PODCONFIG": "Configuration serveur",
+    "REFERENTIAL": "Listes",
+    "CONFIGURATION": "Configuration serveur",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "BTN_ACCOUNT": "Compte",
@@ -538,6 +558,8 @@
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "LOAD_CONFIG_ERROR": "Erreur du chargement de la configuration",
+    "SAVE_CONFIG_ERROR": "Erreur lors de la sauvegarde de la configuration",
     "ACCOUNT_NOT_EXISTS": "Votre compte semble inexistant, et ne peut donc être sauvegardé.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Erreur d'envoi de l'email de confirmation du compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Erreur lors de la confirmation de l'email. Ce compte a peut-être déjà été confirmé ?",

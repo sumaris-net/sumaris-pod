@@ -11,7 +11,7 @@ import { FormGroup, FormBuilder } from "@angular/forms";
 import { RESERVED_START_COLUMNS, RESERVED_END_COLUMNS } from "../../../core/table/table.class";
 
 @Component({
-  selector: 'page-podconfig',
+  selector: 'page-configuration',
   templateUrl: 'users.html',
   styleUrls: ['./users.scss']
 })

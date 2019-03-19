@@ -27,7 +27,10 @@ export const ErrorCodes = {
 
   UNAUTHORIZED: 401,
   AUTH_CHALLENGE_ERROR: 601,
-  AUTH_SERVER_ERROR: 602
+  AUTH_SERVER_ERROR: 602,
+
+  LOAD_CONFIG_ERROR: 700,
+  SAVE_CONFIG_ERROR: 701,
 };
 
 export const ServerErrorCodes = {

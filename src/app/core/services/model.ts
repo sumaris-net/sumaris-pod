@@ -117,6 +117,22 @@ export class EntityUtils {
     }
     throw new Error(`Invalid form path: '${key}' is not an valid object.`);
   }
+  static getMapAsArray(source?: Map<string, string>): {key: string; value?: string;}[] {
+    return Object.getOwnPropertyNames(source || {})
+      .map(key => {
+        return {
+          key,
+          value: source[key]
+        };
+      });
+  }
+
+  static getArrayAsMap(source?: {key: string; value?: string;}[]) : Map<string, string> {
+    const target = new Map<string, string>();
+    (source||[]).forEach(item => target.set(item.key, item.value));
+    return target;
+  }
+
 }
 export class Referential extends Entity<Referential>  {
 
@@ -237,7 +253,7 @@ export class ReferentialRef extends Entity<ReferentialRef>  {
   }
 }
 
-export class Configuration extends Referential  {
+export class Configuration extends Entity<Configuration>  {
 
   static fromObject(source: Configuration): Configuration {
     const res = new Configuration();
@@ -245,15 +261,23 @@ export class Configuration extends Referential  {
     return res;
   }
 
-  id: number;  
+  label: string;
+  name: string;
+  creationDate: Date | Moment;
+  statusId: number;
+
   smallLogo: string;
   largeLogo: string;
-  properties:Map<String,String>;
+  properties: Map<string, string>;
   backgroundImages: string[];
   partners: Department[];
 
   constructor() {
     super();
+  }
+
+  clone(): Configuration {
+    return this.copy(new Configuration());
   }
  
   copy(target: Configuration): Configuration {
@@ -264,17 +288,28 @@ export class Configuration extends Referential  {
   asObject(minify?: boolean): any {
     if (minify) return { id: this.id }; // minify=keep id only
     const target: any = super.asObject();
+    target.creationDate = toDateISOString(this.creationDate);
+    target.partners = (this.partners || []).map(p => p.asObject());
     return target;
   }
 
   fromObject(source: any): Configuration {
     super.fromObject(source);
-
+    this.label = source.label;
+    this.name = source.name;
+    this.creationDate = fromDateISOString(source.creationDate);
     this.smallLogo = source.smallLogo;
     this.largeLogo = source.largeLogo;
-    this.properties = source.properties;
     this.backgroundImages = source.backgroundImages;
     this.partners = (source.partners || []).map(Department.fromObject);
+
+    if (source.properties && source.properties instanceof Array) {
+      this.properties = EntityUtils.getArrayAsMap(source.properties);
+    }
+    else {
+      this.properties = source.properties;
+    }
+
     return this;
   }
 }

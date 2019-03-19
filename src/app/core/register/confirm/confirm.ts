@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { AccountService } from '../../services/account.service';
 import {getRandomImage} from '../../home/home';
-import {PodConfigService} from "../../services/podconfig.service";
+import {ConfigService} from '../../services/config.service';
 
 @Component({
   selector: 'page-register-confirm',
@@ -22,7 +22,7 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
   constructor(
     private accountService: AccountService,
     private activatedRoute: ActivatedRoute,
-    private configurationService: PodConfigService) {
+    private configService: ConfigService) {
 
     this.isLogin = accountService.isLogin();
 
@@ -33,8 +33,8 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
       this.doConfirm(params.get("email"), params.get("code"))
     ));
 
-    this.configurationService.getConfs()
-      .then(config => {
+    this.configService.get()
+      .subscribe(config => {
 
         if (config && config.backgroundImages && config.backgroundImages.length) {
           const bgImage = getRandomImage(config.backgroundImages);
@@ -80,7 +80,7 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
         let emailAccount = this.accountService.account && this.accountService.account.email;
         if (email != emailAccount) {
           // Not same email => logout, then retry
-          await this.accountService.logout()
+          await this.accountService.logout();
           return this.doConfirm(email, code);
         }
       }

@@ -4,7 +4,7 @@ import {MenuItem} from './core/menu/menu.component';
 import {HomePage} from './core/home/home';
 import {AccountService, DataService, isNotNil} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
-import { PodConfigService } from './core/services/podconfig.service';
+import { ConfigService } from './core/services/config.service';
 import {DOCUMENT} from "@angular/platform-browser";
 import {Configuration} from "./core/services/model";
 // import { StatusBar } from "@ionic-native/status-bar";
@@ -32,8 +32,8 @@ export class AppComponent {
     { title: 'MENU.ADMINISTRATION_DIVIDER', profile: 'USER' },
     { title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN' },
     { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER' },
-    { title: 'MENU.REFERENTIALS', path: '/referential/list', icon: 'list', profile: 'ADMIN' },
-    { title: 'MENU.PODCONFIG', path: '/admin/podconfig', icon: 'settings', profile: 'ADMIN' }
+    { title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN' },
+    { title: 'MENU.CONFIGURATION', path: '/admin/config', icon: 'settings', profile: 'ADMIN' }
 
   ];
 
@@ -42,7 +42,7 @@ export class AppComponent {
     private platform: Platform,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
-    private configurationService: PodConfigService
+    private configurationService: ConfigService
     // TODO: waiting ionic-native release
     // private statusBar: StatusBar, 
     // private splashScreen: SplashScreen,
@@ -50,9 +50,11 @@ export class AppComponent {
   ) {
 
     platform.ready()
-      .then(() => this.configurationService.getConfs())
-      .then((config) => {
-        this.onConfigReady(config)
+      .then(() => {
+
+        // Listen for config changed
+        this.configurationService.get()
+          .subscribe(config => this.onConfigReady(config));
 
         console.info("[app] Setting cordova plugins...");
 

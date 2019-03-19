@@ -1,0 +1,82 @@
+<app-toolbar [title]="'MENU.CONFIGURATION' | translate" color="primary" [canGoBack]="false">
+</app-toolbar>
+
+<ion-content>
+
+  <form class="form-container" padding [formGroup]="form" (ngSubmit)="save($event, form.value)">
+
+    <mat-form-field>
+      <input matInput [placeholder]="'CONFIGURATION.APP_NAME' | translate" formControlName="label" readonly/>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput [placeholder]="'CONFIGURATION.DESCRIPTION' | translate" formControlName="name" />
+    </mat-form-field>
+
+    <!-- Partners logos -->
+    <h3>
+      <ion-text translate>CONFIGURATION.PROPERTIES</ion-text>
+    </h3>
+
+    <!-- Properties -->
+    <ion-grid formArrayName="properties" no-padding>
+      <ng-container *ngFor="let propertyForm of propertiesForm?.controls; let i=index">
+        <ion-row no-padding [formGroupName]="i">
+          <ion-col>
+            <!-- column name -->
+            <mat-form-field floatLabel="never">
+              <mat-select formControlName="key" [placeholder]=" 'CONFIGURATION.PROPERTY_KEY'|translate">
+                <mat-option *ngFor="let item of options" [value]="item.key">{{ item.label | translate }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <!--<mat-form-field floatLabel="never">-->
+              <!--<input matInput [placeholder]="'CONFIGURATION.PROPERTY_KEY' | translate" formControlName="key" readonly/>-->
+            <!--</mat-form-field>-->
+          </ion-col>
+          <ion-col>
+            <mat-form-field floatLabel="never">
+              <input matInput [placeholder]="'CONFIGURATION.PROPERTY_VALUE' | translate" formControlName="value" />
+            </mat-form-field>
+          </ion-col>
+          <ion-col size="2">
+            <button type="button" mat-icon-button color="light" [disabled]="loading" [title]="'COMMON.BTN_DELETE'|translate"
+                    (click)="removeProperty($event, i)">
+              <mat-icon>close</mat-icon>
+            </button>
+            <button type="button" mat-icon-button color="light" [disabled]="loading" *ngIf="i == propertiesForm.length-1" [title]="'CONFIGURATION.BTN_ADD_PROPERTY'|translate"
+                    (click)="addProperty()">
+              <mat-icon>add</mat-icon>
+            </button>
+          </ion-col>
+        </ion-row>
+      </ng-container>
+    </ion-grid>
+
+    <!-- Partners logos -->
+    <h3>
+      <ion-text translate>CONFIGURATION.LOGO_PARTNERS</ion-text>
+    </h3>
+
+    <div class="bottom-banner">
+      <div class="partner-logo" *ngFor="let item of partners | async ">
+        <img class="logo" src="{{ item.logo }}" alt="{{item.label}}" [title]="item.name" width="150" />
+        <mat-icon class="button-close" (click)="removePartner(item)">close</mat-icon>
+      </div>
+    </div>
+  </form>
+
+</ion-content>
+ 
+
+<ion-footer hidden-xs hidden-sm>
+
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
+
+    <!-- error -->
+    <ion-item *ngIf="error">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </form-buttons-bar>
+</ion-footer>

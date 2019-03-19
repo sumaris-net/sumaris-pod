@@ -1,4 +1,4 @@
-import {AbstractControl, FormGroup} from "@angular/forms";
+import {AbstractControl, FormArray, FormGroup} from "@angular/forms";
 import {nullIfUndefined} from "../../shared/shared.module";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment, Moment} from "moment";
@@ -49,16 +49,36 @@ export function copyEntity2Form(source: any, target: FormGroup, opts?: {emitEven
 export function getFormValueFromEntity(source: any, form: FormGroup): { [key: string]: any } {
     const value = {};
     for (let key in form.controls) {
+        // If sub-group: recursive call
         if (form.controls[key] instanceof FormGroup) {
             value[key] = getFormValueFromEntity(source[key] || {}, form.controls[key] as FormGroup);
         }
-        else {
-          if (isMoment(source[key])) {
+        // If array: try to convert using the first sub-group found
+        else if (form.controls[key] instanceof FormArray) {
+          if (source[key] instanceof Array) {
+            // Try to transform object to key/value
+            const control = form.controls[key] as FormArray;
+            if (control.length > 0) {
+              // Use the first form group, as model
+              const itemControl = control.at(0) as FormGroup;
+              value[key] = (source[key]||[]).map(item => getFormValueFromEntity(item || {}, itemControl))
+              if (value[key].length != control.length) {
+                console.warn("TODO: implement form array add/remove, using control", itemControl);
+              }
+            }
+          }
+          if (value[key] === undefined){
+            console.warn("Invalid form value. Expected array but found:", source[key]);
+            value[key] = [];
+          }
+        }
+        // Date
+        else if (isMoment(source[key])) {
             value[key] = source[key].format(DATE_ISO_PATTERN);
-          }
-          else {
-            value[key] = nullIfUndefined(source[key]); // undefined not authorized as control value
-          }
+        }
+        // Any other control: replace undefined by null value
+        else {
+          value[key] = nullIfUndefined(source[key]); // undefined not authorized as control value
         }
     }
     return value;
