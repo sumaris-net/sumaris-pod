@@ -1,344 +1,224 @@
 package net.sumaris.server.service.technical.rdf;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.taxon.*;
-import net.sumaris.core.model.referential.transcribing.TranscribingItem;
-import net.sumaris.core.model.referential.transcribing.TranscribingItemType;
-import net.sumaris.core.model.referential.transcribing.TranscribingSystem;
-import net.sumaris.core.service.referential.taxon.TaxonNameService;
-import org.apache.jena.ontology.OntClass;
+import de.uni_stuttgart.vis.vowl.owl2vowl.Owl2Vowl;
+import net.sumaris.core.dao.administration.programStrategy.ProgramDaoImpl;
 import org.apache.jena.ontology.OntModel;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdfxml.xmlinput.JenaReader;
+import org.apache.jena.rdf.model.Model;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
+
+import static net.sumaris.server.config.O2BConfig.NAMED_QUERIES;
+import static net.sumaris.server.service.technical.rdf.Helpers.doWrite;
 
 @RestController
 @RequestMapping(value = "/jena")
-public class JenaController implements Jpa2OwlConverter {
-    private static final Logger LOG = LogManager.getLogger();
+public class JenaController {
+
+    /**
+     * Logger.
+     */
+    private static final Logger LOG =
+            LoggerFactory.getLogger(JenaController.class);
 
 
     private final static String IFREMER_URL = "http://ifremer.com/";
 
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private TaxonNameService refService;
-
     @Autowired
     private EntityManager entityManager;
 
-
-    private OntModel ontology;
-
-    @GetMapping(value = "/ontology", produces = {"application/x-javascript", "application/json", "application/ld+json"})
-    @ResponseBody
-    public String getOntology() {
-        LOG.info("/ontology");
-        return doWrite(ontology, "RDF/XML");
-    }
+    private Synchro sync = new Synchro();
 
 
-    public EntityManager getEntityManager() {
-        return entityManager;
-    }
+    private OntModel ontologyOfJPAEntities;
+
+    private OntModel ontologyOfVOPackages;
+
+    private OntModel ontologyOfModule;
 
     @PostConstruct
-    public void buildOntology() {
+    public void buildOntologies() {
+        sync.init();
+        Map<String, String> opts = new HashMap<>();
+        opts.put("disjoints", "false");
+        opts.put("methods", "false");
 
-        Reflections reflections = Reflections.collect();
 
-        ontology = ontModelWithMetadata();
-        Map<OntClass, List<OntClass>> mutualyDisjoint = new HashMap<>();
-        reflections.getTypesAnnotatedWith(Entity.class)
-        //Stream.of(TaxonName.class, TaxonomicLevel.class, TaxonGroup.class, ReferenceTaxon.class, Status.class, TaxonGroupType.class)
-                .forEach(ent -> {
-                    buildOwlClass(ontology, ent, mutualyDisjoint);
-                });
+        ontologyOfJPAEntities = sync.ontOfCapturedClasses(sync.MY_PREFIX + "entities",
+                Reflections.collect().getTypesAnnotatedWith(Entity.class).stream(),
+                opts);
 
-        // add mutually disjoint classes
-        mutualyDisjoint.entrySet().stream()
-                .filter(e -> e.getValue().size() > 1) // having more than one child
-                .forEach(e -> {
-                    List<OntClass> list = e.getValue();
-                    for (int i = 0; i < list.size(); i++) {
-                        OntClass r1 = list.get(i);
-                        for (int j = i + 1; j < list.size(); j++) {
-                            OntClass r2 = list.get(j);
-                            LOG.info("setting disjoint " + i + " " + j + " " + r1 + " " + r2);
-                            r1.addDisjointWith(r2);
-                        }
-                    }
-                });
+        ontologyOfVOPackages = sync.ontOfPackage(sync.MY_PREFIX + "vo",
+                "net.sumaris.core.vo",
+                opts);
+
+
+        opts.put("methods", "true");
+        ontologyOfModule = sync.ontOfPackage(sync.MY_PREFIX + "module",
+                "net.sumaris.server.service.technical.rdf",
+                opts);
+
+
+        LOG.info("Loaded Ontoglogies : " +
+                " JPA => " + ontologyOfJPAEntities.size() +
+                " VO => " + ontologyOfVOPackages.size()+
+                " O2B => " + ontologyOfModule.size());
 
     }
 
 
-    public OntModel loadDataModel() {
-        return loadDataModel(null);
-    }
+    public OntModel onto(String name, Map<String, String> opts) {
 
-    public OntModel loadDataModel(String query) {
-        // load some data into the model
-        OntModel model = ontModelWithMetadata();
-        Map<OntClass, List<OntClass>> mutualyDisjoint = new HashMap<>();
-
-        if (query == null) {
-            query = "select tn from TaxonName as tn" + //  new net.sumaris.server.service.technical.Wrapper(tn, tl, rt)
-                    " left join fetch tn.taxonomicLevel as tl" +
-                    " left join fetch tn.referenceTaxon as rt"
-            //        +" left join fetch tn.status as st"
-            ;
-
-            Stream.of(TaxonName.class, TaxonomicLevel.class, TaxonGroup.class, ReferenceTaxon.class, Status.class, TaxonGroupType.class,
-                    TranscribingItem.class, TranscribingItemType.class, TranscribingSystem.class, Gear.class,
-                    PmfmStrategy.class)
-                    .forEach(ent -> {
-                        buildOwlClass(model, ent, mutualyDisjoint);
-                    });
-            LOG.info("added sub ontology ");
-        } else {
-            // FIXME: parse queries, take Class Names and create ontology based on it
-
+        switch (name) {
+            case "vo":
+                return ontologyOfVOPackages;
+            case "entities":
+                return ontologyOfJPAEntities;
+            case "module":
+                return ontologyOfModule;
         }
 
-
-        entityManager
-                .createQuery("from Status")
-                .getResultList()
-                .forEach(status -> toModel(model, status, 2));
-
-
-//        entityManager
-//                .createQuery("from Gear")
-//                .getResultList()
-//                .forEach(ti -> {
-//                    //LOG.info("TI ============= ");
-//                    toModel(model, ti, 2);
-//                });
-
-
-        entityManager
-                .createQuery(query)
-                .setMaxResults(100)
-                .getResultList()
-                .forEach(tn -> toModel(model, tn, 2));
-
-        LOG.info("entityManager request Executed, finishing  ");
-        return model;
+        return sync.ontOfPackage(sync.MY_PREFIX + name,
+                opts.getOrDefault("package", "net.sumaris.server.service.technical.rdf"),
+                opts);
     }
 
 
-    String delta(long nanoStart) {
-        long elapsedTime = System.nanoTime() - nanoStart;
-        double seconds = (double) elapsedTime / 1_000_000_000.0;
-        return " elapsed " + seconds;
-    }
-
-    @Override
-    public List getCacheStatus() {
-        return cacheStatus;
-    }
-
-    @Override
-    public List getCacheTL() {
-        return cacheTL;
-    }
-
-    List cacheStatus;
-    List cacheTL;
-
-    @Transactional
-    @GetMapping(value = "/sync", produces = {"application/xml", "application/rdf+xml"})
-    public @ResponseBody
-    String sync() {
-        cacheStatus = entityManager
-                .createQuery("from Status")
-                .getResultList();
-
-        cacheTL = entityManager
-                .createQuery("from TaxonomicLevel")
-                .getResultList();
-
-
-        long start = System.nanoTime();
-
-        OntModel m = ontModelWithMetadata();
-        new JenaReader().read(m, "http://localhost:8081/jena/rdf");
-        LOG.info("Found " + m.size() + " triples remotely, reconstructing model now " + delta(start));
-
-        List<? extends Object> recomposed = fromModel(m);
-        LOG.info("Recomposed list of " + recomposed.size() + " Object, Making it OntClass again " + delta(start));
-
-        Map<OntClass, List<OntClass>> mutualyDisjoint = new HashMap<>();
-
-        OntModel m2 = ontModelWithMetadata();
-
-        Stream.of(TaxonName.class, TaxonomicLevel.class, TaxonGroup.class, ReferenceTaxon.class, Status.class, TaxonGroupType.class,
-                TranscribingItem.class, TranscribingItemType.class, TranscribingSystem.class, Gear.class,
-                PmfmStrategy.class)
-                .forEach(r -> {
-                    buildOwlClass(m2, r, mutualyDisjoint);
-                });
-        recomposed.forEach(r -> toModel(m2, r, 2));
-
-        LOG.info("Recomposed list of Object is " + m2.size() + " triple  " + delta(start) + " - " + (100.0 * m2.size() / m.size()) + "%");
-
-        if (m.size() == m2.size()) {
-            LOG.info(" QUANTITATIVE SUCCESSS   ");
-            if (m.isIsomorphicWith(m2)) {
-                LOG.info(" ISOMORPHIC SUCCESS " + delta(start));
-
-            }
-        } else {
-
-            AtomicInteger ii = new AtomicInteger(0);
-//            m.listStatements().toList().forEach(s -> {
-//                if (!m2.contains(s)) {
-//                    LOG.warn("statement not recomposed " +  ii.getAndIncrement() + " " + s);
-//                }
-//            });
-        }
-
-       // recomposed.forEach(obj->getEntityManager().persist(obj));
-
-        return doWrite(m2, null);
-    }
 
     /*
-     * ************* Service Methods *************
+     * ************* Service methods *************
      */
-    @GetMapping(value = "/json", produces = {"application/x-javascript", "application/json", "application/ld+json"})
+
+
+    @GetMapping(value = "/ntriple/{q}/{name}", produces = {"application/n-triples", "text/n-triples"})
+    @ResponseBody
+    public String getModelAsNTriples(@PathVariable String q, @PathVariable String name,
+                                     @RequestParam(defaultValue = "false") String disjoints,
+                                     @RequestParam(defaultValue = "false") String methods,
+                                     @RequestParam(defaultValue = "false") String packaze) {
+        return doWrite(execute(q, name, disjoints, methods, packaze), "N-TRIPLE");
+    }
+
+    @GetMapping(value = "/ttl/{q}/{name}", produces = {"text/turtle"})
+    @ResponseBody
+    public String getModelAsTurtle(@PathVariable String q, @PathVariable String name,
+                                   @RequestParam(defaultValue = "false") String disjoints,
+                                   @RequestParam(defaultValue = "false") String methods,
+                                   @RequestParam(defaultValue = "false") String packaze) {
+        return doWrite(execute(q, name, disjoints, methods, packaze), "TURTLE");
+    }
+
+    @GetMapping(value = "/n3/{q}/{name}", produces = {"text/n3", "application/text", "text/text"})
+    @ResponseBody
+    public String getModelAsN3(@PathVariable String q, @PathVariable String name,
+                               @RequestParam(defaultValue = "false") String disjoints,
+                               @RequestParam(defaultValue = "false") String methods,
+                               @RequestParam(defaultValue = "false") String packaze) {
+        return doWrite(execute(q, name, disjoints, methods, packaze), "N3");
+    }
+
+    @GetMapping(value = "/json/{q}/{name}", produces = {"application/x-javascript", "application/json", "application/ld+json"})
+    @ResponseBody
+    public String getModelAsrdfjson(@PathVariable String q, @PathVariable String name,
+                                    @RequestParam(defaultValue = "false") String disjoints,
+                                    @RequestParam(defaultValue = "false") String methods,
+                                    @RequestParam(defaultValue = "false") String packaze) {
+        return doWrite(execute(q, name, disjoints, methods, packaze), "RDF/JSON");
+    }
+
+    @GetMapping(value = "/trig/{q}/{name}", produces = {"text/trig"})
+    @ResponseBody
+    public String getModelAsTrig(@PathVariable String q, @PathVariable String name,
+                                 @RequestParam(defaultValue = "false") String disjoints,
+                                 @RequestParam(defaultValue = "false") String methods,
+                                 @RequestParam(defaultValue = "false") String packaze) {
+        return doWrite(execute(q, name, disjoints, methods, packaze), "TriG");
+    }
+
+    @GetMapping(value = "/jsonld/{q}/{name}", produces = {"application/x-javascript", "application/json", "application/ld+json"})
     public @ResponseBody
-    String getModelAsJson() {
-        return doWrite(loadDataModel(), "JSON-LD");
+    String getModelAsJson(@PathVariable String q, @PathVariable String name,
+                          @RequestParam(defaultValue = "false") String disjoints,
+                          @RequestParam(defaultValue = "false") String methods,
+                          @RequestParam(defaultValue = "false") String packaze) {
+        return doWrite(execute(q, name, disjoints, methods, packaze), "JSON-LD");
+    }
+
+    @GetMapping(value = "/rdf/{q}/{name}", produces = {"application/xml", "application/rdf+xml"})
+    @ResponseBody
+    public String getModelAsXml(@PathVariable String q, @PathVariable String name,
+                                @RequestParam(defaultValue = "false") String disjoints,
+                                @RequestParam(defaultValue = "false") String methods,
+                                @RequestParam(defaultValue = "false") String packaze) {
+        return doWrite(execute(q, name, disjoints, methods, packaze), "RDF/XML");
+    }
+
+    @GetMapping(value = "/trix/{q}/{name}", produces = {"text/trix"})
+    @ResponseBody
+    public String getModelAsTrix(@PathVariable String q, @PathVariable String name,
+                                 @RequestParam(defaultValue = "false") String disjoints,
+                                 @RequestParam(defaultValue = "false") String methods,
+                                 @RequestParam(defaultValue = "false") String packaze) {
+        return doWrite(execute(q, name, disjoints, methods, packaze), "TriX");
     }
 
 
-    @GetMapping(value = {"/xml", "/rdf"}, produces = {"application/xml", "application/rdf+xml"})
-    @ResponseBody
-    public String getModelAsXml() {
-        long start = System.nanoTime();
+    // ===========  private methods =============
 
-        OntModel m = loadDataModel();
+    private Model execute(String q, String name, String disjoints, String methods, String packaze) {
+        LOG.info("executing /jena/{fmt}/{" + q + "}/{" + name + "}?disjoints=" + disjoints + "&methods=" + methods + "&package=" + packaze);
+        Map<String, String> opts = new HashMap<>();
+        opts.put("disjoints", disjoints);
+        opts.put("methods", methods);
 
-        LOG.info("Recomposed list of Object is " + m.size() + " triple  " + delta(start));
-
-
-        return doWrite(m, null);
-    }
-
-    @GetMapping(value = "/query/{q}",
-            produces = {"application/x-javascript", "application/json", "application/ld+json"})
-    @ResponseBody
-    public String request(@PathVariable String q) {
-
-        long start = System.nanoTime();
-        LOG.info("GET /query/{q} : " + q);
-
-        String query = null;
+        OntModel res = null;
 
         switch (q) {
-            case "taxonname":
-                query = "select tn from TaxonName as tn" +
-                        " left join fetch tn.taxonomicLevel as tl" +
-                        " join fetch tn.referenceTaxon as rt";
+            case "referentials":
+                String query = NAMED_QUERIES.getOrDefault(name, "from Status");
+                res = sync.ontOfData(sync.MY_PREFIX + "queried",
+                        entityManager.createQuery(query)
+                                .setMaxResults(1000)
+                                .getResultList(),
+                        opts);
                 break;
-            case "gears":
-                query = "select g from Gears g";
+            case "sync":
+                res = sync.overwriteFromRemote("http://localhost:8081" + "/jena/rdf/referentials/" + name, sync.MY_PREFIX + "sync");
                 break;
-            case "location":
-                query = "select l from Location ";
-                break;
-            default:
-                query = null;
+            case "ontologies":
+            case "ontology":
+                res = onto(name, opts);
         }
 
-        OntModel m = loadDataModel(query);
+        if (res == null)
+            // report error to user
+            return null;
 
-        LOG.info("Recomposed list of Object is " + m.size() + " triple  " + delta(start));
-        return doWrite(m, null);
-    }
+        try {
+            res.write(new FileOutputStream("/home/bbertran/ws/WebVOWL/deploy/data/" + name + ".owl"), "N3");
+            Owl2Vowl o2v = new Owl2Vowl(new FileInputStream("/home/bbertran/ws/WebVOWL/deploy/data/" + name + ".owl"));
+            o2v.writeToFile(new File("/home/bbertran/ws/WebVOWL/deploy/data/" + name + ".json"));
 
-    @PostMapping(value = "/openquery2",
-            consumes = MediaType.ALL_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @ResponseBody
-    public String openquery(@RequestBody Map<String, String> request, HttpServletRequest rawRequest) {
-
-        System.out.println("posted /opendata : " + request.size() + " " + rawRequest.getHeader("query"));
-        request.forEach((k, v) -> {
-            System.out.println("posted request : " + k + " => " + v);
-        });
+        } catch (Exception e) {
+            LOG.warn ("error saving OWL and VOWL", e);
+        }
 
 
-        return doWrite(loadDataModel(rawRequest.getHeader("query")), "JSONLD");
+        return res;
     }
 
 
-    @GetMapping(value = "/ntriple", produces = {"application/n-triples", "text/n-triples"})
-    @ResponseBody
-    public String getModelAsNTriples() {
-        return doWrite(loadDataModel(), "N-TRIPLE");
-    }
-
-    @GetMapping(value = "/ttl", produces = {"text/turtle"})
-    @ResponseBody
-    public String getModelAsTurtle() {
-        return doWrite(loadDataModel(), "TURTLE");
-    }
-
-
-    @GetMapping(value = "/n3", produces = {"text/n3"})
-    @ResponseBody
-    public String getModelAsN3() {
-        return doWrite(loadDataModel(), "N3");
-    }
-
-
-    @GetMapping(value = "/rdfjson", produces = {"application/x-javascript", "application/json", "application/ld+json"})
-    @ResponseBody
-    public String getModelAsrdfjson() {
-        return doWrite(loadDataModel(), "RDF/JSON");
-    }
-
-
-    @GetMapping(value = "/thrift", produces = {"application/octet-stream"})
-    @ResponseBody
-    public String getModelAsBinary() {
-        return doWrite(loadDataModel(), "RDF Binary");
-    }
-
-    @GetMapping(value = "/trig", produces = {"text/turtle"})
-    @ResponseBody
-    public String getModelAsTrig() {
-        return doWrite(loadDataModel(), "TriG");
-    }
-
-    @GetMapping(value = "/trix", produces = {"text/turtle"})
-    @ResponseBody
-    public String getModelAsTrix() {
-        return doWrite(loadDataModel(), "TriX");
-    }
 }
