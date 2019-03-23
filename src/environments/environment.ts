@@ -21,7 +21,10 @@ export const environment: Environment = {
     //defaultProgram: "ADAP-MER",
     defaultProgram: "SUMARiS",
 
-    apolloFetchPolicy: 'cache-first'
+    apolloFetchPolicy: 'cache-first',
+
+  // DEV only
+    mock: true
 };
 
 /*

@@ -1,17 +1,15 @@
-<app-toolbar [title]="'TRIP.LIST.TITLE'|translate" color="primary" (onValidate)="save()"
+<app-toolbar [title]="'OBSERVED_LOCATION.LIST.TITLE'|translate" color="primary" (onValidate)="save()"
              [hasValidate]="!loading && dirty"
              [canGoBack]="false">
 </app-toolbar>
 
-<!-- @fadeInAnimation -->
-<ion-content no-padding>
 
+<ion-content no-padding>
   <mat-toolbar>
     <button mat-icon-button *ngIf="canEdit && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()"
-      class="hidden-xs hidden-sm">
+            class="hidden-xs hidden-sm">
       <mat-icon>add</mat-icon>
     </button>
-
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
@@ -19,7 +17,7 @@
       <mat-icon>search</mat-icon>
     </button>
     <button mat-icon-button *ngIf="canDelete && selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
-      class="hidden-xs hidden-sm">
+            class="hidden-xs hidden-sm">
       <mat-icon>delete</mat-icon>
     </button>
     <!-- <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
@@ -65,18 +63,18 @@
 
       <!-- Start date -->
       <mat-date-time [placeholder]="'TRIP.LIST.FILTER.START_DATE'|translate" [formControl]="filterForm.controls.startDate"
-        [displayTime]="false">
+                     [displayTime]="false">
       </mat-date-time>
 
       <!-- End date -->
       <mat-date-time [placeholder]="'TRIP.LIST.FILTER.END_DATE'|translate" [formControl]="filterForm.controls.endDate"
-        [displayTime]="false">
+                     [displayTime]="false">
       </mat-date-time>
 
       <!-- Location -->
       <mat-form-field style="min-width: 300px;">
-        <input matInput [placeholder]="'TRIP.LIST.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation"
-          formControlName="location">
+        <input matInput [placeholder]="'OBSERVED_LOCATION.LIST.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation"
+               formControlName="location">
       </mat-form-field>
 
       <!-- Location combo -->
@@ -104,13 +102,14 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <mat-table #table [dataSource]="dataSource" matSort matSortActive="departureDateTime" matSortDirection="asc"
-    matSortDisableClear [trackBy]="trackByFn">
+  <!-- table -->
+  <mat-table #table [dataSource]="dataSource" matSort matSortActive="dateTime" matSortDirection="asc"
+             matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef [class.hidden]="!canEdit">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-          [indeterminate]="selection.hasValue() && !isAllSelected()">
+                      [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.hidden]="!canEdit">
@@ -156,86 +155,27 @@
         <span translate>TRIP.VESSEL</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-form-field floatLabel="never" [title]="vesselFeaturesToString(row.currentData.vesselFeatures)">
-          <input matInput [formControl]="row.validator.controls['vesselFeatures']" [placeholder]="'TRIP.VESSEL'|translate"
-            [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [matAutocomplete]="autoVessel">
-          <mat-error *ngIf="row.validator.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-
-        <!-- Vessel combo -->
-        <mat-autocomplete autoActiveFirstOption #autoVessel="matAutocomplete" [displayWith]="vesselFeaturesToString">
-          <ion-row class="mat-autocomplete-header">
-            <ion-col size="3" translate>VESSEL.EXTERIOR_MARKING</ion-col>
-            <ion-col translate>VESSEL.NAME</ion-col>
-            <ion-col translate>VESSEL.BASE_PORT_LOCATION</ion-col>
-          </ion-row>
-
-          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel" no-padding>
-            <ion-row>
-              <ion-col size="3" [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
-              <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
-              <ion-col>{{vessel.basePortLocation.label}} - {{vessel.basePortLocation.name}}</ion-col>
-            </ion-row>
-          </mat-option>
-        </mat-autocomplete>
+        {{vesselFeaturesToString(row.currentData.vesselFeatures)}}
       </mat-cell>
     </ng-container>
 
-    <!-- departure location -->
-    <ng-container matColumnDef="departureLocation">
+    <!-- location -->
+    <ng-container matColumnDef="location">
       <mat-header-cell *matHeaderCellDef>
-        <span translate>TRIP.DEPARTURE_LOCATION</span>
+        <span translate>OBSERVED_LOCATION.LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['departureLocation']" [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
-            [matAutocomplete]="autoDepartureLocation" [readonly]="!row.editing">
-          <mat-error *ngIf="row.validator.controls['departureLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-
-        </mat-form-field>
-
-        <mat-autocomplete #autoDepartureLocation="matAutocomplete" [displayWith]="referentialToString">
-          <ion-row class="mat-autocomplete-header">
-            <ion-col size="3">
-              <ion-text translate>REFERENTIAL.LABEL</ion-text>
-            </ion-col>
-            <ion-col>
-              <ion-text translate>REFERENTIAL.NAME</ion-text>
-            </ion-col>
-          </ion-row>
-          <mat-option *ngFor="let location of locations | async" [value]="location" no-padding>
-            <ion-row>
-              <ion-col size="3" [innerHTML]="location.label | highlight: {search: row.validator.controls['departureLocation'].value }"></ion-col>
-              <ion-col [innerHTML]="location.name | highlight: {search: row.validator.controls['departureLocation'].value }"></ion-col>
-            </ion-row>
-          </mat-option>
-        </mat-autocomplete>
+        {{referentialToString(row.currentData.location)}}
       </mat-cell>
     </ng-container>
 
-    <!-- departure date time  -->
-    <ng-container matColumnDef="departureDateTime">
+    <!-- date time  -->
+    <ng-container matColumnDef="startDateTime">
       <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-        <span translate>TRIP.DEPARTURE_DATE_TIME</span>
+        <span translate>OBSERVED_LOCATION.DATE_TIME</span>
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-
-        <mat-date-time floatLabel="never" [formControl]="row.validator.controls['departureDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-          [readonly]="!row.editing" [required]="true">
-        </mat-date-time>
-      </mat-cell>
-
-    </ng-container>
-
-    <!-- return date time -->
-    <ng-container matColumnDef="returnDateTime">
-      <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-        <span translate>TRIP.RETURN_DATE_TIME</span>
-      </mat-header-cell>
-      <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-        <mat-date-time floatLabel="never" [formControl]="row.validator.controls['returnDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-          [readonly]="!row.editing" [required]="true">
-        </mat-date-time>
+        {{ row.currentData.startDateTime | dateFormat: {time: true} }}
       </mat-cell>
     </ng-container>
 
@@ -260,12 +200,9 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"
-      (onblur)="confirmAndAddRow($event,row)"></mat-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="onRowClick($event, row)"
+             (onblur)="confirmAndAddRow($event,row)"></mat-row>
   </mat-table>
-
-
 
   <ion-row no-padding>
     <ion-col></ion-col>
@@ -276,14 +213,3 @@
   </ion-row>
 
 </ion-content>
-
-<ion-footer hidden-xs hidden-sm *ngIf="inlineEdition">
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
-</ion-footer>
-
-<!-- Add Button  -->
-<ion-fab vertical="bottom" horizontal="end" class="visible-xs visible-sm">
-  <ion-fab-button color="secondary" (click)="addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>

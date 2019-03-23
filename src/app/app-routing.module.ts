@@ -11,7 +11,9 @@ import {ReferentialsPage} from './referential/list/referentials';
 import {TripPage, TripsPage} from './trip/trip.module';
 import {OperationPage} from './trip/operation/operation.page';
 import {ExtractTable} from "./trip/extract/extract-table.component";
-import { ConfigPage } from './admin/config/config.component';
+import {ConfigPage} from './admin/config/config.component';
+import {ObservedLocationPage} from "./trip/observedlocation/observed-location.page";
+import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -139,6 +141,30 @@ const routes: Routes = [
       {
         path: ':tripId/:opeId',
         component: OperationPage,
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+        data: {
+          profile: 'USER'
+        }
+      }
+    ]
+  },
+
+  // Sale control path
+  {
+    path: 'observations',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        component: ObservedLocationsPage,
+        data: {
+          profile: 'USER'
+        }
+      },
+      {
+        path: ':observedLocationId',
+        component: ObservedLocationPage,
         runGuardsAndResolvers: 'paramsOrQueryParamsChange',
         data: {
           profile: 'USER'

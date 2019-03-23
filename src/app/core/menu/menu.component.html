@@ -58,7 +58,8 @@
           <ion-item tappable class="text-1x" [routerLink]="item.path" routerDirection="root" routerLinkActive="selected"
                     (click)="menu.close()" [routerLinkActiveOptions]="{exact: (item.path == '/')}" *ngIf="!loading && item.path"
             [@fadeInAnimation]>
-            <ion-icon color="primary" slot="start" [name]="item.icon"></ion-icon>
+            <ion-icon color="primary" slot="start" [name]="item.icon" *ngIf="item.icon"></ion-icon>
+            <mat-icon color="primary" slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
             <ion-label color="primary">{{item.title|translate}}</ion-label>
           </ion-item>
           <ion-item-divider *ngIf="!loading && !item.path" [@fadeInAnimation]>

@@ -1,5 +1,6 @@
 import {Moment} from "moment/moment";
 import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../shared/shared.module";
+import {VesselFeatures} from "../../referential/services/model";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -13,7 +14,8 @@ export const StatusIds = {
 
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 2
+  PORT: 2,
+  AUCTION: 3
 }
 
 export const AcquisitionLevelCodes = {
@@ -117,6 +119,7 @@ export class EntityUtils {
     }
     throw new Error(`Invalid form path: '${key}' is not an valid object.`);
   }
+
   static getMapAsArray(source?: Map<string, string>): {key: string; value?: string;}[] {
     return Object.getOwnPropertyNames(source || {})
       .map(key => {
@@ -133,7 +136,26 @@ export class EntityUtils {
     return target;
   }
 
+  static getObjectAsArray(source?: {[key: string]: string} ): {key: string; value?: string;}[] {
+    return Object.getOwnPropertyNames(source || {})
+      .map(key => {
+        return {
+          key,
+          value: source[key]
+        };
+      });
+  }
+
+  static getArrayAsObject(source?: {key: string; value?: string;}[]) : {[key: string]: string} {
+    return (source||[]).reduce((res, item) => {
+      res[item.key]= item.value;
+      return res;
+    }, {});
+  }
 }
+
+/* -- Referential -- */
+
 export class Referential extends Entity<Referential>  {
 
   static fromObject(source: any): Referential {
@@ -253,6 +275,9 @@ export class ReferentialRef extends Entity<ReferentialRef>  {
   }
 }
 
+
+/* -- Configuration -- */
+
 export class Configuration extends Entity<Configuration>  {
 
   static fromObject(source: Configuration): Configuration {
@@ -268,7 +293,7 @@ export class Configuration extends Entity<Configuration>  {
 
   smallLogo: string;
   largeLogo: string;
-  properties: Map<string, string>;
+  properties: {[key: string]: string};
   backgroundImages: string[];
   partners: Department[];
 
@@ -290,6 +315,7 @@ export class Configuration extends Entity<Configuration>  {
     const target: any = super.asObject();
     target.creationDate = toDateISOString(this.creationDate);
     target.partners = (this.partners || []).map(p => p.asObject());
+    target.properties = this.properties;
     return target;
   }
 
@@ -304,7 +330,7 @@ export class Configuration extends Entity<Configuration>  {
     this.partners = (source.partners || []).map(Department.fromObject);
 
     if (source.properties && source.properties instanceof Array) {
-      this.properties = EntityUtils.getArrayAsMap(source.properties);
+      this.properties = EntityUtils.getArrayAsObject(source.properties);
     }
     else {
       this.properties = source.properties;

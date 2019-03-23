@@ -1,0 +1,95 @@
+<app-toolbar [title]="title | async" color="primary" [hasValidate]="!loading && dirty" (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref">
+  <ion-spinner *ngIf="loading"></ion-spinner>
+</app-toolbar>
+
+<ion-content>
+
+  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [disableRipple]="true"
+                 dynamicHeight>
+
+    <!-- TAB: general -->
+    <mat-tab label="{{'OBSERVED_LOCATION.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
+        </mat-icon>
+        <ion-label translate>OBSERVED_LOCATION.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (observedLocationForm.invalid || measurementsForm.invalid)"></ion-icon>
+      </ng-template>
+
+      <!-- error -->
+      <ion-item *ngIf="observedLocationForm.error" visible-xs visible-sm>
+        <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
+      </ion-item>
+
+      <ion-grid no-padding>
+
+        <ion-row no-padding>
+          <ion-col padding>
+            <!-- observed location -->
+            <form-observed-location (onSubmit)="save($event)" [showError]="false"[showEndDateTime]="false" #observedLocationForm>
+
+              <!-- Measurements -->
+              <ion-row>
+                <ion-col size="12" size-md="2" size-lg="3" align-self-end>
+                  <ion-label translate>OBSERVED_LOCATION.EDIT.OTHER_FEATURES</ion-label>
+                </ion-col>
+                <ion-col>
+                  <form-measurements acquisitionLevel="SALE" [debug]="debug" #measurementsForm></form-measurements>
+                  <span *ngIf="debug">
+                    <br />dirty: {{measurementsForm.dirty}}
+                  </span>
+                </ion-col>
+              </ion-row>
+
+            </form-observed-location>
+          </ion-col>
+          <ion-col no-padding size="12" size-xl="3">
+            <entity-metadata [value]="data">
+              <entity-quality-metadata #qualityForm (onChange)="updateView(data)" (onControl)="onControl($event)">
+              </entity-quality-metadata>
+            </entity-metadata>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </mat-tab>
+
+    <!-- TAB: Vessel -->
+    <mat-tab label="{{'OBSERVED_LOCATION.TAB_VESSELS'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="boat"></ion-icon>
+        </mat-icon>
+        <ion-label translate>OBSERVED_LOCATION.TAB_VESSELS</ion-label>
+        <!--<ion-icon slot="end" name="alert" color="danger" *ngIf="physicalGearTable.invalid"></ion-icon>-->
+      </ng-template>
+
+      <div no-padding>
+
+        <!-- error
+        <ion-item *ngIf="physicalGearTable.error" visible-xs visible-sm>
+          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="physicalGearTable.error|translate"></ion-label>
+        </ion-item>-->
+
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm>
+
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
+
+    <!-- error -->
+    <ion-item *ngIf="error">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </form-buttons-bar>
+</ion-footer>

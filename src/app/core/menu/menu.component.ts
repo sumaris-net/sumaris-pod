@@ -19,6 +19,7 @@ export interface MenuItem {
   path?: string;
   page?: string | any;
   icon?: string;
+  matIcon?: string;
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
 }

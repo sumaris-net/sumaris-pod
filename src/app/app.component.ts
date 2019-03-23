@@ -27,8 +27,16 @@ export class AppComponent {
   appName: String;
   menuItems: Array<MenuItem> = [
     { title: 'MENU.HOME', path: '/', icon: 'home' },
-    { title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'GUEST'},
+
+    // Data access
+    { title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'USER'},
+    { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
+      //matIcon: 'donut_small',
+      matIcon: 'verified_user',
+      profile: 'USER'},
+
     { title: 'MENU.EXTRACTIONS', path: '/extraction/table', icon: 'download', profile: 'SUPERVISOR' },
+
     { title: 'MENU.ADMINISTRATION_DIVIDER', profile: 'USER' },
     { title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN' },
     { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER' },
@@ -101,13 +109,13 @@ export class AppComponent {
       this._document.getElementById('appFavicon').setAttribute('href', favicon);
     }
 
-    // this.updateTheme({
-    //   colors: {
-    //     primary: config.properties["sumaris.color.primary"],
-    //     secondary: config.properties["sumaris.color.secondary"],
-    //     tertiary: config.properties["sumaris.color.tertiary"]
-    //   }
-    // });
+    this.updateTheme({
+      colors: {
+        primary: config.properties["sumaris.color.primary"],
+        secondary: config.properties["sumaris.color.secondary"],
+        tertiary: config.properties["sumaris.color.tertiary"]
+      }
+    });
 
   }
 
@@ -120,7 +128,9 @@ export class AppComponent {
     if (options.colors) {
       Object.getOwnPropertyNames(options.colors).forEach(color => {
         if (color !== undefined && color !== null) {
-          document.documentElement.style.setProperty(`--ion-color-${color}`, color);
+          // TODO
+          //document.documentElement.style.removeProperty(`--ion-color-${color}`);
+          //document.documentElement.style.setProperty(`--ion-color-${color}`, color);
         }
       });
     }

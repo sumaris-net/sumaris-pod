@@ -32,81 +32,93 @@ import {
     SubSampleValidatorService, SubBatchValidatorService
 } from './services/trip.validators';
 import {ExtractTable} from "./extract/extract-table.component";
+import {ObservedLocationForm} from "./observedlocation/observed-location.form";
+import {ObservedLocationPage} from "./observedlocation/observed-location.page";
+import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
+import {ObservedLocationService} from "./services/observed-location.service";
+import {ObservedLocationValidatorService} from "./services/observed-location.validator";
 
-export { TripsPage, TripPage, MeasurementValuesForm }
+export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityMetadataComponent }
 
 @NgModule({
     imports: [
-        CommonModule,
-        CoreModule
+      CommonModule,
+      CoreModule
     ],
-
     declarations: [
-        TripsPage,
-        TripPage,
-        TripForm,
-        TripModal,
-        SaleForm,
-        PhysicalGearForm,
-        PhysicalGearTable,
-        OperationForm,
-        OperationPage,
-        OperationTable,
-        MeasurementsForm,
-        MeasurementQVFormField,
-        MeasurementFormField,
-        CatchForm,
-        SamplesTable,
-        SubSamplesTable,
-        BatchGroupsTable,
-        BatchesTable,
-        SubBatchesTable,
-        IndividualMonitoringTable,
-        EntityQualityMetadataComponent,
-        ExtractTable
+      TripsPage,
+      TripPage,
+      TripForm,
+      TripModal,
+      SaleForm,
+      PhysicalGearForm,
+      PhysicalGearTable,
+      OperationForm,
+      OperationPage,
+      OperationTable,
+      ObservedLocationForm,
+      ObservedLocationPage,
+      ObservedLocationsPage,
+      MeasurementsForm,
+      MeasurementQVFormField,
+      MeasurementFormField,
+      CatchForm,
+      SamplesTable,
+      SubSamplesTable,
+      BatchGroupsTable,
+      BatchesTable,
+      SubBatchesTable,
+      IndividualMonitoringTable,
+      EntityQualityMetadataComponent,
+      ExtractTable
     ],
     exports: [
-        TripsPage,
-        TripPage,
-        TripForm,
-        TripModal,
-        SaleForm,
-        PhysicalGearForm,
-        PhysicalGearTable,
-        OperationForm,
-        OperationPage,
-        OperationTable,
-        MeasurementsForm,
-        MeasurementQVFormField,
-        ExtractTable
+      TripsPage,
+      TripPage,
+      TripForm,
+      TripModal,
+      SaleForm,
+      PhysicalGearForm,
+      PhysicalGearTable,
+      OperationForm,
+      OperationPage,
+      OperationTable,
+      MeasurementsForm,
+      MeasurementQVFormField,
+      ExtractTable,
+      EntityQualityMetadataComponent
     ],
     entryComponents: [
-        TripsPage,
-        TripPage,
-        TripModal,
-        PhysicalGearTable,
-        OperationTable,
-        OperationPage,
-        MeasurementsForm,
-        MeasurementQVFormField,
-        MeasurementFormField,
-        ExtractTable
+      TripsPage,
+      TripPage,
+      TripModal,
+      PhysicalGearTable,
+      OperationTable,
+      OperationPage,
+      MeasurementsForm,
+      MeasurementQVFormField,
+      MeasurementFormField,
+      ExtractTable,
+      ObservedLocationPage,
+      ObservedLocationsPage
     ],
     providers: [
-        TripService,
-        TripValidatorService,
-        SaleValidatorService,
-        PhysicalGearValidatorService,
-        OperationService,
-        OperationValidatorService,
-        PositionValidatorService,
-        MeasurementsValidatorService,
-        BatchValidatorService,
-        SubBatchValidatorService,
-        BatchGroupsValidatorService,
-        SampleValidatorService,
-        SubSampleValidatorService,
-        ExtractionService
+      TripService,
+      TripValidatorService,
+      SaleValidatorService,
+      PhysicalGearValidatorService,
+      OperationService,
+      OperationValidatorService,
+      ObservedLocationService,
+      ObservedLocationValidatorService,
+      PositionValidatorService,
+      MeasurementsValidatorService,
+      BatchValidatorService,
+      SubBatchValidatorService,
+      BatchGroupsValidatorService,
+      SampleValidatorService,
+      SubSampleValidatorService,
+      ExtractionService
     ]
 })
 export class TripModule {

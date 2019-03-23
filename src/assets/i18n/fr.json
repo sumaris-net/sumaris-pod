@@ -27,6 +27,7 @@
     "BTN_HIDE_MENU": "Masquer le menu",
     "BTN_SHOW_MENU": "Afficher le menu",
     "CREATED_ON": "Créé le ",
+    "COMMENTS": "Commentaires",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
@@ -97,6 +98,7 @@
   "MENU": {
     "HOME": "Accueil",
     "TRIPS": "Marées",
+    "OBSERVED_LOCATIONS": "Contrôles criée",
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
@@ -222,7 +224,7 @@
     },
     "LIST": {
       "TITLE": "Marées",
-      "PROGRAM": "Programme",
+      "PROGRAM": "Programme de collecte",
       "QUALITY": "État",
       "FILTER": {
         "START_DATE": "Début de période",
@@ -355,6 +357,33 @@
       "LOAD_ALL_ERROR": "Erreur de chargement des ventes.",
       "SAVE_ERROR": "Erreur lors de la sauvegarde de la vente.",
       "SAVE_ALL_ERROR": "Erreur lors de la sauvegarde des ventes."
+    }
+  },
+  "OBSERVED_LOCATION": {
+    "DATE_TIME": "Date/heure",
+    "START": "Début du contrôle :",
+    "START_DATE": "Date début",
+    "START_DATE_TIME": "Date/heure de début",
+    "END": "Fin du contrôle :",
+    "END_DATE": "Date fin",
+    "END_DATE_TIME": "Date/heure de fin",
+    "START": "Début",
+    "END": "Fin",
+    "LOCATION": "Criée",
+    "TAB_GENERAL": "Détails",
+    "TAB_VESSELS": "Navires",
+    "NEW": {
+      "TITLE": "Nouveau contrôle"
+    },
+    "EDIT": {
+      "TITLE": "{{location}} - Contrôle du {{dateTime}}",
+      "OTHER_FEATURES": "Autres caractéristiques :"
+    },
+    "LIST": {
+      "TITLE": "Contrôles en criée",
+      "FILTER": {
+        "LOCATION": "Criée"
+      }
     }
   },
   "QUALITY": {

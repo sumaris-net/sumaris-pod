@@ -1,6 +1,6 @@
 import { TableDataSource, ValidatorService } from "angular4-material-table";
 import { Observable } from "rxjs";
-import {DataService, LoadResult} from "../../shared/shared.module";
+import {DataService, isNotNil, LoadResult} from "../../shared/shared.module";
 import { EventEmitter } from "@angular/core";
 import { Entity } from "../services/model";
 import { TableElement } from "angular4-material-table";
@@ -13,6 +13,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   protected _config: {
     prependNewElements: boolean;
     onNewRow?: (row: TableElement<T>) => Promise<void> | void;
+    useRowValidator?: boolean;
     [key: string]: any;
   };
   protected _creating = false;
@@ -34,20 +35,24 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     config?: {
       prependNewElements: boolean;
       onNewRow?: (row: TableElement<T>) => Promise<void> | void;
+      useRowValidator?: boolean;
       serviceOptions?: {
         saveOnlyDirtyRows?: boolean;
       }
     }) {
     super([], dataType, validatorService, config);
     this.serviceOptions = config && config.serviceOptions;
-    this._config = config;
+    this._config = config || {prependNewElements: false};
+    this._config.useRowValidator = config && isNotNil(config.useRowValidator) ? config.useRowValidator : true;
 
     // Copy data to validator
-    this.connect().subscribe(rows => {
-      if (this._creating) return;
-      if (this._debug) console.debug("[table-datasource] Copying rows currentData -> validator");
-      rows.forEach(row => AppFormUtils.copyEntity2Form(row.currentData, row.validator));
-    });
+    if (this._config.useRowValidator) {
+      this.connect().subscribe(rows => {
+        if (this._creating) return;
+        if (this._debug) console.debug("[table-datasource] Copying rows currentData -> validator");
+        rows.forEach(row => this.refreshValidator(row));
+      });
+    }
 
     //this._debug = true;
   };
@@ -129,7 +134,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       return;
     }
     else if (!this._config || !this._config.onNewRow) {
-      AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+      this.refreshValidator(row);
       this._creating = false;
     }
     else {
@@ -137,14 +142,14 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       // Async way
       if (res instanceof Promise) {
         res.then(() => {
-          AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+          this.refreshValidator(row);
           this._creating = false;
         });
       }
 
       // Sync way
       else {
-        AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+        this.refreshValidator(row);
         this._creating = false;
       }
     }
@@ -153,7 +158,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   confirmCreate(row: TableElement<T>) {
     if (row.validator.valid && row.validator.dirty) {
       if (this._debug) console.debug("[table-datasource] confirmCreate(): Copying row.validator -> row.currentData...");
-      AppFormUtils.copyForm2Entity(row.validator, row.currentData);
+      this.refreshValidator(row);
       row.currentData.dirty = true;
     }
     return super.confirmCreate(row);
@@ -162,7 +167,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   confirmEdit(row: TableElement<T>) {
     if (row.validator.valid && row.validator.dirty) {
       if (this._debug) console.debug("[table-datasource] confirmEdit(): Copying row.validator -> row.currentData");
-      AppFormUtils.copyForm2Entity(row.validator, row.currentData);
+      this.refreshValidator(row);
       row.currentData.dirty = true;
     }
     return super.confirmEdit(row);
@@ -171,7 +176,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   startEdit(row: TableElement<T>) {
     if (this._debug) console.debug("[table-datasource] Start to edit row", row);
     row.startEdit();
-    AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+    this.refreshValidator(row);
   };
 
   cancelOrDelete(row: TableElement<T>) {
@@ -180,12 +185,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     // If cancel: apply currenData to validtor
     if (row.id != -1) {
-      AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+      this.refreshValidator(row);
     }
-  }
-
-  refreshValidator(row: TableElement<T>) {
-    AppFormUtils.copyEntity2Form(row.currentData, row.validator);
   }
 
   public handleError(error: any, message: string): Observable<LoadResult<T>> {
@@ -241,11 +242,16 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       });
   }
 
-  /* -- private method -- */
-
   public getRows(): Promise<TableElement<T>[]> {
     return this.connect().first().toPromise();
   }
+
+  public refreshValidator(row: TableElement<T>) {
+    if (this._config.useRowValidator) AppFormUtils.copyEntity2Form(row.currentData, row.validator);
+  }
+
+  /* -- private method -- */
+
 
   private logRowErrors(row: TableElement<T>): void {
 
