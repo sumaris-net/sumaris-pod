@@ -121,8 +121,6 @@ export class ConfigService extends BaseDataService {
 
     const json = config.asObject();
 
-    // User not allow to change his profiles
-
     // Execute mutation
     const res = await this.mutate<{ saveConfiguration: any }>({
       mutation: SaveMutation,

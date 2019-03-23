@@ -35,7 +35,9 @@ export function fillRankOrder(values: { rankOrder: number }[]) {
 const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1); };
 
 
-/* -- DATA -- */
+
+/* -- Data -- */
+
 export abstract class DataEntity<T> extends Entity<T> {
   recorderDepartment: Department;
   controlDate: Moment;
@@ -101,6 +103,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> {
     return this;
   }
 }
+
 
 export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> {
   vesselFeatures: VesselFeatures;

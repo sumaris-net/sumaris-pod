@@ -138,11 +138,10 @@ export class ConfigPage extends AppForm<Configuration> implements OnInit {
 
       // Call save service
       const updatedData = await this.service.save(this.data);
-
       // Update the view
       this.updateView(updatedData);
-
       this.form.markAsUntouched();
+      this.error = null;
     }
     catch(err) {
       this.error = err && err.message || err;

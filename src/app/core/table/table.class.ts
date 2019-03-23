@@ -201,7 +201,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this._subscriptions.forEach(s => s.unsubscribe());
         this._subscriptions = [];
 
-        // Unsubcribe column value changes
+        // Unsubscribe column value changes
         Object.getOwnPropertyNames(this._cellValueChangesDefs).forEach(columnName => {
             this.stopCellValueChanges(columnName);
         });

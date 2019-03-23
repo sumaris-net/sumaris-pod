@@ -44,7 +44,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   }
 
   ngOnInit() {
-    // Combo: vessels
+    // Combo: programs
     this.programs = this.form.controls['program']
       .valueChanges
       .startWith('')
