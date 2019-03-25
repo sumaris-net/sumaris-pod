@@ -92,7 +92,6 @@ public class ConfigurationGraphQLService {
     }
 
     @GraphQLMutation(name = "saveConfiguration", description = "Save a software configuration")
-    @Transactional
     public ConfigurationVO save(@GraphQLArgument(name = "config") ConfigurationVO configuration,
                      @GraphQLEnvironment() Set<String> fields){
 

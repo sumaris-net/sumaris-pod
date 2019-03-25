@@ -27,10 +27,11 @@
 
   <!-- Programs / strategies -->
   <PROGRAM ID="10" LABEL="ADAP-MER" NAME="Application d’assistance à l’auto-échantillonnage en mer" DESCRIPTION="Auto-échantillonnage en mer pour les Pêcheurs de Bretagne" STATUS_FK="1" CREATION_DATE="2019-02-15" UPDATE_DATE="2019-02-15"/>
-  <!--<PROGRAM ID="11" LABEL="ADAP-CRIEE" NAME="Application d’assistance aux contrôles en criées" DESCRIPTION="Contrôles criées pour les Pêcheurs de Bretagne" STATUS_FK="1" CREATION_DATE="2019-02-15" UPDATE_DATE="2019-02-15"/>-->
+  <PROGRAM ID="11" LABEL="ADAP-CONTROLE" NAME="Application d’assistance aux contrôles en criées" DESCRIPTION="Contrôles criées pour les Pêcheurs de Bretagne" STATUS_FK="1" CREATION_DATE="2019-02-15" UPDATE_DATE="2019-02-15"/>
 
   <!-- ADAP strategy -->
   <STRATEGY ID="10" PROGRAM_FK="10" LABEL="V1" NAME="version 1 - 2019-02-15" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
+  <STRATEGY ID="11" PROGRAM_FK="11" LABEL="V1" NAME="version 1 - 2019-02-15" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
 
   <STRATEGY2GEAR STRATEGY_FK="10" GEAR_FK="6"/>
   <STRATEGY2GEAR STRATEGY_FK="10" GEAR_FK="7"/>
@@ -111,5 +112,13 @@
   <PMFM_STRATEGY2GEAR PMFM_STRATEGY_FK="221" GEAR_FK="7"/>
   <PMFM_STRATEGY2GEAR PMFM_STRATEGY_FK="222" GEAR_FK="6"/>
   <PMFM_STRATEGY2GEAR PMFM_STRATEGY_FK="222" GEAR_FK="7"/>
+
+
+  <!-- PmfmStrategy / Control -->
+  <!-- TODO: remove this row (bad program/strategy) when app load pmfm from data program (no more by configuration)-->
+  <PMFM_STRATEGY ID="300" STRATEGY_FK="10" ACQUISITION_LEVEL_FK="10" PMFM_FK="130" RANK_ORDER="1"  ACQUISITION_NUMBER="1" IS_MANDATORY="1" MIN_VALUE="1" MAX_VALUE="50"></PMFM_STRATEGY>
+
+  <PMFM_STRATEGY ID="301" STRATEGY_FK="11" ACQUISITION_LEVEL_FK="10" PMFM_FK="130" RANK_ORDER="1"  ACQUISITION_NUMBER="1" IS_MANDATORY="1" MIN_VALUE="1" MAX_VALUE="50"></PMFM_STRATEGY>
+
 
 </dataset>

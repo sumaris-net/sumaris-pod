@@ -1,4 +1,4 @@
-package net.sumaris.core.model.data;
+package net.sumaris.core.model.data.measure;
 
 /*-
  * #%L
@@ -24,41 +24,30 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.survey.ObservedLocation;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.SaleType;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Data
 @Entity
-public class Sale implements IRootDataEntity<Integer> {
+@Table(name="observed_location_measurement")
+public class ObservedLocationMeasurement implements IMeasurementEntity {
 
-    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
-    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
-    public static final String PROPERTY_SALE_TYPE = "saleType";
-    public static final String PROPERTY_TRIP = "trip";
     public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
+    public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SALE_SEQ")
-    @SequenceGenerator(name = "SALE_SEQ", sequenceName="SALE_SEQ")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "OBSERVED_LOCATION_MEASURME_SEQ")
+    @SequenceGenerator(name = "OBSERVED_LOCATION_MEASURME_SEQ", sequenceName="OBSERVED_LOCATION_MEASURME_SEQ")
     private Integer id;
-
-    @Column(name = "creation_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date creationDate;
 
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recorder_person_fk")
-    private Person recorderPerson;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recorder_department_fk", nullable = false)
@@ -71,10 +60,6 @@ public class Sale implements IRootDataEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
-    @Column(name="validation_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date validationDate;
-
     @Column(name="qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
@@ -86,29 +71,30 @@ public class Sale implements IRootDataEntity<Integer> {
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Vessel.class)
-    @JoinColumn(name = "vessel_fk", nullable = false)
-    private Vessel vessel;
+    @Column(name = "numerical_value")
+    private Double numericalValue;
 
-    @Column(name = "start_date_time", nullable = false)
-    private Date startDateTime;
+    @Column(name = "alphanumerical_value", length = 40)
+    private String alphanumericalValue;
 
-    @Column(name = "end_date_time")
-    private Date endDateTime;
+    @Column(name = "digit_count")
+    private Integer digitCount;
 
-    @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
-    @JoinColumn(name = "sale_location_fk", nullable = false)
-    private Location saleLocation;
+    @Column(name = "precision_value")
+    private Double precisionValue;
 
-    @ManyToOne(fetch = FetchType.EAGER, targetEntity = SaleType.class)
-    @JoinColumn(name = "sale_type_fk", nullable = false)
-    private SaleType saleType;
+    @ManyToOne(fetch = FetchType.EAGER, targetEntity = QualitativeValue.class)
+    @JoinColumn(name = "qualitative_value_fk")
+    private QualitativeValue qualitativeValue;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
-    @JoinColumn(name = "trip_fk")
-    private Trip trip;
+    @Column(name = "rank_order", nullable = false)
+    private Integer rankOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)
+    @JoinColumn(name = "pmfm_fk", nullable = false)
+    private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObservedLocation.class)
-    @JoinColumn(name = "observed_location_fk")
+    @JoinColumn(name = "observed_location_fk", nullable = false)
     private ObservedLocation observedLocation;
 }

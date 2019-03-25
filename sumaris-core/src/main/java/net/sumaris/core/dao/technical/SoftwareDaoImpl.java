@@ -23,6 +23,7 @@ package net.sumaris.core.dao.technical;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.referential.StatusRepository;
@@ -120,16 +121,18 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
     }
 
     protected void saveProperties(Map<String, String> source, Software parent, Timestamp updateDate) {
+        final EntityManager em = getEntityManager();
         if (MapUtils.isEmpty(source)) {
             if (parent.getProperties() != null) {
+                List<SoftwareProperty> toRemove = ImmutableList.copyOf(parent.getProperties());
                 parent.getProperties().clear();
+                toRemove.stream().forEach(em::remove);
             }
         }
         else {
             Map<String, SoftwareProperty> existingProperties = Beans.splitByProperty(
                     Beans.getList(parent.getProperties()),
                     SoftwareProperty.PROPERTY_LABEL);
-            final EntityManager em = getEntityManager();
             final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getProperties() == null) {
                 parent.setProperties(Lists.newArrayList());

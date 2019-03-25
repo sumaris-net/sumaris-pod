@@ -1,4 +1,4 @@
-package net.sumaris.core.model.data;
+package net.sumaris.core.model.data.survey;
 
 /*-
  * #%L
@@ -27,9 +27,11 @@ import lombok.Data;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.data.measure.VesselUseMeasurement;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.referential.location.Location;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.FetchProfile;
@@ -41,25 +43,25 @@ import java.util.*;
 @FetchProfiles({
         @FetchProfile(name = "with-location",
             fetchOverrides = {
-                @FetchProfile.FetchOverride(association = "departureLocation", entity = Trip.class, mode = FetchMode.JOIN),
-                @FetchProfile.FetchOverride(association = "returnLocation", entity = Trip.class, mode = FetchMode.JOIN),
-                    @FetchProfile.FetchOverride(association = "recorderDepartment", entity = Trip.class, mode = FetchMode.JOIN)
+                @FetchProfile.FetchOverride(association = "location", entity = ObservedLocation.class, mode = FetchMode.JOIN),
+                @FetchProfile.FetchOverride(association = "recorderDepartment", entity = ObservedLocation.class, mode = FetchMode.JOIN)
             })
 })
 @Data
 @Entity
-public class Trip implements IRootDataEntity<Integer> {
+@Table(name="observed_location")
+public class ObservedLocation implements IRootDataEntity<Integer> {
 
     public static final String PROPERTY_PROGRAM = "program";
-    public static final String PROPERTY_DEPARTURE_DATE_TIME = "departureDateTime";
-    public static final String PROPERTY_RETURN_DATE_TIME = "returnDateTime";
-    public static final String PROPERTY_DEPARTURE_LOCATION = "departureLocation";
-    public static final String PROPERTY_RETURN_LOCATION = "returnLocation";
-    public static final String PROPERTY_VESSEL = "vessel";
+    public static final String PROPERTY_START_DATE_TIME = "startDateTime";
+    public static final String PROPERTY_END_DATE_TIME = "endDateTime";
+    public static final String PROPERTY_LOCATION = "location";
+    public static final String PROPERTY_SALES = "sales";
+    public static final String PROPERTY_OBSERVERS = "observers";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "TRIP_SEQ")
-    @SequenceGenerator(name = "TRIP_SEQ", sequenceName="TRIP_SEQ")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "OBSERVED_LOCATION_SEQ")
+    @SequenceGenerator(name = "OBSERVED_LOCATION_SEQ", sequenceName="OBSERVED_LOCATION_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -100,38 +102,21 @@ public class Trip implements IRootDataEntity<Integer> {
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Vessel.class)
-    @JoinColumn(name = "vessel_fk", nullable = false)
-    private Vessel vessel;
+    @Column(name = "start_date_time", nullable = false)
+    private Date startDateTime;
 
-    @Column(name = "departure_date_time", nullable = false)
-    private Date departureDateTime;
-
-    @Column(name = "return_date_time", nullable = false)
-    private Date returnDateTime;
+    @Column(name = "end_date_time", nullable = false)
+    private Date endDateTime;
 
     @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
-    @JoinColumn(name = "departure_location_fk", nullable = false)
-    private Location departureLocation;
-
-    @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
-    @JoinColumn(name = "return_location_fk", nullable = false)
-    private Location returnLocation;
+    @JoinColumn(name = "location_fk", nullable = false)
+    private Location location;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Operation.PROPERTY_TRIP)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<Operation> operations = new ArrayList<>();
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.PROPERTY_TRIP)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    @OrderBy("rankOrder ASC")
-    private List<PhysicalGear> physicalGears = new ArrayList<>();
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.PROPERTY_TRIP)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.PROPERTY_OBSERVED_LOCATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
 
@@ -140,21 +125,22 @@ public class Trip implements IRootDataEntity<Integer> {
     private List<VesselUseMeasurement> measurements = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "trip2observer_person", joinColumns = {
-            @JoinColumn(name = "trip_fk", nullable = false, updatable = false) },
+    @JoinTable(name = "observed_location2person", joinColumns = {
+            @JoinColumn(name = "observed_location_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {
                     @JoinColumn(name = "observer_person_fk", nullable = false, updatable = false) })
     private Set<Person> observers = Sets.newHashSet();
 
     public String toString() {
-        return new StringBuilder().append("Trip(")
+        return new StringBuilder().append("ObservedLocation(")
                 .append("id=").append(id)
-                .append(",departureDateTime=").append(departureDateTime)
+                .append(",dateTime=").append(startDateTime)
+                .append(",location=").append(location)
                 .append(")").toString();
     }
 
     public int hashCode() {
-        return Objects.hash(id, vessel, program, departureDateTime);
+        return Objects.hash(id, program, startDateTime, location);
     }
 
 }
