@@ -22,6 +22,7 @@ public interface OwlMappers extends Owl2Bean, Bean2Owl {
      */
     Logger LOG = LoggerFactory.getLogger(OwlMappers.class);
 
+
     default List<Object> objectsFromOnt(OntModel m) {
         Resource schema = m.listSubjectsWithProperty(RDF.type, OWL.Ontology).nextResource();
 
@@ -67,13 +68,14 @@ public interface OwlMappers extends Owl2Bean, Bean2Owl {
 
     }
 
-    default OntModel ontOfPackage(String uri, String packag, Map<String, String> options) {
+    default OntModel ontOfPackage(String uri, Map<String, String> options) {
 
         boolean addDisjoints = options.getOrDefault("disjoints", "false").contains("true");
         boolean addInterfaces = options.getOrDefault("interface", "true").contains("true");
         boolean addMethods = options.getOrDefault("methods", "false").contains("true");
+        String[] packages = options.getOrDefault("packages","net.sumaris.server.service.technical.rdf").split(",");
 
-        Reflections reflections = new Reflections(packag, new SubTypesScanner(false));
+        Reflections reflections = new Reflections(packages, new SubTypesScanner(false));
         Set<Class<? extends Object>> allClasses =
                 reflections.getSubTypesOf(Object.class);
 

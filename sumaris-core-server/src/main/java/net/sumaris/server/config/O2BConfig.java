@@ -1,11 +1,9 @@
 package net.sumaris.server.config;
 
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.server.service.technical.rdf.Bean2Owl;
@@ -14,83 +12,87 @@ import org.apache.jena.rdf.model.Property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
+
+import static net.sumaris.server.service.technical.rdf.Helpers.convertToDateViaInstant;
 
 public interface O2BConfig {
 
     Logger LOG = LoggerFactory.getLogger(O2BConfig.class);
 
-
-    int MAX_DEPTH = 4;
+    // ============== Project Description ==============
+    String TITLE = "SUMARiS";
 
     String LABEL = "A first representation of the model";
-    String TITLE = "SUMARiS";
+
+    String LICENCE = "http://www.gnu.org/licenses/gpl-3.0.html";
+
+    String MY_PREFIX = "http://www.sumaris.net/2019/03/ontologies/";
+
     String[] AUTHORS = new String[]{
             "BERTRAND Benjamin",
             "LAVENIER Benoit",
             "PECQUOT Ludovic"};
 
-    String LICENCE = "http://www.gnu.org/licenses/gpl-3.0.html";
-
-
-    //String MY_PREFIX = "http://"+whatsMyIp().get()+"/jena/referentials/taxons/";
-    String MY_PREFIX = "http://www.sumaris.net/2019/03/ontologies/";
-
-
-    //String SCHEMA_URL = "http://www.e-is.pro/2019/03/schema/";
     String ADAGIO_PREFIX = "http://www.e-is.pro/2019/03/adagio/";
 
-    List<Method> ALLOWED_MANY_TO_ONE = new ArrayList<>();
+    // ============== Converter Configuration ==============
 
+    List<Method> WHITELIST = new ArrayList<>();
     List<Method> BLACKLIST = new ArrayList<>();
+
+    DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+    SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+
+    ZoneId ZONE_ID = ZoneId.systemDefault();
+
     Map<String, Class> URI_2_CLASS = new HashMap<>();
+    Map<String, Object> URI_2_OBJ_REF = new HashMap<>();
+
     Map<String, Function<OntResource, Object>> B2O_ARBITRARY_MAPPER = new HashMap<>();
     Map<String, Function<Object, OntResource>> O2B_ARBITRARY_MAPPER = new HashMap<>();
 
+
+    // ============== Application Configurations ==============
     Map<String, String> NAMED_QUERIES = new HashMap<>();
-
-    Map<String, Object> URI_2_OBJ_REF = new HashMap<>();
-
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 
 
     EntityManager getEntityManager();
 
     default List getCacheStatus() {
-        return getEntityManager()
-                .createQuery("from Status")
-                .getResultList();
+        if (statuses == null || statuses.isEmpty())
+            statuses.addAll(getEntityManager()
+                    .createQuery("from Status")
+                    .getResultList());
+        return statuses;
     }
+
+    List tl = new ArrayList();
+    List statuses= new ArrayList();
 
     default List getCacheTL() {
-        return getEntityManager()
-                .createQuery("from TaxonomicLevel")
-                .getResultList();
+
+        if (tl == null || tl.isEmpty())
+            tl.addAll(getEntityManager()
+                    .createQuery("from TaxonomicLevel")
+                    .getResultList());
+        return tl;
+
+
     }
 
-    static Optional<String> whatsMyIp() {
 
-        try {
-            URL whatismyip = new URL("http://checkip.amazonaws.com");
-            BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
-            return Optional.of(in.readLine());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
-    }
 
-    @PostConstruct
-    default void init() {
+    default void initConfig() {
         try {
-            ALLOWED_MANY_TO_ONE.addAll(Arrays.asList(
+            WHITELIST.addAll(Arrays.asList(
                     Bean2Owl.getterOfField(TaxonName.class, TaxonName.PROPERTY_TAXONOMIC_LEVEL),
                     Bean2Owl.getterOfField(TaxonName.class, TaxonName.PROPERTY_REFERENCE_TAXON),
                     Bean2Owl.getterOfField(TaxonName.class, TaxonName.PROPERTY_STATUS),
@@ -128,22 +130,15 @@ public interface O2BConfig {
                 " join fetch g.status st");
 
 
-        URI_2_CLASS.put("Gear", Gear.class);
-        URI_2_CLASS.put("ReferenceTaxon", ReferenceTaxon.class);
-        URI_2_CLASS.put("TaxonName", TaxonName.class);
-        URI_2_CLASS.put("TaxonomicLevel", TaxonomicLevel.class);
-        URI_2_CLASS.put("Status", Status.class);
-        URI_2_CLASS.put("IUpdateDateEntityBean", IUpdateDateEntityBean.class);
-
-        O2B_ARBITRARY_MAPPER.put("uri", obj-> {
+        URI_2_CLASS.put("definedURI", TaxonomicLevel.class);
 
 
+        O2B_ARBITRARY_MAPPER.put("uri", obj -> {
 
-
-            return (OntResource)null;
+            return (OntResource) null;
         });
 
-        B2O_ARBITRARY_MAPPER.put(ADAGIO_PREFIX + "net.sumaris.core.model.referential.taxon.TaxonomicLevel", ontResource -> {
+        B2O_ARBITRARY_MAPPER.put(ADAGIO_PREFIX + "TaxonomicLevel", ontResource -> {
 
             String clName = ADAGIO_PREFIX + TaxonomicLevel.class.getTypeName();
             TaxonomicLevel tl = (TaxonomicLevel) URI_2_OBJ_REF.get(ontResource.getURI());
@@ -171,7 +166,9 @@ public interface O2BConfig {
                         .getString());
 
                 Property cd = ontResource.getModel().getProperty(clName + "#CreationDate");
-                tl.setCreationDate(sdf.parse(ontResource.asIndividual().getPropertyValue(cd).asLiteral().getString()));
+                LocalDateTime ld = LocalDateTime.parse(ontResource.asIndividual().getPropertyValue(cd).asLiteral().getString(), DATE_TIME_FORMATTER);
+
+                tl.setCreationDate(convertToDateViaInstant(ld));
 
                 Property order = ontResource.getModel().getProperty(clName + "#RankOrder");
                 tl.setRankOrder(ontResource.asIndividual().getPropertyValue(order).asLiteral().getInt());
@@ -190,7 +187,7 @@ public interface O2BConfig {
             return tl;
         });
 
-        B2O_ARBITRARY_MAPPER.put(ADAGIO_PREFIX + "net.sumaris.core.model.referential.Status", ontResource -> {
+        B2O_ARBITRARY_MAPPER.put(ADAGIO_PREFIX + "Status", ontResource -> {
             String clName = ADAGIO_PREFIX + Status.class.getTypeName();
             Status st = new Status();
 
@@ -218,7 +215,10 @@ public interface O2BConfig {
                         .getString());
 
                 Property cd = ontResource.getModel().getProperty(clName + "#UpdateDate");
-                st.setUpdateDate(sdf.parse(ontResource.asIndividual().getPropertyValue(cd).asLiteral().getString()));
+
+                LocalDateTime ld = LocalDateTime.parse(ontResource.asIndividual().getPropertyValue(cd).asLiteral().getString(), DATE_TIME_FORMATTER);
+
+                st.setUpdateDate(convertToDateViaInstant(ld));
 
                 st.setId(max + 1);
 

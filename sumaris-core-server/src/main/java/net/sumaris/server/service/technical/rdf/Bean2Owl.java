@@ -21,8 +21,10 @@ import java.util.stream.Stream;
 
 public interface Bean2Owl extends Helpers {
 
-    /** Logger. */
-    Logger LOG =  LoggerFactory.getLogger(Bean2Owl.class);
+    /**
+     * Logger.
+     */
+    Logger LOG = LoggerFactory.getLogger(Bean2Owl.class);
 
     /**
      * Returns and adds OntClass to the model
@@ -84,7 +86,7 @@ public interface Bean2Owl extends Helpers {
                 Stream.of(clazz.getMethods())
                         .filter(m -> !isSetter(m))
                         .filter(m -> !isGetter(m))
-                        .filter(m -> Stream.of("getBytes", "hashCode", "getClass", "toString", "equals","wait","notify","notifyAll").noneMatch(s -> s.equals(m.getName())))
+                        .filter(m -> Stream.of("getBytes", "hashCode", "getClass", "toString", "equals", "wait", "notify", "notifyAll").noneMatch(s -> s.equals(m.getName())))
 
                         .forEach(met -> {
 
@@ -132,7 +134,7 @@ public interface Bean2Owl extends Helpers {
                             Type contained = getListType(field.getGenericType());
                             OntProperty list = null;
                             Resource resou = null;
-                            LOG.info("List property x " + contained.getTypeName() + " for " + fieldName);
+                            LOG.info("List property " + fieldName + " " + contained.getTypeName());
 
                             if (isJavaType(contained)) {
                                 list = ontology.createDatatypeProperty(fieldName, true);
@@ -225,7 +227,7 @@ public interface Bean2Owl extends Helpers {
         try {
             Method m = findGetterAnnotatedID(obj.getClass());
             individualURI = classURI + "#" + m.invoke(obj);
-            LOG.info("Created objectIdentifier " + individualURI);
+            //LOG.info("Created objectIdentifier " + individualURI);
         } catch (Exception e) {
             individualURI = "";
             LOG.error(e.getClass().getName() + " bean2Owl " + classURI + " - ");
@@ -245,11 +247,11 @@ public interface Bean2Owl extends Helpers {
                 .filter(this::isGetter)
                 .filter(met -> BLACKLIST.stream().noneMatch(x -> x.equals(met)))
                 .filter(met -> {
-                    //LOG.info(" filtering on " + met +"  " +  ALLOWED_MANY_TO_ONE.contains(met) + " "+ !isManyToOne(met) ) ;
+                    //LOG.info(" filtering on " + met +"  " +  WHITELIST.contains(met) + " "+ !isManyToOne(met) ) ;
 
-                    // LOG.info(" -- " + ALLOWED_MANY_TO_ONE.size() + "  " + BLACKLIST.size() + "  " + URI_2_CLASS.size());
+                    // LOG.info(" -- " + WHITELIST.size() + "  " + BLACKLIST.size() + "  " + URI_2_CLASS.size());
 
-                    return (!isManyToOne(met) || ALLOWED_MANY_TO_ONE.contains(met));
+                    return (!isManyToOne(met) || WHITELIST.contains(met));
                 })
                 .forEach(met -> {
 
@@ -269,7 +271,7 @@ public interface Bean2Owl extends Helpers {
                         } else if (invoked.getClass().getCanonicalName().contains("$")) {
                             //skip inner classes. mostly handles generated code issues
                         } else if (!isJavaType(met)) {
-                            LOG.warn("recurse  for " + met.getName() + "  " + invoked.getClass() + "  ");
+                            //LOG.warn("recurse for " + met.getName());
                             //LOG.info("not java generic, recurse on node..." + invoked);
                             Resource recurse = bean2Owl(model, invoked, (depth - 1));
                             if (recurse != null)
@@ -287,8 +289,8 @@ public interface Bean2Owl extends Helpers {
                             //
                         } else {
                             if (met.getName().toLowerCase().contains("date")) {
-                                String d = sdf.format((Date) invoked);
-                                individual.addProperty(pred, d);
+                                //String d = DATE_TIME_FORMATTER.format(((Date) invoked).toInstant());
+                                individual.addProperty(pred, SIMPLE_DATE_FORMAT.format((Date) invoked));
 
                             } else {
                                 individual.addProperty(pred, invoked + "");

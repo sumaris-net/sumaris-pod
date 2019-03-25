@@ -249,7 +249,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     protected void initI18n() throws IOException {
 
         // --------------------------------------------------------------------//
-        // init i18n
+        // initConfig i18n
         // --------------------------------------------------------------------//
         File i18nDirectory = new File(getDataDirectory(), "i18n");
         if (i18nDirectory.exists()) {

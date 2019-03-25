@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -99,7 +101,6 @@ public interface Helpers extends O2BConfig {
         ontology.setNsPrefix("purl", DC_11.getURI()); // http://purl.org/dc/elements/1.1/
 
 
-
         return ontology;
     }
 
@@ -134,9 +135,9 @@ public interface Helpers extends O2BConfig {
     default Optional<Method> setterOfField(Resource schema, Class t, String field) {
         try {
             Optional<Field> f = fieldOf(schema, t, field);
-            if(f.isPresent()){
+            if (f.isPresent()) {
                 String setterName = "set" + f.get().getName().substring(0, 1).toUpperCase() + f.get().getName().substring(1);
-                LOG.info("setterName " + setterName);
+                //LOG.info("setterName " + setterName);
                 Method met = t.getMethod(setterName, f.get().getType());
                 return Optional.of(met);
             }
@@ -154,8 +155,8 @@ public interface Helpers extends O2BConfig {
 
             Class ret = URI_2_CLASS.get(t.getSimpleName());
             if (ret == null) {
-                LOG.info("error fieldOf " + classToURI(schema, t) +" "+ name);
-                return Optional.empty( );
+                LOG.info("error fieldOf " + classToURI(schema, t) + " " + name);
+                return Optional.empty();
             } else {
                 return Optional.of(ret.getDeclaredField(name));
 
@@ -360,6 +361,25 @@ public interface Helpers extends O2BConfig {
             LOG.error("doWrite ", e);
         }
         return "there was an error writing the model ";
+    }
+
+
+    static LocalDate convertToLocalDateViaMilisecond(Date dateToConvert) {
+        return Instant.ofEpochMilli(dateToConvert.getTime())
+                .atZone(ZONE_ID)
+                .toLocalDate();
+    }
+
+    static LocalDate convertToLocalDateViaInstant(Date dateToConvert) {
+        return dateToConvert.toInstant()
+                .atZone(ZONE_ID)
+                .toLocalDate();
+    }
+
+    static Date convertToDateViaInstant(LocalDateTime dateToConvert) {
+        return java.util.Date
+                .from(dateToConvert.atZone(ZONE_ID)
+                        .toInstant());
     }
 
 
