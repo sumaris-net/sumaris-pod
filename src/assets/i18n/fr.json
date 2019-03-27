@@ -224,7 +224,7 @@
     },
     "LIST": {
       "TITLE": "Marées",
-      "PROGRAM": "Programme de collecte",
+      "PROGRAM": "Programme",
       "QUALITY": "État",
       "FILTER": {
         "START_DATE": "Début de période",
@@ -346,11 +346,18 @@
     "SALE_LOCATION": "Lieu de vente",
     "SALE_TYPE": "Type de vente",
     "COMMENTS": "Commentaires",
+    "VESSEL": "Navire",
     "NEW": {
       "TITLE": "Nouvelle vente"
     },
     "EDIT": {
       "TITLE": "Modifier la vente"
+    },
+    "TABLE": {
+      "VESSEL": "Navire",
+      "START_DATE_TIME": "Date/heure",
+      "OBSERVERS": "Observateurs",
+      "COMMENTS": "Commentaires"
     },
     "ERROR": {
       "LOAD_ERROR": "Erreur de chargement de la vente.",
@@ -361,17 +368,15 @@
   },
   "OBSERVED_LOCATION": {
     "DATE_TIME": "Date/heure",
-    "START": "Début du contrôle :",
     "START_DATE": "Date début",
     "START_DATE_TIME": "Date/heure de début",
-    "END": "Fin du contrôle :",
     "END_DATE": "Date fin",
     "END_DATE_TIME": "Date/heure de fin",
     "START": "Début",
     "END": "Fin",
     "LOCATION": "Criée",
     "TAB_GENERAL": "Détails",
-    "TAB_VESSELS": "Navires",
+    "TAB_VESSELS": "Navires observés",
     "NEW": {
       "TITLE": "Nouveau contrôle"
     },
@@ -379,9 +384,17 @@
       "TITLE": "{{location}} - Contrôle du {{dateTime}}",
       "OTHER_FEATURES": "Autres caractéristiques :"
     },
-    "LIST": {
+    "TABLE": {
       "TITLE": "Contrôles en criée",
+      "PROGRAM": "Programme",
+      "START_DATE_TIME": "Date/heure",
+      "QUALITY": "État",
+      "LOCATION": "Criée",
+      "OBSERVERS": "Observateurs",
+      "COMMENTS": "Commentaires",
       "FILTER": {
+        "START_DATE": "Début de période",
+        "END_DATE": "Fin de période",
         "LOCATION": "Criée"
       }
     }

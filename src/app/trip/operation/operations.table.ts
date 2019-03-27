@@ -2,7 +2,14 @@ import { Component, OnInit, Input, Output, OnDestroy, EventEmitter } from "@angu
 import { Observable } from 'rxjs';
 import { mergeMap } from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AccountService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../../core/core.module";
+import {
+  AppTableDataSource,
+  AppTable,
+  AccountService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  isNotNil
+} from "../../core/core.module";
 import { OperationValidatorService } from "../services/operation.validator";
 import { Operation, Trip, referentialToString, EntityUtils, ReferentialRef } from "../services/trip.model";
 import { ModalController, Platform, AlertController } from "@ionic/angular";
@@ -74,13 +81,11 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false;
     this.latLongPattern = accountService.account.settings.latLongFormat || 'DDMM';
-    //this.inlineEdition = true; // TODO: remove this line !
     this.pageSize = 1000; // Do not use paginator
   };
 
 
   ngOnInit() {
-
     super.ngOnInit();
 
     this.tripId && this.setTripId(this.tripId);
@@ -101,16 +106,16 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   }
 
   setTrip(data: Trip) {
-    this.setTripId(data.id);
+    this.setTripId(data && data.id || undefined);
   }
 
-  setTripId(tripId: number) {
-    this.tripId = tripId;
+  setTripId(id: number) {
+    this.tripId = id;
     this.filter = this.filter || {};
-    this.filter.tripId = tripId;
+    this.filter.tripId = id;
     this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
-    this.dataSource.serviceOptions.tripId = tripId;
-    if (tripId) {
+    this.dataSource.serviceOptions.tripId = id;
+    if (isNotNil(id)) {
       this.onRefresh.emit();
     }
   }

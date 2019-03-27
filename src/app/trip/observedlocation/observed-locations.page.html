@@ -1,4 +1,4 @@
-<app-toolbar [title]="'OBSERVED_LOCATION.LIST.TITLE'|translate" color="primary" (onValidate)="save()"
+<app-toolbar [title]="'OBSERVED_LOCATION.TABLE.TITLE'|translate" color="primary" (onValidate)="save()"
              [hasValidate]="!loading && dirty"
              [canGoBack]="false">
 </app-toolbar>
@@ -62,18 +62,18 @@
       </mat-autocomplete>
 
       <!-- Start date -->
-      <mat-date-time [placeholder]="'TRIP.LIST.FILTER.START_DATE'|translate" [formControl]="filterForm.controls.startDate"
+      <mat-date-time [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE'|translate" [formControl]="filterForm.controls.startDate"
                      [displayTime]="false">
       </mat-date-time>
 
       <!-- End date -->
-      <mat-date-time [placeholder]="'TRIP.LIST.FILTER.END_DATE'|translate" [formControl]="filterForm.controls.endDate"
+      <mat-date-time [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE'|translate" [formControl]="filterForm.controls.endDate"
                      [displayTime]="false">
       </mat-date-time>
 
       <!-- Location -->
       <mat-form-field style="min-width: 300px;">
-        <input matInput [placeholder]="'OBSERVED_LOCATION.LIST.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation"
+        <input matInput [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation"
                formControlName="location">
       </mat-form-field>
 
@@ -130,7 +130,7 @@
     <!-- Quality Column -->
     <ng-container matColumnDef="quality">
       <mat-header-cell *matHeaderCellDef> <!--mat-sort-header TODO pas triable pour l'instant -->
-        <span translate>TRIP.LIST.QUALITY</span>
+        <span translate>OBSERVED_LOCATION.TABLE.QUALITY</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-icon color="light" name="create" *ngIf="!row.currentData.controlDate" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
@@ -142,27 +142,17 @@
     <!-- Program Column -->
     <ng-container matColumnDef="program">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>TRIP.LIST.PROGRAM</span>
+        <span translate>OBSERVED_LOCATION.TABLE.PROGRAM</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{row.currentData.program.label}}
       </mat-cell>
     </ng-container>
 
-    <!-- Vessel Column -->
-    <ng-container matColumnDef="vessel">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>TRIP.VESSEL</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        {{vesselFeaturesToString(row.currentData.vesselFeatures)}}
-      </mat-cell>
-    </ng-container>
-
     <!-- location -->
     <ng-container matColumnDef="location">
       <mat-header-cell *matHeaderCellDef>
-        <span translate>OBSERVED_LOCATION.LOCATION</span>
+        <span translate>OBSERVED_LOCATION.TABLE.LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         {{referentialToString(row.currentData.location)}}
@@ -172,10 +162,20 @@
     <!-- date time  -->
     <ng-container matColumnDef="startDateTime">
       <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-        <span translate>OBSERVED_LOCATION.DATE_TIME</span>
+        <span translate>OBSERVED_LOCATION.TABLE.START_DATE_TIME</span>
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
         {{ row.currentData.startDateTime | dateFormat: {time: true} }}
+      </mat-cell>
+    </ng-container>
+
+    <!-- Observers -->
+    <ng-container matColumnDef="observers">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>OBSERVED_LOCATION.TABLE.OBSERVERS</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{ personsToString(row.currentData.observers) }}
       </mat-cell>
     </ng-container>
 

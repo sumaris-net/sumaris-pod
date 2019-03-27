@@ -3,7 +3,7 @@ import {ValidatorService} from "angular4-material-table";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {
   EntityUtils,
-  LocationLevelIds,
+  LocationLevelIds, personsToString,
   ReferentialRef,
   referentialToString,
   vesselFeaturesToString
@@ -61,8 +61,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           'quality',
           'program',
           'location',
-          'vessel',
           'startDateTime',
+          'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, validatorService, {
@@ -73,7 +73,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         }
       })
     );
-    this.i18nColumnPrefix = 'SALE.CONTROL.';
+    this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
       'program': [null],
       'startDate': [null],
@@ -174,10 +174,19 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     }
   }
 
+  protected openEditRowDetail(id: number): Promise<boolean> {
+    return this.router.navigateByUrl('/observations/' + id);
+  }
+
+  protected openNewRowDetail(): Promise<boolean> {
+    return this.router.navigateByUrl('/observations/new');
+  }
+
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
+  personsToString = personsToString;
 
   programToString(item: ReferentialRef) {
-    return referentialToString(item, ['label']);
+    return item && item.label || '';
   }
 }

@@ -59,7 +59,9 @@ import {
   Referential,
   ReferentialRef,
   referentialToString,
-  StatusIds
+  StatusIds,
+  personToString,
+  personsToString
 } from './services/model';
 // import ngx-translate and the http loader
 import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -74,7 +76,8 @@ export {
   Entity, Cloneable, EntityUtils,
   AcquisitionLevelCodes, StatusIds, LocationLevelIds,
   Referential, ReferentialRef, Department, Person, DataService, LoadResult,
-  toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined, entityToString, referentialToString
+  toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined,
+  entityToString, referentialToString, personToString, personsToString
 }
 
 export function HttpLoaderFactory(http: HttpClient) {

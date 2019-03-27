@@ -1,6 +1,5 @@
 import {Moment} from "moment/moment";
-import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../shared/shared.module";
-import {VesselFeatures} from "../../referential/services/model";
+import {fromDateISOString, isNil, toDateISOString} from "../../shared/shared.module";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -27,7 +26,9 @@ export const AcquisitionLevelCodes = {
   SAMPLE: 'SAMPLE',
   SURVIVAL_TEST: 'SURVIVAL_TEST',
   INDIVIDUAL_MONITORING: 'INDIVIDUAL_MONITORING',
-  INDIVIDUAL_RELEASE: 'INDIVIDUAL_RELEASE'
+  INDIVIDUAL_RELEASE: 'INDIVIDUAL_RELEASE',
+  LANDING: 'LANDING',
+  SALE: 'SALE'
 }
 
 export type UsageMode = 'DESK' | 'FIELD';
@@ -69,6 +70,18 @@ export function entityToString(obj: Entity<any> | any, properties?: String[]): s
 
 export function referentialToString(obj: Referential | ReferentialRef | any, properties?: String[]): string | undefined {
   return obj && obj.id && joinProperties(obj, properties || ['label', 'name']) || undefined;
+}
+
+export function personToString(data: Person): string {
+  return joinProperties(data, ['lastName', 'firstName'], ' ');
+}
+
+export function personsToString(data: Person[], separator?: string): string {
+  if (!data || !data.length) return '';
+  separator = separator || ", ";
+  return data.reduce((result: string, person: Person, index: number) => {
+    return index ? (result + separator + personToString(person)) : personToString(person);
+  }, '');
 }
 
 export abstract class Entity<T> implements Cloneable<T> {

@@ -1,6 +1,6 @@
 import {
   toDateISOString, fromDateISOString,
-  entityToString, referentialToString,
+  entityToString, referentialToString, personToString, personsToString,
   StatusIds, Cloneable, Entity, LocationLevelIds, isNotNil, isNil
 } from "../../core/core.module";
 import {
@@ -14,7 +14,7 @@ import { Moment } from "moment/moment";
 export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
   toDateISOString, fromDateISOString, isNotNil, isNil,
-  vesselFeaturesToString, entityToString, referentialToString, getPmfmName,
+  vesselFeaturesToString, entityToString, referentialToString, personToString, personsToString, getPmfmName,
   StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds,
   PmfmStrategy
 };
@@ -144,6 +144,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
   sale: Sale;
   gears: PhysicalGear[];
   measurements: Measurement[];
+  observers: Person[];
 
   constructor() {
     super();
@@ -151,6 +152,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     this.departureLocation = new ReferentialRef();
     this.returnLocation = null;
     this.measurements = [];
+    this.observers = [];
   }
 
   clone(): Trip {
@@ -173,6 +175,7 @@ export class Trip extends DataRootVesselEntity<Trip> {
     target.sale = this.sale && this.sale.asObject(minify) || undefined;
     target.gears = this.gears && this.gears.map(p => p && p.asObject(minify)) || undefined;
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
+    target.observers = this.observers && this.observers.map(p => p && p.asObject(minify)) || undefined;
     return target;
   }
 
@@ -183,12 +186,10 @@ export class Trip extends DataRootVesselEntity<Trip> {
     this.returnDateTime = fromDateISOString(source.returnDateTime);
     source.departureLocation && this.departureLocation.fromObject(source.departureLocation);
     this.returnLocation = source.returnLocation && ReferentialRef.fromObject(source.returnLocation);
-    if (source.sale) {
-      this.sale = new Sale();
-      this.sale.fromObject(source.sale);
-    }
+    this.sale = source.sale && Sale.fromObject(source.sale) || undefined;
     this.gears = source.gears && source.gears.filter(g => !!g).map(PhysicalGear.fromObject) || undefined;
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
+    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     return this;
   }
 
@@ -470,15 +471,31 @@ export class MeasurementUtils {
 }
 
 export class Sale extends DataRootVesselEntity<Sale> {
+
+  static fromObject(source: any): Sale {
+    const res = new Sale();
+    res.fromObject(source);
+    return res;
+  }
+
   startDateTime: Moment;
   endDateTime: Moment;
   saleLocation: ReferentialRef;
   saleType: ReferentialRef;
+  observedLocationId: number;
+  tripId: number;
+  measurementValues: { [key: string]: any };
+  samples: Sample[];
+  rankOrder: number;
+  observers: Person[];
 
   constructor() {
     super();
     this.saleLocation = new ReferentialRef();
     this.saleType = new ReferentialRef();
+    this.measurementValues = {};
+    this.samples = [];
+    this.observers = [];
   }
 
   clone(): Sale {
@@ -491,14 +508,6 @@ export class Sale extends DataRootVesselEntity<Sale> {
     target.fromObject(this);
   }
 
-  asObject(minify?: boolean): any {
-    const target = super.asObject(minify);
-    target.startDateTime = toDateISOString(this.startDateTime);
-    target.endDateTime = toDateISOString(this.endDateTime);
-    target.saleLocation = this.saleLocation && this.saleLocation.asObject(minify) || undefined;
-    target.saleType = this.saleType && this.saleType.asObject(minify) || undefined;
-    return target;
-  }
 
   fromObject(source: any): Sale {
     super.fromObject(source);
@@ -506,8 +515,50 @@ export class Sale extends DataRootVesselEntity<Sale> {
     this.endDateTime = fromDateISOString(source.endDateTime);
     source.saleLocation && this.saleLocation.fromObject(source.saleLocation);
     source.saleType && this.saleType.fromObject(source.saleType);
+    this.rankOrder = source.rankOrder;
+    this.tripId = source.tripId;
+    this.observedLocationId = source.observedLocationId;
+    this.samples = source.samples && source.samples.map(Sample.fromObject) || [];
+    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+
+    if (source.measurementValues) {
+      this.measurementValues = source.measurementValues;
+    }
+    // Convert measurement to map
+    else if (source.measurements) {
+      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
+        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
+        if (value) map[m.pmfmId] = value;
+        return map;
+      }, {}) || undefined;
+    }
+
+
     return this;
   }
+
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
+    target.startDateTime = toDateISOString(this.startDateTime);
+    target.endDateTime = toDateISOString(this.endDateTime);
+    target.saleLocation = this.saleLocation && this.saleLocation.asObject(minify) || undefined;
+    target.saleType = this.saleType && this.saleType.asObject(minify) || undefined;
+    target.samples = this.samples && this.samples.map(s => s.asObject(minify)) || undefined;
+    target.observers = this.observers && this.observers.map(o => o.asObject(minify)) || undefined;
+
+    // Measurement: keep only the map
+    if (minify) {
+      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
+        .reduce((map, pmfmId) => {
+          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
+          if (isNotNil(value)) map[pmfmId] = '' + value;
+          return map;
+        }, {}) || undefined;
+    }
+
+    return target;
+  }
+
 }
 
 export class Operation extends DataEntity<Operation> {

@@ -13,6 +13,7 @@ import {ObservedLocation} from "../services/observed-location.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
 import {EntityQualityMetadataComponent} from "../quality/entity-quality-metadata.component";
+import {ObservedVesselsTable} from "./observed-vessels.table";
 
 @Component({
   selector: 'page-observed-location',
@@ -25,7 +26,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
   title = new Subject<string>();
   saving: boolean = false;
   defaultBackHref: string = "/observations";
-  showOperationTable = false;
+  showVesselTable = false;
   onRefresh = new EventEmitter<any>();
 
   @ViewChild('observedLocationForm') observedLocationForm: ObservedLocationForm;
@@ -33,6 +34,8 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
   @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
 
   @ViewChild('qualityForm') qualityForm: EntityQualityMetadataComponent;
+
+  @ViewChild('vesselTable') vesselTable: ObservedVesselsTable;
 
   constructor(
     route: ActivatedRoute,
@@ -87,7 +90,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
       this.updateView(data);
       this.loading = false;
-      this.showOperationTable = false;
+      this.showVesselTable = false;
     }
 
     // Load existing saleControl
@@ -95,7 +98,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
       const data = await this.dataService.load(id).first().toPromise();
       this.updateView(data);
       this.loading = false;
-      this.showOperationTable = true;
+      this.showVesselTable = true;
       this.startListenChanges();
     }
   }
@@ -126,6 +129,8 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     this.observedLocationForm.value = data;
     this.measurementsForm.value = data && data.measurements || [];
     this.measurementsForm.updateControls();
+
+    this.vesselTable && this.vesselTable.setParent(data);
 
     this.qualityForm.value = data;
 

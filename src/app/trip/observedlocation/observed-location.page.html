@@ -37,7 +37,7 @@
                   <ion-label translate>OBSERVED_LOCATION.EDIT.OTHER_FEATURES</ion-label>
                 </ion-col>
                 <ion-col>
-                  <form-measurements acquisitionLevel="SALE" [debug]="debug" #measurementsForm></form-measurements>
+                  <form-measurements acquisitionLevel="OBSERVED_LOCATION" [debug]="true" #measurementsForm></form-measurements>
                   <span *ngIf="debug">
                     <br />dirty: {{measurementsForm.dirty}}
                   </span>
@@ -56,23 +56,30 @@
       </ion-grid>
     </mat-tab>
 
-    <!-- TAB: Vessel -->
-    <mat-tab label="{{'OBSERVED_LOCATION.TAB_VESSELS'|translate}}">
+    <!-- TAB: Observed vessels -->
+    <!-- TODO: add this : [disabled]="!showVesselTable" -->
+    <mat-tab label="{{'OBSERVED_LOCATION.TAB_VESSELS'|translate}}" >
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>
         </mat-icon>
         <ion-label translate>OBSERVED_LOCATION.TAB_VESSELS</ion-label>
-        <!--<ion-icon slot="end" name="alert" color="danger" *ngIf="physicalGearTable.invalid"></ion-icon>-->
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="vesselTable.invalid"></ion-icon>
       </ng-template>
 
       <div no-padding>
 
-        <!-- error
-        <ion-item *ngIf="physicalGearTable.error" visible-xs visible-sm>
+        <!-- error -->
+        <ion-item *ngIf="vesselTable.error" visible-xs visible-sm>
           <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="physicalGearTable.error|translate"></ion-label>
-        </ion-item>-->
+          <ion-label color="danger" class="error" [innerHTML]="vesselTable.error|translate"></ion-label>
+        </ion-item>
+
+        <!--showVesselTable-->
+
+        <table-observed-vessels #vesselTable
+                     acquisitionLevel="LANDING"
+                     [debug]="debug"></table-observed-vessels>
 
       </div>
     </mat-tab>

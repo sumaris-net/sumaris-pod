@@ -96,7 +96,7 @@
     </mat-tab>
 
     <!-- TAB: operations -->
-    <mat-tab label="{{'TRIP.TAB_OPERATIONS'|translate}}">
+    <mat-tab label="{{'TRIP.TAB_OPERATIONS'|translate}}" [disabled]="!showOperationTable">
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="locate"></ion-icon>
@@ -105,20 +105,10 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="operationTable.invalid && operationTable.dirty"></ion-icon>
       </ng-template>
 
-      <!-- Help (need to save first) -->
-      <ion-item [hidden]="showOperationTable">
-        <ion-icon slot="start" name="ios-help-circle-outline" color="primary"></ion-icon>
-        <ion-label>
-          <ion-text>
-            <p [innerHTML]="'TRIP.NEW.ACCESS_OPERATIONS_HELP'|translate"></p>
-          </ion-text>
-        </ion-label>
-      </ion-item>
-
-      <div no-padding [hidden]="!showOperationTable">
-        <table-operations #operationTable (onOperationClick)="onOperationClick($event)" (onNewOperationClick)="onNewOperationClick($event)">
-        </table-operations>
-      </div>
+      <table-operations #operationTable
+                        (onOperationClick)="onOperationClick($event)"
+                        (onNewOperationClick)="onNewOperationClick($event)">
+      </table-operations>
     </mat-tab>
   </mat-tab-group>
 

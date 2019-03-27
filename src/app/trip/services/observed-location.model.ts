@@ -1,6 +1,6 @@
-import {fromDateISOString, isNotNil, ReferentialRef, toDateISOString} from "../../core/core.module";
+import {fromDateISOString, isNotNil, Person, ReferentialRef, toDateISOString} from "../../core/core.module";
 
-import {DataRootEntity, Measurement, MeasurementUtils} from "./trip.model";
+import {DataRootEntity, Measurement, MeasurementUtils, Sale} from "./trip.model";
 
 
 import {Moment} from "moment/moment";
@@ -15,13 +15,16 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
   }
 
   program: ReferentialRef;
-  //sales: Sale[];
   startDateTime: Moment;
   endDateTime: Moment;
   location: ReferentialRef;
+
   // TODO: remove this
   measurements: Measurement[];
   measurementValues: { [key: string]: any };
+
+  sales: Sale[];
+  observers: Person[];
 
   // TODO: add observers
 
@@ -29,10 +32,12 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
     super();
     this.program = new ReferentialRef();
     this.location = new ReferentialRef();
-    //this.sale = new Sale();
     // TODO: remove this
     this.measurements = [];
     this.measurementValues = {};
+
+    this.sales = null;
+    this.observers = [];
   }
 
   clone(): ObservedLocation {
@@ -51,9 +56,10 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.location = this.location && this.location.asObject(false/*keep for trips list*/) || undefined;
-    //target.sale = this.sale && this.sale.asObject(minify) || undefined;
+
     // TODO: remove this
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
+
     // Measurement: keep only the map
     if (minify) {
       target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
@@ -63,6 +69,10 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
           return map;
         }, {}) || undefined;
     }
+
+    target.sales = this.sales && this.sales.map(s => s.asObject(minify)) || undefined;
+    target.observers = this.observers && this.observers.map(o => o.asObject(minify)) || undefined;
+
     return target;
   }
 
@@ -72,7 +82,6 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
     source.location && this.location.fromObject(source.location);
-    //source.sale &&  this.sale.fromObject(source.sale);
     // TODO: remove this
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
 
@@ -87,6 +96,10 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
         return map;
       }, {}) || undefined;
     }
+
+    this.sales = source.sales && source.sales.map(Sale.fromObject) || [];
+    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+
     return this;
   }
 

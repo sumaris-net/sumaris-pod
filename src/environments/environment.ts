@@ -18,8 +18,8 @@ export const environment: Environment = {
     defaultLocale: "fr",
     defaultLatLongFormat: 'DDMM',
 
-    //defaultProgram: "ADAP-MER",
-    defaultProgram: "SUMARiS",
+    defaultProgram: "ADAP-MER",
+    //defaultProgram: "SUMARiS",
 
     apolloFetchPolicy: 'cache-first',
 

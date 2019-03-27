@@ -2,119 +2,106 @@ import gql from "graphql-tag";
 import {ReferentialFragments} from "../../referential/referential.module";
 
 export const Fragments = {
-  department: gql`
-    fragment DepartmentFragment on DepartmentVO {
+  department: gql`fragment DepartmentFragment on DepartmentVO {
+    id
+    label
+    name
+    logo
+    __typename
+  }`,
+  recorderDepartment: gql`fragment RecorderDepartmentFragment on DepartmentVO {
+    id
+    label
+    name
+    logo
+    __typename
+  }`,
+  recorderPerson: gql`fragment RecorderPersonFragment on PersonVO {
+    id
+    firstName
+    lastName
+    avatar
+    department {
       id
       label
       name
-      logo
       __typename
     }
-  `,
-  recorderDepartment: gql`
-    fragment RecorderDepartmentFragment on DepartmentVO {
-      id
-      label
-      name
-      logo
-      __typename
-    }
-  `,
-  recorderPerson: gql`
-    fragment RecorderPersonFragment on PersonVO {
-      id
-      firstName
-      lastName
-      avatar
-      department {
-        id
-        label
-        name
-        __typename
-      }
-      __typename
-    }
-  `,
-  location: gql`
-      fragment LocationFragment on LocationVO {
-        id
-        label
-        name
-        entityName
-        __typename
-      }
-    `,
+    __typename
+  }`,
+  location: gql`fragment LocationFragment on LocationVO {
+    id
+    label
+    name
+    entityName
+    __typename
+  }`,
   referential: ReferentialFragments.referential,
-  position: gql`
-      fragment PositionFragment on VesselPositionVO {
-        id
-        dateTime
-        latitude
-        longitude
-        updateDate
-        qualityFlagId
-        recorderDepartment {
-          id
-          label
-          name
-          __typename
-        }
-        __typename
-      }
-    `,
-  measurement: gql`
-      fragment MeasurementFragment on MeasurementVO {
-        id
-        pmfmId
-        alphanumericalValue
-        numericalValue
-        rankOrder
-        qualitativeValue {
-          id
-          label
-          __typename
-        }
-        digitCount
-        qualityFlagId
-        creationDate
-        updateDate
-        recorderDepartment {
-          id
-          label
-          name
-          __typename
-        }
-        entityName
-        __typename
-      }
-    `
+  position: gql`fragment PositionFragment on VesselPositionVO {
+    id
+    dateTime
+    latitude
+    longitude
+    updateDate
+    qualityFlagId
+    recorderDepartment {
+      id
+      label
+      name
+      __typename
+    }
+    __typename
+  }`,
+  measurement: gql`fragment MeasurementFragment on MeasurementVO {
+    id
+    pmfmId
+    alphanumericalValue
+    numericalValue
+    rankOrder
+    qualitativeValue {
+      id
+      label
+      __typename
+    }
+    digitCount
+    qualityFlagId
+    creationDate
+    updateDate
+    recorderDepartment {
+      id
+      label
+      name
+      __typename
+    }
+    entityName
+    __typename
+  }`
 };
 
 export const DataFragments = {
   sample: gql`fragment SampleFragment on SampleVO {
-      id
-      label
-      rankOrder
-      parentId
-      sampleDate
-      individualCount
-      comments
-      updateDate
-      creationDate
-      matrix {
-        ...ReferentialFragment
-      }
-      taxonName {
-        ...ReferentialFragment
-      }
-      taxonGroup {
-        ...ReferentialFragment
-      }
-      measurementValues    
-      __typename  
+    id
+    label
+    rankOrder
+    parentId
+    sampleDate
+    individualCount
+    comments
+    updateDate
+    creationDate
+    matrix {
+      ...ReferentialFragment
     }
-    ${Fragments.referential}
-  `,
+    taxonName {
+      ...ReferentialFragment
+    }
+    taxonGroup {
+      ...ReferentialFragment
+    }
+    measurementValues    
+    __typename  
+  }
+  ${Fragments.referential}`,
   batch: gql`fragment BatchFragment on BatchVO {
     id
     label
@@ -135,6 +122,11 @@ export const DataFragments = {
     measurementValues     
     __typename 
   }
-  ${Fragments.referential}
-`
+  ${Fragments.referential}`,
+  vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {
+    vesselId
+    name
+    exteriorMarking
+  }
+  `
 };

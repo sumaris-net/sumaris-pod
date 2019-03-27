@@ -66,7 +66,10 @@ export const PmfmLabelPatterns = {
 
 const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
-export { Referential, ReferentialRef, EntityUtils, Person, toDateISOString, fromDateISOString, joinProperties, StatusIds, Cloneable, Entity, Department, entityToString, referentialToString, isNotNil, isNil, AcquisitionLevelCodes };
+export { EntityUtils, StatusIds, AcquisitionLevelCodes,
+  Cloneable, Entity, Department, Person, Referential, ReferentialRef,
+  toDateISOString, fromDateISOString, joinProperties, isNotNil, isNil,
+  entityToString, referentialToString};
 
 
 

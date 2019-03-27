@@ -37,6 +37,8 @@ import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
 import {ObservedLocationService} from "./services/observed-location.service";
 import {ObservedLocationValidatorService} from "./services/observed-location.validator";
+import {ObservedVesselsTable} from "./observedlocation/observed-vessels.table";
+import {SaleService} from "./services/sale.service";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityMetadataComponent }
 
@@ -63,6 +65,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       MeasurementQVFormField,
       MeasurementFormField,
       CatchForm,
+      ObservedVesselsTable,
       SamplesTable,
       SubSamplesTable,
       BatchGroupsTable,
@@ -105,12 +108,13 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     providers: [
       TripService,
       TripValidatorService,
-      SaleValidatorService,
       PhysicalGearValidatorService,
       OperationService,
       OperationValidatorService,
       ObservedLocationService,
       ObservedLocationValidatorService,
+      SaleService,
+      SaleValidatorService,
       PositionValidatorService,
       MeasurementsValidatorService,
       BatchValidatorService,
