@@ -9,6 +9,7 @@ export const environment: Environment = {
   remoteBaseUrl: "https://www.sumaris.net",
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
-  defaultProgram: "SUMARiS",
-  apolloFetchPolicy: 'cache-first'
+  defaultProgram: 'SUMARIS',
+  apolloFetchPolicy: 'cache-first',
+  mock: true
 };
