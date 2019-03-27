@@ -137,7 +137,7 @@
     <!-- Date time (start+end) -->
     <ion-row *ngIf="showEndDateTime">
       <ion-col size="12" size-md="2" size-lg="3" align-self-end>
-        <p ion-text translate>SALE.START</p>
+        <ion-label translate>SALE.START</ion-label>
       </ion-col>
       <ion-col *ngIf="showEndDateTime">
         <mat-date-time [placeholder]="'SALE.START_DATE'|translate" formControlName="startDateTime" [displayTime]="true">
@@ -145,7 +145,7 @@
       </ion-col>
 
       <ion-col size="12" size-md="2" size-lg="3" align-self-end>
-        <p ion-text translate>SALE.END</p>
+        <ion-label translate>SALE.END</ion-label>
       </ion-col>
 
       <ion-col size="auto" *ngIf="showEndDateTime">

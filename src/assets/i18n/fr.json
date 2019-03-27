@@ -372,11 +372,13 @@
     "START_DATE_TIME": "Date/heure de début",
     "END_DATE": "Date fin",
     "END_DATE_TIME": "Date/heure de fin",
-    "START": "Début",
-    "END": "Fin",
+    "START": "Début :",
+    "END": "Fin :",
     "LOCATION": "Criée",
     "TAB_GENERAL": "Détails",
     "TAB_VESSELS": "Navires observés",
+    "OBSERVER": "Observateur #1",
+    "OBSERVERS": "Observateurs :",
     "NEW": {
       "TITLE": "Nouveau contrôle"
     },
@@ -392,6 +394,9 @@
       "LOCATION": "Criée",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires",
+      "PMFM_1": "Type de contrôle",
+      "PMFM_2": "Anomalie",
+      "PMFM_3": "Alerte 15j",
       "FILTER": {
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",

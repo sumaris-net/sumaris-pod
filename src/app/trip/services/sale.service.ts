@@ -438,9 +438,9 @@ export class SaleService extends BaseDataService implements DataService<Sale, Sa
   /* -- private -- */
 
   getMockData(): LoadResult<Sale> {
-    const recorderPerson = {id: 1, firstName:'Benoit', lastName: 'Lavenier'};
+    const recorderPerson = {id: 1, firstName:'Jacques', lastName: 'Dupond'};
     const observers = [recorderPerson];
-    const location = {id: 30, label:'FRDRZ', name:'Douarnenez'};
+    const location = {id: 30, label:'DZ', name:'Douarnenez'};
 
     const data = [
       Sale.fromObject({

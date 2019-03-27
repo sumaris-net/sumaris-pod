@@ -28,8 +28,9 @@
 
         <ion-row no-padding>
           <ion-col padding>
+
             <!-- observed location -->
-            <form-observed-location (onSubmit)="save($event)" [showError]="false"[showEndDateTime]="false" #observedLocationForm>
+            <form-observed-location (onSubmit)="save($event)" [showError]="false" [showEndDateTime]="true" #observedLocationForm>
 
               <!-- Measurements -->
               <ion-row>

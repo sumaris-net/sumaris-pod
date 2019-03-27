@@ -62,6 +62,9 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           'program',
           'location',
           'startDateTime',
+          'pmfm_1',
+          'pmfm_2',
+          'pmfm_3',
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),

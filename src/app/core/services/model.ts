@@ -72,8 +72,8 @@ export function referentialToString(obj: Referential | ReferentialRef | any, pro
   return obj && obj.id && joinProperties(obj, properties || ['label', 'name']) || undefined;
 }
 
-export function personToString(data: Person): string {
-  return joinProperties(data, ['lastName', 'firstName'], ' ');
+export function personToString(obj: Person): string {
+  return obj && obj.id && (obj.lastName + ' ' + obj.firstName) || undefined;
 }
 
 export function personsToString(data: Person[], separator?: string): string {

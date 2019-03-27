@@ -33,7 +33,7 @@ import {ObservedLocation} from "../services/observed-location.model";
 import {SaleFilter, SaleService} from "../services/sale.service";
 
 const PMFM_ID_REGEXP = /\d+/;
-const SALE_RESERVED_START_COLUMNS: string[] = ['vessel', 'startDateTime', 'observers'];
+const SALE_RESERVED_START_COLUMNS: string[] = ['vessel', 'startDateTime', 'observers', 'pmfm_2', 'pmfm_3'];
 const SALE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({

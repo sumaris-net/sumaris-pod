@@ -121,8 +121,10 @@
     <!-- Id Column -->
     <ng-container matColumnDef="id">
       <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header [class.hidden]="!isAdmin">
-        <span *ngIf="!loading">#</span>
-        <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+        #
+        <!-- TODO: uncomment spinner -->
+        <!--<span *ngIf="!loading">#</span>-->
+        <!--<ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>-->
       </mat-header-cell>
       <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
     </ng-container>
@@ -166,6 +168,38 @@
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
         {{ row.currentData.startDateTime | dateFormat: {time: true} }}
+      </mat-cell>
+    </ng-container>
+
+    <!-- TODO: pmfm -->
+    <ng-container matColumnDef="pmfm_1">
+      <mat-header-cell *matHeaderCellDef>
+        Type de contrôle
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        Avant-vente
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="pmfm_2">
+      <mat-header-cell *matHeaderCellDef>
+        Anomalie
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ng-container *ngIf="row.id &lt; 2">RAS</ng-container>
+        <ng-container *ngIf="row.id >= 2">Dépassement</ng-container>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="pmfm_3">
+      <mat-header-cell *matHeaderCellDef>
+        Alerte 15j
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ng-container *ngIf="row.id >= 2">
+          <ion-icon color="primary" margin-right name="person" slot="icon-only"></ion-icon>
+          <ion-icon color="primary" margin-right name="flag" slot="icon-only"></ion-icon>
+        </ng-container>
       </mat-cell>
     </ng-container>
 

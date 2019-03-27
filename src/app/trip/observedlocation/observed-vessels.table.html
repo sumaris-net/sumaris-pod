@@ -142,6 +142,29 @@
 
   </ng-container>
 
+  <!-- TODO: pmfm -->
+  <ng-container matColumnDef="pmfm_2">
+    <mat-header-cell *matHeaderCellDef>
+      Anomalie
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ng-container *ngIf="row.id &lt; 1">RAS</ng-container>
+      <ng-container *ngIf="row.id >= 1">Dépassement</ng-container>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="pmfm_3">
+    <mat-header-cell *matHeaderCellDef>
+      Alerte 15j
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ng-container *ngIf="row.id >= 1">
+        <ion-icon color="danger" margin-right name="person" slot="icon-only"></ion-icon>
+        <ion-icon color="danger" margin-right name="flag" slot="icon-only"></ion-icon>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
+
   <!-- Comment column --><!-- Comments column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef>

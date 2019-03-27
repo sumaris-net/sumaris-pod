@@ -88,9 +88,11 @@ export class ObservedLocationService extends BaseDataService implements DataServ
   /* -- private -- */
 
   getMockData(): LoadResult<ObservedLocation> {
-    const recorderPerson = {id: 1, firstName:'Benoit', lastName: 'Lavenier'};
+    const recorderPerson = {id: 1, firstName:'Jacques', lastName: 'Dupond'};
+    const recorderPerson2 = {id: 2, firstName:'Alfred', lastName: 'Dupont'};
     const observers = [recorderPerson];
-    const location = {id: 30, label:'FRDRZ', name:'Douarnenez'};
+    const location = {id: 30, label:'DZ', name:'Douarnenez'};
+    const location2 = {id: 31, label:'GV', name:'Guilvinec'};
 
     const data = [
         ObservedLocation.fromObject({
@@ -99,7 +101,7 @@ export class ObservedLocationService extends BaseDataService implements DataServ
           startDateTime: '2019-01-01T03:50:00.000Z',
           location: location,
           recorderPerson: recorderPerson,
-          observers: observers,
+          observers: [recorderPerson],
           sales: [
             {
               id: 100,
@@ -107,31 +109,34 @@ export class ObservedLocationService extends BaseDataService implements DataServ
               location: location,
               vesselFeatures: {id: 1, vesselId:1, name:'Vessel 1', exteriorMarking:'FRA000851751'}
             }
-          ]
+          ],
+          measurementValues: {
+            130: {id: '220', label: 'AV V', name: 'Avant-vente'}
+          }
         }),
         ObservedLocation.fromObject({
           id:2,
           program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-01T03:50:00.000Z',
-          location: {id: 30, label:'FRDRZ', name:'Douarnenez'},
-          recorderPerson: recorderPerson,
-          observers: observers
+          startDateTime: '2019-01-02T03:50:00.000Z',
+          location: location,
+          recorderPerson: recorderPerson2,
+          observers: [recorderPerson2]
         }),
         ObservedLocation.fromObject({
           id:3,
           program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-01T03:50:00.000Z',
-          location: {id: 30, label:'FRDRZ', name:'Douarnenez'},
+          startDateTime: '2019-01-03T03:50:00.000Z',
+          location:location2,
           recorderPerson: recorderPerson,
-          observers: observers
+          observers: [recorderPerson]
         }),
         ObservedLocation.fromObject({
           id:4,
           program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-01T03:50:00.000Z',
-          location: {id: 30, label:'FRDRZ', name:'Douarnenez'},
-          recorderPerson: recorderPerson,
-          observers: observers
+          startDateTime: '2019-01-04T03:50:00.000Z',
+          location: location2,
+          recorderPerson: recorderPerson2,
+          observers: [recorderPerson2, recorderPerson]
         }),
       ];
 
