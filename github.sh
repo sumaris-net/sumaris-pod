@@ -75,7 +75,7 @@ case "$1" in
     echo "Uploading files... to $upload_url"
     dirname=`pwd`
 
-    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "$dirname/sumaris-core-server/target/sumaris-core-server-$current.jar" "$upload_url?name=sumaris-pod-$current.jar"`
+    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "$dirname/sumaris-server/target/sumaris-server-$current.jar" "$upload_url?name=sumaris-pod-$current.jar"`
     browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
     echo " - $browser_download_url"
 

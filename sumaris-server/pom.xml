@@ -7,7 +7,7 @@
     <version>0.9.12-SNAPSHOT</version>
   </parent>
 
-  <artifactId>sumaris-core-server</artifactId>
+  <artifactId>sumaris-server</artifactId>
   <packaging>jar</packaging>
   <name>SUMARiS:: Server</name>
   <description>SUMARiS server</description>
