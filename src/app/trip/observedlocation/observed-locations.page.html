@@ -131,7 +131,7 @@
 
     <!-- Quality Column -->
     <ng-container matColumnDef="quality">
-      <mat-header-cell *matHeaderCellDef> <!--mat-sort-header TODO pas triable pour l'instant -->
+      <mat-header-cell *matHeaderCellDef>
         <span translate>OBSERVED_LOCATION.TABLE.QUALITY</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
@@ -147,7 +147,7 @@
         <span translate>OBSERVED_LOCATION.TABLE.PROGRAM</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{row.currentData.program.label}}
+        {{programToString(row.currentData.program)}}
       </mat-cell>
     </ng-container>
 
@@ -156,18 +156,18 @@
       <mat-header-cell *matHeaderCellDef>
         <span translate>OBSERVED_LOCATION.TABLE.LOCATION</span>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        {{referentialToString(row.currentData.location)}}
+      <mat-cell *matCellDef="let row">
+        {{referentialToString(row.currentData.location)}} {{row.currentData.location}}
       </mat-cell>
     </ng-container>
 
     <!-- date time  -->
     <ng-container matColumnDef="startDateTime">
-      <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+      <mat-header-cell *matHeaderCellDef mat-sort-header >
         <span translate>OBSERVED_LOCATION.TABLE.START_DATE_TIME</span>
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-        {{ row.currentData.startDateTime | dateFormat: {time: true} }}
+        {{ row.currentData?.startDateTime|dateFormat }}
       </mat-cell>
     </ng-container>
 
@@ -187,7 +187,7 @@
         <span translate>OBSERVED_LOCATION.TABLE.OBSERVERS</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{ personsToString(row.currentData.observers) }}
+        <ion-label>{{ personsToString(row.currentData.observers) }}</ion-label>
       </mat-cell>
     </ng-container>
 

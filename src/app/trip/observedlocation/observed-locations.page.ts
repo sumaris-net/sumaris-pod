@@ -62,14 +62,13 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           'program',
           'location',
           'startDateTime',
-          'pmfm_1',
-          'pmfm_2',
-          'pmfm_3',
+          'pmfm_1', // TODO
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, validatorService, {
         prependNewElements: false,
+        suppressErrors: false,
         useRowValidator: false,
         serviceOptions: {
           saveOnlyDirtyRows: true

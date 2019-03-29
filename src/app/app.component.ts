@@ -109,13 +109,15 @@ export class AppComponent {
       this._document.getElementById('appFavicon').setAttribute('href', favicon);
     }
 
-    this.updateTheme({
-      colors: {
-        primary: config.properties["sumaris.color.primary"],
-        secondary: config.properties["sumaris.color.secondary"],
-        tertiary: config.properties["sumaris.color.tertiary"]
-      }
-    });
+    if (config.properties) {
+      this.updateTheme({
+        colors: {
+          primary: config.properties["sumaris.color.primary"],
+          secondary: config.properties["sumaris.color.secondary"],
+          tertiary: config.properties["sumaris.color.tertiary"]
+        }
+      });
+    }
 
   }
 
