@@ -98,14 +98,14 @@ export class ObservedLocationService extends BaseDataService implements DataServ
         ObservedLocation.fromObject({
           id:1,
           program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-01T03:50:00.000Z',
+          startDateTime: '2019-01-01T03:50:00Z',
           location: location,
           recorderPerson: recorderPerson,
           observers: [recorderPerson],
           sales: [
             {
               id: 100,
-              startDateTime: '2019-01-01T03:50:00.000Z',
+              startDateTime: '2019-01-01T03:50:00Z',
               location: location,
               vesselFeatures: {id: 1, vesselId:1, name:'Vessel 1', exteriorMarking:'FRA000851751'}
             }
@@ -117,7 +117,7 @@ export class ObservedLocationService extends BaseDataService implements DataServ
         ObservedLocation.fromObject({
           id:2,
           program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-02T03:50:00.000Z',
+          startDateTime: '2019-01-02T03:50:00Z',
           location: location,
           recorderPerson: recorderPerson2,
           observers: [recorderPerson2]
@@ -125,7 +125,7 @@ export class ObservedLocationService extends BaseDataService implements DataServ
         ObservedLocation.fromObject({
           id:3,
           program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-03T03:50:00.000Z',
+          startDateTime: '2019-01-03T03:50:00Z',
           location:location2,
           recorderPerson: recorderPerson,
           observers: [recorderPerson]
@@ -133,7 +133,7 @@ export class ObservedLocationService extends BaseDataService implements DataServ
         ObservedLocation.fromObject({
           id:4,
           program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-04T03:50:00.000Z',
+          startDateTime: '2019-01-04T03:50:00Z',
           location: location2,
           recorderPerson: recorderPerson2,
           observers: [recorderPerson2, recorderPerson]

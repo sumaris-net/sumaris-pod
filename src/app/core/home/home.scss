@@ -1,6 +1,5 @@
 @import 'core';
 $card-background: rgba(255, 255, 255, .7) !default;
-
 h1,
 h2,
 h3,
@@ -16,7 +15,7 @@ h5 {
 
 ion-content {
   @extend .center;
-  //--ion-background-color: transparent;
+  --background: transparent;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;

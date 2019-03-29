@@ -80,6 +80,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     this.autoLoad = false;
     this.setDatasource(new AppTableDataSource<PhysicalGear, any>(PhysicalGear, this, this.validatorService, {
       prependNewElements: false,
+      suppressErrors: false,
       onNewRow: (row) => this.onCreateNewGear(row)
     }));
 

@@ -5,11 +5,12 @@ import { ElementRef } from "@angular/core";
 import { OnChanges } from "@angular/core";
 import { OnDestroy } from "@angular/core";
 import { SimpleChanges } from "@angular/core";
+import Timeout = NodeJS.Timeout;
 
 // ----------------------------------------------------------------------------------- //
 // ----------------------------------------------------------------------------------- //
 
-var BASE_TIMER_DELAY = 10;
+const BASE_TIMER_DELAY = 100;
 
 @Directive({
   selector: "[autofocus], [appAutofocus]",
@@ -21,10 +22,10 @@ var BASE_TIMER_DELAY = 10;
 export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestroy {
 
   public shouldFocusElement: any;
-  public timerDelay: number | string;
+  public timerDelay: number;
 
   private elementRef: ElementRef;
-  private timer: number;
+  private timer: Timeout = null;
 
   // I initialize the autofocus directive.
   constructor( elementRef: ElementRef ) {
@@ -42,7 +43,7 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
   // ---
 
   // I get called once after the contents have been fully initialized.
-  public ngAfterContentInit() : void {
+  public ngAfterContentInit() {
 
     // Because this directive can act on the stand-only "autofocus" attribute or
     // the more specialized "appAutofocus" property, we need to check to see if the
@@ -58,7 +59,7 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
 
 
   // I get called every time the input bindings are updated.
-  public ngOnChanges( changes: SimpleChanges ) : void {
+  public ngOnChanges( changes: SimpleChanges ) {
 
     // If the timer delay is being passed-in as a string (ie, someone is using
     // attribute-input syntax, not property-input syntax), let's coalesce the
@@ -90,7 +91,7 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
 
 
   // I get called once when the directive is being unmounted.
-  public ngOnDestroy() : void {
+  public ngOnDestroy() {
 
     this.stopFocusWorkflow();
 
@@ -101,7 +102,7 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
   // ---
 
   // I start the timer-based workflow that will focus the current element.
-  private startFocusWorkflow() : void {
+  private startFocusWorkflow() {
 
     // If there is already a timer running for this element, just let it play out -
     // resetting it at this point will only push-out the time at which the focus is
@@ -113,11 +114,10 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
     }
 
     this.timer = setTimeout(
-      () : void => {
-
+      () => {
+        this.timer.unref();
         this.timer = null;
         this.elementRef.nativeElement.focus();
-
       },
       this.timerDelay
     );
@@ -126,7 +126,7 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
 
 
   // I stop the timer-based workflow, preventing focus from taking place.
-  private stopFocusWorkflow() : void {
+  private stopFocusWorkflow() {
 
     clearTimeout( this.timer );
     this.timer = null;

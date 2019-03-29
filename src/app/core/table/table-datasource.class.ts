@@ -1,11 +1,11 @@
-import { TableDataSource, ValidatorService } from "angular4-material-table";
+import { TableDataSource, ValidatorService } from 'angular4-material-table';
 import { Observable } from "rxjs";
-import {DataService, isNotNil, LoadResult} from "../../shared/shared.module";
-import { EventEmitter } from "@angular/core";
+import {DataService, isNotNil, LoadResult} from '../../shared/shared.module';
+import { EventEmitter } from '@angular/core';
 import { Entity } from "../services/model";
-import { TableElement } from "angular4-material-table";
-import { ErrorCodes } from "../services/errors";
-import { AppFormUtils } from "../form/form.utils";
+import { TableElement } from 'angular4-material-table';
+import { ErrorCodes } from '../services/errors';
+import { AppFormUtils } from '../form/form.utils';
 
 export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
 
@@ -34,11 +34,12 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     validatorService?: ValidatorService,
     config?: {
       prependNewElements: boolean;
+      suppressErrors: boolean;
       onNewRow?: (row: TableElement<T>) => Promise<void> | void;
       useRowValidator?: boolean;
       serviceOptions?: {
         saveOnlyDirtyRows?: boolean;
-      }
+      },
     }) {
     super([], dataType, validatorService, config);
     this.serviceOptions = config && config.serviceOptions;
@@ -68,7 +69,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       .catch(err => this.handleError(err, 'Unable to load rows'))
       .map(res => {
         this.onLoading.emit(false);
-        if (this._debug) console.debug("[table-datasource] Updating datasource...", res);
+        if (this._debug) console.debug('[table-datasource] Updating datasource...', res);
         this.updateDatasource(res.data);
         return res;
       });
@@ -76,7 +77,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
   async save(): Promise<boolean> {
 
-    if (this._debug) console.debug("[table-datasource] Saving rows...");
+    if (this._debug) console.debug('[table-datasource] Saving rows...');
     this.onLoading.emit(true);
 
     try {
@@ -102,20 +103,20 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
       // If no data to save: exit
       if (saveOnlyDirtyRows && !dataToSave.length) {
-        if (this._debug) console.debug("[table-datasource] No row to save");
+        if (this._debug) console.debug('[table-datasource] No row to save');
         return false;
       }
 
-      if (this._debug) console.debug("[table-datasource] Dirty data to save:", dataToSave);
+      if (this._debug) console.debug('[table-datasource] Dirty data to save:', dataToSave);
 
       var savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
-      if (this._debug) console.debug("[table-datasource] Data saved. Updated data received by service:", savedData);
-      if (this._debug) console.debug("[table-datasource] Updating datasource...", data);
+      if (this._debug) console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
+      if (this._debug) console.debug('[table-datasource] Updating datasource...', data);
       this.updateDatasource(data, { emitEvent: false });
       return true;
     }
     catch (error) {
-      if (this._debug) console.error("[table-datasource] Error while saving: " + error && error.message || error);
+      if (this._debug) console.error('[table-datasource] Error while saving: ' + error && error.message || error);
       throw error;
     }
     finally {

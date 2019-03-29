@@ -127,6 +127,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
       // DataSource options
       {
         prependNewElements: false,
+        suppressErrors: false,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }

@@ -76,6 +76,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Referential, ReferentialFilter>(Referential, referentialService, validatorService, {
         prependNewElements: false,
+        suppressErrors: false,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }

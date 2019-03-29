@@ -13,16 +13,16 @@ import {isNil, isNotNil} from "../functions";
 export class ToolbarComponent implements OnInit {
 
   @Input()
-  title: string = '';
+  title: String = '';
 
   @Input()
-  color: string = 'primary';
+  color: String = 'primary';
 
   @Input()
-  class: string = '';
+  class: String = '';
 
   @Input()
-  hasValidate: boolean = false;
+  hasValidate: Boolean = false;
 
   @Input()
   defaultBackHref: string | undefined;

@@ -132,6 +132,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
             Sample, this, this, {
                 prependNewElements: false,
+                suppressErrors: false,
                 onNewRow: (row) => this.onNewSample(row.currentData)
             }));
         //this.debug = true;

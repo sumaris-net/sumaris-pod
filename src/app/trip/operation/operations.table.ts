@@ -73,6 +73,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
         // DataSource options
         {
           prependNewElements: false,
+          suppressErrors: false,
           serviceOptions: {
             saveOnlyDirtyRows: true
           }

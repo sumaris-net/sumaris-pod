@@ -65,6 +65,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
         prependNewElements: false,
+        suppressErrors: false,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }

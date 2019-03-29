@@ -140,6 +140,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
             Batch, this, this, {
                 prependNewElements: false,
+                suppressErrors: false,
                 onNewRow: (row) => this.onNewBatch(row.currentData)
             }));
         //this.debug = true;

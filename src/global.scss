@@ -15,45 +15,6 @@ body {
   @include font-roboto();
 }
 
-// Ionic Font Family
-// --------------------------------------------------
-html.ios {
-  --ion-default-font: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Roboto", sans-serif;
-}
-
-html.md {
-  --ion-default-font: "Roboto", "Helvetica Neue", sans-serif;
-}
-
-html {
-  --ion-font-family: var(--ion-default-font);
-}
-
-// Ionic Colors
-// --------------------------------------------------
-// Generates the color classes and variables based on the
-// colors map
-@mixin generate-color($color-name) {
-  $value: map-get($colors, $color-name);
-  $base: map-get($value, base);
-  $contrast: map-get($value, contrast);
-  $shade: map-get($value, shade);
-  $tint: map-get($value, tint);
-  --ion-color-base: var(--ion-color-#{$color-name}, #{$base}) !important;
-  --ion-color-base-rgb: var(--ion-color-#{$color-name}-rgb, #{color-to-rgb-list($base)}) !important;
-  --ion-color-contrast: var(--ion-color-#{$color-name}-contrast, #{$contrast}) !important;
-  --ion-color-contrast-rgb: var(--ion-color-#{$color-name}-contrast-rgb, #{color-to-rgb-list($contrast)}) !important;
-  --ion-color-shade: var(--ion-color-#{$color-name}-shade, #{$shade}) !important;
-  --ion-color-tint: var(--ion-color-#{$color-name}-tint, #{$tint}) !important;
-}
-
-@each $color-name,
-$value in $colors {
-  .ion-color-#{$color-name} {
-    @include generate-color($color-name);
-  }
-}
-
 *::selection {
   background: var(--ion-color-shade, rgba(0, 0, 0, 0.3));
 }
@@ -453,8 +414,6 @@ ion-toolbar[translucent] {
   --background: transparent !important;
 }
 
-
-
 // --- mat-stepper component
 mat-horizontal-stepper {
   .mat-horizontal-stepper-header-container {
@@ -534,4 +493,9 @@ ion-item {
 // --------------------------------------------------
 // Theme colors override // Not need, as ionic theme are already override
 // --------------------------------------------------
-@include css-variables-to-root();
+:root {
+
+  @include css-variables-to-root();
+
+
+}

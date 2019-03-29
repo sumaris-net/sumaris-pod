@@ -126,6 +126,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
             Batch, this, this, {
                 prependNewElements: false,
+                suppressErrors: false,
                 onNewRow: (row) => this.onNewBatch(row.currentData)
             }));
         //this.debug = true;
