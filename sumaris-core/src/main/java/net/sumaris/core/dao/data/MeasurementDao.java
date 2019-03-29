@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 
-import net.sumaris.core.model.data.measure.IMeasurementEntity;
+import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.vo.data.MeasurementVO;
 
 import java.util.List;
@@ -62,6 +62,14 @@ public interface MeasurementDao {
     List<MeasurementVO> saveVesselUseMeasurementsByOperationId(int operationId, List<MeasurementVO> sources);
 
     List<MeasurementVO> saveGearUseMeasurementsByOperationId(int operationId, List<MeasurementVO> sources);
+
+    // Observed location
+    List<MeasurementVO> saveObservedLocationMeasurements(int observedLocationId, List<MeasurementVO> sources);
+    Map<Integer, String> saveObservedLocationMeasurementsMap(final int observedLocationId, Map<Integer, String> sources);
+
+    // Sale
+    List<MeasurementVO> saveSaleMeasurements(int saleId, List<MeasurementVO> sources);
+    Map<Integer, String> saveSaleMeasurementsMap(final int saleId, Map<Integer, String> sources);
 
     // Sample
     List<MeasurementVO> saveSampleMeasurements(int sampleId, List<MeasurementVO> sources);

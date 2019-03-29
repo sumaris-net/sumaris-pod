@@ -29,20 +29,15 @@ import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.data.batch.BatchService;
-import net.sumaris.core.service.data.sample.SampleService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 public class OperationServiceWriteTest extends AbstractServiceTest {

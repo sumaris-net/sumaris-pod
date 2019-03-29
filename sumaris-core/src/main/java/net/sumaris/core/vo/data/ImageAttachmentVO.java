@@ -24,6 +24,8 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
+import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -34,7 +36,9 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
-public class ImageAttachmentVO implements IUpdateDateEntityBean<Integer, Date> {
+public class ImageAttachmentVO implements IUpdateDateEntityBean<Integer, Date>,
+        IWithRecorderDepartmentEntityBean<Integer, DepartmentVO>,
+        IWithRecorderPersonEntityBean<Integer, PersonVO> {
 
     public static final String PROPERTY_DATE_TIME = "dateTime";
     public static final String PROPERTY_CONTENT_TYPE = "contentType";

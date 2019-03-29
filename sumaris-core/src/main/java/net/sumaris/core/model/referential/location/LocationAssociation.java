@@ -23,9 +23,6 @@ package net.sumaris.core.model.referential.location;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IEntityBean;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
 import java.io.Serializable;

@@ -88,6 +88,7 @@ public class Person implements IReferentialEntity {
     private Department department;
 
     @ManyToMany(fetch = FetchType.EAGER, targetEntity = UserProfile.class)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     @JoinTable(name = "person2user_profile",
             joinColumns = {
                 @JoinColumn(name = "person_fk", nullable = false, updatable = false)
@@ -95,7 +96,6 @@ public class Person implements IReferentialEntity {
             inverseJoinColumns = {
                 @JoinColumn(name = "user_profile_fk", nullable = false, updatable = false)
             })
-    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private Set<UserProfile> userProfiles = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -85,6 +85,7 @@
               LOGO_FK="18" LOCATION_FK="1"  STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
 
   <!-- Programs / strategies -->
+  <PROGRAM ID="0" LABEL="SIH" NAME="Common base program" DESCRIPTION="Program used for all common data (e.g. Vessel)" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
   <PROGRAM ID="1" LABEL="SUMARiS" NAME="European shared database for management of skate stocks" DESCRIPTION="Web site: https://www.sumaris.net" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
   <PROGRAM ID="2" LABEL="SANDBOX" NAME="Fake program, to test database tools" DESCRIPTION="Test site: https://test.sumaris.net" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
 

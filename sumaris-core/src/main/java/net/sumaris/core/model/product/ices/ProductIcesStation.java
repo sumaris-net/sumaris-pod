@@ -23,7 +23,7 @@ package net.sumaris.core.model.product.ices;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IEntityBean;
+import net.sumaris.core.dao.technical.model.IDataEntity;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 
 import javax.persistence.*;
@@ -32,7 +32,7 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table(name = "p01_ices_station")
-public class ProductIcesStation implements Serializable, IEntityBean<Integer> {
+public class ProductIcesStation implements Serializable, IDataEntity<Integer> {
 
     public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_ICES_STATION;
 

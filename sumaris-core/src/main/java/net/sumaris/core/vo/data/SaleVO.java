@@ -24,6 +24,8 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
+import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -33,9 +35,15 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Data
-public class SaleVO implements IUpdateDateEntityBean<Integer, Date> {
+public class SaleVO implements IUpdateDateEntityBean<Integer, Date>,
+        IWithRecorderPersonEntityBean<Integer, PersonVO>,
+        IWithRecorderDepartmentEntityBean<Integer, DepartmentVO>,
+        IWithVesselFeaturesVO<Integer, VesselFeaturesVO>{
 
     public static final String PROPERTY_START_DATE_TIME = "startDateTime";
     public static final String PROPERTY_END_DATE_TIME = "endDateTime";
@@ -60,8 +68,14 @@ public class SaleVO implements IUpdateDateEntityBean<Integer, Date> {
     private LocationVO saleLocation;
     private ReferentialVO saleType;
 
+    private Set<PersonVO> observers;
+    private List<SampleVO> samples;
+
     private TripVO trip;
     private Integer tripId;
+
+    private List<MeasurementVO> measurements; // sale_measurement
+    private Map<Integer, String> measurementValues; // sale_measurement
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

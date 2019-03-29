@@ -20,14 +20,14 @@
     <class>net.sumaris.core.model.data.Vessel</class>
     <class>net.sumaris.core.model.data.VesselFeatures</class>
     <class>net.sumaris.core.model.data.VesselPosition</class>
-    <class>net.sumaris.core.model.data.batch.Batch</class>
-    <class>net.sumaris.core.model.data.batch.BatchQuantificationMeasurement</class>
-    <class>net.sumaris.core.model.data.batch.BatchSortingMeasurement</class>
-    <class>net.sumaris.core.model.data.measure.GearUseMeasurement</class>
-    <class>net.sumaris.core.model.data.measure.PhysicalGearMeasurement</class>
-    <class>net.sumaris.core.model.data.measure.VesselUseMeasurement</class>
-    <class>net.sumaris.core.model.data.sample.Sample</class>
-    <class>net.sumaris.core.model.data.sample.SampleMeasurement</class>
+    <class>net.sumaris.core.model.data.Batch</class>
+    <class>net.sumaris.core.model.data.BatchQuantificationMeasurement</class>
+    <class>net.sumaris.core.model.data.BatchSortingMeasurement</class>
+    <class>net.sumaris.core.model.data.GearUseMeasurement</class>
+    <class>net.sumaris.core.model.data.PhysicalGearMeasurement</class>
+    <class>net.sumaris.core.model.data.VesselUseMeasurement</class>
+    <class>net.sumaris.core.model.data.Sample</class>
+    <class>net.sumaris.core.model.data.SampleMeasurement</class>
     <class>net.sumaris.core.model.file.File</class>
     <class>net.sumaris.core.model.file.FileLine</class>
     <class>net.sumaris.core.model.file.FileStatus</class>

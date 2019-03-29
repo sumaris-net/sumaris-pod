@@ -3,15 +3,15 @@
 echo "**********************************"
 echo "* Preparing release..."
 echo "**********************************"
-result=`mvn release:clean`
-failure=`echo "$result" | grep -m1 -P "\[INFO\] BUILD FAILURE"  | grep -oP "BUILD \w+"`
+#result=`mvn release:clean`
+#failure=`echo "$result" | grep -m1 -P "\[INFO\] BUILD FAILURE"  | grep -oP "BUILD \w+"`
 # prepare failed
 if [[ ! "_$failure" = "_" ]]; then
     echo "$result" | grep -P "\[ERROR\] "
     exit 1
 fi
 
-mvn release:prepare --quiet
+#mvn release:prepare --quiet
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
@@ -19,7 +19,7 @@ fi
 echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
-mvn release:perform --quiet
+#mvn release:perform --quiet
 if [[ $? -ne 0 ]]; then
     exit 1
 fi

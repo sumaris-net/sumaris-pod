@@ -29,7 +29,7 @@ import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.model.data.measure.PhysicalGearMeasurement;
+import net.sumaris.core.model.data.PhysicalGearMeasurement;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.QualityFlag;

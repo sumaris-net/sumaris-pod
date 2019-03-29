@@ -22,9 +22,11 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -51,7 +53,18 @@ public class TripServiceWriteTest extends AbstractServiceTest{
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
+
+        // Reload and check
+        TripVO reloadedVO = service.get(savedVO.getId());
+        Assert.assertNotNull(reloadedVO);
+
+        // Observers
+        Assert.assertNotNull(reloadedVO.getObservers());
+        Assert.assertTrue(reloadedVO.getObservers().size() == 2);
+
     }
+
+
 
     @Test
     public void delete() {
@@ -98,6 +111,13 @@ public class TripServiceWriteTest extends AbstractServiceTest{
         DepartmentVO recorderDepartment = new DepartmentVO();
         recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
         vo.setRecorderDepartment(recorderDepartment);
+
+        // Observers
+        PersonVO observer1 = new PersonVO();
+        observer1.setId(dbResource.getFixtures().getPersonId(0));
+        PersonVO observer2 = new PersonVO();
+        observer1.setId(dbResource.getFixtures().getPersonId(1));
+        vo.setObservers(ImmutableSet.of(observer1, observer2));
 
         return vo;
     }

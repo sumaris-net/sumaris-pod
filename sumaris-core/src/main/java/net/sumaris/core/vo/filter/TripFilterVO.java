@@ -40,4 +40,5 @@ public class TripFilterVO {
     private Integer vesselId;
 
     private Integer locationId;
+
 }

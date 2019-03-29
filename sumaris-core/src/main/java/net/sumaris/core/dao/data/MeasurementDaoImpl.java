@@ -26,18 +26,18 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.batch.Batch;
-import net.sumaris.core.model.data.batch.BatchQuantificationMeasurement;
-import net.sumaris.core.model.data.batch.BatchSortingMeasurement;
-import net.sumaris.core.model.data.measure.*;
-import net.sumaris.core.model.data.sample.Sample;
-import net.sumaris.core.model.data.sample.SampleMeasurement;
+import net.sumaris.core.model.data.Batch;
+import net.sumaris.core.model.data.BatchQuantificationMeasurement;
+import net.sumaris.core.model.data.BatchSortingMeasurement;
+import net.sumaris.core.model.data.Sample;
+import net.sumaris.core.model.data.SampleMeasurement;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -252,15 +252,39 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public List<MeasurementVO> saveObservedLocationMeasurements(final int observedLocationId, List<MeasurementVO> sources) {
+        ObservedLocation parent = get(ObservedLocation.class, observedLocationId);
+        return saveMeasurements(ObservedLocationMeasurement.class, sources, parent.getMeasurements());
+    }
+
+    @Override
+    public Map<Integer, String> saveObservedLocationMeasurementsMap(final int observedLocationId, Map<Integer, String> sources) {
+        ObservedLocation parent = get(ObservedLocation.class, observedLocationId);
+        return saveMeasurementsMap(ObservedLocationMeasurement.class, sources, parent.getMeasurements(), parent);
+    }
+
+    @Override
+    public List<MeasurementVO> saveSaleMeasurements(final int saleId, List<MeasurementVO> sources) {
+        Sale parent = get(Sale.class, saleId);
+        return saveMeasurements(SaleMeasurement.class, sources, parent.getMeasurements());
+    }
+
+    @Override
+    public Map<Integer, String> saveSaleMeasurementsMap(final int saleId, Map<Integer, String> sources) {
+        Sale parent = get(Sale.class, saleId);
+        return saveMeasurementsMap(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
+    }
+
+    @Override
     public List<MeasurementVO> saveSampleMeasurements(final int sampleId, List<MeasurementVO> sources) {
         Sample parent = get(Sample.class, sampleId);
-        return saveMeasurements(SampleMeasurement.class, sources, parent.getSampleMeasurements());
+        return saveMeasurements(SampleMeasurement.class, sources, parent.getMeasurements());
     }
 
     @Override
     public Map<Integer, String> saveSampleMeasurementsMap(final int sampleId, Map<Integer, String> sources) {
         Sample parent = get(Sample.class, sampleId);
-        return saveMeasurementsMap(SampleMeasurement.class, sources, parent.getSampleMeasurements(), parent);
+        return saveMeasurementsMap(SampleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override

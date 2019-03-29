@@ -24,6 +24,8 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
+import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -34,7 +36,9 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class PhysicalGearVO implements IUpdateDateEntityBean<Integer, Date> {
+public class PhysicalGearVO implements IUpdateDateEntityBean<Integer, Date>,
+        IWithRecorderPersonEntityBean<Integer, PersonVO>,
+        IWithRecorderDepartmentEntityBean<Integer, DepartmentVO> {
 
     public static final String PROPERTY_GEAR = "gear";
 

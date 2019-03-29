@@ -1,7 +1,6 @@
 package net.sumaris.core.model.technical;
 
 import lombok.Data;
-import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;

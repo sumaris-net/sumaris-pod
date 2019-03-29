@@ -24,6 +24,8 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.VesselPosition;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;

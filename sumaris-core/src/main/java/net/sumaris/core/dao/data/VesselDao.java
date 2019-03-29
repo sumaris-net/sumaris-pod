@@ -23,12 +23,8 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 
 import java.util.Date;

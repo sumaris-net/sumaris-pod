@@ -32,19 +32,17 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +55,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Repository("tripDao")
@@ -87,7 +86,9 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<TripVO> getAllTrips(int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<TripVO> getAllTrips(int offset, int size, String sortAttribute,
+                                    SortDirection sortDirection,
+                                    DataFetchOptions fieldOptions) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Trip> query = builder.createQuery(Trip.class);
@@ -104,15 +105,24 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
             );
         }
 
-        return toTripVOs(entityManager.createQuery(query).
-                setFirstResult(offset)
+        // Enable fetch profiles
+        if (fieldOptions.isWithRecorderDepartment() || fieldOptions.isWithRecorderPerson())
+            entityManager.unwrap(Session.class).enableFetchProfile(Trip.FETCH_PROFILE_RECORDER);
+        if (fieldOptions.isWithObservers())
+            entityManager.unwrap(Session.class).enableFetchProfile(Trip.FETCH_PROFILE_OBSERVERS);
+        entityManager.unwrap(Session.class).enableFetchProfile(Trip.FETCH_PROFILE_LOCATION);
+
+        return toTripVOs(entityManager.createQuery(query)
+                .setFirstResult(offset)
                 .setMaxResults(size)
-                .getResultList());
+                .getResultList(), fieldOptions);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
+                                     SortDirection sortDirection,
+                                     DataFetchOptions fieldOptions) {
         Preconditions.checkNotNull(filter);
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
@@ -175,7 +185,7 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
                 .setParameter(locationIdParam, filter.getLocationId())
                 .setFirstResult(offset)
                 .setMaxResults(size);
-        return toTripVOs(q.getResultList());
+        return toTripVOs(q.getResultList(), fieldOptions);
     }
 
     @Override
@@ -309,36 +319,7 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
     @Override
     public TripVO toTripVO(Trip source) {
-        if (source == null) return null;
-
-        TripVO target = new TripVO();
-
-        Beans.copyProperties(source, target);
-
-        // Program
-        target.setProgram(programDao.toProgramVO(source.getProgram()));
-
-        // Vessel
-        VesselFeaturesVO vesselFeatures = new VesselFeaturesVO();
-        vesselFeatures.setVesselId(source.getVessel().getId());
-        target.setVesselFeatures(vesselFeatures);
-        target.setQualityFlagId(source.getQualityFlag().getId());
-
-        // Departure & return locations
-        target.setDepartureLocation(locationDao.toLocationVO(source.getDepartureLocation()));
-        target.setReturnLocation(locationDao.toLocationVO(source.getReturnLocation()));
-
-        // Recorder department
-        DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
-        target.setRecorderDepartment(recorderDepartment);
-
-        // Recorder person
-        if (source.getRecorderPerson() != null) {
-            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
-            target.setRecorderPerson(recorderPerson);
-        }
-
-        return target;
+        return toTripVO(source, DataFetchOptions.builder().build());
     }
 
     @Override
@@ -432,42 +413,65 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
     /* -- protected methods -- */
 
-    protected List<TripVO> toTripVOs(List<Trip> source) {
+    protected List<TripVO> toTripVOs(List<Trip> source, DataFetchOptions fieldOptions) {
         return source.stream()
-                .map(this::toTripVO)
+                .map(item -> this.toTripVO(item, fieldOptions))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    protected void tripVOToEntity(TripVO source, Trip target, boolean copyIfNull) {
+    protected TripVO toTripVO(Trip source, DataFetchOptions fieldOptions) {
+        if (source == null) return null;
+
+        TripVO target = new TripVO();
 
         Beans.copyProperties(source, target);
 
         // Program
-        if (copyIfNull || (source.getProgram() != null && (source.getProgram().getId() != null || source.getProgram().getLabel() != null))) {
-            if (source.getProgram() == null || (source.getProgram().getId() == null && source.getProgram().getLabel() == null)) {
-                target.setProgram(null);
-            }
-            // Load by id
-            else if (source.getProgram().getId() != null){
-                target.setProgram(load(Program.class, source.getProgram().getId()));
-            }
-            // Load by label
-            else {
-                ProgramVO program = programDao.getByLabel(source.getProgram().getLabel());
-                target.setProgram(load(Program.class, program.getId()));
-            }
-        }
+        target.setProgram(programDao.toProgramVO(source.getProgram()));
 
         // Vessel
-        if (copyIfNull || (source.getVesselFeatures() != null && source.getVesselFeatures().getVesselId() != null)) {
-            if (source.getVesselFeatures() == null || source.getVesselFeatures().getVesselId() == null) {
-                target.setVessel(null);
-            }
-            else {
-                target.setVessel(load(Vessel.class, source.getVesselFeatures().getVesselId()));
-            }
+        VesselFeaturesVO vesselFeatures = new VesselFeaturesVO();
+        vesselFeatures.setVesselId(source.getVessel().getId());
+        target.setVesselFeatures(vesselFeatures);
+        target.setQualityFlagId(source.getQualityFlag().getId());
+
+        // Departure & return locations
+        target.setDepartureLocation(locationDao.toLocationVO(source.getDepartureLocation()));
+        target.setReturnLocation(locationDao.toLocationVO(source.getReturnLocation()));
+
+        // Recorder department
+        if (fieldOptions.isWithRecorderDepartment()) {
+            DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
+            target.setRecorderDepartment(recorderDepartment);
         }
+
+        // Recorder person
+        if (fieldOptions.isWithRecorderPerson() && source.getRecorderPerson() != null) {
+            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
+            target.setRecorderPerson(recorderPerson);
+        }
+
+        // Observers
+        if (fieldOptions.isWithObservers() && CollectionUtils.isNotEmpty(source.getObservers())) {
+            Set<PersonVO> observers = source.getObservers().stream().map(personDao::toPersonVO).collect(Collectors.toSet());
+            target.setObservers(observers);
+        }
+
+        return target;
+    }
+
+    protected void tripVOToEntity(TripVO source, Trip target, boolean copyIfNull) {
+        EntityManager em = getEntityManager();
+
+        // Copy properties
+        DataDaos.copyDataRootProperties(em, source, target, copyIfNull);
+
+        // Observers
+        DataDaos.copyObservers(em, source, target, copyIfNull);
+
+        // Vessel
+        DataDaos.copyVessel(em, source, target, copyIfNull);
 
         // Departure location
         if (copyIfNull || source.getDepartureLocation() != null) {
@@ -489,34 +493,5 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
             }
         }
 
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
-
-        // Recorder person
-        if (copyIfNull || source.getRecorderPerson() != null) {
-            if (source.getRecorderPerson() == null || source.getRecorderPerson().getId() == null) {
-                target.setRecorderPerson(null);
-            }
-            else {
-                target.setRecorderPerson(load(Person.class, source.getRecorderPerson().getId()));
-            }
-        }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
-            }
-        }
     }
 }

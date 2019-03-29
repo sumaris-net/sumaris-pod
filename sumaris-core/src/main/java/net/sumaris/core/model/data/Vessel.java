@@ -23,6 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import lombok.Data;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -84,6 +85,10 @@ public class Vessel implements IRootDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = VesselType.class)
     @JoinColumn(name="vessel_type_fk", nullable = false)
     private VesselType vesselType;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
+    @JoinColumn(name = "program_fk", nullable = false)
+    private Program program;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselFeatures.class, mappedBy = VesselFeatures.PROPERTY_VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)

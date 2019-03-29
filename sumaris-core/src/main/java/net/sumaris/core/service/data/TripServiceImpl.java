@@ -30,7 +30,9 @@ import net.sumaris.core.dao.data.SaleDao;
 import net.sumaris.core.dao.data.TripDao;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.measure.VesselUseMeasurement;
+import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.util.DataBeans;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -69,22 +71,22 @@ public class TripServiceImpl implements TripService {
 
 	@Override
 	public List<TripVO> getAllTrips(int offset, int size) {
-		return findByFilter(null, offset, size, null, null);
+		return findByFilter(null, offset, size, null, null, DataFetchOptions.builder().build());
 	}
 
 	@Override
 	public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size) {
-		return findByFilter(filter, offset, size, null, null);
+		return findByFilter(filter, offset, size, null, null, DataFetchOptions.builder().build());
 	}
 
 	@Override
 	public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
-                                     SortDirection sortDirection) {
+                                     SortDirection sortDirection, DataFetchOptions fieldOptions) {
 		if (filter == null) {
-			return tripDao.getAllTrips(offset, size, sortAttribute, sortDirection);
+			return tripDao.getAllTrips(offset, size, sortAttribute, sortDirection, fieldOptions);
 		}
 
-		return tripDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+		return tripDao.findByFilter(filter, offset, size, sortAttribute, sortDirection, fieldOptions);
 	}
 
 	@Override
@@ -218,18 +220,10 @@ public class TripServiceImpl implements TripService {
 	void fillDefaultProperties(TripVO parent, SaleVO sale) {
 		if (sale == null) return;
 
-		// Copy recorder department from the parent trip
-		if (sale.getRecorderDepartment() == null || sale.getRecorderDepartment().getId() == null) {
-            sale.setRecorderDepartment(parent.getRecorderDepartment());
-        }
-        // Copy recorder person from the parent trip
-        if (sale.getRecorderPerson() == null || sale.getRecorderPerson().getId() == null) {
-            sale.setRecorderPerson(parent.getRecorderPerson());
-        }
-        // Copy vessel from the parent trip
-        if (sale.getVesselFeatures() == null || sale.getVesselFeatures().getVesselId() == null) {
-            sale.setVesselFeatures(parent.getVesselFeatures());
-        }
+		// Set default values from parent
+		DataBeans.setDefaultRecorderDepartment(sale, parent.getRecorderDepartment());
+		DataBeans.setDefaultRecorderPerson(sale, parent.getRecorderPerson());
+		DataBeans.setDefaultVesselFeatures(sale, parent.getVesselFeatures());
 
         sale.setTripId(parent.getId());
 	}
@@ -238,13 +232,8 @@ public class TripServiceImpl implements TripService {
         if (gear == null) return;
 
         // Copy recorder department from the parent trip
-        if (gear.getRecorderDepartment() == null || gear.getRecorderDepartment().getId() == null) {
-            gear.setRecorderDepartment(parent.getRecorderDepartment());
-        }
-        // Copy recorder person from the parent trip
-        if (gear.getRecorderPerson() == null || gear.getRecorderPerson().getId() == null) {
-            gear.setRecorderPerson(parent.getRecorderPerson());
-        }
+		DataBeans.setDefaultRecorderDepartment(gear, parent.getRecorderDepartment());
+		DataBeans.setDefaultRecorderPerson(gear, parent.getRecorderPerson());
 
         gear.setTripId(parent.getId());
     }
@@ -252,14 +241,9 @@ public class TripServiceImpl implements TripService {
 	void fillDefaultProperties(TripVO parent, MeasurementVO measurement) {
 		if (measurement == null) return;
 
-		// Copy recorder department from the parent
-		if (measurement.getRecorderDepartment() == null || measurement.getRecorderDepartment().getId() == null) {
-			measurement.setRecorderDepartment(parent.getRecorderDepartment());
-		}
-		// Copy recorder person from the parent
-		if (measurement.getRecorderPerson() == null || measurement.getRecorderPerson().getId() == null) {
-			measurement.setRecorderPerson(parent.getRecorderPerson());
-		}
+		// Set default value for recorder department and person
+		DataBeans.setDefaultRecorderDepartment(measurement, parent.getRecorderDepartment());
+		DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
 
 		measurement.setTripId(parent.getId());
 		measurement.setEntityName(VesselUseMeasurement.class.getSimpleName());

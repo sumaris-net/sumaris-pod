@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IEntityBean;
+import net.sumaris.core.dao.technical.model.IDataEntity;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -214,7 +214,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         filter.setPreview(true);
 
         // Replace default sort attribute
-        if (IEntityBean.PROPERTY_ID.equalsIgnoreCase(sort)) {
+        if (IDataEntity.PROPERTY_ID.equalsIgnoreCase(sort)) {
             sort = null;
         }
 

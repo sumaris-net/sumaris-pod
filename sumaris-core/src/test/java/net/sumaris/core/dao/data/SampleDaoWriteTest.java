@@ -24,7 +24,6 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.data.sample.SampleDao;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SampleVO;

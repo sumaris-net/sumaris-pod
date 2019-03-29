@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 
@@ -31,9 +32,9 @@ import java.util.List;
 
 public interface TripDao {
 
-    List<TripVO> getAllTrips(int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<TripVO> getAllTrips(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fieldOptions);
 
-    List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fieldOptions);
 
     Long countByFilter(TripFilterVO filter);
 

@@ -34,7 +34,9 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "vessel_features")
-public class VesselFeatures implements IRootDataEntity<Integer> {
+public class VesselFeatures implements IDataEntity<Integer>,
+        IWithRecorderPersonEntityBean<Integer, Person>,
+        IWithRecorderDepartmentEntityBean<Integer, Department>{
 
     public static final String PROPERTY_ID = "id";
     public static final String PROPERTY_START_DATE = "startDate";

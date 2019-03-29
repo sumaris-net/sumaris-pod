@@ -22,16 +22,21 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
+import com.google.common.collect.Sets;
 import lombok.Data;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.survey.ObservedLocation;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.SaleType;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -103,6 +108,26 @@ public class Sale implements IRootDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.EAGER, targetEntity = SaleType.class)
     @JoinColumn(name = "sale_type_fk", nullable = false)
     private SaleType saleType;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
+    @JoinColumn(name = "program_fk", nullable = false)
+    private Program program;
+
+    @ManyToMany(fetch = FetchType.EAGER, targetEntity = Person.class)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    @JoinTable(name = "sale2observer_person", joinColumns = {
+            @JoinColumn(name = "sale_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
+    private Set<Person> observers = Sets.newHashSet();
+
+    /* -- measurements -- */
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SaleMeasurement.class, mappedBy = SaleMeasurement.PROPERTY_SALE)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<SaleMeasurement> measurements = new ArrayList<>();
+
+    /* -- parent -- */
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
     @JoinColumn(name = "trip_fk")

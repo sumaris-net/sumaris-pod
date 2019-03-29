@@ -42,6 +42,5 @@ public class ReferentialVO implements IReferentialVO {
 
     // Metadata
     private String entityName;
-
 }
 

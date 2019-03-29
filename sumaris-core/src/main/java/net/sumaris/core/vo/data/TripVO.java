@@ -23,7 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.model.data.IWithObserversEntityBean;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -31,13 +31,14 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Data
-public class TripVO implements IUpdateDateEntityBean<Integer, Date> {
+public class TripVO implements IRootDataVO<Integer>,
+        IWithObserversEntityBean<Integer, PersonVO>,
+        IWithVesselFeaturesVO<Integer, VesselFeaturesVO> {
 
     public static final String PROPERTY_PROGRAM = "program";
     public static final String PROPERTY_DEPARTURE_DATE_TIME = "departureDateTime";
@@ -47,6 +48,7 @@ public class TripVO implements IUpdateDateEntityBean<Integer, Date> {
     public static final String PROPERTY_RECORDER_PERSON = "recorderPerson";
     public static final String PROPERTY_RECORDER_DEPARTMENT = "recorderDepartment";
     public static final String PROPERTY_VESSEL_FEATURES = "vesselFeatures";
+    public static final String PROPERTY_OBSERVERS = "observers";
 
     private Integer id;
     private String comments;
@@ -54,6 +56,8 @@ public class TripVO implements IUpdateDateEntityBean<Integer, Date> {
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
+    private Date qualificationDate;
+    private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
@@ -64,11 +68,11 @@ public class TripVO implements IUpdateDateEntityBean<Integer, Date> {
     private Date returnDateTime;
     private LocationVO departureLocation;
     private LocationVO returnLocation;
-
     private ProgramVO program;
+    private Set<PersonVO> observers;
 
     private List<SaleVO> sales;
-    private SaleVO sale;
+    private SaleVO sale; // shortcut when only one sale
 
     private List<OperationVO> operations;
     private List<PhysicalGearVO> gears;

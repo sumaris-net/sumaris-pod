@@ -23,8 +23,6 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.data.batch.BatchDao;
-import net.sumaris.core.dao.data.sample.SampleDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;

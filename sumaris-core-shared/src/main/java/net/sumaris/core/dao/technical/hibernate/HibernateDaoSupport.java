@@ -29,7 +29,7 @@ import com.google.common.collect.Multimap;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.dao.technical.model.IEntityBean;
+import net.sumaris.core.dao.technical.model.IDataEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.DataLockedException;
@@ -370,11 +370,11 @@ public abstract class HibernateDaoSupport {
         }
     }
 
-    protected void lockForUpdate(IEntityBean<?> entity) {
+    protected void lockForUpdate(IDataEntity<?> entity) {
        lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
     }
 
-    protected void lockForUpdate(IEntityBean<?> entity, LockModeType modeType) {
+    protected void lockForUpdate(IDataEntity<?> entity, LockModeType modeType) {
         // Lock entityName
         try {
             entityManager.lock(entity, modeType);
@@ -384,7 +384,7 @@ public abstract class HibernateDaoSupport {
         }
     }
 
-    protected void delete(IEntityBean<?> entity) {
+    protected void delete(IDataEntity<?> entity) {
         entityManager.remove(entity);
     }
 }

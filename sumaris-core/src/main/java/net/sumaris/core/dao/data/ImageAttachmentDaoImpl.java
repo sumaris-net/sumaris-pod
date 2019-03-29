@@ -148,14 +148,9 @@ public class ImageAttachmentDaoImpl extends HibernateDaoSupport implements Image
         Beans.copyProperties(source, target);
 
         // Department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
+        EntityManager em = getEntityManager();
+        DataDaos.copyRecorderDepartment(em, source, target, copyIfNull);
+        DataDaos.copyRecorderPerson(em, source, target, copyIfNull);
 
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {

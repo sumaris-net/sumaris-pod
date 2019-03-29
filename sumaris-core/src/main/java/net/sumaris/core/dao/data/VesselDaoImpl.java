@@ -304,7 +304,12 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
     protected void vesselFeaturesVOToEntity(VesselFeaturesVO source, VesselFeatures target, boolean copyIfNull) {
 
+        EntityManager em = getEntityManager();
         Beans.copyProperties(source, target);
+
+        // Recorder department and person
+        DataDaos.copyRecorderPerson(em, source, target, copyIfNull);
+        DataDaos.copyRecorderDepartment(em, source, target, copyIfNull);
 
         // Convert from meter to centimeter
         if (source.getLengthOverAll() != null) {
@@ -337,39 +342,15 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
                 target.setBasePortLocation(load(Location.class, source.getBasePortLocation().getId()));
             }
         }
-
-        // Recorder person
-        if (copyIfNull || source.getRecorderPerson() != null) {
-            if (source.getRecorderPerson() == null || source.getRecorderPerson().getId() == null) {
-                target.setRecorderPerson(null);
-            }
-            else {
-                target.setRecorderPerson(load(Person.class, source.getRecorderPerson().getId()));
-            }
-        }
-
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
-            }
-        }
     }
 
     protected void vesselFeaturesVOToVesselEntity(VesselFeaturesVO source, Vessel target, boolean copyIfNull) {
+
+        EntityManager em = getEntityManager();
+
+        // Recorder department and person
+        DataDaos.copyRecorderPerson(em, source, target, copyIfNull);
+        DataDaos.copyRecorderDepartment(em, source, target, copyIfNull);
 
         // Vessel type
         if (copyIfNull || source.getVesselTypeId() != null) {
@@ -378,26 +359,6 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             }
             else {
                 target.setVesselType(load(VesselType.class, source.getVesselTypeId()));
-            }
-        }
-
-        // Recorder person
-        if (copyIfNull || source.getRecorderPerson() != null) {
-            if (source.getRecorderPerson() == null || source.getRecorderPerson().getId() == null) {
-                target.setRecorderPerson(null);
-            }
-            else {
-                target.setRecorderPerson(load(Person.class, source.getRecorderPerson().getId()));
-            }
-        }
-
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
             }
         }
 

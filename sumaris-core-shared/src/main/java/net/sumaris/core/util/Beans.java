@@ -27,9 +27,8 @@ package net.sumaris.core.util;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IEntityBean;
+import net.sumaris.core.dao.technical.model.IDataEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.shared.exception.ErrorCodes;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ComparatorUtils;
@@ -51,6 +50,10 @@ import java.util.stream.Stream;
  * Created by blavenie on 13/10/15.
  */
 public class Beans {
+
+    protected Beans() {
+        // helper class does not instantiate
+    }
 
     /**
      * <p>getList.</p>
@@ -162,8 +165,8 @@ public class Beans {
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
-    public static <K extends Serializable, V extends IEntityBean<K>> Map<K, V> splitById(Iterable<V> list) {
-        return getMap(Maps.uniqueIndex(list, IEntityBean::getId));
+    public static <K extends Serializable, V extends IDataEntity<K>> Map<K, V> splitById(Iterable<V> list) {
+        return getMap(Maps.uniqueIndex(list, IDataEntity::getId));
     }
 
     /**
@@ -174,8 +177,8 @@ public class Beans {
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
-    public static <K extends Serializable, V extends IEntityBean<K>> List<K> collectIds(Collection<V> list) {
-        return transformCollection(list, IEntityBean::getId);
+    public static <K extends Serializable, V extends IDataEntity<K>> List<K> collectIds(Collection<V> list) {
+        return transformCollection(list, IDataEntity::getId);
     }
 
     /**

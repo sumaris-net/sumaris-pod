@@ -25,7 +25,7 @@ package net.sumaris.core.dao.technical.model;
 import java.io.Serializable;
 import java.util.List;
 
-public interface ITreeNodeEntityBean<T extends Serializable, E extends IEntityBean<T>> extends IEntityBean<T> {
+public interface ITreeNodeEntityBean<T extends Serializable, E extends IDataEntity<T>> extends IDataEntity<T> {
 
     String PROPERTY_PARENT = "parent";
     String PROPERTY_CHILDREN = "children";

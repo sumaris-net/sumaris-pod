@@ -26,15 +26,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
-import net.sumaris.core.service.data.batch.BatchService;
-import net.sumaris.core.service.data.sample.SampleService;
+import net.sumaris.core.service.data.BatchService;
+import net.sumaris.core.service.data.SampleService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
@@ -68,6 +68,9 @@ public class DataGraphQLService {
 
     @Autowired
     private TripService tripService;
+
+    @Autowired
+    private ObservedLocationService observedLocationService;
 
     @Autowired
     private SaleService saleService;
@@ -152,11 +155,13 @@ public class DataGraphQLService {
                                           @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                           @GraphQLEnvironment() Set<String> fields
                                   ) {
+
         final List<TripVO> result = tripService.findByFilter(filter, offset, size, sort,
-                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
+                getFetchOptions(fields));
 
         // Add additional properties if needed
-        fillAdditionalProperties(result, fields);
+        fillTrips(result, fields);
 
         return result;
     }
@@ -168,13 +173,6 @@ public class DataGraphQLService {
         return tripService.countByFilter(filter);
     }
 
-    // FOR DEV ONLY: Full access to database model
-    //@GraphQLQuery(name = "model_trip", description = "Get a trip, by id")
-    //@Transactional(readOnly = true)
-    //public Trip getTrip(@GraphQLArgument(name = "id") int id) {
-    //    return tripService.get(id, Trip.class);
-    //}
-
     @GraphQLQuery(name = "trip", description = "Get a trip, by id")
     @Transactional(readOnly = true)
     @IsUser
@@ -183,7 +181,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.get(id);
 
         // Add additional properties if needed
-        fillAdditionalProperties(result, fields);
+        fillTripFields(result, fields);
 
         return result;
     }
@@ -194,7 +192,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.save(trip, false);
 
         // Add additional properties if needed
-        fillAdditionalProperties(result, fields);
+        fillTripFields(result, fields);
 
         return result;
     }
@@ -205,7 +203,7 @@ public class DataGraphQLService {
         final List<TripVO> result = tripService.save(trips, false);
 
         // Add additional properties if needed
-        fillAdditionalProperties(result, fields);
+        fillTrips(result, fields);
 
         return result;
     }
@@ -237,7 +235,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.control(trip);
 
         // Add additional properties if needed
-        fillAdditionalProperties(result, fields);
+        fillTripFields(result, fields);
 
         return result;
     }
@@ -248,7 +246,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.validate(trip);
 
         // Add additional properties if needed
-        fillAdditionalProperties(result, fields);
+        fillTripFields(result, fields);
 
         return result;
     }
@@ -259,7 +257,7 @@ public class DataGraphQLService {
         final TripVO result = tripService.unvalidate(trip);
 
         // Add additional properties if needed
-        fillAdditionalProperties(result, fields);
+        fillTripFields(result, fields);
 
         return result;
     }
@@ -270,6 +268,124 @@ public class DataGraphQLService {
     public List<PhysicalGearVO> getGearsByTrip(@GraphQLContext TripVO trip) {
         return physicalGearService.getPhysicalGearByTripId(trip.getId());
     }
+
+    /* -- Observed location -- */
+
+    @GraphQLQuery(name = "observedLocations", description = "Search in observed locations")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<ObservedLocationVO> findObservedLocationsByFilter(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
+                                                                @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                                @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                                @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.PROPERTY_START_DATE_TIME) String sort,
+                                                                @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                                @GraphQLEnvironment() Set<String> fields
+    ) {
+        final List<ObservedLocationVO> result = observedLocationService.findByFilter(filter, offset, size, sort,
+                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+
+        // Add additional properties if needed
+        fillObservedLocationsFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLQuery(name = "observedLocationCount", description = "Get total number of observed locations")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long getObservedLocationsCount(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter) {
+        return observedLocationService.countByFilter(filter);
+    }
+
+    @GraphQLQuery(name = "observedLocation", description = "Get an observed location, by id")
+    @Transactional(readOnly = true)
+    @IsUser
+    public ObservedLocationVO getObservedLocationById(@GraphQLArgument(name = "id") int id,
+                              @GraphQLEnvironment() Set<String> fields) {
+        final ObservedLocationVO result = observedLocationService.get(id);
+
+        // Add additional properties if needed
+        fillObservedLocationFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "saveObservedLocation", description = "Create or update an observed location")
+    @IsUser
+    public ObservedLocationVO saveObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
+        final ObservedLocationVO result = observedLocationService.save(observedLocation, false);
+
+        // Fill expected fields
+        fillObservedLocationFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "saveObservedLocations", description = "Create or update many observed locations")
+    @IsUser
+    public List<ObservedLocationVO> saveObservedLocations(@GraphQLArgument(name = "observedLocations") List<ObservedLocationVO> observedLocations, @GraphQLEnvironment() Set<String> fields) {
+        final List<ObservedLocationVO> result = observedLocationService.save(observedLocations, false);
+
+        // Fill expected fields
+        fillObservedLocationsFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "deleteObservedLocation", description = "Delete an observed location")
+    @IsUser
+    public void deleteObservedLocation(@GraphQLArgument(name = "id") int id) {
+        observedLocationService.delete(id);
+    }
+
+    @GraphQLMutation(name = "deleteObservedLocations", description = "Delete many observed locations")
+    @IsUser
+    public void deleteObservedLocations(@GraphQLArgument(name = "ids") List<Integer> ids) {
+        observedLocationService.delete(ids);
+    }
+
+    @GraphQLSubscription(name = "updateObservedLocation", description = "Subscribe to changes on an observed location")
+    @IsUser
+    public Publisher<ObservedLocationVO> updateObservedLocation(@GraphQLArgument(name = "id") final int id,
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+
+        Preconditions.checkArgument(id >= 0, "Invalid id");
+        return changesPublisherService.getPublisher(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true);
+    }
+
+    @GraphQLMutation(name = "controlObservedLocation", description = "Control an observed location")
+    @IsUser
+    public ObservedLocationVO controlObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
+        final ObservedLocationVO result = observedLocationService.control(observedLocation);
+
+        // Add additional properties if needed
+        fillObservedLocationFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "validateObservedLocation", description = "Validate an observed location")
+    @IsSupervisor
+    public ObservedLocationVO validateObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
+        final ObservedLocationVO result = observedLocationService.validate(observedLocation);
+
+        // Add additional properties if needed
+        fillObservedLocationFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "unvalidateObservedLocation", description = "Unvalidate an observed location")
+    @IsSupervisor
+    public ObservedLocationVO unvalidateObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment() Set<String> fields) {
+        final ObservedLocationVO result = observedLocationService.unvalidate(observedLocation);
+
+        // Add additional properties if needed
+        fillObservedLocationFields(result, fields);
+
+        return result;
+    }
+
 
     /* -- Sales -- */
 
@@ -459,7 +575,7 @@ public class DataGraphQLService {
 
     /* -- protected methods -- */
 
-    protected void fillAdditionalProperties(TripVO trip, Set<String> fields) {
+    protected void fillTripFields(TripVO trip, Set<String> fields) {
         // Add image if need
         if (hasImageField(fields)) fillImages(trip);
 
@@ -469,7 +585,7 @@ public class DataGraphQLService {
         }
     }
 
-    protected void fillAdditionalProperties(List<TripVO> trips, Set<String> fields) {
+    protected void fillTrips(List<TripVO> trips, Set<String> fields) {
         // Add image if need
         if (hasImageField(fields)) fillImages(trips);
 
@@ -483,6 +599,16 @@ public class DataGraphQLService {
         }
     }
 
+    protected void fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {
+        // Add image if need
+        if (hasImageField(fields)) fillImages(observedLocation);
+    }
+
+    protected void fillObservedLocationsFields(List<ObservedLocationVO> observedLocations, Set<String> fields) {
+        // Add image if need
+        if (hasImageField(fields)) fillImages(observedLocations);
+    }
+
     protected boolean hasImageField(Set<String> fields) {
         return fields.contains(TripVO.PROPERTY_RECORDER_DEPARTMENT + File.separator + DepartmentVO.PROPERTY_LOGO) ||
                 fields.contains(TripVO.PROPERTY_RECORDER_PERSON + File.separator + PersonVO.PROPERTY_AVATAR);
@@ -493,12 +619,12 @@ public class DataGraphQLService {
                 || fields.contains(TripVO.PROPERTY_VESSEL_FEATURES + File.separator + VesselFeaturesVO.PROPERTY_NAME);
     }
 
-    protected List<TripVO> fillImages(final List<TripVO> results) {
+    protected <T extends IRootDataVO<?>> List<T> fillImages(final List<T> results) {
         results.forEach(this::fillImages);
         return results;
     }
 
-    protected TripVO fillImages(TripVO result) {
+    protected <T extends IRootDataVO<?>> T fillImages(T result) {
         if (result != null) {
 
             // Fill avatar on recorder department (if not null)
@@ -509,5 +635,13 @@ public class DataGraphQLService {
         }
 
         return result;
+    }
+
+    protected DataFetchOptions getFetchOptions(Set<String> fields) {
+        return DataFetchOptions.builder()
+                .withObservers(fields.contains(IWithObserversEntityBean.PROPERTY_OBSERVERS + "/" + IDataEntity.PROPERTY_ID))
+                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntityBean.PROPERTY_RECORDER_DEPARTMENT + "/" + IDataEntity.PROPERTY_ID))
+                .withRecorderPerson(fields.contains(IWithRecorderPersonEntityBean.PROPERTY_RECORDER_PERSON + "/" + IDataEntity.PROPERTY_ID))
+                .build();
     }
 }

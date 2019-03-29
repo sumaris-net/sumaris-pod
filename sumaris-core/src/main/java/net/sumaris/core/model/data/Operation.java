@@ -24,10 +24,6 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.batch.Batch;
-import net.sumaris.core.model.data.measure.GearUseMeasurement;
-import net.sumaris.core.model.data.measure.VesselUseMeasurement;
-import net.sumaris.core.model.data.sample.Sample;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import org.hibernate.annotations.Cascade;
