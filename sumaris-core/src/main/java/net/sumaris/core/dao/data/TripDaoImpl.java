@@ -254,9 +254,9 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
     }
 
     @Override
-    public <T> T get(int id, Class<T> targetClass) {
+    public <T> T getAs(int id, Class<T> targetClass) {
         if (targetClass.isAssignableFrom(Trip.class)) return (T)get(Trip.class, id);
-        if (targetClass.isAssignableFrom(TripVO.class)) return (T)get(id);
+        if (targetClass.isAssignableFrom(TripVO.class)) return (T) get(id);
         throw new IllegalArgumentException("Unable to convert into " + targetClass.getName());
     }
 
@@ -319,7 +319,7 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
 
     @Override
     public TripVO toTripVO(Trip source) {
-        return toTripVO(source, DataFetchOptions.builder().build());
+        return toTripVO(source, null);
     }
 
     @Override
@@ -441,19 +441,19 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
         target.setReturnLocation(locationDao.toLocationVO(source.getReturnLocation()));
 
         // Recorder department
-        if (fieldOptions.isWithRecorderDepartment()) {
+        if ((fieldOptions == null || fieldOptions.isWithRecorderDepartment()) && source.getRecorderDepartment() != null) {
             DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
             target.setRecorderDepartment(recorderDepartment);
         }
 
         // Recorder person
-        if (fieldOptions.isWithRecorderPerson() && source.getRecorderPerson() != null) {
+        if ((fieldOptions == null || fieldOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
             PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
             target.setRecorderPerson(recorderPerson);
         }
 
         // Observers
-        if (fieldOptions.isWithObservers() && CollectionUtils.isNotEmpty(source.getObservers())) {
+        if ((fieldOptions == null || fieldOptions.isWithObservers()) && CollectionUtils.isNotEmpty(source.getObservers())) {
             Set<PersonVO> observers = source.getObservers().stream().map(personDao::toPersonVO).collect(Collectors.toSet());
             target.setObservers(observers);
         }

@@ -60,22 +60,22 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 	@Override
 	public List<ObservedLocationVO> getAll(int offset, int size) {
-		return findByFilter(null, offset, size, null, null);
+		return findByFilter(null, offset, size, null, null, null);
 	}
 
 	@Override
 	public List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size) {
-		return findByFilter(filter, offset, size, null, null);
+		return findByFilter(filter, offset, size, null, null, null);
 	}
 
 	@Override
 	public List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
-                                     SortDirection sortDirection) {
+                                     SortDirection sortDirection, DataFetchOptions fetchOptions) {
 		if (filter == null) {
-			return observedLocationDao.getAll(offset, size, sortAttribute, sortDirection);
+			return observedLocationDao.getAll(offset, size, sortAttribute, sortDirection, fetchOptions);
 		}
 
-		return observedLocationDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+		return observedLocationDao.findByFilter(filter, offset, size, sortAttribute, sortDirection, fetchOptions);
 	}
 
 	@Override
@@ -86,11 +86,6 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	@Override
 	public ObservedLocationVO get(int observedLocationId) {
 		return observedLocationDao.get(observedLocationId);
-	}
-
-	@Override
-	public <T> T get(int id, Class<T> targetClass) {
-		return observedLocationDao.get(id, targetClass);
 	}
 
 	@Override

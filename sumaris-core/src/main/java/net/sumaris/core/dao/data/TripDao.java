@@ -40,7 +40,7 @@ public interface TripDao {
 
     TripVO get(int id);
 
-    <T> T get(int id, Class<T> targetClass);
+    <T> T getAs(int id, Class<T> targetClass);
 
     void delete(int id);
 

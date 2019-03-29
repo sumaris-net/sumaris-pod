@@ -100,11 +100,6 @@ public class TripServiceImpl implements TripService {
 	}
 
 	@Override
-	public <T> T get(int id, Class<T> targetClass) {
-		return tripDao.get(id, targetClass);
-	}
-
-	@Override
 	public TripVO save(final TripVO source, final boolean withOperation) {
 		Preconditions.checkNotNull(source);
 		Preconditions.checkNotNull(source.getProgram(), "Missing program");

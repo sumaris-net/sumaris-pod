@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
@@ -48,16 +49,14 @@ public interface ObservedLocationService {
 	List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size);
 
 	@Transactional(readOnly = true)
-	List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+	List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
+										  SortDirection sortDirection, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	Long countByFilter(ObservedLocationFilterVO filter);
 
 	@Transactional(readOnly = true)
 	ObservedLocationVO get(int id);
-
-	@Transactional(readOnly = true)
-	<T> T get(int id, Class<T> targetClass);
 
 	ObservedLocationVO save(ObservedLocationVO data, boolean withOperation);
 

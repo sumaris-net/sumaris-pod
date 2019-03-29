@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.ObservedLocation;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 
@@ -31,9 +32,10 @@ import java.util.List;
 
 public interface ObservedLocationDao {
 
-    List<ObservedLocationVO> getAll(int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<ObservedLocationVO> getAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions);
 
-    List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
+                                          SortDirection sortDirection, DataFetchOptions fetchOptions);
 
     Long countByFilter(ObservedLocationFilterVO filter);
 

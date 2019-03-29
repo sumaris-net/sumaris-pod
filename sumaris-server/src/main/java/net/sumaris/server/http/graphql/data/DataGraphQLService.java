@@ -282,7 +282,8 @@ public class DataGraphQLService {
                                                                 @GraphQLEnvironment() Set<String> fields
     ) {
         final List<ObservedLocationVO> result = observedLocationService.findByFilter(filter, offset, size, sort,
-                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
+                getFetchOptions(fields));
 
         // Add additional properties if needed
         fillObservedLocationsFields(result, fields);

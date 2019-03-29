@@ -59,9 +59,6 @@ public interface TripService {
 	@Transactional(readOnly = true)
 	TripVO get(int id);
 
-	@Transactional(readOnly = true)
-	<T> T get(int id, Class<T> targetClass);
-
 	TripVO save(TripVO trip, boolean withOperation);
 
 	List<TripVO> save(List<TripVO> trips, boolean withOperation);

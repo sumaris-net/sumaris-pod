@@ -38,6 +38,7 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -82,7 +83,7 @@ public class ObservedLocationDaoImpl extends HibernateDaoSupport implements Obse
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<ObservedLocationVO> getAll(int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<ObservedLocationVO> getAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
         CriteriaQuery<ObservedLocation> query = builder.createQuery(ObservedLocation.class);
@@ -102,12 +103,13 @@ public class ObservedLocationDaoImpl extends HibernateDaoSupport implements Obse
         return toObservedLocationVOs(entityManager.createQuery(query).
                 setFirstResult(offset)
                 .setMaxResults(size)
-                .getResultList());
+                .getResultList(), fetchOptions);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
+                                                 SortDirection sortDirection, DataFetchOptions fetchOptions) {
         Preconditions.checkNotNull(filter);
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
@@ -169,7 +171,7 @@ public class ObservedLocationDaoImpl extends HibernateDaoSupport implements Obse
                 .setParameter(locationIdParam, filter.getLocationId())
                 .setFirstResult(offset)
                 .setMaxResults(size);
-        return toObservedLocationVOs(q.getResultList());
+        return toObservedLocationVOs(q.getResultList(), fetchOptions);
     }
 
     @Override
@@ -233,7 +235,7 @@ public class ObservedLocationDaoImpl extends HibernateDaoSupport implements Obse
     @Override
     public ObservedLocationVO get(int id) {
         ObservedLocation entity = get(ObservedLocation.class, id);
-        return toObservedLocationVO(entity);
+        return toObservedLocationVO(entity, null);
     }
 
     @Override
@@ -302,38 +304,7 @@ public class ObservedLocationDaoImpl extends HibernateDaoSupport implements Obse
 
     @Override
     public ObservedLocationVO toObservedLocationVO(ObservedLocation source) {
-        if (source == null) return null;
-
-        ObservedLocationVO target = new ObservedLocationVO();
-
-        Beans.copyProperties(source, target);
-
-        // Program
-        target.setProgram(programDao.toProgramVO(source.getProgram()));
-
-
-        target.setQualityFlagId(source.getQualityFlag().getId());
-
-        // Location
-        target.setLocation(locationDao.toLocationVO(source.getLocation()));
-
-        // Recorder department
-        DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
-        target.setRecorderDepartment(recorderDepartment);
-
-        // Recorder person
-        if (source.getRecorderPerson() != null) {
-            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
-            target.setRecorderPerson(recorderPerson);
-        }
-
-        // Observers
-        if (CollectionUtils.isNotEmpty(source.getObservers())) {
-            Set<PersonVO> observers = source.getObservers().stream().map(personDao::toPersonVO).collect(Collectors.toSet());
-            target.setObservers(observers);
-        }
-
-        return target;
+        return toObservedLocationVO(source, null);
     }
 
     @Override
@@ -427,11 +398,49 @@ public class ObservedLocationDaoImpl extends HibernateDaoSupport implements Obse
 
     /* -- protected methods -- */
 
-    protected List<ObservedLocationVO> toObservedLocationVOs(List<ObservedLocation> source) {
+    protected List<ObservedLocationVO> toObservedLocationVOs(List<ObservedLocation> source, DataFetchOptions fetchOptions) {
         return source.stream()
-                .map(this::toObservedLocationVO)
+                .map(item -> toObservedLocationVO(item, fetchOptions))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+
+    protected ObservedLocationVO toObservedLocationVO(ObservedLocation source, DataFetchOptions fetchOptions) {
+        if (source == null) return null;
+
+        ObservedLocationVO target = new ObservedLocationVO();
+
+        Beans.copyProperties(source, target);
+
+        // Program
+        target.setProgram(programDao.toProgramVO(source.getProgram()));
+
+
+        target.setQualityFlagId(source.getQualityFlag().getId());
+
+        // Location
+        target.setLocation(locationDao.toLocationVO(source.getLocation()));
+
+        // Recorder department
+        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
+            DepartmentVO recorderDepartment = departmentDao.toDepartmentVO(source.getRecorderDepartment());
+            target.setRecorderDepartment(recorderDepartment);
+        }
+
+        // Recorder person
+        if ((fetchOptions == null || fetchOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
+            PersonVO recorderPerson = personDao.toPersonVO(source.getRecorderPerson());
+            target.setRecorderPerson(recorderPerson);
+        }
+
+        // Observers
+        if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(source.getObservers())) {
+            Set<PersonVO> observers = source.getObservers().stream().map(personDao::toPersonVO).collect(Collectors.toSet());
+            target.setObservers(observers);
+        }
+
+        return target;
     }
 
     protected void observedLocationVOToEntity(ObservedLocationVO source, ObservedLocation target, boolean copyIfNull) {
