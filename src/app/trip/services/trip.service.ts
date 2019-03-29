@@ -42,6 +42,9 @@ export const TripFragments = {
       vesselId,
       name,
       exteriorMarking
+    }    
+    observers {
+      ...RecorderPersonFragment
     }
   }
   ${Fragments.location}
@@ -109,6 +112,9 @@ export const TripFragments = {
     }
     measurements {
       ...MeasurementFragment
+    }    
+    observers {
+      ...RecorderPersonFragment
     }
   }
   ${Fragments.recorderDepartment}

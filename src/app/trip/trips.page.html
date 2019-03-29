@@ -1,4 +1,4 @@
-<app-toolbar [title]="'TRIP.LIST.TITLE'|translate" color="primary" (onValidate)="save()"
+<app-toolbar [title]="'TRIP.TABLE.TITLE'|translate" color="primary" (onValidate)="save()"
              [hasValidate]="!loading && dirty"
              [canGoBack]="false">
 </app-toolbar>
@@ -45,7 +45,7 @@
 
       <!-- Program -->
       <mat-form-field style="min-width: 150px;">
-        <input matInput [placeholder]="'TRIP.PROGRAM'|translate" [matAutocomplete]="autoFilterProgram" formControlName="program">
+        <input matInput [placeholder]="'TRIP.TABLE.FILTER.PROGRAM'|translate" [matAutocomplete]="autoFilterProgram" formControlName="program">
       </mat-form-field>
 
       <!-- Program combo -->
@@ -64,18 +64,18 @@
       </mat-autocomplete>
 
       <!-- Start date -->
-      <mat-date-time [placeholder]="'TRIP.LIST.FILTER.START_DATE'|translate" [formControl]="filterForm.controls.startDate"
+      <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate" [formControl]="filterForm.controls.startDate"
         [displayTime]="false">
       </mat-date-time>
 
       <!-- End date -->
-      <mat-date-time [placeholder]="'TRIP.LIST.FILTER.END_DATE'|translate" [formControl]="filterForm.controls.endDate"
+      <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate" [formControl]="filterForm.controls.endDate"
         [displayTime]="false">
       </mat-date-time>
 
       <!-- Location -->
       <mat-form-field style="min-width: 300px;">
-        <input matInput [placeholder]="'TRIP.LIST.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation"
+        <input matInput [placeholder]="'TRIP.TABLE.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation"
           formControlName="location">
       </mat-form-field>
 
@@ -131,7 +131,7 @@
     <!-- Quality Column -->
     <ng-container matColumnDef="quality">
       <mat-header-cell *matHeaderCellDef> <!--mat-sort-header TODO pas triable pour l'instant -->
-        <span translate>TRIP.LIST.QUALITY</span>
+        <span translate>TRIP.TABLE.QUALITY</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-icon color="light" name="create" *ngIf="!row.currentData.controlDate" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
@@ -143,7 +143,7 @@
     <!-- Program Column -->
     <ng-container matColumnDef="program">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>TRIP.LIST.PROGRAM</span>
+        <span translate>TRIP.TABLE.PROGRAM</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{row.currentData.program.label}}
@@ -153,11 +153,11 @@
     <!-- Vessel Column -->
     <ng-container matColumnDef="vessel">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>TRIP.VESSEL</span>
+        <span translate>TRIP.TABLE.VESSEL</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <mat-form-field floatLabel="never" [title]="vesselFeaturesToString(row.currentData.vesselFeatures)">
-          <input matInput [formControl]="row.validator.controls['vesselFeatures']" [placeholder]="'TRIP.VESSEL'|translate"
+          <input matInput [formControl]="row.validator.controls['vesselFeatures']" [placeholder]="'TRIP.TABLE.VESSEL'|translate"
             [appAutofocus]="row.id &lt; 0 && row.editing" [readonly]="!row.editing" [matAutocomplete]="autoVessel">
           <mat-error *ngIf="row.validator.controls['vesselFeatures'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
@@ -184,11 +184,11 @@
     <!-- departure location -->
     <ng-container matColumnDef="departureLocation">
       <mat-header-cell *matHeaderCellDef>
-        <span translate>TRIP.DEPARTURE_LOCATION</span>
+        <span translate>TRIP.TABLE.DEPARTURE_LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['departureLocation']" [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
+          <input matInput [formControl]="row.validator.controls['departureLocation']" [placeholder]="'TRIP.TABLE.DEPARTURE_LOCATION'|translate"
             [matAutocomplete]="autoDepartureLocation" [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['departureLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
@@ -216,7 +216,7 @@
     <!-- departure date time  -->
     <ng-container matColumnDef="departureDateTime">
       <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-        <span translate>TRIP.DEPARTURE_DATE_TIME</span>
+        <span translate>TRIP.TABLE.DEPARTURE_DATE_TIME</span>
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
 
@@ -230,12 +230,22 @@
     <!-- return date time -->
     <ng-container matColumnDef="returnDateTime">
       <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-        <span translate>TRIP.RETURN_DATE_TIME</span>
+        <span translate>TRIP.TABLE.RETURN_DATE_TIME</span>
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">
         <mat-date-time floatLabel="never" [formControl]="row.validator.controls['returnDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
           [readonly]="!row.editing" [required]="true">
         </mat-date-time>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Observers -->
+    <ng-container matColumnDef="observers">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>TRIP.TABLE.OBSERVERS</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{ personsToString(row.currentData.observers) }}
       </mat-cell>
     </ng-container>
 
@@ -264,8 +274,6 @@
       [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"
       (onblur)="confirmAndAddRow($event,row)"></mat-row>
   </mat-table>
-
-
 
   <ion-row no-padding>
     <ion-col></ion-col>

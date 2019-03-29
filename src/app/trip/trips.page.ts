@@ -4,7 +4,7 @@ import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
   AppTable,
-  AppTableDataSource,
+  AppTableDataSource, personsToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../core/core.module";
@@ -62,6 +62,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
           'departureLocation',
           'departureDateTime',
           'returnDateTime',
+          'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Trip, TripFilter>(Trip, dataService, validatorService, {
@@ -71,7 +72,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         }
       })
     );
-    this.i18nColumnPrefix = 'TRIP.';
+    this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({
       'program': [null],
       'startDate': [null],
@@ -192,9 +193,10 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
+  personsToString = personsToString;
 
   programToString(item: ReferentialRef) {
-    return referentialToString(item, ['label']);
+    return item && item.label || undefined;
   }
 }
 

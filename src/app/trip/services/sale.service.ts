@@ -56,6 +56,9 @@ export const SaleFragments = {
     vesselFeatures {
       ...VesselFeaturesFragment
     }
+    observers {
+      ...RecorderPersonFragment
+    }
   }
   ${Fragments.recorderPerson}
   ${Fragments.recorderDepartment}
