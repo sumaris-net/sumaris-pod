@@ -2,7 +2,6 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.model.IDataEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
@@ -12,6 +11,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.data.IWithVesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
@@ -61,15 +61,7 @@ public class DataDaos extends Daos {
         copyRecorderPerson(em, source, target, copyIfNull);
 
         // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(em.getReference(QualityFlag.class, SumarisConfiguration.getInstance().getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(em.getReference(QualityFlag.class, source.getQualityFlagId()));
-            }
-        }
-
+        copyQualityFlag(em, source, target, copyIfNull);
     }
 
     public static <T extends Serializable> void copyRecorderDepartment(EntityManager em,
@@ -115,7 +107,7 @@ public class DataDaos extends Daos {
             else {
                 Map<Integer, Person> observersToRemove = Beans.splitById(target.getObservers());
                 source.getObservers().stream()
-                        .map(IDataEntity::getId)
+                        .map(net.sumaris.core.dao.technical.model.IDataEntity::getId)
                         .forEach(personId -> {
                             if (observersToRemove.remove(personId) == null) {
                                 // Add new item
@@ -143,5 +135,21 @@ public class DataDaos extends Daos {
             }
         }
     }
+
+    public static <T extends Serializable> void copyQualityFlag(EntityManager em,
+                                                           IDataVO<T> source,
+                                                           IDataEntity<T> target,
+                                                           boolean copyIfNull) {
+        // Quality flag
+        if (copyIfNull || source.getQualityFlagId() != null) {
+            if (source.getQualityFlagId() == null) {
+                target.setQualityFlag(em.getReference(QualityFlag.class, SumarisConfiguration.getInstance().getDefaultQualityFlagId()));
+            }
+            else {
+                target.setQualityFlag(em.getReference(QualityFlag.class, source.getQualityFlagId()));
+            }
+        }
+    }
+
 
 }

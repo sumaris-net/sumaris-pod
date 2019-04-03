@@ -29,6 +29,7 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
 import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
 import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -36,9 +37,8 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import java.util.Date;
 
 @Data
-public class VesselFeaturesVO implements IUpdateDateEntityBean<Integer, Date>,
-        IWithRecorderPersonEntityBean<Integer, PersonVO>,
-        IWithRecorderDepartmentEntityBean<Integer, DepartmentVO> {
+public class VesselFeaturesVO implements IDataVO<Integer>,
+        IWithRecorderPersonEntityBean<Integer, PersonVO> {
 
     public static final String PROPERTY_START_DATE = VesselFeatures.PROPERTY_START_DATE;
     public static final String PROPERTY_EXTERIOR_MARKING = VesselFeatures.PROPERTY_EXTERIOR_MARKING;
@@ -53,13 +53,17 @@ public class VesselFeaturesVO implements IUpdateDateEntityBean<Integer, Date>,
     private Double grossTonnageGt;
     private ReferentialVO basePortLocation;
     private String comments;
+    private ProgramVO program;
 
     private Date startDate;
     private Date endDate;
 
     private Date creationDate;
     private Date updateDate;
-
+    private Date controlDate;
+    private Date validationDate;
+    private Date qualificationDate;
+    private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;

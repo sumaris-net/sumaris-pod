@@ -25,6 +25,8 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -333,6 +335,9 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             }
         }
 
+        // Quality flag
+        DataDaos.copyQualityFlag(em, source, target, copyIfNull);
+
         // Base port location
         if (copyIfNull || source.getBasePortLocation() != null) {
             if (source.getBasePortLocation() == null || source.getBasePortLocation().getId() == null) {
@@ -363,12 +368,16 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         }
 
         // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
+        DataDaos.copyQualityFlag(em, source, target, copyIfNull);
+
+        // Program
+        if (copyIfNull || (source.getProgram() != null || source.getProgram().getId() != null)) {
+            if (source.getProgram() == null || source.getProgram().getId() == null) {
+                // Set the default program
+                target.setProgram(load(Program.class, ProgramEnum.SIH.getId()));
             }
             else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
+                target.setProgram(load(Program.class, source.getProgram().getId()));
             }
         }
 
