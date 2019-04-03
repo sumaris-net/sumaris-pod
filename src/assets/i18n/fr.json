@@ -232,6 +232,7 @@
       "RETURN_LOCATION": "Port de retour",
       "QUALITY": "État",
       "OBSERVERS": "Observateurs",
+      "COMMENTS": "Commentaires",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "START_DATE": "Début de période",

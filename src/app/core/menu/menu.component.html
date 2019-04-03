@@ -77,7 +77,7 @@
 
         <ion-buttons slot="start" >
           <ion-button color="secondary" (click)="openAboutModal($event)">
-            <ion-icon slot="icon-only" color="primary" name="help-circle-outline"></ion-icon>
+            <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
           </ion-button>
         </ion-buttons>
 
@@ -86,9 +86,9 @@
         </ion-title>
 
         <ion-buttons slot="end">
-          <ion-button  color="secondary" (click)="toggleSplitPane($event)"
-                       hidden-xs hidden-sm
-                       [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
+          <ion-button color="secondary" (click)="toggleSplitPane($event)"
+                      hidden-xs hidden-sm
+                      [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
             <h2 slot="icon-only">{{splitPaneOpened ? '&#xab;' : '&#xbb;'}}</h2>
           </ion-button>
         </ion-buttons>

@@ -154,6 +154,7 @@ export class MenuComponent implements OnInit {
   }
 
   toggleSplitPane($event: MouseEvent) {
+    if ($event.defaultPrevented) return;
     this.splitPaneOpened = !this.splitPaneOpened;
     if (!this.splitPaneOpened) {
       this.splitPane.when = false;

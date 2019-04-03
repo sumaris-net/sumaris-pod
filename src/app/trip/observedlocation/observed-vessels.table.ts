@@ -195,7 +195,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
   }
 
   getRowValidator(): FormGroup {
-    let formGroup = this.validatorService.getRowValidator();
+    const formGroup = this.validatorService.getRowValidator();
     if (this.measurementValuesFormGroupConfig) {
       formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
     }
@@ -203,7 +203,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
   }
 
   async deleteSelection(confirm?: boolean): Promise<void> {
-    if (this.loading) return;
+    if (this.loading) { return; }
 
     if (!confirm) {
       const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE', 'CONFIRM.ALERT_HEADER']);

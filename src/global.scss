@@ -444,26 +444,6 @@ mat-horizontal-stepper {
   }
 }
 
-@media screen and (min-width: $screen-md) and (max-width: $screen-md-max) {
-  ion-modal .modal-wrapper {
-    left: calc(50% - (768px/2));
-    top: calc(50% - (600px/2));
-    position: absolute;
-    width: 768px;
-    height: 600px;
-  }
-}
-
-@media screen and (min-width: $screen-lg) {
-  ion-modal .modal-wrapper {
-    left: calc(50% - (1000px/2));
-    top: calc(50% - (600px/2));
-    position: absolute;
-    width: 1000px;
-    height: 600px;
-  }
-}
-
 mat-button-toggle.mat-button-toggle-checked,
 mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
   background-color: color($colors, light);

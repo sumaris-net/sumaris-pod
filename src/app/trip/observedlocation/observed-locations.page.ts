@@ -47,7 +47,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
-    protected validatorService: TripValidatorService,
+    protected validatorService: ObservedLocationValidatorService,
     protected dataService: ObservedLocationService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
@@ -187,8 +187,5 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
   personsToString = personsToString;
-
-  programToString(item: ReferentialRef) {
-    return item && item.label || '';
-  }
+  programToString(item: ReferentialRef) {return item && item.label || '';}
 }
