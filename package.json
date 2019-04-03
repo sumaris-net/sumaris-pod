@@ -90,7 +90,7 @@
     "@angular/compiler": "~7.2.2",
     "@angular/compiler-cli": "~7.2.2",
     "@angular/language-service": "~7.2.2",
-    "@ionic/angular-toolkit": "~1.5.0",
+    "@ionic/angular-toolkit": "~1.4.0",
     "@types/async": "^2.0.49",
     "@types/graphql": "14.0.4",
     "@types/jasmine": "~2.8.8",
