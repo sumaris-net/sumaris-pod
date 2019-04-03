@@ -280,8 +280,8 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
-    const candLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
-    if (!candLoadPmfms) {
+    const canLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
+    if (!canLoadPmfms) {
       return undefined;
     }
 

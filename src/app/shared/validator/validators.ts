@@ -45,7 +45,7 @@ export class SharedValidators {
 
   static integer(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (isNotNil(value) && Math.trunc(value) !== value)
+    if (isNotNil(value) && value !== "" && Math.trunc(value) !== value)
       return { integer: true };
   }
 

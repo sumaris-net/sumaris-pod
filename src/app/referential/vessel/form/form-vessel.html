@@ -78,7 +78,7 @@
       <!-- Administrative power -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input type="number" step="1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.ADMINISTRATIVE_POWER'|translate"
+          <input matInput type="number" step="1" min="0" autocomplete="off" [placeholder]="'VESSEL.ADMINISTRATIVE_POWER'|translate"
                  formControlName="administrativePower" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.controls['administrativePower'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['administrativePower'].hasError('pattern')">

@@ -123,7 +123,7 @@ export class ConfigPage extends AppForm<Configuration> implements OnInit {
   updateView(data: Configuration) {
     this.data = data;
     this.form = this.validator.getFormGroup(data);
-    this.partners.next(data.partners);
+    if (data) this.partners.next(data.partners);
     this.loading = false;
   }
 
