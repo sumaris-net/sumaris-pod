@@ -6,7 +6,7 @@ Technologies: SUMARiS App is an Ionic 4 + Angular 5 App.
 
 ## Compile from source
 
-1. Install [Node.js](https://nodejs.org/en/)
+1. Install [Node.js](https://nodejs.org/en/) (v10)
 
 2. Install global dependency: 
 ```bash
