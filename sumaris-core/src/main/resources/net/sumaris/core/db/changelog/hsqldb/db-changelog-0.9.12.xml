@@ -349,9 +349,15 @@
     </changeSet>
     <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-26-1">
         <preConditions onFail="MARK_RAN">
-            <sqlCheck expectedResult="0">
-                select count(*) from program where label='SIH'
-            </sqlCheck>
+            <!-- ignore if already exists, or if database is empty -->
+            <and>
+                <sqlCheck expectedResult="0">
+                    select count(*) from program where label='SIH'
+                </sqlCheck>
+                <sqlCheck expectedResult="1">
+                    select count(*) from status where id=1
+                </sqlCheck>
+            </and>
         </preConditions>
         <insert tableName="program">
             <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_SEQ"/>
@@ -392,130 +398,130 @@
 
 
     <!-- foreign keys -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-30">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-30" failOnError="false">
         <addUniqueConstraint columnNames="label" constraintName="UC_SOFTWARELABEL_COL" tableName="software"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-32">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-32" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="landing2observer_person" constraintName="FK11t9lvmdhs3gi5flwmimn1i8x" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-33">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-33" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="observed_location" constraintName="FK1ghqm8478y4ruy0nh3hpiej95" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-34">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-34" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="landing_measurement" constraintName="FK29k2ni2rinvtd39009eu724gc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-35">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-35" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="landing_fk" baseTableName="landing_measurement" constraintName="FK30fb37dwes8b8s2f1xdlboyqa" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="landing"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-36">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-36" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="landing_measurement" constraintName="FK431veecf2etegruh1d3etsorn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-37">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-37" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="sale_fk" baseTableName="sale2observer_person" constraintName="FK5rc0135jh8u37gjxvquoirwqw" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sale"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-38">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-38" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="sale2observer_person" constraintName="FK66g69v42ebb81jliordexsijt" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-39">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-39" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="Landing" constraintName="FK7uu8nj0ccfcsq72ttggmfvw13" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-40">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-40" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="Landing" constraintName="FK8blrm0owvsvfnpva8crcl6ho7" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-41">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-41" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="Landing" constraintName="FK8jv4av9agnek32hg1ikbbubr5" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-42">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-42" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="landing_location_fk" baseTableName="Landing" constraintName="FK8yf6i41p0ifbmxlnmloh7sr0l" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-43">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-43" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="observed_location_measurement" constraintName="FKasyi73oq2lwe5n26io3tnu1tx" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-44">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-44" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="sale_measurement" constraintName="FKbu0q3xqbw97ier3uvfdx4s934" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-45">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-45" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="Sale" constraintName="FKcolqb0misq4x99296ib90xold" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-46">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-46" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="trip2observer_person" constraintName="FKdh0cc271ahx2gv9alh5qf95j2" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-47">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-47" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="observed_location_measurement" constraintName="FKdxb7dd3g90ba9shat9lxoa9qv" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-48">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-48" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="physical_gear" constraintName="FKf0045fecxa1bsve9nuxcnckpl" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-49">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-49" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="sale_measurement" constraintName="FKff1cmquattpb3d421n617shc4" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-50">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-50" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="Vessel" constraintName="FKgw1phmby35m7atjbgfktcicv6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-51">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-51" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="sale_measurement" constraintName="FKhide0rpk4s61gya5u0fgot9le" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-52">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-52" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="Sale" constraintName="FKiqo6lw0x1g5sffi4nlhkndgl3" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-53">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-53" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="observed_location" constraintName="FKjb5hgk4sie31c7dlfoiqjyg7r" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-54">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-54" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="Landing" constraintName="FKk13iy8kua8b1kubu72l1jf5hh" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-55">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-55" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="observed_location_measurement" constraintName="FKk1civ2sweoryrrgwb3cdasi2r" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-56">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-56" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="trip_fk" baseTableName="trip2observer_person" constraintName="FKk57ypygh1b8drqlmcwk21dugy" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="trip"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-57">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-57" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="vessel_fk" baseTableName="Landing" constraintName="FKkdxp5x75buu965qrfmypdw790" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-58">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-58" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="sale_measurement" constraintName="FKkfia9lw7frixdyftgl6ldw8sf" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-59">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-59" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="observed_location" constraintName="FKl3r15f6sowlc799vyw9bg8ete" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-60">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-60" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="observed_location_measurement" constraintName="FKlxw35qg5biqmwg00lh09lurvu" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-61">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-61" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="observed_location" constraintName="FKmwvyp1du854f4cvpg53dt3fga" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-62">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-62" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="landing_measurement" constraintName="FKnknoiqcyvst2cnbn8s5a6rs8g" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-63">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-63" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="trip_fk" baseTableName="Landing" constraintName="FKnojx79qw0f5p3wpis7fvb3vo4" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="trip"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-64">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-64" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="sale_fk" baseTableName="sale_measurement" constraintName="FKnrlrkj8wyvxpd0pews31op975" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sale"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-65">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-65" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="observed_location2person" constraintName="FKogn0msd8uqx3txen7fb0xigq" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-66">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-66" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="landing_fk" baseTableName="landing2observer_person" constraintName="FKos99ag2er2q9bucw03u47osjm" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="landing"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-67">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-67" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="observed_location_measurement" constraintName="FKp4jwi2yxnci7wr8yst30qhdpy" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-68">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-68" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="Landing" constraintName="FKqd1yaeg0d8q02xwoejy15qvg4" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-69">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-69" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="observed_location" constraintName="FKseboqtkiqsrt9qsdo6s1j1p0s" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-70">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-70" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="Sample" constraintName="FKsnnikoplpe1srsgk58tnq4g52" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-71">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-71" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="landing_measurement" constraintName="FKt7sj0vpilxh7di8g34ivtgr5i" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-72">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-72" failOnError="false">
         <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="observed_location2person" constraintName="FKtaejox0m2b5dr4r46xbkp4gsy" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
     </changeSet>
     <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-73">
