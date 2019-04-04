@@ -2,7 +2,7 @@ import { EventEmitter, Injectable } from '@angular/core';
 
 @Injectable()
 export class ProgressBarService {
-    public onProgressChanged: EventEmitter<'none'|'query'> =  new EventEmitter();
+    public onProgressChanged: EventEmitter<string> =  new EventEmitter();
 
     private requestsRunning = 0;
 

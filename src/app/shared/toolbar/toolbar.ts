@@ -49,7 +49,7 @@ export class ToolbarComponent implements OnInit {
   @Output()
   onBackClick: EventEmitter<Event> = new EventEmitter<Event>();
 
-  progressBarMode: 'none'|'query' = 'none';
+  progressBarMode = 'none';
 
   @ViewChild("backButton") backButton: IonBackButton;
 
@@ -65,12 +65,14 @@ export class ToolbarComponent implements OnInit {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
     this.progressBarService.onProgressChanged
       .pipe(
-        debounceTime(100),
+        //debounceTime(100),
         distinctUntilChanged()
       )
       .subscribe((mode) => {
-        this.progressBarMode = mode;
-        this.cd.detectChanges();
+        if (this.progressBarMode !== mode) {
+          this.progressBarMode = mode;
+          this.cd.detectChanges();
+        }
       });
     if (isNil(this.canGoBack)) {
       this.canGoBack = this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref);
