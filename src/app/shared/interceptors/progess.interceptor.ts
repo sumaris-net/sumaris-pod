@@ -8,7 +8,6 @@ export class ProgressInterceptor implements HttpInterceptor {
     }
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        //console.log("intercept", req);
         this.progressBarService.increase();
         return next
             .handle(req).pipe(

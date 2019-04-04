@@ -2,13 +2,9 @@ import { EventEmitter, Injectable } from '@angular/core';
 
 @Injectable()
 export class ProgressBarService {
-    public updateProgressBar$: EventEmitter<any>;
+    public onProgressChanged: EventEmitter<'none'|'query'> =  new EventEmitter();
 
     private requestsRunning = 0;
-
-    constructor() {
-        this.updateProgressBar$ = new EventEmitter();
-    }
 
     public list(): number {
         return this.requestsRunning;
@@ -17,7 +13,7 @@ export class ProgressBarService {
     public increase(): void {
         this.requestsRunning++;
         if (this.requestsRunning === 1) {
-            this.updateProgressBar$.emit('query');
+            this.onProgressChanged.emit('query');
         }
     }
 
@@ -25,7 +21,7 @@ export class ProgressBarService {
         if (this.requestsRunning > 0) {
             this.requestsRunning--;
             if (this.requestsRunning === 0) {
-                this.updateProgressBar$.emit('none');
+                this.onProgressChanged.emit('none');
             }
         }
     }

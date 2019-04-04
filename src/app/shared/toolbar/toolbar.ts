@@ -1,14 +1,24 @@
-import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
-import { ProgressBarService } from '../services/progress-bar.service';
-import { BehaviorSubject } from "rxjs";
-import { Router } from "@angular/router";
-import { IonBackButton, IonRouterOutlet } from "@ionic/angular";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
+import {ProgressBarService} from '../services/progress-bar.service';
+import {Router} from "@angular/router";
+import {IonBackButton, IonRouterOutlet} from "@ionic/angular";
 import {isNil, isNotNil} from "../functions";
+import {debounceTime, distinctUntilChanged} from "rxjs/operators";
 
 @Component({
   selector: 'app-toolbar',
   templateUrl: 'toolbar.html',
   styleUrls: ['./toolbar.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ToolbarComponent implements OnInit {
 
@@ -39,26 +49,29 @@ export class ToolbarComponent implements OnInit {
   @Output()
   onBackClick: EventEmitter<Event> = new EventEmitter<Event>();
 
-  progressBarMode: BehaviorSubject<string> = new BehaviorSubject('none');
+  progressBarMode: 'none'|'query' = 'none';
 
   @ViewChild("backButton") backButton: IonBackButton;
 
   constructor(
     private progressBarService: ProgressBarService,
     protected router: Router,
-    public routerOutlet: IonRouterOutlet
+    public routerOutlet: IonRouterOutlet,
+    private cd: ChangeDetectorRef
   ) {
   }
 
   ngOnInit() {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
-    this.progressBarService.updateProgressBar$.subscribe((mode: string) => {
-      if (mode != this.progressBarMode.getValue()) {
-        setTimeout(() => {
-          this.progressBarMode.next(mode);
-        });
-      }
-    });
+    this.progressBarService.onProgressChanged
+      .pipe(
+        debounceTime(100),
+        distinctUntilChanged()
+      )
+      .subscribe((mode) => {
+        this.progressBarMode = mode;
+        this.cd.detectChanges();
+      });
     if (isNil(this.canGoBack)) {
       this.canGoBack = this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref);
     }
