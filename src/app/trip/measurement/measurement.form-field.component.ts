@@ -1,4 +1,4 @@
-import { Component, Optional, OnInit, Input, forwardRef } from '@angular/core';
+import {Component, Optional, OnInit, Input, forwardRef, ChangeDetectionStrategy} from '@angular/core';
 import { PmfmStrategy, getPmfmName } from "../services/trip.model";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, FormControl, FormGroupDirective } from '@angular/forms';
 import { FloatLabelType } from "@angular/material";
@@ -9,16 +9,17 @@ const noop = () => {
 };
 
 @Component({
-    selector: 'mat-form-field-measurement',
-    styleUrls: ['./measurement.form-field.component.scss'],
-    templateUrl: './measurement.form-field.component.html',
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => MeasurementFormField),
-            multi: true
-        }
-    ]
+  selector: 'mat-form-field-measurement',
+  styleUrls: ['./measurement.form-field.component.scss'],
+  templateUrl: './measurement.form-field.component.html',
+  providers: [
+      {
+          provide: NG_VALUE_ACCESSOR,
+          useExisting: forwardRef(() => MeasurementFormField),
+          multi: true
+      }
+  ]
+  //,changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
@@ -75,10 +76,10 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
         // Compute the field type (use special case for Latitude/Longitude)
         let type = this.pmfm.type;
-        if (type == "double" && this.pmfm.label === "LATITUDE") {
+        if (type === "double" && this.pmfm.label === "LATITUDE") {
             type = "latitude";
         }
-        else if (type == "double" && this.pmfm.label === "LONGITUDE") {
+        else if (type === "double" && this.pmfm.label === "LONGITUDE") {
             type = "longitude";
         }
         this.type = type;

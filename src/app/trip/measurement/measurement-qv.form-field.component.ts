@@ -1,4 +1,13 @@
-import { Component, OnInit, Input, EventEmitter, Output, forwardRef, Optional } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  EventEmitter,
+  Output,
+  forwardRef,
+  Optional,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { Referential, PmfmStrategy } from "../services/trip.model";
 import { Observable, Subject } from 'rxjs';
 import { startWith, debounceTime, map } from 'rxjs/operators';
@@ -10,15 +19,16 @@ import { FloatLabelType } from "@angular/material";
 import { SharedValidators } from '../../shared/validator/validators';
 
 @Component({
-    selector: 'mat-form-field-measurement-qv',
-    templateUrl: './measurement-qv.form-field.component.html',
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => MeasurementQVFormField),
-            multi: true
-        }
-    ]
+  selector: 'mat-form-field-measurement-qv',
+  templateUrl: './measurement-qv.form-field.component.html',
+  providers: [
+      {
+          provide: NG_VALUE_ACCESSOR,
+          useExisting: forwardRef(() => MeasurementQVFormField),
+          multi: true
+      }
+  ]
+  //,changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 

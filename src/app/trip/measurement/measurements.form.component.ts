@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from '@angular/core';
 import {Measurement, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
@@ -15,9 +15,10 @@ import {environment} from '../../../environments/environment';
 import {isNil, isNotNil} from '../../shared/shared.module';
 
 @Component({
-    selector: 'form-measurements',
-    templateUrl: './measurements.form.component.html',
-    styleUrls: ['./measurements.form.component.scss']
+  selector: 'form-measurements',
+  templateUrl: './measurements.form.component.html',
+  styleUrls: ['./measurements.form.component.scss']
+  //,changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MeasurementsForm extends AppForm<Measurement[]> {
 
