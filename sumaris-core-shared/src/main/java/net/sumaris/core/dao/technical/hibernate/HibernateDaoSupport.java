@@ -160,7 +160,7 @@ public abstract class HibernateDaoSupport {
                 throw new DataIntegrityViolationException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
             }
         }
-        return entityManager.getReference(clazz, id);
+        return entityManager.unwrap(Session.class).load(clazz, id);
     }
 
     /**
