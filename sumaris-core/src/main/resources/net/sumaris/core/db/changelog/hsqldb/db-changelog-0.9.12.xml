@@ -312,13 +312,18 @@
         </createTable>
     </changeSet>
     <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-23">
+      <preConditions onFail="MARK_RAN">
+        <not>
+          <columnExists tableName="sale" columnName="observed_location_fk"/>
+        </not>
+      </preConditions>
         <addColumn tableName="sale">
             <column name="observed_location_fk" type="INT"/>
         </addColumn>
     </changeSet>
     
     <!-- Add program column -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-24" runOnChange="true">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-24">
         <preConditions onFail="MARK_RAN">
             <not><columnExists tableName="sale" columnName="program_fk"/></not>
         </preConditions>
@@ -513,7 +518,7 @@
     <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-72">
         <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="observed_location2person" constraintName="FKtaejox0m2b5dr4r46xbkp4gsy" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-73" runOnChange="true">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-73">
         <preConditions onFail="MARK_RAN">
             <not><sqlCheck expectedResult="0">
                 select count(*) from location where validity_status_fk is null
@@ -528,7 +533,7 @@
     </changeSet>
 
     <!-- update SYSTEM_VERSION -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-200" runOnChange="true">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-200">
         <delete tableName="SYSTEM_VERSION">
             <where>LABEL='0.9.12'</where>
         </delete>
