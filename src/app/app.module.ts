@@ -7,6 +7,9 @@ import {IonicModule} from "@ionic/angular";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material";
 import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
+import { SplashScreen } from '@ionic-native/splash-screen/ngx';
+import { StatusBar } from '@ionic-native/status-bar/ngx';
+import { Keyboard } from '@ionic-native/keyboard/ngx';
 // App modules
 import {AppComponent} from "./app.component";
 import {AppRoutingModule} from "./app-routing.module";
@@ -34,9 +37,9 @@ import {environment} from "../environments/environment";
   ],
   bootstrap: [AppComponent],
   providers: [
-    //StatusBar,
-    //SplashScreen,
-    //Keyboard,
+    StatusBar,
+    SplashScreen,
+    Keyboard,
     { provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/') },
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: MAT_DATE_LOCALE, useValue: 'en' },

@@ -7,12 +7,9 @@ import {ReferentialRefService} from './referential/referential.module';
 import { ConfigService } from './core/services/config.service';
 import {DOCUMENT} from "@angular/platform-browser";
 import {Configuration} from "./core/services/model";
-// import { StatusBar } from "@ionic-native/status-bar";
-// import { SplashScreen } from "@ionic-native/splash-screen";
-// import { Keyboard } from "@ionic-native/keyboard";
-// import { AccountFieldDef, AccountService } from './core/core.module';
-// import { Referential } from './core/services/model';
-// import { DataService } from './shared/shared.module';
+import { SplashScreen } from '@ionic-native/splash-screen/ngx';
+import { StatusBar } from '@ionic-native/status-bar/ngx';
+import { Keyboard } from "@ionic-native/keyboard/ngx";
 
 
 @Component({
@@ -50,14 +47,18 @@ export class AppComponent {
     private platform: Platform,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
-    private configurationService: ConfigService
-    // TODO: waiting ionic-native release
-    // private statusBar: StatusBar, 
-    // private splashScreen: SplashScreen,
-    // private keyboard: Keyboard
+    private configurationService: ConfigService,
+    private splashScreen: SplashScreen,
+    private statusBar: StatusBar,
+    private keyboard: Keyboard
   ) {
 
-    platform.ready()
+    this.initializeApp();
+
+  }
+
+  initializeApp() {
+    this.platform.ready()
       .then(() => {
 
         // Listen for config changed
@@ -66,19 +67,16 @@ export class AppComponent {
 
         console.info("[app] Setting cordova plugins...");
 
-        /*
-        statusBar.styleDefault();
-        splashScreen.hide();
+        this.statusBar.styleDefault();
+        this.splashScreen.hide();
 
-        statusBar.overlaysWebView(false);
+        this.statusBar.overlaysWebView(false);
 
         // Control Keyboard
-        keyboard.disableScroll(true);
-        */
+        //this.keyboard.disableScroll();
 
         this.addAccountFields();
       });
-
   }
 
   public onActivate(event) {
