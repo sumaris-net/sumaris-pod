@@ -20,7 +20,7 @@ export function getRandomImage(files : String[]) {
   styleUrls: ['./home.scss'],
   animations: [fadeInAnimation]
 })
-export class HomePage implements OnInit, OnDestroy {
+export class HomePage implements OnDestroy {
 
   loading = true;
   displayName: String = '';
@@ -53,18 +53,6 @@ export class HomePage implements OnInit, OnDestroy {
       this.loading = false;
     }));
   };
-
-  async ngOnInit() {
-    // Workaround needed on Firefox Browser
-    const pageElements = document.getElementsByTagName('page-home');
-    if (pageElements && pageElements.length == 1) {
-      const pageElement: Element = pageElements[0];
-      if (pageElement.classList.contains('ion-page-invisible')) {
-        console.warn("[home] FIXME Applying workaround on page visibility (see issue #1)");
-        pageElement.classList.remove('ion-page-invisible');
-      }
-    }
-  }
 
   ngOnDestroy() {
     this.subscriptions.forEach(s => s.unsubscribe());

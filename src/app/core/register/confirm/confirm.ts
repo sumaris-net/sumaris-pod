@@ -10,7 +10,7 @@ import {ConfigService} from '../../services/config.service';
   templateUrl: 'confirm.html',
   styleUrls: ['./confirm.scss']
 })
-export class RegisterConfirmPage implements OnInit, OnDestroy {
+export class RegisterConfirmPage implements OnDestroy {
 
   isLogin: boolean;
   subscriptions: Subscription[] = [];
@@ -47,18 +47,6 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
 
         this.loading = false;
       });
-  }
-
-  ngOnInit(): void {
-    // Workaround need on Firefox Browser
-    const pageElements = document.getElementsByTagName('page-register-confirm');
-    if (pageElements && pageElements.length == 1) {
-      const pageElement: Element = pageElements[0];
-      if (pageElement.classList.contains('ion-page-invisible')) {
-        console.warn("[home] FIXME Applying workaround on page visibility (see issue #1)");
-        pageElement.classList.remove('ion-page-invisible');
-      }
-    }
   }
 
   ngOnDestroy() {
