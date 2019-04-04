@@ -65,7 +65,7 @@ const SaveMutation: any = gql`
 @Injectable()
 export class ConfigService extends BaseDataService {
 
-  private loading = false;
+  private starting = false;
   private $data: BehaviorSubject<Configuration>;
 
   constructor(
@@ -73,12 +73,9 @@ export class ConfigService extends BaseDataService {
     protected storage: Storage
   ) {
     super(apollo);
-
-    //console.log("You've written a TypeScript class ");
-   
   }
 
-  get(): Observable<Configuration> {
+  get config(): Observable<Configuration> {
     // If first call: start loading
     if (!this.$data) {
       this.$data = new BehaviorSubject<Configuration>(null);
@@ -90,32 +87,29 @@ export class ConfigService extends BaseDataService {
       );
   }
 
-  load(options?: {
+  async load(options?: {
     fetchPolicy?: FetchPolicy
-  }) : Observable<Configuration> {
+  }): Promise<Configuration> {
 
-    console.debug("[config] Loading configuration (from pod)...");
+    console.debug("[config] Loading pod configuration...");
 
-    return this.watchQuery<{ configuration: Configuration} >({
+    const res = await this.query<{ configuration: Configuration} >({
       query: LoadQuery,
       variables: { },
       error:{ code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR" },
       fetchPolicy: options && options.fetchPolicy || undefined
-    })
-      .pipe(
-        map(res => {
-          const data = res && res.configuration && Configuration.fromObject(res && res.configuration);
-          console.info("[config] Configuration loaded (from pod): ", data);
-          return data;
-        })
-      );
+    });
+
+    const data = res && res.configuration && Configuration.fromObject(res && res.configuration);
+    console.info("[config] Configuration loaded (from pod): ", data);
+    return data;
   }
 
   /**
    * Save a configuration
    * @param config
    */
-  public async save(config: Configuration): Promise<Configuration> {
+  async save(config: Configuration): Promise<Configuration> {
 
     console.debug("[config] Saving configuration...", config);
 
@@ -141,9 +135,10 @@ export class ConfigService extends BaseDataService {
 
     console.debug("[config] Configuration saved!");
 
-    this.$data.next(config); // emit
+    const reloadedConfig = await this.load({fetchPolicy: "network-only"});
+    this.$data.next(reloadedConfig); // emit
 
-    return config;
+    return reloadedConfig;
   }
 
 
@@ -152,18 +147,14 @@ export class ConfigService extends BaseDataService {
 
   async start() : Promise<Configuration> {
 
-    if (this.loading) return; // skip if already loading
+    if (this.starting) return; // skip if already loading
 
-    this.loading = true;
+    this.starting = true;
     console.debug("[config] Loading configuration (from pod)...");
 
     let data;
     try {
-      data = await this.load()
-        .pipe(
-          first()
-        )
-        .toPromise();
+      data = await this.load();
 
       if (data) {
         // Save it into local storage, for next startup
@@ -186,7 +177,7 @@ export class ConfigService extends BaseDataService {
     data.name = (data.name !== data.label) ? data.name : undefined;
 
     this.$data.next(data);
-    this.loading = false;
+    this.starting = false;
     return data;
   }
 

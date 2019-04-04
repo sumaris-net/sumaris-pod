@@ -62,8 +62,7 @@ export class AppComponent {
       .then(() => {
 
         // Listen for config changed
-        this.configurationService.get()
-          .subscribe(config => this.onConfigReady(config));
+        this.configurationService.config.subscribe(config => this.onConfigChanged(config));
 
         console.info("[app] Setting cordova plugins...");
 
@@ -92,7 +91,7 @@ export class AppComponent {
     }, 16);
   }
 
-  protected onConfigReady(config: Configuration) {
+  protected onConfigChanged(config: Configuration) {
 
     this.logo = config.smallLogo || config.largeLogo;
     this.appName = config.label;

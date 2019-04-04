@@ -37,7 +37,7 @@ export class HomePage implements OnDestroy {
     public accountService: AccountService,
     public modalCtrl: ModalController,
     public translate: TranslateService,
-    public configurationService: ConfigService
+    public configService: ConfigService
   ) {
     
     this.isLogin = accountService.isLogin();
@@ -48,7 +48,7 @@ export class HomePage implements OnDestroy {
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
     this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
-    this.subscriptions.push(this.configurationService.get().subscribe(config => {
+    this.subscriptions.push(this.configService.config.subscribe(config => {
       this.onConfigReady(config);
       this.loading = false;
     }));

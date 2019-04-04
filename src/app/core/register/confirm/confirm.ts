@@ -33,8 +33,7 @@ export class RegisterConfirmPage implements OnDestroy {
       this.doConfirm(params.get("email"), params.get("code"))
     ));
 
-    this.configService.get()
-      .subscribe(config => {
+    this.configService.config.subscribe(config => {
 
         if (config && config.backgroundImages && config.backgroundImages.length) {
           const bgImage = getRandomImage(config.backgroundImages);

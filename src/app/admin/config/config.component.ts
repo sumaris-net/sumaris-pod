@@ -104,11 +104,7 @@ export class ConfigPage extends AppForm<Configuration> implements OnInit {
 
     // Get data
     try {
-      data = await this.service.load({fetchPolicy: "network-only"})
-        .pipe(
-          first()
-        )
-        .toPromise();
+      data = await this.service.load({fetchPolicy: "network-only"});
     }
     catch(err) {
       this.error = err && err.message || err;
