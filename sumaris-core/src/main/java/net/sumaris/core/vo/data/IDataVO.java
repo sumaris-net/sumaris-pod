@@ -26,6 +26,7 @@ import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 
 import java.io.Serializable;
@@ -35,10 +36,12 @@ public interface IDataVO<T extends Serializable>
         extends Serializable, IUpdateDateEntityBean<T, Date>,
         IWithRecorderDepartmentEntityBean<T, DepartmentVO> {
 
+
     String PROPERTY_CONTROL_DATE = "controlDate";
     String PROPERTY_QUALIFICATION_DATE = "qualificationDate";
     String PROPERTY_QUALITY_FLAG_ID = "qualityFlagId";
     String PROPERTY_QUALIFICATION_COMMENTS = "qualificationComments";
+
 
     Date getControlDate();
 

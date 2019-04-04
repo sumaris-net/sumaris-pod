@@ -26,6 +26,7 @@ import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
 import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -40,10 +41,9 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
-public class SaleVO implements IUpdateDateEntityBean<Integer, Date>,
+public class SaleVO implements IRootDataVO<Integer>,
         IWithRecorderPersonEntityBean<Integer, PersonVO>,
-        IWithRecorderDepartmentEntityBean<Integer, DepartmentVO>,
-        IWithVesselFeaturesVO<Integer, VesselFeaturesVO>{
+        IWithVesselFeaturesVO<Integer, VesselFeaturesVO> {
 
     public static final String PROPERTY_START_DATE_TIME = "startDateTime";
     public static final String PROPERTY_END_DATE_TIME = "endDateTime";
@@ -57,12 +57,14 @@ public class SaleVO implements IUpdateDateEntityBean<Integer, Date>,
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
+    private Date qualificationDate;
+    private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
+    private ProgramVO program;
     private VesselFeaturesVO vesselFeatures;
-
     private Date startDateTime;
     private Date endDateTime;
     private LocationVO saleLocation;

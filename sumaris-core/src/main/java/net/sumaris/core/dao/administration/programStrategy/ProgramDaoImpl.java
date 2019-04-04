@@ -22,6 +22,7 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -31,11 +32,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,6 +49,20 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
     /** Logger. */
     private static final Logger log =
             LoggerFactory.getLogger(ProgramDaoImpl.class);
+
+
+    @PostConstruct
+    protected void init() {
+        Arrays.stream(ProgramEnum.values()).forEach(programEnum -> {
+            ProgramVO program = getByLabel(programEnum.name());
+            if (program != null) {
+                programEnum.setId(program.getId());
+            }
+            else {
+                log.warn("Missing program with label=" + programEnum.name());
+            }
+        });
+    }
 
     @Override
     public List<ProgramVO> getAll() {
@@ -80,7 +98,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
                 .setParameter(labelParam, label);
         try {
             return toProgramVO(q.getSingleResult());
-        } catch(EmptyResultDataAccessException e) {
+        } catch(EmptyResultDataAccessException | NoResultException e) {
             return null;
         }
     }

@@ -28,15 +28,14 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
@@ -59,7 +58,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Repository("tripDao")
-public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
+public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
     /** Logger. */
     private static final Logger log =
@@ -462,16 +461,14 @@ public class TripDaoImpl extends HibernateDaoSupport implements TripDao {
     }
 
     protected void tripVOToEntity(TripVO source, Trip target, boolean copyIfNull) {
-        EntityManager em = getEntityManager();
-
         // Copy properties
-        DataDaos.copyDataRootProperties(em, source, target, copyIfNull);
+        copyRootDataProperties(source, target, copyIfNull);
 
         // Observers
-        DataDaos.copyObservers(em, source, target, copyIfNull);
+        copyObservers(source, target, copyIfNull);
 
         // Vessel
-        DataDaos.copyVessel(em, source, target, copyIfNull);
+        copyVessel(source, target, copyIfNull);
 
         // Departure location
         if (copyIfNull || source.getDepartureLocation() != null) {

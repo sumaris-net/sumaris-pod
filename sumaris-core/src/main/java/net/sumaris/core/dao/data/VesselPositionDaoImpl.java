@@ -51,7 +51,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("vesselPositionDao")
-public class VesselPositionDaoImpl extends HibernateDaoSupport implements VesselPositionDao {
+public class VesselPositionDaoImpl extends BaseDataDaoImpl implements VesselPositionDao {
 
     /** Logger. */
     private static final Logger log =

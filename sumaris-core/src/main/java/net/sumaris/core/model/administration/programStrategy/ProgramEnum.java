@@ -45,6 +45,10 @@ public enum ProgramEnum implements Serializable {
         return this.id;
     }
 
+    public void setId(Integer id)
+    {
+        this.id = id;
+    }
 
     public static ProgramEnum valueOf(final int id) {
         switch (id) {

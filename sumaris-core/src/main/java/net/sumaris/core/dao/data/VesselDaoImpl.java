@@ -59,7 +59,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("vesselDao")
-public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
+public class VesselDaoImpl extends BaseDataDaoImpl implements VesselDao {
 
     /** Logger. */
     private static final Logger log =
@@ -306,12 +306,10 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
     protected void vesselFeaturesVOToEntity(VesselFeaturesVO source, VesselFeatures target, boolean copyIfNull) {
 
-        EntityManager em = getEntityManager();
-        Beans.copyProperties(source, target);
+        copyDataProperties(source, target, copyIfNull);
 
         // Recorder department and person
-        DataDaos.copyRecorderPerson(em, source, target, copyIfNull);
-        DataDaos.copyRecorderDepartment(em, source, target, copyIfNull);
+        copyRecorderPerson(source, target, copyIfNull);
 
         // Convert from meter to centimeter
         if (source.getLengthOverAll() != null) {
@@ -335,9 +333,6 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             }
         }
 
-        // Quality flag
-        DataDaos.copyQualityFlag(em, source, target, copyIfNull);
-
         // Base port location
         if (copyIfNull || source.getBasePortLocation() != null) {
             if (source.getBasePortLocation() == null || source.getBasePortLocation().getId() == null) {
@@ -351,11 +346,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
     protected void vesselFeaturesVOToVesselEntity(VesselFeaturesVO source, Vessel target, boolean copyIfNull) {
 
-        EntityManager em = getEntityManager();
-
-        // Recorder department and person
-        DataDaos.copyRecorderPerson(em, source, target, copyIfNull);
-        DataDaos.copyRecorderDepartment(em, source, target, copyIfNull);
+        copyRootDataProperties(source, target, copyIfNull);
 
         // Vessel type
         if (copyIfNull || source.getVesselTypeId() != null) {
@@ -367,20 +358,10 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
             }
         }
 
-        // Quality flag
-        DataDaos.copyQualityFlag(em, source, target, copyIfNull);
-
-        // Program
-        if (copyIfNull || (source.getProgram() != null || source.getProgram().getId() != null)) {
-            if (source.getProgram() == null || source.getProgram().getId() == null) {
-                // Set the default program
-                target.setProgram(load(Program.class, ProgramEnum.SIH.getId()));
-            }
-            else {
-                target.setProgram(load(Program.class, source.getProgram().getId()));
-            }
+        // Default program
+        if (copyIfNull && target.getProgram() == null) {
+            target.setProgram(load(Program.class, ProgramEnum.SIH.getId()));
         }
-
     }
 
     protected <T extends Serializable> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,

@@ -55,7 +55,7 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
     public int unitIdNone;
 
     @PostConstruct
-    public void initConstants() {
+    protected void init() {
         this.unitIdNone = config.getUnitIdNone();
     }
 

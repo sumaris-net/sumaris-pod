@@ -23,13 +23,11 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IDataEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Person;
@@ -56,14 +54,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository("observedLocationDao")
-public class ObservedLocationDaoImpl extends HibernateDaoSupport implements ObservedLocationDao {
+public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements ObservedLocationDao {
 
     /** Logger. */
     private static final Logger log =
             LoggerFactory.getLogger(ObservedLocationDaoImpl.class);
-
-    @Autowired
-    private SumarisConfiguration config;
 
     @Autowired
     private LocationDao locationDao;
@@ -446,7 +441,7 @@ public class ObservedLocationDaoImpl extends HibernateDaoSupport implements Obse
     protected void observedLocationVOToEntity(ObservedLocationVO source, ObservedLocation target, boolean copyIfNull) {
 
         // Copy properties
-        DataDaos.copyDataRootProperties(getEntityManager(), source, target, copyIfNull);
+        copyRootDataProperties(source, target, copyIfNull);
 
         // Departure location
         if (copyIfNull || source.getLocation() != null) {

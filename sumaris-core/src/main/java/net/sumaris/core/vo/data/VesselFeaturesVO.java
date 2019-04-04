@@ -37,7 +37,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import java.util.Date;
 
 @Data
-public class VesselFeaturesVO implements IDataVO<Integer>,
+public class VesselFeaturesVO implements IRootDataVO<Integer>,
         IWithRecorderPersonEntityBean<Integer, PersonVO> {
 
     public static final String PROPERTY_START_DATE = VesselFeatures.PROPERTY_START_DATE;

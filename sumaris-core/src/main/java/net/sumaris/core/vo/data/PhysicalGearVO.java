@@ -26,6 +26,7 @@ import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
 import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -36,9 +37,8 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class PhysicalGearVO implements IUpdateDateEntityBean<Integer, Date>,
-        IWithRecorderPersonEntityBean<Integer, PersonVO>,
-        IWithRecorderDepartmentEntityBean<Integer, DepartmentVO> {
+public class PhysicalGearVO implements IRootDataVO<Integer>,
+        IWithRecorderPersonEntityBean<Integer, PersonVO> {
 
     public static final String PROPERTY_GEAR = "gear";
 
@@ -53,9 +53,13 @@ public class PhysicalGearVO implements IUpdateDateEntityBean<Integer, Date>,
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
+    private Date qualificationDate;
+    private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
+
+    private ProgramVO program;
 
     // Parent entity
     private TripVO trip;

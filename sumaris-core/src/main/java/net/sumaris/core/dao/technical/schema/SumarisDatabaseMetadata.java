@@ -155,7 +155,6 @@ public class SumarisDatabaseMetadata {
 
 	/* -- protected methods -- */
 
-
 	@PostConstruct
 	protected void init() {
 

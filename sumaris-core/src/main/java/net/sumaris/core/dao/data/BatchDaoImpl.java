@@ -26,15 +26,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Batch;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.OperationVO;
@@ -57,7 +56,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository("batchDao")
-public class BatchDaoImpl extends HibernateDaoSupport implements BatchDao {
+public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
     /** Logger. */
     private static final Logger log =

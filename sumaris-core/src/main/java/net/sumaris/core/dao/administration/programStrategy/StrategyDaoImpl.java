@@ -64,7 +64,7 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
     private int unitIdNone;
 
     @PostConstruct
-    public void initConstants() {
+    protected void init() {
         this.unitIdNone = config.getUnitIdNone();
     }
 

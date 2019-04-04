@@ -24,15 +24,15 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.PhysicalGearMeasurement;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
@@ -57,7 +57,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("physicalGearDao")
-public class PhysicalGearDaoImpl extends HibernateDaoSupport implements PhysicalGearDao {
+public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGearDao {
 
     /** Logger. */
     private static final Logger log =
@@ -91,6 +91,8 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
 
         // Load parent entity
         Trip parent = get(Trip.class, tripId);
+        ProgramVO parentProgram = new ProgramVO();
+        parentProgram.setId(parent.getProgram().getId());
 
         // Remember existing entities
         final Map<Integer, PhysicalGear> sourcesToRemove = Beans.splitById(parent.getPhysicalGears());
@@ -98,6 +100,8 @@ public class PhysicalGearDaoImpl extends HibernateDaoSupport implements Physical
         // Save each sources
         List<PhysicalGearVO> result = sources.stream().map(gear -> {
             gear.setTripId(tripId);
+            gear.setProgram(parentProgram);
+
             if (gear.getId() != null) {
                 sourcesToRemove.remove(gear.getId());
             }

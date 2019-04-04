@@ -39,7 +39,8 @@ import java.util.Objects;
 public class Program implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PROGRAM_SEQ")
+    @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

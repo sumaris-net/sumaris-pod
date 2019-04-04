@@ -26,18 +26,15 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Batch;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Sample;
 import net.sumaris.core.model.referential.pmfm.Matrix;
-import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.OperationVO;
@@ -61,7 +58,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Repository("sampleDao")
-public class SampleDaoImpl extends HibernateDaoSupport implements SampleDao {
+public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
     /** Logger. */
     private static final Logger log =
@@ -109,6 +106,8 @@ public class SampleDaoImpl extends HibernateDaoSupport implements SampleDao {
 
         // Load parent entity
         Operation parent = get(Operation.class, operationId);
+        ProgramVO parentProgram = new ProgramVO();
+        parentProgram.setId(parent.getTrip().getProgram().getId());
 
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getSamples()));
@@ -116,6 +115,7 @@ public class SampleDaoImpl extends HibernateDaoSupport implements SampleDao {
         // Save each gears
         List<SampleVO> result = sources.stream().map(source -> {
             source.setOperationId(operationId);
+            source.setProgram(parentProgram);
             if (source.getId() != null) {
                 sourcesIdsToRemove.remove(source.getId());
             }
@@ -273,7 +273,7 @@ public class SampleDaoImpl extends HibernateDaoSupport implements SampleDao {
 
     protected void sampleVOToEntity(SampleVO source, Sample target, boolean copyIfNull) {
 
-        Beans.copyProperties(source, target);
+        copyRootDataProperties(source, target, copyIfNull);
 
         // Matrix
         if (copyIfNull || source.getMatrix() != null) {
@@ -342,43 +342,6 @@ public class SampleDaoImpl extends HibernateDaoSupport implements SampleDao {
             }
             else {
                 target.setBatch(load(Batch.class, batchId));
-            }
-        }
-
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
-
-        // Recorder person
-        if (copyIfNull || source.getRecorderPerson() != null) {
-            if (source.getRecorderPerson() == null || source.getRecorderPerson().getId() == null) {
-                target.setRecorderPerson(null);
-            }
-            else {
-                Object person = load(Person.class, source.getRecorderPerson().getId());
-                if (!(person instanceof Person)) {
-                    // TODO FIXME : pourquoi récupère t on parfois le mauvais type ?
-                    log.error("Should get a Person, but get a :" + person.getClass().getName());
-                }
-                else {
-                    target.setRecorderPerson((Person)person);
-                }
-            }
-        }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
         }
     }

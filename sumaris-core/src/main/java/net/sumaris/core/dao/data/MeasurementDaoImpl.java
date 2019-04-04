@@ -26,21 +26,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.referential.PmfmDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.model.data.Sale;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.Batch;
-import net.sumaris.core.model.data.BatchQuantificationMeasurement;
-import net.sumaris.core.model.data.BatchSortingMeasurement;
-import net.sumaris.core.model.data.Sample;
-import net.sumaris.core.model.data.SampleMeasurement;
+import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
-import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
@@ -68,7 +61,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("measurementDao")
-public class MeasurementDaoImpl extends HibernateDaoSupport implements MeasurementDao {
+public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDao {
 
     /** Logger. */
     private static final Logger log =

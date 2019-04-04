@@ -50,7 +50,7 @@ public class CacheConfiguration {
     protected CacheManager cacheManager;
 
     @PostConstruct
-    protected void afterPropertiesSet() {
+    protected void init() {
         log.info("Initializing referential caches...");
         if (this.cacheManager == null)
             this.cacheManager = ehcache();

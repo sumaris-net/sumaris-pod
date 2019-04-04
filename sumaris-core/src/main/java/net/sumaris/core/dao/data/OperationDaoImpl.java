@@ -24,9 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
@@ -34,6 +32,7 @@ import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,7 +51,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("operationDao")
-public class OperationDaoImpl extends HibernateDaoSupport implements OperationDao {
+public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
     /** Logger. */
     private static final Logger log =
