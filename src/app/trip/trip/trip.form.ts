@@ -1,13 +1,13 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {TripValidatorService} from "./services/trip.validator";
-import {LocationLevelIds, Referential, Trip, VesselFeatures, vesselFeaturesToString} from "./services/trip.model";
+import {TripValidatorService} from "../services/trip.validator";
+import {LocationLevelIds, Referential, Trip, VesselFeatures, vesselFeaturesToString} from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
 import {debounceTime, mergeMap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
-import {AppForm} from '../core/core.module';
+import {AppForm} from '../../core/core.module';
 import {
   EntityUtils,
   ReferentialRef,
@@ -15,7 +15,7 @@ import {
   referentialToString,
   VesselModal,
   VesselService
-} from "../referential/referential.module";
+} from "../../referential/referential.module";
 
 @Component({
   selector: 'form-trip',
@@ -53,7 +53,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== "*") && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 50 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 50 : 10, undefined, undefined,
             {
               entityName: 'Program',
               searchText: value as string
@@ -68,7 +68,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string") && value || undefined;
-          return this.vesselService.loadAll(0, 10, undefined, undefined,
+          return this.vesselService.watchAll(0, 10, undefined, undefined,
             { searchText: value as string }
           ).first().map(({data}) => data);
         }));
@@ -84,7 +84,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
           mergeMap(value => {
             if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
             value = (typeof value === "string" && value !== '*') && value || undefined;
-            return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+            return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
               {
                 entityName: 'Location',
                 levelId: LocationLevelIds.PORT,

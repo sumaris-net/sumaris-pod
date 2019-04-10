@@ -9,7 +9,7 @@ import {
   EntityUtils,
   ReferentialRef,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, StatusIds
+  RESERVED_START_COLUMNS, StatusIds, TableDataService
 } from "../../core/core.module";
 import {
   Batch,
@@ -43,7 +43,8 @@ const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
         { provide: ValidatorService, useClass: BatchValidatorService }
     ]
 })
-export class BatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
+export class BatchesTable extends AppTable<Batch, { operationId?: number }>
+  implements OnInit, OnDestroy, ValidatorService, TableDataService<Batch, any> {
 
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
@@ -174,7 +175,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string" && value !== '*') && value || undefined;
                     if (this.debug) console.debug("[batch-table] Searching taxon group on {" + (value || '*') + "}...");
-                    return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+                    return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
                         {
                             entityName: 'TaxonGroup',
                             levelId: TaxonGroupIds.FAO,
@@ -196,7 +197,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
                     if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string" && value !== '*') && value || undefined;
                     if (this.debug) console.debug("[batch-table] Searching taxon name on {" + (value || '*') + "}...");
-                    return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+                    return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
                         {
                             entityName: 'TaxonName',
                             levelId: TaxonomicLevelIds.SPECIES,
@@ -220,7 +221,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         return formGroup;
     }
 
-    loadAll(
+    watchAll(
         offset: number,
         size: number,
         sortBy?: string,
@@ -238,7 +239,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
         this.save()
           .then(saved => {
             if (saved) {
-              this.loadAll(offset, size, sortBy, sortDirection, filter, options);
+              this.watchAll(offset, size, sortBy, sortDirection, filter, options);
               this._dirty = true; // restore previous state
             }
           });
@@ -268,7 +269,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }> impl
           });
       }
 
-      return this._dataSubject.asObservable();
+      return this._dataSubject;
     }
 
     async saveAll(data: Batch[], options?: any): Promise<Batch[]> {

@@ -2,7 +2,7 @@ import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController} from "@ionic/angular";
 
-import {TripService} from './services/trip.service';
+import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
 import {ReferentialRef, Trip} from './services/trip.model';
 import {SaleForm} from './sale/sale.form';
@@ -43,7 +43,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   @ViewChild('operationTable') operationTable: OperationTable;
 
-  @ViewChild('qualityForm') qualityForm: EntityQualityMetadataComponent;
+  @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
 
   constructor(
     route: ActivatedRoute,
@@ -114,21 +114,25 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   startListenChanges() {
     if (!this._enableListenChanges) return;
 
-    const subscription = this.tripService.listenChanges(this.data.id)
-      .subscribe((data: Trip | undefined) => {
-        const newUpdateDate = data && (data.updateDate as Moment)|| undefined;
-        if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
-          if (this.debug) console.debug("[trip] Detected update on server", newUpdateDate);
-          if (!this.dirty) {
-            this.updateView(data, true);
+    this.registerSubscription(
+      this.tripService.listenChanges(this.data.id)
+        .subscribe((data: Trip | undefined) => {
+          const newUpdateDate = data && (data.updateDate as Moment) || undefined;
+          console.log("[trip] Detecting changes !!");
+          if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
+            if (this.debug) console.debug("[trip] Detected update on server", newUpdateDate);
+            if (!this.dirty) {
+              this.updateView(data, true);
+            }
           }
-        }
-      });
+        })
 
-    // Add log when closing
-    if (this.debug) subscription.add(() => console.debug('[trip] [WS] Stop to listen changes'));
-
-    this.registerSubscription(subscription);
+        // Add log when closing
+        // .add((tearDown) => {
+        //   console.debug('[trip] [WS] Stop to listen changes', tearDown);
+        //   //tearDown();
+        // })
+    );
   }
 
   updateView(data: Trip | null, updateOperations?: boolean) {

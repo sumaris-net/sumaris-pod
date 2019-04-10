@@ -7,12 +7,12 @@ import {AccountService} from "../../core/core.module";
 import {TripService} from "../services/trip.service";
 
 @Component({
-  selector: 'entity-quality-metadata',
-  templateUrl: './entity-quality-metadata.component.html',
-  styleUrls: ['./entity-quality-metadata.component.scss'],
+  selector: 'entity-quality-form',
+  templateUrl: './entity-quality-form.component.html',
+  styleUrls: ['./entity-quality-form.component.scss'],
   animations: [fadeInAnimation]
 })
-export class EntityQualityMetadataComponent {
+export class EntityQualityFormComponent{
 
   data: DataRootEntity<any>;
   loading: boolean = true;

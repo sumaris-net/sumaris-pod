@@ -2,7 +2,7 @@ import { Component, OnInit, forwardRef, Optional, Input } from "@angular/core";
 import { FormControl, NG_VALUE_ACCESSOR, FormGroupDirective } from "@angular/forms";
 import { Observable } from "rxjs";
 import { debounceTime, mergeMap, startWith } from "rxjs/operators";
-import { DataService } from "../services/data-service.class";
+import { TableDataService } from "../services/data-service.class";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
     provide: NG_VALUE_ACCESSOR,
@@ -30,7 +30,7 @@ export class MatAutocompleteField implements OnInit {
 
     @Input() placeholder: string;
 
-    @Input() service: DataService<any, any>;
+    @Input() service: TableDataService<any, any>;
 
     @Input() serviceOptions: any = undefined;
 
@@ -57,7 +57,7 @@ export class MatAutocompleteField implements OnInit {
                 mergeMap(value => {
                     if (this.isNotEmpty(value)) return Observable.of([value]);
                     value = (typeof value === "string") && value || undefined;
-                    return this.service.loadAll(0, 10, undefined, undefined,
+                    return this.service.watchAll(0, 10, undefined, undefined,
                         Object.assign({
                             searchText: value as string,
                         }, this.filter || {}),

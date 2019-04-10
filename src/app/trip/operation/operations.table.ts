@@ -1,24 +1,24 @@
-import { Component, OnInit, Input, Output, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable } from 'rxjs';
-import { mergeMap } from "rxjs/operators";
-import { ValidatorService, TableElement } from "angular4-material-table";
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
+import {Observable} from 'rxjs';
+import {mergeMap} from "rxjs/operators";
+import {ValidatorService} from "angular4-material-table";
 import {
-  AppTableDataSource,
-  AppTable,
   AccountService,
+  AppTable,
+  AppTableDataSource,
+  isNotNil,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  isNotNil
+  RESERVED_START_COLUMNS
 } from "../../core/core.module";
-import { OperationValidatorService } from "../services/operation.validator";
-import { Operation, Trip, referentialToString, EntityUtils, ReferentialRef } from "../services/trip.model";
-import { ModalController, Platform, AlertController } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { ReferentialRefService } from "../../referential/referential.module";
-import { OperationService, OperationFilter } from "../services/operation.service";
-import { PositionValidatorService } from "../services/position.validator";
-import { TranslateService } from "@ngx-translate/core";
+import {OperationValidatorService} from "../services/operation.validator";
+import {EntityUtils, Operation, ReferentialRef, referentialToString, Trip} from "../services/trip.model";
+import {AlertController, ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {ReferentialRefService} from "../../referential/referential.module";
+import {OperationFilter, OperationService} from "../services/operation.service";
+import {PositionValidatorService} from "../services/position.validator";
+import {TranslateService} from "@ngx-translate/core";
 
 
 @Component({
@@ -29,6 +29,7 @@ import { TranslateService } from "@ngx-translate/core";
     { provide: ValidatorService, useClass: OperationValidatorService },
     { provide: ValidatorService, useClass: PositionValidatorService }
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
@@ -97,7 +98,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Metier',
               searchText: value as string

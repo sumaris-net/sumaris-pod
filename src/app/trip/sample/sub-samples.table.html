@@ -67,7 +67,8 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent" [appAutofocus]="row.id == -1 && row.editing"
+        <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent"
+
           [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.SAMPLE.TABLE.PARENT_SAMPLE' | translate)"
           (click)="$event.target.select()" (blur)="onParentCellBlur($event, row)" required>
         <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -94,11 +95,11 @@
   </ng-container>
 
   <!-- Pmfms columns -->
-  <ng-container *ngIf="!loading">
-    <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
+  <ng-container>
+    <ng-container *ngFor="let pmfm of pmfms|async" matColumnDef="{{pmfm.pmfmId}}">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.type=='date'">
         <ion-label>{{getPmfmColumnHeader(pmfm)}}
-          <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
+          <small *ngIf="pmfm.unit && (pmfm.type === 'integer' || pmfm.type === 'double')"><br />({{pmfm.unit}})</small>
         </ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.type=='date'">

@@ -1,6 +1,14 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, mergeMap, startWith} from "rxjs/operators";
+import {debounceTime, first, map, mergeMap, filter} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -9,7 +17,8 @@ import {
   EntityUtils,
   ReferentialRef,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS,
+  TableDataService
 } from "../../core/core.module";
 import {getPmfmName, MeasurementUtils, PmfmStrategy, referentialToString, Sample} from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
@@ -19,7 +28,6 @@ import {ProgramService, ReferentialRefService, TaxonomicLevelIds} from "../../re
 import {SampleValidatorService} from "../services/sample.validator";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
 import {MeasurementsValidatorService} from "../services/trip.validators";
 import {isNotNil, LoadResult} from "../../shared/shared.module";
 
@@ -29,19 +37,21 @@ const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonName', 'sampleDate'];
 const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
-    selector: 'table-samples',
-    templateUrl: 'samples.table.html',
-    styleUrls: ['samples.table.scss'],
-    providers: [
-        { provide: ValidatorService, useClass: SampleValidatorService }
-    ]
+  selector: 'table-samples',
+  templateUrl: 'samples.table.html',
+  styleUrls: ['samples.table.scss'],
+  providers: [
+      { provide: ValidatorService, useClass: SampleValidatorService }
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends AppTable<Sample, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService {
+export class SamplesTable extends AppTable<Sample, { operationId?: number }>
+  implements OnInit, OnDestroy, ValidatorService, TableDataService<Sample, any> {
 
-    private _program: string = environment.defaultProgram;
+    private _program: string;
     private _acquisitionLevel: string;
     private _implicitValues: { [key: string]: any } = {};
-    private _dataSubject = new BehaviorSubject<{data: Sample[]}>({data: []});
+    private _dataSubject = new BehaviorSubject<LoadResult<Sample>>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
     loading = true;
@@ -52,14 +62,14 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     taxonNames: Observable<ReferentialRef[]>;
 
     set value(data: Sample[]) {
-        if (this.data !== data) {
-            this.data = data;
-            if (!this.loading) this.onRefresh.emit();
-        }
+      if (this.data !== data) {
+        this.data = data;
+        if (!this.loading) this.onRefresh.emit();
+      }
     }
 
     get value(): Sample[] {
-        return this.data;
+      return this.data;
     }
 
     @Input()
@@ -77,10 +87,10 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
 
     @Input()
     set acquisitionLevel(value: string) {
-        if (this._acquisitionLevel !== value) {
-            this._acquisitionLevel = value;
-            if (!this.loading) this.onRefresh.emit();
-        }
+      if (this._acquisitionLevel !== value && isNotNil(value)) {
+        this._acquisitionLevel = value;
+        if (!this.loading) this._onRefreshPmfms.emit();
+      }
     }
 
     get acquisitionLevel(): string {
@@ -99,10 +109,14 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         protected referentialRefService: ReferentialRefService,
         protected programService: ProgramService,
         protected translate: TranslateService,
-        protected formBuilder: FormBuilder
+        protected formBuilder: FormBuilder,
+        protected cd: ChangeDetectorRef
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            RESERVED_START_COLUMNS.concat(SAMPLE_RESERVED_START_COLUMNS).concat(SAMPLE_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
+            RESERVED_START_COLUMNS
+              .concat(SAMPLE_RESERVED_START_COLUMNS)
+              .concat(SAMPLE_RESERVED_END_COLUMNS)
+              .concat(RESERVED_END_COLUMNS)
         );
         this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
         this.autoLoad = false;
@@ -116,8 +130,8 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         //this.debug = true;
     };
 
-    async ngOnInit() {
-        super.ngOnInit();
+    async ngOnInit(): Promise<void> {
+      super.ngOnInit();
 
         this._onRefreshPmfms
             .pipe(
@@ -145,28 +159,30 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 if (this.data) this.onRefresh.emit();
             });
 
-        // Taxon name combo
-        this.taxonNames = this.registerCellValueChanges('taxonName')
-            .pipe(
-                debounceTime(250),
-                mergeMap((value) => {
-                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string" && value !== '*') && value || undefined;
-                    if (this.debug) console.debug("[sample-table] Searching taxon name on {" + (value || '*') + "}...");
-                    return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
-                        {
-                            entityName: 'TaxonName',
-                            levelId: TaxonomicLevelIds.SPECIES,
-                            searchText: value as string,
-                            searchAttribute: 'label'
-                        }).first().map(({data}) => data);
+      // Taxon name combo
+      this.taxonNames = this.registerCellValueChanges('taxonName')
+        .pipe(
+          debounceTime(250),
+          mergeMap((value) => {
+            if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+            value = (typeof value === "string" && value !== '*') && value || undefined;
+            if (this.debug) console.debug("[sample-table] Searching taxon name on {" + (value || '*') + "}...");
+            return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
+                {
+                    entityName: 'TaxonName',
+                    levelId: TaxonomicLevelIds.SPECIES,
+                    searchText: value as string,
+                    searchAttribute: 'label'
                 })
-            );
-
-        this.taxonNames.subscribe(items => {
-          this._implicitValues['taxonName'] = (items.length === 1) && items[0];
-        });
-
+              .pipe(
+                first(),
+                map(({data}) => {
+                  this._implicitValues['taxonName'] = (data.length === 1) && data[0];
+                  return data;
+                })
+              );
+          })
+      );
     }
 
     getRowValidator(): FormGroup {
@@ -181,12 +197,12 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         return formGroup;
     }
 
-    loadAll(
+    watchAll(
         offset: number,
         size: number,
         sortBy?: string,
         sortDirection?: string,
-        filter?: any,
+        afilter?: any,
         options?: any
     ): Observable<LoadResult<Sample>> {
       if (!this.data) {
@@ -200,7 +216,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         this.save()
           .then(saved => {
             if (saved) {
-              this.loadAll(offset, size, sortBy, sortDirection, filter, options);
+              this.watchAll(offset, size, sortBy, sortDirection, afilter, options);
               this._dirty = true; // restore previous state
             }
           });
@@ -212,8 +228,10 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         if (this.debug) console.debug("[sample-table] Loading rows..", this.data);
 
         this.pmfms
-          .filter(pmfms => pmfms && pmfms.length > 0)
-          .first()
+          .pipe(
+            filter(pmfms => pmfms && pmfms.length > 0),
+            first()
+          )
           .subscribe(pmfms => {
             // Transform entities into object array
             const data = this.data.map(sample => {
@@ -230,7 +248,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
           });
       }
 
-      return this._dataSubject.asObservable();
+      return this._dataSubject;
     }
 
     async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
@@ -281,7 +299,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     }
 
     public trackByFn(index: number, row: TableElement<Sample>) {
-        return row.currentData.rankOrder;
+      return row.currentData.rankOrder;
     }
 
     /* -- protected methods -- */
@@ -302,6 +320,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
             .forEach(pmfm => {
                 sample.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
             });
+        this.cd.markForCheck();
     }
 
     protected getI18nColumnName(columnName: string): string {
@@ -330,30 +349,32 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     }
 
     protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
-        const candLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
-        if (!candLoadPmfms) {
-            return undefined;
-        }
+      const candLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
+      if (!candLoadPmfms) {
+          return undefined;
+      }
 
         this.loading = true;
         this.loadingPmfms = true;
 
-        // Load pmfms
-        const pmfms = (await this.programService.loadProgramPmfms(
-            this._program,
-            {
-                acquisitionLevel: this._acquisitionLevel
-            })) || [];
+      // Load pmfms
+      const pmfms = (await this.programService.loadProgramPmfms(
+          this._program,
+          {
+              acquisitionLevel: this._acquisitionLevel
+          })) || [];
 
-        if (!pmfms.length && this.debug) {
-            console.debug(`[sample-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
-        }
+      if (!pmfms.length && this.debug) {
+          console.debug(`[sample-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+      }
 
-        this.loadingPmfms = false;
+      this.loadingPmfms = false;
 
-        this.pmfms.next(pmfms);
+      this.pmfms.next(pmfms);
 
-        return pmfms;
+      this.cd.markForCheck();
+
+      return pmfms;
     }
 
     referentialToString = referentialToString;

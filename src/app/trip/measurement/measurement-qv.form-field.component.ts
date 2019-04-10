@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { Referential, PmfmStrategy } from "../services/trip.model";
 import { Observable, Subject } from 'rxjs';
-import { startWith, debounceTime, map } from 'rxjs/operators';
+import {startWith, debounceTime, map, tap} from 'rxjs/operators';
 import { referentialToString, EntityUtils, ReferentialRef } from '../../referential/referential.module';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, Validators, FormControl, FormGroupDirective } from '@angular/forms';
 import { FloatLabelType } from "@angular/material";
@@ -27,8 +27,8 @@ import { SharedValidators } from '../../shared/validator/validators';
           useExisting: forwardRef(() => MeasurementQVFormField),
           multi: true
       }
-  ]
-  //,changeDetection: ChangeDetectionStrategy.OnPush
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 
@@ -94,13 +94,15 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
                     if (!value || value === '*') return this.pmfm.qualitativeValues;
 
                     // Filter by label and name
-                    //console.debug(`[mat-qv-field] Searching on text '${value}'...`);
-                    const res: ReferentialRef[] = this.pmfm.qualitativeValues.filter((qv) => ((this.startsWithUpperCase(qv.label, value)) || (!this.compact && this.startsWithUpperCase(qv.name, value))));
-
-                    // Store implicit value (will use it onBlur if not other value selected)
-                    this._implicitValue = (res.length === 1) ? res[0] : undefined;
-                    return res;
+                    return this.pmfm.qualitativeValues.filter((qv) => ((this.startsWithUpperCase(qv.label, value)) || (!this.compact && this.startsWithUpperCase(qv.name, value))));
+                }),
+                // Store implicit value (will use it onBlur if not other value selected)
+                tap(res => {
+                  if (res.length === 1) {
+                    this.formControl.setValue(res[0], {onlySelf: true, emitEvent: false});
+                  }
                 })
+
             );
     }
 

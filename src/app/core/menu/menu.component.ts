@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {MenuController, ModalController} from "@ionic/angular";
 
 import {Router} from "@angular/router";
@@ -30,7 +30,8 @@ const SPLIT_PANE_SHOW_WHEN = 'lg';
   selector: 'app-menu',
   templateUrl: 'menu.component.html',
   styleUrls: ['./menu.component.scss'],
-  animations: [fadeInAnimation]
+  animations: [fadeInAnimation],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MenuComponent implements OnInit {
 
@@ -43,7 +44,7 @@ export class MenuComponent implements OnInit {
 
   @Input() appName: String;
 
-  filteredItems = new Subject<MenuItem[]>();
+  filteredItems: MenuItem[];
 
   @Input()
   appVersion: String = environment.version;
@@ -63,7 +64,8 @@ export class MenuComponent implements OnInit {
     protected accountService: AccountService,
     protected router: Router,
     protected menu: MenuController,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected cd: ChangeDetectorRef
   ) {
 
   }
@@ -92,7 +94,6 @@ export class MenuComponent implements OnInit {
   }
 
   onLogin(account: Account) {
-    //console.debug('[menu] Logged account: ', account);
     console.info('[menu] Account logged');
     this.account = account;
     this.isLogin = true;
@@ -123,10 +124,10 @@ export class MenuComponent implements OnInit {
 
   updateItems() {
     if (!this.isLogin) {
-      this.filteredItems.next((this.items || []).filter(i => !i.profile));
+      this.filteredItems = (this.items || []).filter(i => !i.profile);
     }
     else {
-      this.filteredItems.next((this.items || []).filter(i => {
+      this.filteredItems = (this.items || []).filter(i => {
         let res;
         if (i.profile) {
           res = this.accountService.hasMinProfile(i.profile);
@@ -145,8 +146,10 @@ export class MenuComponent implements OnInit {
         }
 
         return res;
-      }));
+      });
     }
+
+    this.cd.markForCheck();
   }
 
   trackByFn(index, item) {
@@ -162,6 +165,7 @@ export class MenuComponent implements OnInit {
     else {
       this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     }
+    console.log("Split pane when: " + this.splitPane.when);
     $event.preventDefault();
   }
 }

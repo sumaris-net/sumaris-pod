@@ -63,7 +63,7 @@
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls['taxonName']" [matAutocomplete]="autoTaxonGroup"
-          [appAutofocus]="row.id == -1 && row.editing" [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
+          [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
           (focus)="onCellFocus($event, row, 'taxonName')" (blur)="onCellBlur($event, row, 'taxonName')" (click)="$event.target.select()"
           required>
         <mat-error *ngIf="row.validator.controls['taxonName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -102,11 +102,10 @@
 
   <!-- Pmfms columns -->
   <ng-container *ngIf="!loading">
-    <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.type=='date'">
           <ion-label>{{getPmfmColumnHeader(pmfm)}}
-          <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
+          <small *ngIf="pmfm.unit && (pmfm.type === 'integer' || pmfm.type === 'double')"><br />({{pmfm.unit}})</small>
         </ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.type=='date'">

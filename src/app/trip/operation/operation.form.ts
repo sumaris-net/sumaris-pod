@@ -95,7 +95,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                     const physicalGear = this.form.get('physicalGear').value;
                     if (!physicalGear || !physicalGear.gear) return Observable.of([]);
                     value = (typeof value === "string" && value !== "*") && value || undefined;
-                    return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+                    return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
                         {
                             entityName: 'Metier',
                             levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null,

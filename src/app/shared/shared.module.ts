@@ -22,13 +22,13 @@ import {MatPaginatorI18n} from "./material/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
-import {DataService, LoadResult} from "./services/data-service.class";
+import {TableDataService, DataService, LoadResult} from "./services/data-service.class";
 import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toDateISOString} from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 
 export {
-  DataService, LoadResult,
+  DataService, TableDataService, LoadResult,
   isNil, isNotNil, nullIfUndefined,
   toDateISOString, fromDateISOString,
   fadeInAnimation, fadeInOutAnimation,

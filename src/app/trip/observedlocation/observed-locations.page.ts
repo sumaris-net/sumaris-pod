@@ -1,4 +1,4 @@
-import {Component} from "@angular/core";
+import {ChangeDetectionStrategy, Component} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {
@@ -29,7 +29,8 @@ import {ObservedLocationValidatorService} from "../services/observed-location.va
   styleUrls: ['observed-locations.page.scss'],
   providers: [
     { provide: ValidatorService, useClass: ObservedLocationValidatorService }
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLocationFilter> {
 
@@ -103,7 +104,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Program',
               searchText: value as string
@@ -119,7 +120,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Location',
               levelId: LocationLevelIds.AUCTION,

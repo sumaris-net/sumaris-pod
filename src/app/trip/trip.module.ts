@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CoreModule } from '../core/core.module';
-import { TripsPage } from './trips.page';
-import { TripPage } from './trip.page';
-import { TripForm } from './trip.form';
+import { TripsPage } from './trip/trips.page';
+import { TripPage } from './trip/trip.page';
+import { TripForm } from './trip/trip.form';
 import { SaleForm } from './sale/sale.form';
 import { OperationForm } from './operation/operation.form';
 import { OperationPage } from './operation/operation.page';
@@ -14,7 +14,7 @@ import { CatchForm } from './catch/catch.form';
 import { PhysicalGearForm } from './physicalgear/physicalgear.form';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { OperationTable } from './operation/operations.table';
-import { TripModal } from './trip.modal';
+import { TripModal } from './trip/trip.modal';
 import { SamplesTable } from './sample/samples.table';
 import { SubSamplesTable } from './sample/sub-samples.table';
 import { BatchGroupsTable } from './batch/batch-groups.table';
@@ -22,7 +22,7 @@ import { BatchesTable } from './batch/batches.table';
 import { SubBatchesTable } from './batch/sub-batches.table';
 import { IndividualMonitoringTable } from './sample/individualmonitoring/sample-individual-monitoring.table';
 import { MeasurementValuesForm } from './measurement/measurement-values.form.class';
-import { EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
+import { EntityQualityFormComponent} from "./quality/entity-quality-form.component";
 
 import {TripService, OperationService, ExtractionService} from './services/trip.services';
 
@@ -40,7 +40,7 @@ import {ObservedLocationValidatorService} from "./services/observed-location.val
 import {ObservedVesselsTable} from "./observedlocation/observed-vessels.table";
 import {SaleService} from "./services/sale.service";
 
-export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityMetadataComponent }
+export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent }
 
 @NgModule({
     imports: [
@@ -72,7 +72,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       BatchesTable,
       SubBatchesTable,
       IndividualMonitoringTable,
-      EntityQualityMetadataComponent,
+      EntityQualityFormComponent,
       ExtractTable
     ],
     exports: [
@@ -89,7 +89,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       MeasurementsForm,
       MeasurementQVFormField,
       ExtractTable,
-      EntityQualityMetadataComponent
+      EntityQualityFormComponent
     ],
     entryComponents: [
       TripsPage,

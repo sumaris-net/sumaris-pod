@@ -399,7 +399,7 @@
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Error while saving referential data.",
       "SAVE_REFERENTIALS_ERROR": "Error while saving referential data.",
-      "LOAD_REFERENTIALS_ERROR": "Error while loading referential data.",
+      "LOAD_REFERENTIAL_ERROR": "Error while loading referential data.",
       "LOAD_REFERENTIAL_ENTITIES_ERROR": "Error while loading referential types.",
       "DELETE_REFERENTIALS_ERROR": "Error while deleting referential data",
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Error while loading level for referential data.",

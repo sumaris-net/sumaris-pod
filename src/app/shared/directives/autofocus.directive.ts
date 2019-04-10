@@ -103,6 +103,7 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
 
   // I start the timer-based workflow that will focus the current element.
   private startFocusWorkflow() {
+    //console.log("startFocusWorkflow");
 
     // If there is already a timer running for this element, just let it play out -
     // resetting it at this point will only push-out the time at which the focus is
@@ -115,7 +116,6 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
 
     this.timer = setTimeout(
       () => {
-        this.timer.unref();
         this.timer = null;
         this.elementRef.nativeElement.focus();
       },

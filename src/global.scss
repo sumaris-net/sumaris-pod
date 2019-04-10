@@ -146,7 +146,12 @@ form.form-container {
   }
 
   ion-col>ion-label {
-    color: $primary100;
+    color: var(--ion-color-primary100);
+    display: block;
+    line-height: 37px;
+    margin: 11px 8px 11px 0;
+    word-wrap: break-word;
+    white-space: normal;
   }
 }
 
@@ -382,10 +387,8 @@ mat-table {
   }
 
 
-
-  .mat-row
   .mat-row.mat-row-disabled {
-    cursor: pointer !important;
+    cursor: pointer;
 
     * {
       pointer-events: inherit;
@@ -393,16 +396,16 @@ mat-table {
   }
 
   .mat-row.mat-row-disabled:hover {
-    background-color: ion-color(light100, base);
+    background-color: var(--ion-color-light100);
   }
 
   .mat-row.mat-row-dirty {
-    border-left: 2px solid ion-color(primary100, base);
+    border-left: 2px solid var(--ion-color-primary100);
   }
 
   .mat-row.mat-row-error {
     margin-top: -1px;
-    border: 2px dashed ion-color(danger, base);
+    border: 2px dashed var(--ion-color-danger);
   }
 }
 
@@ -423,6 +426,11 @@ mat-horizontal-stepper {
   .mat-horizontal-content-container {
     padding: 0;
   }
+}
+
+// --- mat-autocomplete panel
+.mat-autocomplete-panel {
+  min-width: 300px !important;
 }
 
 // Extra small device: Phones (<767px)
@@ -446,7 +454,7 @@ mat-horizontal-stepper {
 
 mat-button-toggle.mat-button-toggle-checked,
 mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
-  background-color: color($colors, light);
+  background-color: var(--ion-color-light);
   color: white;
 }
 

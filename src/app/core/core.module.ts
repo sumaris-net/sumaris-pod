@@ -19,10 +19,11 @@ import {RegisterConfirmPage} from "./register/confirm/confirm";
 import {AccountPage} from "./account/account";
 import {
   DataService,
+  TableDataService,
+  LoadResult,
   fromDateISOString,
   isNil,
   isNotNil,
-  LoadResult,
   nullIfUndefined,
   SharedModule,
   toDateISOString
@@ -75,7 +76,7 @@ export {
   RESERVED_START_COLUMNS, RESERVED_END_COLUMNS,
   Entity, Cloneable, EntityUtils,
   AcquisitionLevelCodes, StatusIds, LocationLevelIds,
-  Referential, ReferentialRef, Department, Person, DataService, LoadResult,
+  Referential, ReferentialRef, Department, Person, DataService, TableDataService, LoadResult,
   toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined,
   entityToString, referentialToString, personToString, personsToString
 }

@@ -1,22 +1,23 @@
-import {Component, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, Component, OnDestroy, OnInit} from "@angular/core";
 import {Observable} from 'rxjs';
 import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
   AppTable,
-  AppTableDataSource, personsToString,
+  AppTableDataSource,
+  personsToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
-} from "../core/core.module";
-import {TripValidatorService} from "./services/trip.validator";
-import {TripFilter, TripService} from "./services/trip.service";
+} from "../../core/core.module";
+import {TripValidatorService} from "../services/trip.validator";
+import {TripFilter, TripService} from "../services/trip.service";
 import {TripModal} from "./trip.modal";
-import {EntityUtils, LocationLevelIds, ReferentialRef, Trip, VesselFeatures} from "./services/trip.model";
+import {EntityUtils, LocationLevelIds, ReferentialRef, Trip, VesselFeatures} from "../services/trip.model";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {ReferentialRefService, referentialToString, vesselFeaturesToString} from "../referential/referential.module";
+import {ReferentialRefService, referentialToString, vesselFeaturesToString} from "../../referential/referential.module";
 import {debounceTime, mergeMap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 
@@ -26,7 +27,8 @@ import {TranslateService} from "@ngx-translate/core";
   providers: [
     { provide: ValidatorService, useClass: TripValidatorService }
   ],
-  styleUrls: ['./trips.page.scss']
+  styleUrls: ['./trips.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
@@ -101,7 +103,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Program',
               searchText: value as string
@@ -117,7 +119,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,

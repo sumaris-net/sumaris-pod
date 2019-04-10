@@ -1,6 +1,6 @@
 <ion-split-pane #splitPane>
 
-  <ion-menu side="start" content="content" menuId="main">
+  <ion-menu>
     <ion-header>
 
       <mat-toolbar padding *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
@@ -54,8 +54,8 @@
     <ion-content [class.has-user-header]="isLogin">
 
       <ion-list no-lines>
-        <ng-container *ngFor="let item of filteredItems | async; trackBy: trackByFn">
-          <ion-item tappable class="text-1x" [routerLink]="item.path" routerDirection="root" routerLinkActive="selected"
+        <ion-menu-toggle auto-hide="false" *ngFor="let item of filteredItems ; trackBy: trackByFn">
+          <ion-item tappable class="text-1x" [routerLink]="item.path" [routerDirection]="'root'" [routerLinkActive]="'selected'"
                     (click)="menu.close()" [routerLinkActiveOptions]="{exact: (item.path == '/')}" *ngIf="!loading && item.path"
             [@fadeInAnimation]>
             <ion-icon color="primary" slot="start" [name]="item.icon" *ngIf="item.icon"></ion-icon>
@@ -67,7 +67,7 @@
               {{item.title|translate}}
             </ion-label>
           </ion-item-divider>
-        </ng-container>
+        </ion-menu-toggle>
       </ion-list>
     </ion-content>
 
@@ -96,9 +96,6 @@
     </ion-footer>
   </ion-menu>
 
-
-  <div no-padding main #content style="width:100%;">
-    <ng-content></ng-content>
-  </div>
+  <ng-content></ng-content>
 
 </ion-split-pane>

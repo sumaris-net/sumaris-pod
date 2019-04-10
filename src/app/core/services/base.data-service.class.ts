@@ -126,6 +126,8 @@ export abstract class BaseDataService {
     return this.apollo.subscribe({
       query: opts.query,
       variables: opts.variables
+    }, {
+      useZone: true
     })
       .catch(error => this.onApolloError<T>(error))
       .pipe(

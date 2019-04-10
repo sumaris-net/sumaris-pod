@@ -2,7 +2,7 @@ import {Component, Inject} from '@angular/core';
 import {Platform} from "@ionic/angular";
 import {MenuItem} from './core/menu/menu.component';
 import {HomePage} from './core/home/home';
-import {AccountService, DataService, isNotNil} from './core/core.module';
+import {AccountService, TableDataService, isNotNil} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
 import { ConfigService } from './core/services/config.service';
 import {DOCUMENT} from "@angular/platform-browser";
@@ -10,6 +10,7 @@ import {Configuration} from "./core/services/model";
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { Keyboard } from "@ionic-native/keyboard/ngx";
+import {DataService} from "./shared/services/data-service.class";
 
 
 @Component({

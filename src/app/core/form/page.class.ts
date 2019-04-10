@@ -69,9 +69,10 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     }
 
     ngOnDestroy() {
-        if (this._subscriptions) {
-            this._subscriptions.forEach(s => s.unsubscribe());
-            this._subscriptions = undefined;
+        if (this._subscriptions && this._subscriptions.length) {
+          console.log("ngOnDestroy -> unsubscribe", this._subscriptions);
+          this._subscriptions.forEach(s => s.unsubscribe());
+          this._subscriptions = undefined;
         }
     }
 
@@ -294,6 +295,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     }
 
     protected registerSubscription(sub: Subscription) {
+      console.log("registerSubscription -> subscribe", sub);
         this._subscriptions = this._subscriptions || [];
         this._subscriptions.push(sub);
     }

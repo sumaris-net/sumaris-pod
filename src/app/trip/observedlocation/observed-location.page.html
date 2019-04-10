@@ -52,8 +52,8 @@
           </ion-col>
           <ion-col no-padding size="12" size-xl="3">
             <entity-metadata [value]="data">
-              <entity-quality-metadata #qualityForm (onChange)="updateView(data)" (onControl)="onControl($event)">
-              </entity-quality-metadata>
+              <entity-quality-form #qualityForm (onChange)="updateView(data)" (onControl)="onControl($event)">
+              </entity-quality-form>
             </entity-metadata>
           </ion-col>
         </ion-row>

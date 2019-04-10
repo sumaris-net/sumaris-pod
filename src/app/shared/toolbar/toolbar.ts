@@ -3,7 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
-  Input,
+  Input, OnDestroy,
   OnInit,
   Output,
   ViewChild
@@ -12,7 +12,8 @@ import {ProgressBarService} from '../services/progress-bar.service';
 import {Router} from "@angular/router";
 import {IonBackButton, IonRouterOutlet} from "@ionic/angular";
 import {isNil, isNotNil} from "../functions";
-import {debounceTime, distinctUntilChanged} from "rxjs/operators";
+import {distinctUntilChanged} from "rxjs/operators";
+import {Subscription} from "rxjs";
 
 @Component({
   selector: 'app-toolbar',
@@ -20,7 +21,9 @@ import {debounceTime, distinctUntilChanged} from "rxjs/operators";
   styleUrls: ['./toolbar.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ToolbarComponent implements OnInit {
+export class ToolbarComponent implements OnInit, OnDestroy {
+
+  private _subscription: Subscription;
 
   @Input()
   title: String = '';
@@ -51,6 +54,7 @@ export class ToolbarComponent implements OnInit {
 
   progressBarMode = 'none';
 
+
   @ViewChild("backButton") backButton: IonBackButton;
 
   constructor(
@@ -63,7 +67,7 @@ export class ToolbarComponent implements OnInit {
 
   ngOnInit() {
     this.hasValidate = this.hasValidate && this.onValidate.observers.length > 0;
-    this.progressBarService.onProgressChanged
+    this._subscription = this.progressBarService.onProgressChanged
       .pipe(
         //debounceTime(100),
         distinctUntilChanged()
@@ -77,6 +81,10 @@ export class ToolbarComponent implements OnInit {
     if (isNil(this.canGoBack)) {
       this.canGoBack = this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref);
     }
+  }
+
+  ngOnDestroy(): void {
+    this._subscription.unsubscribe();
   }
 
   enableSearchBar() {

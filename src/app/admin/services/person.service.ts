@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable} from 'rxjs';
 import {Person} from './model';
-import {DataService, LoadResult} from "../../shared/shared.module";
+import {TableDataService, LoadResult, DataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
@@ -64,7 +64,7 @@ const DeletePersons: any = gql`
 `;
 
 @Injectable()
-export class PersonService extends BaseDataService implements DataService<Person, PersonFilter> {
+export class PersonService extends BaseDataService implements TableDataService<Person, PersonFilter>, DataService<Person, PersonFilter> {
 
   constructor(
     protected apollo: Apollo
@@ -83,7 +83,7 @@ export class PersonService extends BaseDataService implements DataService<Person
    * @param sortDirection 
    * @param filter 
    */
-  public loadAll(
+  public watchAll(
     offset: number,
     size: number,
     sortBy?: string,
@@ -101,13 +101,13 @@ export class PersonService extends BaseDataService implements DataService<Person
 
     this._lastVariables.loadAll = variables;
 
-    //console.debug("[person-service] Loading persons, using filter: ", variables);
+    console.debug("[person-service] Watching persons, using filter: ", variables);
     return this.watchQuery<{ persons: Person[]; personsCount: number }>({
-      query: LoadAllQuery,
-      variables: variables,
-      error: { code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR" },
-      fetchPolicy: 'network-only'
-    })
+        query: LoadAllQuery,
+        variables: variables,
+        error: { code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR" },
+        fetchPolicy: 'network-only'
+      })
       .pipe(
         map(({persons, personsCount}) => {
           return {
@@ -116,6 +116,32 @@ export class PersonService extends BaseDataService implements DataService<Person
         }
         })
       );
+  }
+
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: PersonFilter, options?: any): Promise<LoadResult<Person>> {
+    const variables = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'lastName',
+      sortDirection: sortDirection || 'asc',
+      filter: filter
+    };
+
+    this._lastVariables.loadAll = variables;
+
+    console.debug("[person-service] Loading persons, using filter: ", variables);
+    const res = await this.query<{ persons: Person[]; personsCount: number }>({
+      query: LoadAllQuery,
+      variables: variables,
+      error: { code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR" },
+      fetchPolicy: 'network-only'
+    });
+
+    const data = res && res.persons;
+    return {
+      data: (data || []).map(Person.fromObject),
+      total: res && res.personsCount || (data && data.length) || 0
+    };
   }
 
   /**

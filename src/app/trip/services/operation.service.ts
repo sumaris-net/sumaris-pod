@@ -4,7 +4,7 @@ import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
 import {Batch, DataEntity, Measurement, Operation, Person, Sample, VesselPosition} from "./trip.model";
 import {map} from "rxjs/operators";
-import {DataService, LoadResult} from "../../shared/shared.module";
+import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
@@ -131,7 +131,7 @@ const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
 };
 
 @Injectable()
-export class OperationService extends BaseDataService implements DataService<Operation, OperationFilter>{
+export class OperationService extends BaseDataService implements TableDataService<Operation, OperationFilter>{
 
   constructor(
     protected apollo: Apollo,
@@ -151,11 +151,11 @@ export class OperationService extends BaseDataService implements DataService<Ope
    * @param sortDirection
    * @param filter
    */
-  loadAll(offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: OperationFilter): Observable<LoadResult<Operation>> {
+  watchAll(offset: number,
+           size: number,
+           sortBy?: string,
+           sortDirection?: string,
+           filter?: OperationFilter): Observable<LoadResult<Operation>> {
     const variables: any = {
       offset: offset || 0,
       size: size || 1000,

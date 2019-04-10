@@ -2,14 +2,15 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable } from "rxjs-compat";
-import { VesselFeatures, Person, toDateISOString } from "./model";
-import {DataService, LoadResult} from "../../shared/shared.module";
+import {VesselFeatures, Person, toDateISOString, Referential} from "./model";
+import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
-import { map } from "rxjs/operators";
+import {first, map} from "rxjs/operators";
 import { Moment } from "moment";
 
 import { ErrorCodes } from "./errors";
 import { AccountService } from "../../core/services/account.service";
+import {ReferentialFilter} from "./referential.service";
 
 export declare class VesselFilter {
   date?: Date | Moment;
@@ -135,7 +136,7 @@ const DeleteVessels: any = gql`
 `;
 
 @Injectable()
-export class VesselService extends BaseDataService implements DataService<VesselFeatures, VesselFilter>{
+export class VesselService extends BaseDataService implements TableDataService<VesselFeatures, VesselFilter>{
 
   constructor(
     protected apollo: Apollo,
@@ -152,11 +153,11 @@ export class VesselService extends BaseDataService implements DataService<Vessel
    * @param sortDirection 
    * @param filter 
    */
-  loadAll(offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: VesselFilter): Observable<LoadResult<VesselFeatures>> {
+  watchAll(offset: number,
+           size: number,
+           sortBy?: string,
+           sortDirection?: string,
+           filter?: VesselFilter): Observable<LoadResult<VesselFeatures>> {
 
     const variables: any = {
       offset: offset || 0,
@@ -185,6 +186,17 @@ export class VesselService extends BaseDataService implements DataService<Vessel
         )
       );
   }
+
+  // loadAll(offset: number,
+  //         size: number,
+  //         sortBy?: string,
+  //         sortDirection?: string,
+  //         filter?: VesselFilter): Promise<LoadResult<VesselFeatures>> {
+  //   console.warn("TODO: implement loadAll");
+  //   // TODO
+  //   return this.watchAll(offset, size, sortBy, sortDirection, filter)
+  //     .pipe(first()).toPromise();
+  // }
 
   async load(id: number): Promise<VesselFeatures | null> {
     console.debug("[vessel-service] Loading vessel " + id);

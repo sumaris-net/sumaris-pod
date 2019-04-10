@@ -4,7 +4,7 @@ import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
 import {Person, Sale, Sample} from "./trip.model";
 import {map} from "rxjs/operators";
-import {DataService, LoadResult} from "../../shared/shared.module";
+import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
@@ -122,7 +122,7 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 };
 
 @Injectable()
-export class SaleService extends BaseDataService implements DataService<Sale, SaleFilter>{
+export class SaleService extends BaseDataService implements TableDataService<Sale, SaleFilter>{
 
   constructor(
     protected apollo: Apollo,
@@ -142,11 +142,11 @@ export class SaleService extends BaseDataService implements DataService<Sale, Sa
    * @param sortDirection
    * @param filter
    */
-  loadAll(offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: SaleFilter): Observable<LoadResult<Sale>> {
+  watchAll(offset: number,
+           size: number,
+           sortBy?: string,
+           sortDirection?: string,
+           filter?: SaleFilter): Observable<LoadResult<Sale>> {
 
     // Mock
     if (environment.mock) return Observable.of(this.getMockData());

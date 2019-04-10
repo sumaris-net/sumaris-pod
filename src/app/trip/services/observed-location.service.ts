@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {BaseDataService} from "../../core/services/base.data-service.class";
-import {DataService, LoadResult} from "../../shared/services/data-service.class";
+import {TableDataService, LoadResult} from "../../shared/services/data-service.class";
 import {Apollo} from "apollo-angular";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
@@ -17,7 +17,7 @@ export declare class ObservedLocationFilter {
 }
 
 @Injectable()
-export class ObservedLocationService extends BaseDataService implements DataService<ObservedLocation, ObservedLocationFilter> {
+export class ObservedLocationService extends BaseDataService implements TableDataService<ObservedLocation, ObservedLocationFilter> {
 
   constructor(
     protected apollo: Apollo,
@@ -29,10 +29,10 @@ export class ObservedLocationService extends BaseDataService implements DataServ
     this._debug = !environment.production;
   }
 
-  loadAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: ObservedLocationFilter, options?: any): Observable<LoadResult<ObservedLocation>> {
+  watchAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: ObservedLocationFilter, options?: any): Observable<LoadResult<ObservedLocation>> {
 
     const now = Date.now();
-    console.debug("[sale-control] Loading sale controls...");
+    console.debug("[sale-control] Loading observed locations...");
 
     // Mock
     if (environment.mock) return Observable.of(this.getMockData());
@@ -41,19 +41,19 @@ export class ObservedLocationService extends BaseDataService implements DataServ
     return Observable.empty();
   }
 
-  load(id: number): Observable<ObservedLocation> {
+  async load(id: number): Promise<ObservedLocation> {
 
     const now = Date.now();
-    console.debug(`[sale-control] Loading sale control {${id}}...`);
+    console.debug(`[sale-control] Loading observed location {${id}}...`);
 
     // Mock
     if (environment.mock) {
       const saleControl:ObservedLocation = this.getMockData().data.find(sc => sc.id === id);
-      return Observable.of(saleControl);
+      return saleControl;
     }
 
     // TODO
-    return Observable.empty();
+    return undefined;
   }
 
   async save(data: ObservedLocation): Promise<ObservedLocation> {

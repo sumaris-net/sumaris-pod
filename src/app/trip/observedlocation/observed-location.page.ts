@@ -12,7 +12,7 @@ import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocation} from "../services/observed-location.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
-import {EntityQualityMetadataComponent} from "../quality/entity-quality-metadata.component";
+import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import {ObservedVesselsTable} from "./observed-vessels.table";
 
 @Component({
@@ -33,7 +33,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
   @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
 
-  @ViewChild('qualityForm') qualityForm: EntityQualityMetadataComponent;
+  @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
 
   @ViewChild('vesselTable') vesselTable: ObservedVesselsTable;
 
@@ -95,7 +95,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
     // Load existing saleControl
     else {
-      const data = await this.dataService.load(id).first().toPromise();
+      const data = await this.dataService.load(id);
       this.updateView(data);
       this.loading = false;
       this.showVesselTable = true;

@@ -16,7 +16,7 @@ import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {PhysicalGearForm} from "./physicalgear.form";
-import {DataService, LoadResult} from "../../shared/shared.module";
+import {TableDataService, LoadResult} from "../../shared/shared.module";
 
 
 @Component({
@@ -27,7 +27,7 @@ import {DataService, LoadResult} from "../../shared/shared.module";
     { provide: ValidatorService, useClass: PhysicalGearValidatorService }
   ],
 })
-export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements OnInit, OnDestroy, DataService<PhysicalGear, any> {
+export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements OnInit, OnDestroy, TableDataService<PhysicalGear, any> {
 
   private data: PhysicalGear[];
 
@@ -123,7 +123,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
   }
 
 
-  loadAll(
+  watchAll(
     offset: number,
     size: number,
     sortBy?: string,
@@ -149,7 +149,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       this._dataSubject.next({data: data});
     });
 
-    return this._dataSubject.asObservable();
+    return this._dataSubject;
   }
 
   async saveAll(data: PhysicalGear[], options?: any): Promise<PhysicalGear[]> {

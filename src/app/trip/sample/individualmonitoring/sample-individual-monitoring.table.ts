@@ -1,18 +1,18 @@
-import { Component } from "@angular/core";
-import { ValidatorService, TableElement } from "angular4-material-table";
-import { AccountService } from "../../../core/core.module";
-import { Sample } from "../../services/trip.model";
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Location } from '@angular/common';
-import { ReferentialRefService, ProgramService } from "../../../referential/referential.module";
-import { SubSampleValidatorService } from "../../services/sub-sample.validator";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes } from "../../../core/services/model";
-import { MeasurementsValidatorService } from "../../services/trip.validators";
-import { PmfmIds } from "../../../referential/services/model";
-import { SubSamplesTable } from "../sub-samples.table";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component} from "@angular/core";
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {AccountService} from "../../../core/core.module";
+import {Sample} from "../../services/trip.model";
+import {ModalController, Platform} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Location} from '@angular/common';
+import {ProgramService, ReferentialRefService} from "../../../referential/referential.module";
+import {SubSampleValidatorService} from "../../services/sub-sample.validator";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {TranslateService} from '@ngx-translate/core';
+import {AcquisitionLevelCodes} from "../../../core/services/model";
+import {MeasurementsValidatorService} from "../../services/trip.validators";
+import {PmfmIds} from "../../../referential/services/model";
+import {SubSamplesTable} from "../sub-samples.table";
 
 
 @Component({
@@ -21,10 +21,10 @@ import { SubSamplesTable } from "../sub-samples.table";
     styleUrls: ['../sub-samples.table.scss'],
     providers: [
         { provide: ValidatorService, useClass: SubSampleValidatorService }
-    ]
+    ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IndividualMonitoringTable extends SubSamplesTable {
-
 
     constructor(
         protected route: ActivatedRoute,
@@ -38,16 +38,17 @@ export class IndividualMonitoringTable extends SubSamplesTable {
         protected referentialRefService: ReferentialRefService,
         protected programService: ProgramService,
         protected translate: TranslateService,
-        protected formBuilder: FormBuilder
+        protected formBuilder: FormBuilder,
+        protected cd: ChangeDetectorRef
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
             validatorService, measurementsValidatorService, referentialRefService,
-            programService, translate, formBuilder
+            programService, translate, formBuilder, cd
         );
         this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
     };
 
-    async ngOnInit() {
+    async ngOnInit(): Promise<void> {
         await super.ngOnInit();
 
         // Listening on column 'IS_DEAD' value changes

@@ -1,4 +1,4 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
@@ -19,15 +19,17 @@ import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {SubBatchesTable} from "../batch/sub-batches.table";
 import {MatTabChangeEvent} from "@angular/material";
-import {debounceTime, distinctUntilChanged, filter, map, startWith} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, first, map, startWith} from "rxjs/operators";
 import {Validators} from "@angular/forms";
-import {Moment} from "moment";
 import * as moment from "moment";
+import {Moment} from "moment";
+import {IndividualMonitoringTable} from "../sample/individualmonitoring/sample-individual-monitoring.table";
 
 @Component({
   selector: 'page-operation',
   templateUrl: './operation.page.html',
-  styleUrls: ['./operation.page.scss']
+  styleUrls: ['./operation.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {
 
@@ -53,7 +55,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('survivalTestsTable') survivalTestsTable: SamplesTable;
 
-  @ViewChild('individualMonitoringTable') individualMonitoringTable: SubSamplesTable;
+  @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringTable;
 
   @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
 
@@ -309,27 +311,26 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     if (this.measurementsForm) {
       this.measurementsForm.onLoading
         .pipe(
-          debounceTime(400),
           filter(loading => loading === false),
-          distinctUntilChanged()
+          debounceTime(400),
+          map(() => this.measurementsForm.form),
+          first()
         )
-        .first()
-        .subscribe(() => {
-          const formGroup = this.measurementsForm.form;
-
+        .subscribe((formGroup) => {
           // Sampling type (SUMARiS) => enable/disable some tables
           const samplingTypeControl = formGroup && formGroup.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
           if (isNotNil(samplingTypeControl)) {
             this.registerSubscription(
               samplingTypeControl.valueChanges
-                .debounceTime(400)
                 .pipe(
+                  debounceTime(400),
                   startWith(samplingTypeControl.value),
-                  filter(value => EntityUtils.isNotEmpty(value)),
+                  filter(EntityUtils.isNotEmpty),
                   map(value => value.label),
                   distinctUntilChanged()
                 )
                 .subscribe(qvLabel => {
+                  console.log("Sampling control label is = ", qvLabel);
                   // Force first tab index
                   this.selectedBatchSamplingTabIndex=0;
                   this.selectedSurvivalTestTabIndex=0;
@@ -352,6 +353,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                   }
                 })
             );
+          }
+          else {
+            console.log("NO Sampling control in PMFMS:", Object.getOwnPropertyNames(formGroup.controls));
           }
 
           // Is Sampling ? (ADAP) => enable/disable some tables

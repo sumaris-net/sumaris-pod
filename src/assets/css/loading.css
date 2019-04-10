@@ -95,6 +95,11 @@ body {
   animation-delay: 0.9s;
 }
 
+.spinner p {
+  line-break: normal;
+  break-inside: avoid;
+}
+
 @-webkit-keyframes sk-foldCubeAngle {
   0%,
   10% {

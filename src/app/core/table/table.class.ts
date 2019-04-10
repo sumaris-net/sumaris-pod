@@ -198,14 +198,18 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     ngOnDestroy() {
+      if (this._subscriptions && this._subscriptions.length) {
+        console.log("[table] ngOnDestroy -> unsubscribe", this._subscriptions);
         this._subscriptions.forEach(s => s.unsubscribe());
-        this._subscriptions = [];
+        this._subscriptions = undefined;
+      }
 
-        // Unsubscribe column value changes
-        Object.getOwnPropertyNames(this._cellValueChangesDefs).forEach(columnName => {
-            this.stopCellValueChanges(columnName);
-        });
-        this._cellValueChangesDefs = {};
+
+      // Unsubscribe column value changes
+      Object.getOwnPropertyNames(this._cellValueChangesDefs).forEach(columnName => {
+          this.stopCellValueChanges(columnName);
+      });
+      this._cellValueChangesDefs = {};
     }
 
     setDatasource(datasource: AppTableDataSource<T, F>) {
@@ -288,10 +292,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
 
     protected addRowToTable() {
-        this.focusFirstColumn = true;
-        this.dataSource.createNew();
-        this._dirty = true;
-        this.resultsLength++;
+      this.focusFirstColumn = true;
+      this.dataSource.createNew();
+      this._dirty = true;
+      this.resultsLength++;
     }
 
     async save(): Promise<boolean> {
@@ -387,7 +391,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     protected openEditRowDetail(id: number, row?: TableElement<T>): Promise<boolean> {
         if (!this.allowRowDetail) return Promise.resolve(false);
-        return this.router.navigate([id], {
+        this.router.navigate([id], {
             relativeTo: this.route
         });
     }
@@ -482,18 +486,19 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
 
     protected registerCellValueChanges(name: string, formPath?: string): Observable<any> {
-        formPath = formPath || name;
-        if (this.debug) console.debug(`[table] New listener {${name}} for value changes on path ${formPath}`);
-        this._cellValueChangesDefs[name] = this._cellValueChangesDefs[name] || {
-            eventEmitter: new EventEmitter<any>(),
-            subscription: null,
-            formPath: formPath
-        };
+      formPath = formPath || name;
+      if (this.debug) console.debug(`[table] New listener {${name}} for value changes on path ${formPath}`);
+      this._cellValueChangesDefs[name] = this._cellValueChangesDefs[name] || {
+          eventEmitter: new EventEmitter<any>(),
+          subscription: null,
+          formPath: formPath
+      };
 
-        return this._cellValueChangesDefs[name].eventEmitter
-          .pipe(
-            distinctUntilChanged()
-          );
+      return this._cellValueChangesDefs[name].eventEmitter
+        //.pipe(
+        //  distinctUntilChanged()
+        //)
+      ;
     }
 
     public startCellValueChanges(name: string, row: TableElement<T>) {

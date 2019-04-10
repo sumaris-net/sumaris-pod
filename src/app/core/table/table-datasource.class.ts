@@ -1,6 +1,6 @@
 import { TableDataSource, ValidatorService } from 'angular4-material-table';
 import { Observable } from "rxjs";
-import {DataService, isNotNil, LoadResult} from '../../shared/shared.module';
+import {TableDataService, isNotNil, LoadResult} from '../../shared/shared.module';
 import { EventEmitter } from '@angular/core';
 import { Entity } from "../services/model";
 import { TableElement } from 'angular4-material-table';
@@ -30,7 +30,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
    * @param config Additional configuration for table.
    */
   constructor(dataType: new () => T,
-    private dataService: DataService<T, F>,
+    private dataService: TableDataService<T, F>,
     validatorService?: ValidatorService,
     config?: {
       prependNewElements: boolean;
@@ -65,7 +65,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     filter?: F): Observable<LoadResult<T>> {
 
     this.onLoading.emit(true);
-    return this.dataService.loadAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
+    return this.dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
       .catch(err => this.handleError(err, 'Unable to load rows'))
       .map(res => {
         this.onLoading.emit(false);

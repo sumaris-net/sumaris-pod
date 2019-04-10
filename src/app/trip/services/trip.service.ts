@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
 import {fillRankOrder, isNil, Person, Trip} from "./trip.model";
-import {DataService, LoadResult, isNotNil} from "../../shared/shared.module";
+import {TableDataService, LoadResult, isNotNil} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
@@ -197,7 +197,7 @@ const UpdateSubscription = gql`
 `;
 
 @Injectable()
-export class TripService extends BaseDataService implements DataService<Trip, TripFilter>{
+export class TripService extends BaseDataService implements TableDataService<Trip, TripFilter>{
 
   constructor(
     protected apollo: Apollo,
@@ -217,11 +217,11 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
    * @param sortDirection
    * @param filter
    */
-  loadAll(offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: TripFilter): Observable<LoadResult<Trip>> {
+  watchAll(offset: number,
+           size: number,
+           sortBy?: string,
+           sortDirection?: string,
+           filter?: TripFilter): Observable<LoadResult<Trip>> {
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
@@ -295,13 +295,10 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
       }
     })
       .pipe(
-        map(data => {
-          if (data && data.updateTrip) {
-            const res = Trip.fromObject(data.updateTrip);
-            if (this._debug) console.debug(`[trip-service] Trip {${id}} updated on server !`, res);
-            return res;
-          }
-          return null; // deleted ?
+        map(res => {
+          const data = res && res.updateTrip && Trip.fromObject(res.updateTrip);
+          if (data && this._debug) console.debug(`[trip-service] Trip {${id}} updated on server !`, data);
+          return data;
         })
       );
   }

@@ -64,7 +64,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
           mergeMap(value => {
             if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
             value = (typeof value === "string") && value || undefined;
-            return this.vesselService.loadAll(0, 10, undefined, undefined,
+            return this.vesselService.watchAll(0, 10, undefined, undefined,
               { searchText: value as string }
             ).map(({data}) => data);
           }));
@@ -81,7 +81,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
@@ -97,7 +97,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'SaleType',
               searchText: value as string

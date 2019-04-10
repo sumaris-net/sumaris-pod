@@ -56,7 +56,7 @@
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{row.currentData?.rankOrderOnPeriod}}
+      <ion-label>{{row.currentData.rankOrderOnPeriod}}</ion-label>
     </mat-cell>
   </ng-container>
 
@@ -66,28 +66,7 @@
       <ion-label translate>TRIP.OPERATION.LIST.METIER</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['metier']" [placeholder]="'TRIP.OPERATION.METIER'|translate"
-          [readonly]="!row.editing" [matAutocomplete]="autoMetier" [appAutofocus]="row.id == -1 && row.editing">
-        <mat-error *ngIf="row.validator.controls['metier'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-
-      <mat-autocomplete #autoMetier="matAutocomplete" [displayWith]="referentialToString">
-        <ion-row class="mat-autocomplete-header">
-          <ion-col size="2">
-            <ion-text translate>REFERENTIAL.LABEL</ion-text>
-          </ion-col>
-          <ion-col>
-            <ion-text translate>REFERENTIAL.NAME</ion-text>
-          </ion-col>
-        </ion-row>
-        <mat-option *ngFor="let item of metiers | async" [value]="item" no-padding>
-          <ion-row>
-            <ion-col size="2" [innerHTML]="item.label | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['metier'].value }"></ion-col>
-          </ion-row>
-        </mat-option>
-      </mat-autocomplete>
+      <ion-label>{{referentialToString(row.currentData.metier)}}</ion-label>
     </mat-cell>
   </ng-container>
 
@@ -97,9 +76,7 @@
       <ion-label translate>TRIP.OPERATION.LIST.START_DATE_TIME</ion-label>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['startDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-        [readonly]="!row.editing" [required]="true">
-      </mat-date-time>
+      <ion-label>{{row.currentData.startDateTime|dateFormat:{time:true} }}</ion-label>
     </mat-cell>
   </ng-container>
 
@@ -109,18 +86,10 @@
       <ion-label translate>TRIP.OPERATION.LIST.START_POSITION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ng-container *ngIf="!row.editing">
-        {{row.currentData?.startPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
-        {{row.currentData?.startPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
-      </ng-container>
-      <form *ngIf="row.editing" [formGroup]="row.validator.controls['startPosition']">
-        <mat-latlong floatLabel="never" formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [required]="true">
-        </mat-latlong>
-        <mat-latlong floatLabel="never" formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [required]="true">
-        </mat-latlong>
-      </form>
+      <ion-label>
+        {{ row.currentData.startPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+        {{ row.currentData.startPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
+      </ion-label>
     </mat-cell>
   </ng-container>
 
@@ -130,9 +99,7 @@
       <ion-label translate>TRIP.OPERATION.LIST.END_DATE_TIME</ion-label>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['endDateTime']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-        [readonly]="!row.editing" [required]="true">
-      </mat-date-time>
+      {{row.currentData.endDateTime|dateFormat:{time:true} }}
     </mat-cell>
   </ng-container>
 
@@ -142,18 +109,10 @@
       <ion-label translate>TRIP.OPERATION.LIST.END_POSITION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <div class="align-" *ngIf="!row.editing">
-        {{row.currentData?.endPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
-        {{row.currentData?.endPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
-      </div>
-      <form *ngIf="row.editing" [formGroup]="row.validator.controls['endPosition']">
-        <mat-latlong floatLabel="never" formControlName="latitude" type="latitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'COMMON.DDMMSS_PLACEHOLDER'|translate" [required]="true">
-        </mat-latlong>
-        <mat-latlong floatLabel="never" formControlName="longitude" type="longitude" [latLongPattern]="latLongPattern"
-          [placeholder]="'D' + ('COMMON.DDMMSS_PLACEHOLDER'|translate)" [required]="true">
-        </mat-latlong>
-      </form>
+      <ion-label>
+        {{row.currentData.endPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
+        {{row.currentData.endPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
+      </ion-label>
     </mat-cell>
   </ng-container>
 
@@ -178,9 +137,7 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-    [class.mat-row-dirty]="row.currentData.dirty" [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"
-    (onblur)="confirmAndAddRow($event,row)"></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="onRowClick($event, row)"></mat-row>
 </mat-table>
 
 <!-- Paginator: not need

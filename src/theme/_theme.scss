@@ -22,9 +22,6 @@ $candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-
 // that you are using.
 @include angular-material-theme($candy-app-theme);
 
-.mat-autocomplete-panel {
-  min-width: 300px !important;
-}
 
 // --------------------------------------------------
 // Import material icons

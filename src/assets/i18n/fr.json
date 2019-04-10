@@ -474,7 +474,7 @@
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde du référentiel.",
       "SAVE_REFERENTIALS_ERROR": "Erreur de sauvegarde des référentiels.",
-      "LOAD_REFERENTIALS_ERROR": "Erreur de chargement des référentiels.",
+      "LOAD_REFERENTIAL_ERROR": "Erreur de chargement des référentiels.",
       "LOAD_REFERENTIAL_ENTITIES_ERROR": "Erreur de chargement des types de référentiel.",
       "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression de référentiels",
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",

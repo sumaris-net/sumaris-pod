@@ -27,7 +27,7 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
 import {environment} from '../../../environments/environment';
 import {MeasurementsValidatorService, SubBatchValidatorService} from "../services/trip.validators";
-import {DataService, isNil, isNotNil, LoadResult} from "../../shared/shared.module";
+import {TableDataService, isNil, isNotNil, LoadResult} from "../../shared/shared.module";
 
 const PMFM_ID_REGEXP = /\d+/;
 const SUBBATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -41,7 +41,7 @@ const SUBBATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
         { provide: ValidatorService, useClass: BatchValidatorService }
     ]
 })
-export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService, DataService<Batch, any> {
+export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService, TableDataService<Batch, any> {
 
     private _program: string = environment.defaultProgram;
     private _acquisitionLevel: string;
@@ -188,7 +188,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
                   if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
                   value = (typeof value === "string" && value !== '*') && value || undefined;
                   if (this.debug) console.debug("[sub-batch-table] Searching taxon name on {" + (value || '*') + "}...");
-                  return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+                  return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
                       {
                           entityName: 'TaxonName',
                           levelId: TaxonomicLevelIds.SPECIES,
@@ -259,7 +259,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         return formGroup;
     }
 
-    loadAll(
+    watchAll(
         offset: number,
         size: number,
         sortBy?: string,
@@ -277,7 +277,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         this.save()
           .then(saved => {
             if (saved) {
-              this.loadAll(offset, size, sortBy, sortDirection, filter, options);
+              this.watchAll(offset, size, sortBy, sortDirection, filter, options);
               this._dirty = true; // restore previous state
             }
           });

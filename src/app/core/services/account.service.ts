@@ -17,7 +17,7 @@ import {Apollo} from "apollo-angular";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {DataService, isNotNil, toDateISOString,} from "../../shared/shared.module";
+import {TableDataService, isNotNil, toDateISOString, DataService,} from "../../shared/shared.module";
 import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";

@@ -69,7 +69,7 @@ export class ObservedLocationForm extends AppForm<Sale> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== "*") && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 50 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 50 : 10, undefined, undefined,
             {
               entityName: 'Program',
               searchText: value as string
@@ -84,7 +84,7 @@ export class ObservedLocationForm extends AppForm<Sale> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
@@ -100,7 +100,7 @@ export class ObservedLocationForm extends AppForm<Sale> implements OnInit {
         mergeMap(value => {
           if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.personService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+          return this.personService.watchAll(0, !value ? 30 : 10, undefined, undefined,
             {
               searchText: value as string
             }).first().map(({data}) => data);

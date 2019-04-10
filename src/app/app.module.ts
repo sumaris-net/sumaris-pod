@@ -4,7 +4,7 @@ import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {NgModule} from "@angular/core";
 import {IonicModule} from "@ionic/angular";
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material";
+import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, MAT_TABS_CONFIG} from "@angular/material";
 import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
@@ -55,6 +55,12 @@ import {environment} from "../environments/environment";
           dateA11yLabel: 'LL',
           monthYearA11yLabel: 'MMMM YYYY',
         }
+      }
+    },
+    {
+      provide: MAT_TABS_CONFIG,
+      useValue: {
+        animationDuration: '0ms'
       }
     }
   ]
