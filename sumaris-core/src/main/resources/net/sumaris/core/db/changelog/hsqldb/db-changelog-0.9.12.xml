@@ -54,6 +54,9 @@
         <sql>
             select NEXT VALUE FOR PROGRAM_SEQ from PROGRAM
         </sql>
+        <sql>
+            select NEXT VALUE FOR PROGRAM_SEQ from STATUS where ID=1
+        </sql>
     </changeSet>
 
     <!-- Add new tables (LANDING, OBSERVED_LOCATION, ...) -->
