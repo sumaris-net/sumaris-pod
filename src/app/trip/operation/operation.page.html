@@ -5,7 +5,7 @@
 
 <ion-content>
 
-  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [disableRipple]="true">
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [disableRipple]="true">
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
@@ -73,7 +73,7 @@
       <!-- tab group for batches -->
       <mat-tab-group [class.hidden]="!showBatchSamplingTables"
                      [disableRipple]="true"
-                     [selectedIndex]="selectedBatchSamplingTabIndex" (selectedTabChange)="onBatchSamplingTabChange($event)">
+                     [(selectedIndex)]="selectedBatchSamplingTabIndex" (selectedTabChange)="onBatchSamplingTabChange($event)">
 
         <!-- TAB: species list -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
@@ -118,7 +118,7 @@
 
       <!-- tab group for survival test -->
       <mat-tab-group [class.hidden]="!showSurvivalTestTables"
-                     [selectedIndex]="selectedSurvivalTestTabIndex" (selectedTabChange)="onSurvivalTestTabChange($event)" [disableRipple]="true" dynamicHeight >
+                     [(selectedIndex)]="selectedSurvivalTestTabIndex" (selectedTabChange)="onSurvivalTestTabChange($event)" [disableRipple]="true" dynamicHeight >
 
         <!-- TAB: Survival tests -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">

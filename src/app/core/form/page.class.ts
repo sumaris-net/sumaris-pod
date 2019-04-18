@@ -9,6 +9,7 @@ import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
 import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
+import {first} from "rxjs/operators";
 
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
@@ -50,12 +51,16 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
         protected translate: TranslateService
     ) {
         // Listen route parameters
-        this.route.queryParams.subscribe(res => {
-          const tabIndex = res["tab"];
-          if (isNotNil(tabIndex)) {
-            this.selectedTabIndex = parseInt(tabIndex) || 0;
-          }
-        });
+        this.route.queryParams
+          .pipe(
+            first()
+          )
+          .subscribe(res => {
+            const tabIndex = res["tab"];
+            if (isNotNil(tabIndex)) {
+              this.selectedTabIndex = parseInt(tabIndex) || 0;
+            }
+          });
     }
 
     ngOnInit() {
@@ -135,6 +140,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
 
     public onTabChange(event: MatTabChangeEvent) {
+      console.log("Tab changed: ", event);
       const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
       queryParams['tab'] = event.index;
       this.router.navigate(['.'], {

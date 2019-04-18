@@ -77,17 +77,21 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     super(route, router, alterCtrl, translate);
 
     // Listen route parameters
-    this.route.queryParams.subscribe(res => {
-      const subTabIndex = +res["sub-tab"];
-      if (isNotNil(subTabIndex)) {
-        this.selectedBatchSamplingTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
-        this.selectedSurvivalTestTabIndex = subTabIndex;
-      }
-      else {
-        this.selectedBatchSamplingTabIndex = 0;
-        this.selectedSurvivalTestTabIndex = 0;
-      }
-    });
+    this.route.queryParams
+      .pipe(
+        first()
+      )
+      .subscribe(res => {
+        const subTabIndex = +res["sub-tab"];
+        if (isNotNil(subTabIndex)) {
+          this.selectedBatchSamplingTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
+          this.selectedSurvivalTestTabIndex = subTabIndex;
+        }
+        else {
+          this.selectedBatchSamplingTabIndex = 0;
+          this.selectedSurvivalTestTabIndex = 0;
+        }
+      });
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -586,8 +590,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       queryParams: queryParams
     });
     if (!this.loading) {
-      this.selectedBatchSamplingTabIndex = event.index;
-
       // On each tables, confirm editing row
       this.batchGroupsTable.confirmEditCreate();
       this.subBatchesTable.confirmEditCreate();
@@ -595,7 +597,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   }
 
   public onSurvivalTestTabChange(event: MatTabChangeEvent) {
-
     const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
     queryParams['sub-tab'] = event.index;
     this.router.navigate(['.'], {
@@ -603,8 +604,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       queryParams: queryParams
     });
     if (!this.loading) {
-      this.selectedSurvivalTestTabIndex = event.index;
-
       // On each tables, confirm editing row
       this.survivalTestsTable.confirmEditCreate();
       this.individualMonitoringTable.confirmEditCreate();
