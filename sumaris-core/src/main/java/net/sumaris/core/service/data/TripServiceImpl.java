@@ -226,6 +226,9 @@ public class TripServiceImpl implements TripService {
     void fillDefaultProperties(TripVO parent, PhysicalGearVO gear) {
         if (gear == null) return;
 
+        // Copy program
+		gear.setProgram(parent.getProgram());
+
         // Copy recorder department from the parent trip
 		DataBeans.setDefaultRecorderDepartment(gear, parent.getRecorderDepartment());
 		DataBeans.setDefaultRecorderPerson(gear, parent.getRecorderPerson());

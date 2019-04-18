@@ -222,7 +222,8 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
 
     protected void physicalGearVOToEntity(PhysicalGearVO source, PhysicalGear target, boolean copyIfNull) {
 
-        Beans.copyProperties(source, target);
+        // Copy properties
+        copyRootDataProperties(source, target, copyIfNull);
 
         // Gear
         target.setGear(load(Gear.class, source.getGear().getId()));
@@ -237,27 +238,6 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
                 target.setTrip(load(Trip.class, tripId));
             }
         }
-
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
-                target.setRecorderDepartment(null);
-            }
-            else {
-                target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
-            }
-        }
-
-        // Quality flag
-        if (copyIfNull || source.getQualityFlagId() != null) {
-            if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(load(QualityFlag.class, config.getDefaultQualityFlagId()));
-            }
-            else {
-                target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
-            }
-        }
-
     }
 
     protected  List<PhysicalGearVO> toPhysicalGearVOs(List<PhysicalGear> source) {
