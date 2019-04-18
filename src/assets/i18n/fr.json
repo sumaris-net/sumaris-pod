@@ -487,7 +487,8 @@
       "TITLE": "Listes",
       "FILTER": {
         "ENTITY": "Type de liste",
-        "SEARCH_TEXT": "Recherche : code, libellé"
+        "SEARCH_TEXT": "Recherche : code, libellé",
+        "EMPTY_OPTION": "(Vide)"
       }
     },
     "ENTITY": {

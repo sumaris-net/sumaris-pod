@@ -412,7 +412,8 @@
       "TITLE": "Referentials",
       "FILTER": {
         "ENTITY": "Kind",
-        "SEARCH_TEXT": "Search: code, name"
+        "SEARCH_TEXT": "Search: code, name",
+        "EMPTY_OPTION": "(Empty)"
       }
     },
     "ENTITY": {
