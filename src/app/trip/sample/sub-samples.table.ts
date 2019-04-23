@@ -442,7 +442,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
                 return false;
             }
 
-            if (!row.editing) this.dataSource.refreshValidator(row);
+            if (!row.editing) row.currentData = s;
 
             return true; // Keep only if sample still have a parent
         })

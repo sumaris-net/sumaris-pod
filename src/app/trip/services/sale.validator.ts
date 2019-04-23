@@ -26,7 +26,8 @@ export class SaleValidatorService implements ValidatorService {
       'startDateTime': [''],
       'endDateTime': [''],
       'saleLocation': ['', SharedValidators.entity],
-      'comments': ['', Validators.maxLength(2000)]
+      'comments': ['', Validators.maxLength(2000)],
+      'dirty': ['']
     }, {
       validator: Validators.compose([
         SharedValidators.requiredIf('saleLocation', 'saleType'),

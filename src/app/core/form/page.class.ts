@@ -140,7 +140,6 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
 
     public onTabChange(event: MatTabChangeEvent) {
-      console.log("Tab changed: ", event);
       const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
       queryParams['tab'] = event.index;
       this.router.navigate(['.'], {

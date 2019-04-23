@@ -15,8 +15,8 @@ import {isNil, isNotNil} from '../../shared/shared.module';
 @Component({
   selector: 'form-measurements',
   templateUrl: './measurements.form.component.html',
-  styleUrls: ['./measurements.form.component.scss']
-  ,changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./measurements.form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MeasurementsForm extends AppForm<Measurement[]> {
 

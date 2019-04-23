@@ -1,13 +1,13 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
-  AppFormUtils,
   AppTable,
   AppTableDataSource,
+  environment,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
@@ -16,7 +16,7 @@ import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {PhysicalGearForm} from "./physicalgear.form";
-import {TableDataService, LoadResult} from "../../shared/shared.module";
+import {LoadResult, TableDataService} from "../../shared/shared.module";
 
 
 @Component({
@@ -26,6 +26,7 @@ import {TableDataService, LoadResult} from "../../shared/shared.module";
   providers: [
     { provide: ValidatorService, useClass: PhysicalGearValidatorService }
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements OnInit, OnDestroy, TableDataService<PhysicalGear, any> {
 
@@ -83,22 +84,19 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     );
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = false;
-    this.setDatasource(new AppTableDataSource<PhysicalGear, any>(PhysicalGear, this, this.validatorService, {
+    this.setDatasource(new AppTableDataSource<PhysicalGear, any>(PhysicalGear, this, null/*this.validatorService*/, {
       prependNewElements: false,
       suppressErrors: false,
       onNewRow: (row) => this.onCreateNewGear(row)
     }));
 
-    // this.program.subscribe(program => {
-    //   this.gearForm.program = program;
-    // })
   };
 
 
   ngOnInit() {
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
 
     super.ngOnInit();
 
@@ -108,12 +106,11 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
         if (!this.editedRow) return;
         if (this.debug) console.debug("[physicalgears-table] gearForm.valueChanges => update select row", value);
         this.editedRow.currentData = value;
-        AppFormUtils.copyEntity2Form(this.editedRow.currentData, this.editedRow.validator);
         this._dirty = true;
       });
 
     // DEBUG only
-    this.detailMeasurements = /*this.debug && Observable.empty() || */this.gearForm
+    this.detailMeasurements = this.debug && Observable.empty() || this.gearForm
       .valueChanges
       .pipe(
         map(value => {
@@ -125,7 +122,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
               res += ' | ';
               res += m.numericalValue || m.alphanumericalValue || (m.qualitativeValue && m.qualitativeValue.label) || '';
               return res;
-            })
+            });
         })
       );
   }
@@ -150,7 +147,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       // Fill samples measurement map
       const data = this.data.map(gear => gear.asObject());
 
-      // Sort 
+      // Sort
       this.sortGears(data, sortBy, sortDirection);
       if (this.debug) console.debug(`[physicalgears-table] Rows loaded in ${Date.now() - now}ms`, data);
 
@@ -182,14 +179,15 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
   async getMaxRankOrder(): Promise<number> {
     const rows = await this.dataSource.getRows();
-    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder|| 0), 0);
   }
 
   async onCreateNewGear(row: TableElement<PhysicalGear>): Promise<void> {
     // Set computed values
-    row.currentData.rankOrder = (await this.getMaxRankOrder()) + 1;
+    const data = row.currentData;
+    data.rankOrder = (await this.getMaxRankOrder()) + 1;
 
-    this.gearForm.value = row.currentData;
+    this.gearForm.value = data;
   }
 
   addRow(event?: any): boolean {
@@ -222,7 +220,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     if (!row.currentData || event.defaultPrevented) return false;
 
     // Avoid to change select row, if previous is not valid
-    if (this.editedRow && (this.editedRow.validator.invalid || this.gearForm.invalid)) {
+    if (this.editedRow && this.gearForm.invalid) {
       event.stopPropagation();
       return false;
     }

@@ -76,13 +76,16 @@ export abstract class DataEntity<T> extends Entity<T> {
 }
 
 export abstract class DataRootEntity<T> extends DataEntity<T> {
-  comments: string;
+  comments: string = null;
   creationDate: Moment;
   recorderPerson: Person;
   validationDate: Moment;
 
   constructor() {
     super();
+    this.comments = null;
+    this.creationDate = null;
+    this.validationDate = null;
     this.recorderPerson = new Person();
   }
 
@@ -221,6 +224,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
     super();
     this.gear = new ReferentialRef();
     this.measurements = [];
+    this.rankOrder = null;
   }
 
   clone(): PhysicalGear {
@@ -278,6 +282,7 @@ export class Measurement extends DataEntity<Measurement> {
 
   constructor() {
     super();
+    this.rankOrder = null;
   }
 
   clone(): Measurement {
@@ -774,6 +779,8 @@ export class Sample extends DataRootEntity<Sample> {
     this.taxonGroup = null;
     this.measurementValues = {};
     this.children = [];
+    this.individualCount = null;
+    this.rankOrder = null;
   }
 
   clone(): Sample {
@@ -787,6 +794,7 @@ export class Sample extends DataRootEntity<Sample> {
     target.sampleDate = toDateISOString(this.sampleDate);
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false/*fix #32*/) || undefined;
     target.taxonName = this.taxonName && this.taxonName.asObject(false/*fix #32*/) || undefined;
+    target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
 
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     delete target.parent;
@@ -810,7 +818,7 @@ export class Sample extends DataRootEntity<Sample> {
     this.label = source.label;
     this.rankOrder = source.rankOrder;
     this.sampleDate = fromDateISOString(source.sampleDate);
-    this.individualCount = source.individualCount;
+    this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
     this.comments = source.comments;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
@@ -878,6 +886,9 @@ export class Batch extends DataEntity<Batch> {
     this.taxonName = null;
     this.measurementValues = {};
     this.children = [];
+    this.individualCount = null;
+    this.samplingRatio = null;
+    this.rankOrder = null;
   }
 
   clone(): Batch {
@@ -895,6 +906,7 @@ export class Batch extends DataEntity<Batch> {
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false /*fix #32*/ ) || undefined;
     target.taxonName = this.taxonName && this.taxonName.asObject(false /*fix #32*/) || undefined;
+    target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
 
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     delete target.parent;
@@ -921,7 +933,7 @@ export class Batch extends DataEntity<Batch> {
     this.exhaustiveInventory = source.exhaustiveInventory;
     this.samplingRatio = source.samplingRatio;
     this.samplingRatioText = source.samplingRatioText;
-    this.individualCount = source.individualCount;
+    this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
     this.comments = source.comments;

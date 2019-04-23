@@ -1,4 +1,4 @@
-import {Component} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component} from "@angular/core";
 import {Observable} from "rxjs";
 import {ValidatorService} from "angular4-material-table";
 import {AccountService, AppFormUtils} from "../../core/core.module";
@@ -8,24 +8,26 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
 import {PmfmLabelPatterns, ProgramService, ReferentialRefService,} from "../../referential/referential.module";
 import {TranslateService} from "@ngx-translate/core";
-import {environment} from "../../../environments/environment";
 import {
   BatchGroupsValidatorService,
   BatchValidatorService,
   MeasurementsValidatorService
 } from "../services/trip.validators";
-import {FormBuilder, FormGroup, Validator, Validators} from "@angular/forms";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {BatchesTable} from "./batches.table";
 import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
 import {MethodIds} from "../../referential/services/model";
+import {first, filter} from "rxjs/operators";
+
 
 @Component({
-    selector: 'table-batch-groups',
-    templateUrl: 'batch-groups.table.html',
-    styleUrls: ['batch-groups.table.scss'],
-    providers: [
-        { provide: ValidatorService, useClass: BatchGroupsValidatorService }
-    ]
+  selector: 'table-batch-groups',
+  templateUrl: 'batch-groups.table.html',
+  styleUrls: ['batch-groups.table.scss'],
+  providers: [
+      { provide: ValidatorService, useClass: BatchGroupsValidatorService }
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchGroupsTable extends BatchesTable {
 
@@ -46,10 +48,11 @@ export class BatchGroupsTable extends BatchesTable {
         referentialRefService: ReferentialRefService,
         programService: ProgramService,
         translate: TranslateService,
-        formBuilder: FormBuilder
+        formBuilder: FormBuilder,
+        cd: ChangeDetectorRef
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
-            validatorService, measurementsValidatorService, referentialRefService, programService, translate, formBuilder
+            validatorService, measurementsValidatorService, referentialRefService, programService, translate, formBuilder, cd
         );
         // -- For DEV only
         //this.debug = !environment.production;
@@ -60,7 +63,7 @@ export class BatchGroupsTable extends BatchesTable {
         size: number,
         sortBy?: string,
         sortDirection?: string,
-        filter?: any,
+        afilter?: any,
         options?: any
     ): Observable<LoadResult<Batch>> {
       if (!this.data) {
@@ -73,7 +76,7 @@ export class BatchGroupsTable extends BatchesTable {
         this.save()
           .then(saved => {
             if (saved) {
-              this.loadAll(offset, size, sortBy, sortDirection, filter, options);
+              this.loadAll(offset, size, sortBy, sortDirection, afilter, options);
               this._dirty = true; // restore previous state
             }
           });
@@ -86,8 +89,10 @@ export class BatchGroupsTable extends BatchesTable {
           if (this.debug) console.debug("[batch-table] Loading rows..", this.data);
 
           this.pmfms
-            .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
+            .pipe(
+              filter(pmfms => pmfms && pmfms.length > 0),
+              first()
+            )
             .subscribe(pmfms => {
               let weightMethodValues = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex) => {
                 res[qvIndex] = false;
@@ -158,7 +163,7 @@ export class BatchGroupsTable extends BatchesTable {
             if (isNotNil(this.qvPmfm)) {
                 batch.children = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex:number) => {
                     let i = qvIndex * 5;
-                    const individualCount = measurementValues[i++];
+                    const individualCount = parseInt(measurementValues[i++]);
                     const weight = measurementValues[i++];
                     const samplingRatio = measurementValues[i++];
                     const samplingIndividualCount = measurementValues[i++];

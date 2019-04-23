@@ -1,4 +1,12 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
 import {debounceTime, mergeMap, startWith} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
@@ -36,12 +44,13 @@ const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
-    selector: 'table-batches',
-    templateUrl: 'batches.table.html',
-    styleUrls: ['batches.table.scss'],
-    providers: [
-        { provide: ValidatorService, useClass: BatchValidatorService }
-    ]
+  selector: 'table-batches',
+  templateUrl: 'batches.table.html',
+  styleUrls: ['batches.table.scss'],
+  providers: [
+      { provide: ValidatorService, useClass: BatchValidatorService }
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   implements OnInit, OnDestroy, ValidatorService, TableDataService<Batch, any> {
@@ -116,7 +125,8 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
         protected referentialRefService: ReferentialRefService,
         protected programService: ProgramService,
         protected translate: TranslateService,
-        protected formBuilder: FormBuilder
+        protected formBuilder: FormBuilder,
+        protected cd: ChangeDetectorRef
     ) {
         super(route, router, platform, location, modalCtrl, accountService,
             RESERVED_START_COLUMNS.concat(BATCH_RESERVED_START_COLUMNS).concat(BATCH_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
@@ -128,7 +138,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
             Batch, this, this, {
                 prependNewElements: false,
                 suppressErrors: false,
-                onNewRow: (row) => this.onNewBatch(row.currentData)
+                onNewRow: (row) => this.onNewBatchRow(row)
             }));
         //this.debug = true;
     };
@@ -328,8 +338,14 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     /* -- protected methods -- */
 
     protected async getMaxRankOrder(): Promise<number> {
-        const rows = await this.dataSource.getRows();
-        return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+      const rows = await this.dataSource.getRows();
+      return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+    }
+
+    protected async onNewBatchRow(row: TableElement<Batch>): Promise<void> {
+      const batch = row.currentData;
+      await this.onNewBatch(batch);
+      row.currentData = batch;
     }
 
     protected async onNewBatch(batch: Batch, rankOrder?: number): Promise<void> {
@@ -343,6 +359,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
             .forEach(pmfm => {
                 batch.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
             });
+      this.cd.markForCheck();
     }
 
     protected getI18nColumnName(columnName: string): string {

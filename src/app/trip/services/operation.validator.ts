@@ -28,7 +28,8 @@ export class OperationValidatorService implements ValidatorService {
       startPosition: this.positionValidator.getFormGroup(),
       endPosition: this.positionValidator.getFormGroup(),
       metier: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      physicalGear: ['', Validators.compose([Validators.required, SharedValidators.entity])]
+      physicalGear: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      dirty: ['']
       },
     {
       validator: Validators.compose([SharedValidators.dateIsAfter('startDateTime', 'endDateTime') ])

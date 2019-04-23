@@ -124,7 +124,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
             Sample, this, this, {
                 prependNewElements: false,
                 suppressErrors: false,
-                onNewRow: (row) => this.onNewSample(row.currentData)
+                onNewRow: (row) => this.onNewSampleRow(row)
             }));
         //this.debug = true;
     };
@@ -304,6 +304,12 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     protected async getMaxRankOrder(): Promise<number> {
         const rows = await this.dataSource.getRows();
         return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+    }
+
+    protected async onNewSampleRow(row: TableElement<Sample>): Promise<void> {
+      const data = row.currentData;
+      await this.onNewSample(data);
+      row.currentData = data;
     }
 
     protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {

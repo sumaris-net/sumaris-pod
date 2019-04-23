@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
 import {isNotNil, Measurement, PhysicalGear} from "../services/trip.model";
 import {Platform} from "@ionic/angular";
@@ -18,9 +18,10 @@ import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {environment} from '../../../environments/environment';
 
 @Component({
-    selector: 'form-physical-gear',
-    templateUrl: './physicalgear.form.html',
-    styleUrls: ['./physicalgear.form.scss']
+  selector: 'form-physical-gear',
+  templateUrl: './physicalgear.form.html',
+  styleUrls: ['./physicalgear.form.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
