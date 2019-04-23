@@ -30,18 +30,15 @@ import {LoadResult, TableDataService} from "../../shared/shared.module";
 })
 export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements OnInit, OnDestroy, TableDataService<PhysicalGear, any> {
 
-
   private _dataSubject = new BehaviorSubject<{data: PhysicalGear[]}>({data: []});
-
   private data: PhysicalGear[];
+
   detailMeasurements: Observable<string[]>;
   programSubject = new Subject<string>();
 
   @Input() set program(program: string) {
     this.programSubject.next(program);
   }
-
-  @ViewChild('gearForm') gearForm: PhysicalGearForm;
 
   set value(data: PhysicalGear[]) {
     if (this.data !== data) {
@@ -57,18 +54,17 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
   get dirty(): boolean {
     return this._dirty || this.gearForm.dirty;
   }
+
   get invalid(): boolean {
-    if (this.editedRow) {
-      return this.gearForm.invalid;
-    }
-    return false;
+    return this.editedRow ? this.gearForm.invalid : false;
   }
+
   get valid(): boolean {
-    if (this.editedRow) {
-      return this.gearForm.valid;
-    }
-    return true;
+    return this.editedRow ? this.gearForm.valid : true;
   }
+
+  @ViewChild('gearForm') gearForm: PhysicalGearForm;
+
 
   constructor(
     protected route: ActivatedRoute,
@@ -90,23 +86,23 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       onNewRow: (row) => this.onCreateNewGear(row)
     }));
 
-  };
-
+    // FOR DEV ONLY ----
+    //this.debug = !environment.production;
+  }
 
   ngOnInit() {
-
-    // FOR DEV ONLY ----
-    this.debug = !environment.production;
-
     super.ngOnInit();
 
     // Listen detail form, to update the table
     this.gearForm.valueChanges
       .subscribe(value => {
         if (!this.editedRow) return;
-        if (this.debug) console.debug("[physicalgears-table] gearForm.valueChanges => update select row", value);
-        this.editedRow.currentData = value;
-        this._dirty = true;
+        const existingGear = this.editedRow.currentData;
+        if (existingGear.rankOrder === value.rankOrder && existingGear.gear.id !== value.gear.id) {
+          if (this.debug) console.debug("[physicalgears-table] gearForm.valueChanges => update select row", value);
+          this.editedRow.currentData = value;
+          this._dirty = true;
+        }
       });
 
     // DEBUG only

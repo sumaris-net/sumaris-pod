@@ -11,7 +11,8 @@ export abstract class BaseDataService {
 
   protected _debug = false;
   protected _lastVariables: any = {
-    loadAll: undefined
+    loadAll: undefined,
+    load: undefined
   };
 
   protected constructor(

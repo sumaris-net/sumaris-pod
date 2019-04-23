@@ -2,12 +2,13 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
-import {Batch, DataEntity, Measurement, Operation, Person, Sample, VesselPosition} from "./trip.model";
+import {Batch, DataEntity, isNil, Measurement, Operation, Person, Sample, VesselPosition} from "./trip.model";
 import {map} from "rxjs/operators";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
+import {FetchPolicy} from "apollo-client";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -202,30 +203,27 @@ export class OperationService extends BaseDataService implements TableDataServic
         }));
   }
 
-  load(id: number): Observable<Operation | null> {
-    if (this._debug) console.debug("[operation-service] Loading operation {" + id + "}...");
+  async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<Operation | null> {
+    if (isNil(id)) throw new Error("Missing argument 'id' ");
 
-    return this.watchQuery<{ operation: Operation }>({
+    const now = Date.now();
+    if (this._debug) console.debug(`[operation-service] Loading operation #${id}...`);
+
+    const res = await this.query<{ operation: Operation }>({
       query: LoadQuery,
       variables: {
         id: id
       },
       error: { code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR" }
-    })
-      .pipe(
-        map(data => {
-          if (data && data.operation) {
-            const res = Operation.fromObject(data.operation);
-            if (this._debug) console.debug("[operation-service] Operation {" + id + "} loaded", res);
-            return res;
-          }
-          return null;
-        })
-      );
+    });
+
+    const data = res && res.operation &&  Operation.fromObject(res.operation);
+    if (data && this._debug) console.debug(`[operation-service] Operation #${id} loaded in ${Date.now() - now}ms`, data);
+    return data;
   }
 
   public listenChanges(id: number): Observable<Operation> {
-    if (!id && id !== 0) throw "Missing argument 'id' ";
+    if (isNil(id)) throw new Error("Missing argument 'id' ");
 
     if (this._debug) console.debug(`[operation-service] [WS] Listening changes for trip {${id}}...`);
 
@@ -332,7 +330,7 @@ export class OperationService extends BaseDataService implements TableDataServic
         this.addToQueryCache({
           query: LoadAllQuery,
           variables: this._lastVariables.loadAll
-        }, 'operations', entity.asObject());
+        }, 'operations', savedOperation);
       }
     }
 

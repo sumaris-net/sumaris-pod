@@ -8,10 +8,10 @@ import {EntityUtils, Trip} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AccountService, AppFormUtils, AppTabPage} from '../../core/core.module';
+import {AccountService, AppFormUtils, AppTabPage, environment} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {TranslateService} from '@ngx-translate/core';
-import {Subject} from 'rxjs';
+import {Subject, Subscription} from 'rxjs';
 import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import * as moment from "moment";
@@ -58,7 +58,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     super(route, router, alertCtrl, translate);
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -80,20 +80,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       }
     });
 
-    // Listen program changes
-    if (this.tripForm && this.tripForm.form) {
-      this.registerSubscription(this.tripForm.form.controls['program'].valueChanges
-        .pipe(
-          filter(EntityUtils.isNotEmpty),
-          map(obj => obj.label),
-          distinct()
-        )
-        .subscribe(program => {
-          console.debug("[trip-page] Propagate program change: " + program);
-          this.programSubject.next(program);
-        })
-      );
-    }
+
   }
 
   async load(id?: number, options?: any) {
@@ -114,40 +101,58 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       this.updateView(data, true);
       this.loading = false;
       this.showOperationTable = false;
+      this.startListenProgramChanges();
     }
 
     // Load existing trip
     else {
-      const data = await this.tripService.load(id).first().toPromise();
+      const data = await this.tripService.load(id);
       this.updateView(data, true);
       this.loading = false;
       this.showOperationTable = true;
-      this.startListenChanges();
+      this.startListenRemoteChanges();
     }
   }
 
-  startListenChanges() {
-    if (!this._enableListenChanges) return;
+  startListenProgramChanges() {
 
-    this.registerSubscription(
-      this.tripService.listenChanges(this.data.id)
-        .subscribe((data: Trip | undefined) => {
-          const newUpdateDate = data && (data.updateDate as Moment) || undefined;
-          console.log("[trip] Detecting changes !!");
-          if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
-            if (this.debug) console.debug("[trip] Detected update on server", newUpdateDate);
-            if (!this.dirty) {
-              this.updateView(data, true);
+    // If new trip
+    if (isNil(this.data.id)) {
+
+      // Listen program changes (only if new trip)
+      if (this.tripForm && this.tripForm.form) {
+        this.registerSubscription(this.tripForm.form.controls['program'].valueChanges
+          .subscribe(program => {
+            if (EntityUtils.isNotEmpty(program)) {
+              console.debug("[trip] Propagate program change: " + program.label);
+              this.programSubject.next(program.label);
+            } else {
+              console.debug("[trip] Propagate program reset");
+              //this.programSubject.next(null);
             }
-          }
-        })
+          })
+        );
+      }
+    }
+  }
 
-        // Add log when closing
-        // .add((tearDown) => {
-        //   console.debug('[trip] [WS] Stop to listen changes', tearDown);
-        //   //tearDown();
-        // })
-    );
+  startListenRemoteChanges() {
+
+    // Listen for changes on server
+    if (isNotNil(this.data.id) && this._enableListenChanges) {
+      this.registerSubscription(
+        this.tripService.listenChanges(this.data.id)
+          .subscribe((data: Trip | undefined) => {
+            const newUpdateDate = data && (data.updateDate as Moment) || undefined;
+            if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
+              if (this.debug) console.debug("[trip] Changes detected on server, at:", newUpdateDate);
+              if (!this.dirty) {
+                this.updateView(data, true);
+              }
+            }
+          })
+        );
+    }
   }
 
   updateView(data: Trip | null, updateOperations?: boolean) {
@@ -155,6 +160,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.tripForm.value = data;
     if (isNotNil(data.id)) {
       this.tripForm.form.controls['program'].disable();
+      this.programSubject.next(data.program.label);
     }
     this.saleForm.value = data && data.sale;
     this.measurementsForm.value = data && data.measurements || [];
@@ -243,8 +249,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
           replaceUrl: true // replace the current state in history
         });
 
-        // Subscription to changes
-        this.startListenChanges();
+        // Subscription to remote changes
+        this.startListenRemoteChanges();
       }
 
       this.submitted = false;

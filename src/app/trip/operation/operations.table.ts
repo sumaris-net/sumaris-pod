@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
 import {Observable} from 'rxjs';
-import {mergeMap} from "rxjs/operators";
+import {map, mergeMap} from "rxjs/operators";
 import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -32,10 +32,6 @@ import {TranslateService} from "@ngx-translate/core";
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
-
-  private _onMetierCellChange = new EventEmitter<any>();
-
-  metiers: Observable<ReferentialRef[]>;
 
   @Input() latLongPattern: string;
 
@@ -91,19 +87,6 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     super.ngOnInit();
 
     this.tripId && this.setTripId(this.tripId);
-
-    // Combo: métiers
-    this.metiers = this._onMetierCellChange
-      .pipe(
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'Metier',
-              searchText: value as string
-            }).first().map(({data}) => data);
-        }));
 
   }
 

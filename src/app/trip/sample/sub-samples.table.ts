@@ -39,363 +39,360 @@ const SUBSAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
   templateUrl: 'sub-samples.table.html',
   styleUrls: ['sub-samples.table.scss'],
   providers: [
-      { provide: ValidatorService, useClass: SubSampleValidatorService }
+    {provide: ValidatorService, useClass: SubSampleValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
   implements OnInit, OnDestroy, ValidatorService, TableDataService<Sample, any> {
 
-    private _program: string;
-    private _acquisitionLevel: string;
-    private _implicitParent: Sample;
-    private _availableSortedParents: Sample[] = [];
-    private _availableParents: Sample[] = [];
-    private _dataSubject = new BehaviorSubject<LoadResult<Sample>>({data: []});
-    private _onRefreshPmfms = new EventEmitter<any>();
+  private _program: string;
+  private _acquisitionLevel: string;
+  private _implicitParent: Sample;
+  private _availableSortedParents: Sample[] = [];
+  private _availableParents: Sample[] = [];
+  private _dataSubject = new BehaviorSubject<LoadResult<Sample>>({data: []});
+  private _onRefreshPmfms = new EventEmitter<any>();
 
-    loading = false;
-    loadingPmfms = true;
-    displayParentPmfm: PmfmStrategy;
-    pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-    measurementValuesFormGroupConfig: { [key: string]: any };
-    data: Sample[];
-    filteredParents: Observable<Sample[]>;
+  loading = false;
+  loadingPmfms = true;
+  displayParentPmfm: PmfmStrategy;
+  pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  measurementValuesFormGroupConfig: { [key: string]: any };
+  data: Sample[];
+  filteredParents: Observable<Sample[]>;
 
-    set value(data: Sample[]) {
-      if (this.data !== data) {
-        this.data = data;
-        if (!this.loading) this.onRefresh.emit();
-      }
+  set value(data: Sample[]) {
+    if (this.data !== data) {
+      this.data = data;
+      if (!this.loading) this.onRefresh.emit();
     }
+  }
 
-    get value(): Sample[] {
-      return this.data;
+  get value(): Sample[] {
+    return this.data;
+  }
+
+  @Input()
+  set program(value: string) {
+    if (this._program !== value && isNotNil(value)) {
+      if (this.debug) console.debug("[sub-samples-table] Setting program:" + value);
+      this._program = value;
+      if (!this.loading) this._onRefreshPmfms.emit('set program');
     }
+  }
 
-    @Input()
-    set program(value: string) {
-      if (this._program !== value && isNotNil(value)) {
-        console.log("SUB-SAMPLE table set program:" + value);
-        this._program = value;
-        if (!this.loading) this._onRefreshPmfms.emit('set program');
-      }
+  get program(): string {
+    return this._program;
+  }
+
+  @Input()
+  set acquisitionLevel(value: string) {
+    if (this._acquisitionLevel !== value && isNotNil(value)) {
+      this._acquisitionLevel = value;
+      if (!this.loading) this._onRefreshPmfms.emit('set acquisitionLevel');
     }
+  }
 
-    get program(): string {
-        return this._program;
+  get acquisitionLevel(): string {
+    return this._acquisitionLevel;
+  }
+
+  set availableParents(parents: Sample[]) {
+    if (this._availableParents !== parents) {
+
+      this._availableParents = parents;
+
+      // Sort parents by by Tag-ID
+      this._availableSortedParents = this.sortSamples(parents.slice(), PmfmIds.TAG_ID.toString());
+
+      // Link samples to parent, and delete orphan
+      this.linkSamplesToParentAndDeleteOrphan();
     }
+  }
 
-    @Input()
-    set acquisitionLevel(value: string) {
-      if (this._acquisitionLevel !== value && isNotNil(value)) {
-        this._acquisitionLevel = value;
-        if (!this.loading) this._onRefreshPmfms.emit('set acquisitionLevel');
-      }
-    }
+  get availableParents(): Sample[] {
+    return this._availableParents;
+  }
 
-    get acquisitionLevel(): string {
-        return this._acquisitionLevel;
-    }
+  constructor(
+    protected route: ActivatedRoute,
+    protected router: Router,
+    protected platform: Platform,
+    protected location: Location,
+    protected modalCtrl: ModalController,
+    protected accountService: AccountService,
+    protected validatorService: SubSampleValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
+    protected referentialRefService: ReferentialRefService,
+    protected programService: ProgramService,
+    protected translate: TranslateService,
+    protected formBuilder: FormBuilder,
+    protected cd: ChangeDetectorRef
+  ) {
+    super(route, router, platform, location, modalCtrl, accountService,
+      RESERVED_START_COLUMNS
+        .concat(SUBSAMPLE_RESERVED_START_COLUMNS)
+        .concat(SUBSAMPLE_RESERVED_END_COLUMNS)
+        .concat(RESERVED_END_COLUMNS)
+    );
+    this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
+    this.autoLoad = false;
+    this.inlineEdition = true;
+    this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
+      Sample, this, this, {
+        prependNewElements: false,
+        suppressErrors: false,
+        onNewRow: (row) => this.onNewSample(row.currentData)
+      }));
+    //this.debug = true;
+  };
 
-    set availableParents(parents: Sample[]) {
-      if (this._availableParents !== parents) {
+  async ngOnInit(): Promise<void> {
+    super.ngOnInit();
 
-        this._availableParents = parents;
+    this.registerSubscription(
+      this._onRefreshPmfms.subscribe((event) => this.refreshPmfms(event || 'ngOnInit'))
+    );
 
-        // Sort parents by by Tag-ID
-        this._availableSortedParents = this.sortSamples(parents.slice(), PmfmIds.TAG_ID.toString());
+    this.registerSubscription(
+      this.pmfms
+        .filter(pmfms => pmfms && pmfms.length > 0)
+        //.first()
+        .subscribe(pmfms => {
+          this.displayParentPmfm = (pmfms || []).find(p => p.pmfmId == PmfmIds.TAG_ID);
+          pmfms = (pmfms || []).filter(p => p !== this.displayParentPmfm);
+          this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
+          let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
 
-        // Link samples to parent, and delete orphan
-        this.linkSamplesToParentAndDeleteOrphan();
-      }
-    }
+          this.displayedColumns = RESERVED_START_COLUMNS
+            .concat(SUBSAMPLE_RESERVED_START_COLUMNS)
+            .concat(pmfmColumns)
+            .concat(SUBSAMPLE_RESERVED_END_COLUMNS)
+            .concat(RESERVED_END_COLUMNS);
 
-    get availableParents(): Sample[] {
-        return this._availableParents;
-    }
+          this.loading = false;
 
-    constructor(
-        protected route: ActivatedRoute,
-        protected router: Router,
-        protected platform: Platform,
-        protected location: Location,
-        protected modalCtrl: ModalController,
-        protected accountService: AccountService,
-        protected validatorService: SubSampleValidatorService,
-        protected measurementsValidatorService: MeasurementsValidatorService,
-        protected referentialRefService: ReferentialRefService,
-        protected programService: ProgramService,
-        protected translate: TranslateService,
-        protected formBuilder: FormBuilder,
-        protected cd: ChangeDetectorRef
-    ) {
-        super(route, router, platform, location, modalCtrl, accountService,
-            RESERVED_START_COLUMNS
-              .concat(SUBSAMPLE_RESERVED_START_COLUMNS)
-              .concat(SUBSAMPLE_RESERVED_END_COLUMNS)
-              .concat(RESERVED_END_COLUMNS)
-        );
-        this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
-        this.autoLoad = false;
-        this.inlineEdition = true;
-        this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
-            Sample, this, this, {
-                prependNewElements: false,
-                suppressErrors: false,
-                onNewRow: (row) => this.onNewSample(row.currentData)
-            }));
-        //this.debug = true;
-    };
+          if (this.data) this.onRefresh.emit();
+        }));
 
-    async ngOnInit(): Promise<void> {
-        super.ngOnInit();
+    // Parent combo
+    this.filteredParents = this.registerCellValueChanges('parent')
+      .pipe(
+        debounceTime(250),
+        map((value) => {
+          if (EntityUtils.isNotEmpty(value)) return [value];
+          value = (typeof value === "string" && value !== "*") && value || undefined;
+          if (this.debug) console.debug("[sub-sample-table] Searching parent {" + (value || '*') + "}...");
+          if (!value) return this._availableSortedParents; // All
+          if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
+            return this._availableSortedParents.filter(p => p.measurementValues && (p.measurementValues[this.displayParentPmfm.pmfmId] || '').startsWith(value))
+          }
+          // Search on rankOrder
+          return this._availableSortedParents.filter(p => p.rankOrder && p.rankOrder.toString().startsWith(value));
+        }),
 
-      this.registerSubscription(
-        this._onRefreshPmfms.subscribe((event) => this.refreshPmfms(event || 'ngOnInit'))
+        // Remember parent implicit value
+        tap((items) => {
+          this._implicitParent = (items.length === 1) && items[0];
+        })
       );
+  }
 
-      this.registerSubscription(
-        this.pmfms
-            .filter(pmfms => pmfms && pmfms.length > 0)
-            //.first()
-            .subscribe(pmfms => {
-                this.displayParentPmfm = (pmfms || []).find(p => p.pmfmId == PmfmIds.TAG_ID);
-                pmfms = (pmfms || []).filter(p => p !== this.displayParentPmfm);
-                this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
-                let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
+  getRowValidator(): FormGroup {
+    return this.getFormGroup();
+  }
 
-                this.displayedColumns = RESERVED_START_COLUMNS
-                    .concat(SUBSAMPLE_RESERVED_START_COLUMNS)
-                    .concat(pmfmColumns)
-                    .concat(SUBSAMPLE_RESERVED_END_COLUMNS)
-                    .concat(RESERVED_END_COLUMNS);
+  getFormGroup(data?: any): FormGroup {
+    const formGroup = this.validatorService.getFormGroup(data);
+    if (this.measurementValuesFormGroupConfig) {
+      formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
+    }
+    return formGroup;
+  }
 
-                this.loading = false;
-
-                if (this.data) this.onRefresh.emit();
-            }));
-
-        // Parent combo
-        this.filteredParents = this.registerCellValueChanges('parent')
-          .pipe(
-            debounceTime(250),
-            map((value) => {
-                if (EntityUtils.isNotEmpty(value)) return [value];
-                value = (typeof value === "string" && value !== "*") && value || undefined;
-                if (this.debug) console.debug("[sub-sample-table] Searching parent {" + (value || '*') + "}...");
-                if (!value) return this._availableSortedParents; // All
-                if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
-                    return this._availableSortedParents.filter(p => p.measurementValues && (p.measurementValues[this.displayParentPmfm.pmfmId] || '').startsWith(value))
-                }
-                // Search on rankOrder
-                return this._availableSortedParents.filter(p => p.rankOrder && p.rankOrder.toString().startsWith(value));
-            }),
-
-            // Remember parent implicit value
-            tap((items) => {
-              this._implicitParent = (items.length === 1) && items[0];
-            })
-          );
+  watchAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: string,
+    filter?: any,
+    options?: any
+  ): Observable<LoadResult<Sample>> {
+    if (!this.data) {
+      if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
+      return Observable.empty(); // Not initialized
     }
 
-    getRowValidator(): FormGroup {
-        return this.getFormGroup();
-    }
-
-    getFormGroup(data?: any): FormGroup {
-        const formGroup = this.validatorService.getFormGroup(data);
-        if (this.measurementValuesFormGroupConfig) {
-            formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
-        }
-        return formGroup;
-    }
-
-    watchAll(
-        offset: number,
-        size: number,
-        sortBy?: string,
-        sortDirection?: string,
-        filter?: any,
-        options?: any
-    ): Observable<LoadResult<Sample>> {
-      if (!this.data) {
-          if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
-          return Observable.empty(); // Not initialized
-      }
-
-      // If dirty: save first
-      if (this._dirty) {
-        this.save()
-          .then(saved => {
-            if (saved) {
-              this.watchAll(offset, size, sortBy, sortDirection, filter, options);
-              this._dirty = true; // restore previous state
-            }
-          });
-      }
-      else {
-        sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
-
-        const now = Date.now();
-        if (this.debug) console.debug("[sub-sample-table] Loading rows...", this.data);
-
-        this.pmfms
-          .filter(pmfms => pmfms && pmfms.length > 0)
-          .first()
-          .subscribe(pmfms => {
-            // Transform entities into object array
-            const data = this.data.map(json => {
-              json.measurementValues = MeasurementUtils.normalizeFormValues(json.measurementValues, pmfms);
-              return json;
-            });
-
-            // Link to parent
-            this.linkSamplesToParent(data);
-
-            // Sort
-            this.sortSamples(data, sortBy, sortDirection);
-            if (this.debug) console.debug(`[sub-sample-table] Rows loaded in ${Date.now() - now}ms`, data);
-
-            this._dataSubject.next({data: data});
-          });
-      }
-
-      return this._dataSubject.asObservable();
-    }
-
-    async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
-        if (!this.data) throw new Error("[sub-sample-table] Could not save table: value not set (or not started)");
-
-        if (this.debug) console.debug("[sub-sample-table] Updating data from rows...");
-
-        const pmfms = this.pmfms.getValue() || [];
-        this.data = data.map(json => {
-            const sample = Sample.fromObject(json);
-            sample.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
-            sample.parentId = json.parent && json.parent.id;
-            return sample;
+    // If dirty: save first
+    if (this._dirty) {
+      this.save()
+        .then(saved => {
+          if (saved) {
+            this.watchAll(offset, size, sortBy, sortDirection, filter, options);
+            this._dirty = true; // restore previous state
+          }
         });
+    } else {
+      sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
 
-        return this.data;
-    }
+      const now = Date.now();
+      if (this.debug) console.debug("[sub-sample-table] Loading rows...", this.data);
 
-    deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
-        this._dirty = true;
-        // Noting else to do (make no sense to delete in this.data, will be done in saveAll())
-        return Promise.resolve();
-    }
-
-    addRow(): boolean {
-      if (this.debug) console.debug("[sub-sample-table] Calling addRow()");
-
-      // Create new row
-      const result = super.addRow();
-      if (!result) return result;
-
-      const row = this.dataSource.getRow(-1);
-      this.data.push(row.currentData);
-      this.editedRow = row;
-
-      // Listen row value changes
-      this.startListenRow(row);
-
-      return true;
-    }
-
-    onRowClick(event: MouseEvent, row: TableElement<Sample>): boolean {
-      const canEdit = super.onRowClick(event, row);
-      if (canEdit) this.startListenRow(row);
-      return canEdit;
-    }
-
-
-    parentSampleToString(sample: Sample) {
-      if (!sample) return null;
-      return sample.measurementValues && sample.measurementValues[PmfmIds.TAG_ID] || `#${sample.rankOrder}`;
-    }
-
-    onParentCellBlur(event: FocusEvent, row: TableElement<any>) {
-      // Apply last implicit value
-      if (row.validator.controls.parent.hasError('entity') && this._implicitParent) {
-          row.validator.controls.parent.setValue(this._implicitParent);
-      }
-      this._implicitParent = undefined;
-    }
-
-    async autoFillTable() {
-      if (this.loading) return;
-      if (!this.confirmEditCreate()) return;
-
-      const rows = await this.dataSource.getRows();
-      const data = rows.map(r => r.currentData);
-      const startRowCount = data.length;
-
-      let rankOrder = await this.getMaxRankOrder();
-      await this._availableParents
-        .filter(p => !data.find(s => s.parent && s.parent.id === p.id))
-        .map(async p => {
-            const sample = new Sample();
-            sample.parent = p;
-            await this.onNewSample(sample, ++rankOrder);
-            data.push(sample);
-        });
-
-      if (data.length > startRowCount) {
-        this._dataSubject.next({data: data});
-        this._dirty = true;
-        this.cd.markForCheck();
-      }
-    }
-
-    public trackByFn(index: number, row: TableElement<Sample>) {
-      return row.currentData.rankOrder;
-    }
-
-    /* -- protected methods -- */
-
-    protected async getMaxRankOrder(): Promise<number> {
-      const rows = await this.dataSource.getRows();
-      return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
-    }
-
-    protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
-      // Set computed values
-      sample.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
-      sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
-
-      console.log("SUB-SAMPLE: should have set rankorder", sample);
-
-      // Set default values
-      (this.pmfms.getValue() || [])
-          .filter(pmfm => isNotNil(pmfm.defaultValue))
-          .forEach(pmfm => {
-              sample.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
+      this.pmfms
+        .filter(pmfms => pmfms && pmfms.length > 0)
+        .first()
+        .subscribe(pmfms => {
+          // Transform entities into object array
+          const data = this.data.map(json => {
+            json.measurementValues = MeasurementUtils.normalizeFormValues(json.measurementValues, pmfms);
+            return json;
           });
 
+          // Link to parent
+          this.linkSamplesToParent(data);
+
+          // Sort
+          this.sortSamples(data, sortBy, sortDirection);
+          if (this.debug) console.debug(`[sub-sample-table] Rows loaded in ${Date.now() - now}ms`, data);
+
+          this._dataSubject.next({data: data});
+        });
+    }
+
+    return this._dataSubject.asObservable();
+  }
+
+  async saveAll(data: Sample[], options?: any): Promise<Sample[]> {
+    if (!this.data) throw new Error("[sub-sample-table] Could not save table: value not set (or not started)");
+
+    if (this.debug) console.debug("[sub-sample-table] Updating data from rows...");
+
+    const pmfms = this.pmfms.getValue() || [];
+    this.data = data.map(json => {
+      const sample = Sample.fromObject(json);
+      sample.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
+      sample.parentId = json.parent && json.parent.id;
+      return sample;
+    });
+
+    return this.data;
+  }
+
+  deleteAll(dataToRemove: Sample[], options?: any): Promise<any> {
+    this._dirty = true;
+    // Noting else to do (make no sense to delete in this.data, will be done in saveAll())
+    return Promise.resolve();
+  }
+
+  addRow(): boolean {
+    if (this.debug) console.debug("[sub-sample-table] Calling addRow()");
+
+    // Create new row
+    const result = super.addRow();
+    if (!result) return result;
+
+    const row = this.dataSource.getRow(-1);
+    this.data.push(row.currentData);
+    this.editedRow = row;
+
+    // Listen row value changes
+    this.startListenRow(row);
+
+    return true;
+  }
+
+  onRowClick(event: MouseEvent, row: TableElement<Sample>): boolean {
+    const canEdit = super.onRowClick(event, row);
+    if (canEdit) this.startListenRow(row);
+    return canEdit;
+  }
+
+
+  parentSampleToString(sample: Sample) {
+    if (!sample) return null;
+    return sample.measurementValues && sample.measurementValues[PmfmIds.TAG_ID] || `#${sample.rankOrder}`;
+  }
+
+  onParentCellBlur(event: FocusEvent, row: TableElement<any>) {
+    // Apply last implicit value
+    if (row.validator.controls.parent.hasError('entity') && this._implicitParent) {
+      row.validator.controls.parent.setValue(this._implicitParent);
+    }
+    this._implicitParent = undefined;
+  }
+
+  async autoFillTable() {
+    if (this.loading) return;
+    if (!this.confirmEditCreate()) return;
+
+    const rows = await this.dataSource.getRows();
+    const data = rows.map(r => r.currentData);
+    const startRowCount = data.length;
+
+    let rankOrder = await this.getMaxRankOrder();
+    await this._availableParents
+      .filter(p => !data.find(s => s.parent && s.parent.id === p.id))
+      .map(async p => {
+        const sample = new Sample();
+        sample.parent = p;
+        await this.onNewSample(sample, ++rankOrder);
+        data.push(sample);
+      });
+
+    if (data.length > startRowCount) {
+      this._dataSubject.next({data: data});
+      this._dirty = true;
       this.cd.markForCheck();
     }
+  }
 
-    /**
-     * Can be overrided in subclasses (e.g. monitoring invidual table)
-     **/
-    protected startListenRow(row: TableElement<Sample>) {
-        this.startCellValueChanges('parent', row);
+  public trackByFn(index: number, row: TableElement<Sample>) {
+    return row.currentData.rankOrder;
+  }
+
+  /* -- protected methods -- */
+
+  protected async getMaxRankOrder(): Promise<number> {
+    const rows = await this.dataSource.getRows();
+    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+  }
+
+  protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
+    // Set computed values
+    sample.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
+    sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
+
+    // Set default values
+    (this.pmfms.getValue() || [])
+      .filter(pmfm => isNotNil(pmfm.defaultValue))
+      .forEach(pmfm => {
+        sample.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
+      });
+
+    this.cd.markForCheck();
+  }
+
+  /**
+   * Can be overrided in subclasses (e.g. monitoring invidual table)
+   **/
+  protected startListenRow(row: TableElement<Sample>) {
+    this.startCellValueChanges('parent', row);
+  }
+
+  protected getI18nColumnName(columnName: string): string {
+
+    // Replace parent by TAG_ID pmfms
+    columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.pmfmId.toString() : columnName;
+
+    // Try to resolve PMFM column, using the cached pmfm list
+    if (PMFM_ID_REGEXP.test(columnName)) {
+      const pmfmId = parseInt(columnName);
+      const pmfm = (this.pmfms.getValue() || []).find(p => p.pmfmId === pmfmId);
+      if (pmfm) return pmfm.name;
     }
 
-    protected getI18nColumnName(columnName: string): string {
-
-      // Replace parent by TAG_ID pmfms
-      columnName = columnName && columnName === 'parent' && this.displayParentPmfm ? this.displayParentPmfm.pmfmId.toString() : columnName;
-
-      // Try to resolve PMFM column, using the cached pmfm list
-      if (PMFM_ID_REGEXP.test(columnName)) {
-          const pmfmId = parseInt(columnName);
-          const pmfm = (this.pmfms.getValue() || []).find(p => p.pmfmId === pmfmId);
-          if (pmfm) return pmfm.name;
-      }
-
-      return super.getI18nColumnName(columnName);
+    return super.getI18nColumnName(columnName);
   }
 
   protected linkSamplesToParent(data: Sample[]) {
@@ -417,91 +414,87 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     // Check if need to delete some rows
     let hasRemovedSample = false;
     const data = rows
-        .filter(row => {
-            const s = row.currentData;
-            const parentId = s.parentId || (s.parent && s.parent.id);
+      .filter(row => {
+        const s = row.currentData;
+        const parentId = s.parentId || (s.parent && s.parent.id);
 
-            if (isNil(parentId)) {
-                const parentTagId = s.parent && s.parent.measurementValues && s.parent.measurementValues[PmfmIds.TAG_ID];
-                if (isNil(parentTagId)) {
-                    s.parent = undefined; // remove link to parent
-                    return true; // not yet a parent: keep (.e.g new row)
-                }
-                // Update the parent, by tagId
-                s.parent = this._availableParents.find(p => (p && p.measurementValues && p.measurementValues[PmfmIds.TAG_ID]) === parentTagId);
+        if (isNil(parentId)) {
+          const parentTagId = s.parent && s.parent.measurementValues && s.parent.measurementValues[PmfmIds.TAG_ID];
+          if (isNil(parentTagId)) {
+            s.parent = undefined; // remove link to parent
+            return true; // not yet a parent: keep (.e.g new row)
+          }
+          // Update the parent, by tagId
+          s.parent = this._availableParents.find(p => (p && p.measurementValues && p.measurementValues[PmfmIds.TAG_ID]) === parentTagId);
 
-            }
-            else {
-                // Update the parent, by id
-                s.parent = this._availableParents.find(p => p.id === s.parent.id);
-            }
+        } else {
+          // Update the parent, by id
+          s.parent = this._availableParents.find(p => p.id === s.parent.id);
+        }
 
-            // Could not found the parent anymore (parent has been delete)
-            if (!s.parent) {
-                hasRemovedSample = true;
-                return false;
-            }
+        // Could not found the parent anymore (parent has been delete)
+        if (!s.parent) {
+          hasRemovedSample = true;
+          return false;
+        }
 
-            if (!row.editing) row.currentData = s;
+        if (!row.editing) row.currentData = s;
 
-            return true; // Keep only if sample still have a parent
-        })
-        .map(r => r.currentData);
+        return true; // Keep only if sample still have a parent
+      })
+      .map(r => r.currentData);
 
     if (hasRemovedSample) this._dataSubject.next({data: data});
     this.cd.markForCheck();
   }
 
   protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
-      if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
-          sortBy = 'measurementValues.' + sortBy;
-      }
-      else if (sortBy === "parent") {
-          sortBy = 'parent.measurementValues.' + PmfmIds.TAG_ID;
-      }
-      sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
-      const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-      return data.sort((a, b) => {
-          const valueA = EntityUtils.getPropertyByPath(a, sortBy);
-          const valueB = EntityUtils.getPropertyByPath(b, sortBy);
-          return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-      });
+    if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
+      sortBy = 'measurementValues.' + sortBy;
+    } else if (sortBy === "parent") {
+      sortBy = 'parent.measurementValues.' + PmfmIds.TAG_ID;
+    }
+    sortBy = (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy; // Replace id with rankOrder
+    const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+    return data.sort((a, b) => {
+      const valueA = EntityUtils.getPropertyByPath(a, sortBy);
+      const valueB = EntityUtils.getPropertyByPath(b, sortBy);
+      return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+    });
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
     const candLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
     if (!candLoadPmfms) {
-        return undefined;
+      return undefined;
     }
 
-    console.log("SUB-SAMPLE refreshPmfms");
+    if (this.debug) console.debug("[sub-samples-table] refreshPmfms");
 
     this.loading = true;
     this.loadingPmfms = true;
 
     // Load pmfms
     const pmfms = (await this.programService.loadProgramPmfms(
-        this._program,
-        {
-            acquisitionLevel: this._acquisitionLevel
-        })) || [];
+      this._program,
+      {
+        acquisitionLevel: this._acquisitionLevel
+      })) || [];
 
     if (!pmfms.length && this.debug) {
-        console.debug(`[sub-sample-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+      console.debug(`[sub-sample-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
     }
 
     this.loadingPmfms = false;
 
     this.pmfms.next(pmfms);
 
-    this.cd.markForCheck();
+    this.markForCheck();
 
     return pmfms;
   }
 
-
-  protected addRowToTable() {
-    super.addRowToTable();
+  markForCheck() {
     this.cd.markForCheck();
   }
 

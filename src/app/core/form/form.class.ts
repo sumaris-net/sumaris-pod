@@ -86,6 +86,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this._subscriptions) {
+      if (this.debug) console.debug(`[form] Deleting ${this._subscriptions.length} subscriptions ${this.constructor.name}#`);
       this._subscriptions.forEach(s => s.unsubscribe());
       this._subscriptions = undefined;
     }
@@ -142,6 +143,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   protected registerSubscription(sub: Subscription) {
     this._subscriptions = this._subscriptions || [];
     this._subscriptions.push(sub);
+    if (this.debug) console.debug(`[form] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
   }
 
   public markAsPristine() {

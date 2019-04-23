@@ -72,7 +72,7 @@
       </form-catch>
 
       <!-- tab group for batches -->
-      <mat-tab-group [class.hidden]="!showBatchSamplingTables"
+      <mat-tab-group [hidden]="!showBatchSamplingTables"
                      [disableRipple]="true"
                      [(selectedIndex)]="selectedBatchSamplingTabIndex" (selectedTabChange)="onBatchSamplingTabChange($event)">
 
@@ -86,12 +86,13 @@
 
           <table-batch-groups #batchGroupsTable [debug]="debug"
                               acquisitionLevel="SORTING_BATCH"
-                              [showCommentsColumn]="false">
+                              [showCommentsColumn]="false"
+                              [program]="programSubject|async">
           </table-batch-groups>
         </mat-tab>
 
         <!-- TAB: individual measurements -->
-        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}">
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}" [hidden]="!showSubBatchSamplingTable">
           <ng-template mat-tab-label>
             <mat-icon>list</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>

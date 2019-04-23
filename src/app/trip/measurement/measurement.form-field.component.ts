@@ -1,6 +1,14 @@
-import {Component, Optional, OnInit, Input, forwardRef, ChangeDetectionStrategy} from '@angular/core';
+import {
+  Component,
+  Optional,
+  OnInit,
+  Input,
+  forwardRef,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef
+} from '@angular/core';
 import { PmfmStrategy, getPmfmName } from "../services/trip.model";
-import { NG_VALUE_ACCESSOR, ControlValueAccessor, FormControl, FormGroupDirective } from '@angular/forms';
+import {NG_VALUE_ACCESSOR, ControlValueAccessor, FormControl, FormGroupDirective, FormBuilder} from '@angular/forms';
 import { FloatLabelType } from "@angular/material";
 import { MeasurementsValidatorService } from '../services/measurement.validator';
 import {AppFormUtils} from "../../core/core.module";
@@ -18,8 +26,8 @@ const noop = () => {
           useExisting: forwardRef(() => MeasurementFormField),
           multi: true
       }
-  ]
-  //,changeDetection: ChangeDetectionStrategy.OnPush
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
@@ -53,11 +61,14 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
         if (obj !== this.formControl.value) {
             this.formControl.patchValue(obj, { emitEvent: false });
             this._onChangeCallback(obj);
+            //console.log("[meas-form-field] Setting new value:", obj);
+            //this.cd.markForCheck();
         }
     }
 
     constructor(
         protected measurementValidatorService: MeasurementsValidatorService,
+        protected cd: ChangeDetectorRef,
         @Optional() private formGroupDir: FormGroupDirective
     ) {
 

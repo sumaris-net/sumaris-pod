@@ -11,6 +11,7 @@ import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {Fragments} from "./trip.queries";
+import {FetchPolicy} from "apollo-client";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -253,29 +254,23 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       );
   }
 
-  load(id: number): Observable<Trip | null> {
-    if (!id) throw new Error("id should not be null");
+  async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<Trip | null> {
+    if (isNil(id)) throw new Error("Missing argument 'id'");
 
-    const now = new Date();
-    if (this._debug) console.debug("[trip-service] Loading trip {" + id + "}...");
+    const now = Date.now();
+    if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
 
-    return this.watchQuery<{ trip: Trip }>({
+    const res = await this.query<{ trip: Trip }>({
       query: LoadQuery,
       variables: {
         id: id
       },
-      error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" }
-    })
-      .pipe(
-        map(data => {
-          if (data && data.trip) {
-            const res = Trip.fromObject(data.trip);
-            if (this._debug) console.debug("[trip-service] Trip {" + id + "} loaded in " + (new Date().getTime() - now.getTime()) + "ms", res);
-            return res;
-          }
-          return null;
-        })
-      );
+      error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" },
+      fetchPolicy: options && options.fetchPolicy || 'cache-first'
+    });
+    const data = res && res.trip && Trip.fromObject(res.trip);
+    if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
+    return data;
   }
 
   public listenChanges(id: number): Observable<Trip> {
@@ -305,14 +300,15 @@ export class TripService extends BaseDataService implements TableDataService<Tri
 
   /**
    * Save many trips
-   * @param data
+   * @param entities
+   * @param options
    */
   async saveAll(entities: Trip[], options?: any): Promise<Trip[]> {
     if (!entities) return entities;
 
     const json = entities.map(t => {
       // Fill default properties (as recorder department and person)
-      this.fillDefaultProperties(t)
+      this.fillDefaultProperties(t);
       return this.asObject(t);
     });
 
@@ -371,7 +367,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
         this.addToQueryCache({
           query: LoadAllQuery,
           variables: this._lastVariables.loadAll
-        }, 'trips', entity.asObject());
+        }, 'trips', savedTrip);
       }
     }
 

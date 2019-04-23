@@ -50,7 +50,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     @Input()
     set program(value: string) {
         if (this._program === value) return; // Skip if same
-        console.log("Setting form meas program=" + value);
+        //console.log("Setting form meas program=" + value);
         this._program = value;
         if (!this.onLoading.getValue()) {
             this._onRefreshPmfms.emit('set program');
@@ -244,6 +244,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
             this.form.patchValue({}, {
                 onlySelf: true,
                 emitEvent: false
+            });
+            this.form.updateValueAndValidity({
+              onlySelf: true,
+              emitEvent: false
             });
             this.onLoading.next(false);
             return true;
