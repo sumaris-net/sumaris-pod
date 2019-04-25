@@ -41,6 +41,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
+import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.RestPaths;
@@ -288,10 +289,31 @@ public class AdministrationGraphQLService {
 
     /* -- Program / Strategy-- */
 
-    @GraphQLQuery(name = "programs", description = "Search in departments")
+    @GraphQLQuery(name = "program", description = "Get a program")
     @Transactional(readOnly = true)
-    public List<ProgramVO> getAllPrograms() {
-        return programService.getAll();
+    public ProgramVO getProgram(
+            @GraphQLArgument(name = "label") String label,
+            @GraphQLArgument(name = "id") Integer id
+    ) {
+        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
+        if (id != null) {
+            return programService.get(id);
+        }
+        return programService.getByLabel(label);
+    }
+
+    @GraphQLQuery(name = "programs", description = "Search in programs")
+    @Transactional(readOnly = true)
+    public List<ProgramVO> findProgramsByFilter(
+            @GraphQLArgument(name = "filter") ProgramFilterVO filter,
+            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+            @GraphQLArgument(name = "sortBy", defaultValue = ProgramVO.PROPERTY_LABEL) String sort,
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        if (filter == null) {
+            return programService.getAll();
+        }
+        return programService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
     @GraphQLQuery(name = "programPmfms", description = "Get program's pmfm")

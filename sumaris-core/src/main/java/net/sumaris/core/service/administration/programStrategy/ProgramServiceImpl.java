@@ -24,7 +24,10 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +46,11 @@ public class ProgramServiceImpl implements ProgramService {
 	@Override
 	public List<ProgramVO> getAll() {
 		return programDao.getAll();
+	}
+
+	@Override
+	public List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+		return programDao.findByFilter(filter, offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override

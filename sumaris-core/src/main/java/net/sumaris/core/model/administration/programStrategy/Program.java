@@ -39,6 +39,8 @@ import java.util.Objects;
 @Cacheable
 public class Program implements IItemReferentialEntity {
 
+    public static final String PROPERTY_PROPERTIES = "properties";
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "PROGRAM_SEQ")
     @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ")

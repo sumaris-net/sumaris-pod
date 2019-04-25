@@ -173,6 +173,11 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             entityManager.persist(entity);
             source.setId(entity.getId());
         } else {
+            if (entity.getCreationDate() == null) {
+                log.warn("Recording a sample without creation date. Should never occur! Sample ID=" + entity.getId());
+                entity.setCreationDate(newUpdateDate);
+                source.setCreationDate(newUpdateDate);
+            }
             entityManager.merge(entity);
         }
 

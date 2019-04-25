@@ -23,16 +23,22 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 public interface ProgramDao {
 
     List<ProgramVO> getAll();
+
+    List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
     ProgramVO get(int id);
 

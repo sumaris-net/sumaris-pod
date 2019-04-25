@@ -25,10 +25,7 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.ImageAttachmentVO;
-import net.sumaris.core.vo.filter.PersonFilterVO;
-import org.springframework.transaction.annotation.Isolation;
+import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,5 +48,8 @@ public interface ProgramService {
 
 	@Transactional(readOnly = true)
 	List<ProgramVO> getAll();
+
+	@Transactional(readOnly = true)
+	List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 }

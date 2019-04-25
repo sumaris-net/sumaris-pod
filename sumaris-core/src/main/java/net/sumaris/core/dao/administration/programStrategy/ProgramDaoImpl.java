@@ -22,28 +22,30 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
+import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
+import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.filter.ProgramFilterVO;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import javax.persistence.criteria.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository("programDao")
@@ -77,6 +79,73 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
         return getEntityManager()
                 .createQuery(query)
                 .getResultStream()
+                .map(this::toProgramVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        Preconditions.checkNotNull(filter);
+        Preconditions.checkArgument(offset >= 0);
+        Preconditions.checkArgument(size > 0);
+
+        EntityManager entityManager = getEntityManager();
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Program> query = builder.createQuery(Program.class);
+        Root<Program> root = query.from(Program.class);
+
+        Join<Program, ProgramProperty> upJ = root.join(Program.PROPERTY_PROPERTIES, JoinType.LEFT);
+
+        ParameterExpression<String> withPropertyParam = builder.parameter(String.class);
+        ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
+        ParameterExpression<String> searchTextParam = builder.parameter(String.class);
+
+        query.select(root).distinct(true)
+                .where(
+                        builder.and(
+                                // property
+                                builder.or(
+                                        builder.isNull(withPropertyParam),
+                                        builder.equal(upJ.get(ProgramProperty.PROPERTY_LABEL), withPropertyParam)
+                                ),
+                                // status Ids
+                                builder.or(
+                                        builder.isNull(statusIdsParam),
+                                        root.get(Program.PROPERTY_STATUS).get(IReferentialEntity.PROPERTY_ID).in(statusIdsParam)
+                                ),
+                                // search text
+                                builder.or(
+                                        builder.isNull(searchTextParam),
+                                        builder.like(builder.upper(root.get(Program.PROPERTY_LABEL)), builder.upper(searchTextParam)),
+                                        builder.like(builder.upper(root.get(Program.PROPERTY_NAME)), builder.upper(searchTextParam))
+                                )
+                        ));
+
+        if (StringUtils.isNotBlank(sortAttribute)) {
+            if (sortDirection == SortDirection.ASC) {
+                query.orderBy(builder.asc(root.get(sortAttribute)));
+            } else {
+                query.orderBy(builder.desc(root.get(sortAttribute)));
+            }
+        }
+
+        String searchText = StringUtils.trimToNull(filter.getSearchText());
+        String searchTextAnyMatch = null;
+        if (StringUtils.isNotBlank(searchText)) {
+            searchTextAnyMatch = ("*" + searchText + "*"); // add trailing escape char
+            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]+", "*"); // group escape chars
+            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[%]", "\\%"); // protected '%' chars
+            searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
+        }
+
+        return entityManager.createQuery(query)
+                .setParameter(withPropertyParam, filter.getWithProperty())
+                .setParameter(statusIdsParam, filter.getStatusIds())
+                .setParameter(searchTextParam, searchTextAnyMatch)
+                .setFirstResult(offset)
+                .setMaxResults(size)
+                .getResultList()
+                .stream()
                 .map(this::toProgramVO)
                 .collect(Collectors.toList());
     }
