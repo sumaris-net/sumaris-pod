@@ -40,14 +40,16 @@ mat-table {
     display: flex;
     flex: 5 !important;
 
-    ion-label {
+    ion-label,
+    mat-label {
       text-align: center;
       margin: 0;
-    }
+      width: 100%;
 
-    mat-checkbox {
-      margin-left: 5px;
-      margin-right: 5px;
+      mat-checkbox {
+        margin-left: 5px;
+        margin-right: 5px;
+      }
     }
   }
 }

@@ -60,16 +60,12 @@
       <mat-header-cell *matHeaderCellDef class="qv" [class.even]="pmfm.id % 2 === 0"
                        [class.odd]="pmfm.id % 2 !== 0"
                        [class.show]="pmfm.pmfmId % 5 === 0">
-        <ion-grid no-padding *ngIf="pmfm.pmfmId % 5 === 0">
-          <ion-col no-padding align="center">
-            <ion-label>{{qvPmfm.qualitativeValues[pmfm.id].name}}</ion-label>
-          </ion-col>
-          <ion-col no-padding align="center">
-            <mat-checkbox [formControl]="weightMethodForm.controls[pmfm.id]" labelPosition="before">
-              {{'TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION'|translate}}
-            </mat-checkbox>
-          </ion-col>
-        </ion-grid>
+        <mat-label float-center *ngIf="pmfm.pmfmId % 5 === 0" >
+          <span>{{qvPmfm.qualitativeValues[pmfm.id].name}}</span><br/>
+          <mat-checkbox [formControl]="weightMethodForm.controls[pmfm.id]" labelPosition="before">
+            {{'TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION'|translate}}
+          </mat-checkbox>
+        </mat-label>
       </mat-header-cell>
     </ng-container>
   </ng-container>
@@ -181,12 +177,15 @@
 
     <!-- Pmfm columns -->
     <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
+
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)"
         [class.even]="isEven(pmfm)">
-        <ion-label>{{getPmfmColumnHeader(pmfm)}}
+        <mat-label float-center>
+          <span>{{getPmfmColumnHeader(pmfm)}}</span>
           <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
-        </ion-label>
+        </mat-label>
       </mat-header-cell>
+
       <mat-cell *matCellDef="let row" [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)" [class.even]="isEven(pmfm)">
         <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
           [compact]="true" floatLabel="never"></mat-form-field-measurement>
