@@ -8,7 +8,7 @@ import {
   OnInit
 } from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, filter, first, map, mergeMap, startWith} from "rxjs/operators";
+import {debounceTime, filter, first, map, switchMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -19,7 +19,14 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
-import {Batch, getPmfmName, MeasurementUtils, PmfmStrategy, referentialToString} from "../services/trip.model";
+import {
+  Batch,
+  getPmfmName,
+  MeasurementUtils,
+  PmfmStrategy,
+  referentialToString,
+  TaxonGroupIds
+} from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -33,7 +40,6 @@ import {
 import {BatchValidatorService} from "../services/batch.validator";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
 import {MeasurementsValidatorService, SubBatchValidatorService} from "../services/trip.validators";
 import {isNil, isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
 
@@ -59,12 +65,13 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
   private _dataSubject = new BehaviorSubject<LoadResult<Batch>>({data: []});
   private _onRefreshPmfms = new EventEmitter<any>();
 
-  loading = true;
+  loading = false;
   loadingPmfms = true;
   displayParentPmfm: PmfmStrategy;
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   measurementValuesFormGroupConfig: { [key: string]: any };
   data: Batch[];
+  taxonGroups: Observable<ReferentialRef[]>;
   taxonNames: Observable<ReferentialRef[]>;
   filteredParents: Observable<Batch[]>;
 
@@ -85,10 +92,10 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
 
   @Input()
   set program(value: string) {
-    if (this._program === value) return; // Skip if same
-    this._program = value;
-    if (!this.loading) {
-      this._onRefreshPmfms.emit('set program');
+    if (this._program !== value && isNotNil(value)) {
+      if (this.debug) console.debug("[sub-batch-table] Setting program:" + value);
+      this._program = value;
+      if (!this.loading) this._onRefreshPmfms.emit('set program');
     }
   }
 
@@ -98,9 +105,9 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
 
   @Input()
   set acquisitionLevel(value: string) {
-    if (this._acquisitionLevel !== value) {
+    if (this._acquisitionLevel !== value && isNotNil(value)) {
       this._acquisitionLevel = value;
-      if (!this.loading) this.onRefresh.emit();
+      if (!this.loading) this._onRefreshPmfms.emit();
     }
   }
 
@@ -164,55 +171,58 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     if (!this.showTaxonGroupColumn) excludesColumns.push('taxonGroup');
     if (!this.showTaxonNameColumn) excludesColumns.push('taxonName');
 
-    this._onRefreshPmfms
+    this.registerSubscription(
+      this._onRefreshPmfms.asObservable()
+        .subscribe(() => this.refreshPmfms('ngOnInit'))
+    );
+
+    this.registerSubscription(
+      this.pmfms
+        .filter(isNotNil)
+        .subscribe(pmfms => {
+          this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
+          let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
+
+          this.displayedColumns = RESERVED_START_COLUMNS
+            .concat(SUBBATCH_RESERVED_START_COLUMNS)
+            .concat(pmfmColumns)
+            .concat(SUBBATCH_RESERVED_END_COLUMNS)
+            .concat(RESERVED_END_COLUMNS)
+            // Remove columns to hide
+            .filter(column => !excludesColumns.includes(column));
+
+          this.loading = false;
+
+          if (this.data) this.onRefresh.emit();
+        }));
+
+    // Taxon group combo
+    this.taxonGroups = this.registerCellValueChanges('taxonGroup')
       .pipe(
-        startWith('ngOnInit')
-      )
-      .subscribe((event) => this.refreshPmfms(event));
-
-    this.pmfms
-      .pipe(
-        filter(isNotNil),
-        first()
-      )
-      .subscribe(pmfms => {
-        this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
-        let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
-
-        this.displayedColumns = RESERVED_START_COLUMNS
-          .concat(SUBBATCH_RESERVED_START_COLUMNS)
-          .concat(pmfmColumns)
-          .concat(SUBBATCH_RESERVED_END_COLUMNS)
-          .concat(RESERVED_END_COLUMNS)
-          // Remove columns to hide
-          .filter(column => !excludesColumns.includes(column));
-
-        this.loading = false;
-
-        if (this.data) this.onRefresh.emit();
-      });
+        debounceTime(250),
+        switchMap((value) => this.referentialRefService.suggest(value,
+          {
+            entityName: 'TaxonGroup',
+            levelId: TaxonGroupIds.FAO,
+            searchAttribute: 'label'
+          })
+        ),
+        // Save implicit value, when only one result
+        tap(items => this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined));
 
     // Taxon name combo
     this.taxonNames = this.registerCellValueChanges('taxonName')
       .pipe(
         debounceTime(250),
-        mergeMap((value) => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          if (this.debug) console.debug("[sub-batch-table] Searching taxon name on {" + (value || '*') + "}...");
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'TaxonName',
-              levelId: TaxonomicLevelIds.SPECIES,
-              searchText: value as string,
-              searchAttribute: 'label'
-            }).first().map(({data}) => data);
-        })
-      );
-
-    this.taxonNames.subscribe(items => {
-      this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined;
-    });
+        switchMap((value) => this.referentialRefService.suggest(value,
+          {
+            entityName: 'TaxonName',
+            levelId: TaxonomicLevelIds.SPECIES,
+            searchAttribute: 'label'
+          })
+        ),
+        // Save implicit value, when only one result
+        tap(items => this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined));
 
     // Parent combo
     this.filteredParents = this.registerCellValueChanges('parent')
@@ -227,16 +237,19 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
           // Search on labels (taxonGroup or taxonName)
           return this._availableParents.filter(p =>
             (p.taxonGroup && p.taxonGroup.label && p.taxonGroup.label.toUpperCase().indexOf(ucValueParts[0]) === 0) ||
-            (p.taxonName && p.taxonName.label && p.taxonName.label.toUpperCase().indexOf(ucValueParts.length == 2 ? ucValueParts[1] : ucValueParts[0]) === 0)
+            (p.taxonName && p.taxonName.label && p.taxonName.label.toUpperCase().indexOf(ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]) === 0)
           );
-        })
+        }),
+        // Save implicit value, when only one result
+        tap(items => this._implicitValues['parent'] = (items.length === 1) && items[0])
       )
     ;
 
     // add implicit value
-    this.filteredParents.subscribe(items => {
-      this._implicitValues['parent'] = (items.length === 1) && items[0];
-    });
+    this.registerSubscription(
+      this.filteredParents.subscribe(items => {
+        this._implicitValues['parent'] = (items.length === 1) && items[0];
+      }));
 
     // Listening on column 'IS_DEAD' value changes
     this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
@@ -279,7 +292,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     options?: any
   ): Observable<LoadResult<Batch>> {
     if (!this.data) {
-      if (this.debug) console.debug("[sub-batch-table] Unable to load row: value not set (or not started)");
+      if (this.debug) console.debug("[sub-batch-table] Unable to load rows: no value!");
       return Observable.empty(); // Not initialized
     }
 
@@ -332,13 +345,12 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     if (this.debug) console.debug("[batch-table] Updating data from rows...");
 
     const pmfms = this.pmfms.getValue() || [];
-    this.data = data
-      .map(json => {
-        const batch = Batch.fromObject(json);
-        batch.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
-        batch.parentId = json.parent && json.parent.id;
-        return batch;
-      });
+    this.data = data.map(json => {
+      const batch = Batch.fromObject(json);
+      batch.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
+      batch.parentId = json.parent && json.parent.id;
+      return batch;
+    });
 
     return this.data;
   }
@@ -402,15 +414,15 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
 
   /* -- protected methods -- */
 
+  protected async getMaxRankOrder(): Promise<number> {
+    const rows = await this.dataSource.getRows();
+    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+  }
+
   protected async onNewBatchRow(row: TableElement<Batch>): Promise<void> {
     const batch = row.currentData;
     await this.onNewBatch(batch);
     row.currentData = batch;
-  }
-
-  protected async getMaxRankOrder(): Promise<number> {
-    const rows = await this.dataSource.getRows();
-    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
   protected async onNewBatch(batch: Batch, rankOrder?: number): Promise<void> {
@@ -424,7 +436,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
       .forEach(pmfm => {
         batch.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
       });
-    this.cd.markForCheck();
+    this.markForCheck();
   }
 
   /**
@@ -517,10 +529,9 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
-    const candLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
-    if (!candLoadPmfms) {
-      return undefined;
-    }
+    if (isNil(this._program) || isNil(this._acquisitionLevel)) return undefined;
+
+    console.log("SUB-BATCHES refreshPmfms");
 
     this.loading = true;
     this.loadingPmfms = true;
@@ -540,9 +551,13 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
 
     this.pmfms.next(pmfms);
 
-    this.cd.markForCheck();
+    this.markForCheck();
 
     return pmfms;
+  }
+
+  markForCheck() {
+    this.cd.markForCheck();
   }
 
   referentialToString = referentialToString;

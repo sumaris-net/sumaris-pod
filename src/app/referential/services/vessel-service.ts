@@ -2,10 +2,10 @@ import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
 import { Observable } from "rxjs-compat";
-import {VesselFeatures, Person, toDateISOString, Referential} from "./model";
+import {VesselFeatures, Person, toDateISOString, Referential, EntityUtils} from "./model";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
-import {first, map} from "rxjs/operators";
+import {first, map, mergeMap} from "rxjs/operators";
 import { Moment } from "moment";
 
 import { ErrorCodes } from "./errors";
@@ -15,7 +15,7 @@ import {ReferentialFilter} from "./referential.service";
 export declare class VesselFilter {
   date?: Date | Moment;
   vesselId?: number;
-  searchText?: string
+  searchText?: string;
 }
 const LoadAllQuery: any = gql`
   query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
@@ -166,7 +166,9 @@ export class VesselService extends BaseDataService implements TableDataService<V
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
-    console.debug("[vessel-service] Getting vessels using options:", variables);
+    const now = Date.now();
+    if (this._debug) console.debug("[vessel-service] Getting vessels using options:", variables);
+
     return this.watchQuery<{ vessels: any[] }>({
       query: LoadAllQuery,
       variables: variables,
@@ -174,17 +176,62 @@ export class VesselService extends BaseDataService implements TableDataService<V
     })
       .pipe(
         map(({vessels}) => {
-          const data = (vessels || []).map(t => {
-            const res = new VesselFeatures();
-            res.fromObject(t);
-            return res;
-          });
+          const data = (vessels || []).map(VesselFeatures.fromObject);
+          if (this._debug) console.debug(`[vessel-service] Vessels loaded in ${Date.now() - now}ms`, data);
           return {
-            data: data,
-          }
+            data: data
+          };
         }
         )
       );
+  }
+
+  /**
+   * Load many vessels
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
+   */
+  async loadAll(offset: number,
+           size: number,
+           sortBy?: string,
+           sortDirection?: string,
+           filter?: VesselFilter): Promise<LoadResult<VesselFeatures>> {
+
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'exteriorMarking',
+      sortDirection: sortDirection || 'asc',
+      filter: filter
+    };
+    console.debug("[vessel-service] Getting vessels using options:", variables);
+    const res = await this.query<{ vessels: any[] }>({
+      query: LoadAllQuery,
+      variables: variables,
+      error: { code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR" }
+    });
+
+    const data = (res && res.vessels || []).map(VesselFeatures.fromObject);
+    return {
+      data: data
+    };
+  }
+
+  async suggest(value: any, options?: {
+    date: Date | Moment;
+  }): Promise<VesselFeatures[]> {
+    if (EntityUtils.isNotEmpty(value)) return [value];
+    value = (typeof value === "string" && value !== '*') && value || undefined;
+    const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
+      {
+        date: options && options.date || undefined,
+        searchText: value as string
+      }
+    );
+    return res.data;
   }
 
   // loadAll(offset: number,

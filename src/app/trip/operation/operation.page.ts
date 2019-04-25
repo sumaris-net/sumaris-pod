@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
@@ -74,7 +74,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     protected dateFormat: DateFormatPipe,
     protected accountService: AccountService,
     protected operationService: OperationService,
-    protected tripService: TripService
+    protected tripService: TripService,
+    protected cd: ChangeDetectorRef
   ) {
     super(route, router, alterCtrl, translate);
 
@@ -148,7 +149,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       // Will refresh the tables (inside the setter):
       this.subBatchesTable.availableParents = (batchGroups || []);
     });
-
 
     this.ngInitExtension();
   }
@@ -230,9 +230,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.opeForm.value = data;
     if (trip) {
       this.trip = trip;
-      this.opeForm.setTrip(trip);
+      this.opeForm.trip = trip;
 
-      this.programSubject.next(trip.program && trip.program.label);
+      // Set program
+      const program = trip && trip.program && trip.program.label;
+      this.programSubject.next(program);
+
+      this.batchGroupsTable.program = program;
+      this.subBatchesTable.program = program;
     }
 
     const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label;
@@ -327,6 +332,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     } else {
       this.enable();
     }
+
   }
 
   /**
@@ -342,7 +348,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           first()
         )
         .subscribe((formGroup) => {
-          // Sampling type (SUMARiS) => enable/disable some tables
+
+          // If PMFM "Sampling type" exists (e.g. SUMARiS), then use to enable/disable some tables
           const samplingTypeControl = formGroup && formGroup.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
           if (isNotNil(samplingTypeControl)) {
             this.registerSubscription(
@@ -379,15 +386,15 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
             );
           }
 
-          // Is Sampling ? (ADAP) => enable/disable some tables
+          // If PMFM "Is Sampling ?" exists, then use to enable/disable some tables
           const isSamplingControl = formGroup && formGroup.controls[PmfmIds.IS_SAMPLING];
           if (isNotNil(isSamplingControl)) {
             this.registerSubscription(
               isSamplingControl.valueChanges
-                .debounceTime(400)
                 .pipe(
+                  debounceTime(400),
                   startWith(isSamplingControl.value),
-                  filter(value => isNotNil(value)),
+                  filter(isNotNil),
                   distinctUntilChanged()
                 )
                 .subscribe(isSampling => {
@@ -720,5 +727,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     && isNotNil(trip && trip.departureDateTime)
     /*TODO: && isNil(trip.returnDateTime)*/
     && trip.departureDateTime.diff(moment(), "day") < 15 ? 'FIELD' : 'DESK';
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

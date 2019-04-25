@@ -1,4 +1,4 @@
-import {Component, ViewChild} from "@angular/core";
+import {ChangeDetectorRef, Component, ViewChild} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ModalController} from "@ionic/angular";
 import {TripService} from '../services/trip.service';
@@ -25,8 +25,9 @@ export class TripModal extends TripPage {
     protected dateFormat: DateFormatPipe,
     protected tripService: TripService,
     protected accountService: AccountService,
-    protected viewCtrl: ModalController) {
-    super(route, router, alterCtrl, translate, dateFormat, accountService, tripService);
+    protected viewCtrl: ModalController,
+    protected cd: ChangeDetectorRef) {
+    super(route, router, alterCtrl, translate, dateFormat, accountService, tripService, cd);
   }
 
   async save(event: any): Promise<boolean> {

@@ -53,6 +53,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }): void {
     this.form && this.form.disable(opts);
     this._enable = false;
+    this.markForCheck();
   }
 
   enable(opts?: {
@@ -61,6 +62,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }): void {
     this.form && this.form.enable(opts);
     this._enable = true;
+    this.markForCheck();
   }
 
   @Output()
@@ -112,8 +114,10 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     let json = this.toJsonFormValue(this.form, data);
     if (this.debug) console.debug("[form] Updating form... ", json);
 
-    // Appply to form
+    // Apply to form
     this.form.setValue(json, { emitEvent: false });
+
+    this.markForCheck();
   }
 
   /**
@@ -148,13 +152,20 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   public markAsPristine() {
     this.form.markAsPristine();
+    this.markForCheck();
   }
 
   public markAsUntouched() {
     this.form.markAsUntouched();
+    this.markForCheck();
   }
 
   public markAsTouched() {
     this.form.markAsTouched();
+    this.markForCheck();
+  }
+
+  protected markForCheck() {
+    // Should be override by subclasses
   }
 }

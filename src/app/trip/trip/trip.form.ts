@@ -1,11 +1,11 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/trip.validator";
 import {LocationLevelIds, Referential, Trip, VesselFeatures, vesselFeaturesToString} from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
-import {debounceTime, mergeMap} from 'rxjs/operators';
+import {debounceTime, mergeMap, switchMap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
 import {AppForm} from '../../core/core.module';
 import {
@@ -20,7 +20,8 @@ import {
 @Component({
   selector: 'form-trip',
   templateUrl: './trip.form.html',
-  styleUrls: ['./trip.form.scss']
+  styleUrls: ['./trip.form.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripForm extends AppForm<Trip> implements OnInit {
 
@@ -37,7 +38,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     protected tripValidatorService: TripValidatorService,
     protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected cd: ChangeDetectorRef
   ) {
 
     super(dateAdapter, platform, tripValidatorService.getFormGroup());
@@ -47,31 +49,21 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Combo: programs
     this.programs = this.form.controls['program']
       .valueChanges
-      .startWith('')
+      .startWith('*')
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== "*") && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 50 : 10, undefined, undefined,
-            {
-              entityName: 'Program',
-              searchText: value as string
-            }).first().map(({data}) => data);
-        }));
+        switchMap(value => this.referentialRefService.suggest(value, {
+          entityName: 'Program'
+        }))
+      );
 
     // Combo: vessels
     this.vessels = this.form.controls['vesselFeatures']
       .valueChanges
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string") && value || undefined;
-          return this.vesselService.watchAll(0, 10, undefined, undefined,
-            { searchText: value as string }
-          ).first().map(({data}) => data);
-        }));
+        switchMap(value => this.vesselService.suggest(value))
+      );
 
     // Combo: sale location
     this.locations =
@@ -81,16 +73,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       )
         .pipe(
           debounceTime(250),
-          mergeMap(value => {
-            if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-            value = (typeof value === "string" && value !== '*') && value || undefined;
-            return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-              {
-                entityName: 'Location',
-                levelId: LocationLevelIds.PORT,
-                searchText: value as string
-              }).first().map(({data}) => data);
-          })
+          switchMap(value => this.referentialRefService.suggest(value, {
+            entityName: 'Location',
+            levelId: LocationLevelIds.PORT
+          }))
         );
   }
 
@@ -101,6 +87,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       if (res && res.data instanceof VesselFeatures) {
         console.debug("[trip-form] New vessel added : updating form...", res.data);
         this.form.controls['vesselFeatures'].setValue(res.data);
+        this.markForCheck();
       }
       else {
         console.debug("[trip-form] No vessel added (user cancelled)");
@@ -114,5 +101,9 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   programToString(value: Referential) {
     return referentialToString(value, ['label']);
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

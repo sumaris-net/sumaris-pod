@@ -104,16 +104,19 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
   markAsPristine() {
     this._dirty = false;
+    this.markForCheck();
   }
 
   markAsUntouched() {
     this._dirty = false;
+    this.markForCheck();
   }
 
   markAsTouched() {
     if (this.editedRow && this.editedRow.editing) {
       this.editedRow.validator.markAsTouched();
       this.editedRow.validator.updateValueAndValidity();
+      this.markForCheck();
     }
   }
 

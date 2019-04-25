@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {isNotNil, LoadResult} from "../../shared/shared.module";
-import {BaseDataService, StatusIds} from "../../core/core.module";
+import {BaseDataService, EntityUtils, LocationLevelIds, StatusIds} from "../../core/core.module";
 import {Apollo} from "apollo-angular";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
@@ -149,6 +149,23 @@ export class ReferentialRefService extends BaseDataService implements DataServic
       data: data,
       total: res.referentialsCount
     };
+  }
+
+  async suggest(value: any, options: {
+    entityName: string;
+    levelId?: number;
+    searchAttribute?: string;
+  }) {
+    if (EntityUtils.isNotEmpty(value)) return [value];
+    value = (typeof value === "string" && value !== '*') && value || undefined;
+    const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
+      {
+        entityName: options.entityName,
+        levelId: options.levelId,
+        searchText: value as string,
+        searchAttribute: options.searchAttribute
+      });
+    return res.data;
   }
 
   saveAll(entities: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {

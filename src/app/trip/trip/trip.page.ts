@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController} from "@ionic/angular";
 
@@ -11,17 +11,17 @@ import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {AccountService, AppFormUtils, AppTabPage, environment} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {TranslateService} from '@ngx-translate/core';
-import {Subject, Subscription} from 'rxjs';
+import {Subject} from 'rxjs';
 import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import * as moment from "moment";
 import {Moment} from "moment";
-import {distinct, filter, map} from "rxjs/operators";
 
 @Component({
   selector: 'page-trip',
   templateUrl: './trip.page.html',
-  styleUrls: ['./trip.page.scss']
+  styleUrls: ['./trip.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripPage extends AppTabPage<Trip> implements OnInit {
 
@@ -53,7 +53,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
     protected accountService: AccountService,
-    protected tripService: TripService
+    protected tripService: TripService,
+    protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, translate);
 
@@ -418,5 +419,9 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       }
 
     }
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

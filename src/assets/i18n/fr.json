@@ -598,7 +598,7 @@
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
     "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
-    "FIELD_NOT_VALID_DATE_AFTER": "Date de fin invalide",
+    "FIELD_NOT_VALID_DATE_AFTER": "Date incohérente",
     "FIELD_NOT_VALID_HOUR_MINUTE": "Heure/minute invalide",
     "FIELD_NOT_VALID_DATE_TIME": "Date/heure invalide",
     "FIELD_NOT_VALID_LATITUDE": "Latitude invalide",

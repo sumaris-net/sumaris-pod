@@ -8,7 +8,7 @@ import {
   OnInit
 } from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, filter, first, mergeMap} from "rxjs/operators";
+import {debounceTime, filter, first, mergeMap, switchMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -180,47 +180,29 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     this.taxonGroups = this.registerCellValueChanges('taxonGroup')
       .pipe(
         debounceTime(250),
-        mergeMap((value) => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          if (this.debug) console.debug("[batch-table] Searching taxon group on {" + (value || '*') + "}...");
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'TaxonGroup',
-              levelId: TaxonGroupIds.FAO,
-              searchText: value as string,
-              searchAttribute: 'label'
-            }).first().map(({data}) => data);
-        })
-      );
-
-    this.registerSubscription(
-      this.taxonGroups.subscribe(items => {
-        this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined;
-      }));
+        switchMap((value) => this.referentialRefService.suggest(value,
+          {
+            entityName: 'TaxonGroup',
+            levelId: TaxonGroupIds.FAO,
+            searchAttribute: 'label'
+          })
+        ),
+        // Save implicit value, when only one result
+        tap(items => this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined));
 
     // Taxon name combo
     this.taxonNames = this.registerCellValueChanges('taxonName')
       .pipe(
         debounceTime(250),
-        mergeMap((value) => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          if (this.debug) console.debug("[batch-table] Searching taxon name on {" + (value || '*') + "}...");
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'TaxonName',
-              levelId: TaxonomicLevelIds.SPECIES,
-              searchText: value as string,
-              searchAttribute: 'label'
-            }).first().map(({data}) => data);
-        })
-      );
-
-    this.registerSubscription(
-      this.taxonNames.subscribe(items => {
-        this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined;
-      }));
+        switchMap((value) => this.referentialRefService.suggest(value,
+          {
+            entityName: 'TaxonName',
+            levelId: TaxonomicLevelIds.SPECIES,
+            searchAttribute: 'label'
+          })
+        ),
+        // Save implicit value, when only one result
+        tap(items => this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined));
 
   }
 
@@ -241,7 +223,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     options?: any
   ): Observable<LoadResult<Batch>> {
     if (!this.data) {
-      if (this.debug) console.debug("[batch-table] Unable to load row: value not set (or not started)");
+      if (this.debug) console.debug("[batch-table] Unable to load rows: no value!");
       return Observable.empty(); // Not initialized
     }
 
@@ -388,9 +370,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
-    if (isNil(this._program) || isNil(this._acquisitionLevel)) {
-      return undefined;
-    }
+    if (isNil(this._program) || isNil(this._acquisitionLevel)) return undefined;
 
     console.log("BATCHES refreshPmfms");
 

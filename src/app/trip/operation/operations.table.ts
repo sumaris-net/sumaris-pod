@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from "@angular/core";
 import {Observable} from 'rxjs';
 import {map, mergeMap} from "rxjs/operators";
 import {ValidatorService} from "angular4-material-table";
@@ -54,7 +63,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected dataService: OperationService,
     protected referentialRefService: ReferentialRefService,
     protected alertCtrl: AlertController,
-    protected translate: TranslateService
+    protected translate: TranslateService,
+    protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
       RESERVED_START_COLUMNS
@@ -156,5 +166,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
 
   referentialToString = referentialToString;
 
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }
 

@@ -91,7 +91,7 @@
     <ion-col no-padding class="hour">
       <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-invalid]="form.controls.hour.invalid">
         <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.TIME</mat-label>
-        <input *ngIf="!touchUi" matInput type="text" min="0" max="23" [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar}"
+        <input *ngIf="!touchUi" matInput type="text" min="0" max="23" [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar, guide: true}"
           autocomplete="off" [placeholder]="'COMMON.TIME_PLACEHOLDER'|translate" formControlName="hour" (blur)="markAsTouched()">
 
          <input *ngIf="touchUi" matInput type="text"

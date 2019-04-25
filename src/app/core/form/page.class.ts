@@ -114,11 +114,13 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   public disable() {
     this._forms && this._forms.forEach(form => form.disable());
     this._tables && this._tables.forEach(table => table.disable());
+    this.markForCheck();
   }
 
   public enable() {
     this._forms && this._forms.forEach(form => form.enable());
     this._tables && this._tables.forEach(table => table.enable());
+    this.markForCheck();
   }
 
   public markAsPristine() {
@@ -126,18 +128,20 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     this.submitted = false;
     this._forms && this._forms.forEach(form => form.markAsPristine());
     this._tables && this._tables.forEach(table => table.markAsPristine());
+    this.markForCheck();
   }
 
   public markAsUntouched() {
     this._forms && this._forms.forEach(form => form.markAsUntouched());
     this._tables && this._tables.forEach(table => table.markAsUntouched());
+    this.markForCheck();
   }
 
   public markAsTouched() {
     this._forms && this._forms.forEach(form => form.markAsTouched());
     this._tables && this._tables.forEach(table => table.markAsTouched());
+    this.markForCheck();
   }
-
 
   public onTabChange(event: MatTabChangeEvent) {
     const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
@@ -304,4 +308,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     if (this.debug) console.debug(`[page] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
   }
 
+  protected markForCheck() {
+    // Should be override by subclasses, if change detection is Push
+  }
 }

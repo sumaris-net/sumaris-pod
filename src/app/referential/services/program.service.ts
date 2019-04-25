@@ -117,16 +117,20 @@ export class ProgramService extends BaseDataService {
     acquisitionLevel: string,
     gear?: string
   }): Promise<PmfmStrategy[]> {
+
+    // TODO: add a cache ?
+
     if (this._debug) console.debug(`[referential-service] Getting pmfms (program=${program}, acquisitionLevel=${options && options.acquisitionLevel}, gear=${options && options.gear})`);
     const data = await this.query<{ programPmfms: PmfmStrategy[] }>({
       query: LoadProgramPmfms,
       variables: {
         program: program
       },
-      error: { code: ErrorCodes.LOAD_PROGRAM_PMFMS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_PMFMS_ERROR" }
+      error: { code: ErrorCodes.LOAD_PROGRAM_PMFMS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_PMFMS_ERROR" },
+      fetchPolicy: "cache-first"
     });
     const pmfmIds = []; // used to avoid duplicated pmfms
-    //if (options.acquisitionLevel == "SURVIVAL_TEST") console.debug("data.programPmfms:", data && data.programPmfms);
+    if (options.acquisitionLevel === "SORTING_BATCH") console.debug("data.programPmfms:", data && data.programPmfms);
     const res = (data && data.programPmfms || [])
       // Filter on acquisition level and gear
       .filter(p =>
@@ -144,7 +148,7 @@ export class ProgramService extends BaseDataService {
       .map(PmfmStrategy.fromObject);
     // Sort on rank order
     res.sort((p1, p2) => p1.rankOrder - p2.rankOrder);
-    //if (options.acquisitionLevel == "SURVIVAL_TEST") console.debug("PMFM for " + options.acquisitionLevel, res);
+    if (options.acquisitionLevel === "SORTING_BATCH") console.debug("PMFM for " + options.acquisitionLevel, res);
 
     return res;
     // TODO: translate name/label using translate service ?

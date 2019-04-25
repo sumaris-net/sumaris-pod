@@ -1,4 +1,4 @@
-import {Observable} from "rxjs-compat";
+import {Observable} from "rxjs";
 import {Apollo} from "apollo-angular";
 import {ApolloQueryResult, FetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";

@@ -75,8 +75,8 @@ export const OperationFragments = {
   ${Fragments.position}
   ${Fragments.measurement}
   ${Fragments.referential}
-  ${DataFragments.sample}  
-  ${DataFragments.batch}  
+  ${DataFragments.sample}
+  ${DataFragments.batch}
   `
 };
 
@@ -84,6 +84,7 @@ export const OperationFragments = {
 export declare class OperationFilter {
   tripId?: number;
 }
+
 const LoadAllQuery: any = gql`
   query Operations($filter: OperationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -123,7 +124,9 @@ const UpdateSubscription = gql`
   ${OperationFragments.operation}
 `;
 
-const sortByStartDateFn = (n1: Operation, n2: Operation) => { return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1); };
+const sortByStartDateFn = (n1: Operation, n2: Operation) => {
+  return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1);
+};
 
 const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
   const d1 = n1.endDateTime || n1.startDateTime;
@@ -132,7 +135,7 @@ const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
 };
 
 @Injectable()
-export class OperationService extends BaseDataService implements TableDataService<Operation, OperationFilter>{
+export class OperationService extends BaseDataService implements TableDataService<Operation, OperationFilter> {
 
   constructor(
     protected apollo: Apollo,
@@ -170,7 +173,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     return this.watchQuery<{ operations?: Operation[] }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR" },
+      error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
       fetchPolicy: 'cache-and-network'
     })
       .pipe(
@@ -203,7 +206,7 @@ export class OperationService extends BaseDataService implements TableDataServic
         }));
   }
 
-  async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<Operation | null> {
+  async load(id: number, options?: { fetchPolicy: FetchPolicy }): Promise<Operation | null> {
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
     const now = Date.now();
@@ -214,10 +217,10 @@ export class OperationService extends BaseDataService implements TableDataServic
       variables: {
         id: id
       },
-      error: { code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR" }
+      error: {code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR"}
     });
 
-    const data = res && res.operation &&  Operation.fromObject(res.operation);
+    const data = res && res.operation && Operation.fromObject(res.operation);
     if (data && this._debug) console.debug(`[operation-service] Operation #${id} loaded in ${Date.now() - now}ms`, data);
     return data;
   }
@@ -259,7 +262,7 @@ export class OperationService extends BaseDataService implements TableDataServic
 
     if (!options || !options.tripId) {
       console.error("[operation-service] Missing options.tripId");
-      throw { code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR" };
+      throw {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR"};
     }
 
     // Compute rankOrderOnPeriod
@@ -280,7 +283,7 @@ export class OperationService extends BaseDataService implements TableDataServic
       variables: {
         operations: json
       },
-      error: { code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR" }
+      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR"}
     });
 
     // Copy id and update date
@@ -296,9 +299,9 @@ export class OperationService extends BaseDataService implements TableDataServic
   }
 
   /**
-     * Save an operation
-     * @param data
-     */
+   * Save an operation
+   * @param data
+   */
   async save(entity: Operation): Promise<Operation> {
 
 
@@ -317,7 +320,7 @@ export class OperationService extends BaseDataService implements TableDataServic
       variables: {
         operations: [json]
       },
-      error: { code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR" }
+      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"}
     });
 
     const savedOperation = res && res.saveOperations && res.saveOperations[0];

@@ -6,18 +6,19 @@ import {
   hasUpperOrEqualsProfile,
   Referential,
   ReferentialRef,
-  StatusIds, UsageMode,
+  StatusIds,
+  UsageMode,
   UserProfileLabel,
   UserSettings
 } from "./model";
-import {Subject, Subscription} from "rxjs-compat";
+import {Subject, Subscription} from "rxjs";
 import gql from "graphql-tag";
 import {TranslateService} from "@ngx-translate/core";
 import {Apollo} from "apollo-angular";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {TableDataService, isNotNil, toDateISOString, DataService,} from "../../shared/shared.module";
+import {DataService, isNotNil, toDateISOString} from "../../shared/shared.module";
 import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
@@ -34,7 +35,7 @@ export declare interface AccountHolder {
   };
   // TODO : use this ?
   mainProfile: String;
-};
+}
 export interface AuthData {
   username: string;
   password: string;
@@ -47,20 +48,20 @@ export interface AccountFieldDef<T = any, F = { searchText?: string; }> {
   name: string;
   label: string;
   required: boolean;
-  dataService?: DataService<T, F>,
+  dataService?: DataService<T, F>;
   dataFilter?: any,
-  dataServiceOptions?: any,
+  dataServiceOptions?: any;
   updatable: {
     registration: boolean;
     account: boolean;
   };
 }
 
-const TOKEN_STORAGE_KEY = "token"
-const PUBKEY_STORAGE_KEY = "pubkey"
-const SECKEY_STORAGE_KEY = "seckey"
-const ACCOUNT_STORAGE_KEY = "account"
-const SETTINGS_STORAGE_KEY = "settings"
+const TOKEN_STORAGE_KEY = "token";
+const PUBKEY_STORAGE_KEY = "pubkey";
+const SECKEY_STORAGE_KEY = "seckey";
+const ACCOUNT_STORAGE_KEY = "account";
+const SETTINGS_STORAGE_KEY = "settings";
 
 /* ------------------------------------
  * GraphQL queries
@@ -194,7 +195,7 @@ export class AccountService extends BaseDataService {
   };
 
   private _startPromise: Promise<any>;
-  private _started: boolean = false;
+  private _started = false;
   private _additionalAccountFields: AccountFieldDef[] = [];
 
   public onLogin = new Subject<Account>();
@@ -255,8 +256,9 @@ export class AccountService extends BaseDataService {
   public hasMinProfile(label: UserProfileLabel): boolean {
     // should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
-      (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
+      (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY)) {
       return false;
+    }
     return hasUpperOrEqualsProfile(this.data.account.profiles, label as UserProfileLabel);
   }
 
