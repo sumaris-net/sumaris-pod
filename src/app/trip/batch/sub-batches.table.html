@@ -63,12 +63,12 @@
   <ng-container matColumnDef="parent">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{ (displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
-        'TRIP.BATCH.TABLE.PARENT_BATCH') | translate }}</ion-label>
+        'TRIP.BATCH.TABLE.PARENT') | translate }}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent" [appAutofocus]="row.id == -1 && row.editing"
-               [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT_BATCH' | translate)"
+               [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT' | translate)"
                (focus)="onCellFocus($event, row, 'parent')" (blur)="onCellBlur($event, row, 'parent')" (click)="$event.target.select()" required>
         <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
@@ -79,7 +79,7 @@
             <ion-text>#</ion-text>
           </ion-col>
           <ion-col>
-            <ion-text translate>TRIP.BATCH.TABLE.PARENT_BATCH</ion-text>
+            <ion-text translate>TRIP.BATCH.TABLE.PARENT</ion-text>
           </ion-col>
         </ion-row>
         <mat-option *ngFor="let batch of filteredParents | async" [value]="batch" no-padding>

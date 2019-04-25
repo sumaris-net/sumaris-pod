@@ -158,7 +158,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
 
     this.registerSubscription(
       this.pmfms
-        .filter(isNotNil)
+        .pipe(filter(isNotNil))
         .subscribe(pmfms => {
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
           let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
@@ -244,7 +244,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
 
       this.pmfms
         .pipe(
-          filter(pmfms => pmfms && pmfms.length > 0),
+          filter(isNotNil),
           first()
         )
         .subscribe(pmfms => {
@@ -371,8 +371,6 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
     if (isNil(this._program) || isNil(this._acquisitionLevel)) return undefined;
-
-    console.log("BATCHES refreshPmfms");
 
     this.loading = true;
     this.loadingPmfms = true;

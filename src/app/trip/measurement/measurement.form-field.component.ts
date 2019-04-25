@@ -130,7 +130,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
             let step = "0.";
             if (pmfm.maximumNumberDecimals > 1) {
                 for (let i = 0; i < pmfm.maximumNumberDecimals - 1; i++) {
-                    step += "0"
+                    step += "0";
                 }
             }
             step += "1";

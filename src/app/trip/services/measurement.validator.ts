@@ -89,23 +89,21 @@ export class MeasurementsValidatorService implements ValidatorService {
       let pattern: RegExp;
       // Integer or double with 0 decimals
       if (pmfm.type === 'integer' || pmfm.maximumNumberDecimals === 0) {
-        pattern = REGEXP_INTEGER;
+        validatorFns.push(Validators.pattern(REGEXP_INTEGER));
       }
       // Double without maximal decimals
       else if (pmfm.type === 'double' && isNil(pmfm.maximumNumberDecimals)) {
-        pattern = REGEXP_DOUBLE;
+        validatorFns.push(Validators.pattern(REGEXP_DOUBLE));
       }
       // Double with a N decimal
       else if (pmfm.maximumNumberDecimals >= 1) {
-        const regexp = pmfm.maximumNumberDecimals > 1 ? `^[0-9]+(\.[0-9]{1,${pmfm.maximumNumberDecimals}})?$` : `^[0-9]+(\.[0-9])?$`;
-        pattern = new RegExp(regexp);
+        validatorFns.push(SharedValidators.double({maxDecimals: pmfm.maximumNumberDecimals}));
       }
-      validatorFns.push(Validators.pattern(pattern));
     }
     else if (pmfm.type === 'qualitative_value') {
       validatorFns.push(SharedValidators.entity);
     }
 
-    return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length == 1 ? validatorFns[0] : undefined);
+    return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : undefined);
   }
 }

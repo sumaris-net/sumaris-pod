@@ -8,7 +8,7 @@ import {
   OnInit
 } from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, map, tap} from "rxjs/operators";
+import {debounceTime, filter, map, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -76,9 +76,9 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
   @Input()
   set program(value: string) {
     if (this._program !== value && isNotNil(value)) {
-      if (this.debug) console.debug("[sub-samples-table] Setting program:" + value);
+      //if (this.debug) console.debug("[sub-samples-table] Setting program:" + value);
       this._program = value;
-      if (!this.loading) this._onRefreshPmfms.emit('set program');
+      if (!this.loading) this._onRefreshPmfms.emit();
     }
   }
 
@@ -90,7 +90,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
   set acquisitionLevel(value: string) {
     if (this._acquisitionLevel !== value && isNotNil(value)) {
       this._acquisitionLevel = value;
-      if (!this.loading) this._onRefreshPmfms.emit('set acquisitionLevel');
+      if (!this.loading) this._onRefreshPmfms.emit();
     }
   }
 
@@ -152,13 +152,12 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     super.ngOnInit();
 
     this.registerSubscription(
-      this._onRefreshPmfms.subscribe((event) => this.refreshPmfms(event || 'ngOnInit'))
+      this._onRefreshPmfms.asObservable().subscribe((event) => this.refreshPmfms(event || 'ngOnInit'))
     );
 
     this.registerSubscription(
       this.pmfms
-        .filter(pmfms => pmfms && pmfms.length > 0)
-        //.first()
+        .pipe(filter(isNotNil))
         .subscribe(pmfms => {
           this.displayParentPmfm = (pmfms || []).find(p => p.pmfmId == PmfmIds.TAG_ID);
           pmfms = (pmfms || []).filter(p => p !== this.displayParentPmfm);
@@ -186,16 +185,14 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
           if (this.debug) console.debug("[sub-sample-table] Searching parent {" + (value || '*') + "}...");
           if (!value) return this._availableSortedParents; // All
           if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
-            return this._availableSortedParents.filter(p => p.measurementValues && (p.measurementValues[this.displayParentPmfm.pmfmId] || '').startsWith(value))
+            return this._availableSortedParents.filter(p => p.measurementValues && (p.measurementValues[this.displayParentPmfm.pmfmId] || '').startsWith(value));
           }
           // Search on rankOrder
           return this._availableSortedParents.filter(p => p.rankOrder && p.rankOrder.toString().startsWith(value));
         }),
 
         // Remember parent implicit value
-        tap((items) => {
-          this._implicitParent = (items.length === 1) && items[0];
-        })
+        tap((items) => this._implicitParent = (items.length === 1) && items[0] || undefined)
       );
   }
 

@@ -165,7 +165,6 @@ export class MenuComponent implements OnInit {
     else {
       this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     }
-    console.log("Split pane when: " + this.splitPane.when);
     $event.preventDefault();
   }
 }

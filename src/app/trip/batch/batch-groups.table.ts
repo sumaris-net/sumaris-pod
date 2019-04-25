@@ -169,8 +169,7 @@ export class BatchGroupsTable extends BatchesTable {
 
     this.data = data.map(json => {
       const batch: Batch = json.id && this.data.find(b => b.id === json.id) || Batch.fromObject(json);
-      const measurementValues = MeasurementUtils.normalizeFormValues(json.measurementValues, this.pmfms.getValue());
-      console.log("measurementValues", measurementValues);
+      const groupColumnValues = MeasurementUtils.toEntityValues(json.measurementValues, this.pmfms.getValue());
 
       // TODO: compute total weight and nb indiv ?
       batch.measurementValues = {};
@@ -178,11 +177,11 @@ export class BatchGroupsTable extends BatchesTable {
       if (isNotNil(this.qvPmfm)) {
         batch.children = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex: number) => {
           let i = qvIndex * 5;
-          const individualCount = parseInt(measurementValues[i++]);
-          const weight = parseFloat(measurementValues[i++]);
-          const samplingRatio = parseFloat(measurementValues[i++]);
-          const samplingIndividualCount = parseFloat(measurementValues[i++]);
-          const samplingWeight = parseFloat(measurementValues[i++]);
+          const individualCount = parseInt(groupColumnValues[i++]);
+          const weight = parseFloat(groupColumnValues[i++]);
+          const samplingRatio = parseFloat(groupColumnValues[i++]);
+          const samplingIndividualCount = parseFloat(groupColumnValues[i++]);
+          const samplingWeight = parseFloat(groupColumnValues[i++]);
 
           const isEstimatedWeight = this.weightMethodForm && this.weightMethodForm.controls[qvIndex].value || false;
 

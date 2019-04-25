@@ -323,7 +323,7 @@
         "SAMPLING_RATIO": "Fraction échant.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant.",
-        "PARENT_BATCH": "Lot espèce",
+        "PARENT": "Lot espèce",
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?"
       }

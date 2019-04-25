@@ -130,12 +130,11 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     this.form.valueChanges
       .subscribe((value) => this.onFormChange(value));
-    merge(
-      this.formControl.statusChanges,
-      this.form.statusChanges
-    )
-      .subscribe(() => {
 
+    // Listen status changes outside the component (e.g. when setErrors() is calling on the formControl)
+    this.formControl.statusChanges
+      .subscribe((status) => {
+        if (this.readonly || this.writing || this.disabling) return; // Skip
         this.markForCheck();
       });
   }

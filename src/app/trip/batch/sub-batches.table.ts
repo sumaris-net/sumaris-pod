@@ -531,8 +531,6 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
     if (isNil(this._program) || isNil(this._acquisitionLevel)) return undefined;
 
-    console.log("SUB-BATCHES refreshPmfms");
-
     this.loading = true;
     this.loadingPmfms = true;
 

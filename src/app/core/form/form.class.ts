@@ -52,8 +52,10 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     emitEvent?: boolean;
   }): void {
     this.form && this.form.disable(opts);
-    this._enable = false;
-    this.markForCheck();
+    if (this._enable || (opts && opts.emitEvent)) {
+      this._enable = false;
+      this.markForCheck();
+    }
   }
 
   enable(opts?: {
@@ -61,8 +63,10 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     emitEvent?: boolean;
   }): void {
     this.form && this.form.enable(opts);
-    this._enable = true;
-    this.markForCheck();
+    if (!this._enable || (opts && opts.emitEvent)) {
+      this._enable = true;
+      this.markForCheck();
+    }
   }
 
   @Output()
@@ -84,6 +88,12 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   ngOnInit() {
     this._enable ? this.enable() : this.disable();
+
+    if (this.form) {
+      this.form.statusChanges.subscribe(status => {
+        this.markForCheck();
+      });
+    }
   }
 
   ngOnDestroy() {

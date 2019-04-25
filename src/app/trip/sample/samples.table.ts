@@ -8,7 +8,7 @@ import {
   OnInit
 } from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, first, map, mergeMap, filter} from "rxjs/operators";
+import {debounceTime, filter, first, switchMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -87,9 +87,9 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   @Input()
   set program(value: string) {
     if (this._program !== value && isNotNil(value)) {
-      if (this.debug) console.debug("[samples-table] Setting program:" + value);
+      //if (this.debug) console.debug("[samples-table] Setting program:" + value);
       this._program = value;
-      if (!this.loading) this._onRefreshPmfms.emit('set program');
+      if (!this.loading) this._onRefreshPmfms.emit();
     }
   }
 
@@ -149,7 +149,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   async ngOnInit(): Promise<void> {
     super.ngOnInit();
 
-    let excludesColumns: String[] = new Array<String>();
+    const excludesColumns: String[] = new Array<String>();
     if (!this.showCommentsColumn) excludesColumns.push('comments');
     if (!this.showTaxonGroupColumn) excludesColumns.push('taxonGroup');
     if (!this.showTaxonNameColumn) excludesColumns.push('taxonName');
@@ -161,7 +161,9 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
 
     this.registerSubscription(
       this.pmfms
-        .filter(isNotNil)
+        .pipe(
+          filter(isNotNil)
+        )
         .subscribe(pmfms => {
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
           let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
@@ -183,47 +185,27 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     this.taxonGroups = this.registerCellValueChanges('taxonGroup')
       .pipe(
         debounceTime(250),
-        mergeMap((value) => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          if (this.debug) console.debug("[samples-table] Searching taxon group on {" + (value || '*') + "}...");
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
+        switchMap((value) => this.referentialRefService.suggest(value,{
               entityName: 'TaxonGroup',
               levelId: TaxonGroupIds.FAO,
-              searchText: value as string,
               searchAttribute: 'label'
-            }).first().map(({data}) => data);
-        })
+            })),
+          // Remember implicit value
+          tap(items => this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined)
       );
-
-    this.registerSubscription(
-      this.taxonGroups.subscribe(items => {
-        this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined;
-      }));
 
     // Taxon name combo
     this.taxonNames = this.registerCellValueChanges('taxonName')
       .pipe(
         debounceTime(250),
-        mergeMap((value) => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          if (this.debug) console.debug("[sample-table] Searching taxon name on {" + (value || '*') + "}...");
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
+        switchMap((value) => this.referentialRefService.suggest(value, {
               entityName: 'TaxonName',
               levelId: TaxonomicLevelIds.SPECIES,
-              searchText: value as string,
               searchAttribute: 'label'
-            }).first().map(({data}) => data);
-        })
+            })),
+        // Remember implicit value
+        tap(items => this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined)
       );
-
-    this.registerSubscription(
-      this.taxonNames.subscribe(items => {
-        this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined;
-      }));
   }
 
   getRowValidator(): FormGroup {
@@ -264,7 +246,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
 
       this.pmfms
         .pipe(
-          filter(pmfms => pmfms && pmfms.length > 0),
+          filter(isNotNil),
           first()
         )
         .subscribe(pmfms => {

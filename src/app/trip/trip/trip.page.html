@@ -52,7 +52,7 @@
                   <ion-label float-end translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
                 </ion-col>
                 <ion-col>
-                  <form-measurements acquisitionLevel="TRIP" [debug]="debug" #measurementsForm [program]="programSubject|async"></form-measurements>
+                  <form-measurements #measurementsForm acquisitionLevel="TRIP" [debug]="debug" [program]="programSubject|async"></form-measurements>
                   <span *ngIf="debug">
                     <br />dirty: {{measurementsForm.dirty}}
                   </span>

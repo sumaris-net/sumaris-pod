@@ -340,12 +340,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
    */
   protected ngInitExtension() {
     if (this.measurementsForm) {
-      this.measurementsForm.onLoading
+      this.measurementsForm.pmfms
         .pipe(
-          filter(loading => loading === false),
+          filter(isNotNil),
           debounceTime(400),
-          map(() => this.measurementsForm.form),
-          first()
+          first(),
+          map(() => this.measurementsForm.form)
         )
         .subscribe((formGroup) => {
 
@@ -382,6 +382,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                       this.showSurvivalTestTables = false;
                       this.showBatchSamplingTables = false;
                   }
+                  this.markForCheck();
                 })
             );
           }
@@ -412,6 +413,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                     this.showSurvivalTestTables = false;
                     this.showBatchSamplingTables = false;
                   }
+                  this.markForCheck();
                 })
             );
           }

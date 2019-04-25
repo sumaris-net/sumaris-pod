@@ -267,8 +267,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     // If delete (if new row): update counter
     if (row.id === -1) {
       this.resultsLength--;
-      this.markForCheck();
     }
+    this.markForCheck();
   }
 
   addRow(event?: any): boolean {
@@ -320,13 +320,15 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   }
 
   /** Selects all rows if they are not all selected; otherwise clear selection. */
-  masterToggle() {
+  async masterToggle() {
     if (this.loading) return;
-    this.isAllSelected() ?
-      this.selection.clear() :
-      this.dataSource.connect().first().subscribe(rows =>
-        rows.forEach(row => this.selection.select(row))
-      );
+    if (this.isAllSelected()) {
+      this.selection.clear();
+    }
+    else {
+      const rows = await this.dataSource.getRows();
+      rows.forEach(row => this.selection.select(row));
+    }
   }
 
   async deleteSelection(): Promise<void> {
