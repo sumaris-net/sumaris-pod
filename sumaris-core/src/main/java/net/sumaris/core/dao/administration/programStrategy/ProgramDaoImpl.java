@@ -22,6 +22,7 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import com.google.common.collect.Maps;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -41,6 +42,8 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("programDao")
@@ -113,6 +116,21 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
 
         // Status id
         target.setStatusId(source.getStatus().getId());
+
+        // properties
+        Map<String, String> properties = Maps.newHashMap();
+        Beans.getStream(source.getProperties())
+                .filter(prop -> Objects.nonNull(prop)
+                        && Objects.nonNull(prop.getLabel())
+                        && Objects.nonNull(prop.getName())
+                )
+                .forEach(prop -> {
+                    if (properties.containsKey(prop.getLabel())) {
+                        logger.warn(String.format("Duplicate program property with label {%s}. Overriding existing value with {%s}", prop.getLabel(), prop.getName()));
+                    }
+                    properties.put(prop.getLabel(), prop.getName());
+                });
+        target.setProperties(properties);
 
         return target;
     }

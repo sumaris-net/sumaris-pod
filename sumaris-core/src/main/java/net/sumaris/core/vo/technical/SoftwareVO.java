@@ -37,15 +37,10 @@ public class SoftwareVO implements IReferentialVO {
     public static final String PROPERTY_PROPERTIES = "properties";
 
     private Integer id;
-
     private String label;
-
     private String name;
-
     private Date updateDate;
-
     private Date creationDate;
-
     private Integer statusId;
 
     private Map<String, String> properties;

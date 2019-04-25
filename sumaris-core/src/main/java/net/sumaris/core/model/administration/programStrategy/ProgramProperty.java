@@ -25,24 +25,27 @@ package net.sumaris.core.model.administration.programStrategy;
 import lombok.Data;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.technical.SoftwareProperty;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 
 @Data
 @Entity
-@Cacheable
-public class Program implements IItemReferentialEntity {
+@Table(name = "program_property")
+public class ProgramProperty implements IItemReferentialEntity  {
+
+    public static final String PROPERTY_PROGRAM = "program";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PROGRAM_SEQ")
-    @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PROGRAM_PROPERTY_SEQ")
+    @SequenceGenerator(name = "PROGRAM_PROPERTY_SEQ", sequenceName="PROGRAM_PROPERTY_SEQ")
     private Integer id;
+
+    @Column(nullable = false, length = 255)
+    private String label;
+
+    @Column(nullable = false, length = 255)
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_fk", nullable = false)
@@ -56,26 +59,8 @@ public class Program implements IItemReferentialEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
-    private String label;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "program_fk", nullable = false)
+    private Program program;
 
-    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
-    private String name;
-
-    private String description;
-
-    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
-    private String comments;
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.PROPERTY_PROGRAM)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<Strategy> strategies = new ArrayList<>();
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ProgramProperty.class, mappedBy = ProgramProperty.PROPERTY_PROGRAM)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<ProgramProperty> properties = new ArrayList<>();
-
-    public int hashCode() {
-        return Objects.hash(label);
-    }
 }

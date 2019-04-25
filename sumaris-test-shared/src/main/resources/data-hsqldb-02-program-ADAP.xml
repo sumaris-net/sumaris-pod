@@ -29,6 +29,8 @@
   <PROGRAM ID="10" LABEL="ADAP-MER" NAME="Application d’assistance à l’auto-échantillonnage en mer" DESCRIPTION="Auto-échantillonnage en mer pour les Pêcheurs de Bretagne" STATUS_FK="1" CREATION_DATE="2019-02-15" UPDATE_DATE="2019-02-15"/>
   <PROGRAM ID="11" LABEL="ADAP-CONTROLE" NAME="Application d’assistance aux contrôles en criées" DESCRIPTION="Contrôles criées pour les Pêcheurs de Bretagne" STATUS_FK="1" CREATION_DATE="2019-02-15" UPDATE_DATE="2019-02-15"/>
 
+  <PROGRAM_PROPERTY ID="10" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11"  LABEL="sumaris.batch.taxon.enable" NAME="false"/>
+
   <!-- ADAP strategy -->
   <STRATEGY ID="10" PROGRAM_FK="10" LABEL="V1" NAME="version 1 - 2019-02-15" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
   <STRATEGY ID="11" PROGRAM_FK="11" LABEL="V1" NAME="version 1 - 2019-02-15" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>

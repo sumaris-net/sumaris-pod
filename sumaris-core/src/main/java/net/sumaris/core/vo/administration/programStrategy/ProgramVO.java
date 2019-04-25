@@ -28,9 +28,13 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Map;
 
 @Data
 public class ProgramVO implements IReferentialVO {
+
+    public static final String PROPERTY_PROPERTIES = "properties";
+
     private Integer id;
     private String label;
     private String name;
@@ -40,5 +44,7 @@ public class ProgramVO implements IReferentialVO {
     private Date creationDate;
 
     private Integer statusId;
+
+    private Map<String, String> properties;
 
 }

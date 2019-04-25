@@ -164,7 +164,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
-        // Save entityName
+        // Save entity
         if (isNew) {
             // Force creation date
             entity.setCreationDate(newUpdateDate);
