@@ -117,40 +117,25 @@
       </div>
     </form>
 
-      <!--<form [formGroup]="sheets" #sheetsForm>-->
-        <!--<div [formArrayName]="sheetName + '.criteria'">-->
-          <!--<ng-container *ngFor="let criterionForm of sheetsForm.get(sheetName||'default')?.controls; let i=index">-->
-            <!--<ion-row no-padding [formGroupName]="i">-->
-
-              <!--index: {{i}}-->
-
-
-
-            <!--</ion-row>-->
-          <!--</ng-container>-->
-        <!--</div>-->
-      <!--</form>-->
-
-      <mat-action-row no-padding>
+    <mat-action-row no-padding>
+      <ion-grid>
         <ion-row no-padding style="width: 100%">
-          <ion-col no-padding>
+          <ion-col>
             <!-- Loading spinner -->
             <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
-            <ion-text *ngIf="!loading && !filterForm.dirty" [color]="data?.total === 0 && 'danger'">
+            <ion-text [hidden]="loading || filterForm.dirty" [color]="data?.total === 0 && 'danger'">
               {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total | numberFormat)} }}
             </ion-text>
           </ion-col>
           <ion-col no-padding size="auto">
             <!-- Search button -->
-            <button mat-raised-button [color]="filterForm.dirty ? 'primary' : undefined" (click)="onRefresh.emit(true)" [disabled]="loading">
-              {{'COMMON.BTN_SEARCH'|translate}}
-            </button>
+            <button mat-button [color]="filterForm.dirty ? 'primary' : undefined" padding
+                    (click)="onRefresh.emit(true)"
+                    [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}</button>
           </ion-col>
         </ion-row>
-      </mat-action-row>
-    <!--</form>-->
-
-
+      </ion-grid>
+    </mat-action-row>
   </mat-expansion-panel>
 
   <!-- error -->
@@ -169,6 +154,7 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="column.type=='date'" [class.mat-cell-numeric]="column.type=='integer'">
         <a ion-text (click)="onCellValueClick($event, column, row.currentData[column.index])"
+           color="dark"
            [title]="row.currentData[column.index]">
           {{row.currentData[column.index]}}
         </a>

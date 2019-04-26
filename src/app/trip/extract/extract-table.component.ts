@@ -244,13 +244,14 @@ export class ExtractTable implements OnInit {
 
     extractionType = extractionType || (json.extractionType as ExtractionType);
 
-    // Skip empty or same
+    // If empty or same: skip
     if (!extractionType || (this.extractionType
       && extractionType.category == this.extractionType.category
       && extractionType.label == this.extractionType.label)) return;
 
-    return this.router.navigate([extractionType.category, extractionType.label], {
-      relativeTo: this.route.parent.parent,
+    // Update the URL
+    return this.router.navigate(['extraction', extractionType.category, extractionType.label], {
+      skipLocationChange: false,
       queryParams: {}
     });
   }
