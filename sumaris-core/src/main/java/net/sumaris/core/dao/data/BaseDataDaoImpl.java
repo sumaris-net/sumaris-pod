@@ -1,5 +1,6 @@
 package net.sumaris.core.dao.data;
 
+import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -16,9 +17,12 @@ import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.data.IWithVesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -83,23 +87,28 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
         // Observers
         if (copyIfNull || source.getObservers() != null) {
             if (CollectionUtils.isEmpty(source.getObservers())) {
-                if (CollectionUtils.isNotEmpty(target.getObservers())) {
+                if (target.getId() != null && CollectionUtils.isNotEmpty(target.getObservers())) {
                     target.getObservers().clear();
                 }
             }
             else {
-                Map<Integer, Person> observersToRemove = Beans.splitById(target.getObservers());
+                Set<Person> observers = target.getId() != null ? target.getObservers() : Sets.newHashSet();
+                Map<Integer, Person> observersToRemove = Beans.splitById(observers);
                 source.getObservers().stream()
                         .map(net.sumaris.core.dao.technical.model.IDataEntity::getId)
+                        .filter(Objects::nonNull)
                         .forEach(personId -> {
                             if (observersToRemove.remove(personId) == null) {
                                 // Add new item
-                                target.getObservers().add(load(Person.class, personId));
+                                observers.add(load(Person.class, personId));
                             }
                         });
 
                 // Remove deleted items
-                target.getObservers().removeAll(observersToRemove.values());
+                if (MapUtils.isNotEmpty(observersToRemove)) {
+                    observers.removeAll(observersToRemove.values());
+                }
+                target.setObservers(observers);
             }
         }
     }

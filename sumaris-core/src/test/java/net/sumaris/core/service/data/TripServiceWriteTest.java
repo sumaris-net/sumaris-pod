@@ -116,7 +116,7 @@ public class TripServiceWriteTest extends AbstractServiceTest{
         PersonVO observer1 = new PersonVO();
         observer1.setId(dbResource.getFixtures().getPersonId(0));
         PersonVO observer2 = new PersonVO();
-        observer1.setId(dbResource.getFixtures().getPersonId(1));
+        observer2.setId(dbResource.getFixtures().getPersonId(1));
         vo.setObservers(ImmutableSet.of(observer1, observer2));
 
         return vo;
