@@ -13,22 +13,18 @@ if [[ ! "_$failure" = "_" ]]; then
     exit 1
 fi
 
-mvn release:prepare  > .local/release-prepare.log
+mvn release:prepare
 if [[ $? -ne 0 ]]; then
-    cat .local/release-prepare.log
     exit 1
 fi
-rm .local/release-prepare.log
 
 echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
-mvn release:perform > .local/release-perform.log
+mvn release:perform --quiet
 if [[ $? -ne 0 ]]; then
-    cat .local/release-perform.log
     exit 1
 fi
-rm .local/release-prepare.log
 
 echo "**********************************"
 echo "* Generating DB..."
