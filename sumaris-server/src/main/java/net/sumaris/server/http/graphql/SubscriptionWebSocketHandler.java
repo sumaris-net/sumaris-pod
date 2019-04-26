@@ -68,7 +68,6 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
     private final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
-
     private final boolean debug;
 
     private List<WebSocketSession> sessions = new CopyOnWriteArrayList();
@@ -223,6 +222,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
 
             @Override
             public void onError(Throwable throwable) {
+                log.warn("GraphQL subscription error", throwable);
                 sendResponse(session,
                              ImmutableMap.of(
                                     "id", opId,
@@ -239,6 +239,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler {
                     log.error(e.getMessage(), e);
                 }
             }
+
         });
     }
 
