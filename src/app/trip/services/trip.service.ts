@@ -1,11 +1,11 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
-import {Observable} from "rxjs-compat";
+import {Observable, Subject} from "rxjs-compat";
 import {fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {TableDataService, LoadResult, isNotNil} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
-import {map} from "rxjs/operators";
+import {map, skipUntil, skipWhile, throttleTime} from "rxjs/operators";
 import {Moment} from "moment";
 
 import {ErrorCodes} from "./trip.errors";
@@ -43,7 +43,7 @@ export const TripFragments = {
       vesselId,
       name,
       exteriorMarking
-    }    
+    }
     observers {
       ...RecorderPersonFragment
     }
@@ -200,6 +200,8 @@ const UpdateSubscription = gql`
 @Injectable()
 export class TripService extends BaseDataService implements TableDataService<Trip, TripFilter>{
 
+  protected loading = false;
+
   constructor(
     protected apollo: Apollo,
     protected accountService: AccountService
@@ -233,19 +235,25 @@ export class TripService extends BaseDataService implements TableDataService<Tri
 
     this._lastVariables.loadAll = variables;
 
-    const now = Date.now();
+    let now = Date.now();
     if (this._debug) console.debug("[trip-service] Loading trips... using options:", variables);
     return this.watchQuery<{ trips: Trip[]; tripsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
-      fetchPolicy: 'cache-and-network'
+      error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" }
     })
       .pipe(
+        throttleTime(200),
         map(res => {
           const data = (res && res.trips || []).map(Trip.fromObject);
           const total = res && res.tripsCount || 0;
-          if (this._debug) console.debug(`[trip-service] Loaded {${data.length || 0}} trips in ${Date.now() - now}ms`, data);
+          if (/*this._debug &&*/ now) {
+            console.debug(`[trip-service] Loaded {${data.length || 0}} trips in ${Date.now() - now}ms`, data);
+            now = undefined;
+          }
+          else {
+            console.debug(`[trip-service] Refreshed {${data.length || 0}} trips`);
+          }
           return {
             data: data,
             total: total
@@ -257,6 +265,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
   async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<Trip | null> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
+    this.loading = true;
     const now = Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
 
@@ -270,6 +279,9 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     });
     const data = res && res.trip && Trip.fromObject(res.trip);
     if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
+
+    this.loading = false;
+
     return data;
   }
 

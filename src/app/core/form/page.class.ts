@@ -152,12 +152,12 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     });
   }
 
-  async cancel() {
+  public async cancel() {
     if (!this.dirty) return;
     await this.reload();
   };
 
-  onBackClick(event: Event) {
+  public onBackClick(event: Event) {
     if (event.defaultPrevented) return;
 
     // Stop the go back event, to be able to override it

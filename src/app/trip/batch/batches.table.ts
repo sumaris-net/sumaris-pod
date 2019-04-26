@@ -8,13 +8,14 @@ import {
   OnInit
 } from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, filter, first, mergeMap, switchMap, tap} from "rxjs/operators";
+import {debounceTime, filter, first, switchMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
   AppTable,
   AppTableDataSource,
-  EntityUtils, isNil,
+  EntityUtils,
+  isNil,
   ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -68,6 +69,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   data: Batch[];
   taxonGroups: Observable<ReferentialRef[]>;
   taxonNames: Observable<ReferentialRef[]>;
+  excludesColumns = new Array<String>();
 
   set value(data: Batch[]) {
     if (this.data !== data) {
@@ -109,9 +111,25 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     return this._acquisitionLevel;
   }
 
-  @Input() showCommentsColumn: boolean = true;
-  @Input() showTaxonGroupColumn: boolean = true;
-  @Input() showTaxonNameColumn: boolean = true;
+  @Input() showCommentsColumn = true;
+
+  @Input()
+  set showTaxonGroupColumn(value: boolean) {
+    this.setShowColumn('taxonGroup', value);
+  }
+
+  get showTaxonGroupColumn(): boolean {
+    return this.getShowColumn('taxonGroup');
+  }
+
+  @Input()
+  set showTaxonNameColumn(value: boolean) {
+    this.setShowColumn('taxonName', value);
+  }
+
+  get showTaxonNameColumn(): boolean {
+    return this.getShowColumn('taxonName');
+  }
 
   constructor(
     protected route: ActivatedRoute,
@@ -146,10 +164,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   async ngOnInit() {
     super.ngOnInit();
 
-    let excludesColumns: String[] = new Array<String>();
-    if (!this.showCommentsColumn) excludesColumns.push('comments');
-    if (!this.showTaxonGroupColumn) excludesColumns.push('taxonGroup');
-    if (!this.showTaxonNameColumn) excludesColumns.push('taxonName');
+    if (!this.showCommentsColumn) this.excludesColumns.push('comments');
 
     this.registerSubscription(
       this._onRefreshPmfms.asObservable()
@@ -161,18 +176,8 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
         .pipe(filter(isNotNil))
         .subscribe(pmfms => {
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
-          let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
-
-          this.displayedColumns = RESERVED_START_COLUMNS
-            .concat(BATCH_RESERVED_START_COLUMNS)
-            .concat(pmfmColumns)
-            .concat(BATCH_RESERVED_END_COLUMNS)
-            .concat(RESERVED_END_COLUMNS)
-            // Remove columns to hide
-            .filter(column => !excludesColumns.includes(column));
-
+          this.updateColumns(pmfms);
           this.loading = false;
-
           if (this.data) this.onRefresh.emit();
         }));
 
@@ -317,6 +322,24 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     return row.currentData.rankOrder;
   }
 
+  public updateColumns(pmfms?: PmfmStrategy[]) {
+
+    pmfms = pmfms || this.pmfms.getValue();
+    if (!pmfms) return;
+
+    let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
+
+    this.displayedColumns = RESERVED_START_COLUMNS
+      .concat(BATCH_RESERVED_START_COLUMNS)
+      .concat(pmfmColumns)
+      .concat(BATCH_RESERVED_END_COLUMNS)
+      .concat(RESERVED_END_COLUMNS)
+      // Remove columns to hide
+      .filter(column => !this.excludesColumns.includes(column));
+
+    if (!this.loading) this.markForCheck();
+  }
+
   /* -- protected methods -- */
 
   protected async getMaxRankOrder(): Promise<number> {
@@ -393,6 +416,22 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     this.markForCheck();
 
     return pmfms;
+  }
+
+  setShowColumn(columnName: string, show: boolean) {
+    if (!this.excludesColumns.includes(columnName) !== show) {
+      if (!show) {
+        this.excludesColumns.push(columnName);
+      } else {
+        const index = this.excludesColumns.findIndex(value => value === columnName);
+        if (index >= 0) this.excludesColumns.splice(index, 1);
+      }
+      this.updateColumns();
+    }
+  }
+
+  getShowColumn(columnName: string): boolean {
+    return !this.excludesColumns.includes(columnName);
   }
 
   markForCheck() {

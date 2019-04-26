@@ -3,7 +3,7 @@
 // The list of file replacements can be found in `angular.json`.
 
 import { Environment } from "./environment.class";
-const pkg = require('../../package.json')
+const pkg = require('../../package.json');
 
 export const environment: Environment = {
     name: (pkg.name as string),
@@ -18,8 +18,8 @@ export const environment: Environment = {
     defaultLocale: "fr",
     defaultLatLongFormat: 'DDMM',
 
-    defaultProgram: "ADAP-MER",
-    //defaultProgram: "SUMARiS",
+  //defaultProgram: "ADAP-MER",
+    defaultProgram: "SUMARiS",
 
     apolloFetchPolicy: 'cache-first',
 

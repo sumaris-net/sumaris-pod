@@ -6,24 +6,25 @@ import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {AccountService, AppFormUtils, AppTabPage, environment} from '../../core/core.module';
-import {CatchForm} from '../catch/catch.form';
+import {CatchBatchForm} from '../catch/catch.form';
 import {SamplesTable} from '../sample/samples.table';
 import {SubSamplesTable} from '../sample/sub-samples.table';
 import {AlertController} from "@ionic/angular";
 import {TranslateService} from '@ngx-translate/core';
 import {AcquisitionLevelCodes, UsageMode} from '../../core/services/model';
 import {isNil, isNotNil} from '../../shared/shared.module';
-import {PmfmIds, QualitativeLabels} from '../../referential/referential.module';
+import {PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {Subject} from 'rxjs';
 import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {SubBatchesTable} from "../batch/sub-batches.table";
 import {MatTabChangeEvent} from "@angular/material";
-import {debounceTime, distinctUntilChanged, filter, first, map, startWith} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, switchMap} from "rxjs/operators";
 import {Validators} from "@angular/forms";
 import * as moment from "moment";
 import {Moment} from "moment";
 import {IndividualMonitoringTable} from "../sample/individualmonitoring/sample-individual-monitoring.table";
+import {ProgramProperties} from "../../referential/services/model";
 
 @Component({
   selector: 'page-operation',
@@ -38,22 +39,22 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   title = new Subject<string>();
   trip: Trip;
   programSubject = new Subject<string>();
-  saving: boolean = false;
+  saving = false;
   rankOrder: number;
-  selectedBatchSamplingTabIndex: number = 0;
-  selectedSurvivalTestTabIndex: number = 0;
+  selectedBatchSamplingTabIndex = 0;
+  selectedSurvivalTestTabIndex = 0;
 
   defaultBackHref: string;
-  showBatchSamplingTables: boolean = false;
-  showSubBatchSamplingTable: boolean = false;
-  showSurvivalTestTables: boolean = false;
+  showBatchSamplingTables = false;
+  enableSubBatchSamplingTable = false;
+  showSurvivalTestTables = false;
   usageMode: UsageMode;
 
   @ViewChild('opeForm') opeForm: OperationForm;
 
   @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
 
-  @ViewChild('catchForm') catchForm: CatchForm;
+  @ViewChild('catchBatchForm') catchBatchForm: CatchBatchForm;
 
   @ViewChild('survivalTestsTable') survivalTestsTable: SamplesTable;
 
@@ -75,6 +76,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     protected accountService: AccountService,
     protected operationService: OperationService,
     protected tripService: TripService,
+    protected programService: ProgramService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alterCtrl, translate);
@@ -103,7 +105,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     super.ngOnInit();
 
     // Register sub forms & table
-    this.registerForms([this.opeForm, this.measurementsForm, this.catchForm])
+    this.registerForms([this.opeForm, this.measurementsForm, this.catchBatchForm])
       .registerTables([
         this.survivalTestsTable,
         this.individualMonitoringTable,
@@ -119,36 +121,56 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.route.params.first().subscribe(res => {
       const tripId = res && res["tripId"];
       const id = res && res["opeId"];
-      setTimeout(() => {
-        if (!id || id === "new") {
-          this.load(undefined, {tripId: tripId});
-        } else {
-          this.load(parseInt(id), {tripId: tripId});
-        }
-        // Compute the default back
-        this.defaultBackHref = "/trips/" + tripId + "?tab=2";
-      });
+      if (!id || id === "new") {
+        this.load(undefined, {tripId: tripId});
+      } else {
+        this.load(parseInt(id), {tripId: tripId});
+      }
     });
 
-    this.opeForm.form.controls['physicalGear'].valueChanges.subscribe((res) => {
-      if (this.loading) return; // SKip during loading
-      this.catchForm.gear = res && res.gear && res.gear.label || null;
-    });
+    this.registerSubscription(
+      this.opeForm.form.controls['physicalGear'].valueChanges.subscribe((res) => {
+        if (this.loading) return; // SKip during loading
+        this.catchBatchForm.gear = res && res.gear && res.gear.label || null;
+      })
+    );
 
     // Update available parent on sub-sample table, when samples changes
-    this.survivalTestsTable.listChange.debounceTime(400).subscribe(samples => {
-      const availableParents = (samples || [])
-        .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
-      // Will refresh the tables (inside the setter):
-      this.individualMonitoringTable.availableParents = availableParents;
-      this.individualReleaseTable.availableParents = availableParents;
-    });
+    this.registerSubscription(
+      this.survivalTestsTable.listChange
+        .pipe(debounceTime(400))
+        .subscribe(samples => {
+          if (this.loading) return; // skip during loading
+          const availableParents = (samples || [])
+            .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
+          // Will refresh the tables (inside the setter):
+          this.individualMonitoringTable.availableParents = availableParents;
+          this.individualReleaseTable.availableParents = availableParents;
+        }));
 
     // Update available parent on individual batch table, when batch group changes
-    this.batchGroupsTable.listChange.debounceTime(400).subscribe(batchGroups => {
-      // Will refresh the tables (inside the setter):
-      this.subBatchesTable.availableParents = (batchGroups || []);
-    });
+    this.registerSubscription(
+      this.batchGroupsTable.listChange
+        .pipe(debounceTime(400))
+        .subscribe(batchGroups => {
+          if (this.loading || !this.enableSubBatchSamplingTable) return; // skip during loading
+          // Will refresh the tables (inside the setter):
+          this.subBatchesTable.availableParents = (batchGroups || []);
+        })
+    );
+
+    // Enable sub batches when having pmfmf
+    this.subBatchesTable.pmfms
+      .pipe(
+        filter(isNotNil),
+        first()
+      )
+      .subscribe(pmfms => {
+        if (!this.enableSubBatchSamplingTable && pmfms.length > 0) {
+          this.enableSubBatchSamplingTable = true;
+          this.markForCheck();
+        }
+      });
 
     this.ngInitExtension();
   }
@@ -178,7 +200,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         data.physicalGear = Object.assign({}, trip.gears[0]);
       }
 
-      this.updateView(data, trip);
+      await this.updateView(data, trip);
       this.loading = false;
     }
 
@@ -199,35 +221,37 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       const trip = await this.tripService.load(data.tripId);
       this.usageMode = this.computeUsageMode(trip);
 
-      this.updateView(data, trip);
+      await this.updateView(data, trip);
       this.loading = false;
       this.startListenChanges();
     }
   }
 
   startListenChanges() {
-    if (!this._enableListenChanges) return;
+    if (this._enableListenChanges) {
 
-    const subscription = this.operationService.listenChanges(this.data.id)
-      .subscribe((data: Operation | undefined) => {
-        const newUpdateDate = data && (data.updateDate as Moment) || undefined;
-        if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
-          if (this.debug) console.debug("[operation] Detected update on server", newUpdateDate);
-          if (!this.dirty) {
-            this.updateView(data, this.trip);
+      const subscription = this.operationService.listenChanges(this.data.id)
+        .subscribe((data: Operation | undefined) => {
+          const newUpdateDate = data && (data.updateDate as Moment) || undefined;
+          if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
+            if (this.debug) console.debug("[operation] Detected update on server", newUpdateDate);
+            if (!this.dirty) {
+              this.updateView(data, this.trip);
+            }
           }
-        }
-      });
+        });
 
-    // Add log when closing
-    if (this.debug) subscription.add(() => console.debug('[operation] [WS] Stop to listen changes'));
+      // Add log when closing
+      if (this.debug) subscription.add(() => console.debug('[operation] [WS] Stop to listen changes'));
 
-    this.registerSubscription(subscription);
+      this.registerSubscription(subscription);
+    }
   }
 
-  updateView(data: Operation | null, trip?: Trip) {
+  async updateView(data: Operation | null, trip?: Trip) {
     this.data = data;
     this.opeForm.value = data;
+
     if (trip) {
       this.trip = trip;
       this.opeForm.trip = trip;
@@ -252,8 +276,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.measurementsForm.updateControls();
 
     // Set catch batch
-    this.catchForm.gear = gearLabel;
-    this.catchForm.value = data && data.catchBatch || Batch.fromObject({
+    this.catchBatchForm.gear = gearLabel;
+    this.catchBatchForm.value = data && data.catchBatch || Batch.fromObject({
       rankOrder: 1,
       label: AcquisitionLevelCodes.CATCH_BATCH
     });
@@ -308,21 +332,11 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     this.batchGroupsTable.value = batchGroups;
 
-    this.subBatchesTable.pmfms
-      .pipe(
-        filter(isNotNil),
-        first()
-      )
-      .subscribe(pmfms => {
-        this.showSubBatchSamplingTable = pmfms.length > 0;
-        if (!this.showSubBatchSamplingTable) {
-          console.log("showSubBatchSamplingTable=FALSE !!")
-        }
-
-      });
-
     // Update title
-    this.updateTitle();
+    await this.updateTitle();
+
+    // Compute the default back href
+    this.defaultBackHref = `/trips/${data.tripId}?tab=2`;
 
     this.markAsPristine();
     this.markAsUntouched();
@@ -332,6 +346,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     } else {
       this.enable();
     }
+
+    this.markForCheck();
 
   }
 
@@ -368,17 +384,17 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
                   switch (qvLabel as string) {
                     case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.SURVIVAL:
-                      if (this.debug) console.debug("[operation-page] Enable survival test tables");
+                      if (this.debug) console.debug("[operation] Enable survival test tables");
                       this.showSurvivalTestTables = true;
                       this.showBatchSamplingTables = false;
                       break;
                     case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.CATCH_HAUL:
-                      if (this.debug) console.debug("[operation-page] Enable batch sampling tables");
+                      if (this.debug) console.debug("[operation] Enable batch sampling tables");
                       this.showSurvivalTestTables = false;
                       this.showBatchSamplingTables = true;
                       break;
                     case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.UNSAMPLED:
-                      if (this.debug) console.debug("[operation-page] Disable survival test and batch sampling tables");
+                      if (this.debug) console.debug("[operation] Disable survival test and batch sampling tables");
                       this.showSurvivalTestTables = false;
                       this.showBatchSamplingTables = false;
                   }
@@ -402,14 +418,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                   // Force first tab index
                   this.selectedBatchSamplingTabIndex = 0;
                   this.selectedSurvivalTestTabIndex = 0;
-                  if (this.debug) console.debug("[operation-page] Detected PMFM changes value for IS_SAMPLING: ", isSampling);
+                  if (this.debug) console.debug("[operation] Detected PMFM changes value for IS_SAMPLING: ", isSampling);
 
                   if (isSampling) {
-                    if (this.debug) console.debug("[operation-page] Enable batch sampling tables");
+                    if (this.debug) console.debug("[operation] Enable batch sampling tables");
                     this.showSurvivalTestTables = false;
                     this.showBatchSamplingTables = true;
                   } else {
-                    if (this.debug) console.debug("[operation-page] Disable batch sampling tables");
+                    if (this.debug) console.debug("[operation] Disable batch sampling tables");
                     this.showSurvivalTestTables = false;
                     this.showBatchSamplingTables = false;
                   }
@@ -420,7 +436,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
           // Default
           if (isNil(samplingTypeControl) && isNil(isSamplingControl)) {
-            if (this.debug) console.debug("[operation-page] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)");
+            if (this.debug) console.debug("[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)");
             this.showSurvivalTestTables = false;
             this.showBatchSamplingTables = true;
           }
@@ -450,6 +466,32 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
         });
     }
+
+    this.registerSubscription(
+      this.programSubject.asObservable()
+        .pipe(mergeMap(label => {
+          return this.programService.watchByLabel(label);
+        })) // Watch program
+        //.pipe(mergeMap(this.programService.loadByLabel)) // Load program
+        .subscribe(program => {
+          if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
+          // Configure batch columns
+          if (this.batchGroupsTable) {
+            this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_NAME_ENABLE);
+            this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_GROUP_ENABLE);
+          }
+          if (this.subBatchesTable) {
+            //this.subBatchesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_NAME_ENABLE);
+            //this.subBatchesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_GROUP_ENABLE);
+          }
+
+          if (this.survivalTestsTable) {
+            //this.survivalTestsTable.showTaxonNameColumn = enableBatchTaxonName;
+            //this.survivalTestsTable.showTaxonGroupColumn = enableBatchTaxonGroup;
+          }
+        })
+    );
+
   }
 
   async save(event): Promise<any> {
@@ -480,7 +522,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.data.tripId = this.trip.id;
 
     // get catch batch
-    this.data.catchBatch = this.catchForm.value;
+    this.data.catchBatch = this.catchBatchForm.value;
 
     // save survival tables
     if (this.showSurvivalTestTables) {
@@ -535,7 +577,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       const updatedData = await this.operationService.save(this.data);
 
       // Update the view (e.g metadata)
-      this.updateView(updatedData);
+      await this.updateView(updatedData);
 
       // Update route location
       if (isNew) {
@@ -592,6 +634,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Emit the title
     this.title.next(title);
+
   }
 
 
@@ -650,8 +693,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     if (this.measurementsForm.invalid) {
       AppFormUtils.logFormErrors(this.measurementsForm.form, "[operation-meas-form]");
     }
-    if (this.catchForm.invalid) {
-      AppFormUtils.logFormErrors(this.catchForm.form, "[catch-form]");
+    if (this.catchBatchForm.invalid) {
+      AppFormUtils.logFormErrors(this.catchBatchForm.form, "[catch-form]");
     }
     if (this.survivalTestsTable.invalid) {
       if (this.survivalTestsTable.editedRow && this.survivalTestsTable.editedRow.editing) {
@@ -690,7 +733,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     const subTab0Invalid = (this.showBatchSamplingTables && this.batchGroupsTable.invalid) || (this.showSurvivalTestTables && this.survivalTestsTable.invalid);
     const subTab1Invalid = (this.showBatchSamplingTables && this.subBatchesTable.invalid) || (this.showSurvivalTestTables && this.individualMonitoringTable.invalid);
     const subTab2Invalid = this.showBatchSamplingTables && this.individualReleaseTable.invalid || false;
-    const tab1Invalid = this.catchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;
+    const tab1Invalid = this.catchBatchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;
 
     // Open the first invalid tab
     let invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : this.selectedTabIndex);
@@ -727,7 +770,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   protected computeUsageMode(trip: Trip): UsageMode {
     return this.accountService.isUsageMode('FIELD')
     && isNotNil(trip && trip.departureDateTime)
-    /*TODO: && isNil(trip.returnDateTime)*/
     && trip.departureDateTime.diff(moment(), "day") < 15 ? 'FIELD' : 'DESK';
   }
 

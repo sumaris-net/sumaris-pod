@@ -1,13 +1,22 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { SaleValidatorService } from "../services/sale.validator";
-import { Sale, VesselFeatures, LocationLevelIds, referentialToString, entityToString, vesselFeaturesToString, EntityUtils, ReferentialRef } from "../services/trip.model";
-import { Platform } from '@ionic/angular';
-import { Moment } from 'moment/moment';
-import { AppForm } from '../../core/core.module';
-import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs';
-import { mergeMap, debounceTime } from 'rxjs/operators';
-import { VesselService, ReferentialRefService } from '../../referential/referential.module';
+import {Component, OnInit, Input} from '@angular/core';
+import {SaleValidatorService} from "../services/sale.validator";
+import {
+  Sale,
+  VesselFeatures,
+  LocationLevelIds,
+  referentialToString,
+  entityToString,
+  vesselFeaturesToString,
+  EntityUtils,
+  ReferentialRef
+} from "../services/trip.model";
+import {Platform} from '@ionic/angular';
+import {Moment} from 'moment/moment';
+import {AppForm} from '../../core/core.module';
+import {DateAdapter} from "@angular/material";
+import {Observable} from 'rxjs';
+import {mergeMap, debounceTime, switchMap} from 'rxjs/operators';
+import {VesselService, ReferentialRefService} from '../../referential/referential.module';
 
 @Component({
   selector: 'form-sale',
@@ -65,11 +74,10 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
             if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
             value = (typeof value === "string") && value || undefined;
             return this.vesselService.watchAll(0, 10, undefined, undefined,
-              { searchText: value as string }
+              {searchText: value as string}
             ).map(({data}) => data);
           }));
-    }
-    else {
+    } else {
       this.form.controls['vesselFeatures'].clearValidators();
     }
 
@@ -78,31 +86,19 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
       .valueChanges
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'Location',
-              levelId: LocationLevelIds.PORT,
-              searchText: value as string
-            }).first().map(({data}) => data);
-        }));
+        switchMap(value => this.referentialRefService.suggest(value, {
+          entityName: 'Location',
+          levelId: LocationLevelIds.PORT
+        }))
+      );
 
     // Combo: sale types
     this.saleTypes = this.form.controls['saleType']
       .valueChanges
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'SaleType',
-              searchText: value as string
-            }).first().map(({data}) => data);
-        }));
+        switchMap(value => this.referentialRefService.suggest(value, {entityName: 'SaleType'}))
+      );
   }
 
   entityToString = entityToString;

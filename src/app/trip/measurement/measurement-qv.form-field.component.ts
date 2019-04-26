@@ -112,8 +112,8 @@ export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
 
     writeValue(obj: any): void {
         if (obj !== this.formControl.value) {
-            this.formControl.setValue(obj, { emitEvent: false });
-            this._onChangeCallback(this.value);
+            this.formControl.patchValue(obj, { emitEvent: false });
+            this._onChangeCallback(obj);
         }
     }
 

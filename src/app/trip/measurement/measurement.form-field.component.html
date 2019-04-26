@@ -4,15 +4,15 @@
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
     <input matInput autocomplete="off" type="number" min="0" [max]="pmfm.maxValue" [placeholder]="placeholder"
            (keypress)="filterNumberInput($event, false)"
-      [formControl]="formControl" [required]="pmfm.isMandatory">
-    <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
-    <mat-error *ngIf="formControl.errors?.min">
+            [formControl]="formControl" [required]="pmfm.isMandatory">
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="formControl.hasError('min')">
       {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate:{min: pmfm.minValue} }}</mat-error>
-    <mat-error *ngIf="formControl.errors?.max">
+    <mat-error *ngIf="formControl.hasError('max')">
       {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:{max: pmfm.maxValue} }}</mat-error>
-    <mat-error *ngIf="formControl.errors?.pattern">
+    <mat-error *ngIf="formControl.hasError('pattern')">
       {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
-    <mat-error *ngIf="formControl.errors?.integer">
+    <mat-error *ngIf="formControl.hasError('integer')">
       {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
   </mat-form-field>
 
@@ -21,12 +21,12 @@
     <input matInput autocomplete="off" type="number" [min]="pmfm.minValue" [max]="pmfm.maxValue" [placeholder]="placeholder"
            (keypress)="filterNumberInput($event, true)"
       [step]="computeNumberInputStep(pmfm)" [formControl]="formControl" [required]="pmfm.isMandatory">
-    <mat-error *ngIf="formControl.errors?.required" translate>ERROR.FIELD_REQUIRED</mat-error>
-    <mat-error *ngIf="formControl.errors?.min">
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="formControl.hasError('min')">
       {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:{min: pmfm.minValue} }}</mat-error>
-    <mat-error *ngIf="formControl.errors?.max">
+    <mat-error *ngIf="formControl.hasError('max')">
       {{ (compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX')| translate:{max: pmfm.maxValue} }}</mat-error>
-    <mat-error *ngIf="formControl.errors?.maxDecimals">
+    <mat-error *ngIf="formControl.hasError('maxDecimals')">
       {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max:
       pmfm.maximumNumberDecimals} }}</mat-error>
   </mat-form-field>
@@ -53,6 +53,7 @@
   <ng-container *ngSwitchCase="'string'">
     <mat-form-field [floatLabel]="floatLabel">
       <input matInput autocomplete="off" [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory">
+      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     </mat-form-field>
   </ng-container>
 

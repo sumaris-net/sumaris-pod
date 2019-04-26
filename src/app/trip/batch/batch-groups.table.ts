@@ -89,11 +89,11 @@ export class BatchGroupsTable extends BatchesTable {
 
       this.pmfms
         .pipe(
-          filter(pmfms => pmfms && pmfms.length > 0),
+          filter(isNotNil),
           first()
         )
         .subscribe(pmfms => {
-          let weightMethodValues = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex) => {
+          let weightMethodValues = (this.qvPmfm && this.qvPmfm.qualitativeValues || []).reduce((res, qv, qvIndex) => {
             res[qvIndex] = false;
             return res;
           }, {});
@@ -269,7 +269,7 @@ export class BatchGroupsTable extends BatchesTable {
     }, {});
     this.defaultWeightPmfm = defaultWeightPmfm;
 
-    this.qvPmfm = pmfms.find(p => p.type == 'qualitative_value');
+    this.qvPmfm = pmfms.find(p => p.type === 'qualitative_value');
     if (isNil(this.qvPmfm)) {
       throw new Error(`[batch-group-table] table not ready without a root qualitative PMFM`);
     }
@@ -301,7 +301,7 @@ export class BatchGroupsTable extends BatchesTable {
         [
           // Column on total (nb indiv, weight)
           {
-            type: 'double', label: qv.label + '_TOTAL_INDIVIDUAL_COUNT', id: index,
+            type: 'integer', label: qv.label + '_TOTAL_INDIVIDUAL_COUNT', id: index,
             name: translations['TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'],
             minValue: 0,
             maxValue: 10000,
@@ -341,12 +341,10 @@ export class BatchGroupsTable extends BatchesTable {
       )
     }, [])
       .map((pmfm, index) => {
-        // Set pmfmId (as index in array)
+        // Set fake pmfmId (as index in array)
         pmfm.pmfmId = index;
         return PmfmStrategy.fromObject(pmfm);
       });
-
-    //this.table.addColumnDef({});
 
     this.loadingPmfms = false;
 

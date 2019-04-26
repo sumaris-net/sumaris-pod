@@ -178,7 +178,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
 
     this.registerSubscription(
       this.pmfms
-        .filter(isNotNil)
+        .pipe(filter(isNotNil))
         .subscribe(pmfms => {
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
           let pmfmColumns = pmfms.map(p => p.pmfmId.toString());

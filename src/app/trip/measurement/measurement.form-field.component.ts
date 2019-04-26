@@ -59,10 +59,9 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
     writeValue(obj: any): void {
         if (obj !== this.formControl.value) {
+          console.log("Settings meas value ", this.formControl.value, obj);
             this.formControl.patchValue(obj, { emitEvent: false });
             this._onChangeCallback(obj);
-            //console.log("[meas-form-field] Setting new value:", obj);
-            //this.cd.markForCheck();
         }
     }
 
@@ -115,12 +114,14 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
         else {
             //this.formControl.enable({ onlySelf: true, emitEvent: false });
         }
+        this.cd.markForCheck();
         this.disabling = false;
     }
 
     public markAsTouched() {
         if (this.formControl.touched) {
             this._onTouchedCallback();
+            this.cd.markForCheck();
         }
     }
 

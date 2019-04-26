@@ -79,7 +79,7 @@ export class MenuComponent implements OnInit {
       this.onLogin(this.accountService.account);
       setTimeout(() => {
         this.loading = false;
-      }, 1000);
+      }, 500);
     }
     else {
       this.isLogin = false;
@@ -89,7 +89,7 @@ export class MenuComponent implements OnInit {
       }, 1000);
     }
 
-    this.splitPane.when=SPLIT_PANE_SHOW_WHEN;
+    this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
 
   }
 

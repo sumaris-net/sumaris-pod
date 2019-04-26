@@ -443,7 +443,7 @@ export class MeasurementUtils {
         return isNotNil(value) && value.id && value.id.toString() || undefined;
       case "integer":
       case "double":
-        return isNotNil(value) && value.toString() || undefined;
+        return isNotNil(value) && !isNaN(value) && value.toString() || undefined;
       case "string":
         return value;
       case "boolean":
@@ -688,7 +688,7 @@ export class Operation extends DataEntity<Operation> {
         // Link to children
         batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
         this.catchBatch.children = batches.filter(b => b.parent === this.catchBatch);
-        //console.log("[trip-model] Operation.catchBatch as tree:", this.catchBatch);
+        //console.debug("[trip-model] Operation.catchBatch as tree:", this.catchBatch);
       }
     }
     else {

@@ -10,7 +10,7 @@ import { OperationPage } from './operation/operation.page';
 import { MeasurementsForm } from './measurement/measurements.form.component';
 import { MeasurementQVFormField } from './measurement/measurement-qv.form-field.component';
 import { MeasurementFormField } from './measurement/measurement.form-field.component';
-import { CatchForm } from './catch/catch.form';
+import { CatchBatchForm } from './catch/catch.form';
 import { PhysicalGearForm } from './physicalgear/physicalgear.form';
 import { PhysicalGearTable } from './physicalgear/physicalgears.table';
 import { OperationTable } from './operation/operations.table';
@@ -64,7 +64,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       MeasurementsForm,
       MeasurementQVFormField,
       MeasurementFormField,
-      CatchForm,
+      CatchBatchForm,
       ObservedVesselsTable,
       SamplesTable,
       SubSamplesTable,

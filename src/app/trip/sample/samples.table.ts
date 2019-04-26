@@ -14,7 +14,7 @@ import {
   AccountService,
   AppTable,
   AppTableDataSource,
-  EntityUtils,
+  EntityUtils, isNil,
   ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -372,12 +372,9 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
-    const candLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
-    if (!candLoadPmfms) {
+    if (isNil(this._program) || isNil(this._acquisitionLevel)) {
       return undefined;
     }
-
-    console.log("SAMPLE refreshPmfms");
 
     this.loading = true;
     this.loadingPmfms = true;
@@ -397,7 +394,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
 
     this.pmfms.next(pmfms);
 
-    this.cd.markForCheck(); // TODO: check if need
+    this.cd.markForCheck();
 
     return pmfms;
   }

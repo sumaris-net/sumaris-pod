@@ -517,6 +517,14 @@
       "METIER": "Métier"
     }
   },
+  "PROGRAM": {
+    "ERROR": {
+      "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",
+      "LOAD_PROGRAMS_ERROR": "Erreur lors de chargement des programmes",
+      "SAVE_PROGRAM_ERROR": "Erreur lors de la sauvegarde du programme",
+      "SAVE_PROGRAMS_ERROR": "Erreur lors de la sauvegarde des programmes"
+    }
+  },
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Télécharger le fichier CSV",
     "COMMON": {

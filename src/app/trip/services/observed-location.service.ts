@@ -141,8 +141,8 @@ export class ObservedLocationService extends BaseDataService implements TableDat
       ];
 
     return {
-      total: data.length,
-      data
+      data: data,
+      total: data.length
     };
   }
 }

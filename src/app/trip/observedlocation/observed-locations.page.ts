@@ -17,7 +17,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {AppTableDataSource} from "../../core/table/table-datasource.class";
-import {debounceTime, mergeMap} from "rxjs/operators";
+import {debounceTime, mergeMap, switchMap} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocation} from "../services/observed-location.model";
@@ -28,7 +28,7 @@ import {ObservedLocationValidatorService} from "../services/observed-location.va
   templateUrl: 'observed-locations.page.html',
   styleUrls: ['observed-locations.page.scss'],
   providers: [
-    { provide: ValidatorService, useClass: ObservedLocationValidatorService }
+    {provide: ValidatorService, useClass: ObservedLocationValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -48,7 +48,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
-    protected validatorService: ObservedLocationValidatorService,
+    protected validatorService: ValidatorService,
     protected dataService: ObservedLocationService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
@@ -101,15 +101,10 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       .startWith('')
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'Program',
-              searchText: value as string
-            }).first().map(({data}) => data);
-        })
+        switchMap(value => this.referentialRefService.suggest(value,
+          {
+            entityName: 'Program'
+          }))
       );
 
     // Locations combo (filter)
@@ -117,16 +112,12 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       .valueChanges
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
+        switchMap(value => this.referentialRefService.suggest(value,
             {
               entityName: 'Location',
-              levelId: LocationLevelIds.AUCTION,
-              searchText: value as string
-            }).first().map(({data}) => data);
-        }));
+              levelId: LocationLevelIds.AUCTION
+            }))
+      );
 
     // Update filter when changes
     this.filterForm.valueChanges.subscribe(() => {
@@ -158,7 +149,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
             text: translations['COMMON.NO'],
             role: 'cancel',
             cssClass: 'secondary',
-            handler: () => { }
+            handler: () => {
+            }
           },
           {
             text: translations['COMMON.YES'],
@@ -188,5 +180,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
   personsToString = personsToString;
-  programToString(item: ReferentialRef) {return item && item.label || '';}
+
+  programToString(item: ReferentialRef) {
+    return item && item.label || '';
+  }
 }

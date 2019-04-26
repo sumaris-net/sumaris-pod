@@ -26,7 +26,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
   private _gear: string;
   private _acquisitionLevel: string;
   protected data: Measurement[];
-  protected _debugAcquisitionLevel: string;
 
   loading = false;
   loadingPmfms = true;
@@ -123,7 +122,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
 
     // TODO: DEV only
     //this.debug = true;
-    //this._debugAcquisitionLevel = 'TRIP';
   }
 
   ngOnInit() {
@@ -147,10 +145,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
 
     // Listen form changes
     this.form.valueChanges
-      .subscribe(value => {
-        if (this.loading || !this.valueChanges.observers.length) return; // Skip if still loading
-        if (this.debug) console.debug(`${this.logPrefix} form.valueChanges => propagate event`);
-        this.valueChanges.emit(this.value);
+      .subscribe((_) => {
+        if (!this.loading && this.valueChanges.observers.length) {
+          this.valueChanges.emit(this.value);
+        }
       });
   }
 

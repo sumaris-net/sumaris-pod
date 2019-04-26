@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
 import {BehaviorSubject} from 'rxjs';
-import {startWith} from "rxjs/operators";
+import {filter, startWith, first} from "rxjs/operators";
 import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -41,7 +41,7 @@ const SALE_RESERVED_END_COLUMNS: string[] = ['comments'];
   templateUrl: 'observed-vessels.table.html',
   styleUrls: ['observed-vessels.table.scss'],
   providers: [
-    { provide: ValidatorService, useClass: SaleValidatorService }
+    {provide: ValidatorService, useClass: SaleValidatorService}
   ]
 })
 export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements OnInit, OnDestroy, ValidatorService {
@@ -56,6 +56,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   measurementValuesFormGroupConfig: { [key: string]: any };
   data: Sale[];
+  excludesColumns = new Array<String>();
 
   set value(data: Sale[]) {
     if (this.data !== data) {
@@ -140,18 +141,17 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
   async ngOnInit() {
     super.ngOnInit();
 
-    let excludesColumns:String[] = new Array<String>();
-    if (!this.showCommentsColumn) excludesColumns.push('comments');
+    if (!this.showCommentsColumn) this.excludesColumns.push('comments');
 
     this._onRefreshPmfms
-      .pipe(
-        startWith('ngOnInit')
-      )
+      .pipe(startWith('ngOnInit'))
       .subscribe((event) => this.refreshPmfms(event));
 
     this.pmfms
-      .filter(pmfms => pmfms && pmfms.length > 0)
-      .first()
+      .pipe(
+        filter(isNotNil),
+        first()
+      )
       .subscribe(pmfms => {
         this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
         let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
@@ -162,7 +162,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
           .concat(SALE_RESERVED_END_COLUMNS)
           .concat(RESERVED_END_COLUMNS)
           // Remove columns to hide
-          .filter(column => !excludesColumns.includes(column));
+          .filter(column => !this.excludesColumns.includes(column));
 
         this.loading = false;
 
@@ -171,24 +171,23 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
 
     // Set default acquisition Level
     if (isNil(this._acquisitionLevel)) {
-      this.acquisitionLevel = AcquisitionLevelCodes.SALE;
+      this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
     }
   }
 
-  setParent(data: ObservedLocation|Trip) {
+  setParent(data: ObservedLocation | Trip) {
     if (data) {
       if (data instanceof ObservedLocation) {
         this.setParentData({observedLocationId: data.id});
-      }
-      else if (data instanceof Trip) {
+      } else if (data instanceof Trip) {
         this.setParentData({tripId: data.id});
       }
     }
   }
 
   setParentData(parent: any) {
-    this.filter = Object.assign( this.filter || {}, parent);
-    this.dataSource.serviceOptions = Object.assign( this.dataSource.serviceOptions || {}, parent);
+    this.filter = Object.assign(this.filter || {}, parent);
+    this.dataSource.serviceOptions = Object.assign(this.dataSource.serviceOptions || {}, parent);
     if (isNotNil(parent)) {
       this.onRefresh.emit();
     }
@@ -203,7 +202,9 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
   }
 
   async deleteSelection(confirm?: boolean): Promise<void> {
-    if (this.loading) { return; }
+    if (this.loading) {
+      return;
+    }
 
     if (!confirm) {
       const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE', 'CONFIRM.ALERT_HEADER']);
@@ -215,7 +216,8 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
             text: translations['COMMON.NO'],
             role: 'cancel',
             cssClass: 'secondary',
-            handler: () => { }
+            handler: () => {
+            }
           },
           {
             text: translations['COMMON.YES'],
@@ -280,8 +282,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
-    const canLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
-    if (!canLoadPmfms) {
+    if (isNil(this._program) && isNil(this._acquisitionLevel)) {
       return undefined;
     }
 
@@ -302,6 +303,8 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
     this.loadingPmfms = false;
 
     this.pmfms.next(pmfms);
+
+    this.markForCheck();
 
     return pmfms;
   }

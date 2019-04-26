@@ -1,5 +1,5 @@
 <app-toolbar [title]="title | async" color="primary" [hasValidate]="dirty && !loading" (onValidate)="save($event)"
-  [defaultBackHref]="defaultBackHref" #appToolbar>
+             [defaultBackHref]="defaultBackHref" #appToolbar>
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
@@ -62,12 +62,15 @@
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_CATCH</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && catchForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && catchBatchForm.invalid"></ion-icon>
       </ng-template>
 
-      <!-- catch form -->
-      <form-catch (onSubmit)="save($event)" [showError]="false" #catchForm [debug]="debug" [program]="programSubject|async">
-      </form-catch>
+      <!-- catch batch form -->
+      <form-catch-batch #catchBatchForm
+                        (onSubmit)="save($event)" [showError]="false" [debug]="debug"
+                        acquisitionLevel="CATCH_BATCH"
+                        [program]="programSubject|async">
+      </form-catch-batch>
 
       <!-- tab group for batches -->
       <mat-tab-group [hidden]="!showBatchSamplingTables"
@@ -90,7 +93,7 @@
         </mat-tab>
 
         <!-- TAB: individual measurements -->
-        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}" [hidden]="!showSubBatchSamplingTable">
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}" [disabled]="!enableSubBatchSamplingTable">
           <ng-template mat-tab-label>
             <mat-icon>list</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>

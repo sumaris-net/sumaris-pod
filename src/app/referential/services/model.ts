@@ -64,6 +64,15 @@ export const PmfmLabelPatterns = {
   BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/
 }
 
+export const ProgramProperties = {
+  BATCH_TAXON_NAME_ENABLE: 'sumaris.trip.operation.batch.taxonName.enable',
+  BATCH_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.batch.taxonGroup.enable',
+  SAMPLE_TAXON_NAME_ENABLE: 'sumaris.trip.operation.batch.taxonName.enable',
+  SAMPLE_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.batch.taxonGroup.enable',
+  SURVIVAL_TEST_TAXON_NAME_ENABLE: 'sumaris.trip.operation.survivalTest.taxonName.enable',
+  SURVIVAL_TEST_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.survivalTest.taxonGroup.enable'
+}
+
 const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
 export { EntityUtils, StatusIds, AcquisitionLevelCodes,
@@ -164,6 +173,77 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
     source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
     source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
     return this;
+  }
+}
+
+
+export class Program extends Entity<Program>  {
+
+  static fromObject(source: any): Program {
+    const res = new Program();
+    res.fromObject(source);
+    return res;
+  }
+
+  label: string;
+  name: string;
+  description: string;
+  comments: string;
+  creationDate: Date | Moment;
+  statusId: number;
+  properties: {[key: string]: string};
+
+  constructor(data?: {
+    id?: number,
+    label?: string,
+    name?: string
+  }) {
+    super();
+    this.id = data && data.id;
+    this.label = data && data.label;
+    this.name = data && data.name;
+  }
+
+  clone(): Program {
+    return this.copy(new Program());
+  }
+
+  copy(target: Program): Program {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(minify?: boolean): any {
+    if (minify) return { id: this.id }; // minify=keep id only
+    const target: any = super.asObject(minify);
+    target.creationDate = toDateISOString(this.creationDate);
+    target.properties = this.properties;
+    return target;
+  }
+
+  fromObject(source: any): Entity<Program> {
+    super.fromObject(source);
+    this.label = source.label;
+    this.name = source.name;
+    this.description = source.description;
+    this.comments = source.comments;
+    this.statusId = source.statusId;
+    this.creationDate = fromDateISOString(source.creationDate);
+    if (source.properties && source.properties instanceof Array) {
+      this.properties = EntityUtils.getArrayAsObject(source.properties);
+    }
+    else {
+      this.properties = source.properties;
+    }
+    return this;
+  }
+
+  equals(other: Program): boolean {
+    return super.equals(other) && this.id === other.id;
+  }
+
+  getPropertyAsBoolean(key: string): boolean {
+    return this.properties[key] !== "false";
   }
 }
 

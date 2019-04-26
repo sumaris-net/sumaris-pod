@@ -6,7 +6,7 @@ import {Platform} from '@ionic/angular';
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
-import {mergeMap} from 'rxjs/operators';
+import {debounceTime, mergeMap, switchMap} from 'rxjs/operators';
 import {AppForm, AppFormUtils} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 
@@ -37,18 +37,13 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
     this.locations = this.form.controls['basePortLocation']
       .valueChanges
       .pipe(
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value == "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'Location',
-              levelId: LocationLevelIds.PORT,
-              searchText: value as string
-            }
-          ).first()
-            .map(({data}) => data);
-        }))
+        debounceTime(250),
+        switchMap(value => this.referentialRefService.suggest(value, {
+            entityName: 'Location',
+            levelId: LocationLevelIds.PORT
+          }
+        ))
+      )
     ;
   }
 

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from "@angular/core";
 import {Observable} from 'rxjs';
 import {ValidatorService} from "angular4-material-table";
 import {
@@ -18,7 +18,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService, referentialToString, vesselFeaturesToString} from "../../referential/referential.module";
-import {debounceTime, mergeMap} from "rxjs/operators";
+import {debounceTime, mergeMap, switchMap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 
 @Component({
@@ -47,12 +47,13 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
-    protected validatorService: TripValidatorService,
+    protected validatorService: ValidatorService,
     protected dataService: TripService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
-    protected translate: TranslateService
+    protected translate: TranslateService,
+    protected cd: ChangeDetectorRef
   ) {
 
     super(route, router, platform, location, modalCtrl, accountService,
@@ -100,15 +101,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       .startWith('')
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'Program',
-              searchText: value as string
-            }).first().map(({data}) => data);
-        })
+        switchMap(value => this.referentialRefService.suggest(value,{entityName: 'Program'}))
       );
 
     // Locations combo (filter)
@@ -116,16 +109,11 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       .valueChanges
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              entityName: 'Location',
-              levelId: LocationLevelIds.PORT,
-              searchText: value as string
-            }).first().map(({data}) => data);
-        }));
+        switchMap(value => this.referentialRefService.suggest(value,{
+          entityName: 'Location',
+          levelId: LocationLevelIds.PORT
+        }))
+      );
 
     // Update filter when changes
     this.filterForm.valueChanges.subscribe(() => {
@@ -141,11 +129,12 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.onRefresh.subscribe(() => {
       this.filterForm.markAsUntouched();
       this.filterForm.markAsPristine();
+      this.markForCheck();
     });
   }
 
   protected openEditRowDetail(id: number): Promise<boolean> {
-    return this.router.navigateByUrl('/trips/' + id);
+    return this.router.navigateByUrl('/trips/' + id, {preserveFragment: true});
   }
 
   protected openNewRowDetail(): Promise<boolean> {
@@ -200,6 +189,10 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
   programToString(item: ReferentialRef) {
     return item && item.label || undefined;
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }
 

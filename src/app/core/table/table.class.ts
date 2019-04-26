@@ -1,8 +1,17 @@
 import {ChangeDetectionStrategy, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
-import {MatPaginator, MatSort, MatTable} from "@angular/material";
+import {MatColumnDef, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
-import {Observable} from 'rxjs';
-import {distinctUntilChanged, mergeMap, startWith} from "rxjs/operators";
+import {Observable, of, Subject} from 'rxjs';
+import {
+  auditTime,
+  bufferTime,
+  distinctUntilChanged,
+  mergeMap,
+  startWith,
+  takeUntil,
+  throttleTime,
+  zip
+} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
@@ -16,6 +25,7 @@ import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
 import {isNotNil} from "../../shared/shared.module";
+import {CdkColumnDef} from "@angular/cdk/table";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -37,6 +47,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   protected _dirty = false;
   protected allowRowDetail = true;
   protected pageSize: number;
+  protected _onDestroy = new Subject();
 
   inlineEdition: boolean = false;
   displayedColumns: string[];
@@ -57,7 +68,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   @Input()
   debug = false;
 
-  @ViewChild(MatTable) table: MatSort;
+  @ViewChild(MatTable) table: MatTable<T>;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
@@ -84,13 +95,13 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
   disable() {
     if (!this._initialized || !this.table) return;
-    this.table.disabled = true;
+    if (this.sort) this.sort.disabled = true;
     this._enable = false;
   }
 
   enable() {
     if (!this._initialized || !this.table) return;
-    this.table.disabled = false;
+    if (this.sort) this.sort.disabled = false;
     this._enable = true;
   }
 
@@ -138,7 +149,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     if (this._initialized) return; // Init only once
     this._initialized = true;
 
-    //if (!this.table) throw new Error("[table] Missing 'table' component in template !");
+    if (!this.table) console.warn("[table] Missing <mat-table> in the HTML template!");
 
     // Defined unique id for settings
     this.settingsId = this.generateTableId();
@@ -175,7 +186,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
               this.sort && this.sort.direction,
               this.filter
             );
-          })
+          }),
+          takeUntil(this._onDestroy)
       )
       .catch(err => {
         this.error = err && err.message || err;
@@ -193,6 +205,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         }
         this.markAsUntouched();
         this.markAsPristine();
+        this.markForCheck();
       });
 
     // Listen datasource events
@@ -210,6 +223,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     Object.getOwnPropertyNames(this._cellValueChangesDefs)
       .forEach(col => this.stopCellValueChanges(col));
     this._cellValueChangesDefs = {};
+
+    this._onDestroy.next();
   }
 
   setDatasource(datasource: AppTableDataSource<T, F>) {
@@ -225,7 +240,17 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     this.registerSubscription(dataSource.datasourceSubject.subscribe(data => {
       this.error = undefined;
       this.listChange.emit(data);
+      //this.markForCheck();
     }));
+  }
+
+  addColumnDef(columnDef: MatColumnDef, options?: {skipIfExists: boolean;}) {
+    const existingColumnDef = this.table._contentColumnDefs.find((item, index, array) => item.name === columnDef.name);
+    if (existingColumnDef) {
+      if (options && options.skipIfExists) return; // skip
+      this.table.removeColumnDef(existingColumnDef);
+    }
+    this.table.addColumnDef(columnDef);
   }
 
   confirmAndAddRow(event?: any, row?: TableElement<T>): boolean {
@@ -262,13 +287,14 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   cancelOrDelete(event: any, row: TableElement<T>) {
     this.editedRow = undefined; // unselect row
     event.stopPropagation();
+
     this.dataSource.cancelOrDelete(row);
 
     // If delete (if new row): update counter
     if (row.id === -1) {
       this.resultsLength--;
     }
-    this.markForCheck();
+    //this.markForCheck();
   }
 
   addRow(event?: any): boolean {
@@ -304,9 +330,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     } catch (err) {
       if (this.debug) console.debug("[table] dataSource.save() return an error:", err);
       this.error = err && err.message || err;
+      this.markForCheck();
       throw err;
     }
-    ;
   }
 
   cancel() {
@@ -315,8 +341,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected() {
-    const numSelected = this.selection.selected.length;
-    return numSelected == this.resultsLength;
+    return this.selection.selected.length === this.resultsLength;
   }
 
   /** Selects all rows if they are not all selected; otherwise clear selection. */
@@ -372,12 +397,21 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
   onRowClick(event: MouseEvent, row: TableElement<T>): boolean {
     if (row.id == -1 || row.editing) return true;
-    if (event.defaultPrevented) return false;
+    if (event.defaultPrevented || this.loading) return false;
 
     // Open the detail page (if not editing)
     if (!this._dirty && !this.inlineEdition) {
       event.stopPropagation();
-      this.openEditRowDetail(row.currentData.id, row);
+
+      this.loading = true;
+      setTimeout(() => {
+        this.openEditRowDetail(row.currentData.id, row)
+          .then(() => {
+            this.loading = false;
+            this.markForCheck();
+          });
+      });
+
       return true;
     }
 
@@ -386,7 +420,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
   protected openEditRowDetail(id: number, row?: TableElement<T>): Promise<boolean> {
     if (!this.allowRowDetail) return Promise.resolve(false);
-    this.router.navigate([id], {
+    return this.router.navigate([id], {
       relativeTo: this.route
     });
   }
@@ -436,15 +470,16 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     // On dismiss
     modal.onDidDismiss()
-      .then(res => {
+      .then(async res => {
         if (!res) return; // CANCELLED
 
         // Apply columns
         const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
         this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
+        this.markForCheck();
 
         // Update user settings
-        this.accountService.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
+        await this.accountService.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
       });
     return modal.present();
   }
@@ -532,13 +567,18 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
     // Listen value changes, and redirect to event emitter
     const control = AppFormUtils.getControlFromPath(row.validator, def.formPath);
-    def.subscription = control.valueChanges
-      .subscribe((value) => {
-        def.eventEmitter.emit(value);
-      });
+    if (!control) {
+      console.warn(`[table] Trying to listen cell changes, on an invalid row path {${def.formPath}}`);
+    }
+    else {
+      def.subscription = control.valueChanges
+        .subscribe((value) => {
+          def.eventEmitter.emit(value);
+        });
 
-    // Emit the actual value
-    def.eventEmitter.emit(control.value);
+      // Emit the actual value
+      def.eventEmitter.emit(control.value);
+    }
   }
 
   protected stopCellValueChanges(name: string) {
@@ -551,7 +591,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   }
 
   protected markForCheck() {
-    // Should be override by children class, depending on the choosen ChangeDetectionStrategy
+    // Should be override by subclasses, depending on ChangeDetectionStrategy
   }
+
 }
 

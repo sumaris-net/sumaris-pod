@@ -142,10 +142,10 @@
 
   <!-- taxon name (scientific species) -->
   <ng-container matColumnDef="taxonName">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
+    <mat-header-cell *matHeaderCellDef mat-sort-header >
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
+    <mat-cell *matCellDef="let row" >
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls['taxonName']" [matAutocomplete]="autoTaxonName"
           [placeholder]="'TRIP.BATCH.TABLE.TAXON_NAME_PLACEHOLDER'|translate" (focus)="onCellFocus($event, row, 'taxonName')"
@@ -173,30 +173,27 @@
 
   </ng-container>
 
-  <ng-container *ngIf="!loading">
+  <!-- Pmfm columns -->
+  <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
 
-    <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of pmfms | async" matColumnDef="{{pmfm.pmfmId}}">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)"
+      [class.even]="isEven(pmfm)">
+      <mat-label float-center>
+        <span>{{getPmfmColumnHeader(pmfm)}}</span>
+        <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
+      </mat-label>
+    </mat-header-cell>
 
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)"
-        [class.even]="isEven(pmfm)">
-        <mat-label float-center>
-          <span>{{getPmfmColumnHeader(pmfm)}}</span>
-          <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
-        </mat-label>
-      </mat-header-cell>
-
-      <mat-cell *matCellDef="let row" [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)" [class.even]="isEven(pmfm)">
-        <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
-          [compact]="true" floatLabel="never"></mat-form-field-measurement>
-      </mat-cell>
-    </ng-container>
+    <mat-cell *matCellDef="let row" [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)" [class.even]="isEven(pmfm)">
+      <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
+        [compact]="true" floatLabel="never"></mat-form-field-measurement>
+    </mat-cell>
   </ng-container>
 
   <!-- Comment column -->
   <ng-container matColumnDef="comments">
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>REFERENTIAL.COMMENTS</span>
+      <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
       <mat-form-field floatLabel="never">
