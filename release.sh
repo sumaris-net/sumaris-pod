@@ -47,9 +47,9 @@ rel|pre)
     currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+((a|b)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
     sed -i "s/ version=\"$currentConfigXmlVersion\"/ version=\"$2\"/g" config.xml
 
-    # Change version in file: 'www/manifest.json'
-    currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?\"" src/manifest.json | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
-    sed -i "s/version\": \"$currentManifestJsonVersion\"/version\": \"$2\"/g" src/manifest.json
+    # Change version in file: 'manifest.json'
+    currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
+    sed -i "s/version\": \"$currentManifestJsonVersion\"/version\": \"$2\"/g" src/assets/manifest.json
 
     # Bump the install.sh
     sed -i "s/echo \"v.*\" #lastest/echo \"v$2\" #lastest/g" install.sh
@@ -83,7 +83,7 @@ echo "----------------------------------"
 # Commit
 cd $DIRNAME
 git reset HEAD
-git add package.json config.xml src/manifest.json install.sh
+git add package.json config.xml src/assets/manifest.json install.sh
 git commit -m "v$2"
 git tag "v$2"
 git push
