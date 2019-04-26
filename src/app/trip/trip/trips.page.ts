@@ -68,7 +68,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Trip, TripFilter>(Trip, dataService, validatorService, {
+      new AppTableDataSource<Trip, TripFilter>(Trip, dataService, null, {
         prependNewElements: false,
         suppressErrors: false,
         serviceOptions: {

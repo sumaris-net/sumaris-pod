@@ -67,7 +67,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, validatorService, {
+      new AppTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
         prependNewElements: false,
         suppressErrors: false,
         useRowValidator: false,

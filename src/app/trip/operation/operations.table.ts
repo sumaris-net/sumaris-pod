@@ -76,7 +76,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
             'endPosition',
             'comments'])
         .concat(RESERVED_END_COLUMNS),
-      new AppTableDataSource<Operation, OperationFilter>(Operation, dataService, validatorService,
+      new AppTableDataSource<Operation, OperationFilter>(Operation, dataService, null,
         // DataSource options
         {
           prependNewElements: false,
@@ -88,6 +88,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false;
+    this.inlineEdition=false;
     this.latLongPattern = accountService.account.settings.latLongFormat || 'DDMM';
     this.pageSize = 1000; // Do not use paginator
   };

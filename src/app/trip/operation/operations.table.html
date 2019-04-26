@@ -56,7 +56,7 @@
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{row.currentData.rankOrderOnPeriod}}</ion-label>
+      <ion-text>{{row.currentData?.rankOrderOnPeriod}}</ion-text>
     </mat-cell>
   </ng-container>
 
@@ -66,7 +66,7 @@
       <ion-label translate>TRIP.OPERATION.LIST.METIER</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.metier)}}</ion-label>
+      <ion-text>{{referentialToString(row.currentData?.metier)}}</ion-text>
     </mat-cell>
   </ng-container>
 
@@ -76,7 +76,7 @@
       <ion-label translate>TRIP.OPERATION.LIST.START_DATE_TIME</ion-label>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      <ion-label>{{row.currentData.startDateTime|dateFormat:{time:true} }}</ion-label>
+      <ion-text>{{row.currentData.startDateTime|dateFormat:{time:true} }}</ion-text>
     </mat-cell>
   </ng-container>
 
@@ -86,10 +86,10 @@
       <ion-label translate>TRIP.OPERATION.LIST.START_POSITION</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>
+      <ion-text>
         {{ row.currentData.startPosition.latitude|latLongFormat: {type: 'latitude', pattern: latLongPattern, placeholderChar: '0'} }}<br/>
         {{ row.currentData.startPosition.longitude|latLongFormat: {type: 'longitude', pattern: latLongPattern, placeholderChar: '0'} }}
-      </ion-label>
+      </ion-text>
     </mat-cell>
   </ng-container>
 
