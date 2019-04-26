@@ -62,7 +62,7 @@ esac
 echo "----------------------------------"
 echo "- Compiling sources..."
 echo "----------------------------------"
-npm run build.prod
+#npm run build.prod
 if [ $? -ne 0 ]; then
     exit
 fi
@@ -71,7 +71,7 @@ echo "----------------------------------"
 echo "- Creating artefact..."
 echo "----------------------------------"
 cd $DIRNAME/www
-zip -q -r sumaris-app.zip sumaris-app
+zip -q -r sumaris-app.zip .
 if [ $? -ne 0 ]; then
     exit
 fi

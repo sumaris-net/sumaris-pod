@@ -84,7 +84,7 @@ case "$1" in
       dirname=`pwd`
 
       echo "Sending web build..."
-      curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T $dirname/dist/sumaris-app.zip $upload_url?name=sumaris-app-v$current-web.zip
+      curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T $dirname/www/sumaris-app.zip $upload_url?name=sumaris-app-v$current-web.zip
 
       echo "-----"
       echo "Successfully uploading files !"
