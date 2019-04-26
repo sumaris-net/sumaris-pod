@@ -20,7 +20,7 @@ echo "Current version: $current"
 # force nodejs version to 8
 if [ -d "$NVM_DIR" ]; then
     . $NVM_DIR/nvm.sh
-    nvm use 8
+    nvm use 10
 else
     echo "nvm (Node version manager) not found (directory $NVM_DIR not found). Please install, and retry"
     exit -1
@@ -70,7 +70,7 @@ fi
 echo "----------------------------------"
 echo "- Creating artefact..."
 echo "----------------------------------"
-cd $DIRNAME/dist 
+cd $DIRNAME/www
 zip -q -r sumaris-app.zip sumaris-app
 if [ $? -ne 0 ]; then
     exit

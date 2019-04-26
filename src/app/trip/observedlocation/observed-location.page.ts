@@ -85,6 +85,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
       // If is on field mode, fill default values
       if (isOnFieldMode) {
         data.startDateTime = moment();
+        // TODO : get the default program from local settings ?
         data.program = ReferentialRef.fromObject({label: environment.defaultProgram});
       }
 
