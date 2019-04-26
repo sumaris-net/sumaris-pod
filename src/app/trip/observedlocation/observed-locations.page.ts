@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, Component} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {
-  EntityUtils,
-  LocationLevelIds, personsToString,
+  LocationLevelIds,
+  personsToString,
   ReferentialRef,
   referentialToString,
   vesselFeaturesToString
@@ -12,12 +12,11 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {AccountService} from "../../core/services/account.service";
-import {TripValidatorService} from "../services/trip.validator";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {AppTableDataSource} from "../../core/table/table-datasource.class";
-import {debounceTime, mergeMap, switchMap} from "rxjs/operators";
+import {debounceTime, switchMap} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocation} from "../services/observed-location.model";
@@ -53,7 +52,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
-    protected translate: TranslateService
+    protected translate: TranslateService,
+    protected cd: ChangeDetectorRef
   ) {
 
     super(route, router, platform, location, modalCtrl, accountService,
@@ -134,6 +134,12 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       this.filterForm.markAsUntouched();
       this.filterForm.markAsPristine();
     });
+
+    // TODO: remove this
+    setTimeout(() => {
+      this.loading=false;
+      this.markForCheck();
+    }, 1000);
   }
 
   async deleteSelection(confirm?: boolean) {
@@ -183,5 +189,9 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
 
   programToString(item: ReferentialRef) {
     return item && item.label || '';
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

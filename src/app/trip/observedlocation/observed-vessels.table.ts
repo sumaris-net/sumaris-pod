@@ -46,12 +46,12 @@ const SALE_RESERVED_END_COLUMNS: string[] = ['comments'];
 })
 export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements OnInit, OnDestroy, ValidatorService {
 
-  private _program: string = environment.defaultProgram;
+  private _program: string;
   private _acquisitionLevel: string;
   private _dataSubject = new BehaviorSubject<LoadResult<Sale>>({data: []});
   private _onRefreshPmfms = new EventEmitter<any>();
 
-  loading = true;
+  loading = false;
   loadingPmfms = true;
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   measurementValuesFormGroupConfig: { [key: string]: any };
@@ -75,10 +75,9 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
 
   @Input()
   set program(value: string) {
-    if (this._program === value) return; // Skip if same
-    this._program = value;
-    if (!this.loading) {
-      this._onRefreshPmfms.emit('set program');
+    if (this._program !== value && isNotNil(value)) {
+      this._program = value;
+      if (!this.loading) this._onRefreshPmfms.emit('set program');
     }
   }
 
@@ -88,9 +87,9 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
 
   @Input()
   set acquisitionLevel(value: string) {
-    if (this._acquisitionLevel !== value) {
+    if (this._acquisitionLevel !== value && isNotNil(value)) {
       this._acquisitionLevel = value;
-      if (!this.loading) this.onRefresh.emit();
+      if (!this.loading) this._onRefreshPmfms.emit();
     }
   }
 
@@ -136,7 +135,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
     this.i18nColumnPrefix = 'SALE.TABLE.';
     this.autoLoad = false;
     this.pageSize = 1000; // Do not use paginator
-  };
+  }
 
   async ngOnInit() {
     super.ngOnInit();
@@ -282,7 +281,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
-    if (isNil(this._program) && isNil(this._acquisitionLevel)) {
+    if (isNil(this._program) || isNil(this._acquisitionLevel)) {
       return undefined;
     }
 

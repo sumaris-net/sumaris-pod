@@ -236,11 +236,14 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   listenDatasource(dataSource: AppTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
     if (this._subscriptions.length) console.warn("Too many call of listenDatasource!", new Error());
-    this.registerSubscription(dataSource.onLoading.subscribe(loading => this.loading = loading));
+    this.registerSubscription(dataSource.onLoading.subscribe(loading => {
+      this.loading = loading;
+      // NOT NEED this.markForCheck();
+    } ));
     this.registerSubscription(dataSource.datasourceSubject.subscribe(data => {
       this.error = undefined;
       this.listChange.emit(data);
-      //this.markForCheck();
+      // NOT NEED this.markForCheck();
     }));
   }
 
