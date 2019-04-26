@@ -21,7 +21,7 @@ fi
 echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
-mvn release:perform --quiet
+mvn release:perform -Darguments="-DskipTests" --quiet
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
