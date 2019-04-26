@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p .local
+
 echo "**********************************"
 echo "* Preparing release..."
 echo "**********************************"
@@ -11,18 +13,22 @@ if [[ ! "_$failure" = "_" ]]; then
     exit 1
 fi
 
-mvn release:prepare --quiet
+mvn release:prepare  > .local/release-prepare.log
 if [[ $? -ne 0 ]]; then
+    cat .local/release-prepare.log
     exit 1
 fi
+rm .local/release-prepare.log
 
 echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
-mvn release:perform --quiet
+mvn release:perform > .local/release-perform.log
 if [[ $? -ne 0 ]]; then
+    cat .local/release-perform.log
     exit 1
 fi
+rm .local/release-prepare.log
 
 echo "**********************************"
 echo "* Generating DB..."
