@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.10.0.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1556524707391-10">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="PROGRAM_PROPERTY_SEQ"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="PROGRAM_PROPERTY_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1556524707391-11">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="program_property"/>
+            </not>
+        </preConditions>
+        <createTable tableName="program_property">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="program_propertyPK"/>
+            </column>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="program_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1556524707391-15" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="program_property" constraintName="FKhcnk4lqtrkjop7sdimdq2w4ps" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status" />
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1556524707391-16" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="program_property" constraintName="FKmcpfc5rddsf5awdpk6frd4h86" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" />
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1556524707391-200">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='0.10.0'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">0.10.0</column>
+            <column name="DESCRIPTION">
+                - Add table PROGRAM_PROPERTY
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="COMMENTS">
+                - Add table PROGRAM_PROPERTY
+            </column>
+        </insert>
+    </changeSet>
+    
+</databaseChangeLog>

@@ -41,11 +41,11 @@ public class ReferenceTaxonStrategy implements Serializable {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Strategy.class)
-    @PrimaryKeyJoinColumn(name = "strategy_fk")
+    @JoinColumn(name = "strategy_fk")
     private Strategy strategy;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ReferenceTaxon.class)
-    @PrimaryKeyJoinColumn(name = "reference_taxon_fk")
+    @JoinColumn(name = "reference_taxon_fk")
     private ReferenceTaxon referenceTaxon;
 }

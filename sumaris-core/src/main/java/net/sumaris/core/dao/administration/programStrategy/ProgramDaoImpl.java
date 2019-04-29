@@ -59,12 +59,15 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
     @PostConstruct
     protected void init() {
         Arrays.stream(ProgramEnum.values()).forEach(programEnum -> {
-            ProgramVO program = getByLabel(programEnum.name());
-            if (program != null) {
-                programEnum.setId(program.getId());
-            }
-            else {
-                log.warn("Missing program with label=" + programEnum.name());
+            try {
+                ProgramVO program = getByLabel(programEnum.name());
+                if (program != null) {
+                    programEnum.setId(program.getId());
+                } else {
+                    log.warn("Missing program with label=" + programEnum.name());
+                }
+            } catch(Throwable t) {
+                log.error(String.format("Could not initialized enumeration for program {%s}: %s", programEnum.name(), t.getMessage()), t);
             }
         });
     }

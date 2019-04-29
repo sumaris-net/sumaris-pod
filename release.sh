@@ -46,6 +46,16 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+# Push git
+cd $dirname
+git push
+if [ $? -ne 0 ]; then
+    exit
+fi
+
+# Pause (if propagation is need between hosted git server and github)
+sleep 10s
+
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
 echo "**********************************"
