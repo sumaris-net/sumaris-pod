@@ -247,7 +247,7 @@ export class Program extends Entity<Program>  {
   }
 }
 
-export declare type PmfmType = 'integer' | 'double' | 'string' | 'qualitative_value';
+export declare type PmfmType = 'integer' | 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
 
 export class PmfmStrategy extends Entity<PmfmStrategy>  {
 
@@ -316,5 +316,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy>  {
     this.gears = source.gears || [];
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject) || [];
     return this;
+  }
+
+  isNumeric(): boolean {
+    return isNotNil(this.type) && (this.type === 'integer' || this.type === 'double');
   }
 }

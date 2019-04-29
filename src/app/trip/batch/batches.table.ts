@@ -155,7 +155,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
       Batch, this, this, {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: true,
         onNewRow: (row) => this.onNewBatchRow(row)
       }));
     //this.debug = true;
@@ -212,8 +212,11 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   }
 
   getRowValidator(): FormGroup {
-    let formGroup = this.validatorService.getRowValidator();
+    const formGroup = this.validatorService.getRowValidator();
     if (this.measurementValuesFormGroupConfig) {
+      if (formGroup.contains('measurementValues')) {
+        formGroup.removeControl('measurementValues');
+      }
       formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
     }
     return formGroup;

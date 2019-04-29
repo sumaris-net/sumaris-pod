@@ -155,6 +155,18 @@ form.form-container {
   }
 }
 
+// Small devices:
+@media screen and (max-width: $screen-sm-max) {
+  form.form-container {
+    ion-col > ion-label {
+      width: 100%;
+      border-top: 0.15em dashed var(--ion-color-light100);
+      margin-bottom: 0px;
+      margin-right: 0px;
+    }
+  }
+}
+
 mat-form-field {
   mat-error {
     text-align: right;

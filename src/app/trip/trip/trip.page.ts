@@ -59,7 +59,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     super(route, router, alertCtrl, translate);
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {

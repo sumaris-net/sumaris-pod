@@ -1,4 +1,4 @@
-import {FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
+import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
 import {fromDateISOString, isNil, isNotNil} from "../functions";
@@ -62,8 +62,12 @@ export class SharedValidators {
 
     const regexp = new RegExp(regexpStr);
     return (control: FormControl): ValidationErrors | null => {
-      const value = control.value;
-      if (isNotNil(value) && value !== "" && (Number.isNaN(value) || !regexp.test(value as string))) {
+      let value = control.value;
+      if (Number.isNaN(value)) {
+        //console.log("WARN: Getting a NaN value !");
+        value = null;
+      }
+      if (isNotNil(value) && value !== "" && !regexp.test(value as string)) {
         return { maxDecimals: true };
       }
     };
@@ -74,7 +78,7 @@ export class SharedValidators {
       const endField = group.get(endDateField);
       const startDate = fromDateISOString(group.get(startDateField).value);
       const endDate = fromDateISOString(endField.value);
-      if (startDate !== null && endDate !== null && startDate >= endDate) {
+      if (isNotNil(startDate) && isNotNil(endDate)  && startDate >= endDate) {
         // Update end field
         const endFieldErrors: ValidationErrors = endField.errors || {};
         endFieldErrors['dateIsAfter'] = true;
@@ -83,17 +87,52 @@ export class SharedValidators {
         return { dateIsAfter: true};
       }
       // OK: remove the existing on the end field
-      else if (endField.hasError('dateIsAfter')) {
-        const errors = endField.errors;
-        if (errors && errors.dateIsAfter) {
-          if (Object.getOwnPropertyNames(errors).length > 1) {
-            delete errors.dateIsAfter;
-            endField.setErrors(errors);
-          }
-          else {
-            endField.setErrors(null);
-          }
-        }
+      else {
+        SharedValidators.clearError(endField, 'dateIsAfter');
+      }
+      return null;
+    };
+  }
+
+  static dateMaxDuration(startDateField: string, endDateField: string, maxDuration: number, durationUnit?: moment.unitOfTime.Diff): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const endField = group.get(endDateField);
+      const startDate = fromDateISOString(group.get(startDateField).value);
+      const endDate = fromDateISOString(endField.value);
+      if (isNotNil(startDate) && isNotNil(endDate) && Math.abs(startDate.diff(endDate, durationUnit)) > maxDuration) {
+        // Update end field
+        const endFieldErrors: ValidationErrors = endField.errors || {};
+        endFieldErrors['dateMaxDuration'] = true;
+        endField.setErrors(endFieldErrors);
+        endField.markAsTouched({onlySelf: true});
+        // Return the error (should be apply to the parent form)
+        return { dateMaxDuration: true};
+      }
+      // OK: remove the existing on the end field
+      else {
+        SharedValidators.clearError(endField, 'dateMaxDuration');
+      }
+      return null;
+    };
+  }
+
+  static dateMinDuration(startDateField: string, endDateField: string, minDuration: number, durationUnit?: moment.unitOfTime.Diff): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const endField = group.get(endDateField);
+      const startDate = fromDateISOString(group.get(startDateField).value);
+      const endDate = fromDateISOString(endField.value);
+      if (isNotNil(startDate) && isNotNil(endDate) && Math.abs(startDate.diff(endDate, durationUnit)) < minDuration) {
+        // Update end field
+        const endFieldErrors: ValidationErrors = endField.errors || {};
+        endFieldErrors['dateMinDuration'] = true;
+        endField.setErrors(endFieldErrors);
+        endField.markAsTouched({onlySelf: true});
+        // Return the error (should be apply to the parent form)
+        return { dateMinDuration: true};
+      }
+      // OK: remove the existing on the end field
+      else {
+        SharedValidators.clearError(endField, 'dateMinDuration');
       }
       return null;
     };
@@ -111,5 +150,21 @@ export class SharedValidators {
     };
   }
 
+  static clearError(control: AbstractControl, errorCode: string) {
+    if (control.hasError(errorCode)) {
+      const errors = control.errors;
+      if (errors && errors[errorCode]) {
+        // Only one error: reset errors
+        if (Object.getOwnPropertyNames(errors).length === 1) {
+          control.setErrors(null);
+        }
+        // Other errors exists: just remove this error
+        else {
+          delete errors[errorCode];
+          control.setErrors(errors);
+        }
+      }
+    }
+  }
 
 }

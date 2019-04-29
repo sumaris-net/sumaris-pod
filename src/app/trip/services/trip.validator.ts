@@ -1,8 +1,8 @@
-import { Injectable } from "@angular/core";
-import { ValidatorService } from "angular4-material-table";
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { Trip } from "./trip.model";
-import { SharedValidators } from "../../shared/validator/validators";
+import {Injectable} from "@angular/core";
+import {ValidatorService} from "angular4-material-table";
+import {FormGroup, Validators, FormBuilder} from "@angular/forms";
+import {Trip} from "./trip.model";
+import {SharedValidators} from "../../shared/validator/validators";
 import {AccountService} from "../../core/services/account.service";
 
 @Injectable()
@@ -34,7 +34,12 @@ export class TripValidatorService implements ValidatorService {
       'returnLocation': ['', isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
       'comments': ['', Validators.maxLength(2000)]
     }, {
-      validator: Validators.compose([SharedValidators.dateIsAfter('departureDateTime', 'returnDateTime') ])
+      validator: Validators.compose([
+        SharedValidators.dateIsAfter('departureDateTime', 'returnDateTime'),
+        SharedValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours')
+      ]),
     });
   }
 }
+
+

@@ -27,6 +27,7 @@
     "BTN_HIDE_MENU": "Hide menu",
     "BTN_SHOW_MENU": "Show menu",
     "CREATED_ON": "Created on",
+    "COMMENTS": "Comments",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
@@ -77,6 +78,7 @@
   "MENU": {
     "HOME": "Home",
     "TRIPS": "Trips",
+    "OBSERVED_LOCATIONS": "Auction controls",
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Users",
     "VESSELS": "Vessels",
@@ -202,9 +204,17 @@
     },
     "LIST": {
       "TITLE": "Fishing trips",
+      "VESSEL": "Vessel",
       "PROGRAM": "Programme",
+      "DEPARTURE_DATE_TIME": "Departure date",
+      "DEPARTURE_LOCATION": "Departure harbour",
+      "RETURN_DATE_TIME": "Return date",
+      "RETURN_LOCATION": "Return harbour",
       "QUALITY": "Status",
+      "OBSERVERS": "Observers",
+      "COMMENTS": "Comments",
       "FILTER": {
+        "PROGRAM": "Data collection program",
         "START_DATE": "Start period",
         "END_DATE": "End period",
         "LOCATION": "Port (departure or return)"
@@ -323,12 +333,19 @@
     "END_DATE_TIME": "End date/time",
     "SALE_LOCATION": "Sale location",
     "SALE_TYPE": "Sale type",
-    "COMMENTS": "Comments",
+    "COMMENTS": "Comments",,
+    "VESSEL": "Vessel",
     "NEW": {
       "TITLE": "New sale"
     },
     "EDIT": {
       "TITLE": "Edit the sale"
+    },
+    "TABLE": {
+      "VESSEL": "Vessel",
+      "START_DATE_TIME": "Date/time",
+      "OBSERVERS": "Observers",
+      "COMMENTS": "Comments"
     },
     "ERROR": {
       "LOAD_ERROR": "Error while loading the sale.",
@@ -442,6 +459,14 @@
       "METIER": "Metiers"
     }
   },
+  "PROGRAM": {
+    "ERROR": {
+      "LOAD_PROGRAM_ERROR": "Error while loading program",
+      "LOAD_PROGRAMS_ERROR": "Error while loading programs",
+      "SAVE_PROGRAM_ERROR": "Error while saving program",
+      "SAVE_PROGRAMS_ERROR": "Error while saving programs"
+    }
+  },
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Download as CSV",
     "COMMON": {
@@ -523,7 +548,9 @@
     "FIELD_NOT_VALID_INTEGER": "Expected integer value",
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",
     "FIELD_NOT_VALID_DATE": "Invalid date",
-    "FIELD_NOT_VALID_DATE_AFTER": "Invalid end date",
+    "FIELD_NOT_VALID_DATE_AFTER": "Inconsistent dates",
+    "FIELD_NOT_VALID_DATE_MAX_DURATION": "Duration too long",
+    "FIELD_NOT_VALID_DATE_MIN_DURATION": "Duration too short",
     "FIELD_NOT_VALID_HOUR_MINUTE": "Invalid hour/minute",
     "FIELD_NOT_VALID_DATE_TIME": "Invalid date/hour",
     "FIELD_NOT_VALID_LATITUDE": "Invalid latitude",
@@ -539,6 +566,8 @@
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
     "LOAD_ACCOUNT_ERROR": "Error loading user account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "LOAD_CONFIG_ERROR": "Error while loading configuration",
+    "SAVE_CONFIG_ERROR": "Error while saving configuration",
     "ACCOUNT_NOT_EXISTS": "Your account does not appear to exist and can not be backed up.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Error sending account confirmation email.<small><br/>If the problem persists, please contact your administrator.</small>",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Error while confirming the email. This account may have already been confirmed?",

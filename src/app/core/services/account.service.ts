@@ -301,7 +301,7 @@ export class AccountService extends BaseDataService {
   public isOnlyGuest(): boolean {
     // Should be login, and status ENABLE or TEMPORARY
     if (!this.data.account || !this.data.account.pubkey ||
-      (this.data.account.statusId != StatusIds.ENABLE && this.data.account.statusId != StatusIds.TEMPORARY))
+      (this.data.account.statusId !== StatusIds.ENABLE && this.data.account.statusId !== StatusIds.TEMPORARY))
       return false;
     // Profile less then user
     return !hasUpperOrEqualsProfile(this.data.account.profiles, 'USER');
