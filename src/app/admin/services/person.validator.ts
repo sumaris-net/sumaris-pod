@@ -16,7 +16,6 @@ export class PersonValidatorService implements ValidatorService {
   }
 
   getRowValidator(): FormGroup {
-    console.log('TOTO');
     return this.getFormGroup();
   }
 
