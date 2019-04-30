@@ -39,9 +39,9 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
   @Input() pmfm: PmfmStrategy;
 
-  @Input() readonly: boolean = false;
+  @Input() readonly = false;
 
-  @Input() disabled: boolean = false;
+  @Input() disabled = false;
 
   @Input() formControl: FormControl;
 
@@ -49,7 +49,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
   @Input() placeholder: string;
 
-  @Input() compact: boolean = false;
+  @Input() compact = false;
 
   @Input() floatLabel: FloatLabelType = "auto";
 
@@ -58,7 +58,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
   }
 
   writeValue(obj: any): void {
-    if (this.pmfm.isNumeric() && Number.isNaN(obj)) {
+    if (this.pmfm.isNumeric && Number.isNaN(obj)) {
       //console.log("WARN: trying to set NaN value, in a measurement field ! " + this.constructor.name);
       obj = null;
     }

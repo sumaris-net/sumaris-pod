@@ -40,15 +40,14 @@
   <!-- date -->
   <ng-container *ngSwitchCase="'date'">
     <mat-date-time [formControl]="formControl" [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
-      [floatLabel]="floatLabel" [required]="pmfm.isMandatory" [readonly]="readonly" [displayTime]="pmfm.unit=='Date & Time'"></mat-date-time>
+      [floatLabel]="floatLabel" [required]="pmfm.isMandatory" [readonly]="readonly" [displayTime]="pmfm.unit=='Date & Time'"
+                   [compact]="compact"></mat-date-time>
   </ng-container>
 
   <!-- qualitative value -->
   <ng-container *ngSwitchCase="'qualitative_value'">
     <mat-form-field-measurement-qv
-      [formControl]="formControl" [pmfm]="pmfm" [floatLabel]="floatLabel" [required]="pmfm.isMandatory"
-      [clearable]="!compact"
-      [compact]="compact"></mat-form-field-measurement-qv>
+      [formControl]="formControl" [pmfm]="pmfm" [floatLabel]="floatLabel" [compact]="compact"></mat-form-field-measurement-qv>
   </ng-container>
 
   <!-- string -->

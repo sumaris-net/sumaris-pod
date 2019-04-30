@@ -329,7 +329,15 @@ export class PmfmStrategy extends Entity<PmfmStrategy>  {
     return this;
   }
 
-  isNumeric(): boolean {
+  get isNumeric(): boolean {
     return isNotNil(this.type) && (this.type === 'integer' || this.type === 'double');
+  }
+
+  get isDate(): boolean {
+    return isNotNil(this.type) && (this.type === 'date');
+  }
+
+  get hasUnit(): boolean {
+    return isNotNil(this.unit) && this.isNumeric;
   }
 }

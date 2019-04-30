@@ -143,13 +143,13 @@
 
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
-    <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.type=='date'">
+    <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.isDate">
       <ion-label>
         <span>{{getPmfmColumnHeader(pmfm)}}</span>
-        <small *ngIf="pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')"><br />({{pmfm.unit}})</small>
+        <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
       </ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.type=='date'">
+    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
       <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
         [compact]="true" floatLabel="never"></mat-form-field-measurement>
     </mat-cell>

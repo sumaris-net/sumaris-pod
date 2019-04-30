@@ -1,7 +1,7 @@
 <!-- readonly -->
 <mat-form-field *ngIf="readonly">
   <input matInput hidden type="text" readonly="true" [formControl]="formControl">
-  <span>{{formControl.value|dateFormat: {pattern: displayPattern} }}</span>
+  <ion-text>{{formControl.value|dateFormat: {pattern: displayPattern} }}</ion-text>
 </mat-form-field>
 
 <!-- writable + mobile + no time (day without time) -->
@@ -108,13 +108,15 @@
 
         <input matInput type="text" [formControl]="form.controls['hour']" hidden [ngxTimepicker]="timePicker1" [format]="24">
 
-        <button type="button" matSuffix (click)="openTimePicker($event, timePicker1)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+        <button *ngIf="!compact" type="button" matSuffix (click)="openTimePicker($event, timePicker1)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
           <mat-icon>keyboard_arrow_down</mat-icon>
         </button>
 
         <ngx-material-timepicker #timePicker1
+                                 [ngxMaterialTimepickerTheme]="darkTheme"
                                  (timeSet)="onTimePickerChange($event)"
                                  [ESC]="false"
+                                 defaultTime="00:00"
                                  [cancelBtnTmpl]="timePickerCancelButton"
                                  [confirmBtnTmpl]="timePickerOkButton"
                                  [preventOverlayClick]="false"

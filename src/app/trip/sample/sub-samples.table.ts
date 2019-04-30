@@ -19,7 +19,7 @@ import {
   RESERVED_START_COLUMNS,
   TableDataService
 } from "../../core/core.module";
-import {getPmfmName, MeasurementUtils, PmfmStrategy, Sample} from "../services/trip.model";
+import {Batch, getPmfmName, MeasurementUtils, PmfmStrategy, Sample} from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -290,7 +290,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     if (!result) return result;
 
     const row = this.dataSource.getRow(-1);
-    this.data.push(row.currentData);
+    this.data.push(Sample.fromObject(row.currentData));
     this.editedRow = row;
 
     // Listen row value changes
@@ -371,7 +371,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
   }
 
   /**
-   * Can be overrided in subclasses (e.g. monitoring invidual table)
+   * Can be overwrite by subclasses (e.g. monitoring individual table)
    **/
   protected startListenRow(row: TableElement<Sample>) {
     this.startCellValueChanges('parent', row);

@@ -5,7 +5,7 @@
 
 <ion-content>
 
-  <mat-tab-group #matTabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [disableRipple]="true" animationDuration="0s">
+  <mat-tab-group #matTabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" animationDuration="0s">
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
@@ -75,7 +75,6 @@
       <!-- tab group for batches -->
       <mat-tab-group #batchSamplingTabGroup
                      [hidden]="!showBatchSamplingTables"
-                     [disableRipple]="true"
                      animationDuration="0s"
                      [(selectedIndex)]="selectedBatchSamplingTabIndex" (selectedTabChange)="onBatchSamplingTabChange($event)">
 
@@ -126,7 +125,7 @@
       <mat-tab-group #survivalTestTabGroup
                      animationDuration="0s"
                      [hidden]="!showSurvivalTestTables"
-                     [(selectedIndex)]="selectedSurvivalTestTabIndex" (selectedTabChange)="onSurvivalTestTabChange($event)" [disableRipple]="true">
+                     [(selectedIndex)]="selectedSurvivalTestTabIndex" (selectedTabChange)="onSurvivalTestTabChange($event)">
 
         <!-- TAB: Survival tests -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">

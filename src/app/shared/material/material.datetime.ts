@@ -42,7 +42,6 @@ declare interface NgxTimePicker {
   selectedMinute: {time: number};
   open();
   close();
-  setDefaultTime(time: string);
 }
 
 @Component({
@@ -60,8 +59,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   protected writing: boolean = true;
   protected disabling = false;
 
-  touchUi: boolean = false;
-  mobile: boolean = false;
+  touchUi = false;
+  mobile = false;
   form: FormGroup;
   displayPattern: string;
   dayPattern: string;
@@ -104,8 +103,12 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
-    this.touchUi = platform.is('tablet');
-    this.mobile = !this.touchUi && platform.is('mobile');
+    // Workaround because ion-datetime has issue (do not returned a ISO date)
+    //this.touchUi = platform.is('tablet');
+    //this.mobile = !this.touchUi && platform.is('mobile');
+    this.touchUi = platform.is('tablet') || platform.is('mobile');
+    this.mobile = false;
+
     this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
   }
 
@@ -433,11 +436,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   }
 
   public openTimePicker(event: UIEvent) {
-    if (this.timePicker1) {
-      if (!this.touchUi) {
-        console.log("Default time", this.timePicker1.setDefaultTime);
-        this.timePicker1.setDefaultTime('');
-      }
+    if (this.timePicker1 && !event.defaultPrevented) {
       this.timePicker1.open();
       event.preventDefault();
     }

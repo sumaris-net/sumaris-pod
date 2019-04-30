@@ -28,6 +28,7 @@
     "BTN_SHOW_MENU": "Afficher le menu",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
+    "EMPTY_OPTION": "(Vide)",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
@@ -487,8 +488,7 @@
       "TITLE": "Listes",
       "FILTER": {
         "ENTITY": "Type de liste",
-        "SEARCH_TEXT": "Recherche : code, libellé",
-        "EMPTY_OPTION": "(Vide)"
+        "SEARCH_TEXT": "Recherche : code, libellé"
       }
     },
     "ENTITY": {

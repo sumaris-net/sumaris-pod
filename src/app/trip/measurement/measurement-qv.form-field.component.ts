@@ -6,167 +6,190 @@ import {
   Output,
   forwardRef,
   Optional,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy, OnDestroy
 } from '@angular/core';
-import { Referential, PmfmStrategy } from "../services/trip.model";
-import { Observable, Subject } from 'rxjs';
-import {startWith, debounceTime, map, tap} from 'rxjs/operators';
-import { referentialToString, EntityUtils, ReferentialRef } from '../../referential/referential.module';
-import { NG_VALUE_ACCESSOR, ControlValueAccessor, Validators, FormControl, FormGroupDirective } from '@angular/forms';
-import { FloatLabelType } from "@angular/material";
+import {Referential, PmfmStrategy} from "../services/trip.model";
+import {merge, Observable, Subject} from 'rxjs';
+import {startWith, map, tap, takeUntil, filter} from 'rxjs/operators';
+import {referentialToString, EntityUtils, ReferentialRef} from '../../referential/referential.module';
+import {NG_VALUE_ACCESSOR, ControlValueAccessor, Validators, FormControl, FormGroupDirective} from '@angular/forms';
+import {FloatLabelType} from "@angular/material";
 
 
-import { SharedValidators } from '../../shared/validator/validators';
+import {SharedValidators} from '../../shared/validator/validators';
+import {Platform} from "@ionic/angular";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',
   templateUrl: './measurement-qv.form-field.component.html',
   providers: [
-      {
-          provide: NG_VALUE_ACCESSOR,
-          useExisting: forwardRef(() => MeasurementQVFormField),
-          multi: true
-      }
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => MeasurementQVFormField),
+      multi: true
+    }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MeasurementQVFormField implements OnInit, ControlValueAccessor {
+export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAccessor {
 
-    private _onChangeCallback = (_: any) => { };
-    private _onTouchedCallback = () => { };
-    private _implicitValue: ReferentialRef | any;
+  private _onChangeCallback = (_: any) => {
+  };
+  private _onTouchedCallback = () => {
+  };
+  private _implicitValue: ReferentialRef | any;
+  private _onDestroy = new Subject<any>();
 
-    items: Observable<ReferentialRef[]>;
-    onValueChange = new Subject<any>();
+  items: Observable<ReferentialRef[]>;
+  onShowDropdown = new Subject<any>();
+  touchUi = false;
 
-    displayWithFn: (obj: ReferentialRef | any) => string;
+  @Input()
+  displayWith: (obj: ReferentialRef | any) => string;
 
-    @Input() pmfm: PmfmStrategy;
+  @Input() pmfm: PmfmStrategy;
 
-    @Input() disabled: boolean = false
+  @Input() formControl: FormControl;
 
-    @Input() formControl: FormControl;
+  @Input() formControlName: string;
 
-    @Input() formControlName: string;
+  @Input() placeholder: string;
 
-    @Input() placeholder: string;
+  @Input() floatLabel: FloatLabelType = "auto";
 
-    @Input() floatLabel: FloatLabelType = "auto";
+  @Input() required = false;
 
-    @Input() required: boolean = false;
+  @Input() readonly = false;
 
-    @Input() readonly: boolean = false;
+  @Input() compact = false;
 
-    @Input() compact: boolean = false;
+  @Input() clearable = false;
 
-    @Input() clearable: boolean = false;
+  @Output()
+  onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
-    @Output()
-    onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  constructor(
+    platform: Platform,
+    @Optional() private formGroupDir: FormGroupDirective
+  ) {
+    this.touchUi = platform.is('tablet') || platform.is('mobile');
+  }
 
-    constructor(
-        @Optional() private formGroupDir: FormGroupDirective
-    ) {
-    }
+  ngOnInit() {
 
-    ngOnInit() {
+    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement-qv>.");
 
-        this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
-        if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement-qv>.");
+    if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
+    this.pmfm.qualitativeValues = this.pmfm.qualitativeValues || [];
+    this.required = this.required || this.pmfm.isMandatory;
 
-        if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
-        this.formControl.setValidators(this.required || this.pmfm.isMandatory ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
+    this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
-        this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm);
+    this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm);
 
-        this.displayWithFn = this.compact ? this.referentialToLabel : referentialToString;
+    this.displayWith = this.displayWith || (this.compact ? this.referentialToLabel : referentialToString);
 
-        this.clearable = this.compact ? false : this.clearable;
+    this.clearable = this.compact ? false : this.clearable;
 
-        this.items = this.onValueChange
+    if (!this.touchUi) {
+      if (!this.pmfm.qualitativeValues.length) {
+        this.items = Observable.of([]);
+      } else {
+        this.items = merge(
+          this.onShowDropdown
             .pipe(
-                startWith(this.formControl.value),
-                debounceTime(this.compact ? 0 : 250), // Not too long on compact mode
-                map(value => {
-                    if (EntityUtils.isNotEmpty(value)) return [value];
-                    if (!this.pmfm.qualitativeValues) return [];
-                    value = (typeof value == "string") && (value as string).toUpperCase() || undefined;
-                    if (!value || value === '*') return this.pmfm.qualitativeValues;
+              takeUntil(this._onDestroy),
+              map((_) => this.pmfm.qualitativeValues)
+            ),
+          this.formControl.valueChanges
+            .pipe(
+              takeUntil(this._onDestroy),
+              filter(EntityUtils.isEmpty),
+              // Not too long on compact mode
+              //debounceTime(this.compact ? 0 : 250),
+              map(value => {
+                //if (EntityUtils.isNotEmpty(value)) return undefined;
+                value = (typeof value === "string") && (value as string).toUpperCase() || undefined;
+                if (!value || value === '*') return this.pmfm.qualitativeValues;
 
-                    // Filter by label and name
-                    return this.pmfm.qualitativeValues.filter((qv) => ((this.startsWithUpperCase(qv.label, value)) || (!this.compact && this.startsWithUpperCase(qv.name, value))));
-                }),
-                // Store implicit value (will use it onBlur if not other value selected)
-                tap(res => {
-                  if (res.length === 1) {
-                    this.formControl.setValue(res[0], {onlySelf: true, emitEvent: false});
-                  }
-                })
+                // Filter by label and name
+                return this.pmfm.qualitativeValues.filter((qv) => ((this.startsWithUpperCase(qv.label, value)) || (!this.compact && this.startsWithUpperCase(qv.name, value))));
+              }),
+              // Store implicit value (will use it onBlur if not other value selected)
+              tap(res => {
+                if (res && res.length === 1) {
+                  this._implicitValue = res[0];
+                  this.formControl.setErrors(null);
+                }
+                else {
+                  this._implicitValue = undefined;
+                }
+              })
+            )
+        );
+      }
+    }
+  }
 
-            );
-    }
+  ngOnDestroy(): void {
+    this._onDestroy.next();
+  }
 
-    get value(): any {
-        return this.formControl.value;
-    }
+  get value(): any {
+    return this.formControl.value;
+  }
 
-    writeValue(obj: any): void {
-        if (obj !== this.formControl.value) {
-            this.formControl.patchValue(obj, { emitEvent: false });
-            this._onChangeCallback(obj);
-        }
+  writeValue(obj: any): void {
+    if (obj !== this.formControl.value) {
+      this.formControl.patchValue(obj, {emitEvent: false});
+      this._onChangeCallback(obj);
     }
+  }
 
-    registerOnChange(fn: any): void {
-        this._onChangeCallback = fn;
-    }
-    registerOnTouched(fn: any): void {
-        this._onTouchedCallback = fn;
-    }
+  registerOnChange(fn: any): void {
+    this._onChangeCallback = fn;
+  }
 
-    setDisabledState(isDisabled: boolean): void {
-        if (this.disabled != isDisabled) {
-            this.disabled = isDisabled;
-            if (isDisabled) {
-                //this.formControl.disable({ onlySelf: true, emitEvent: false });
-            }
-            else {
-                //this.formControl.enable({ onlySelf: true, emitEvent: false });
-            }
-        }
-    }
+  registerOnTouched(fn: any): void {
+    this._onTouchedCallback = fn;
+  }
 
-    public markAsTouched() {
-        if (this.formControl.touched) {
-            this._onTouchedCallback();
-        }
-    }
+  setDisabledState(isDisabled: boolean): void {
 
-    public computePlaceholder(pmfm: PmfmStrategy): string {
-        if (!pmfm) return undefined;
-        if (!pmfm.qualitativeValues) return pmfm.name;
-        return pmfm.qualitativeValues
-            .reduce((res, qv) => (res + "/" + (qv.label || qv.name)), "").substr(1);
-    }
+  }
 
-    public _onBlur(event: FocusEvent) {
-        // When leave component without object, use implicit value if stored
-        if (typeof this.formControl.value !== "object" && this._implicitValue) {
-            this.writeValue(this._implicitValue);
-        }
-        this.markAsTouched();
-        this.onBlur.emit(event);
+  public markAsTouched() {
+    if (this.formControl.touched) {
+      this._onTouchedCallback();
     }
+  }
 
-    private startsWithUpperCase(input: string, search: string): boolean {
-        return input && input.toUpperCase().substr(0, search.length) === search;
-    }
+  public computePlaceholder(pmfm: PmfmStrategy): string {
+    if (!pmfm) return undefined;
+    if (!pmfm.qualitativeValues) return pmfm.name;
+    return pmfm.qualitativeValues
+      .reduce((res, qv) => (res + "/" + (qv.label || qv.name)), "").substr(1);
+  }
 
-    referentialToLabel(obj: Referential | ReferentialRef | any): string {
-        return obj && obj.label || '';
+  public _onBlur(event: FocusEvent) {
+    // When leave component without object, use implicit value if stored
+    if (typeof this.formControl.value !== "object" && this._implicitValue) {
+      this.writeValue(this._implicitValue);
     }
+    this.markAsTouched();
+    this.onBlur.emit(event);
+  }
 
-    clear() {
-        this.formControl.setValue(null);
-    }
+  private startsWithUpperCase(input: string, search: string): boolean {
+    return input && input.toUpperCase().substr(0, search.length) === search;
+  }
+
+  referentialToLabel(obj: Referential | ReferentialRef | any): string {
+    return obj && obj.label || '';
+  }
+
+  clear() {
+    this.formControl.setValue(null);
+  }
 }

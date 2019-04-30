@@ -303,7 +303,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     if (!result) return result;
 
     const row = this.dataSource.getRow(-1);
-    this.data.push(row.currentData);
+    this.data.push(Batch.fromObject(row.currentData));
     this.editedRow = row;
     return true;
   }

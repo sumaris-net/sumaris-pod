@@ -369,7 +369,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     if (!result) return result;
 
     const row = this.dataSource.getRow(-1);
-    this.data.push(row.currentData);
+    this.data.push(Batch.fromObject(row.currentData));
     this.editedRow = row;
 
     // Listen row value changes
