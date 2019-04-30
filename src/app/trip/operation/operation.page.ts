@@ -18,7 +18,7 @@ import {Subject} from 'rxjs';
 import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {SubBatchesTable} from "../batch/sub-batches.table";
-import {MatTabChangeEvent} from "@angular/material";
+import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, switchMap} from "rxjs/operators";
 import {Validators} from "@angular/forms";
 import * as moment from "moment";
@@ -49,6 +49,10 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   enableSubBatchSamplingTable = false;
   showSurvivalTestTables = false;
   usageMode: UsageMode;
+
+  @ViewChild('matTabGroup') matTabGroup: MatTabGroup;
+  @ViewChild('batchSamplingTabGroup') batchSamplingTabGroup: MatTabGroup;
+  @ViewChild('survivalTestTabGroup') survivalTestTabGroup: MatTabGroup;
 
   @ViewChild('opeForm') opeForm: OperationForm;
 
@@ -95,6 +99,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           this.selectedBatchSamplingTabIndex = 0;
           this.selectedSurvivalTestTabIndex = 0;
         }
+        this.batchSamplingTabGroup.realignInkBar();
+        this.survivalTestTabGroup.realignInkBar();
+        this.markForCheck();
       });
 
     // FOR DEV ONLY ----
@@ -346,9 +353,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     } else {
       this.enable();
     }
-
-    this.markForCheck();
-
   }
 
   /**

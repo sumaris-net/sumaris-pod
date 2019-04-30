@@ -1,6 +1,5 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output} from '@angular/core';
 import {DataRootEntity, isNil, isNotNil, Trip} from '../services/trip.model';
-
 // import fade in animation
 import {fadeInAnimation} from '../../shared/shared.module';
 import {AccountService} from "../../core/core.module";
@@ -10,7 +9,8 @@ import {TripService} from "../services/trip.service";
   selector: 'entity-quality-form',
   templateUrl: './entity-quality-form.component.html',
   styleUrls: ['./entity-quality-form.component.scss'],
-  animations: [fadeInAnimation]
+  animations: [fadeInAnimation],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EntityQualityFormComponent{
 
@@ -38,7 +38,8 @@ export class EntityQualityFormComponent{
 
   constructor(
     protected accountService: AccountService,
-    protected tripService: TripService
+    protected tripService: TripService,
+    protected cd: ChangeDetectorRef
   ) {
     this.accountService.onLogin.subscribe(() => this.onValueChange());
   }
@@ -52,6 +53,7 @@ export class EntityQualityFormComponent{
       console.debug("[quality] Mark trip as controlled...");
       await this.tripService.controlTrip(this.data);
       this.onChange.emit();
+      this.markForCheck();
     }
   }
 
@@ -64,6 +66,7 @@ export class EntityQualityFormComponent{
       console.debug("[quality] Mark trip as validated...");
       await this.tripService.validateTrip(this.data);
       this.onChange.emit();
+      this.markForCheck();
     }
   }
 
@@ -71,12 +74,15 @@ export class EntityQualityFormComponent{
     if (this.data instanceof Trip) {
       await this.tripService.unvalidateTrip(this.data);
       this.onChange.emit();
+      this.markForCheck();
     }
   }
 
   qualify(event) {
     // TODO
   }
+
+  /* -- protected method -- */
 
   protected onValueChange() {
     this.loading = isNil(this.data) || isNil(this.data.id);
@@ -94,6 +100,11 @@ export class EntityQualityFormComponent{
       this.canUnvalidate = canWrite && isSupervisor && isNotNil(this.data.controlDate) && isNotNil(this.data.validationDate);
       this.canQualify = false;
     }
+    this.markForCheck();
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 
 }

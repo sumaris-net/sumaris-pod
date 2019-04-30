@@ -9,6 +9,7 @@ export class SharedValidators {
     const value = control.value;
     const date = !value || moment.isMoment(value) ? value : moment(control.value, DATE_ISO_PATTERN);
     if (date && (!date.isValid() || date.year() < 1970)) {
+      console.log("TOTO");
       return { validDate: true };
     }
   }

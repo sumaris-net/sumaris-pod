@@ -36,65 +36,66 @@ export {
 }
 
 @NgModule({
-    imports: [
-        CommonModule,
-        MaterialModule,
-        BrowserAnimationsModule,
-        ReactiveFormsModule,
-        TextMaskModule,
-        IonicModule,
-        TranslateModule.forChild(),
-        NgxMaterialTimepickerModule.forRoot()
-    ],
-    declarations: [
-        AutofocusDirective,
-        ToolbarComponent,
-        DateFormatPipe,
-        DateDiffDurationPipe,
-        LatLongFormatPipe,
-        HighlightPipe,
-        NumberFormatPipe,
-        MatDateTime,
-        MatLatLong,
-        MatBooleanField,
-        MatAutocompleteField
-    ],
-    exports: [
-        MaterialModule,
-        BrowserAnimationsModule,
-        ReactiveFormsModule,
-        IonicModule,
-        AutofocusDirective,
-        ToolbarComponent,
-        DateFormatPipe,
-        DateDiffDurationPipe,
-        LatLongFormatPipe,
-        HighlightPipe,
-        NumberFormatPipe,
-        TextMaskModule,
-        TranslateModule,
-        MatDateTime,
-        MatLatLong,
-        MatBooleanField,
-        MatAutocompleteField
-    ],
-    providers: [
-      DateFormatPipe,
-      DateDiffDurationPipe,
-      LatLongFormatPipe,
-      HighlightPipe,
-      NumberFormatPipe,
-      ProgressBarService,
-      { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService] },
-      {
-        provide: MatPaginatorIntl,
-        useFactory: (translate) => {
-          const service = new MatPaginatorI18n();
-          service.injectTranslateService(translate);
-          return service;
-        },
-        deps: [TranslateService]
-      }
-    ]
+  imports: [
+    CommonModule,
+    MaterialModule,
+    BrowserAnimationsModule,
+    ReactiveFormsModule,
+    TextMaskModule,
+    IonicModule,
+    TranslateModule.forChild(),
+    NgxMaterialTimepickerModule.forRoot()
+  ],
+  declarations: [
+    AutofocusDirective,
+    ToolbarComponent,
+    DateFormatPipe,
+    DateDiffDurationPipe,
+    LatLongFormatPipe,
+    HighlightPipe,
+    NumberFormatPipe,
+    MatDateTime,
+    MatLatLong,
+    MatBooleanField,
+    MatAutocompleteField
+  ],
+  exports: [
+    MaterialModule,
+    BrowserAnimationsModule,
+    ReactiveFormsModule,
+    IonicModule,
+    AutofocusDirective,
+    ToolbarComponent,
+    DateFormatPipe,
+    DateDiffDurationPipe,
+    LatLongFormatPipe,
+    HighlightPipe,
+    NumberFormatPipe,
+    TextMaskModule,
+    TranslateModule,
+    MatDateTime,
+    MatLatLong,
+    MatBooleanField,
+    MatAutocompleteField
+  ],
+  providers: [
+    DateFormatPipe,
+    DateDiffDurationPipe,
+    LatLongFormatPipe,
+    HighlightPipe,
+    NumberFormatPipe,
+    ProgressBarService,
+    {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},
+    {
+      provide: MatPaginatorIntl,
+      useFactory: (translate) => {
+        const service = new MatPaginatorI18n();
+        service.injectTranslateService(translate);
+        return service;
+      },
+      deps: [TranslateService]
+    }
+  ]
 })
-export class SharedModule { }
+export class SharedModule {
+}

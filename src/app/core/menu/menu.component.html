@@ -3,7 +3,7 @@
   <ion-menu>
     <ion-header>
 
-      <mat-toolbar padding *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
+      <mat-toolbar padding [@fadeInAnimation] *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
         <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="150px;"/>
         <span *ngIf="!logo" width="150px;">{{appName}}</span>
       </mat-toolbar>
@@ -31,7 +31,7 @@
 
           <ion-row no-padding class="other-data">
             <ion-col no-padding>
-              <ion-button menuClose small expand="full" color="light" [routerLink]="['/account']"
+              <ion-button menuClose small expand="full" color="secondary" [routerLink]="['/account']"
                           routerDirection="root" routerLinkActive="selected"
                           (click)="menu.close()">
                 <ion-icon name="contact" slot="start"></ion-icon>
@@ -39,7 +39,7 @@
               </ion-button>
             </ion-col>
             <ion-col no-padding padding-left>
-              <ion-button small expand="full" color="light" menuClose (click)="menu.close() && logout()">
+              <ion-button small expand="full" color="secondary" menuClose (click)="menu.close() && logout()">
                 <ion-icon name="log-out" slot="start"></ion-icon>
                 <ion-label translate>MENU.BTN_LOGOUT</ion-label>
               </ion-button>

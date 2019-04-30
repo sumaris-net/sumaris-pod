@@ -6,7 +6,7 @@ import {
 import {
   Referential, ReferentialRef, EntityUtils, Department, Person,
   vesselFeaturesToString,
-  VesselFeatures, GearLevelIds, TaxonGroupIds,
+  VesselFeatures, GearLevelIds, TaxonGroupIds, QualityFlagIds,
   PmfmStrategy, getPmfmName, AcquisitionLevelCodes
 } from "../../referential/referential.module";
 import { Moment } from "moment/moment";
@@ -15,7 +15,7 @@ export {
   Referential, ReferentialRef, EntityUtils, Person, Department,
   toDateISOString, fromDateISOString, isNotNil, isNil,
   vesselFeaturesToString, entityToString, referentialToString, personToString, personsToString, getPmfmName,
-  StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds,
+  StatusIds, Cloneable, Entity, VesselFeatures, LocationLevelIds, GearLevelIds, TaxonGroupIds, QualityFlagIds,
   PmfmStrategy
 };
 

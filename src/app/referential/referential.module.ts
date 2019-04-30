@@ -24,6 +24,7 @@ import {
   PmfmLabelPatterns,
   PmfmStrategy,
   QualitativeLabels,
+  QualityFlagIds,
   Referential,
   ReferentialRef,
   referentialToString,
@@ -38,7 +39,7 @@ import {ReferentialFragments} from './services/referential.queries';
 
 export { VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
   Referential, ReferentialRef, EntityUtils, Department, Person,
-  VesselFeatures, PmfmStrategy,
+  VesselFeatures, PmfmStrategy, QualityFlagIds,
   GearLevelIds, TaxonGroupIds, AcquisitionLevelCodes, StatusIds, PmfmIds, QualitativeLabels, TaxonomicLevelIds,
   ReferentialFragments, PmfmLabelPatterns,
   entityToString, referentialToString,

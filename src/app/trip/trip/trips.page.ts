@@ -12,13 +12,13 @@ import {
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
 import {TripModal} from "./trip.modal";
-import {EntityUtils, LocationLevelIds, ReferentialRef, Trip, VesselFeatures} from "../services/trip.model";
+import {LocationLevelIds, QualityFlagIds, ReferentialRef, Trip, VesselFeatures} from "../services/trip.model";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService, referentialToString, vesselFeaturesToString} from "../../referential/referential.module";
-import {debounceTime, mergeMap, switchMap} from "rxjs/operators";
+import {debounceTime, switchMap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 
 @Component({
@@ -189,6 +189,25 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
   programToString(item: ReferentialRef) {
     return item && item.label || undefined;
+  }
+
+  getColorByQualityId(qualityFlagId: number) {
+    switch (qualityFlagId) {
+      case QualityFlagIds.NOT_QUALIFIED:
+        return 'tertiary';
+      case QualityFlagIds.GOOD:
+      case QualityFlagIds.FIXED:
+        return 'success';
+      case QualityFlagIds.OUT_STATS:
+      case QualityFlagIds.DOUBTFUL:
+        return 'warning';
+      case QualityFlagIds.BAD:
+      case QualityFlagIds.MISSING:
+      case QualityFlagIds.NOT_COMPLETED:
+        return 'danger';
+      default:
+        return 'secondary';
+    }
   }
 
   protected markForCheck() {

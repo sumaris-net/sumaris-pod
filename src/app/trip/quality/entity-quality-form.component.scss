@@ -1,0 +1,7 @@
+ion-label {
+  font-size: 12px;
+}
+
+ion-label > ion-text:last-child {
+  font-color: var(--ion-color-step-850);
+}

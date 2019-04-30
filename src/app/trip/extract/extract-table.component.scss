@@ -48,7 +48,7 @@ mat-table  {
   .mat-cell {
     a:hover {
       text-decoration: underline;
-      text-decoration-color: ion-color(light, base) !important;
+      text-decoration-color: var(--ion-color-secondary) !important;
       cursor: pointer !important;
     }
   }

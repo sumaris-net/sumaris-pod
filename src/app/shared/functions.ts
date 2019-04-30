@@ -6,6 +6,9 @@ export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 export function isNil<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null;
 }
+export function isNilOrBlank<T>(obj: T | null | undefined): boolean {
+  return obj === undefined || obj === null || (typeof obj === 'string' && obj.trim() === "");
+}
 export function isNotNil<T>(obj: T | null | undefined): boolean {
   return obj !== undefined && obj !== null;
 }

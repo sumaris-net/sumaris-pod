@@ -1,99 +1,106 @@
-import { Component, OnInit, forwardRef, Optional, Input } from "@angular/core";
-import { FormControl, NG_VALUE_ACCESSOR, FormGroupDirective } from "@angular/forms";
-import { Observable } from "rxjs";
-import { debounceTime, mergeMap, startWith } from "rxjs/operators";
-import { TableDataService } from "../services/data-service.class";
+import {ChangeDetectionStrategy, Component, forwardRef, Input, OnInit, Optional} from "@angular/core";
+import {FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
+import {Observable} from "rxjs";
+import {debounceTime, first, map, mergeMap, startWith} from "rxjs/operators";
+import {TableDataService} from "../services/data-service.class";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => MatAutocompleteField),
-    multi: true
+  provide: NG_VALUE_ACCESSOR,
+  useExisting: forwardRef(() => MatAutocompleteField),
+  multi: true
 };
 
 @Component({
-    selector: 'mat-autocomplete-field',
-    templateUrl: 'material.autocomplete.html',
-    providers: [DEFAULT_VALUE_ACCESSOR]
+  selector: 'mat-autocomplete-field',
+  templateUrl: 'material.autocomplete.html',
+  providers: [DEFAULT_VALUE_ACCESSOR],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MatAutocompleteField implements OnInit {
 
-    private _onChange = (_: any) => { };
-    private _onTouched = () => { };
+  private _onChange = (_: any) => {
+  };
+  private _onTouched = () => {
+  };
 
-    items: Observable<any[]>;
+  items: Observable<any[]>;
 
-    @Input() formControl: FormControl;
+  @Input() formControl: FormControl;
 
-    @Input() formControlName: string;
+  @Input() formControlName: string;
 
-    @Input() floatLabel: string;
+  @Input() floatLabel: string;
 
-    @Input() placeholder: string;
+  @Input() placeholder: string;
 
-    @Input() service: TableDataService<any, any>;
+  @Input() service: TableDataService<any, any>;
 
-    @Input() serviceOptions: any = undefined;
+  @Input() serviceOptions: any = undefined;
 
-    @Input() filter: any = undefined;
+  @Input() filter: any = undefined;
 
-    @Input() required = false;
+  @Input() required = false;
 
-    @Input() displayWith = (_: any) => '';
+  @Input() displayWith = (_: any) => '';
 
-    constructor(
-        @Optional() private formGroupDir: FormGroupDirective
-    ) {
+  constructor(
+    @Optional() private formGroupDir: FormGroupDirective
+  ) {
 
+  }
+
+  ngOnInit() {
+    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-autocomplete-field>.");
+
+    if (this.service) {
+      this.items = this.formControl.valueChanges
+        .pipe(
+          startWith('*'),
+          debounceTime(250),
+          mergeMap(value => {
+            if (this.isNotEmpty(value)) return Observable.of([value]);
+            value = (typeof value === "string") && value || undefined;
+            return this.service.watchAll(0, 10, undefined, undefined,
+              Object.assign({
+                searchText: value as string,
+              }, this.filter || {}),
+              this.serviceOptions)
+              .pipe(
+                first(),
+                map(({data}) => data)
+              );
+          })
+        );
     }
 
-    ngOnInit() {
-        this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
-        if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-autocomplete-field>.");
+    //this.formControl.valueChanges.subscribe(value => this._onChange(value));
+  }
 
-        this.items = this.formControl.valueChanges
-            .pipe(
-                startWith('*'),
-                debounceTime(250),
-                mergeMap(value => {
-                    if (this.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string") && value || undefined;
-                    return this.service.watchAll(0, 10, undefined, undefined,
-                        Object.assign({
-                            searchText: value as string,
-                        }, this.filter || {}),
-                        this.serviceOptions)
-                        .map(({data}) => data);
-                })
-            );
+  writeValue(value: any): void {
+    //console.debug("writeValue", value);
+  }
 
-        //this.formControl.valueChanges.subscribe(value => this._onChange(value));
+  registerOnChange(fn: any): void {
+    this._onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this._onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    if (isDisabled) {
+      //this.formControl.disable({ onlySelf: true, emitEvent: false });
+    } else {
+      //this.formControl.enable({ onlySelf: true, emitEvent: false });
     }
+  }
 
-    writeValue(value: any): void {
-        //console.debug("writeValue", value);
-    }
+  /* -- protected methods -- */
 
-    registerOnChange(fn: any): void {
-        this._onChange = fn;
-    }
-
-    registerOnTouched(fn: any): void {
-        this._onTouched = fn;
-    }
-
-    setDisabledState(isDisabled: boolean): void {
-        if (isDisabled) {
-            //this.formControl.disable({ onlySelf: true, emitEvent: false });
-        }
-        else {
-            //this.formControl.enable({ onlySelf: true, emitEvent: false });
-        }
-    }
-
-    /* -- protected methods -- */
-
-    protected isNotEmpty(obj: any): boolean {
-        return !!obj && obj['id'];
-    }
+  protected isNotEmpty(obj: any): boolean {
+    return !!obj && obj['id'];
+  }
 
 }

@@ -6,6 +6,7 @@
   [nowrap] {
     flex-wrap: nowrap;
   }
+
 }
 
 input[type=number]::-webkit-inner-spin-button,
@@ -43,8 +44,8 @@ ion-col.day {
 }
 
 ion-col.hour {
-  min-width: 35px;
-  max-width: 45px;
+  min-width: 55px;
+  max-width: 65px;
 
   mat-form-field {
     width: 100%;

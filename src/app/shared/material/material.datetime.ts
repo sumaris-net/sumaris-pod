@@ -24,7 +24,7 @@ import * as moment from "moment/moment";
 import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR} from '../constants';
 import {SharedValidators} from '../validator/validators';
-import {merge} from "rxjs";
+import {isNilOrBlank} from "../functions";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -37,11 +37,21 @@ const HOUR_TIME_PATTERN = /[0-2]\d:[0-5]\d/;
 const noop = () => {
 };
 
+declare interface NgxTimePicker {
+  selectedHour: {time: number};
+  selectedMinute: {time: number};
+  open();
+  close();
+  setDefaultTime(time: string);
+}
+
 @Component({
   selector: 'mat-date-time',
   templateUrl: 'material.datetime.html',
   styleUrls: ['./material.datetime.scss'],
-  providers: [DEFAULT_VALUE_ACCESSOR],
+  providers: [
+    DEFAULT_VALUE_ACCESSOR,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MatDateTime implements OnInit, ControlValueAccessor {
@@ -61,28 +71,30 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   mask = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
   hourMask = [/[0-2]/, /\d/, ':', /[0-5]/, /\d/];
 
-  @Input() disabled: boolean = false
+  @Input() disabled = false;
 
   @Input() formControl: FormControl;
 
   @Input() formControlName: string;
 
-  @Input() displayTime: boolean = true;
+  @Input() displayTime = true;
 
   @Input() placeholder: string;
 
   @Input() floatLabel: FloatLabelType = "auto";
 
-  @Input() readonly: boolean = false;
+  @Input() readonly = false;
 
-  @Input() required: boolean = false;
+  @Input() required = false;
 
-  @Input() compact: boolean = false;
+  @Input() compact = false;
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
   @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
   @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
+  @ViewChild('timePicker1') timePicker1: NgxTimePicker;
+
 
   constructor(
     platform: Platform,
@@ -142,7 +154,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   writeValue(obj: any): void {
     if (this.writing) return;
 
-    if (obj === null) {
+    if (isNilOrBlank(obj)) {
       this.writing = true;
       if (this.displayTime) {
         this.form.patchValue({day: null, hour: null}, {emitEvent: false});
@@ -195,7 +207,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         hour = hour < 10 ? ('0' + hour) : hour;
         // Format mm
         let minutes: number | string = this.date.minutes();
-        minutes = minutes < 10 ? ('0' + minutes) : minutes
+        minutes = minutes < 10 ? ('0' + minutes) : minutes;
         // Set form value
         this.form.patchValue({
           day: this.date.clone().startOf('day').format(this.dayPattern),
@@ -333,8 +345,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     // Get the model value
     const dateStr = date && date.isValid() && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
     //console.debug("[mat-date-time] Setting date: ", dateStr);
-    this.formControl.setValue(dateStr);
-    this.formControl.updateValueAndValidity();
+    this.formControl.patchValue(dateStr, {emitEvent: false});
+    //this.formControl.updateValueAndValidity();
     this.writing = false;
     this.markForCheck();
 
@@ -380,8 +392,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     // Get the model value
     const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
-    this.formControl.setValue(dateStr);
-    this.formControl.updateValueAndValidity();
+    this.formControl.patchValue(dateStr, {emitEvent: false});
+    //this.formControl.updateValueAndValidity();
     this.writing = false;
     this.markForCheck();
 
@@ -408,19 +420,59 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   }
 
   public openDatePicker(event: UIEvent, datePicker?: MatDatepicker<Moment>) {
+    datePicker = datePicker || this.datePicker1 || this.datePicker2;
     if (datePicker) {
       datePicker.open();
-    } else {
-      this.datePicker1 && this.datePicker1.open();
-      this.datePicker2 && this.datePicker2.open();
+      event.preventDefault();
     }
-    event.preventDefault();
+  }
+
+  public openTimePickerIfTouchUi(event: UIEvent) {
+    if (!this.touchUi) return;
+    this.openTimePicker(event);
+  }
+
+  public openTimePicker(event: UIEvent) {
+    if (this.timePicker1) {
+      if (!this.touchUi) {
+        console.log("Default time", this.timePicker1.setDefaultTime);
+        this.timePicker1.setDefaultTime('');
+      }
+      this.timePicker1.open();
+      event.preventDefault();
+    }
+  }
+
+  public onTimePickerChange(timeStr: string) {
+    this.form.controls['hour'].patchValue(timeStr, {emitEvent: false});
+    this.markForCheck();
+  }
+
+  onTimePickerKeyup(event: KeyboardEvent) {
+    if (!this.timePicker1) return;
+    if (event.key === 'Enter') {
+      // Format hour
+      let hour: number | string = this.timePicker1.selectedHour.time;
+      hour = hour < 10 ? ('0' + hour) : hour;
+      // Format minutes
+      let minutes: number | string = this.timePicker1.selectedMinute.time;
+      minutes = minutes < 10 ? ('0' + minutes) : minutes;
+      // Notify the changes (will update the value)
+      this.onTimePickerChange(`${hour}:${minutes}`);
+      event.preventDefault();
+      // Close the picker
+      this.timePicker1.close();
+    }
+    else if (event.key === 'Escape') {
+      // Close the picker
+      event.preventDefault();
+      this.timePicker1.close();
+    }
   }
 
   /* -- protected method -- */
 
   protected markForCheck() {
-    //console.log("MAT DATE TIME > markForCheck !"/*, new Error()*/);
     this.cd.markForCheck();
   }
 }

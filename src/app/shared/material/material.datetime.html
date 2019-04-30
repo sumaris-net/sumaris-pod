@@ -59,8 +59,11 @@
         <mat-label>{{placeholder}}</mat-label>
 
         <input matInput autocomplete="off" type="text" [textMask]="{mask: mask, keepCharPositions: true, placeholderChar: placeholderChar}"
-          formControlName="day" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()"
-          (keyup.arrowdown)="openDatePicker($event, datePicker3)" (click)="openDatePickerIfTouchUi($event)" [required]="required">
+               formControlName="day" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate" (blur)="markAsTouched()"
+               (keyup.arrowdown)="openDatePicker($event, datePicker3)"
+               (click)="openDatePickerIfTouchUi($event)"
+               (keyup.escape)="$event.preventDefault()"
+               [required]="required">
 
         <input matInput type="text" [formControl]="formControl" hidden [matDatepicker]="datePicker2" (dateChange)="onDatePickerChange($event)">
         <button type="button" matSuffix (click)="openDatePicker($event, datePicker2)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
@@ -92,13 +95,48 @@
     <ion-col no-padding class="hour">
       <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-invalid]="form.controls.hour.invalid">
         <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.TIME</mat-label>
-        <input *ngIf="!touchUi" matInput type="text" min="0" max="23" [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar, guide: true}"
-          autocomplete="off" [placeholder]="'COMMON.TIME_PLACEHOLDER'|translate" formControlName="hour" (blur)="markAsTouched()">
+        <input matInput type="text"
+               autocomplete="off"
+               min="0" max="23"
+               formControlName="hour"
+               [textMask]="{mask: hourMask, keepCharPositions: true, placeholderChar: placeholderChar, guide: true}"
+               [placeholder]="'COMMON.TIME_PLACEHOLDER'|translate"
+               [required]="required"
+               (keyup.arrowdown)="openTimePicker($event, timePicker)"
+               (click)="openTimePickerIfTouchUi($event, timePicker1)"
+               (blur)="markAsTouched()">
 
-         <input *ngIf="touchUi" matInput type="text"
-                [placeholder]="'COMMON.TIME_PLACEHOLDER'|translate" formControlName="hour"
-                [ngxTimepicker]="default" [format]="24" readonly>
-        <ngx-material-timepicker #default></ngx-material-timepicker>
+        <input matInput type="text" [formControl]="form.controls['hour']" hidden [ngxTimepicker]="timePicker1" [format]="24">
+
+        <button type="button" matSuffix (click)="openTimePicker($event, timePicker1)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
+          <mat-icon>keyboard_arrow_down</mat-icon>
+        </button>
+
+        <ngx-material-timepicker #timePicker1
+                                 (timeSet)="onTimePickerChange($event)"
+                                 [ESC]="false"
+                                 [cancelBtnTmpl]="timePickerCancelButton"
+                                 [confirmBtnTmpl]="timePickerOkButton"
+                                 [preventOverlayClick]="false"
+                                 [enableKeyboardInput]="!touchUi"
+                                 (keyup.escape)="onTimePickerKeyup($event)"
+                                 (keyup.enter)="onTimePickerKeyup($event)">
+          <!-- cancel button -->
+          <ng-template #timePickerCancelButton>
+            <ion-button fill="clear">
+              <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+            </ion-button>
+          </ng-template>
+
+          <!-- confirm button -->
+          <ng-template #timePickerOkButton>
+            <ion-button [fill]="solid" color="tertiary">
+              <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+            </ion-button>
+          </ng-template>
+
+
+        </ngx-material-timepicker>
       </mat-form-field>
     </ion-col>
 

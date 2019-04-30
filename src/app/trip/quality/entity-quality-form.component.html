@@ -1,73 +1,53 @@
-<div [@fadeInAnimation] *ngIf="!loading">
+<ion-label text-wrap *ngIf="!loading">
+  <br/>
 
   <!-- control date -->
-  <ng-container *ngIf="data.controlDate">
-    <br/>
-    <ion-text color="primary">
-      <ion-icon name="checkmark"></ion-icon>&nbsp;
-      <span translate>QUALITY.CONTROLLED_ON</span>
-      <span>
-          <b>{{ data.controlDate | dateFormat: {pattern: 'L LT'} }}</b>
-        </span>
-    </ion-text>
-  </ng-container>
-  <ng-container *ngIf="canControl">
-    <br/>
-    <ion-button (click)="control($event)" expand="full">
-      <ion-text translate>QUALITY.CONTROL</ion-text>
-    </ion-button>
-  </ng-container>
-
+  <ion-text *ngIf="data.controlDate">
+    <ion-icon name="checkmark"></ion-icon>&nbsp;
+    <span translate>QUALITY.CONTROLLED_ON</span>
+    <span>
+      <b>{{ data.controlDate | dateFormat: {pattern: 'L LT'} }}</b>
+    </span>
+  </ion-text>
   <!-- validation date -->
-  <ng-container *ngIf="data.validationDate">
+  <ion-text *ngIf="data.validationDate">
     <br/>
-    <ion-text color="primary">
-      <ion-icon name="checkmark-circle"></ion-icon>&nbsp;
-      <span translate>QUALITY.VALIDATED_ON</span>
-      <span>
-          <b>{{ data.validationDate | dateFormat: {pattern: 'L LT'} }}</b>
-        </span>
-    </ion-text>
-  </ng-container>
-  <ng-container *ngIf="canValidate">
-    <br/>
-    <ion-button (click)="validate($event)" expand="full" color="danger">
-      <ion-text translate>QUALITY.VALIDATE</ion-text>
-    </ion-button>
-  </ng-container>
-  <ng-container *ngIf="canUnvalidate">
-    <br/>
-    <ion-button (click)="unvalidate($event)" expand="full">
-      <ion-text translate>QUALITY.UNVALIDATE</ion-text>
-    </ion-button>
-  </ng-container>
-
+    <ion-icon name="checkmark-circle"></ion-icon>&nbsp;
+    <span translate>QUALITY.VALIDATED_ON</span>
+    <span>
+      <b>{{ data.validationDate | dateFormat: {pattern: 'L LT'} }}</b>
+    </span>
+  </ion-text>
   <!--qualification date -->
-  <ng-container *ngIf="data.qualificationDate">
+  <ion-text *ngIf="data.qualificationDate">
     <br/>
-    <ion-text color="primary">
-      <ion-icon name="calendar"></ion-icon>&nbsp;
-      <span translate>QUALITY.QUALIFIED_ON</span>
-      <span>
-        <b>{{ data.qualificationDate | dateFormat: {pattern: 'L LT'} }}</b>
+    <ion-icon name="calendar"></ion-icon>&nbsp;
+    <span translate>QUALITY.QUALIFIED_ON</span>
+    <span>
+      <b>{{ data.qualificationDate | dateFormat: {pattern: 'L LT'} }}</b>
+    </span>
+  </ion-text>
+  <ion-text *ngIf="data.qualityFlag && data.qualityFlag.id">
+    <br/>
+    <span translate>QUALITY.QUALITY_FLAG</span>
+    <span>
+        <b>{{ data.qualityFlag.label }}</b>
       </span>
-    </ion-text>
-  </ng-container>
-  <ng-container *ngIf="data.qualityFlag && data.qualityFlag.id">
-    <br/>
-    <ion-text color="primary">
-      <span translate>QUALITY.QUALITY_FLAG</span>
-      <span>
-          <b>{{ data.qualityFlag.label }}</b>
-        </span>
-    </ion-text>
-  </ng-container>
-  <ng-container *ngIf="canQualify">
-    <br/>
-    <ion-button (click)="qualify()" *ngIf="!data.qualificationDate" expand="full">
-      <ion-icon name="ribbon" slot="start"></ion-icon>
-      <ion-text translate>QUALITY.QUALIFY</ion-text>
-    </ion-button>
-  </ng-container>
+  </ion-text>
+</ion-label>
 
-</div>
+<p>
+  <ion-button *ngIf="canControl" (click)="control($event)" expand="block" color="tertiary">
+    <ion-text translate>QUALITY.CONTROL</ion-text>
+  </ion-button>
+  <ion-button *ngIf="canValidate && !value.dirty" (click)="validate($event)" expand="block" color="success">
+    <ion-text translate>QUALITY.VALIDATE</ion-text>
+  </ion-button>
+  <ion-button *ngIf="canUnvalidate" (click)="unvalidate($event)" expand="block" color="danger">
+    <ion-text translate>QUALITY.UNVALIDATE</ion-text>
+  </ion-button>
+  <ion-button  *ngIf="canQualify" (click)="qualify()" expand="block">
+    <ion-icon name="ribbon" slot="start"></ion-icon>
+    <ion-text translate>QUALITY.QUALIFY</ion-text>
+  </ion-button>
+</p>

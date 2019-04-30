@@ -29,6 +29,7 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatMomentDateModule} from '@angular/material-moment-adapter';
 
 import {fadeInAnimation, slideInOutAnimation} from './material.animations';
+import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 
 const modules: any[] = [
   MatTableModule,

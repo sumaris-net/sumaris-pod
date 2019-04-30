@@ -1,4 +1,4 @@
-@import 'core';
+@import 'responsive';
 
 
 ion-menu {
@@ -12,8 +12,8 @@ ion-menu {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    background-color: ion-color(secondary, base);
-    border: solid 1px ion-color(primary, base);
+    background-color: var(--ion-color-light);
+    border: solid 1px var(--ion-color-primary);
     overflow: hidden !important;
     font-size: var(--avatar-size, 60px) !important;
     line-height: var(--avatar-size, 60px);
@@ -46,11 +46,11 @@ ion-menu {
   }
 
   ion-text {
-    color: ion-color(primary, base);
+    color: var(--ion-color-primary);
   }
 
   ion-item.selected {
-    background-color: ion-color(light100, base);
+    background-color: var(--ion-color-secondary100-tint);
   }
 
   ion-toolbar.ion-toolbar-top {

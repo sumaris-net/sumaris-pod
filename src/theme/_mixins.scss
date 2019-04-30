@@ -77,4 +77,5 @@
   $value in $colors {
     @include generate-color-list($color-name);
   }
+
 }

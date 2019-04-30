@@ -1,4 +1,3 @@
-@import 'core';
 
 :host {
   width: 100%;
@@ -31,10 +30,10 @@ mat-table {
     flex: 0;
   }
   .mat-header-cell.qv.even {
-    background-color: ion-color(light, base) !important;
+    background-color: var(--ion-color-secondary) !important;
   }
   .mat-header-cell.qv.odd {
-    background-color: lightgray !important;
+    background-color: var(--ion-color-light-shade, lightgray) !important;
   }
   .mat-header-cell.qv.show {
     display: flex;
@@ -60,17 +59,12 @@ mat-table {
 
   .mat-header-cell.total.even,
   .mat-cell.total.even {
-    background-color: ion-color(light100, base) !important;
+    background-color: var(--ion-color-secondary100) !important;
   }
-
-  // .mat-header-cell.even,
-  // .mat-cell.even {
-  //   background-color: ion-color(light050, base);
-  // }
 
   .mat-header-cell.total.odd,
   .mat-cell.total.odd {
-    background-color: whitesmoke;
+    background-color: var(--ion-color-light, whitesmoke) !important;
   }
 
   .mat-column-id {

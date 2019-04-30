@@ -45,7 +45,9 @@
 
   <!-- qualitative value -->
   <ng-container *ngSwitchCase="'qualitative_value'">
-    <mat-form-field-measurement-qv [formControl]="formControl" [pmfm]="pmfm" [floatLabel]="floatLabel" [required]="pmfm.isMandatory"
+    <mat-form-field-measurement-qv
+      [formControl]="formControl" [pmfm]="pmfm" [floatLabel]="floatLabel" [required]="pmfm.isMandatory"
+      [clearable]="!compact"
       [compact]="compact"></mat-form-field-measurement-qv>
   </ng-container>
 

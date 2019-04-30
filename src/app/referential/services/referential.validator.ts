@@ -15,15 +15,16 @@ export class ReferentialValidatorService implements ValidatorService {
 
   getFormGroup(data?: Referential): FormGroup {
     return this.formBuilder.group({
-      'id': [''],
-      'updateDate': [''],
-      'creationDate': [''],
-      'statusId': ['', Validators.required],
-      'levelId': [''],
-      'label': ['', Validators.required],
-      'name': ['', Validators.required],
-      'comments': ['', Validators.maxLength(2000)],
-      'entityName': ['', Validators.required]
+      id: [''],
+      updateDate: [''],
+      creationDate: [''],
+      statusId: ['', Validators.required],
+      levelId: [''],
+      label: ['', Validators.required],
+      name: ['', Validators.required],
+      comments: ['', Validators.maxLength(2000)],
+      entityName: ['', Validators.required],
+      dirty: ['']
     });
   }
 }

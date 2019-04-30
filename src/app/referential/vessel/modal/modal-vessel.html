@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-button visible-xs visible-sm (click)="cancel()">
         {{'COMMON.BTN_CANCEL'|translate}}
@@ -28,5 +28,25 @@
 
 
 <ion-footer hidden-xs hidden-sm>
-  <form-buttons-bar (onBack)="cancel() " (onCancel)="onReset($event)" (onSave)="onSave($event)" [disabled]="!form.dirty || loading "></form-buttons-bar>
+
+  <ion-toolbar>
+    <ion-row no-padding nowrap>
+      <ion-col>
+        <ng-content></ng-content>
+      </ion-col>
+
+      <ion-col size="auto">
+
+        <ion-button fill="clear" color="dark" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button [fill]="disabled? 'clear' : 'solid'" (click)="onSave($event)" (keypress.enter)="onSave($event)" color="tertiary" [disabled]="disabled">
+          <ion-label translate>COMMON.BTN_ADD</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-toolbar>
+
+<!--  <form-buttons-bar (onBack)="cancel()" (onCancel)="onReset($event)" (onSave)="onSave($event)" [disabled]="!form.dirty || loading "></form-buttons-bar>-->
 </ion-footer>

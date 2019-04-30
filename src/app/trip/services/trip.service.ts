@@ -324,7 +324,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       return this.asObject(t);
     });
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving trips...", json);
 
     const res = await this.mutate<{ saveTrips: Trip[] }>({
@@ -340,7 +340,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
         this.copyIdAndUpdateDate(savedTrip, entity);
       });
 
-    if (this._debug) console.debug("[trip-service] Trips saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entities);
+    if (this._debug) console.debug(`[trip-service] Trips saved and updated in ${Date.now() - now}ms`, entities);
 
 
     return entities;

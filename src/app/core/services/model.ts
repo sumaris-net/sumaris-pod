@@ -32,6 +32,7 @@ export const AcquisitionLevelCodes = {
   OBSERVED_LOCATION: 'OBSERVED_LOCATION'
 }
 
+
 export type UsageMode = 'DESK' | 'FIELD';
 
 export type UserProfileLabel = 'ADMIN' | 'USER' | 'SUPERVISOR' | 'GUEST';

@@ -19,6 +19,7 @@ import {AdminModule} from "./admin/admin.module";
 import {ReferentialModule} from "./referential/referential.module";
 import {TripModule} from "./trip/trip.module";
 import {environment} from "../environments/environment";
+import {NgxMaterialTimepickerTheme, TimepickerDirective} from "ngx-material-timepicker";
 
 
 @NgModule({
@@ -60,7 +61,7 @@ import {environment} from "../environments/environment";
     {
       provide: MAT_TABS_CONFIG,
       useValue: {
-        animationDuration: '0ms'
+        //animationDuration: '0ms'
       }
     }
   ]

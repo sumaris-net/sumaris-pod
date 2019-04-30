@@ -73,6 +73,17 @@ export const ProgramProperties = {
   SURVIVAL_TEST_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.survivalTest.taxonGroup.enable'
 }
 
+export const QualityFlagIds = {
+  NOT_QUALIFIED: 0,
+  GOOD: 1,
+  OUT_STATS: 2,
+  DOUBTFUL: 3,
+  BAD: 4,
+  FIXED: 5,
+  NOT_COMPLETED: 8,
+  MISSING: 9
+};
+
 const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
 export { EntityUtils, StatusIds, AcquisitionLevelCodes,
