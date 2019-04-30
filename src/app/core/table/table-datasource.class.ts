@@ -1,10 +1,10 @@
-import { TableDataSource, ValidatorService } from 'angular4-material-table';
-import { Observable } from "rxjs";
-import {TableDataService, isNotNil, LoadResult} from '../../shared/shared.module';
-import { EventEmitter } from '@angular/core';
-import { Entity } from "../services/model";
-import { TableElement } from 'angular4-material-table';
-import { ErrorCodes } from '../services/errors';
+import {TableDataSource, ValidatorService} from 'angular4-material-table';
+import {Observable} from "rxjs";
+import {TableDataService, isNotNil, LoadResult, isNil} from '../../shared/shared.module';
+import {EventEmitter} from '@angular/core';
+import {Entity} from "../services/model";
+import {TableElement} from 'angular4-material-table';
+import {ErrorCodes} from '../services/errors';
 import {first} from "rxjs/operators";
 
 export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
@@ -17,6 +17,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     [key: string]: any;
   };
   protected _creating = false;
+  protected _useValidator = false;
 
   public serviceOptions: any;
   public onLoading = new EventEmitter<boolean>();
@@ -29,7 +30,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
    * @param validatorService Service that create instances of the FormGroup used to validate row fields.
    * @param config Additional configuration for table.
    */
-  constructor(dataType: new () => T,
+  constructor(dataType: new() => T,
               private dataService: TableDataService<T, F>,
               validatorService?: ValidatorService,
               config?: {
@@ -44,14 +45,15 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     super([], dataType, validatorService, config);
     this.serviceOptions = config && config.serviceOptions;
     this._config = config || {prependNewElements: false};
+    this._useValidator = isNotNil(validatorService);
     //this._debug = true;
   };
 
   load(offset: number,
-    size: number,
-    sortBy?: string,
-    sortDirection?: string,
-    filter?: F): Observable<LoadResult<T>> {
+       size: number,
+       sortBy?: string,
+       sortDirection?: string,
+       filter?: F): Observable<LoadResult<T>> {
 
     this.onLoading.emit(true);
     return this.dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
@@ -79,12 +81,16 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
         // log errors
         if (this._debug) invalidRows.forEach(this.logRowErrors);
         // Stop with an error
-        throw { code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR' };
+        throw {code: ErrorCodes.TABLE_INVALID_ROW_ERROR, message: 'ERROR.TABLE_INVALID_ROW_ERROR'};
       }
 
       const saveOnlyDirtyRows = this.serviceOptions && this.serviceOptions.saveOnlyDirtyRows;
-      // Get row data
-      const data: T[] = rows.map(row => row.currentData);
+
+      const data: T[] = this._useValidator ?
+        // When using validator service, conversion into entity is need
+        rows.map(row => new this.dataConstructor().fromObject(row.validator.value) as T) :
+        // Or use the current data without conversion (when no validator service used)
+        rows.map(row => row.currentData);
 
       // Filter to keep only dirty row
       const dataToSave = saveOnlyDirtyRows ?
@@ -99,16 +105,15 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       if (this._debug) console.debug('[table-datasource] Dirty data to save:', dataToSave);
 
       var savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
+      dataToSave.map(t => t.dirty = false);
       if (this._debug) console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
       if (this._debug) console.debug('[table-datasource] Updating datasource...', data);
-      this.updateDatasource(data, { emitEvent: false });
+      this.updateDatasource(data, {emitEvent: false});
       return true;
-    }
-    catch (error) {
+    } catch (error) {
       if (this._debug) console.error('[table-datasource] Error while saving: ' + error && error.message || error);
       throw error;
-    }
-    finally {
+    } finally {
       // Always update the loading indicator
       this.onLoading.emit(false);
     }

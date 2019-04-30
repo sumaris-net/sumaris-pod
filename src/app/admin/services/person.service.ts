@@ -113,7 +113,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
           return {
             data: (persons || []).map(Person.fromObject),
             total: personsCount || (persons && persons.length) || 0
-        }
+          };
         })
       );
   }
@@ -146,15 +146,16 @@ export class PersonService extends BaseDataService implements TableDataService<P
 
   /**
    * Saving many persons
-   * @param data 
+   * @param data
    */
-  async saveAll(entities: Person[]): Promise<Person[]> {
-    if (!entities) return entities;
+  async saveAll(data: Person[]): Promise<Person[]> {
+    if (!data) return data;
 
-    const json = entities.map(this.asObject);
+    // Convert as json object
+    const json = data.map(this.asObject);
 
-    const now = new Date();
-    if (this._debug) console.debug("[person-service] Saving persons...", json);
+    const now = Date.now();
+    if (this._debug) console.debug("[person-service] Saving persons...", data);
 
     const res = await this.mutate<{ savePersons: Person[] }>({
       mutation: SavePersons,
@@ -163,15 +164,15 @@ export class PersonService extends BaseDataService implements TableDataService<P
       },
       error: { code: ErrorCodes.SAVE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.SAVE_PERSONS_ERROR" }
     });
-    (res && res.savePersons && entities || [])
+    (res && res.savePersons && data)
       .forEach(entity => {
         const savedPerson = res.savePersons.find(res => entity.equals(res));
         this.copyIdAndUpdateDate(savedPerson, entity);
       });
 
-    if (this._debug) console.debug(`[person-service] Persons saved in ${new Date().getTime() - now.getTime()}ms`, entities);
+    if (this._debug) console.debug(`[person-service] Persons saved in ${Date.now() - now}ms`, data);
 
-    return entities;
+    return data;
   }
 
   async deleteAll(entities: Person[]): Promise<any> {
@@ -206,16 +207,19 @@ export class PersonService extends BaseDataService implements TableDataService<P
 
   /* -- protected methods -- */
 
-  protected asObject(source: Person): any {
+  protected asObject(source: Person|any): any {
     if (!source) return undefined;
 
+    if (!(source instanceof Person)) {
+      source = Person.fromObject(source);
+    }
     const target = source.asObject();
 
     // Not known in server GraphQL schema
     delete target.mainProfile;
 
-    // Simplify the department object
-    target.department = target.department && { id: target.department.id };
+    // Minify the department object
+    target.department = source.department && source.department.asObject(true);
 
     return target;
   }

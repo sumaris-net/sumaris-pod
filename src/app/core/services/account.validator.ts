@@ -29,6 +29,7 @@ export class AccountValidatorService implements ValidatorService {
     const formDef = {
       id: [''],
       updateDate: [''],
+      creationDate: [''],
       lastName: [data && data.lastName || null, Validators.compose([Validators.required, Validators.minLength(2)])],
       firstName: [data && data.firstName || null, Validators.compose([Validators.required, Validators.minLength(2)])],
       email: [data && data.email || null, Validators.compose([Validators.required, Validators.email])],

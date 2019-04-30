@@ -16,6 +16,7 @@ export class PersonValidatorService implements ValidatorService {
   }
 
   getRowValidator(): FormGroup {
+    console.log('TOTO');
     return this.getFormGroup();
   }
 
@@ -27,6 +28,9 @@ export class PersonValidatorService implements ValidatorService {
     // BUT add more flexibility (set pubkey as optional)
     // This is need to be able to store person that are not using SUMARiS tools (e.g. onboard obsevers)
     formDef.pubkey = [data && data.pubkey || null, SharedValidators.pubkey];
+
+    // add dirty
+    formDef.dirty = [''];
 
     return this.formBuilder.group(formDef);
   }
