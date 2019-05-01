@@ -17,7 +17,12 @@ import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {ReferentialRefService, referentialToString, vesselFeaturesToString} from "../../referential/referential.module";
+import {
+  qualityFlagToColor,
+  ReferentialRefService,
+  referentialToString,
+  vesselFeaturesToString
+} from "../../referential/referential.module";
 import {debounceTime, switchMap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 
@@ -186,28 +191,10 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
   personsToString = personsToString;
+  qualityFlagToColor = qualityFlagToColor;
 
   programToString(item: ReferentialRef) {
     return item && item.label || undefined;
-  }
-
-  getColorByQualityId(qualityFlagId: number) {
-    switch (qualityFlagId) {
-      case QualityFlagIds.NOT_QUALIFIED:
-        return 'tertiary';
-      case QualityFlagIds.GOOD:
-      case QualityFlagIds.FIXED:
-        return 'success';
-      case QualityFlagIds.OUT_STATS:
-      case QualityFlagIds.DOUBTFUL:
-        return 'warning';
-      case QualityFlagIds.BAD:
-      case QualityFlagIds.MISSING:
-      case QualityFlagIds.NOT_COMPLETED:
-        return 'danger';
-      default:
-        return 'secondary';
-    }
   }
 
   protected markForCheck() {

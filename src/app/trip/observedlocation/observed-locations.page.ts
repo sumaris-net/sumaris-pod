@@ -21,6 +21,7 @@ import {Observable} from "rxjs";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocation} from "../services/observed-location.model";
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
+import {qualityFlagToColor} from "../../referential/services/model";
 
 @Component({
   selector: 'page-observed-locations',
@@ -186,6 +187,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;
   personsToString = personsToString;
+  qualityFlagToColor = qualityFlagToColor;
 
   programToString(item: ReferentialRef) {
     return item && item.label || '';

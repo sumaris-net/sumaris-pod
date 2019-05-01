@@ -28,6 +28,7 @@ import {
   Referential,
   ReferentialRef,
   referentialToString,
+  qualityFlagToColor,
   StatusIds,
   TaxonGroupIds,
   TaxonomicLevelIds,
@@ -42,8 +43,8 @@ export { VesselModal, VesselService, ReferentialService, ProgramService, Referen
   VesselFeatures, PmfmStrategy, QualityFlagIds,
   GearLevelIds, TaxonGroupIds, AcquisitionLevelCodes, StatusIds, PmfmIds, QualitativeLabels, TaxonomicLevelIds,
   ReferentialFragments, PmfmLabelPatterns,
-  entityToString, referentialToString,
-  vesselFeaturesToString, getPmfmName }
+  entityToString, referentialToString, qualityFlagToColor,
+  vesselFeaturesToString, getPmfmName };
 
 @NgModule({
     imports: [

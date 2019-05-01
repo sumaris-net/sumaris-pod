@@ -120,22 +120,23 @@
 
     <!-- Id Column -->
     <ng-container matColumnDef="id">
-      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef mat-sort-header [class.hidden]="!isAdmin">
+      <mat-header-cell  *matHeaderCellDef mat-sort-header [class.hidden]="!isAdmin">
         <span *ngIf="!loading">#</span>
         <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
       </mat-header-cell>
-      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
+      <mat-cell  *matCellDef="let row" [class.hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
     </ng-container>
 
     <!-- Quality Column -->
     <ng-container matColumnDef="quality">
       <mat-header-cell *matHeaderCellDef>
-        <span translate>OBSERVED_LOCATION.TABLE.QUALITY</span>
+        <ion-label translate>OBSERVED_LOCATION.TABLE.QUALITY</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-icon color="light" name="create" *ngIf="!row.currentData.controlDate" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
-        <ion-icon color="primary" name="checkmark" *ngIf="row.currentData.controlDate && !row.currentData.validationDate" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
-        <ion-icon color="primary" name="checkmark-circle" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
+        <ion-icon color="secondary" name="create" *ngIf="!row.currentData.controlDate" slot="icon-only" [title]="'QUALITY.MODIFIED'|translate"></ion-icon>
+        <ion-icon color="tertiary" name="checkmark" *ngIf="row.currentData.controlDate && !row.currentData.validationDate" slot="icon-only" [title]="'QUALITY.CONTROLLED'|translate"></ion-icon>
+        <ion-icon color="tertiary" name="checkmark-circle" *ngIf="row.currentData.validationDate && !row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.VALIDATED'|translate"></ion-icon>
+        <ion-icon [color]="qualityFlagToColor(row.currentData.qualityFlagId)" name="flag" *ngIf="row.currentData.validationDate && row.currentData.qualificationDate" slot="icon-only" [title]="'QUALITY.QUALIFIED'|translate"></ion-icon>
       </mat-cell>
     </ng-container>
 

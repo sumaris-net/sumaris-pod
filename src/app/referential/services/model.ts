@@ -91,8 +91,6 @@ export { EntityUtils, StatusIds, AcquisitionLevelCodes,
   toDateISOString, fromDateISOString, joinProperties, isNotNil, isNil,
   entityToString, referentialToString};
 
-
-
 export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
   return obj && obj.vesselId && joinProperties(obj, ['exteriorMarking', 'name']) || undefined;
 }
@@ -106,6 +104,25 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
     return `${name} (${pmfm.unit})`;
   }
   return name;
+}
+
+export function qualityFlagToColor(qualityFlagId: number) {
+  switch (qualityFlagId) {
+    case QualityFlagIds.NOT_QUALIFIED:
+      return 'tertiary';
+    case QualityFlagIds.GOOD:
+    case QualityFlagIds.FIXED:
+      return 'success';
+    case QualityFlagIds.OUT_STATS:
+    case QualityFlagIds.DOUBTFUL:
+      return 'warning';
+    case QualityFlagIds.BAD:
+    case QualityFlagIds.MISSING:
+    case QualityFlagIds.NOT_COMPLETED:
+      return 'danger';
+    default:
+      return 'secondary';
+  }
 }
 
 export class VesselFeatures extends Entity<VesselFeatures>  {
