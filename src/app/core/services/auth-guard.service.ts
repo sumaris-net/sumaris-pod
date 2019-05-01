@@ -1,18 +1,22 @@
-// Auth
-import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { Observable } from 'rxjs/Observable';
-import { ModalController } from "@ionic/angular";
-import { AuthModal } from "../auth/modal/modal-auth";
-import { AccountService } from "./account.service";
-import { Router } from '@angular/router';
+import {Injectable} from '@angular/core';
+import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot} from '@angular/router';
+import {Observable} from 'rxjs/Observable';
+import {ModalController} from "@ionic/angular";
+import {AuthModal} from "../auth/modal/modal-auth";
+import {AccountService} from "./account.service";
 
 @Injectable()
 export class AuthGuardService implements CanActivate {
+
+  private _debug = false;
+
   constructor(private accountService: AccountService,
     private modalCtrl: ModalController,
     private router: Router
-  ) { }
+  ) {
+    // -- For DEV only
+    //this._debug = true;
+  }
 
   canActivate(
     next: ActivatedRouteSnapshot,
@@ -26,13 +30,13 @@ export class AuthGuardService implements CanActivate {
         .then(() => this.canActivate(next, state) as Promise<boolean>);
     }
 
-    // Force login 
+    // Force login
     if (!this.accountService.isLogin()) {
-      console.debug("[auth-gard] Need authentication for page /" + next.url.join('/'));
+      if (this._debug) console.debug("[auth-gard] Need authentication for page /" + next.url.join('/'));
       return this.login(next)
         .then(res => {
           if (!res) {
-            console.debug("[auth-gard] Authentication cancelled. Could not access to /" + next.url.join('/'));
+            if (this._debug) console.debug("[auth-gard] Authentication cancelled. Could not access to /" + next.url.join('/'));
             this.redirectToHome();
             return false;
           }
@@ -42,10 +46,10 @@ export class AuthGuardService implements CanActivate {
     }
 
     if (next.data && next.data.profile && !this.accountService.hasMinProfile(next.data.profile)) {
-      console.debug("[auth-gard] Not authorized access to /" + next.url.join('/') + ". Missing required profile: " + next.data.profile);
+      if (this._debug) console.debug("[auth-gard] Not authorized access to /" + next.url.join('/') + ". Missing required profile: " + next.data.profile);
       return false;
     }
-    console.debug("[auth-gard] Authorized access to /" + next.url.join('/'));
+    if (this._debug) console.debug("[auth-gard] Authorized access to /" + next.url.join('/'));
     return true;
   }
 
@@ -64,7 +68,7 @@ export class AuthGuardService implements CanActivate {
     });
   }
 
-  redirectToHome() {
-    this.router.navigate(['/home']);
+  async redirectToHome() {
+    await this.router.navigate(['/home']);
   }
 }

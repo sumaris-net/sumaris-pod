@@ -106,7 +106,7 @@ export class ExtractTable implements OnInit {
           return this.router.navigate(['extraction', selectedType.category, selectedType.label], {
             skipLocationChange: false
           });
-        })
+        });
       }
 
       this.$extractionTypes.first().subscribe(types => {

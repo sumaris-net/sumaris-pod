@@ -181,6 +181,20 @@ mat-form-field {
   }
 }
 
+mat-date-time {
+  // Need for errors injected using the <ng-content> tag
+  mat-error {
+    text-align: end;
+  }
+}
+
+mat-icon[color=secondary] {
+  color: var(--ion-color-secondary) !important;
+}
+mat-icon[color=tertiary] {
+  color: var(--ion-color-tertiary) !important;
+}
+
 // --- mat-autocomplete and mat-select panel
 
 mat-option {
@@ -234,12 +248,6 @@ mat-option:not(:last-child) {
   }
 }
 
-mat-date-time {
-  // Need for errors injected using the <ng-content> tag
-  mat-error {
-    text-align: end;
-  }
-}
 
 // --------------------------------------------------
 // Material Table

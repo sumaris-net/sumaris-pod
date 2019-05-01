@@ -154,7 +154,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
       return true;
     }
 
-    return await this.router.navigateByUrl('/operations/' + this.tripId + '/' + id);
+    return await this.router.navigateByUrl(`/trips/${this.tripId}/operations/${id}`);
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -162,7 +162,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
       this.onNewOperationClick.emit();
       return true;
     }
-    return await this.router.navigateByUrl('/operations/' + this.tripId + '/new');
+    return await this.router.navigateByUrl(`/trips/${this.tripId}/operations/new`);
   }
 
   referentialToString = referentialToString;

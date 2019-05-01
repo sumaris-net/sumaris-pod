@@ -285,17 +285,16 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   }
 
   async onOperationClick(opeId: number) {
-    const savedOrContinu = await this.saveIfDirtyAndConfirm();
-
-    if (savedOrContinu) {
-      this.router.navigateByUrl('/operations/' + this.data.id + '/' + opeId);
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${opeId}`);
     }
   }
 
   async onNewOperationClick(event?: any) {
-    const savedOrContinu = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinu) {
-      this.router.navigateByUrl('/operations/' + this.data.id + '/new');
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      await this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
     }
   }
 

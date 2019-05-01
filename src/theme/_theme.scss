@@ -36,7 +36,7 @@ $mat-indigo-app: (
     A100: $dark-primary-text,
     A200: $light-primary-text,
     A400: $light-primary-text,
-    A700: $light-primary-text,
+    A700: $light-primary-text
   )
 );
 $candy-app-primary: mat-palette($mat-indigo-app, 500, 100, 900);

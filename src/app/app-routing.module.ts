@@ -125,21 +125,15 @@ const routes: Routes = [
       },
       {
         path: ':tripId',
+        pathMatch: 'full',
         component: TripPage,
         runGuardsAndResolvers: 'paramsOrQueryParamsChange',
         data: {
           profile: 'USER'
         }
-      }
-    ]
-  },
-
-  {
-    path: 'operations',
-    canActivate: [AuthGuardService],
-    children: [
+      },
       {
-        path: ':tripId/:opeId',
+        path: ':tripId/operations/:opeId',
         component: OperationPage,
         runGuardsAndResolvers: 'paramsOrQueryParamsChange',
         data: {
@@ -149,7 +143,7 @@ const routes: Routes = [
     ]
   },
 
-  // Sale control path
+  // Observations path
   {
     path: 'observations',
     canActivate: [AuthGuardService],
@@ -165,7 +159,7 @@ const routes: Routes = [
       {
         path: ':observedLocationId',
         component: ObservedLocationPage,
-        runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+        runGuardsAndResolvers: 'pathParamsChange',
         data: {
           profile: 'USER'
         }

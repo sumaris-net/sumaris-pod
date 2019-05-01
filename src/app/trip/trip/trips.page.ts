@@ -134,11 +134,11 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   }
 
   protected openEditRowDetail(id: number): Promise<boolean> {
-    return this.router.navigateByUrl('/trips/' + id, {preserveFragment: true});
+    return this.router.navigateByUrl(`/trips/${id}`, {preserveFragment: true});
   }
 
   protected openNewRowDetail(): Promise<boolean> {
-    return this.router.navigateByUrl('/trips/new');
+    return this.router.navigateByUrl(`/trips/new`);
   }
 
   // Not USED - remane in onAddRowDetail() if need)
