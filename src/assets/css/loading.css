@@ -98,6 +98,8 @@ body {
 .spinner p {
   line-break: normal;
   break-inside: avoid;
+  white-space: nowrap;
+  font-size: 16px;
 }
 
 @-webkit-keyframes sk-foldCubeAngle {
