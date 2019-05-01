@@ -8,15 +8,15 @@
 <mat-menu #matmenu="matMenu">
   <button mat-menu-item (click)="changeLanguage('en')">
     <mat-icon>flag</mat-icon>
-    <span>
+    <ion-label>
       English
-    </span>
+    </ion-label>
   </button>
   <button mat-menu-item (click)="changeLanguage('fr')">
     <mat-icon>flag</mat-icon>
-    <span>
+    <ion-label>
       Français
-    </span>
+    </ion-label>
   </button>
 </mat-menu>
 
@@ -26,7 +26,7 @@
     <ion-toolbar translucent>
       <ion-buttons slot="end">
         <!-- change locale button -->
-        <ion-button color="light" fill="solid" [matMenuTriggerFor]="matmenu">
+        <ion-button color="secondary" fill="solid" [matMenuTriggerFor]="matmenu">
           <mat-icon slot="start">public</mat-icon>
           <ion-label>&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
         </ion-button>
@@ -52,25 +52,28 @@
           <span [innerHTML]="description"></span>
         </ion-text>
       </ng-container>
+
+
     </ion-card-content>
 
     <ion-footer>
-      <ion-button expand="full" color="primary" [routerLink]="['/account']" *ngIf="!isLogin">
-        <ion-icon name="log-in" slot="start"></ion-icon>
+      <ion-label *ngIf="!isLogin">
+        <br/>
+        <span translate>HOME.REGISTER_HELP</span>
+      </ion-label>
+
+      <ion-button expand="block" color="primary" *ngIf="!isLogin" (click)="register()">
+        <span translate>HOME.BTN_REGISTER</span>
+      </ion-button>
+
+      <ion-button expand="block" color="light" [routerLink]="['/account']" *ngIf="!isLogin">
         <span translate>AUTH.BTN_LOGIN</span>
       </ion-button>
 
-      <ion-button expand="full" color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
+      <ion-button expand="block" color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
         <ion-icon name="contact" slot="start"></ion-icon>
         <span translate>HOME.BTN_MY_ACCOUNT</span>
       </ion-button>
-
-      <p *ngIf="!isLogin">
-        <span translate>AUTH.NO_ACCOUNT_QUESTION</span>&nbsp;
-        <a href="#" (click)="register()">
-          <span translate>AUTH.BTN_REGISTER</span>
-        </a>
-      </p>
 
       <p *ngIf="isLogin" ion-text color="primary" class="hidden-xs hidden-sm">
         <span [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></span>

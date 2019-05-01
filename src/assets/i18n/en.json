@@ -25,9 +25,11 @@
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",
     "BTN_HIDE_MENU": "Hide menu",
-    "BTN_SHOW_MENU": "Show menu",
+    "BTN_SHOW_MENU": "Show menu",,
+    "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on",
-    "COMMENTS": "Comments",
+    "COMMENTS": "Comments",,
+    "EMPTY_OPTION": "(Empty)",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
@@ -86,8 +88,7 @@
     "CONFIGURATION": "Server configuration",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
-    "BTN_ACCOUNT": "Account",
-    "BTN_LOGOUT": "Log out"
+    "BTN_ACCOUNT": "Account"
   },
   "ABOUT": {
     "TITLE": "About",
@@ -101,15 +102,22 @@
     "WELCOME": "Welcome to the {{appName}} web site!",
     "DESCRIPTION": "European shared database for management of skate stocks.",
     "BTN_TRIPS": "Search trips",
+    "REGISTER_HELP": "Registration is free. Join us today!",
     "NOT_THIS_ACCOUNT_QUESTION": "You are not <b>{{displayName}}</b>?",
     "BTN_DISCONNECT": "Disconnect this account",
-    "BTN_MY_ACCOUNT": "My account"
+    "BTN_MY_ACCOUNT": "My account",
+    "BTN_REGISTER": "Register"
   },
   "AUTH": {
     "TITLE": "Authentication",
     "BTN_LOGIN": "Log In",
     "BTN_REGISTER": "Sign up",
-    "NO_ACCOUNT_QUESTION": "Don't have an account?"
+    "NO_ACCOUNT_QUESTION": "Don't have an account?",
+    "LOGOUT": {
+      "CONFIRM_TITLE": "Confirmation",
+      "CONFIRM_MESSAGE": "Are you sure you want to logout ?",
+      "BTN_CONFIRM": "Yes, continue"
+    }
   },
   "REGISTER": {
     "TITLE": "Registration",
@@ -303,7 +311,7 @@
         "SAMPLING_RATIO": "Sampling fraction",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_WEIGHT": "Sampling weight",
-        "PARENT_BATCH": "Species batch",
+        "PARENT": "Species batch",
         "COMMENTS": "Comments",
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?"
       }
@@ -429,8 +437,7 @@
       "TITLE": "Referentials",
       "FILTER": {
         "ENTITY": "Kind",
-        "SEARCH_TEXT": "Search: code, name",
-        "EMPTY_OPTION": "(Empty)"
+        "SEARCH_TEXT": "Search: code, name"
       }
     },
     "ENTITY": {

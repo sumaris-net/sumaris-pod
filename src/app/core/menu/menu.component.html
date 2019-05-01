@@ -29,19 +29,22 @@
             </ion-label>
           </ion-row>
 
-          <ion-row no-padding class="other-data">
+          <ion-row no-padding>
             <ion-col no-padding>
-              <ion-button menuClose small expand="full" color="secondary" [routerLink]="['/account']"
-                          routerDirection="root" routerLinkActive="selected"
+              <ion-button menuClose small expand="block" color="secondary" fill="outline"
+                          [routerLink]="['/account']"
+                          routerDirection="root"
+                          routerLinkActive="ion-color-primary"
                           (click)="menu.close()">
                 <ion-icon name="contact" slot="start"></ion-icon>
                 <ion-label translate>MENU.BTN_ACCOUNT</ion-label>
               </ion-button>
             </ion-col>
-            <ion-col no-padding padding-left>
-              <ion-button small expand="full" color="secondary" menuClose (click)="menu.close() && logout()">
+            <ion-col no-padding>
+              <ion-button menuClose small outline expand="block" color="medium" fill="clear"
+                          (click)="menu.close() && logout()">
                 <ion-icon name="log-out" slot="start"></ion-icon>
-                <ion-label translate>MENU.BTN_LOGOUT</ion-label>
+                <ion-label translate>COMMON.BTN_LOGOUT</ion-label>
               </ion-button>
             </ion-col>
           </ion-row>
@@ -79,17 +82,18 @@
       <ion-toolbar>
 
         <ion-buttons slot="start" >
-          <ion-button color="secondary" (click)="openAboutModal($event)">
-            <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
+          <ion-button mat-icon-button color="accent" (click)="openAboutModal($event)">
+<!--            <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>-->
+            <mat-icon slot="icon-only">help_outline</mat-icon>
           </ion-button>
         </ion-buttons>
 
-        <ion-title (click)="openAboutModal($event)">
+        <ion-title (click)="openAboutModal($event)" color="medium">
           {{'MENU.FOOTER_VERSION_ABOUT'| translate: {version: appVersion} }}
         </ion-title>
 
         <ion-buttons slot="end">
-          <ion-button color="secondary" (click)="toggleSplitPane($event)"
+          <ion-button color="accent" (click)="toggleSplitPane($event)"
                       hidden-xs hidden-sm
                       [title]="(splitPaneOpened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
             <h2 slot="icon-only">{{splitPaneOpened ? '&#xab;' : '&#xbb;'}}</h2>
@@ -102,3 +106,4 @@
   <ng-content></ng-content>
 
 </ion-split-pane>
+

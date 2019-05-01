@@ -2,29 +2,31 @@
 // `ng build ---prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-import { Environment } from "./environment.class";
+import {Environment} from "./environment.class";
+
 const pkg = require('../../package.json');
 
 export const environment: Environment = {
-    name: (pkg.name as string),
-    version: (pkg.version as string),
-    production: false,
-    baseUrl: '/',
+  name: (pkg.name as string),
+  version: (pkg.version as string),
+  production: false,
+  baseUrl: '/',
 
-    remoteBaseUrl: "http://localhost:8080",
-    //remoteBaseUrl: "https://adap.e-is.pro",
-    //remoteBaseUrl: "https://www.sumaris.net",
+  remoteBaseUrl: "http://localhost:8080",
+  //remoteBaseUrl: "https://adap.e-is.pro",
+  //remoteBaseUrl: "https://www.sumaris.net",
 
-    defaultLocale: "fr",
-    defaultLatLongFormat: 'DDMM',
+  defaultLocale: "fr",
+  defaultLatLongFormat: 'DDMM',
 
   //defaultProgram: "ADAP-MER",
-    defaultProgram: "SUMARiS",
+  defaultProgram: "SUMARiS",
 
-    apolloFetchPolicy: 'cache-first',
+  apolloFetchPolicy: 'cache-first',
 
   // DEV only
-    mock: true
+  //mock: true
+  mock: false
 };
 
 /*

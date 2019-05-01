@@ -26,6 +26,7 @@
     "BTN_SHOW_HELP": "Voir l'aide",
     "BTN_HIDE_MENU": "Masquer le menu",
     "BTN_SHOW_MENU": "Afficher le menu",
+    "BTN_LOGOUT": "Quitter",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
     "EMPTY_OPTION": "(Vide)",
@@ -107,8 +108,7 @@
     "CONFIGURATION": "Configuration serveur",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
-    "BTN_ACCOUNT": "Compte",
-    "BTN_LOGOUT": "Quitter"
+    "BTN_ACCOUNT": "Compte"
   },
   "ABOUT": {
     "TITLE": "À propos",
@@ -122,15 +122,22 @@
     "WELCOME": "Bienvenue sur le site web {{appName}} !",
     "DESCRIPTION": "Base de données européenne partagée<br/>pour la gestion des stocks de raies.",
     "BTN_TRIPS": "Recherche de marées",
+    "REGISTER_HELP": "L'inscription est gratuite. Rejoignez-nous dès aujourd'hui !",
     "NOT_THIS_ACCOUNT_QUESTION": "Vous n'êtes pas <b>{{displayName}}</b> ?",
     "BTN_DISCONNECT": "Déconnecter ce compte",
-    "BTN_MY_ACCOUNT": "Mon compte"
+    "BTN_MY_ACCOUNT": "Mon compte",
+    "BTN_REGISTER": "S'inscrire"
   },
   "AUTH": {
     "TITLE": "Authentification",
     "BTN_LOGIN": "Se connecter",
     "BTN_REGISTER": "Créer un compte",
-    "NO_ACCOUNT_QUESTION": "Vous n'avez pas encore de compte ?"
+    "NO_ACCOUNT_QUESTION": "Vous n'avez pas encore de compte ?",
+    "LOGOUT": {
+      "CONFIRM_TITLE": "Confirmation",
+      "CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir vous déconnecter ?",
+      "BTN_CONFIRM": "Oui, continuer"
+    }
   },
   "REGISTER": {
     "TITLE": "Inscription",
@@ -411,6 +418,12 @@
         "END_DATE": "Fin de période",
         "LOCATION": "Criée"
       }
+    },
+    "ERROR": {
+      "LOAD_OBSERVED_LOCATION_ERROR": "Erreur de chargement du contrôle en criée",
+      "LOAD_OBSERVED_LOCATIONS_ERROR": "Erreur de chargement des contrôles en criée",
+      "SAVE_OBSERVED_LOCATION_ERROR": "Erreur de sauvegarde du contrôle en criée",
+      "SAVE_OBSERVED_LOCATIONS_ERROR": "Erreur de sauvegarde des contrôles en criée"
     }
   },
   "QUALITY": {

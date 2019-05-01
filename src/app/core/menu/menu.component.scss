@@ -17,7 +17,7 @@ ion-menu {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    background-color: var(--ion-color-light);
+    background-color: var(--ion-color-secondary);
     border: solid 1px var(--ion-color-primary);
     overflow: hidden !important;
     font-size: var(--avatar-size, 60px) !important;
@@ -30,6 +30,11 @@ ion-menu {
 
   .user-logo {
     text-align: right;
+    img {
+      max-width: 120px;
+      max-height: var(--avatar-size, 60px);
+      width: auto;
+    }
   }
 
   .username {
@@ -80,6 +85,11 @@ ion-menu {
     position: relative;
     top: 0;
     z-index: 99;
+
+    ion-button.selected,
+    ion-button.selected * {
+
+    }
   }
 
   ion-content.has-profile-header {
@@ -117,12 +127,17 @@ ion-menu {
     ion-scroll {
       overflow-y: auto !important;
     }
-
+    //
     .user-avatar {
       font-size: var(--avatar-size, 80px) !important;
       line-height: var(--avatar-size, 80px);
       height: var(--avatar-size, 80px) !important;
       width: var(--avatar-size, 80px) !important;
+    }
+    .user-logo {
+      img {
+        max-height: var(--avatar-size, 80px);
+      }
     }
   }
 }

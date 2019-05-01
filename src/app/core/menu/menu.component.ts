@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {MenuController, ModalController} from "@ionic/angular";
+import {AlertController, MenuController, ModalController} from "@ionic/angular";
 
 import {Router} from "@angular/router";
 import {Account, UserProfileLabel} from "../services/model";
@@ -8,10 +8,9 @@ import {AboutModal} from '../about/modal-about';
 
 import {environment} from '../../../environments/environment';
 import {HomePage} from '../home/home';
-
-import {Subject} from 'rxjs';
 import {fadeInAnimation} from '../../shared/material/material.animations';
 import {Components} from "@ionic/core";
+import {TranslateService} from "@ngx-translate/core";
 import IonSplitPane = Components.IonSplitPane;
 
 export interface MenuItem {
@@ -38,7 +37,7 @@ export class MenuComponent implements OnInit {
   public loading = true;
   public isLogin: boolean = false;
   public account: Account;
-  public splitPaneOpened: boolean = true;
+  public splitPaneOpened: boolean;
 
   @Input() logo: String;
 
@@ -65,6 +64,8 @@ export class MenuComponent implements OnInit {
     protected router: Router,
     protected menu: MenuController,
     protected modalCtrl: ModalController,
+    protected alertController: AlertController,
+    protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -77,44 +78,74 @@ export class MenuComponent implements OnInit {
 
     if (this.accountService.isLogin()) {
       this.onLogin(this.accountService.account);
-      setTimeout(() => {
-        this.loading = false;
-      }, 500);
+
     }
     else {
-      this.isLogin = false;
-      setTimeout(() => {
-        this.updateItems();
-        this.loading = false;
-      }, 1000);
+      this.onLogout(true);
     }
-
-    this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
-
   }
 
   onLogin(account: Account) {
     console.info('[menu] Account logged');
     this.account = account;
     this.isLogin = true;
+    this.splitPaneOpened = true;
+    this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     this.updateItems();
+    this.cd.markForCheck();
+
+    setTimeout(() => {
+      this.loading = false;
+      this.cd.markForCheck();
+    }, 500);
   }
 
-  onLogout() {
-    //console.debug("[menu] logout");
-    this.updateItems();
+  async onLogout(skipRedirect?: boolean) {
+    console.debug("[menu] logout");
     this.isLogin = false;
+    this.splitPaneOpened = false;
+    this.splitPane.when = false;
+    this.account = null;
+    this.updateItems();
 
     // Wait the end of fadeout, to reset the account
+    if (!skipRedirect) {
+      await this.router.navigate(['']);
+    }
+
     setTimeout(() => {
-      this.account = null;
+      this.loading = false;
+      this.cd.markForCheck();
     }, 1000);
 
-    this.router.navigate(['']);
   }
 
-  logout(): void {
-    this.accountService.logout();
+  async logout() {
+    const translations = await this.translate.get([
+      'AUTH.LOGOUT.CONFIRM_TITLE',
+      'AUTH.LOGOUT.CONFIRM_MESSAGE',
+      'COMMON.BTN_CANCEL',
+      'AUTH.LOGOUT.BTN_CONFIRM'
+    ]).toPromise();
+    const alert = await this.alertController.create({
+      header: translations['AUTH.LOGOUT.CONFIRM_TITLE'],
+      message: translations['AUTH.LOGOUT.CONFIRM_MESSAGE'],
+      buttons: [
+        {
+          text: translations['COMMON.BTN_CANCEL'],
+          role: 'cancel',
+          cssClass: 'secondary'
+        }, {
+          text: translations['AUTH.LOGOUT.BTN_CONFIRM'],
+          cssClass: 'ion-color-primary',
+          handler: () => {
+            this.accountService.logout();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   async openAboutModal(event) {
