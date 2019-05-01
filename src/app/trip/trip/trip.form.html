@@ -116,7 +116,7 @@
           </mat-option>
         </mat-autocomplete>
       </ion-col>
-      <ion-col size="auto">
+      <ion-col size="12" size-sm="auto">
         <mat-date-time [placeholder]="'TRIP.DEPARTURE_DATE_TIME'|translate" formControlName="departureDateTime"
           [displayTime]="true" [required]="true">
         </mat-date-time>
@@ -156,14 +156,12 @@
           </mat-option>
         </mat-autocomplete>
       </ion-col>
-      <ion-col size="auto">
+      <ion-col size="12" size-sm="auto">
         <mat-date-time [placeholder]="'TRIP.RETURN_DATE_TIME'|translate" formControlName="returnDateTime" [required]="true">
-          <mat-hint align="end" *ngIf="form.controls['returnDateTime'].value">
-            <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls['departureDateTime'].value, endValue: form.controls['returnDateTime'].value} | dateDiffDuration }}
+          <mat-hint align="end" *ngIf="form.get('returnDateTime').value">
+            <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.get('departureDateTime').value, endValue: form.get('returnDateTime').value} | dateDiffDuration }}
           </mat-hint>
         </mat-date-time>
-
-
       </ion-col>
     </ion-row>
 

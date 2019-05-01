@@ -52,15 +52,6 @@
               (blur)="_onBlur($event)">
     <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
-    <!-- None option -->
-    <mat-option *ngIf="!required" no-padding>
-      <ion-row no-padding>
-        <ion-col *ngIf="compact" size="3"></ion-col>
-        <ion-col *ngIf="!compact" size="3" size-lg="2"></ion-col>
-        <ion-col no-padding><ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label></ion-col>
-      </ion-row>
-    </mat-option>
-
     <!-- header -->
     <ion-row class="mat-select-header" no-padding>
       <ion-col size="3">
@@ -70,6 +61,15 @@
         <ion-label translate>REFERENTIAL.NAME</ion-label>
       </ion-col>
     </ion-row>
+
+    <!-- None option -->
+    <mat-option *ngIf="!required" no-padding>
+      <ion-row no-padding>
+        <ion-col *ngIf="compact" size="3"></ion-col>
+        <ion-col *ngIf="!compact" size="3" size-lg="2"></ion-col>
+        <ion-col no-padding><ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label></ion-col>
+      </ion-row>
+    </mat-option>
 
     <!-- options -->
     <mat-option *ngFor="let item of pmfm.qualitativeValues" [value]="item" no-padding>

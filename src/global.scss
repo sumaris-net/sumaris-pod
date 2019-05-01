@@ -486,11 +486,10 @@ ion-alert button.alert-button {
 }
 
 // --------------------------------------------------
-// Time picker
+// Date and time picker
 // --------------------------------------------------
 
 ngx-material-timepicker {
-
   --clock-hand-color: var(--ion-color-accent) !important;
 
   header {
@@ -498,9 +497,6 @@ ngx-material-timepicker {
     color: var(--ion-color-secondary-contrast) !important;
   }
 }
-// --------------------------------------------------
-// Date picker
-// --------------------------------------------------
 
 mat-calendar {
   .mat-calendar-header {
