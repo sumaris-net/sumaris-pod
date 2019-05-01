@@ -79,7 +79,7 @@ public class Person implements IReferentialEntity {
     @Column(name="email_md5", unique = true)
     private String emailMD5;
 
-    @Column(name="pubkey", nullable = false, unique = true)
+    @Column(name="pubkey", unique = true)
     private String pubkey;
 
     @ManyToOne(fetch = FetchType.LAZY)
