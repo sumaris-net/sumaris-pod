@@ -8,8 +8,6 @@ import {
   OnInit,
   Output
 } from "@angular/core";
-import {Observable} from 'rxjs';
-import {map, mergeMap} from "rxjs/operators";
 import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -20,7 +18,7 @@ import {
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
 import {OperationValidatorService} from "../services/operation.validator";
-import {EntityUtils, Operation, ReferentialRef, referentialToString, Trip} from "../services/trip.model";
+import {Operation, referentialToString, Trip} from "../services/trip.model";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';

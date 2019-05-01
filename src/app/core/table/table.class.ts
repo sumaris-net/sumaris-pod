@@ -1,17 +1,8 @@
-import {ChangeDetectionStrategy, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
+import {EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatColumnDef, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
-import {Observable, of, Subject} from 'rxjs';
-import {
-  auditTime,
-  bufferTime,
-  distinctUntilChanged,
-  mergeMap,
-  startWith,
-  takeUntil,
-  throttleTime,
-  zip
-} from "rxjs/operators";
+import {Observable, Subject} from 'rxjs';
+import {startWith, switchMap, takeUntil} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
@@ -25,7 +16,6 @@ import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
 import {isNotNil} from "../../shared/shared.module";
-import {CdkColumnDef} from "@angular/cdk/table";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -143,7 +133,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     protected filter?: F
   ) {
     this.mobile = this.platform.is('mobile');
-  };
+  }
 
   ngOnInit() {
     if (this._initialized) return; // Init only once
@@ -166,7 +156,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     )
       .pipe(
         startWith(this.autoLoad ? {} : 'skip'),
-        mergeMap(
+        switchMap(
           (any: any) => {
             this._dirty = false;
             this.selection.clear();
@@ -179,7 +169,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
               return Observable.of(undefined);
             }
             if (this.debug) console.debug("[table] Calling dataSource.load()...");
-            return this.dataSource.load(
+            return this.dataSource.watchAll(
               this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
               this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,
               this.sort && this.sort.active,
@@ -238,7 +228,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     if (this._subscriptions.length) console.warn("Too many call of listenDatasource!", new Error());
     this.registerSubscription(dataSource.onLoading.subscribe(loading => {
       this.loading = loading;
-      // NOT NEED this.markForCheck();
+      this.markForCheck();
     } ));
     this.registerSubscription(dataSource.datasourceSubject.subscribe(data => {
       this.error = undefined;

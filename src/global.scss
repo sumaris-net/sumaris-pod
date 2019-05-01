@@ -338,8 +338,6 @@ mat-table {
       .mat-form-field-label {
         visibility: hidden;
       }
-
-
     }
 
     .mat-form-field-underline {
@@ -416,7 +414,6 @@ mat-table {
     display: inline-block;
   }
 
-
   .mat-row.mat-row-disabled {
     cursor: pointer;
 
@@ -439,10 +436,38 @@ mat-table {
   }
 }
 
+@media screen and (max-width: $screen-sm-max) {
+  mat-table {
+
+    mat-cell:first-child,
+    mat-footer-cell:first-child,
+    mat-header-cell:first-child {
+      padding-right: 8px !important;
+    }
+
+    // Reuse the first column, to inject a left padding
+    .mat-column-select {
+      max-width: 8px !important;
+      overflow: hidden;
+
+      * {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    }
+
+    .mat-column-comments {
+      display: none !important;
+      visibility: hidden !important;
+    }
+  }
+}
+
+// Other material component
+
 .toolbar-spacer {
   flex: 1 1 auto;
 }
-
 
 ion-toolbar[translucent] {
   --background: transparent !important;

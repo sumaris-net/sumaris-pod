@@ -9,7 +9,6 @@ export class SharedValidators {
     const value = control.value;
     const date = !value || moment.isMoment(value) ? value : moment(control.value, DATE_ISO_PATTERN);
     if (date && (!date.isValid() || date.year() < 1970)) {
-      console.log("TOTO");
       return { validDate: true };
     }
   }
@@ -28,19 +27,19 @@ export class SharedValidators {
 
   static object(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && typeof value != 'object')
+    if (value && typeof value !== 'object')
       return { object: true };
   }
 
   static entity(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && typeof value != 'object' && (value.id === undefined || value.id === null))
+    if (value && typeof value !== 'object' && (value.id === undefined || value.id === null))
       return { entity: true };
   }
 
   static pubkey(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && (typeof value != 'string' || !PUBKEY_REGEXP.test(value)))
+    if (value && (typeof value !== 'string' || !PUBKEY_REGEXP.test(value)))
       return { pubkey: true };
   }
 

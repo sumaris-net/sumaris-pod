@@ -49,11 +49,11 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     //this._debug = true;
   };
 
-  load(offset: number,
-       size: number,
-       sortBy?: string,
-       sortDirection?: string,
-       filter?: F): Observable<LoadResult<T>> {
+  watchAll(offset: number,
+           size: number,
+           sortBy?: string,
+           sortDirection?: string,
+           filter?: F): Observable<LoadResult<T>> {
 
     this.onLoading.emit(true);
     return this.dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)

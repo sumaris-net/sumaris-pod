@@ -406,7 +406,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   public markAsTouched() {
     if (this.form.touched) {
       this.markForCheck();
-
       this._onTouchedCallback();
     }
   }

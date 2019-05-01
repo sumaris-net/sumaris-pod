@@ -32,31 +32,23 @@
   </mat-form-field>
 
   <!-- boolean -->
-  <ng-container *ngSwitchCase="'boolean'">
-    <mat-boolean-field [formControl]="formControl" [placeholder]="placeholder" [floatLabel]="floatLabel" [required]="pmfm.isMandatory"
-      [compact]="compact"></mat-boolean-field>
-  </ng-container>
+  <mat-boolean-field *ngSwitchCase="'boolean'" [formControl]="formControl" [placeholder]="placeholder" [floatLabel]="floatLabel" [required]="pmfm.isMandatory"
+    [compact]="compact"></mat-boolean-field>
 
   <!-- date -->
-  <ng-container *ngSwitchCase="'date'">
-    <mat-date-time [formControl]="formControl" [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
-      [floatLabel]="floatLabel" [required]="pmfm.isMandatory" [readonly]="readonly" [displayTime]="pmfm.unit=='Date & Time'"
-                   [compact]="compact"></mat-date-time>
-  </ng-container>
+  <mat-date-time *ngSwitchCase="'date'" [formControl]="formControl" [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+    [floatLabel]="floatLabel" [required]="pmfm.isMandatory" [readonly]="readonly" [displayTime]="pmfm.unit=='Date & Time'"
+                 [compact]="compact"></mat-date-time>
 
   <!-- qualitative value -->
-  <ng-container *ngSwitchCase="'qualitative_value'">
-    <mat-form-field-measurement-qv
-      [formControl]="formControl" [pmfm]="pmfm" [floatLabel]="floatLabel" [compact]="compact"></mat-form-field-measurement-qv>
-  </ng-container>
+  <mat-form-field-measurement-qv *ngSwitchCase="'qualitative_value'"
+    [formControl]="formControl" [pmfm]="pmfm" [floatLabel]="floatLabel" [compact]="compact"></mat-form-field-measurement-qv>
 
   <!-- string -->
-  <ng-container *ngSwitchCase="'string'">
-    <mat-form-field [floatLabel]="floatLabel">
-      <input matInput autocomplete="off" [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory">
-      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-    </mat-form-field>
-  </ng-container>
+  <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
+    <input matInput autocomplete="off" [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory">
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  </mat-form-field>
 
   <!-- latitude -->
   <mat-latlong *ngSwitchCase="'latitude'" [floatLabel]="floatLabel" [formControl]="formControl" type="latitude"
@@ -69,9 +61,9 @@
   </mat-latlong>
 
   <!-- other -->
-  <ng-container *ngSwitchDefault>
-    <div>Unknown PMFM type {{pmfm.type}}! Please report this error.</div>
-    <!-- <input matInput [placeholder]="pmfm.name" [formControl]="formControl"> -->
-  </ng-container>
+  <mat-form-field *ngSwitchDefault>
+    <input matInput hidden type="hidden" [formControl]="formControl">
+    <mat-error>Unknown PMFM type {{pmfm.type}}! Please report this error.</mat-error>
+  </mat-form-field>
 
 </ng-container>

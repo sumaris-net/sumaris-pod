@@ -134,7 +134,7 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
                 maxDecimals: this.maxDecimals,
                 placeholderChar: this.placeholderChar
             });
-        this.textFormControl.setValue(strValue, { emitEvent: false });
+        this.textFormControl.patchValue(strValue, { emitEvent: false });
         this.writing = false;
     }
 

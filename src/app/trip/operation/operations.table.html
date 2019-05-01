@@ -38,12 +38,12 @@
   matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
+    <mat-header-cell  *matHeaderCellDef>
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
         [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
     </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
+    <mat-cell  *matCellDef="let row">
       <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
       </mat-checkbox>
     </mat-cell>

@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output
+} from '@angular/core';
 import {Measurement, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
@@ -18,7 +26,7 @@ import {isNil, isNotNil} from '../../shared/shared.module';
   styleUrls: ['./measurements.form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MeasurementsForm extends AppForm<Measurement[]> {
+export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   private _onValueChanged = new EventEmitter<any>();
   private _onRefreshPmfms = new EventEmitter<any>();
@@ -81,7 +89,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     return this._gear;
   }
 
-  public set value(value: any) {
+  @Input()
+  set value(value: any) {
     //if (this.debug) console.debug(`${this.logPrefix} Set form value`, value);
     if (this.data !== value) {
       // Transform entity into json
@@ -93,7 +102,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     }
   }
 
-  public get value(): any {
+  get value(): any {
     if (this.loading) return this.data; // Avoid to return not loading data
 
     // Find dirty pmfms, to avoid full update
@@ -133,32 +142,36 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     );
 
     // Auto update the view, when value AND pmfms are filled
-    merge(
-      this._onValueChanged
-        .pipe(
-          startWith('ngOnInit'),
-          filter(() => this.data && this.data.length > 0)
-        ),
-      this.pmfms.filter(isNotNil)
-    )
-      .subscribe((_) => this.updateControls('merge', this.pmfms.getValue()));
+    this.registerSubscription(
+      merge(
+        this._onValueChanged
+          .pipe(
+            startWith('ngOnInit'),
+            filter(() => this.data && this.data.length > 0)
+          ),
+        this.pmfms.filter(isNotNil)
+      )
+      .subscribe((_) => this.updateControls('merge', this.pmfms.getValue()))
+    );
 
     // Listen form changes
-    this.form.valueChanges
-      .subscribe((_) => {
-        if (!this.loading && this.valueChanges.observers.length) {
-          this.valueChanges.emit(this.value);
-        }
-      });
+    this.registerSubscription(
+      this.form.valueChanges
+        .subscribe((_) => {
+          if (!this.loading && this.valueChanges.observers.length) {
+            this.valueChanges.emit(this.value);
+          }
+        })
+    );
   }
 
   public markAsTouched() {
-    super.markAsTouched();
     // Force each sub-controls
     (this.pmfms.getValue() || []).forEach(p => {
-      const control = this.form.controls[p.pmfmId];
+      const control = this.form.get(p.pmfmId.toString());
       if (control) control.markAsTouched();
     });
+    super.markAsTouched();
   }
 
   /* -- protected methods -- */
