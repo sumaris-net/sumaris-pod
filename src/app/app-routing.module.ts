@@ -172,6 +172,14 @@ const routes: Routes = [
     canActivate: [AuthGuardService],
     children: [
       {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: '/extraction/product/ices',
+        data: {
+          profile: 'SUPERVISOR'
+        }
+      },
+      {
         path: ':category',
         children: [
           {

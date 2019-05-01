@@ -29,11 +29,10 @@ export class AppComponent {
     // Data access
     { title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'USER'},
     { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
-      //matIcon: 'donut_small',
       matIcon: 'verified_user',
       profile: 'USER'},
 
-    { title: 'MENU.EXTRACTIONS', path: '/extraction/table', icon: 'download', profile: 'SUPERVISOR' },
+    { title: 'MENU.EXTRACTIONS', path: '/extraction/', icon: 'download', profile: 'SUPERVISOR' },
 
     { title: 'MENU.ADMINISTRATION_DIVIDER', profile: 'USER' },
     { title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN' },

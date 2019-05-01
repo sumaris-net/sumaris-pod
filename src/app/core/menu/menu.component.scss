@@ -4,6 +4,11 @@
 ion-menu {
 
   --ion-item-background: transparent;
+  --ion-item-icon-color: var(--ion-color-secondary);
+  --ion-item-text-color: var(--ion-color-primary);
+
+  --ion-item-background-selected: var(--ion-color-secondary100);
+  --ion-item-icon-color-selected: var(--ion-color-primary);
 
   .user-avatar {
     -webkit-background-size: cover;
@@ -49,8 +54,26 @@ ion-menu {
     color: var(--ion-color-primary);
   }
 
+  ion-item {
+    mat-icon,
+    ion-icon {
+      color: var(--ion-item-icon-color) !important;
+    }
+    ion-text,
+    ion-label {
+      color: var(--ion-item-text-color) !important;
+    }
+  }
+
   ion-item.selected {
-    background-color: var(--ion-color-secondary100-tint);
+    background-color: var(--ion-item-background-selected);
+
+    mat-icon,
+    ion-icon {
+      color: var(--ion-item-icon-color-selected) !important;
+      fill: currentColor;
+      stroke: currentColor;
+    }
   }
 
   ion-toolbar.ion-toolbar-top {
