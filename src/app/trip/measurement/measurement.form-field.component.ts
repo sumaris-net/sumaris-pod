@@ -117,14 +117,14 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     } else {
       //this.formControl.enable({ onlySelf: true, emitEvent: false });
     }
-    this.cd.markForCheck();
     this.disabling = false;
+    this.cd.markForCheck();
   }
 
   public markAsTouched() {
     if (this.formControl.touched) {
-      this._onTouchedCallback();
       this.cd.markForCheck();
+      this._onTouchedCallback();
     }
   }
 

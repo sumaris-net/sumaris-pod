@@ -9,11 +9,11 @@
     <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
   </mat-label>
 
-  <input matInput [formControl]="formControl" (focus)="_onFocus($event)" [required]="required" [hidden]="_value!=undefined">
+  <input matInput [formControl]="formControl" (focus)="_onFocus($event)" [required]="required" [hidden]="value!=undefined">
 
   <!-- radio button -->
   <mat-radio-group *ngIf="!compact"
-                   [hidden]="!showRadio && value===undefined"
+                   [hidden]="!showRadio && value==undefined"
                    [formControl]="formControl"
                    (change)="onRadioValueChanged($event)">
     <mat-radio-button [value]="true" #yesButton>
@@ -26,7 +26,7 @@
 
   <!-- checkbox, when compact -->
   <mat-checkbox *ngIf="compact" [formControl]="formControl" #checkboxButton (change)="onCheckboxValueChanged($event)"
-    [indeterminate]="_value==undefined" [hidden]="!showRadio && value===undefined">
+    [indeterminate]="value==undefined" [hidden]="!showRadio && value==undefined">
   </mat-checkbox>
 
   <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
