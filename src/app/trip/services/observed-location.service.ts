@@ -1,12 +1,18 @@
 import {Injectable} from "@angular/core";
 import {BaseDataService} from "../../core/services/base.data-service.class";
-import {TableDataService, LoadResult} from "../../shared/services/data-service.class";
+import {LoadResult, TableDataService} from "../../shared/services/data-service.class";
 import {Apollo} from "apollo-angular";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {Moment} from "moment";
 import {environment} from "../../../environments/environment";
 import {ObservedLocation} from "./observed-location.model";
+import gql from "graphql-tag";
+import {Fragments} from "./trip.queries";
+import {isNil} from "./trip.model";
+import {ErrorCodes} from "./trip.errors";
+import {map, throttleTime} from "rxjs/operators";
+import {FetchPolicy} from "apollo-client";
 
 
 export declare class ObservedLocationFilter {
@@ -16,6 +22,95 @@ export declare class ObservedLocationFilter {
   locationId?: number;
 }
 
+
+export const ObservedLocationFragments = {
+  lightObservedLocation: gql`fragment LightObservedLocationFragment on ObservedLocationVO {
+    id
+    program {
+      id 
+      label
+    }
+    startDateTime
+    endDateTime
+    creationDate
+    updateDate
+    controlDate
+    validationDate
+    qualificationDate
+    comments
+    location {
+      ...LocationFragment
+    }
+    recorderDepartment {
+      ...RecorderDepartmentFragment
+    }
+    recorderPerson {
+      ...RecorderPersonFragment
+    }
+    observers {
+      ...RecorderPersonFragment
+    }
+  }
+  ${Fragments.recorderDepartment}
+  ${Fragments.recorderPerson}
+  ${Fragments.location}
+  `,
+  observedLocation: gql`fragment ObservedLocationFragment on ObservedLocationVO {
+    id
+    program {
+      id 
+      label
+    }
+    startDateTime
+    endDateTime
+    creationDate
+    updateDate
+    controlDate
+    validationDate
+    qualificationDate
+    comments
+    location {
+      ...LocationFragment
+    }
+    recorderDepartment {
+      ...RecorderDepartmentFragment
+    }
+    recorderPerson {
+      ...RecorderPersonFragment
+    }
+    measurements {
+      ...MeasurementFragment
+    }
+    observers {
+      ...RecorderPersonFragment
+    }
+  }
+  ${Fragments.recorderDepartment}
+  ${Fragments.recorderPerson}
+  ${Fragments.measurement}
+  ${Fragments.location}
+  `
+};
+
+// Search query
+const LoadAllQuery: any = gql`
+  query ObservedLocations($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ObservedLocationFilterVOInput){
+    observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightObservedLocationFragment
+    }
+    observedLocationCount(filter: $filter)
+  }
+  ${ObservedLocationFragments.lightObservedLocation}
+`;
+// Load query
+const LoadQuery: any = gql`
+  query ObservedLocation($id: Int) {
+    observedLocation(id: $id) {
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+`;
 @Injectable()
 export class ObservedLocationService extends BaseDataService implements TableDataService<ObservedLocation, ObservedLocationFilter> {
 
@@ -31,29 +126,73 @@ export class ObservedLocationService extends BaseDataService implements TableDat
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: ObservedLocationFilter, options?: any): Observable<LoadResult<ObservedLocation>> {
 
-    const now = Date.now();
-    console.debug("[sale-control] Loading observed locations...");
-
     // Mock
     if (environment.mock) return Observable.of(this.getMockData());
 
-    // TODO
-    return Observable.empty();
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 20,
+      sortBy: sortBy || 'startDateTime',
+      sortDirection: sortDirection || 'asc',
+      filter: filter
+    };
+
+    this._lastVariables.loadAll = variables;
+
+    let now;
+    if (this._debug) {
+      now = Date.now();
+      console.debug("[observed-location-service] Watching observed locations... using options:", variables);
+    }
+    return this.watchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
+      query: LoadAllQuery,
+      variables: variables,
+      error: { code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR" }
+    })
+    .pipe(
+      throttleTime(200),
+      map(res => {
+        const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
+        const total = res && res.observedLocationsCount || 0;
+        if (this._debug) {
+          if (now) {
+            console.debug(`[observed-location-service] Loaded {${data.length || 0}} observed locations in ${Date.now() - now}ms`, data);
+            now = undefined;
+          }
+          else {
+            console.debug(`[observed-location-service] Refreshed {${data.length || 0}} observed locations`);
+          }
+        }
+        return {
+          data: data,
+          total: total
+        };
+      }));
   }
 
-  async load(id: number): Promise<ObservedLocation> {
+  async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<ObservedLocation> {
+    if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
-    console.debug(`[sale-control] Loading observed location {${id}}...`);
+    if (this._debug) console.debug(`[observed-location-service] Loading observed location {${id}}...`);
 
     // Mock
     if (environment.mock) {
-      const saleControl:ObservedLocation = this.getMockData().data.find(sc => sc.id === id);
-      return saleControl;
+      return this.getMockData().data.find(sc => sc.id === id);
     }
 
-    // TODO
-    return undefined;
+    const res = await this.query<{ observedLocation: ObservedLocation }>({
+      query: LoadQuery,
+      variables: {
+        id: id
+      },
+      error: { code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR" },
+      fetchPolicy: options && options.fetchPolicy || 'cache-first'
+    });
+    const data = res && res.observedLocation && ObservedLocation.fromObject(res.observedLocation);
+    if (data && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, data);
+
+    return data;
   }
 
   async save(data: ObservedLocation): Promise<ObservedLocation> {

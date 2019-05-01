@@ -25,8 +25,11 @@
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",
     "BTN_HIDE_MENU": "Hide menu",
-    "BTN_SHOW_MENU": "Show menu",
+    "BTN_SHOW_MENU": "Show menu",,
+    "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on",
+    "COMMENTS": "Comments",
+    "EMPTY_OPTION": "(Empty)",
 
     "DATE_PATTERN": "MM/DD/YYYY",
     "DATE_TIME_PATTERN": "MM/DD/YYYY HH:mm",
@@ -72,11 +75,32 @@
   "CONFIGURATION": {
     "APP_NAME": "Application Name",
     "DESCRIPTION": "Description (home page)",
-    "LOGO_PARTNERS": "Partners logo (home page):"
+    "LOGO_PARTNERS": "Partners logo (home page):",
+    "PROPERTIES": "Options:",
+    "PROPERTY_KEY": "Key",
+    "PROPERTY_VALUE": "Value",
+    "BTN_ADD_PROPERTY": "Add an option",
+    "OPTIONS": {
+      "LOGO": "Menu > Logo (max width: 110px)",
+      "FAVICON": "favicon",
+      "DEFAULT_LOCALE": "Default Language",
+      "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
+      "HOME": {
+        "LOGO_LARGE": "Home > Logo (max width 400px)",
+        "PARTNER_DEPARTMENTS": "Home > Partners logos",
+        "BACKGROUND_IMAGES": "Home > Background images"
+      },
+      "COLORS": {
+        "PRIMARY": "Theme > Primary color",
+        "SECONDARY": "Theme > Secondary color",
+        "TERTIARY": "Theme > Tertiary color"
+      }
+    }
   },
   "MENU": {
     "HOME": "Home",
     "TRIPS": "Trips",
+    "OBSERVED_LOCATIONS": "Observations",
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Users",
     "VESSELS": "Vessels",
@@ -84,8 +108,7 @@
     "CONFIGURATION": "Server configuration",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
-    "BTN_ACCOUNT": "Account",
-    "BTN_LOGOUT": "Log out"
+    "BTN_ACCOUNT": "Account"
   },
   "ABOUT": {
     "TITLE": "About",
@@ -99,15 +122,22 @@
     "WELCOME": "Welcome to the {{appName}} web site!",
     "DESCRIPTION": "European shared database for management of skate stocks.",
     "BTN_TRIPS": "Search trips",
+    "REGISTER_HELP": "Registration is free. Join us today!",
     "NOT_THIS_ACCOUNT_QUESTION": "You are not <b>{{displayName}}</b>?",
     "BTN_DISCONNECT": "Disconnect this account",
-    "BTN_MY_ACCOUNT": "My account"
+    "BTN_MY_ACCOUNT": "My account",
+    "BTN_REGISTER": "Register"
   },
   "AUTH": {
     "TITLE": "Authentication",
     "BTN_LOGIN": "Log In",
     "BTN_REGISTER": "Sign up",
-    "NO_ACCOUNT_QUESTION": "Don't have an account?"
+    "NO_ACCOUNT_QUESTION": "Don't have an account?",
+    "LOGOUT": {
+      "CONFIRM_TITLE": "Confirmation",
+      "CONFIRM_MESSAGE": "Are you sure you want to logout ?",
+      "BTN_CONFIRM": "Yes, continue"
+    }
   },
   "REGISTER": {
     "TITLE": "Registration",
@@ -202,9 +232,17 @@
     },
     "LIST": {
       "TITLE": "Fishing trips",
+      "VESSEL": "Vessel",
       "PROGRAM": "Programme",
+      "DEPARTURE_DATE_TIME": "Departure date",
+      "DEPARTURE_LOCATION": "Departure harbour",
+      "RETURN_DATE_TIME": "Return date",
+      "RETURN_LOCATION": "Return harbour",
       "QUALITY": "Status",
+      "OBSERVERS": "Observers",
+      "COMMENTS": "Comments",
       "FILTER": {
+        "PROGRAM": "Data collection program",
         "START_DATE": "Start period",
         "END_DATE": "End period",
         "LOCATION": "Port (departure or return)"
@@ -293,7 +331,7 @@
         "SAMPLING_RATIO": "Sampling fraction",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_WEIGHT": "Sampling weight",
-        "PARENT_BATCH": "Species batch",
+        "PARENT": "Species batch",
         "COMMENTS": "Comments",
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?"
       }
@@ -324,17 +362,73 @@
     "SALE_LOCATION": "Sale location",
     "SALE_TYPE": "Sale type",
     "COMMENTS": "Comments",
+    "VESSEL": "Vessel",
     "NEW": {
       "TITLE": "New sale"
     },
     "EDIT": {
-      "TITLE": "Edit the sale"
+      "TITLE": "{{location}} - Sale of {{dateTime}}",
+      "OTHER_FEATURES": "Other features:"
+    },
+    "TABLE": {
+      "TITLE": "Sale",
+      "PROGRAM": "Program",
+      "START_DATE_TIME": "Date/time",
+      "QUALITY": "Status",
+      "LOCATION": "Lieu de vente",
+      "OBSERVERS": "Observers",
+      "COMMENTS": "Comments",
+      "FILTER": {
+        "START_DATE": "Start period",
+        "END_DATE": "End period",
+        "LOCATION": "Location"
+      }
     },
     "ERROR": {
       "LOAD_ERROR": "Error while loading the sale.",
       "LOAD_ALL_ERROR": "Error while loading sales.",
       "SAVE_ERROR": "Error while saving the sale.",
       "SAVE_ALL_ERROR": "Error while saving sales."
+    }
+  },
+  "OBSERVED_LOCATION": {
+    "DATE_TIME": "Date/Time",
+    "START_DATE": "Start date",
+    "START_DATE_TIME": "Start date/time ",
+    "END_DATE": "End date",
+    "END_DATE_TIME": "End date/time",
+    "START": "Start:",
+    "END": "End:",
+    "LOCATION": "Auction",
+    "TAB_GENERAL": "Details",
+    "TAB_VESSELS": "Observed vessels",
+    "OBSERVERS": "Observers:",
+    "NEW": {
+      "TITLE": "New control"
+    },
+    "EDIT": {
+      "TITLE": "{{location}} - Control of {{dateTime}}",
+      "OTHER_FEATURES": "Other features:"
+    },
+    "TABLE": {
+      "TITLE": "Observations",
+      "PROGRAM": "Program",
+      "START_DATE_TIME": "Date/time",
+      "QUALITY": "Status",
+      "LOCATION": "Location",
+      "OBSERVERS": "Observers",
+      "COMMENTS": "Comments",
+      "FILTER": {
+        "START_DATE": "Start period",
+        "END_DATE": "End period",
+        "LOCATION": "Location"
+      }
+    },
+    "ERROR": {
+      "LOAD_ERROR": "Error while loading the observation.",
+      "LOAD_ALL_ERROR": "Error while loading observations.",
+      "SAVE_ERROR": "Error while saving the observation.",
+      "SAVE_ALL_ERROR": "Error while saving observations."
     }
   },
   "QUALITY": {
@@ -412,8 +506,7 @@
       "TITLE": "Referentials",
       "FILTER": {
         "ENTITY": "Kind",
-        "SEARCH_TEXT": "Search: code, name",
-        "EMPTY_OPTION": "(Empty)"
+        "SEARCH_TEXT": "Search: code, name"
       }
     },
     "ENTITY": {
@@ -440,6 +533,14 @@
       "ACQUISITION_LEVEL": "Acquisition levels",
       "TRANSCRIBING_ITEM": "Transcribing",
       "METIER": "Metiers"
+    }
+  },
+  "PROGRAM": {
+    "ERROR": {
+      "LOAD_PROGRAM_ERROR": "Error while loading program",
+      "LOAD_PROGRAMS_ERROR": "Error while loading programs",
+      "SAVE_PROGRAM_ERROR": "Error while saving program",
+      "SAVE_PROGRAMS_ERROR": "Error while saving programs"
     }
   },
   "EXTRACTION": {
@@ -523,7 +624,9 @@
     "FIELD_NOT_VALID_INTEGER": "Expected integer value",
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",
     "FIELD_NOT_VALID_DATE": "Invalid date",
-    "FIELD_NOT_VALID_DATE_AFTER": "Invalid end date",
+    "FIELD_NOT_VALID_DATE_AFTER": "Inconsistent dates",
+    "FIELD_NOT_VALID_DATE_MAX_DURATION": "Duration too long",
+    "FIELD_NOT_VALID_DATE_MIN_DURATION": "Duration too short",
     "FIELD_NOT_VALID_HOUR_MINUTE": "Invalid hour/minute",
     "FIELD_NOT_VALID_DATE_TIME": "Invalid date/hour",
     "FIELD_NOT_VALID_LATITUDE": "Invalid latitude",
@@ -539,6 +642,8 @@
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
     "LOAD_ACCOUNT_ERROR": "Error loading user account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "LOAD_CONFIG_ERROR": "Error while loading configuration",
+    "SAVE_CONFIG_ERROR": "Error while saving configuration",
     "ACCOUNT_NOT_EXISTS": "Your account does not appear to exist and can not be backed up.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Error sending account confirmation email.<small><br/>If the problem persists, please contact your administrator.</small>",
     "CONFIRM_ACCOUNT_EMAIL_FAILED": "Error while confirming the email. This account may have already been confirmed?",

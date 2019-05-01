@@ -26,6 +26,8 @@ export const TripFragments = {
     updateDate
     controlDate
     validationDate
+    qualificationDate
+    qualityFlagId
     comments
     departureLocation {
       ...LocationFragment
@@ -64,6 +66,8 @@ export const TripFragments = {
     updateDate
     controlDate
     validationDate
+    qualificationDate
+    qualityFlagId
     comments
     departureLocation {
       ...LocationFragment
@@ -141,7 +145,7 @@ const LoadAllQuery: any = gql`
   }
   ${TripFragments.lightTrip}
 `;
-//
+// Load a trip
 const LoadQuery: any = gql`
   query Trip($id: Int) {
     trip(id: $id) {
@@ -236,7 +240,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     this._lastVariables.loadAll = variables;
 
     let now = Date.now();
-    if (this._debug) console.debug("[trip-service] Loading trips... using options:", variables);
+    if (this._debug) console.debug("[trip-service] Watching trips... using options:", variables);
     return this.watchQuery<{ trips: Trip[]; tripsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
@@ -265,7 +269,6 @@ export class TripService extends BaseDataService implements TableDataService<Tri
   async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<Trip | null> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
-    this.loading = true;
     const now = Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
 
@@ -279,8 +282,6 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     });
     const data = res && res.trip && Trip.fromObject(res.trip);
     if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
-
-    this.loading = false;
 
     return data;
   }

@@ -28,7 +28,7 @@
     "BTN_SHOW_MENU": "Show menu",,
     "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on",
-    "COMMENTS": "Comments",,
+    "COMMENTS": "Comments",
     "EMPTY_OPTION": "(Empty)",
 
     "DATE_PATTERN": "DD/MM/YYYY",
@@ -75,12 +75,32 @@
   "CONFIGURATION": {
     "APP_NAME": "Application Name",
     "DESCRIPTION": "Description (home page)",
-    "LOGO_PARTNERS": "Partners logo (home page):"
+    "LOGO_PARTNERS": "Partners logo (home page):",
+    "PROPERTIES": "Options:",
+    "PROPERTY_KEY": "Key",
+    "PROPERTY_VALUE": "Value",
+    "BTN_ADD_PROPERTY": "Add an option",
+    "OPTIONS": {
+      "LOGO": "Menu > Logo (max width: 110px)",
+      "FAVICON": "favicon",
+      "DEFAULT_LOCALE": "Default Language",
+      "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
+      "HOME": {
+        "LOGO_LARGE": "Home > Logo (max width 400px)",
+        "PARTNER_DEPARTMENTS": "Home > Partners logos",
+        "BACKGROUND_IMAGES": "Home > Background images"
+      },
+      "COLORS": {
+        "PRIMARY": "Theme > Primary color",
+        "SECONDARY": "Theme > Secondary color",
+        "TERTIARY": "Theme > Tertiary color"
+      }
+    }
   },
   "MENU": {
     "HOME": "Home",
     "TRIPS": "Trips",
-    "OBSERVED_LOCATIONS": "Auction controls",
+    "OBSERVED_LOCATIONS": "Observations",
     "ADMINISTRATION_DIVIDER": "Administration",
     "USERS": "Users",
     "VESSELS": "Vessels",
@@ -341,25 +361,74 @@
     "END_DATE_TIME": "End date/time",
     "SALE_LOCATION": "Sale location",
     "SALE_TYPE": "Sale type",
-    "COMMENTS": "Comments",,
+    "COMMENTS": "Comments",
     "VESSEL": "Vessel",
     "NEW": {
       "TITLE": "New sale"
     },
     "EDIT": {
-      "TITLE": "Edit the sale"
+      "TITLE": "{{location}} - Sale of {{dateTime}}",
+      "OTHER_FEATURES": "Other features:"
     },
     "TABLE": {
-      "VESSEL": "Vessel",
+      "TITLE": "Sale",
+      "PROGRAM": "Program",
       "START_DATE_TIME": "Date/time",
+      "QUALITY": "Status",
+      "LOCATION": "Lieu de vente",
       "OBSERVERS": "Observers",
-      "COMMENTS": "Comments"
+      "COMMENTS": "Comments",
+      "FILTER": {
+        "START_DATE": "Start period",
+        "END_DATE": "End period",
+        "LOCATION": "Location"
+      }
     },
     "ERROR": {
       "LOAD_ERROR": "Error while loading the sale.",
       "LOAD_ALL_ERROR": "Error while loading sales.",
       "SAVE_ERROR": "Error while saving the sale.",
       "SAVE_ALL_ERROR": "Error while saving sales."
+    }
+  },
+  "OBSERVED_LOCATION": {
+    "DATE_TIME": "Date/Time",
+    "START_DATE": "Start date",
+    "START_DATE_TIME": "Start date/time ",
+    "END_DATE": "End date",
+    "END_DATE_TIME": "End date/time",
+    "START": "Start:",
+    "END": "End:",
+    "LOCATION": "Auction",
+    "TAB_GENERAL": "Details",
+    "TAB_VESSELS": "Observed vessels",
+    "OBSERVERS": "Observers:",
+    "NEW": {
+      "TITLE": "New control"
+    },
+    "EDIT": {
+      "TITLE": "{{location}} - Control of {{dateTime}}",
+      "OTHER_FEATURES": "Other features:"
+    },
+    "TABLE": {
+      "TITLE": "Observations",
+      "PROGRAM": "Program",
+      "START_DATE_TIME": "Date/time",
+      "QUALITY": "Status",
+      "LOCATION": "Location",
+      "OBSERVERS": "Observers",
+      "COMMENTS": "Comments",
+      "FILTER": {
+        "START_DATE": "Start period",
+        "END_DATE": "End period",
+        "LOCATION": "Location"
+      }
+    },
+    "ERROR": {
+      "LOAD_ERROR": "Error while loading the observation.",
+      "LOAD_ALL_ERROR": "Error while loading observations.",
+      "SAVE_ERROR": "Error while saving the observation.",
+      "SAVE_ALL_ERROR": "Error while saving observations."
     }
   },
   "QUALITY": {
