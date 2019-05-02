@@ -12,7 +12,7 @@ export const environment: Environment = {
   production: false,
   baseUrl: '/',
 
-  remoteBaseUrl: "http://localhost:8080",
+  remoteBaseUrl: "http://192.168.0.28:8080",
   //remoteBaseUrl: "https://adap.e-is.pro",
   //remoteBaseUrl: "https://www.sumaris.net",
 

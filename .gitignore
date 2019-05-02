@@ -25,17 +25,15 @@ temp/
 hooks/
 platforms/
 plugins/
-plugins/android.json
-plugins/ios.json
 www/
 $RECYCLE.BIN/
 
 .DS_Store
+.directory
 Thumbs.db
 UserInterfaceState.xcuserstate
 
 yarn.lock
-.directory
-server/db.sqlite
 package-lock.json
-package-lock.json
+
+resources/android/build/local

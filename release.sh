@@ -1,5 +1,6 @@
 #!/bin/bash
 
+NODEJS_VERSION=10
 
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
@@ -16,13 +17,15 @@ DIRNAME=`pwd`
 current=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?" package.json | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
 echo "Current version: $current"
 
-
-# force nodejs version to 8
-if [ -d "$NVM_DIR" ]; then
-    . $NVM_DIR/nvm.sh
-    nvm use 10
+# Force nodejs version
+if [[ -d "${NVM_DIR}" ]]; then
+    . ${NVM_DIR}/nvm.sh
+    nvm use ${NODEJS_VERSION}
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
 else
-    echo "nvm (Node version manager) not found (directory $NVM_DIR not found). Please install, and retry"
+    echo "nvm (Node version manager) not found (directory ${NVM_DIR} not found). Please install, and retry"
     exit -1
 fi
 
@@ -63,17 +66,17 @@ echo "----------------------------------"
 echo "- Compiling sources..."
 echo "----------------------------------"
 #npm run build.prod
-if [ $? -ne 0 ]; then
-    exit
+if [[ $? -ne 0 ]]; then
+    exit 1
 fi
 
 echo "----------------------------------"
-echo "- Creating artefact..."
+echo "- Creating web artefact..."
 echo "----------------------------------"
 cd $DIRNAME/www
 zip -q -r sumaris-app.zip .
-if [ $? -ne 0 ]; then
-    exit
+if [[ $? -ne 0 ]]; then
+    exit 1
 fi
 
 echo "----------------------------------"
@@ -87,8 +90,8 @@ git add package.json config.xml src/assets/manifest.json install.sh
 git commit -m "v$2"
 git tag "v$2"
 git push
-if [ $? -ne 0 ]; then
-    exit
+if [[ $? -ne 0 ]]; then
+    exit 1
 fi
 
 # Pause (if propagation is need between hosted git server and github)
@@ -104,8 +107,8 @@ echo "* Uploading artifacts to Github..."
 echo "**********************************"
 
 ./github.sh $1 ''"$description"''
-if [ $? -ne 0 ]; then
-    exit
+if [[ $? -ne 0 ]]; then
+    exit 1
 fi
 
 echo "RELEASE finished !"
