@@ -1,5 +1,5 @@
 <app-toolbar [title]="title | async" color="primary" [hasValidate]="!loading && dirty" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref">
+             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
@@ -24,9 +24,8 @@
       </ion-item>
 
       <ion-grid no-padding>
-
         <ion-row no-padding>
-          <ion-col padding>
+          <ion-col no-padding padding-top>
 
             <!-- observed location -->
             <form-observed-location #observedLocationForm

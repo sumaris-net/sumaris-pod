@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
 import {BehaviorSubject} from 'rxjs';
-import {filter, startWith, first} from "rxjs/operators";
+import {filter, first, startWith} from "rxjs/operators";
 import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -16,7 +16,6 @@ import {
   personsToString,
   PmfmStrategy,
   referentialToString,
-  Sale,
   Trip,
   vesselFeaturesToString
 } from "../services/trip.model";
@@ -26,15 +25,14 @@ import {Location} from '@angular/common';
 import {ProgramService, ReferentialRefService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
 import {MeasurementsValidatorService, SaleValidatorService} from "../services/trip.validators";
 import {isNotNil, LoadResult} from "../../shared/shared.module";
-import {ObservedLocation} from "../services/observed-location.model";
-import {SaleFilter, SaleService} from "../services/sale.service";
+import {ObservedLocation, ObservedVessel} from "../services/observed-location.model";
+import {ObservedVesselFilter, ObservedVesselService} from "../services/observed-vessel.service";
 
 const PMFM_ID_REGEXP = /\d+/;
-const SALE_RESERVED_START_COLUMNS: string[] = ['vessel', 'startDateTime', 'observers', 'pmfm_2', 'pmfm_3'];
-const SALE_RESERVED_END_COLUMNS: string[] = ['comments'];
+const OBSERVED_VESSEL_RESERVED_START_COLUMNS: string[] = ['vessel', 'dateTime', 'observers'];
+const OBSERVED_VESSEL_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
   selector: 'table-observed-vessels',
@@ -44,32 +42,32 @@ const SALE_RESERVED_END_COLUMNS: string[] = ['comments'];
     {provide: ValidatorService, useClass: SaleValidatorService}
   ]
 })
-export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements OnInit, OnDestroy, ValidatorService {
+export class ObservedVesselsTable extends AppTable<ObservedVessel, ObservedVesselFilter> implements OnInit, OnDestroy {
 
   private _program: string;
   private _acquisitionLevel: string;
-  private _dataSubject = new BehaviorSubject<LoadResult<Sale>>({data: []});
+  private _dataSubject = new BehaviorSubject<LoadResult<ObservedVessel>>({data: []});
   private _onRefreshPmfms = new EventEmitter<any>();
 
   loading = false;
   loadingPmfms = true;
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   measurementValuesFormGroupConfig: { [key: string]: any };
-  data: Sale[];
+  data: ObservedVessel[];
   excludesColumns = new Array<String>();
 
-  set value(data: Sale[]) {
+  set value(data: ObservedVessel[]) {
     if (this.data !== data) {
       this.data = data;
       if (!this.loading) this.onRefresh.emit();
     }
   }
 
-  get value(): Sale[] {
+  get value(): ObservedVessel[] {
     return this.data;
   }
 
-  protected get dataSubject(): BehaviorSubject<LoadResult<Sale>> {
+  protected get dataSubject(): BehaviorSubject<LoadResult<ObservedVessel>> {
     return this._dataSubject;
   }
 
@@ -97,13 +95,13 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
     return this._acquisitionLevel;
   }
 
-  @Input() showCommentsColumn: boolean = true;
+  @Input() showCommentsColumn = true;
 
   @Output()
-  onSaleClick: EventEmitter<number> = new EventEmitter<number>();
+  onObservedVesselClick: EventEmitter<number> = new EventEmitter<number>();
 
   @Output()
-  onNewSaleClick: EventEmitter<void> = new EventEmitter<void>();
+  onNewObservedVesselClick: EventEmitter<void> = new EventEmitter<void>();
 
   constructor(
     protected route: ActivatedRoute,
@@ -112,8 +110,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
-    protected validatorService: SaleValidatorService,
-    protected dataService: SaleService,
+    protected dataService: ObservedVesselService,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected alertCtrl: AlertController,
@@ -122,8 +119,8 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
     protected formBuilder: FormBuilder
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
-      RESERVED_START_COLUMNS.concat(SALE_RESERVED_START_COLUMNS).concat(SALE_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS));
-    this.setDatasource(new AppTableDataSource<Sale, SaleFilter>(Sale, dataService, this,
+      RESERVED_START_COLUMNS.concat(OBSERVED_VESSEL_RESERVED_START_COLUMNS).concat(OBSERVED_VESSEL_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS));
+    this.setDatasource(new AppTableDataSource<ObservedVessel, ObservedVesselFilter>(ObservedVessel, dataService, null,
       // DataSource options
       {
         prependNewElements: false,
@@ -132,7 +129,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
           saveOnlyDirtyRows: true
         }
       }));
-    this.i18nColumnPrefix = 'SALE.TABLE.';
+    this.i18nColumnPrefix = 'OBSERVED_VESSEL.TABLE.';
     this.autoLoad = false;
     this.pageSize = 1000; // Do not use paginator
   }
@@ -156,9 +153,9 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
         let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
 
         this.displayedColumns = RESERVED_START_COLUMNS
-          .concat(SALE_RESERVED_START_COLUMNS)
+          .concat(OBSERVED_VESSEL_RESERVED_START_COLUMNS)
           .concat(pmfmColumns)
-          .concat(SALE_RESERVED_END_COLUMNS)
+          .concat(OBSERVED_VESSEL_RESERVED_END_COLUMNS)
           .concat(RESERVED_END_COLUMNS)
           // Remove columns to hide
           .filter(column => !this.excludesColumns.includes(column));
@@ -170,7 +167,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
 
     // Set default acquisition Level
     if (isNil(this._acquisitionLevel)) {
-      this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
+      this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_VESSEL;
     }
   }
 
@@ -190,14 +187,6 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
     if (isNotNil(parent)) {
       this.onRefresh.emit();
     }
-  }
-
-  getRowValidator(): FormGroup {
-    const formGroup = this.validatorService.getRowValidator();
-    if (this.measurementValuesFormGroupConfig) {
-      formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
-    }
-    return formGroup;
   }
 
   async deleteSelection(confirm?: boolean): Promise<void> {
@@ -239,31 +228,29 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
   /* -- protected methods -- */
 
   protected async openEditRowDetail(id: number): Promise<boolean> {
-    if (this.onSaleClick.observers.length) {
-      this.onSaleClick.emit(id);
+    if (this.onObservedVesselClick.observers.length) {
+      this.onObservedVesselClick.emit(id);
       return true;
     }
 
     if (this.filter) {
       if (isNotNil(this.filter.observedLocationId)) {
-        return await this.router.navigateByUrl('/observations/' + this.filter.observedLocationId + '/' + id);
-      } else if (isNotNil(this.filter.tripId)) {
-        return await this.router.navigateByUrl('/trips/' + this.filter.tripId + '/sales/' + id); // FIXME
+        console.log("TODO: openEditRowDetail() ?")
+        //return await this.router.navigateByUrl('/observations/' + this.filter.observedLocationId + '/' + id);
       }
     }
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
-    if (this.onNewSaleClick.observers.length) {
-      this.onNewSaleClick.emit();
+    if (this.onNewObservedVesselClick.observers.length) {
+      this.onNewObservedVesselClick.emit();
       return true;
     }
 
     if (this.filter) {
       if (isNotNil(this.filter.observedLocationId)) {
-        return await this.router.navigateByUrl('/observations/' + this.filter.observedLocationId + '/new');
-      } else if (isNotNil(this.filter.tripId)) {
-        return await this.router.navigateByUrl('/trips/' + this.filter.tripId + '/sales/new'); // FIXME
+        console.log("TODO: openNewRowDetail() ?");
+        //return await this.router.navigateByUrl('/observations/' + this.filter.observedLocationId + '/new');
       }
     }
   }
@@ -296,7 +283,7 @@ export class ObservedVesselsTable extends AppTable<Sale, SaleFilter> implements 
       })) || [];
 
     if (!pmfms.length && this.debug) {
-      console.debug(`[sale-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+      console.debug(`[observed-vessels-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
     }
 
     this.loadingPmfms = false;

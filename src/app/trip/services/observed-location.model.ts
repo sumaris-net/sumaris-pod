@@ -1,6 +1,14 @@
 import {fromDateISOString, isNotNil, Person, ReferentialRef, toDateISOString} from "../../core/core.module";
 
-import {DataRootEntity, Measurement, MeasurementUtils, Sale} from "./trip.model";
+import {
+  DataRootEntity,
+  DataRootVesselEntity,
+  Measurement,
+  MeasurementUtils,
+  Sale,
+  Sample,
+  VesselFeatures
+} from "./trip.model";
 
 
 import {Moment} from "moment/moment";
@@ -23,7 +31,7 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
   measurements: Measurement[];
   measurementValues: { [key: string]: any };
 
-  sales: Sale[];
+  vessels: ObservedVessel[];
   observers: Person[];
 
   // TODO: add observers
@@ -35,9 +43,8 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
     // TODO: remove this
     this.measurements = [];
     this.measurementValues = {};
-
-    this.sales = null;
     this.observers = [];
+    this.vessels = [];
   }
 
   clone(): ObservedLocation {
@@ -70,7 +77,7 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
         }, {}) || undefined;
     }
 
-    target.sales = this.sales && this.sales.map(s => s.asObject(minify)) || undefined;
+    target.vessels = this.vessels && this.vessels.map(s => s.asObject(minify)) || undefined;
     target.observers = this.observers && this.observers.map(o => o.asObject(minify)) || undefined;
 
     return target;
@@ -97,8 +104,8 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
       }, {}) || undefined;
     }
 
-    this.sales = source.sales && source.sales.map(Sale.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+    this.vessels = source.vessels && source.vessels.map(ObservedVessel.fromObject) || [];
 
     return this;
   }
@@ -114,4 +121,80 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
         && (this.recorderPerson && other.recorderPerson && this.recorderPerson.id === other.recorderPerson.id)
       );
   }
+}
+
+
+export class ObservedVessel extends DataRootVesselEntity<ObservedVessel> {
+
+  static fromObject(source: any): ObservedVessel {
+    const res = new ObservedVessel();
+    res.fromObject(source);
+    return res;
+  }
+
+  dateTime: Moment;
+  observedLocationId: number;
+  landingCount: number;
+  rankOrder: number;
+  observers: Person[];
+  measurementValues: { [key: string]: any };
+
+  constructor() {
+    super();
+    this.observers = [];
+    this.measurementValues = {};
+  }
+
+  clone(): ObservedVessel {
+    const target = new ObservedVessel();
+    target.fromObject(this.asObject());
+    return target;
+  }
+
+  copy(target: ObservedVessel) {
+    target.fromObject(this);
+  }
+
+
+  fromObject(source: any): ObservedVessel {
+    super.fromObject(source);
+    this.dateTime = fromDateISOString(source.dateTime);
+    this.observedLocationId = source.observedLocationId;
+    this.rankOrder = source.rankOrder;
+    this.landingCount = source.landingCount;
+    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+    if (source.measurementValues) {
+      this.measurementValues = source.measurementValues;
+    }
+    // Convert measurement to map
+    else if (source.measurements) {
+      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
+        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
+        if (value) map[m.pmfmId] = value;
+        return map;
+      }, {}) || undefined;
+    }
+
+
+    return this;
+  }
+
+  asObject(minify?: boolean): any {
+    const target = super.asObject(minify);
+    target.dateTime = toDateISOString(this.dateTime);
+    target.observers = this.observers && this.observers.map(o => o.asObject(minify)) || undefined;
+
+    // Measurement: keep only the map
+    if (minify) {
+      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
+        .reduce((map, pmfmId) => {
+          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
+          if (isNotNil(value)) map[pmfmId] = '' + value;
+          return map;
+        }, {}) || undefined;
+    }
+
+    return target;
+  }
+
 }

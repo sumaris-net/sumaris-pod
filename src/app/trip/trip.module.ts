@@ -24,7 +24,7 @@ import { IndividualMonitoringTable } from './sample/individualmonitoring/sample-
 import { MeasurementValuesForm } from './measurement/measurement-values.form.class';
 import { EntityQualityFormComponent} from "./quality/entity-quality-form.component";
 
-import {TripService, OperationService, ExtractionService} from './services/trip.services';
+import {TripService, OperationService, ExtractionService, ObservedVesselService} from './services/trip.services';
 
 import {
     TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService,
@@ -113,6 +113,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       OperationValidatorService,
       ObservedLocationService,
       ObservedLocationValidatorService,
+      ObservedVesselService,
       SaleService,
       SaleValidatorService,
       PositionValidatorService,

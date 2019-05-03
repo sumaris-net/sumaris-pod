@@ -22,10 +22,6 @@ export declare class ObservedLocationFilter {
   locationId?: number;
 }
 
-export declare class ObservedVesselFilter extends ObservedLocationFilter {
-  observedLocationId?: number;
-}
-
 export const ObservedLocationFragments = {
   lightObservedLocation: gql`fragment LightObservedLocationFragment on ObservedLocationVO {
     id

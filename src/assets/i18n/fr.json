@@ -423,6 +423,17 @@
       "SAVE_ALL_ERROR": "Erreur de sauvegarde des contrôles en criée"
     }
   },
+  "OBSERVED_VESSEL": {
+    "TABLE": {
+      "VESSEL": "Navire",
+      "DATE_TIME": "Date/heure",
+      "OBSERVERS": "Observateurs",
+      "COMMENTS": "Commentaires"
+    },
+    "ERROR": {
+      "LOAD_ALL_ERROR": "Erreur de chargement des navires observés."
+    }
+  },
   "QUALITY": {
     "MODIFIED": "En cours de saisie",
     "CONTROLLED": "Terminé",
