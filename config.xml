@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="net.sumaris.app" version="0.10.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="net.sumaris.app" version="0.10.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>SUMARiS</name>
     <description>Halieutic data capture</description>
     <author email="contact@e-is.pro" href="http://www.e-is.pro">Environmental Information Systems</author>
