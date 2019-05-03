@@ -3,13 +3,12 @@ import {isNil, isNotNil, MeasurementUtils, PmfmStrategy} from "../services/trip.
 import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {BehaviorSubject, merge, Subject} from 'rxjs';
-import {zip} from "rxjs/observable/zip";
+import {BehaviorSubject, merge} from 'rxjs';
 import {AppForm, AppFormUtils} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
-import {FormBuilder, FormGroup} from '@angular/forms';
+import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {filter, first, mergeMap, startWith, throttleTime} from "rxjs/operators";
+import {filter, first, startWith, throttleTime} from "rxjs/operators";
 
 export abstract class MeasurementValuesForm<T extends { measurementValues: { [key: string]: any } }> extends AppForm<T> {
 
@@ -24,7 +23,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
   loadingPmfms = true;
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
-  @Input() requiredGear: boolean = false;
+  @Input() requiredGear = false;
 
   get program(): string {
     return this._program;
@@ -131,9 +130,10 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
     if (pmfms && this.form && this.form.controls['measurementValues']) {
       const pmfmForm = this.form.controls['measurementValues'] as FormGroup;
       pmfms.forEach(pmfm => {
-        pmfmForm.controls[pmfm.pmfmId].markAsTouched();
+        pmfmForm.controls[pmfm.pmfmId].markAsTouched({onlySelf: true});
       });
     }
+    this.markForCheck();
   }
 
   /* -- protected methods -- */

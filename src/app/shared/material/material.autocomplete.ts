@@ -1,8 +1,8 @@
 import {ChangeDetectionStrategy, Component, forwardRef, Input, OnInit, Optional} from "@angular/core";
 import {FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {Observable} from "rxjs";
-import {debounceTime, first, map, mergeMap, startWith} from "rxjs/operators";
-import {TableDataService} from "../services/data-service.class";
+import {debounceTime, first, map, mergeMap, startWith, switchMap} from "rxjs/operators";
+import {SuggestionDataService, TableDataService} from "../services/data-service.class";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -18,9 +18,9 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
 })
 export class MatAutocompleteField implements OnInit {
 
-  private _onChange = (_: any) => {
+  private _onChangeCallback = (_: any) => {
   };
-  private _onTouched = () => {
+  private _onTouchedCallback = () => {
   };
 
   items: Observable<any[]>;
@@ -33,9 +33,7 @@ export class MatAutocompleteField implements OnInit {
 
   @Input() placeholder: string;
 
-  @Input() service: TableDataService<any, any>;
-
-  @Input() serviceOptions: any = undefined;
+  @Input() service: SuggestionDataService<any>;
 
   @Input() filter: any = undefined;
 
@@ -58,19 +56,7 @@ export class MatAutocompleteField implements OnInit {
         .pipe(
           startWith('*'),
           debounceTime(250),
-          mergeMap(value => {
-            if (this.isNotEmpty(value)) return Observable.of([value]);
-            value = (typeof value === "string") && value || undefined;
-            return this.service.watchAll(0, 10, undefined, undefined,
-              Object.assign({
-                searchText: value as string,
-              }, this.filter || {}),
-              this.serviceOptions)
-              .pipe(
-                first(),
-                map(({data}) => data)
-              );
-          })
+          switchMap((value) => this.service.suggest(value as string, this.filter))
         );
     }
 
@@ -82,11 +68,11 @@ export class MatAutocompleteField implements OnInit {
   }
 
   registerOnChange(fn: any): void {
-    this._onChange = fn;
+    this._onChangeCallback = fn;
   }
 
   registerOnTouched(fn: any): void {
-    this._onTouched = fn;
+    this._onTouchedCallback = fn;
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -95,12 +81,6 @@ export class MatAutocompleteField implements OnInit {
     } else {
       //this.formControl.enable({ onlySelf: true, emitEvent: false });
     }
-  }
-
-  /* -- protected methods -- */
-
-  protected isNotEmpty(obj: any): boolean {
-    return !!obj && obj['id'];
   }
 
 }

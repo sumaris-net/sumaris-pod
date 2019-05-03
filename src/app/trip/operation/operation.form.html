@@ -10,7 +10,7 @@
 
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES</ion-label>
+        <ion-label float-end text-end translate>TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES</ion-label>
       </ion-col>
 
       <!-- Physical gear -->
@@ -98,8 +98,10 @@
               </mat-latlong>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
-              <mat-latlong formControlName="longitude" type="longitude" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
-                <button type="button" mat-icon-button matSuffix (click)="fillPosition('startPosition')" *ngIf="enableGps">
+              <mat-latlong formControlName="longitude"
+                           type="longitude"
+                           [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
+                <button type="button" mat-icon-button matSuffix (click)="fillPosition('startPosition')" tabindex="-1" *ngIf="enableGps">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
               </mat-latlong>
@@ -131,7 +133,7 @@
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
               <mat-latlong formControlName="longitude" type="longitude" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
-                <button type="button" mat-icon-button matSuffix (click)="fillPosition('endPosition')" *ngIf="enableGps">
+                <button type="button" mat-icon-button matSuffix (click)="fillPosition('endPosition')" tabindex="-1" *ngIf="enableGps">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
               </mat-latlong>
@@ -148,8 +150,11 @@
     <ion-row *ngIf="showComment">
       <ion-col>
         <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'TRIP.OPERATION.LIST.COMMENTS'|translate"
-            formControlName="comments">          </textarea>
+          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"
+                    [placeholder]="'TRIP.OPERATION.LIST.COMMENTS'|translate"
+                    formControlName="comments"
+                    tabindex="100">
+          </textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
           <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>

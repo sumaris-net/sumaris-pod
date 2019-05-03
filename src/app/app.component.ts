@@ -10,7 +10,7 @@ import {Configuration} from "./core/services/model";
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { Keyboard } from "@ionic-native/keyboard/ngx";
-import {DataService} from "./shared/services/data-service.class";
+import {DataService, SuggestionDataService} from "./shared/services/data-service.class";
 
 
 @Component({
@@ -66,15 +66,16 @@ export class AppComponent {
 
         console.info("[app] Setting cordova plugins...");
 
-        this.statusBar.styleDefault();
-        this.splashScreen.hide();
 
+        this.statusBar.styleDefault();
         this.statusBar.overlaysWebView(false);
 
         // Control Keyboard
-        //this.keyboard.disableScroll();
+        this.keyboard.hideFormAccessoryBar(true);
 
         this.addAccountFields();
+
+        this.splashScreen.hide();
       });
   }
 
@@ -144,7 +145,7 @@ export class AppComponent {
       name: 'department',
       label: 'USER.DEPARTMENT',
       required: true,
-      dataService: this.referentialRefService as DataService<any, any>,
+      dataService: this.referentialRefService,
       dataFilter: { entityName: 'Department' },
       updatable: {
         registration: true,

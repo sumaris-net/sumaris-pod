@@ -7,11 +7,13 @@
 <!-- not touch UI-->
 <mat-form-field *ngIf="!readonly && !touchUi" [floatLabel]="floatLabel">
 
-  <input matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl"
+  <input matInput #matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl"
          [matAutocomplete]="autoQualitativeValue"
          (click)="onShowDropdown.next()"
          (keyup.arrowdown)="onShowDropdown.next()"
-         (blur)="_onBlur($event)" [required]="required">
+         (blur)="_onBlur($event)"
+         [required]="required"
+         [tabindex]="tabindex">
 
   <button mat-button *ngIf="clearable && formControl.value" matSuffix mat-icon-button (click)="clear()">
     <mat-icon>close</mat-icon>
@@ -48,8 +50,11 @@
 <!-- touch UI-->
 <mat-form-field *ngIf="!readonly && touchUi" [floatLabel]="floatLabel">
 
-  <mat-select [required]="required" [placeholder]="pmfm.name" [formControl]="formControl"
-              (blur)="_onBlur($event)">
+  <mat-select #matSelect [required]="required"
+              [placeholder]="pmfm.name"
+              [formControl]="formControl"
+              (blur)="_onBlur($event)"
+              [tabindex]="tabindex">
     <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
     <!-- header -->

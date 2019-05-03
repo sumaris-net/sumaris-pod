@@ -9,14 +9,15 @@ import { Subscription } from 'rxjs';
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   private _subscriptions: Subscription[];
-  protected _enable: boolean = false;
+  protected _enable = false;
 
-  touchUi: boolean = false;
-  mobile: boolean = false;
+  touchUi = false;
+  mobile = false;
   error: string = null;
 
-  @Input()
-  debug: boolean = false;
+  @Input() debug = false;
+
+  @Input() tabindex: number;
 
   get value(): any {
     return this.form.value;

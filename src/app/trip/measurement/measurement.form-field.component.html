@@ -2,9 +2,15 @@
 
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
-    <input matInput autocomplete="off" type="number" min="0" [max]="pmfm.maxValue" [placeholder]="placeholder"
+    <input matInput autocomplete="off" type="number"
+           [min]="pmfm.minValue"
+           [max]="pmfm.maxValue"
+           pattern="[0-9]*"
+           [placeholder]="placeholder"
            (keypress)="filterNumberInput($event, false)"
-            [formControl]="formControl" [required]="pmfm.isMandatory">
+           [formControl]="formControl"
+           [required]="pmfm.isMandatory"
+           [tabindex]="tabindex">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.hasError('min')">
       {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate:{min: pmfm.minValue} }}</mat-error>
@@ -18,9 +24,15 @@
 
   <!-- double -->
   <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
-    <input matInput autocomplete="off" type="number" [min]="pmfm.minValue" [max]="pmfm.maxValue" [placeholder]="placeholder"
-           (keypress)="filterNumberInput($event, true)"
-      [step]="computeNumberInputStep(pmfm)" [formControl]="formControl" [required]="pmfm.isMandatory">
+
+    <input matInput type="text"
+           autocomplete="off" [min]="pmfm.minValue" [max]="pmfm.maxValue"
+           decimal="true"
+           [placeholder]="placeholder"
+           [step]="computeNumberInputStep(pmfm)"
+           [formControl]="formControl"
+           [required]="pmfm.isMandatory"
+           [tabindex]="tabindex">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.hasError('min')">
       {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:{min: pmfm.minValue} }}</mat-error>
@@ -32,37 +44,74 @@
   </mat-form-field>
 
   <!-- boolean -->
-  <mat-boolean-field *ngSwitchCase="'boolean'" [formControl]="formControl" [placeholder]="placeholder" [floatLabel]="floatLabel" [required]="pmfm.isMandatory"
-    [compact]="compact"></mat-boolean-field>
+  <mat-boolean-field *ngSwitchCase="'boolean'"
+                     [formControl]="formControl"
+                     [placeholder]="placeholder"
+                     [floatLabel]="floatLabel"
+                     [required]="pmfm.isMandatory"
+                     [compact]="compact"
+                     [tabindex]="tabindex">
+  </mat-boolean-field>
 
   <!-- date -->
-  <mat-date-time *ngSwitchCase="'date'" [formControl]="formControl" [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
-    [floatLabel]="floatLabel" [required]="pmfm.isMandatory" [readonly]="readonly" [displayTime]="pmfm.unit=='Date & Time'"
-                 [compact]="compact"></mat-date-time>
+  <mat-date-time *ngSwitchCase="'date'"
+                 [formControl]="formControl"
+                 [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+                 [floatLabel]="floatLabel"
+                 [required]="pmfm.isMandatory"
+                 [readonly]="readonly"
+                 [displayTime]="pmfm.unit==='Date & Time'"
+                 [compact]="compact"
+                 [tabindex]="tabindex">
+  </mat-date-time>
 
   <!-- qualitative value -->
   <mat-form-field-measurement-qv *ngSwitchCase="'qualitative_value'"
-    [formControl]="formControl" [pmfm]="pmfm" [floatLabel]="floatLabel" [compact]="compact"></mat-form-field-measurement-qv>
+                                 [formControl]="formControl"
+                                 [pmfm]="pmfm"
+                                 [floatLabel]="floatLabel"
+                                 [compact]="compact"
+                                 [tabindex]="tabindex">
+  </mat-form-field-measurement-qv>
 
   <!-- string -->
   <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
-    <input matInput autocomplete="off" [formControl]="formControl" [placeholder]="placeholder" [required]="pmfm.isMandatory">
+    <input matInput autocomplete="off"
+           [formControl]="formControl"
+           [placeholder]="placeholder"
+           [required]="pmfm.isMandatory"
+           [tabindex]="tabindex">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   </mat-form-field>
 
   <!-- latitude -->
-  <mat-latlong *ngSwitchCase="'latitude'" [floatLabel]="floatLabel" [formControl]="formControl" type="latitude"
-    [placeholder]="placeholder" [required]="pmfm.isMandatory">
+  <mat-latlong *ngSwitchCase="'latitude'"
+               [floatLabel]="floatLabel"
+               [formControl]="formControl"
+               type="latitude"
+               [placeholder]="placeholder"
+               [required]="pmfm.isMandatory"
+               [tabindex]="tabindex">
   </mat-latlong>
 
   <!-- longitude -->
-  <mat-latlong *ngSwitchCase="'longitude'" [floatLabel]="floatLabel" [formControl]="formControl" type="longitude"
-    [placeholder]="placeholder" [required]="pmfm.isMandatory">
+  <mat-latlong *ngSwitchCase="'longitude'"
+               [floatLabel]="floatLabel"
+               [formControl]="formControl"
+               type="longitude"
+               [placeholder]="placeholder"
+               [required]="pmfm.isMandatory"
+               [tabindex]="tabindex">
   </mat-latlong>
 
   <!-- other -->
-  <mat-form-field *ngSwitchDefault>
-    <input matInput hidden type="hidden" [formControl]="formControl">
+  <mat-form-field *ngSwitchDefault [floatLabel]="floatLabel">
+    <input matInput autocomplete="off"
+           type="text"
+           [placeholder]="placeholder"
+           [formControl]="formControl"
+           [required]="pmfm.isMandatory"
+           [tabindex]="tabindex">
     <mat-error>Unknown PMFM type {{pmfm.type}}! Please report this error.</mat-error>
   </mat-form-field>
 

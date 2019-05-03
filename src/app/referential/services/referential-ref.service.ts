@@ -11,7 +11,7 @@ import {ReferentialRef} from "../../core/services/model";
 
 import {FetchPolicy} from "apollo-client";
 import {ReferentialFilter} from "./referential.service";
-import {DataService} from "../../shared/services/data-service.class";
+import {DataService, SuggestionDataService} from "../../shared/services/data-service.class";
 
 const LoadAllQuery: any = gql`
   query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -26,7 +26,8 @@ const LoadAllQuery: any = gql`
 `;
 
 @Injectable()
-export class ReferentialRefService extends BaseDataService implements DataService<ReferentialRef, ReferentialFilter> {
+export class ReferentialRefService extends BaseDataService
+  implements SuggestionDataService<ReferentialRef>, DataService<ReferentialRef, ReferentialFilter> {
 
   constructor(
     protected apollo: Apollo,
@@ -155,7 +156,7 @@ export class ReferentialRefService extends BaseDataService implements DataServic
     entityName: string;
     levelId?: number;
     searchAttribute?: string;
-  }) {
+  }): Promise<ReferentialRef[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
     const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,

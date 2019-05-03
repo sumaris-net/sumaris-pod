@@ -4,6 +4,9 @@ export declare interface LoadResult<T> {
   data: T[];
   total?: number;
 }
+export declare interface SuggestionDataService<T> {
+  suggest(value: any, options?: any): Promise<T[]>;
+}
 export declare interface DataService<T, F> {
 
   loadAll(

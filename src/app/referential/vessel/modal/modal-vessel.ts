@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import { VesselFeatures } from "../../services/model";
 import { ModalController } from "@ionic/angular";
 import { VesselForm } from '../form/form-vessel';
@@ -10,15 +10,27 @@ import { AppFormUtils } from '../../../core/core.module';
   selector: 'modal-vessel',
   templateUrl: './modal-vessel.html'
 })
-export class VesselModal {
+export class VesselModal implements OnInit {
 
-  loading: boolean = false;
+  loading = false;
 
-  @ViewChild('formVessel') form: VesselForm;
+  get disabled() {
+    return this.formVessel.disabled;
+  }
+
+  get enabled() {
+    return this.formVessel.enabled;
+  }
+
+  @ViewChild('formVessel') formVessel: VesselForm;
 
   constructor(
     private vesselService: VesselService,
     private viewCtrl: ModalController) {
+  }
+
+  ngOnInit(): void {
+    this.enable(); // Enable the vessel form, by default
   }
 
   async onSave(event: any): Promise<any> {
@@ -26,29 +38,38 @@ export class VesselModal {
     console.debug("[vessel-modal] Saving new vessel...");
 
     // Avoid multiple call    
-    if (this.form.form.disabled) return;
+    if (this.disabled) return;
 
-    if (this.form.invalid) {
-      AppFormUtils.logFormErrors(this.form.form);
+    if (this.formVessel.invalid) {
+      AppFormUtils.logFormErrors(this.formVessel.form);
       return;
     }
 
     this.loading = true;
 
     try {
-      const json = this.form.value;
-      let data = VesselFeatures.fromObject(json);
+      const json = this.formVessel.value;
+      const data = VesselFeatures.fromObject(json);
 
-      this.form.disable();
+      this.disable();
 
-      const res = await this.vesselService.save(data);
-      await this.viewCtrl.dismiss(res)
+      const savedData = await this.vesselService.save(data);
+      await this.viewCtrl.dismiss(savedData);
+      this.formVessel.error = null;
     }
     catch (err) {
-      this.form.error = err && err.message || err;
-      this.form.enable();
+      this.formVessel.error = err && err.message || err;
+      this.enable();
       this.loading = false;
     }
+  }
+
+  disable() {
+    this.formVessel.disable();
+  }
+
+  enable() {
+    this.formVessel.enable();
   }
 
   cancel() {
@@ -56,8 +77,8 @@ export class VesselModal {
   }
 
   onReset(event: any) {
-    this.form.setValue(VesselFeatures.fromObject({}));
-    this.form.markAsPristine();
-    this.form.markAsUntouched();
+    this.formVessel.setValue(VesselFeatures.fromObject({}));
+    this.formVessel.markAsPristine();
+    this.formVessel.markAsUntouched();
   }
 }

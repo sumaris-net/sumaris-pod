@@ -1,16 +1,15 @@
-import { Component, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { AccountService, AccountFieldDef } from '../services/account.service';
-import {Account, StatusIds, referentialToString, UsageMode} from '../services/model';
-import { UserSettingsValidatorService } from '../services/user-settings.validator';
-import { FormGroup, FormBuilder } from '@angular/forms';
-import { AccountValidatorService } from '../services/account.validator';
-import { AppForm } from '../form/form.class';
-import { Moment } from 'moment/moment';
-import { DateAdapter } from "@angular/material";
-import { Platform } from '@ionic/angular';
-import { AppFormUtils } from '../form/form.utils';
+import {Component, OnDestroy} from '@angular/core';
+import {Subscription} from 'rxjs';
+import {AccountFieldDef, AccountService} from '../services/account.service';
+import {Account, referentialToString, StatusIds, UsageMode} from '../services/model';
+import {UserSettingsValidatorService} from '../services/user-settings.validator';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {AccountValidatorService} from '../services/account.validator';
+import {AppForm} from '../form/form.class';
+import {Moment} from 'moment/moment';
+import {DateAdapter} from "@angular/material";
+import {Platform} from '@ionic/angular';
+import {AppFormUtils} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 
 @Component({

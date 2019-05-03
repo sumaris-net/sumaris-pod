@@ -35,8 +35,8 @@ const noop = () => {
     ]
 })
 export class MatLatLong implements OnInit, ControlValueAccessor {
-    private _onChange: (_: any) => void = noop;
-    private _onTouched: () => void = noop;
+    private _onChangeCallback: (_: any) => void = noop;
+    private _onTouchedCallback: () => void = noop;
     protected disabling = false;
     protected writing: boolean = false;
     protected touchUi: boolean = false;
@@ -139,10 +139,10 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     }
 
     registerOnChange(fn: any): void {
-        this._onChange = fn;
+        this._onChangeCallback = fn;
     }
     registerOnTouched(fn: any): void {
-        this._onTouched = fn;
+        this._onTouchedCallback = fn;
     }
 
     setDisabledState(isDisabled: boolean): void {
@@ -186,18 +186,18 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
         this.formControl.setValue(this.value);
         this.writing = false;
 
-        this._onChange(this.value);
+        this._onChangeCallback(this.value);
     }
 
 
-    public markAsTouched() {
+    public checkIfTouched() {
         if (this.textFormControl.touched) {
-            this._onTouched();
+            this._onTouchedCallback();
         }
     }
 
     public _onBlur(event: FocusEvent) {
-        this.markAsTouched();
+        this.checkIfTouched();
         this.onBlur.emit(event);
     }
 }

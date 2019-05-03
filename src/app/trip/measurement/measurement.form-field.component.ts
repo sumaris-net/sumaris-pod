@@ -53,6 +53,8 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
   @Input() floatLabel: FloatLabelType = "auto";
 
+  @Input() tabindex: number;
+
   get value(): any {
     return this.formControl.value;
   }

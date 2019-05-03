@@ -16,7 +16,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {AppTableDataSource} from "../../core/table/table-datasource.class";
-import {debounceTime, switchMap} from "rxjs/operators";
+import {debounceTime, startWith, switchMap} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocation} from "../services/observed-location.model";
@@ -99,8 +99,8 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     // Programs combo (filter)
     this.programs = this.filterForm.controls['program']
       .valueChanges
-      .startWith('')
       .pipe(
+        startWith('*'),
         debounceTime(250),
         switchMap(value => this.referentialRefService.suggest(value,
           {

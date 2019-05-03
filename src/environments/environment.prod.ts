@@ -11,5 +11,8 @@ export const environment: Environment = {
   defaultLatLongFormat: 'DDMM',
   defaultProgram: 'SUMARIS',
   apolloFetchPolicy: 'cache-first',
-  mock: false
+  mock: false,
+
+  // FIXME: GraphQL subscription never unsubscribe...
+  listenRemoteChanges: false
 };

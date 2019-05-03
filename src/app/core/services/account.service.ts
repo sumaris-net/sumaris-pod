@@ -18,10 +18,11 @@ import {Apollo} from "apollo-angular";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {DataService, isNotNil, toDateISOString} from "../../shared/shared.module";
+import {isNotNil, toDateISOString} from "../../shared/shared.module";
 import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
+import {SuggestionDataService} from "../../shared/services/data-service.class";
 
 
 export declare interface AccountHolder {
@@ -44,13 +45,12 @@ export interface RegisterData extends AuthData {
   account: Account;
 }
 
-export interface AccountFieldDef<T = any, F = { searchText?: string; }> {
+export interface AccountFieldDef<T = any> {
   name: string;
   label: string;
   required: boolean;
-  dataService?: DataService<T, F>;
-  dataFilter?: any,
-  dataServiceOptions?: any;
+  dataService?: SuggestionDataService<T>;
+  dataFilter?: any;
   updatable: {
     registration: boolean;
     account: boolean;

@@ -24,9 +24,12 @@ export const environment: Environment = {
 
   apolloFetchPolicy: 'cache-first',
 
+  // FIXME: GraphQL subscription never unsubscribe...
+  listenRemoteChanges: false,
+
   // DEV only
   //mock: true
-  mock: false
+  mock: false,
 };
 
 /*

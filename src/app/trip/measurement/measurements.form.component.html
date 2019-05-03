@@ -2,7 +2,7 @@
   {{pmfm.name}}
 </ion-col> -->
 
-<form class="form-container" [formGroup]="form" novalidate (ngSubmit)="doSubmit($event)">
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm>
@@ -13,9 +13,11 @@
   <ion-spinner *ngIf="loading"></ion-spinner>
 
   <!-- pmfms -->
-  <mat-form-field-measurement *ngFor="let pmfm of pmfms | async"
+  <mat-form-field-measurement *ngFor="let pmfm of pmfms | async; index as i;"
                               [pmfm]="pmfm"
                               [formControlName]="pmfm.pmfmId.toString()"
                               [compact]="compact"
-                              [floatLabel]="floatLabel"></mat-form-field-measurement>
+                              [tabindex]="(tabindex || 0) + i*2"
+                              [floatLabel]="floatLabel">
+  </mat-form-field-measurement>
 </form>

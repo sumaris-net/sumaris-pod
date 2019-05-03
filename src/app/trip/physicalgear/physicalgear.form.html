@@ -13,7 +13,9 @@
       <ion-col size="12" no-padding>
         <mat-form-field>
           <input matInput [appAutofocus]="enabled && untouched" autofocusDelay="400" [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate" [matAutocomplete]="autoGear"
-                 formControlName="gear" required>
+                 formControlName="gear"
+                 required
+                 [tabindex]="tabindex">
           <mat-error *ngIf="form.controls['gear'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['gear'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
@@ -48,7 +50,13 @@
       </ion-col>
     </ion-row>
     <ion-row>
-      <form-measurements acquisitionLevel="PHYSICAL_GEAR" [debug]="debug" [requiredGear]="true" #measurementsForm [program]="programSubject|async"></form-measurements>
+      <form-measurements #measurementsForm
+                         acquisitionLevel="PHYSICAL_GEAR"
+                         [debug]="debug"
+                         [requiredGear]="true"
+                         [program]="programSubject|async"
+                         [tabindex]="tabindex+10">
+      </form-measurements>
     </ion-row>
 
 
@@ -56,8 +64,14 @@
     <ion-row *ngIf="showComment">
       <ion-col>
         <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
-            formControlName="comments"></textarea>
+          <textarea matInput #comments
+                    matTextareaAutosize="true"
+                    matAutosizeMinRows="4"
+                    maxlength="2000"
+                    [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
+                    formControlName="comments"
+                    tabindex="100">
+          </textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
           <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>

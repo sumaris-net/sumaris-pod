@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   forwardRef,
   Input,
   OnInit,
@@ -9,7 +10,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
-import {DateAdapter, FloatLabelType, MatDatepicker, MatDatepickerInputEvent} from '@angular/material';
+import {DateAdapter, FloatLabelType, MatButton, MatDatepicker, MatDatepickerInputEvent} from '@angular/material';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -25,6 +26,7 @@ import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR} from '../constants';
 import {SharedValidators} from '../validator/validators';
 import {isNilOrBlank} from "../functions";
+import {Keyboard} from "@ionic-native/keyboard/ngx";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -32,15 +34,21 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
   multi: true
 };
 
+const DAY_MASK = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
+
 const HOUR_TIME_PATTERN = /[0-2]\d:[0-5]\d/;
+const HOUR_MASK = [/[0-2]/, /\d/, ':', /[0-5]/, /\d/];
+;
 
 const noop = () => {
 };
 
 declare interface NgxTimePicker {
-  selectedHour: {time: number};
-  selectedMinute: {time: number};
+  selectedHour: { time: number };
+  selectedMinute: { time: number };
+
   open();
+
   close();
 }
 
@@ -56,7 +64,7 @@ declare interface NgxTimePicker {
 export class MatDateTime implements OnInit, ControlValueAccessor {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
-  protected writing: boolean = true;
+  protected writing = true;
   protected disabling = false;
 
   touchUi = false;
@@ -66,9 +74,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   dayPattern: string;
   date: Moment;
   locale: string;
-
-  mask = [/\d/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
-  hourMask = [/[0-2]/, /\d/, ':', /[0-5]/, /\d/];
+  dayMask = DAY_MASK;
+  hourMask = HOUR_MASK;
 
   @Input() disabled = false;
 
@@ -92,7 +99,10 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
   @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
   @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
-  @ViewChild('timePicker1') timePicker1: NgxTimePicker;
+  @ViewChild('timePicker') timePicker: NgxTimePicker;
+  @ViewChild('datePickerButton1') datePickerButton1: MatButton;
+  @ViewChild('datePickerButton2') datePickerButton2: MatButton;
+  @ViewChild('timePickerButton') timePickerButton: MatButton;
 
 
   constructor(
@@ -100,15 +110,15 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     private dateAdapter: DateAdapter<Moment>,
     private translate: TranslateService,
     private formBuilder: FormBuilder,
+    private keyboard: Keyboard,
     private cd: ChangeDetectorRef,
-    @Optional() private formGroupDir: FormGroupDirective
+    @Optional() private formGroupDir: FormGroupDirective,
   ) {
     // Workaround because ion-datetime has issue (do not returned a ISO date)
     //this.touchUi = platform.is('tablet');
     //this.mobile = !this.touchUi && platform.is('mobile');
     this.touchUi = platform.is('tablet') || platform.is('mobile');
     this.mobile = false;
-
     this.locale = (translate.currentLang || translate.defaultLang).substr(0, 2);
   }
 
@@ -152,6 +162,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
         if (this.readonly || this.writing || this.disabling) return; // Skip
         this.markForCheck();
       });
+
+    this.writing = false;
   }
 
   writeValue(obj: any): void {
@@ -256,11 +268,9 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
   private updatePattern(patterns: string[]) {
     this.displayPattern = (this.displayTime) ?
-      (patterns['COMMON.DATE_TIME_PATTERN'] != 'COMMON.DATE_TIME_PATTERN' ? patterns['COMMON.DATE_TIME_PATTERN'] : 'L LT') :
-      (this.displayPattern = patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
-    this.dayPattern = (patterns['COMMON.DATE_PATTERN'] != 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
-    this.writing = false;
-    this.markForCheck();
+      (patterns['COMMON.DATE_TIME_PATTERN'] !== 'COMMON.DATE_TIME_PATTERN' ? patterns['COMMON.DATE_TIME_PATTERN'] : 'L LT') :
+      (this.displayPattern = patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
+    this.dayPattern = (patterns['COMMON.DATE_PATTERN'] !== 'COMMON.DATE_PATTERN' ? patterns['COMMON.DATE_PATTERN'] : 'L');
   }
 
   private onFormChange(json): void {
@@ -269,7 +279,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     if (this.form.invalid) {
       this.formControl.markAsPending();
-      let errors = {};
+      const errors = {};
 
       if (this.mobile || !this.displayTime) {
         Object.assign(errors, this.form.controls.day.errors);
@@ -283,7 +293,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     // Make to remove placeholder chars
     if (!this.mobile) {
-      while (json.day && json.day.indexOf(this.placeholderChar) != -1) {
+      while (json.day && json.day.indexOf(this.placeholderChar) !== -1) {
         json.day = json.day.replace(this.placeholderChar, '');
       }
     }
@@ -403,68 +413,78 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     this._onChangeCallback(dateStr);
   }
 
-  public markAsTouched() {
+  public checkIfTouched() {
     if (this.form.touched) {
       this.markForCheck();
       this._onTouchedCallback();
     }
   }
 
-  public onKeyDown(event: KeyboardEvent) {
-    if (event.key === 'ArrowDown') {
-      return this.openDatePicker(event);
-    }
-  }
-
-  public openDatePickerIfTouchUi(event: UIEvent) {
+  public openDatePickerIfTouchUi(event: UIEvent, datePicker?: MatDatepicker<Moment>) {
     if (!this.touchUi) return;
-    this.openDatePicker(event);
+
+    // Avoid focus on the input, to avoid keyboard (on Android)
+    const pickerButton = this.datePickerButton1 || this.datePickerButton2;
+    if (pickerButton) pickerButton.focus();
+
+    // Open the picker
+    this.openDatePicker(event, datePicker);
   }
 
   public openDatePicker(event: UIEvent, datePicker?: MatDatepicker<Moment>) {
     datePicker = datePicker || this.datePicker1 || this.datePicker2;
-    if (datePicker) {
-      datePicker.open();
+    if (datePicker && !datePicker.opened) {
       event.preventDefault();
+      datePicker.open();
+      this.keyboard.hide();
     }
   }
 
   public openTimePickerIfTouchUi(event: UIEvent) {
     if (!this.touchUi) return;
+
+    // Avoid focus on the input, to avoid keyboard (on Android)
+    if (this.timePickerButton) this.timePickerButton.focus();
+
+    // Open the picker
     this.openTimePicker(event);
   }
 
   public openTimePicker(event: UIEvent) {
-    if (this.timePicker1 && !event.defaultPrevented) {
-      this.timePicker1.open();
+    if (this.timePicker) {
       event.preventDefault();
+      this.timePicker.open();
+      this.keyboard.hide();
     }
   }
 
-  public onTimePickerChange(timeStr: string) {
-    this.form.controls['hour'].patchValue(timeStr, {emitEvent: false});
-    this.markForCheck();
+  public onTimePickerChange(value: string) {
+    if (this.form.controls['hour'].value !== value) {
+      this.form.controls['hour'].patchValue(value, {emitEvent: false});
+      this.markForCheck();
+    }
   }
 
   onTimePickerKeyup(event: KeyboardEvent) {
-    if (!this.timePicker1) return;
+    if (!this.timePicker) return;
     if (event.key === 'Enter') {
       // Format hour
-      let hour: number | string = this.timePicker1.selectedHour.time;
+      let hour: number | string = this.timePicker.selectedHour.time;
       hour = hour < 10 ? ('0' + hour) : hour;
       // Format minutes
-      let minutes: number | string = this.timePicker1.selectedMinute.time;
+      let minutes: number | string = this.timePicker.selectedMinute.time;
       minutes = minutes < 10 ? ('0' + minutes) : minutes;
       // Notify the changes (will update the value)
       this.onTimePickerChange(`${hour}:${minutes}`);
       event.preventDefault();
+      event.stopPropagation();
       // Close the picker
-      this.timePicker1.close();
-    }
-    else if (event.key === 'Escape') {
+      this.timePicker.close();
+    } else if (event.key === 'Escape') {
       // Close the picker
       event.preventDefault();
-      this.timePicker1.close();
+      event.stopPropagation();
+      this.timePicker.close();
     }
   }
 

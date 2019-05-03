@@ -6,14 +6,14 @@ import {
   Output,
   forwardRef,
   Optional,
-  ChangeDetectionStrategy, OnDestroy
+  ChangeDetectionStrategy, OnDestroy, ViewChild, ChangeDetectorRef, ElementRef
 } from '@angular/core';
 import {Referential, PmfmStrategy} from "../services/trip.model";
 import {merge, Observable, Subject} from 'rxjs';
 import {startWith, map, tap, takeUntil, filter} from 'rxjs/operators';
 import {referentialToString, EntityUtils, ReferentialRef} from '../../referential/referential.module';
 import {NG_VALUE_ACCESSOR, ControlValueAccessor, Validators, FormControl, FormGroupDirective} from '@angular/forms';
-import {FloatLabelType} from "@angular/material";
+import {FloatLabelType, MatInput, MatInputBase, MatRadioButton, MatSelect} from "@angular/material";
 
 
 import {SharedValidators} from '../../shared/validator/validators';
@@ -65,11 +65,17 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   @Input() clearable = false;
 
+  @Input() tabindex: number;
+
   @Output()
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
+  @ViewChild('matInput') matInput: ElementRef;
+  @ViewChild('matSelect') matSelect: MatSelect;
+
   constructor(
     platform: Platform,
+    private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
     this.touchUi = platform.is('tablet') || platform.is('mobile');
@@ -106,10 +112,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
             .pipe(
               takeUntil(this._onDestroy),
               filter(EntityUtils.isEmpty),
-              // Not too long on compact mode
-              //debounceTime(this.compact ? 0 : 250),
               map(value => {
-                //if (EntityUtils.isNotEmpty(value)) return undefined;
                 value = (typeof value === "string") && (value as string).toUpperCase() || undefined;
                 if (!value || value === '*') return this.pmfm.qualitativeValues;
 
@@ -121,8 +124,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
                 if (res && res.length === 1) {
                   this._implicitValue = res[0];
                   this.formControl.setErrors(null);
-                }
-                else {
+                } else {
                   this._implicitValue = undefined;
                 }
               })
@@ -130,6 +132,8 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
         );
       }
     }
+
+    setTimeout(() => this.updateTabIndex());
   }
 
   ngOnDestroy(): void {
@@ -159,31 +163,29 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   }
 
-  public markAsTouched() {
+  checkIfTouched() {
     if (this.formControl.touched) {
+      this.markForCheck();
       this._onTouchedCallback();
     }
   }
 
-  public computePlaceholder(pmfm: PmfmStrategy): string {
+  computePlaceholder(pmfm: PmfmStrategy): string {
     if (!pmfm) return undefined;
     if (!pmfm.qualitativeValues) return pmfm.name;
     return pmfm.qualitativeValues
       .reduce((res, qv) => (res + "/" + (qv.label || qv.name)), "").substr(1);
   }
 
-  public _onBlur(event: FocusEvent) {
+  _onBlur(event: FocusEvent) {
     // When leave component without object, use implicit value if stored
     if (typeof this.formControl.value !== "object" && this._implicitValue) {
       this.writeValue(this._implicitValue);
     }
-    this.markAsTouched();
+    this.checkIfTouched();
     this.onBlur.emit(event);
   }
 
-  private startsWithUpperCase(input: string, search: string): boolean {
-    return input && input.toUpperCase().substr(0, search.length) === search;
-  }
 
   referentialToLabel(obj: Referential | ReferentialRef | any): string {
     return obj && obj.label || '';
@@ -191,5 +193,29 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   clear() {
     this.formControl.setValue(null);
+    this.markForCheck();
+  }
+
+  /* -- protected methods -- */
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+  private startsWithUpperCase(input: string, search: string): boolean {
+    return input && input.toUpperCase().substr(0, search.length) === search;
+  }
+
+  private updateTabIndex() {
+    console.log("Updating tab index !");
+    if (this.tabindex && this.tabindex !== -1) {
+      if (this.matInput) {
+        this.matInput.nativeElement.tabIndex = this.tabindex;
+      }
+      else if (this.matSelect) {
+        this.matSelect.tabIndex = this.tabindex;
+      }
+      this.markForCheck();
+    }
   }
 }

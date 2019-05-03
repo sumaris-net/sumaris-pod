@@ -38,10 +38,10 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   hasValidate: Boolean = false;
 
   @Input()
-  defaultBackHref: string | undefined;
+  defaultBackHref: string;
 
   @Input()
-  hasSearch: boolean = false;
+  hasSearch = false;
 
   @Input()
   canGoBack: boolean;

@@ -5,7 +5,7 @@ import {ModalController, Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
-import {debounceTime, mergeMap, switchMap} from 'rxjs/operators';
+import {debounceTime, mergeMap, startWith, switchMap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
 import {AppForm} from '../../core/core.module';
 import {
@@ -49,8 +49,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Combo: programs
     this.programs = this.form.controls['program']
       .valueChanges
-      .startWith('*')
       .pipe(
+        startWith('*'),
         debounceTime(250),
         switchMap(value => this.referentialRefService.suggest(value, {
           entityName: 'Program'

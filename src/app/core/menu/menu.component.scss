@@ -4,11 +4,11 @@
 ion-menu {
 
   --ion-item-background: transparent;
-  --ion-item-icon-color: var(--ion-color-secondary);
+  --ion-item-icon-color: var(--ion-color-primary);
   --ion-item-text-color: var(--ion-color-primary);
 
   --ion-item-background-selected: var(--ion-color-secondary100);
-  --ion-item-icon-color-selected: var(--ion-color-primary-tint);
+  --ion-item-icon-color-selected: var(--ion-color-primary-shade);
 
   .user-avatar {
     -webkit-background-size: cover;

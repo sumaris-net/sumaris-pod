@@ -25,13 +25,14 @@ import {Moment} from "moment";
 })
 export class TripPage extends AppTabPage<Trip> implements OnInit {
 
-  protected _enableListenChanges: boolean = true;
+  protected _enableListenChanges = (environment.listenRemoteChanges === true);
 
   programSubject = new Subject<string>();
   title = new Subject<string>();
   saving: boolean = false;
-  defaultBackHref: string = "/trips";
+  defaultBackHref = "/trips";
   showOperationTable = false;
+  showGearTable = false;
   onRefresh = new EventEmitter<any>();
 
   @ViewChild('tripForm') tripForm: TripForm;
@@ -101,6 +102,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
       this.updateView(data, true);
       this.loading = false;
+      this.showGearTable = false;
       this.showOperationTable = false;
       this.startListenProgramChanges();
     }
@@ -110,6 +112,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       const data = await this.tripService.load(id);
       this.updateView(data, true);
       this.loading = false;
+      this.showGearTable = true;
       this.showOperationTable = true;
       this.startListenRemoteChanges();
     }

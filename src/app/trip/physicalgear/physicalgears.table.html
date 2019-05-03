@@ -128,7 +128,8 @@
 
         <!-- Form -->
         <ion-card-content [hidden]="!editedRow">
-          <form-physical-gear [debug]="debug" #gearForm [program]="programSubject|async">
+          <form-physical-gear [debug]="debug" #gearForm [program]="programSubject|async"
+            [tabindex]="10">
           </form-physical-gear>
         </ion-card-content>
       </ion-card>

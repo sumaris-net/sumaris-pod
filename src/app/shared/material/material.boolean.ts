@@ -33,14 +33,14 @@ const noop = () => {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MatBooleanField implements OnInit, ControlValueAccessor {
-  private _onChange: (_: any) => void = noop;
-  private _onTouched: () => void = noop;
+  private _onChangeCallback: (_: any) => void = noop;
+  private _onTouchedCallback: () => void = noop;
   private _value: boolean;
-
   protected disabling = false;
   protected writing = false;
 
   showRadio = false;
+  radioTabIndex: number;
 
   @Input() disabled = false;
 
@@ -58,6 +58,8 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
 
   @Input() compact = false;
 
+  @Input() tabindex: number;
+
   @Output()
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
@@ -69,7 +71,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
   set value(v: any) {
     if (v !== this._value) {
       this._value = v;
-      this._onChange(v);
+      this._onChangeCallback(v);
     }
   }
 
@@ -96,6 +98,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
     if (value !== this._value) {
       this._value = value;
       this.showRadio = isNotNil(this._value);
+      setTimeout(() => this.updateTabIndex());
     }
     this.writing = false;
 
@@ -103,11 +106,11 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
   }
 
   registerOnChange(fn: any): void {
-    this._onChange = fn;
+    this._onChangeCallback = fn;
   }
 
   registerOnTouched(fn: any): void {
-    this._onTouched = fn;
+    this._onTouchedCallback = fn;
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -124,38 +127,53 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
   }
 
 
-  public markAsTouched() {
+  public checkIfTouched() {
     if (this.formControl.touched) {
       this.markForCheck();
-      this._onTouched();
+      this._onTouchedCallback();
     }
   }
 
   public _onBlur(event: FocusEvent) {
-    this.markAsTouched();
+    this.checkIfTouched();
     this.onBlur.emit(event);
   }
 
-
-  public _onFocus(event) {
+  public _onFocus(event: any) {
     event.preventDefault();
     event.target.classList.add('hidden');
+    event.target.tabIndex = -1;
     this.showRadio = true;
     setTimeout(() => {
-      if (this.yesButton) this.yesButton.focus();
-      if (this.checkboxButton) this.checkboxButton.focus();
-      this.markForCheck();
+      if (this.yesButton) {
+        this.yesButton.focus();
+      }
+      else if (this.checkboxButton) {
+        this.checkboxButton.focus();
+      }
+      this.updateTabIndex();
     });
   }
 
   /* -- protected method -- */
 
+  private updateTabIndex() {
+    if (this.showRadio && this.tabindex && this.tabindex !== -1) {
+      if (this.yesButton) {
+        this.yesButton._inputElement.nativeElement.tabIndex = this.tabindex + 1;
+      } else if (this.checkboxButton) {
+        this.checkboxButton._inputElement.nativeElement.tabIndex = this.tabindex + 1;
+      }
+      this.markForCheck();
+    }
+  }
+
   private onRadioValueChanged(event: MatRadioChange): void {
     if (this.writing) return; // Skip if call by self
     this.writing = true;
     this._value = event.value;
-    this.markAsTouched();
-    this._onChange(event.value);
+    this.checkIfTouched();
+    this._onChangeCallback(event.value);
     this.writing = false;
   }
 
@@ -163,8 +181,8 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
     if (this.writing) return; // Skip if call by self
     this.writing = true;
     this._value = event.checked;
-    this.markAsTouched();
-    this._onChange(event.checked);
+    this.checkIfTouched();
+    this._onChangeCallback(event.checked);
     this.writing = false;
   }
 

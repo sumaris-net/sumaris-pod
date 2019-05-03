@@ -1,16 +1,16 @@
-import { Injectable } from "@angular/core";
+import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import { Apollo } from "apollo-angular";
-import { Observable } from "rxjs-compat";
-import {VesselFeatures, Person, toDateISOString, Referential, EntityUtils} from "./model";
-import {TableDataService, LoadResult} from "../../shared/shared.module";
+import {Apollo} from "apollo-angular";
+import {Observable} from "rxjs-compat";
+import {EntityUtils, Person, VesselFeatures} from "./model";
+import {LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
-import {first, map, mergeMap} from "rxjs/operators";
-import { Moment } from "moment";
+import {map} from "rxjs/operators";
+import {Moment} from "moment";
 
-import { ErrorCodes } from "./errors";
-import { AccountService } from "../../core/services/account.service";
-import {ReferentialFilter} from "./referential.service";
+import {ErrorCodes} from "./errors";
+import {AccountService} from "../../core/services/account.service";
+import {SuggestionDataService} from "../../shared/services/data-service.class";
 
 export declare class VesselFilter {
   date?: Date | Moment;
@@ -136,7 +136,7 @@ const DeleteVessels: any = gql`
 `;
 
 @Injectable()
-export class VesselService extends BaseDataService implements TableDataService<VesselFeatures, VesselFilter>{
+export class VesselService extends BaseDataService implements SuggestionDataService<VesselFeatures>, TableDataService<VesselFeatures, VesselFilter>{
 
   constructor(
     protected apollo: Apollo,

@@ -13,17 +13,16 @@ import {first} from "rxjs/operators";
 
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
-
   private _forms: AppForm<any>[];
   private _tables: AppTable<any, any>[];
   private _subscriptions: Subscription[] = [];
 
-  debug: boolean = false;
+  debug = false;
   data: T;
-  selectedTabIndex: number = 0;
-  submitted: boolean = false;
+  selectedTabIndex = 0;
+  submitted = false;
   error: string;
-  loading: boolean = true;
+  loading = true;
 
   @ViewChild(ToolbarComponent) appToolbar: ToolbarComponent;
   @ViewChild(FormButtonsBarComponent) formButtonsBar: FormButtonsBarComponent;

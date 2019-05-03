@@ -3,7 +3,6 @@
              [canGoBack]="false">
 </app-toolbar>
 
-<!-- @fadeInAnimation -->
 <ion-content no-padding>
 
   <mat-toolbar>
@@ -13,7 +12,6 @@
             [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
-
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
@@ -234,8 +232,10 @@
 </ion-content>
 
 <!-- Add Button  -->
-<ion-fab vertical="bottom" horizontal="end" class="visible-xs visible-sm">
-  <ion-fab-button color="secondary" (click)="addRow()">
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="canEdit"
+         class="visible-xs visible-sm">
+  <ion-fab-button color="tertiary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>

@@ -5,7 +5,7 @@ import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment'
 import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {debounceTime, distinct, distinctUntilChanged, filter, map, startWith} from 'rxjs/operators';
+import {debounceTime, distinct, filter, map, startWith} from 'rxjs/operators';
 import {AppForm} from '../../core/core.module';
 import {
   EntityUtils,
@@ -15,7 +15,6 @@ import {
   referentialToString
 } from "../../referential/referential.module";
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment} from '../../../environments/environment';
 
 @Component({
   selector: 'form-physical-gear',
@@ -25,195 +24,197 @@ import {environment} from '../../../environments/environment';
 })
 export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
-    private _gears: ReferentialRef[] = [];
+  private _gears: ReferentialRef[] = [];
 
-    loading = false;
-    filteredGears: Observable<ReferentialRef[]>;
-    measurements: Measurement[];
-    gear: Subject<string> = new BehaviorSubject<string>(null);
-    programSubject = new Subject<string>();
+  loading = false;
+  filteredGears: Observable<ReferentialRef[]>;
+  measurements: Measurement[];
+  gear: Subject<string> = new BehaviorSubject<string>(null);
+  programSubject = new Subject<string>();
 
-    @Input() set program(program: string) {
-      this.programSubject.next(program);
-    }
+  @Input() set program(program: string) {
+    this.programSubject.next(program);
+  }
 
-    @Input() showComment: boolean = true;
+  @Input() showComment = true;
 
-    @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
+  @Input() tabindex: number;
 
-    @Output()
-    valueChanges: EventEmitter<any> = new EventEmitter<any>();
+  @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
+
+  @Output()
+  valueChanges: EventEmitter<any> = new EventEmitter<any>();
 
 
-    get dirty(): boolean {
-        return this.form.dirty || this.measurementsForm.dirty;
-    }
-    get invalid(): boolean {
-        return this.form.invalid || this.measurementsForm.invalid;
-    }
-    get valid(): boolean {
-        return this.form.valid && this.measurementsForm.valid;
-    }
+  get dirty(): boolean {
+    return this.form.dirty || this.measurementsForm.dirty;
+  }
 
-    constructor(
-        protected dateAdapter: DateAdapter<Moment>,
-        protected platform: Platform,
-        protected physicalGearValidatorService: PhysicalGearValidatorService,
-        protected programService: ProgramService,
-        protected referentialRefService: ReferentialRefService
-    ) {
+  get invalid(): boolean {
+    return this.form.invalid || this.measurementsForm.invalid;
+  }
 
-        super(dateAdapter, platform, physicalGearValidatorService.getFormGroup());
-    }
+  get valid(): boolean {
+    return this.form.valid && this.measurementsForm.valid;
+  }
 
-    async ngOnInit() {
+  constructor(
+    protected dateAdapter: DateAdapter<Moment>,
+    protected platform: Platform,
+    protected physicalGearValidatorService: PhysicalGearValidatorService,
+    protected programService: ProgramService,
+    protected referentialRefService: ReferentialRefService
+  ) {
 
-      this.registerSubscription(
-        this.programSubject
-          .pipe(
-            filter(isNotNil),
-            distinct()
-          )
-          .subscribe(async(program) => {
-              this._gears = await this.programService.loadGears(program);
-          })
+    super(dateAdapter, platform, physicalGearValidatorService.getFormGroup());
+  }
+
+  async ngOnInit() {
+
+    this.registerSubscription(
+      this.programSubject
+        .pipe(
+          filter(isNotNil),
+          distinct()
+        )
+        .subscribe(async (program) => {
+          this._gears = await this.programService.loadGears(program);
+        })
+    );
+
+    // Combo: gears
+    this.filteredGears = this.form.controls['gear'].valueChanges
+      .pipe(
+        //distinctUntilChanged(),
+        debounceTime(250),
+        startWith(''),
+        map((value: any) => {
+          if (EntityUtils.isNotEmpty(value)) {
+            // apply value for measurements sub-form
+            //this.gear.next(value.label);
+            return [value];
+          }
+          value = (typeof value === "string" && value !== '*') && value || undefined;
+          if (!value) return this._gears; // all gears
+          // Search on label or name
+          const ucValue = value.toUpperCase();
+          return this._gears.filter(g =>
+            (g.label && g.label.toUpperCase().indexOf(ucValue) === 0)
+            || (g.name && g.name.toUpperCase().indexOf(ucValue) != -1)
+          );
+        })
       );
 
-      // Combo: gears
-      this.filteredGears = this.form.controls['gear'].valueChanges
-          .pipe(
-              //distinctUntilChanged(),
-              debounceTime(250),
-              startWith(''),
-              map((value: any) => {
-                  if (EntityUtils.isNotEmpty(value)) {
-                      // apply value for measurements sub-form
-                      //this.gear.next(value.label);
-                      return [value];
-                  }
-                  value = (typeof value === "string" && value !== '*') && value || undefined;
-                  if (!value) return this._gears; // all gears
-                  // Search on label or name
-                  const ucValue = value.toUpperCase();
-                  return this._gears.filter(g =>
-                      (g.label && g.label.toUpperCase().indexOf(ucValue) === 0)
-                      || (g.name && g.name.toUpperCase().indexOf(ucValue) != -1)
-                  );
-              })
-          );
+    this.form.controls['gear'].valueChanges
+      .filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
+      .subscribe(value => {
+        this.measurementsForm.gear = value.label;
+        this.measurementsForm.updateControls('[physical-gear-form] gear changed');
+      });
 
-        this.form.controls['gear'].valueChanges
-            .filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
-            .subscribe(value => {
-                this.measurementsForm.gear = value.label;
-                this.measurementsForm.updateControls('[physical-gear-form] gear changed');
-            });
+    this.measurementsForm.valueChanges
+    /*.pipe(
+        debounceTime(300)
+    )*/
+      .subscribe(measurements => {
+        // Skip if noloading or no observers
+        if (this.loading || !this.valueChanges.observers.length) return;
 
-        this.measurementsForm.valueChanges
-            /*.pipe(
-                debounceTime(300)
-            )*/
-            .subscribe(measurements => {
-                // Skip if noloading or no observers
-                if (this.loading || !this.valueChanges.observers.length) return;
+        if (this.debug) console.debug("[physical-gear-form] measurementsForm.valueChanges => propagate event");
+        this.valueChanges.emit(this.value);
+      });
 
-                if (this.debug) console.debug("[physical-gear-form] measurementsForm.valueChanges => propagate event");
-                this.valueChanges.emit(this.value);
-            });
+    this.form.valueChanges
+    /*.pipe(
+        debounceTime(300)
+    )*/
+      .subscribe(json => {
+        // Skip if not loading or no observers
+        if (this.loading || !this.valueChanges.observers.length) return;
 
-        this.form.valueChanges
-            /*.pipe(
-                debounceTime(300)
-            )*/
-            .subscribe(json => {
-                // Skip if not loading or no observers
-                if (this.loading || !this.valueChanges.observers.length) return;
+        if (this.debug) console.debug("[physical-gear-form] form(=gear).valueChanges => propagate event");
+        this.valueChanges.emit(this.value);
+      });
+  }
 
-                if (this.debug) console.debug("[physical-gear-form] form(=gear).valueChanges => propagate event");
-                this.valueChanges.emit(this.value);
-            });
+  referentialToString = referentialToString;
+
+  set value(data: PhysicalGear) {
+    if (this.loading) {
+      // Avoid to reload when previous not finish
+      throw new Error("Previous value load not finish! Please check 'loading === false' before setting a value to this form!")
     }
 
-    referentialToString = referentialToString;
+    this.loading = true;
 
-    set value(data: PhysicalGear) {
-        if (this.loading) {
-            // Avoid to reload when previous not finish
-            throw new Error("Previous value load not finish! Please check 'loading === false' before setting a value to this form!")
-        }
+    super.setValue(data);
 
-        this.loading = true;
+    const measurements = data && data.measurements || [];
 
-        super.setValue(data);
+    this.measurementsForm.gear = data && data.gear && data.gear.label;
+    this.measurementsForm.value = measurements;
+    this.measurementsForm.updateControls('[physical-gear-form] set value');
 
-        const measurements = data && data.measurements || [];
-
-        this.measurementsForm.gear = data && data.gear && data.gear.label;
-        this.measurementsForm.value = measurements;
-        this.measurementsForm.updateControls('[physical-gear-form] set value');
-
-        if (!this.measurementsForm.gear) {
-            // No gear yet
-            this.loading = false;
-        }
-        else {
-            // Wait the end of pmfms loading
-            this.measurementsForm.onLoading
-                .filter(loading => !loading)
-                .first()
-                .subscribe(() => this.loading = false);
-        }
-
-        // Restore enable state (because form.setValue() can change it !)
-        if (this._enable) {
-          this.enable({onlySelf: true, emitEvent: false});
-        }
-        else {
-          this.disable({onlySelf: true, emitEvent: false});
-        }
+    if (!this.measurementsForm.gear) {
+      // No gear yet
+      this.loading = false;
+    } else {
+      // Wait the end of pmfms loading
+      this.measurementsForm.onLoading
+        .filter(loading => !loading)
+        .first()
+        .subscribe(() => this.loading = false);
     }
 
-    get value(): PhysicalGear {
-        if (this.loading) {
-            // Avoid to send not loading data
-            console.error("Component not loading !");
-            return undefined;
-        }
+    // Restore enable state (because form.setValue() can change it !)
+    if (this._enable) {
+      this.enable({onlySelf: true, emitEvent: false});
+    } else {
+      this.disable({onlySelf: true, emitEvent: false});
+    }
+  }
 
-        const json = this.form.value;
-        json.measurements = this.measurementsForm.value;
-
-        return json;
+  get value(): PhysicalGear {
+    if (this.loading) {
+      // Avoid to send not loading data
+      console.error("Component not loading !");
+      return undefined;
     }
 
-    public disable(opts?: {
-        onlySelf?: boolean;
-        emitEvent?: boolean;
-    }): void {
-        super.disable(opts);
-        this.measurementsForm.disable(opts);
-    }
+    const json = this.form.value;
+    json.measurements = this.measurementsForm.value;
 
-    public enable(opts?: {
-        onlySelf?: boolean;
-        emitEvent?: boolean;
-    }): void {
-        super.enable(opts);
-        this.measurementsForm.enable(opts);
-    }
+    return json;
+  }
 
-    public markAsPristine() {
-        super.markAsPristine();
-        this.measurementsForm.markAsPristine();
-    }
+  public disable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }): void {
+    super.disable(opts);
+    this.measurementsForm.disable(opts);
+  }
 
-    public markAsUntouched() {
-        super.markAsUntouched();
-        this.measurementsForm.markAsUntouched();
-    }
+  public enable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }): void {
+    super.enable(opts);
+    this.measurementsForm.enable(opts);
+  }
 
-    public markAsTouched() {
-        super.markAsTouched();
-        this.measurementsForm.markAsTouched();
-    }
+  public markAsPristine() {
+    super.markAsPristine();
+    this.measurementsForm.markAsPristine();
+  }
+
+  public markAsUntouched() {
+    super.markAsUntouched();
+    this.measurementsForm.markAsUntouched();
+  }
+
+  public markAsTouched() {
+    super.markAsTouched();
+    this.measurementsForm.markAsTouched();
+  }
 }
