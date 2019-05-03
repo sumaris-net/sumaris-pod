@@ -11,5 +11,5 @@ export const environment: Environment = {
   defaultLatLongFormat: 'DDMM',
   defaultProgram: 'SUMARIS',
   apolloFetchPolicy: 'cache-first',
-  mock: true
+  mock: false
 };

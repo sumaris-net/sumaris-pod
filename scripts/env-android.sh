@@ -35,6 +35,13 @@ if [[ ! -d "${PROJECT_DIR}/platforms/android" ]]; then
   fi
 fi
 
-# Copy local files into the android project
-echo "Copying files from directory '${PROJECT_DIR}/resources/android/build/local'"
-cp -rf ${PROJECT_DIR}/resources/android/build/local/* ${PROJECT_DIR}/platforms/android
+# Copy local files
+if [[ -d "${PROJECT_DIR}/.local/android" ]]; then
+  echo "Copying files from directory '${PROJECT_DIR}/.local/android' into '${PROJECT_DIR}/platforms/android'..."
+  cp -rf ${PROJECT_DIR}/.local/android/* ${PROJECT_DIR}/platforms/android
+  if [[ $? -ne 0 ]]; then
+    exit 1
+  fi
+else
+  echo "No directory '${PROJECT_DIR}/.local/android' found. Please create it, with a file 'release-signing.properties' for release signing"
+fi

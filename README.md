@@ -34,23 +34,31 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
 
 Edit the file `src/environment/environment.ts`
 
-7. Build a release
+7. Build a release (production ready)
 ```bash
 npm run build --prod --release
 ```
 
 
-### Build for Android
+### Build Android
 
-To build the App for Android :
+1. Build a debug APK:
 
 ```bash
 cd scripts
 ./build-android.sh
 ```
 
+2. Build a release APK (production ready):
+
+```bash
+cd scripts
+./release-android.sh
+```
+
 ## Developer guide :
 
 - Ionic 4 colors: https://www.joshmorony.com/a-primer-on-css-4-variables-for-ionic-4/
 - Migration to Ionic 4 tips: https://www.joshmorony.com/my-method-for-upgrading-from-ionic-3-to-ionic-4/
-
+- Signing Android APK: See doc at 
+   https://www.c-sharpcorner.com/article/create-ionic-4-release-build-for-android/
