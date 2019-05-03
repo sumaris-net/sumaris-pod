@@ -64,7 +64,6 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
           'program',
           'location',
           'startDateTime',
-          'pmfm_1', // TODO
           'observers',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
@@ -138,7 +137,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
 
     // TODO: remove this
     setTimeout(() => {
-      this.loading=false;
+      this.loading = false;
       this.markForCheck();
     }, 1000);
   }
