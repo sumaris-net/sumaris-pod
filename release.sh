@@ -71,10 +71,20 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "----------------------------------"
-echo "- Creating web artefact..."
+echo "- Creating web artifact..."
 echo "----------------------------------"
 cd $DIRNAME/www
 zip -q -r sumaris-app.zip .
+if [[ $? -ne 0 ]]; then
+    exit 1
+fi
+
+echo "----------------------------------"
+echo "- Compiling sources for Android platform..."
+echo "----------------------------------"
+PROJECT_DIR=${DIRNAME}
+cd scripts
+./release-android.sh
 if [[ $? -ne 0 ]]; then
     exit 1
 fi

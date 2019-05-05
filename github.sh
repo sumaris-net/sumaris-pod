@@ -86,6 +86,11 @@ case "$1" in
       echo "Sending web build..."
       curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T $dirname/www/sumaris-app.zip $upload_url?name=sumaris-app-v$current-web.zip
 
+      echo "Sending Android build..."
+      if [[ ! -f "$dirname/platforms/android/app/build/outputs/apk/release/app-release.apk" ]]; then
+        curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T $dirname/platforms/android/app/build/outputs/apk/release/app-release.apk $upload_url?name=sumaris-app-v$current-android.apk
+      fi
+
       echo "-----"
       echo "Successfully uploading files !"
       echo " -> Release url: https://github.com/$REPO/releases/tag/v$current"
