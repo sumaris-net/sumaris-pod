@@ -20,7 +20,6 @@ import {TranslateService} from "@ngx-translate/core";
 export class AccountPage extends AppForm<Account> implements OnDestroy {
 
   isLogin: boolean;
-  subscriptions: Subscription[] = [];
   changesSubscription: Subscription;
   account: Account;
   email: any = {
@@ -43,20 +42,18 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     public formBuilder: FormBuilder,
     public accountService: AccountService,
     protected validatorService: AccountValidatorService,
     protected settingsValidatorService: UserSettingsValidatorService,
     protected translate: TranslateService
   ) {
-    super(dateAdapter, platform, validatorService.getFormGroup(accountService.account));
+    super(dateAdapter, validatorService.getFormGroup(accountService.account));
 
-    // Add settings fo form 
+    // Add settings fo form
     this.settingsForm = settingsValidatorService.getFormGroup(accountService.account && accountService.account.settings);
     this.settingsContentForm = (this.settingsForm.controls['content'] as FormGroup);
     this.form.addControl('settings', this.settingsForm);
-
 
     // Store additional fields
     this.additionalFields = accountService.additionalAccountFields;
@@ -70,9 +67,9 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.disable();
 
     // Observed some events
-    this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
-    this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
-    this.subscriptions.push(this.onCancel.subscribe(() => {
+    this.registerSubscription(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
+    this.registerSubscription(this.accountService.onLogout.subscribe(() => this.onLogout()));
+    this.registerSubscription(this.onCancel.subscribe(() => {
       this.setValue(this.accountService.account);
       this.markAsPristine();
     }));
@@ -82,8 +79,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   };
 
   ngOnDestroy() {
-    this.subscriptions.forEach(s => s.unsubscribe());
-    this.subscriptions = [];
+    super.ngOnDestroy();
     this.stopListenChanges();
   }
 

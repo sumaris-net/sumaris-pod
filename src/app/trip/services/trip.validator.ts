@@ -36,7 +36,8 @@ export class TripValidatorService implements ValidatorService {
     }, {
       validator: Validators.compose([
         SharedValidators.dateIsAfter('departureDateTime', 'returnDateTime'),
-        SharedValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours')
+        SharedValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
+        SharedValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
       ]),
     });
   }

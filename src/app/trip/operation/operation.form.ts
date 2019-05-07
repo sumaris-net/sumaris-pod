@@ -59,14 +59,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     protected physicalGearValidatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected accountService: AccountService,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, platform, physicalGearValidatorService.getFormGroup());
+    super(dateAdapter, physicalGearValidatorService.getFormGroup());
 
   }
 

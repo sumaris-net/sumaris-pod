@@ -20,7 +20,8 @@ import {ReferentialModule} from "./referential/referential.module";
 import {TripModule} from "./trip/trip.module";
 import {environment} from "../environments/environment";
 import {NgxMaterialTimepickerTheme, TimepickerDirective} from "ngx-material-timepicker";
-
+import {HttpClientModule} from "@angular/common/http";
+import {HTTP} from "@ionic-native/http/ngx";
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import {NgxMaterialTimepickerTheme, TimepickerDirective} from "ngx-material-time
   imports: [
     AppRoutingModule,
     BrowserModule,
+    HttpClientModule,
     IonicModule.forRoot(),
     // functional modules
     CoreModule,
@@ -41,6 +43,7 @@ import {NgxMaterialTimepickerTheme, TimepickerDirective} from "ngx-material-time
     StatusBar,
     SplashScreen,
     Keyboard,
+    HTTP,
     { provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/') },
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: MAT_DATE_LOCALE, useValue: 'en' },

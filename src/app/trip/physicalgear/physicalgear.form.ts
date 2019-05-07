@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
 import {isNotNil, Measurement, PhysicalGear} from "../services/trip.model";
-import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment'
 import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
@@ -60,13 +59,12 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     protected physicalGearValidatorService: PhysicalGearValidatorService,
     protected programService: ProgramService,
     protected referentialRefService: ReferentialRefService
   ) {
 
-    super(dateAdapter, platform, physicalGearValidatorService.getFormGroup());
+    super(dateAdapter, physicalGearValidatorService.getFormGroup());
   }
 
   async ngOnInit() {

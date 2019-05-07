@@ -1,12 +1,10 @@
-import { Injectable } from "@angular/core";
-import { ValidatorService } from "angular4-material-table";
-import { FormGroup, Validators, ValidatorFn, FormBuilder } from "@angular/forms";
-import { Account } from "./model";
-import { AccountService } from "./account.service";
-import { getMainProfile, StatusIds } from "./model";
-import { AccountFieldDef } from "../core.module";
-import { SharedValidators } from "../../shared/validator/validators";
-import { UserSettingsValidatorService } from "./user-settings.validator";
+import {Injectable} from "@angular/core";
+import {ValidatorService} from "angular4-material-table";
+import {FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
+import {Account, getMainProfile, StatusIds} from "./model";
+import {AccountService} from "./account.service";
+import {AccountFieldDef} from "../core.module";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Injectable()
 export class AccountValidatorService implements ValidatorService {
@@ -48,7 +46,7 @@ export class AccountValidatorService implements ValidatorService {
   }
 
   public getValidators(field: AccountFieldDef): ValidatorFn | ValidatorFn[] {
-    let validatorFns: ValidatorFn[] = [];
+    const validatorFns: ValidatorFn[] = [];
     if (field.required) {
       validatorFns.push(Validators.required);
     }
@@ -56,6 +54,6 @@ export class AccountValidatorService implements ValidatorService {
       validatorFns.push(SharedValidators.entity);
     }
 
-    return validatorFns.length ? Validators.compose(validatorFns) : validatorFns.length == 1 ? validatorFns[0] : undefined;
+    return validatorFns.length ? Validators.compose(validatorFns) : validatorFns.length === 1 ? validatorFns[0] : undefined;
   }
 }

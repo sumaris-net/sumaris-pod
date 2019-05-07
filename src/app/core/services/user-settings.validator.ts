@@ -22,7 +22,7 @@ export class UserSettingsValidatorService implements ValidatorService {
       locale: [data && data.locale || null, Validators.required],
       latLongFormat: [data && data.latLongFormat || null, Validators.required],
       content: this.formBuilder.group({
-        usageMode: [data && data.content && data.content.usageMode || 'DESK', Validators.required],
+      //usageMode: [data && data.content && data.content.usageMode || 'DESK', Validators.required],
       }),
       nonce: [data && data.nonce || null]
     });

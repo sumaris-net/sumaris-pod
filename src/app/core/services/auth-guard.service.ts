@@ -25,7 +25,7 @@ export class AuthGuardService implements CanActivate {
 
     // If account not started: loop after started
     if (!this.accountService.isStarted()) {
-      return this.accountService.waitStart()
+      return this.accountService.ready()
         // Iterate
         .then(() => this.canActivate(next, state) as Promise<boolean>);
     }

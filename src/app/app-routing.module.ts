@@ -14,6 +14,7 @@ import {ExtractTable} from "./trip/extract/extract-table.component";
 import {ConfigPage} from './admin/config/config.component';
 import {ObservedLocationPage} from "./trip/observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.page";
+import {SettingsPage} from "./core/settings/settings.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -41,6 +42,11 @@ const routes: Routes = [
     pathMatch: 'full',
     component: AccountPage,
     canActivate: [AuthGuardService]
+  },
+  {
+    path: 'settings',
+    pathMatch: 'full',
+    component: SettingsPage
   },
 
   // Admin

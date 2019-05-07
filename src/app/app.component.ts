@@ -1,16 +1,14 @@
 import {Component, Inject} from '@angular/core';
-import {Platform} from "@ionic/angular";
 import {MenuItem} from './core/menu/menu.component';
-import {HomePage} from './core/home/home';
-import {AccountService, TableDataService, isNotNil} from './core/core.module';
+import {AccountService, isNotNil} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
-import { ConfigService } from './core/services/config.service';
-import {DOCUMENT} from "@angular/platform-browser";
+import {ConfigService} from './core/services/config.service';
+import {DOCUMENT} from "@angular/common";
 import {Configuration} from "./core/services/model";
-import { SplashScreen } from '@ionic-native/splash-screen/ngx';
-import { StatusBar } from '@ionic-native/status-bar/ngx';
-import { Keyboard } from "@ionic-native/keyboard/ngx";
-import {DataService, SuggestionDataService} from "./shared/services/data-service.class";
+import {SplashScreen} from '@ionic-native/splash-screen/ngx';
+import {StatusBar} from '@ionic-native/status-bar/ngx';
+import {Keyboard} from "@ionic-native/keyboard/ngx";
+import {PlatformService} from "./core/services/platform.service";
 
 
 @Component({
@@ -20,31 +18,42 @@ import {DataService, SuggestionDataService} from "./shared/services/data-service
 })
 export class AppComponent {
 
-  root: any = HomePage;
   logo: String;
   appName: String;
   menuItems: Array<MenuItem> = [
-    { title: 'MENU.HOME', path: '/', icon: 'home' },
+    {title: 'MENU.HOME', path: '/', icon: 'home'},
 
-    // Data access
-    { title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'USER'},
-    { title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
+    // Data entry
+    {title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER'},
+    {title: 'MENU.TRIPS', path: '/trips', icon: 'pin', profile: 'USER'},
+    {
+      title: 'MENU.OBSERVED_LOCATIONS', path: '/observations',
       matIcon: 'verified_user',
-      profile: 'USER'},
+      profile: 'USER'
+    },
 
-    { title: 'MENU.EXTRACTIONS', path: '/extraction/', icon: 'download', profile: 'SUPERVISOR' },
+    // Data extraction
+    {title: 'MENU.EXTRACTION_DIVIDER', profile: 'SUPERVISOR'},
+    {title: 'MENU.TRIPS', path: '/extraction/', icon: 'download', profile: 'SUPERVISOR'},
 
-    { title: 'MENU.ADMINISTRATION_DIVIDER', profile: 'USER' },
-    { title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN' },
-    { title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER' },
-    { title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN' },
-    { title: 'MENU.CONFIGURATION', path: '/admin/config', icon: 'settings', profile: 'ADMIN' }
+    // Referential
+    {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
+    {title: 'MENU.VESSELS', path: '/referential/vessels', icon: 'boat', profile: 'USER'},
+    {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
+    {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
+    {title: 'MENU.SERVER_SETTINGS', path: '/admin/config', matIcon: 'build', profile: 'ADMIN'},
+
+    // Settings
+    {title: '' /*empty divider*/},
+    {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings'},
+    {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', cssClass: 'visible xs visible-sm'},
+    {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'USER', cssClass: 'ion-color-danger'}
 
   ];
 
   constructor(
     @Inject(DOCUMENT) private _document: HTMLDocument,
-    private platform: Platform,
+    private platform: PlatformService,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
     private configurationService: ConfigService,
@@ -53,30 +62,22 @@ export class AppComponent {
     private keyboard: Keyboard
   ) {
 
-    this.initializeApp();
+    this.platform.ready().then(() => {
 
-  }
+      // Configure Cordova plugins
+      this.configureCordovaPlugins();
 
-  initializeApp() {
-    this.platform.ready()
-      .then(() => {
+      // Listen for config changed
+      this.configurationService.config.subscribe(config => this.onConfigChanged(config));
 
-        // Listen for config changed
-        this.configurationService.config.subscribe(config => this.onConfigChanged(config));
+      // Add additional account fields
+      this.addAccountFields();
 
-        console.info("[app] Setting cordova plugins...");
-
-
-        this.statusBar.styleDefault();
-        this.statusBar.overlaysWebView(false);
-
-        // Control Keyboard
-        this.keyboard.hideFormAccessoryBar(true);
-
-        this.addAccountFields();
-
+      // Wait 1 more seconds, before hiding the splash screen
+      setTimeout(() => {
         this.splashScreen.hide();
-      });
+      }, 1000);
+    });
   }
 
   public onActivate(event) {
@@ -103,7 +104,7 @@ export class AppComponent {
 
     // Set document favicon
     const favicon = config.properties && config.properties["sumaris.favicon"];
-    if (isNotNil(favicon)){
+    if (isNotNil(favicon)) {
       this._document.getElementById('appFavicon').setAttribute('href', favicon);
     }
 
@@ -119,8 +120,10 @@ export class AppComponent {
 
   }
 
-  protected updateTheme(options: {colors?: {primary?: string; secondary?: string; tertiary?: string;}}) {
-    if (!options)  return;
+  additionnal
+
+  protected updateTheme(options: { colors?: { primary?: string; secondary?: string; tertiary?: string; } }) {
+    if (!options) return;
 
     console.info("[app] Changing theme colors ", options);
 
@@ -136,6 +139,13 @@ export class AppComponent {
     }
   }
 
+  protected configureCordovaPlugins() {
+    console.info("[app] Setting cordova plugins...");
+    this.statusBar.styleDefault();
+    this.statusBar.overlaysWebView(false);
+    this.keyboard.hideFormAccessoryBar(true);
+  }
+
   protected addAccountFields() {
 
     console.debug("[app] Add additional account fields...");
@@ -146,7 +156,7 @@ export class AppComponent {
       label: 'USER.DEPARTMENT',
       required: true,
       dataService: this.referentialRefService,
-      dataFilter: { entityName: 'Department' },
+      dataFilter: {entityName: 'Department'},
       updatable: {
         registration: true,
         account: false

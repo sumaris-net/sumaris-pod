@@ -6,6 +6,7 @@ import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
 import {map} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
+import {delay} from "q";
 
 export abstract class BaseDataService {
 
@@ -21,34 +22,31 @@ export abstract class BaseDataService {
 
   }
 
-  protected query<T, V = R>(opts: {
+  protected async query<T, V = R>(opts: {
     query: any,
     variables: V,
     error?: ServiceError,
     fetchPolicy?: FetchPolicy
   }): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      this.apollo.query<ApolloQueryResult<T>, V>({
-        query: opts.query,
-        variables: opts.variables,
-        fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy) || undefined
-      })
-        .catch(error => this.onApolloError<T>(error))
-        .first()
-        .subscribe(({ data, errors }) => {
-          if (errors) {
-            const error = errors[0] as any;
-            if (error && error.code && error.message) {
-              reject(error);
-              return;
-            }
-            console.error("[data-service] " + error.message);
-            reject(opts.error ? opts.error : error.message);
-            return;
-          }
-          resolve(data as T);
-        });
-    });
+    let res;
+    try {
+      res = await (await this.getApollo()).query<ApolloQueryResult<T>, V>({
+          query: opts.query,
+          variables: opts.variables,
+          fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy) || undefined
+        }).toPromise();
+    } catch (err) {
+      res = this.toApolloError<T>(err);
+    }
+    if (res.errors) {
+      const error = res.errors[0] as any;
+      if (error && error.code && error.message) {
+        throw error;
+      }
+      console.error("[data-service] " + error.message);
+      throw opts.error ? opts.error : error.message;
+    }
+    return res.data;
   }
 
   protected watchQuery<T, V = R>(opts: {
@@ -134,7 +132,7 @@ export abstract class BaseDataService {
       .pipe(
         map(({ data, errors }) => {
           if (errors) {
-            let error = errors[0];
+            const error = errors[0];
             if (error && error.code && error.message) {
               throw error;
             }
@@ -265,17 +263,21 @@ export abstract class BaseDataService {
   }
 
   private onApolloError<T>(err: any): Observable<ApolloQueryResult<T>> {
+    return Observable.of(this.toApolloError(err));
+  }
+
+  private toApolloError<T>(err: any): ApolloQueryResult<T> {
     const appError = (err.networkError && (this.toAppError(err.networkError) || this.createAppErrorByCode(ErrorCodes.UNKNOWN_NETWORK_ERROR))) ||
       (err.graphQLErrors && this.toAppError(err.graphQLErrors[0])) ||
       this.toAppError(err) ||
       this.toAppError(err.originalError);
-    return Observable.of({
+    return {
       data: null,
       errors: appError && [appError] || err.graphQLErrors || [err],
       loading: false,
       networkStatus: null,
       stale: null
-    });
+    };
   }
 
   private createAppErrorByCode(errorCode: number): any | undefined {
@@ -309,5 +311,12 @@ export abstract class BaseDataService {
   }
 
 
+  private async getApollo(): Promise<Apollo> {
+    while (!this.apollo.getClient()) {
+      console.debug("[base-data-service] Waiting apollo client... " + this.constructor.name);
+      await delay(500);
+    }
+    return this.apollo;
+  }
 
 }

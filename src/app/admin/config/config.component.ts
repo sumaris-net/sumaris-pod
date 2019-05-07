@@ -6,7 +6,7 @@ import {BehaviorSubject} from 'rxjs';
 import {FormArray, FormBuilder} from "@angular/forms";
 import {Configuration, Department} from '../../core/services/model';
 import {ConfigService} from "src/app/core/services/config.service";
-import {AppForm, AppFormUtils, ConfigValidatorService, isNotNil} from "src/app/core/core.module";
+import {AppForm, AppFormUtils, ConfigValidatorService, isNotNil, PlatformService} from "src/app/core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {first} from "rxjs/operators";
@@ -70,32 +70,33 @@ const CONFIG_OPTIONS: Array<ConfigOption> = [
 })
 export class ConfigPage extends AppForm<Configuration> implements OnInit {
 
+  loading = true;
   partners = new BehaviorSubject<Department[]>(null);
   data: Configuration;
-  loading: boolean = true;
 
   options = CONFIG_OPTIONS;
 
-  get propertiesForm() : FormArray {
+  get propertiesForm(): FormArray {
     return this.form.get('properties') as FormArray;
   }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     protected route: ActivatedRoute,
     protected router: Router,
     protected service: ConfigService,
     protected validator: ConfigValidatorService,
-    protected formBuilder: FormBuilder 
+    protected formBuilder: FormBuilder,
+    protected platform: PlatformService
       ) {
-    super(dateAdapter, platform, validator.getFormGroup());
+    super(dateAdapter, validator.getFormGroup());
 
   };
 
   ngOnInit() {
 
-    this.load();
+    // Load, when plateform is ready
+    this.platform.ready().then(() => this.load());
   }
 
   async load() {

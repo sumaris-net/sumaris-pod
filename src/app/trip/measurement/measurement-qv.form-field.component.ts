@@ -1,23 +1,27 @@
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
-  OnInit,
-  Input,
+  ElementRef,
   EventEmitter,
-  Output,
   forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
   Optional,
-  ChangeDetectionStrategy, OnDestroy, ViewChild, ChangeDetectorRef, ElementRef
+  Output,
+  ViewChild
 } from '@angular/core';
-import {Referential, PmfmStrategy} from "../services/trip.model";
+import {PmfmStrategy, Referential} from "../services/trip.model";
 import {merge, Observable, Subject} from 'rxjs';
-import {startWith, map, tap, takeUntil, filter} from 'rxjs/operators';
-import {referentialToString, EntityUtils, ReferentialRef} from '../../referential/referential.module';
-import {NG_VALUE_ACCESSOR, ControlValueAccessor, Validators, FormControl, FormGroupDirective} from '@angular/forms';
-import {FloatLabelType, MatInput, MatInputBase, MatRadioButton, MatSelect} from "@angular/material";
+import {filter, map, takeUntil, tap} from 'rxjs/operators';
+import {EntityUtils, ReferentialRef, referentialToString} from '../../referential/referential.module';
+import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
+import {FloatLabelType, MatSelect} from "@angular/material";
 
 
 import {SharedValidators} from '../../shared/validator/validators';
-import {Platform} from "@ionic/angular";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',
@@ -74,11 +78,11 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   @ViewChild('matSelect') matSelect: MatSelect;
 
   constructor(
-    platform: Platform,
+    private platform: PlatformService,
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
-    this.touchUi = platform.is('tablet') || platform.is('mobile');
+    this.touchUi = platform.touchUi;
   }
 
   ngOnInit() {

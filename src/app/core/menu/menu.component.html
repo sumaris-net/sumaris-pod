@@ -1,18 +1,23 @@
 <ion-split-pane #splitPane>
 
-  <ion-menu>
+  <ion-menu menuId="left">
     <ion-header>
 
-      <mat-toolbar padding [@fadeInAnimation] *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
+      <mat-toolbar padding @fadeInAnimation *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
         <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="150px;"/>
         <span *ngIf="!logo" width="150px;">{{appName}}</span>
       </mat-toolbar>
 
-      <ion-toolbar [@fadeInAnimation] *ngIf="isLogin" class="ion-toolbar-top">
+      <ion-toolbar @fadeInAnimation *ngIf="isLogin" class="ion-toolbar-top">
         <ion-grid>
           <ion-row>
             <ion-col size="4">
-              <div class="user-avatar" [class.primary]="!account?.avatar" [ngStyle]="{'background-image':'url('+(account?.avatar||'./assets/img/person.png')+')'}">
+              <div class="user-avatar" [class.primary]="!account?.avatar" [ngStyle]="{'background-image':'url('+(account?.avatar||'./assets/img/person.png')+')'}"
+                   menuClose
+                   [routerLink]="['/account']"
+                   routerDirection="root"
+                   routerLinkActive="ion-color-primary"
+                   (click)="menu.close()">
               </div>
             </ion-col>
             <ion-col size="8" class="user-logo">
@@ -21,33 +26,41 @@
             </ion-col>
           </ion-row>
           <ion-row no-padding>
-            <ion-label color="primary" text-wrap>
-              <h4 full class="no-margin username">
-                <b>{{account?.firstName}} {{account?.lastName}}</b>
-              </h4>
-              <h5>{{account?.email}}</h5>
-            </ion-label>
+
+            <button mat-button menuClose
+                        [routerLink]="['/account']"
+                        routerDirection="root"
+                        routerLinkActive="ion-color-primary"
+                        (click)="menu.close()">
+              <ion-label color="primary" text-wrap>
+                <h3 full class="no-margin username">
+                  <b>{{account?.firstName}} {{account?.lastName}}</b>
+                </h3>
+                <h4>{{account?.email}}</h4>
+              </ion-label>
+            </button>
+
           </ion-row>
 
-          <ion-row no-padding>
-            <ion-col no-padding>
-              <ion-button menuClose small expand="block" color="secondary" fill="outline"
-                          [routerLink]="['/account']"
-                          routerDirection="root"
-                          routerLinkActive="ion-color-primary"
-                          (click)="menu.close()">
-                <ion-icon name="contact" slot="start"></ion-icon>
-                <ion-label translate>MENU.BTN_ACCOUNT</ion-label>
-              </ion-button>
-            </ion-col>
-            <ion-col no-padding>
-              <ion-button menuClose small expand="block" color="medium" fill="outline"
-                          (click)="menu.close() && logout()">
-                <ion-icon name="log-out" slot="start"></ion-icon>
-                <ion-label translate>COMMON.BTN_LOGOUT</ion-label>
-              </ion-button>
-            </ion-col>
-          </ion-row>
+<!--          <ion-row no-padding>-->
+<!--            <ion-col no-padding>-->
+<!--              <ion-button menuClose small expand="block" color="secondary"-->
+<!--                          [routerLink]="['/account']"-->
+<!--                          routerDirection="root"-->
+<!--                          routerLinkActive="ion-color-primary"-->
+<!--                          (click)="menu.close()">-->
+<!--                <ion-icon name="contact" slot="start"></ion-icon>-->
+<!--                <ion-label translate>MENU.BTN_ACCOUNT</ion-label>-->
+<!--              </ion-button>-->
+<!--            </ion-col>-->
+<!--            <ion-col no-padding>-->
+<!--              <ion-button menuClose small expand="block" color="medium"-->
+<!--                          (click)="menu.close() && logout()">-->
+<!--                <ion-icon name="log-out" slot="start"></ion-icon>-->
+<!--                <ion-label translate>COMMON.BTN_LOGOUT</ion-label>-->
+<!--              </ion-button>-->
+<!--            </ion-col>-->
+<!--          </ion-row>-->
 
         </ion-grid>
 
@@ -56,21 +69,37 @@
 
     <ion-content [class.has-user-header]="isLogin">
 
-      <ion-list no-lines>
+      <ion-list lines="none">
         <ion-menu-toggle auto-hide="false" *ngFor="let item of filteredItems ; trackBy: trackByFn">
-          <ion-item [@fadeInAnimation]
-                    *ngIf="!loading && item.path"
+
+          <!-- link -->
+          <ion-item *ngIf="!loading && item.path"
+                    @fadeInAnimation
                     tappable class="text-1x"
                     [routerLink]="item.path"
                     routerDirection="root"
                     routerLinkActive="selected"
                     (click)="menu.close()"
+                    [class]="item.cssCLass"
                     [routerLinkActiveOptions]="{exact: (item.path == '/')}">
             <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
-            <mat-icon color="secondary" slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
+            <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
             <ion-label translate>{{item.title}}</ion-label>
           </ion-item>
-          <ion-item-divider [@fadeInAnimation] *ngIf="!loading && !item.path">
+
+          <!-- action -->
+          <ion-item @fadeInAnimation
+                    *ngIf="!loading && item.action"
+                    tappable class="text-1x"
+                    [class]="item.cssCLass"
+                    (click)="menu.close() && doAction(item.action)">
+            <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
+            <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
+            <ion-label translate>{{item.title}}</ion-label>
+          </ion-item>
+
+          <!-- divider -->
+          <ion-item-divider @fadeInAnimation *ngIf="!loading && !item.path && !item.action">
             <ion-label translate>{{item.title}}</ion-label>
           </ion-item-divider>
         </ion-menu-toggle>
@@ -78,7 +107,7 @@
     </ion-content>
 
 
-    <ion-footer>
+    <ion-footer class="hidden-xs hidden-sm">
       <ion-toolbar>
 
         <ion-buttons slot="start" >

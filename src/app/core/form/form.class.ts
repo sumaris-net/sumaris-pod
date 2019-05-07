@@ -1,18 +1,15 @@
-import { OnInit, OnDestroy, EventEmitter, Output, Input } from '@angular/core';
-import { FormGroup } from "@angular/forms";
-import { Platform } from '@ionic/angular';
-import { Moment } from 'moment/moment';
-import { DATE_ISO_PATTERN } from '../constants';
-import { DateAdapter } from "@angular/material";
-import { Subscription } from 'rxjs';
+import {EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {FormGroup} from "@angular/forms";
+import {Moment} from 'moment/moment';
+import {DATE_ISO_PATTERN} from '../constants';
+import {DateAdapter} from "@angular/material";
+import {Subscription} from 'rxjs';
+import {PlatformService} from "../services/platform.service";
 
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   private _subscriptions: Subscription[];
   protected _enable = false;
-
-  touchUi = false;
-  mobile = false;
   error: string = null;
 
   @Input() debug = false;
@@ -78,13 +75,8 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     public form: FormGroup
   ) {
-
-    this.touchUi = !platform.is('desktop');
-    this.mobile = this.touchUi && platform.is('mobile');
-    //this.touchUi && console.debug("[form] Enabling touch UI");
   }
 
   ngOnInit() {
@@ -173,6 +165,11 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   public markAsTouched() {
     this.form.markAsTouched();
+    this.markForCheck();
+  }
+
+  public markAsDirty() {
+    this.form.markAsDirty();
     this.markForCheck();
   }
 

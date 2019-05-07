@@ -27,8 +27,22 @@ export const environment: Environment = {
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
 
+  defaultPeers: [
+    {
+      host: 'localhost',
+      port: 8080
+    },
+    {
+      host: 'test.sumaris.net',
+      port: 443
+    },
+    {
+      host: 'adap.e-is.pro',
+      port: 443
+    }
+  ],
+
   // DEV only
-  //mock: true
   mock: false,
 };
 

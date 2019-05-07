@@ -47,12 +47,12 @@
           <ion-label translate>COMMON.BTN_BACK</ion-label>
         </ion-button>
 
-        <ion-button *ngIf="!form.isEnd()" (click)="form.slideNext()" fill="solid">
+        <ion-button *ngIf="!form.isEnd()" (click)="form.slideNext()" fill="solid" color="tertiary">
           <ion-label translate>COMMON.BTN_NEXT</ion-label>
           <ion-icon slot="end" name="arrow-forward"></ion-icon>
         </ion-button>
 
-        <ion-button *ngIf="form.isEnd()" (click)="doSubmit()" fill="solid" [disabled]="sending">
+        <ion-button *ngIf="form.isEnd()" (click)="doSubmit()" fill="solid" [disabled]="sending" color="tertiary">
           <span translate>COMMON.BTN_SEND</span>
           <ion-icon slot="end" name="send"></ion-icon>
         </ion-button>

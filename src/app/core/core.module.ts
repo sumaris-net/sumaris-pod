@@ -2,6 +2,8 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 
+import {PlatformService} from './services/platform.service';
+import {NetworkService} from './services/network.service';
 import {AccountFieldDef, AccountService} from './services/account.service';
 import {ConfigService} from './services/config.service';
 
@@ -68,132 +70,184 @@ import {
 import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {SelectPeerModal} from "./peer/select-peer.modal";
+import {SettingsPage} from "./settings/settings.page";
+import {LocalSettingsValidatorService} from "./services/local-settings.validator";
 
 export {
-  environment, AppForm, AppFormUtils, AppTable, AppTabPage, AppTableDataSource, TableSelectColumnsComponent,
-  AccountService, AccountFieldDef, BaseDataService, AccountValidatorService, UserSettingsValidatorService, ConfigValidatorService,
-  AuthGuardService, EntityMetadataComponent, FormButtonsBarComponent,
-  RESERVED_START_COLUMNS, RESERVED_END_COLUMNS,
-  Entity, Cloneable, EntityUtils,
-  AcquisitionLevelCodes, StatusIds, LocationLevelIds,
-  Referential, ReferentialRef, Department, Person, DataService, TableDataService, LoadResult,
-  toDateISOString, fromDateISOString, joinProperties, isNil, isNotNil, nullIfUndefined,
-  entityToString, referentialToString, personToString, personsToString
-}
+  environment,
+  AppForm,
+  AppFormUtils,
+  AppTable,
+  AppTabPage,
+  AppTableDataSource,
+  TableSelectColumnsComponent,
+  PlatformService,
+  AccountService,
+  NetworkService,
+  AccountFieldDef,
+  BaseDataService,
+  AccountValidatorService,
+  UserSettingsValidatorService,
+  ConfigValidatorService,
+  AuthGuardService,
+  EntityMetadataComponent,
+  FormButtonsBarComponent,
+  RESERVED_START_COLUMNS,
+  RESERVED_END_COLUMNS,
+  Entity,
+  Cloneable,
+  EntityUtils,
+  AcquisitionLevelCodes,
+  StatusIds,
+  LocationLevelIds,
+  Referential,
+  ReferentialRef,
+  Department,
+  Person,
+  DataService,
+  TableDataService,
+  LoadResult,
+  toDateISOString,
+  fromDateISOString,
+  joinProperties,
+  isNil,
+  isNotNil,
+  nullIfUndefined,
+  entityToString,
+  referentialToString,
+  personToString,
+  personsToString
+};
 
 export function HttpLoaderFactory(http: HttpClient) {
-    return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
 @NgModule({
-    imports: [
-        CommonModule,
-        RouterModule,
-        HttpClientModule,
-        AppGraphQLModule,
-        SharedModule,
-        ReactiveFormsModule,
-        IonicStorageModule.forRoot(),
-        TranslateModule.forRoot({
-            loader: {
-                provide: TranslateLoader,
-                useFactory: HttpLoaderFactory,
-                deps: [HttpClient]
-            }
-        })
-    ],
+  imports: [
+    CommonModule,
+    RouterModule,
+    HttpClientModule,
+    AppGraphQLModule,
+    SharedModule,
+    ReactiveFormsModule,
+    IonicStorageModule.forRoot(),
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [HttpClient]
+      }
+    })
+  ],
 
-    declarations: [
-        MenuComponent,
-        HomePage,
-        // Auth & Register
-        AuthForm,
-        AuthModal,
-        RegisterForm,
-        RegisterModal,
-        RegisterConfirmPage,
-        AccountPage,
+  declarations: [
+    HomePage,
+    AboutModal,
 
-        // Components
-        TableSelectColumnsComponent,
-        AboutModal,
-        EntityMetadataComponent,
-        FormButtonsBarComponent
-    ],
-    exports: [
-        CommonModule,
-        SharedModule,
-        RouterModule,
-        AppGraphQLModule,
-        HomePage,
-        AuthForm,
-        AuthModal,
-        TableSelectColumnsComponent,
-        EntityMetadataComponent,
-        FormButtonsBarComponent,
-        MenuComponent,
-        ReactiveFormsModule,
-        TranslateModule,
-        AboutModal
-    ],
-    entryComponents: [
-        RegisterModal,
-        AuthModal,
-        TableSelectColumnsComponent,
-        EntityMetadataComponent,
-        FormButtonsBarComponent,
-        AboutModal
-    ],
-    providers: [
-        AccountService,
-        AuthGuardService,
-        CryptoService,
-        AccountValidatorService,
-        UserSettingsValidatorService,
-        ConfigService,
-        ConfigValidatorService
-    ]
+    // Auth & Register
+    AuthForm,
+    AuthModal,
+    RegisterForm,
+    RegisterModal,
+    RegisterConfirmPage,
+    AccountPage,
+    SettingsPage,
+
+    // Network
+    SelectPeerModal,
+
+    // Components
+    MenuComponent,
+    TableSelectColumnsComponent,
+    EntityMetadataComponent,
+    FormButtonsBarComponent
+  ],
+  exports: [
+    CommonModule,
+    SharedModule,
+    RouterModule,
+    AppGraphQLModule,
+    HomePage,
+    AuthForm,
+    AuthModal,
+    TableSelectColumnsComponent,
+    EntityMetadataComponent,
+    FormButtonsBarComponent,
+    MenuComponent,
+    ReactiveFormsModule,
+    TranslateModule,
+    AboutModal
+  ],
+  entryComponents: [
+    AboutModal,
+
+    // Auth & Register
+    RegisterModal,
+    AuthModal,
+
+    // Network
+    SelectPeerModal,
+
+    // Components
+    TableSelectColumnsComponent,
+    EntityMetadataComponent,
+    FormButtonsBarComponent,
+  ],
+  providers: [
+    PlatformService,
+    NetworkService,
+    AccountService,
+    AuthGuardService,
+    CryptoService,
+    AccountValidatorService,
+    UserSettingsValidatorService,
+    LocalSettingsValidatorService,
+    ConfigService,
+    ConfigValidatorService
+  ]
 })
 export class CoreModule {
 
-    constructor(
-        translate: TranslateService,
-        accountService: AccountService,
-        dateAdapter: DateAdapter<any>) {
+  constructor(
+    translate: TranslateService,
+    accountService: AccountService,
+    dateAdapter: DateAdapter<any>) {
 
-        console.info("[core] Starting module...");
+    console.info("[core] Starting module...");
 
-        // this language will be used as a fallback when a translation isn't found in the current language
-        translate.setDefaultLang(environment.defaultLocale);
+    // this language will be used as a fallback when a translation isn't found in the current language
+    translate.setDefaultLang(environment.defaultLocale);
 
-        // When locale changes, apply to date adapter
-        translate.onLangChange.subscribe(event => {
-            if (event && event.lang) {
+    // When locale changes, apply to date adapter
+    translate.onLangChange.subscribe(event => {
+      if (event && event.lang) {
 
-                // Config date adapter
-                dateAdapter.setLocale(event.lang);
+        // Config date adapter
+        dateAdapter.setLocale(event.lang);
 
-                // config moment lib
-                try {
-                    const momentLocale: string = event.lang.substr(0, 2);
-                    moment.locale(momentLocale);
-                    console.debug('[app] Use locale {' + event.lang + '}');
-                }
-                // If error, fallback to en
-                catch (err) {
-                    dateAdapter.setLocale('en');
-                    moment.locale('en');
-                    console.warn('[app] Unknown local for moment lib. Using default [en]');
-                }
+        // config moment lib
+        try {
+          const momentLocale: string = event.lang.substr(0, 2);
+          moment.locale(momentLocale);
+          console.debug('[app] Use locale {' + event.lang + '}');
+        }
+          // If error, fallback to en
+        catch (err) {
+          dateAdapter.setLocale('en');
+          moment.locale('en');
+          console.warn('[app] Unknown local for moment lib. Using default [en]');
+        }
 
-            }
-        });
+      }
+    });
 
-        accountService.onLogin.subscribe(account => {
-            if (account.settings && account.settings.locale && account.settings.locale != translate.currentLang) {
-                translate.use(account.settings.locale);
-            }
-        });
-    }
+    accountService.onLogin.subscribe(account => {
+      if (account.settings && account.settings.locale && account.settings.locale != translate.currentLang) {
+        translate.use(account.settings.locale);
+      }
+    });
+  }
 
 }

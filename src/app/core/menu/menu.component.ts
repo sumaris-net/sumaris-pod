@@ -17,10 +17,12 @@ export interface MenuItem {
   title: string;
   path?: string;
   page?: string | any;
+  action?: string | any;
   icon?: string;
   matIcon?: string;
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
+  cssClass?: string;
 }
 
 const SPLIT_PANE_SHOW_WHEN = 'lg';
@@ -35,7 +37,7 @@ const SPLIT_PANE_SHOW_WHEN = 'lg';
 export class MenuComponent implements OnInit {
 
   public loading = true;
-  public isLogin: boolean = false;
+  public isLogin = false;
   public account: Account;
   public splitPaneOpened: boolean;
 
@@ -79,8 +81,7 @@ export class MenuComponent implements OnInit {
     if (this.accountService.isLogin()) {
       this.onLogin(this.accountService.account);
 
-    }
-    else {
+    } else {
       this.onLogout(true);
     }
   }
@@ -121,6 +122,7 @@ export class MenuComponent implements OnInit {
   }
 
   async logout() {
+
     const translations = await this.translate.get([
       'AUTH.LOGOUT.CONFIRM_TITLE',
       'AUTH.LOGOUT.CONFIRM_MESSAGE',
@@ -149,15 +151,14 @@ export class MenuComponent implements OnInit {
   }
 
   async openAboutModal(event) {
-    const modal = await this.modalCtrl.create({ component: AboutModal });
+    const modal = await this.modalCtrl.create({component: AboutModal});
     return modal.present();
   }
 
   updateItems() {
     if (!this.isLogin) {
       this.filteredItems = (this.items || []).filter(i => !i.profile);
-    }
-    else {
+    } else {
       this.filteredItems = (this.items || []).filter(i => {
         let res;
         if (i.profile) {
@@ -165,14 +166,12 @@ export class MenuComponent implements OnInit {
           if (!res) {
             console.debug("[menu] User does not have minimal profile '" + i.profile + "' need by ", (i.path || i.page));
           }
-        }
-        else if (i.exactProfile) {
+        } else if (i.exactProfile) {
           res = !i.profile || this.accountService.hasExactProfile(i.profile);
           if (!res) {
             console.debug("[menu] User does not have exact profile '" + i.profile + "' need by ", (i.path || i.page));
           }
-        }
-        else {
+        } else {
           res = true;
         }
 
@@ -192,11 +191,23 @@ export class MenuComponent implements OnInit {
     this.splitPaneOpened = !this.splitPaneOpened;
     if (!this.splitPaneOpened) {
       this.splitPane.when = false;
-    }
-    else {
+    } else {
       this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     }
     $event.preventDefault();
+  }
+
+  async doAction(action: string, event: UIEvent) {
+    switch (action) {
+      case 'logout':
+        await this.logout();
+        break;
+      case 'about':
+        await this.openAboutModal(event);
+        break;
+      default:
+        throw new Error('Unknown action: ' + action);
+    }
   }
 }
 

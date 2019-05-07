@@ -27,7 +27,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
@@ -35,7 +34,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, platform, measurementsValidatorService, formBuilder, programService, validatorService.getFormGroup(), cd);
+    super(dateAdapter, measurementsValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
   }
 
   ngOnInit() {

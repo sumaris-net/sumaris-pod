@@ -13,7 +13,7 @@ import {Moment} from 'moment/moment';
 import {AppForm} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
-import {debounceTime, mergeMap} from 'rxjs/operators';
+import {debounceTime, mergeMap, startWith, switchMap} from 'rxjs/operators';
 import {ReferentialRefService} from '../../referential/referential.module';
 import {ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
@@ -49,12 +49,11 @@ export class ObservedLocationForm extends AppForm<Sale> implements OnInit {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService
   ) {
-    super(dateAdapter, platform, validatorService.getFormGroup());
+    super(dateAdapter, validatorService.getFormGroup());
   }
 
   ngOnInit() {
@@ -63,18 +62,13 @@ export class ObservedLocationForm extends AppForm<Sale> implements OnInit {
     // Combo: programs
     this.programs = this.form.controls['program']
       .valueChanges
-      .startWith('')
       .pipe(
+        startWith('*'),
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== "*") && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 50 : 10, undefined, undefined,
-            {
-              entityName: 'Program',
-              searchText: value as string
-            }).first().map(({data}) => data);
-        }));
+        switchMap(value => this.referentialRefService.suggest(value, {
+          entityName: 'Program'
+        }))
+      );
 
     // Combo: locations
     this.locations = this.form.controls['location']
@@ -114,6 +108,7 @@ export class ObservedLocationForm extends AppForm<Sale> implements OnInit {
   entityToString = entityToString;
   referentialToString = referentialToString;
   personToString = personToString;
+
   programToString(value: Referential): string {
     return value && value.label || undefined;
   }

@@ -65,8 +65,23 @@ const SaveMutation: any = gql`
 @Injectable()
 export class ConfigService extends BaseDataService {
 
-  private starting = false;
-  private $data: BehaviorSubject<Configuration>;
+  private _started = false;
+  private _startPromise: Promise<any>;
+
+  private $data = new BehaviorSubject<Configuration>(null);
+
+  get started(): boolean {
+    return this._started;
+  }
+
+  get config(): Observable<Configuration> {
+    // If first call: start loading
+    if (!this._started) this.start();
+    return this.$data
+      .pipe(
+        filter(config => config != null)
+      );
+  }
 
   constructor(
     protected apollo: Apollo,
@@ -75,16 +90,44 @@ export class ConfigService extends BaseDataService {
     super(apollo);
   }
 
-  get config(): Observable<Configuration> {
-    // If first call: start loading
-    if (!this.$data) {
-      this.$data = new BehaviorSubject<Configuration>(null);
-      this.start();
-    }
-    return this.$data
-      .pipe(
-        filter(config => config != null)
-      );
+  async start(): Promise<any> {
+    if (this._startPromise) return this._startPromise;
+    if (this._started) return;
+
+    console.debug("[config] Loading configuration (from pod)...");
+
+    this._startPromise = new Promise(async (resolve) => {
+      let data;
+      try {
+        data = await this.load();
+
+        if (data) {
+          // Save it into local storage, for next startup
+          setTimeout(() => this.saveLocally(data), 500);
+        }
+      } catch (err) {
+        console.error(err && err.message || err);
+      }
+
+      // If not loaded remotely: try to restore it
+      if (!data) {
+        data = await this.restoreLocally();
+      }
+
+      // Make sure label has been filled
+      data.label = data.label || environment.name;
+
+      // Reset name if same
+      data.name = (data.name !== data.label) ? data.name : undefined;
+
+      this.$data.next(data);
+      this._started = true;
+      this._startPromise = undefined;
+
+      resolve();
+    });
+    return this._startPromise;
+
   }
 
   async load(options?: {
@@ -93,10 +136,10 @@ export class ConfigService extends BaseDataService {
 
     console.debug("[config] Loading pod configuration...");
 
-    const res = await this.query<{ configuration: Configuration} >({
+    const res = await this.query<{ configuration: Configuration }>({
       query: LoadQuery,
-      variables: { },
-      error:{ code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR" },
+      variables: {},
+      error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
       fetchPolicy: options && options.fetchPolicy || undefined
     });
 
@@ -141,47 +184,9 @@ export class ConfigService extends BaseDataService {
     return reloadedConfig;
   }
 
-
-
   /* -- private method -- */
 
-  async start() : Promise<Configuration> {
-
-    if (this.starting) return; // skip if already loading
-
-    this.starting = true;
-    console.debug("[config] Loading configuration (from pod)...");
-
-    let data;
-    try {
-      data = await this.load();
-
-      if (data) {
-        // Save it into local storage, for next startup
-        setTimeout(() => this.saveLocally(data), 500);
-      }
-    }
-    catch(err) {
-      console.error(err && err.message || err);
-    }
-
-    // If not loaded remotely: try to restore it
-    if (!data) {
-      data = await this.restoreLocally();
-    }
-
-    // Make sure label has been filled
-    data.label = data.label || environment.name;
-
-    // Reset name if same
-    data.name = (data.name !== data.label) ? data.name : undefined;
-
-    this.$data.next(data);
-    this.starting = false;
-    return data;
-  }
-
-  private async restoreLocally() : Promise<Configuration> {
+  private async restoreLocally(): Promise<Configuration> {
     let data: Configuration;
 
     // Try to load from local storage
@@ -192,8 +197,7 @@ export class ConfigService extends BaseDataService {
 
         const json = JSON.parse(value);
         data = Configuration.fromObject(json as any);
-      }
-      catch(err) {
+      } catch (err) {
         console.error(err && err.message || err);
       }
     }
@@ -209,7 +213,7 @@ export class ConfigService extends BaseDataService {
 
   private async saveLocally(data?: Configuration) {
     // Nothing to store : reset
-    if (!data)  {
+    if (!data) {
       await this.storage.remove(CONFIGURATION_STORAGE_KEY);
     }
     // Config exists: store it in the local storage

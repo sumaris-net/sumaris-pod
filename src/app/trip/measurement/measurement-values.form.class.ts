@@ -6,7 +6,7 @@ import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, merge} from 'rxjs';
 import {AppForm, AppFormUtils} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {filter, first, startWith, throttleTime} from "rxjs/operators";
 
@@ -89,14 +89,13 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
   valueChanges: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(protected dateAdapter: DateAdapter<Moment>,
-              protected platform: Platform,
               protected measurementValidatorService: MeasurementsValidatorService,
               protected formBuilder: FormBuilder,
               protected programService: ProgramService,
-              form: FormGroup,
-              protected cd: ChangeDetectorRef
+              protected cd: ChangeDetectorRef,
+              form: FormGroup
   ) {
-    super(dateAdapter, platform, form);
+    super(dateAdapter, form);
   }
 
   ngOnInit() {

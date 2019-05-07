@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AccountService } from '../../services/account.service';
 import {getRandomImage} from '../../home/home';
 import {ConfigService} from '../../services/config.service';
+import {PlatformService} from "../../services/platform.service";
 
 @Component({
   selector: 'page-register-confirm',
@@ -12,40 +13,43 @@ import {ConfigService} from '../../services/config.service';
 })
 export class RegisterConfirmPage implements OnDestroy {
 
-  isLogin: boolean;
   subscriptions: Subscription[] = [];
-  loading: boolean = true;
+
+  isLogin: boolean;
+  loading = true;
   error: String;
   email: String;
   contentStyle = {};
 
   constructor(
+    private platform: PlatformService,
     private accountService: AccountService,
     private activatedRoute: ActivatedRoute,
     private configService: ConfigService) {
 
-    this.isLogin = accountService.isLogin();
+    this.platform.ready().then(() => {
+      this.isLogin = accountService.isLogin();
 
-    // Subscriptions
-    this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.isLogin = true));
-    this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.isLogin = false));
-    this.subscriptions.push(this.activatedRoute.paramMap.subscribe(params =>
-      this.doConfirm(params.get("email"), params.get("code"))
-    ));
+      // Subscriptions
+      this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.isLogin = true));
+      this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.isLogin = false));
+      this.subscriptions.push(this.activatedRoute.paramMap.subscribe(params =>
+        this.doConfirm(params.get("email"), params.get("code"))
+      ));
 
-    this.configService.config.subscribe(config => {
+      this.configService.config.subscribe(config => {
 
         if (config && config.backgroundImages && config.backgroundImages.length) {
           const bgImage = getRandomImage(config.backgroundImages);
-          this.contentStyle = {'background-image' : `url(${bgImage})`};
-        }
-        else {
+          this.contentStyle = {'background-image': `url(${bgImage})`};
+        } else {
           const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
-          this.contentStyle = {'background-color' : primaryColor};
+          this.contentStyle = {'background-color': primaryColor};
         }
 
         this.loading = false;
       });
+    });
   }
 
   ngOnDestroy() {

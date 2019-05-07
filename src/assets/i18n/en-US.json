@@ -25,7 +25,7 @@
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",
     "BTN_HIDE_MENU": "Hide menu",
-    "BTN_SHOW_MENU": "Show menu",,
+    "BTN_SHOW_MENU": "Show menu",
     "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on",
     "COMMENTS": "Comments",
@@ -100,15 +100,20 @@
   "MENU": {
     "HOME": "Home",
     "TRIPS": "Trips",
+    "DATA_ENTRY_DIVIDER": "Data entry",
+    "EXTRACTION_DIVIDER": "Extractions",
     "OBSERVED_LOCATIONS": "Observations",
     "ADMINISTRATION_DIVIDER": "Administration",
+    "REFERENTIAL_DIVIDER": "Referential",
     "USERS": "Users",
     "VESSELS": "Vessels",
     "REFERENTIAL": "Referential",
-    "CONFIGURATION": "Server configuration",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
-    "BTN_ACCOUNT": "Account"
+    "BTN_ACCOUNT": "Account",
+    "SETTINGS_DIVIDER": "Settings",
+    "LOCAL_SETTINGS": "Settings",
+    "POD_SETTINGS": "Server settings"
   },
   "ABOUT": {
     "TITLE": "About",
@@ -173,12 +178,9 @@
     },
     "SETTINGS": {
       "TITLE": "Settings",
-      "DESCRIPTION": "Here are the possible settings for the use of the application:",
+      "DESCRIPTION": "The preferences below are used for all emails or reports that are sent to you:",
       "LOCALE": "Language",
-      "LAT_LONG_FORMAT": "Latitude/longitude format",
-      "USAGE_MODE": "Usage mode",
-      "USAGE_MODE_FIELD": "On field",
-      "USAGE_MODE_DESK": "In office"
+      "LAT_LONG_FORMAT": "Latitude/longitude format"
     },
     "ERROR": {
       "SUBSCRIBE_ACCOUNT_ERROR": "Error while listening account's changes."

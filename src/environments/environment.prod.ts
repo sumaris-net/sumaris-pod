@@ -14,5 +14,17 @@ export const environment: Environment = {
   mock: false,
 
   // FIXME: GraphQL subscription never unsubscribe...
-  listenRemoteChanges: false
+  listenRemoteChanges: false,
+
+  defaultPeers: [
+    {
+      host: 'www.sumaris.net',
+      port: 443
+    },
+    {
+      // TODO: change to production ADAP node
+      host: 'adap.e-is.pro',
+      port: 443
+    }
+  ],
 };

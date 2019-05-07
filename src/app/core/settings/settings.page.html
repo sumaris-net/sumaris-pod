@@ -1,0 +1,88 @@
+<app-toolbar [title]="'SETTINGS.TITLE'|translate" color="primary" [hasValidate]="form.dirty && !saving"
+             (onValidate)="save($event)">
+</app-toolbar>
+
+<ion-content>
+
+  <!-- error -->
+  <ion-item *ngIf="error">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <form [formGroup]="form" novalidate (ngSubmit)="save($event)" class="form-container">
+
+    <ion-grid no-padding>
+      <ion-row no-padding>
+
+        <!-- left  margin -->
+        <ion-col size="0" size-lg="3">&nbsp;
+        </ion-col>
+
+        <ion-col padding>
+
+          <p [innerHTML]="'SETTINGS.DESCRIPTION'|translate"></p>
+
+          <mat-form-field>
+            <mat-select [placeholder]="'SETTINGS.LOCALE'|translate" formControlName="locale" required>
+              <mat-option *ngFor="let locale of locales" [value]="locale">
+                {{localeMap[locale]}}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.controls['locale'].hasError('required') && form.controls['locale'].touched"
+                       translate>ERROR.FIELD_REQUIRED
+            </mat-error>
+          </mat-form-field>
+
+          <!-- lat/long format-->
+          <mat-form-field>
+            <mat-select [placeholder]="'SETTINGS.LAT_LONG_FORMAT'|translate" formControlName="latLongFormat"
+                        required>
+              <mat-option *ngFor="let item of latLongFormats" [value]="item">
+                {{'COMMON.'+item+'_PLACEHOLDER'|translate}}
+              </mat-option>
+            </mat-select>
+            <mat-error
+              *ngIf="form.controls['latLongFormat'].hasError('required') && form.controls['latLongFormat'].touched"
+              translate>ERROR.FIELD_REQUIRED
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Usage mode -->
+          <mat-form-field>
+            <mat-select [placeholder]="'SETTINGS.USAGE_MODE'|translate" formControlName="usageMode"
+                        required>
+              <mat-option *ngFor="let item of usageModes" [value]="item">
+                {{'SETTINGS.USAGE_MODES.'+item|translate}}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.controls['usageMode'].touched && form.controls['usageMode'].hasError('required')"
+              translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+
+          <!-- Peer address -->
+          <mat-form-field>
+            <input matInput type="text" [placeholder]="'SETTINGS.PEER_URL'|translate" formControlName="peerUrl" required>
+
+            <button type="button" mat-icon-button matSuffix (click)="showSelectPeerModal()" tabindex="-1" [title]="'SETTINGS.BTN_CHANGE_PEER'|translate">
+              <mat-icon>search</mat-icon>
+            </button>
+
+            <mat-error *ngIf="form.controls['peerUrl'].touched && form.controls['peerUrl'].hasError('required')"
+                       translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        </ion-col>
+
+        <!-- right margin -->
+        <ion-col size="0" size-lg="3">&nbsp;
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+
+  </form>
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm>
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!form.dirty || saving"></form-buttons-bar>
+</ion-footer>

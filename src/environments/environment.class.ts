@@ -11,4 +11,6 @@ export class Environment {
   apolloFetchPolicy?: 'cache-first' | 'cache-and-network' | 'network-only' | 'cache-only' | 'no-cache' | 'standby';
   mock?: boolean;
   listenRemoteChanges?: boolean;
+
+  defaultPeers?: {host: string; port: number; useSsl?: boolean;}[];
 };

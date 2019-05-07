@@ -120,14 +120,13 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   constructor(protected dateAdapter: DateAdapter<Moment>,
-              protected platform: Platform,
               protected measurementValidatorService: MeasurementsValidatorService,
               protected formBuilder: FormBuilder,
               protected programService: ProgramService,
               protected translate: TranslateService,
               protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, platform, formBuilder.group({}));
+    super(dateAdapter, formBuilder.group({}));
 
     // TODO: DEV only
     //this.debug = true;

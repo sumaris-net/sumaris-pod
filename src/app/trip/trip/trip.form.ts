@@ -1,15 +1,14 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {TripValidatorService} from "../services/trip.validator";
 import {LocationLevelIds, Referential, Trip, VesselFeatures, vesselFeaturesToString} from "../services/trip.model";
-import {ModalController, Platform} from "@ionic/angular";
+import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
-import {debounceTime, mergeMap, startWith, switchMap} from 'rxjs/operators';
+import {debounceTime, startWith, switchMap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
 import {AppForm} from '../../core/core.module';
 import {
-  EntityUtils,
   ReferentialRef,
   ReferentialRefService,
   referentialToString,
@@ -34,7 +33,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     protected tripValidatorService: TripValidatorService,
     protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService,
@@ -42,10 +40,12 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, platform, tripValidatorService.getFormGroup());
+    super(dateAdapter, tripValidatorService.getFormGroup());
   }
 
   ngOnInit() {
+    super.ngOnInit();
+
     // Combo: programs
     this.programs = this.form.controls['program']
       .valueChanges

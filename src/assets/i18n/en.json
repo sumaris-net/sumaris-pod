@@ -25,7 +25,7 @@
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",
     "BTN_HIDE_MENU": "Hide menu",
-    "BTN_SHOW_MENU": "Show menu",,
+    "BTN_SHOW_MENU": "Show menu",
     "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on",
     "COMMENTS": "Comments",
@@ -100,15 +100,20 @@
   "MENU": {
     "HOME": "Home",
     "TRIPS": "Trips",
+    "DATA_ENTRY_DIVIDER": "Data entry",
+    "EXTRACTION_DIVIDER": "Extractions",
     "OBSERVED_LOCATIONS": "Observations",
     "ADMINISTRATION_DIVIDER": "Administration",
+    "REFERENTIAL_DIVIDER": "Referential",
     "USERS": "Users",
     "VESSELS": "Vessels",
     "REFERENTIAL": "Referential",
-    "CONFIGURATION": "Server configuration",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
-    "BTN_ACCOUNT": "Account"
+    "BTN_ACCOUNT": "Account",
+    "SETTINGS_DIVIDER": "Settings",
+    "LOCAL_SETTINGS": "Settings",
+    "POD_SETTINGS": "Server settings"
   },
   "ABOUT": {
     "TITLE": "About",
@@ -173,16 +178,26 @@
     },
     "SETTINGS": {
       "TITLE": "Settings",
-      "DESCRIPTION": "Here are the possible settings for the use of the application:",
+      "DESCRIPTION": "The preferences below are used for all emails or reports that are sent to you:",
       "LOCALE": "Language",
-      "LAT_LONG_FORMAT": "Latitude/longitude format",
-      "USAGE_MODE": "Usage mode",
-      "USAGE_MODE_FIELD": "On field",
-      "USAGE_MODE_DESK": "In office"
+      "LAT_LONG_FORMAT": "Latitude/longitude format"
     },
     "ERROR": {
       "SUBSCRIBE_ACCOUNT_ERROR": "Error while listening account's changes."
     }
+  },
+  "SETTINGS": {
+    "TITLE": "Paramètres",
+    "DESCRIPTION": "Here are the options for configuring the application:",
+    "LOCALE": "Language",
+    "LAT_LONG_FORMAT": "Latitude/longitude format",
+    "PEER_URL": "Network peer address",
+    "USAGE_MODE": "Usage mode",
+    "USAGE_MODES":  {
+      "FIELD": "On field",
+      "DESK": "In office"
+    },
+    "BTN_CHANGE_PEER": "Change peer"
   },
   "USER": {
     "TITLE": "User",
@@ -230,7 +245,7 @@
       "TITLE": "{{vessel}} - Trip of {{departureDateTime}}",
       "OTHER_FEATURES": "Other features:"
     },
-    "LIST": {
+    "TABLE": {
       "TITLE": "Fishing trips",
       "VESSEL": "Vessel",
       "PROGRAM": "Programme",
@@ -367,22 +382,13 @@
       "TITLE": "New sale"
     },
     "EDIT": {
-      "TITLE": "{{location}} - Sale of {{dateTime}}",
-      "OTHER_FEATURES": "Other features:"
+      "TITLE": "{{location}} - Sale of {{dateTime}}"
     },
     "TABLE": {
-      "TITLE": "Sale",
-      "PROGRAM": "Program",
+      "VESSEL": "Vessel",
       "START_DATE_TIME": "Date/time",
-      "QUALITY": "Status",
-      "LOCATION": "Lieu de vente",
       "OBSERVERS": "Observers",
-      "COMMENTS": "Comments",
-      "FILTER": {
-        "START_DATE": "Start period",
-        "END_DATE": "End period",
-        "LOCATION": "Location"
-      }
+      "COMMENTS": "Comments"
     },
     "ERROR": {
       "LOAD_ERROR": "Error while loading the sale.",
@@ -402,6 +408,7 @@
     "LOCATION": "Auction",
     "TAB_GENERAL": "Details",
     "TAB_VESSELS": "Observed vessels",
+    "OBSERVER": "Observer #1",
     "OBSERVERS": "Observers:",
     "NEW": {
       "TITLE": "New control"
@@ -429,6 +436,17 @@
       "LOAD_ALL_ERROR": "Error while loading observations.",
       "SAVE_ERROR": "Error while saving the observation.",
       "SAVE_ALL_ERROR": "Error while saving observations."
+    }
+  },
+  "OBSERVED_VESSEL": {
+    "TABLE": {
+      "VESSEL": "Vessel",
+      "DATE_TIME": "Date/Time",
+      "OBSERVERS": "Observers",
+      "COMMENTS": "Comments"
+    },
+    "ERROR": {
+      "LOAD_ALL_ERROR": "Error while loading observed vessels."
     }
   },
   "QUALITY": {
@@ -606,6 +624,14 @@
       "LOAD_EXTRACTION_TYPES_ERROR": "Error while load extraction types",
       "LOAD_EXTRACTION_ROWS_ERROR": "Error while loading data rows.",
       "DOWNLOAD_EXTRACTION_FILE_ERROR": "Error while dowbnloading extraction file."
+    }
+  },
+  "NETWORK": {
+    "PEER": {
+      "SELECT_MODAL": {
+        "TITLE": "Network peer",
+        "HELP": "Please choose a network peer to connect to:"
+      }
     }
   },
   "ERROR": {

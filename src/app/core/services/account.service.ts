@@ -3,7 +3,7 @@ import {base58, CryptoService, KeyPair} from "./crypto.service";
 import {
   Account,
   getMainProfile,
-  hasUpperOrEqualsProfile,
+  hasUpperOrEqualsProfile, LocalSettings,
   Referential,
   ReferentialRef,
   StatusIds,
@@ -23,6 +23,7 @@ import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
+import {SETTINGS_STORAGE_KEY} from "../constants";
 
 
 export declare interface AccountHolder {
@@ -31,9 +32,7 @@ export declare interface AccountHolder {
   authToken: string;
   pubkey: string;
   account: Account;
-  localSettings: {
-    pages?: any
-  };
+  localSettings: LocalSettings;
   // TODO : use this ?
   mainProfile: String;
 }
@@ -61,7 +60,6 @@ const TOKEN_STORAGE_KEY = "token";
 const PUBKEY_STORAGE_KEY = "pubkey";
 const SECKEY_STORAGE_KEY = "seckey";
 const ACCOUNT_STORAGE_KEY = "account";
-const SETTINGS_STORAGE_KEY = "settings";
 
 /* ------------------------------------
  * GraphQL queries
@@ -216,12 +214,7 @@ export class AccountService extends BaseDataService {
 
     this.resetData();
 
-    // Restoring local settings
-    this._startPromise = this.restoreLocally()
-      .then((account) => {
-        this._started = true;
-        if (account) this.onLogin.next(this.data.account);
-      });
+    this.start();
 
     this._debug = true;
   }
@@ -236,13 +229,25 @@ export class AccountService extends BaseDataService {
     this.data.localSettings = null;
   }
 
+  async start() {
+    if (this._startPromise) return this._startPromise;
+
+    // Restoring local settings
+    this._startPromise = this.restoreLocally()
+      .then((account) => {
+        this._started = true;
+        if (account) this.onLogin.next(this.data.account);
+      });
+    return this._startPromise;
+  }
+
   public isStarted(): boolean {
     return this._started;
   }
 
-  public waitStart(): Promise<void> {
+  public ready(): Promise<void> {
     if (this._started) return Promise.resolve();
-    return this._startPromise;
+    return this.start();
   }
 
   public isLogin(): boolean {
@@ -291,11 +296,9 @@ export class AccountService extends BaseDataService {
 
   public isUsageMode(mode: UsageMode): boolean {
     if (!this.isLogin()) return false;
-    return (this.data.account
-      && this.data.account.settings
-      && isNotNil(this.data.account.settings.content) ?
-      (this.data.account.settings.content.usageMode === mode) :
-      (mode === 'DESK')); //  Default mode
+    return this.data.localSettings &&
+      (this.data.localSettings.usageMode === mode) ||
+      (mode === 'DESK'); //  Default mode
   }
 
   public isOnlyGuest(): boolean {
@@ -836,14 +839,18 @@ export class AccountService extends BaseDataService {
     return subscription;
   }
 
-  public getLocalSettings(key: string, defaultValue?: string): string {
+  get localSettings(): LocalSettings {
+    return Object.assign({}, this.data.localSettings);
+  }
+
+  getLocalSetting(key: string, defaultValue?: string): string {
     return this.data.localSettings && isNotNil(this.data.localSettings[key]) && this.data.localSettings[key] || defaultValue;
   }
 
-  public async saveLocalSettings(key: string, value: any) {
+  async saveLocalSettings(settings: LocalSettings) {
     this.data.localSettings = this.data.localSettings || {};
 
-    this.data.localSettings[key] = value;
+    Object.assign(this.data.localSettings, settings || {});
 
     // Update local settings
     await this.storeLocalSettings();

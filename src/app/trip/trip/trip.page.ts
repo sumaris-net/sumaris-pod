@@ -162,7 +162,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   updateView(data: Trip | null, updateOperations?: boolean) {
     this.data = data;
     this.tripForm.value = data;
-    if (isNotNil(data.id)) {
+    const isSaved = isNotNil(data.id);
+    if (isSaved) {
       this.tripForm.form.controls['program'].disable();
       this.programSubject.next(data.program.label);
     }
@@ -170,14 +171,17 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.measurementsForm.value = data && data.measurements || [];
     this.measurementsForm.updateControls();
 
+    // Physical gear table
     this.physicalGearTable.value = data && data.gears || [];
+    this.showGearTable = isSaved;
 
     // Operations table
-    this.showOperationTable = isNotNil(data.id);
-    if (updateOperations) {
-      this.operationTable && this.operationTable.setTrip(data);
+    this.showOperationTable = isSaved;
+    if (updateOperations && this.operationTable) {
+      this.operationTable.setTrip(data);
     }
 
+    // Quality metadata
     this.qualityForm.value = data;
 
     this.updateTitle();
@@ -235,21 +239,32 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     try {
       // Save trip form (with sale)
       const updatedData = formDirty ? await this.tripService.save(this.data) : this.data;
-      formDirty && this.markAsPristine();
-      formDirty && this.markAsUntouched();
+      if (formDirty) {
+        this.markAsPristine();
+        this.markAsUntouched();
+      }
 
       // Save operations
       const isOperationSaved = !this.operationTable || await this.operationTable.save();
-      isOperationSaved && this.operationTable && this.operationTable.markAsPristine();
+      if (isOperationSaved && this.operationTable) {
+        this.operationTable.markAsPristine();
+      }
 
       // Update the view (e.g metadata)
       this.updateView(updatedData, isNew/*will update tripId in filter*/);
 
-      // Update route location
+      // Is First save
       if (isNew) {
+
+        // Open the gear tab
+        const queryParams = this.route.snapshot.queryParams;
+        queryParams["tab"] = 1;
+        this.selectedTabIndex = 1;
+
+        // Update route location
         this.router.navigate(['../' + updatedData.id], {
           relativeTo: this.route,
-          queryParams: this.route.snapshot.queryParams,
+          queryParams: queryParams,
           replaceUrl: true // replace the current state in history
         });
 

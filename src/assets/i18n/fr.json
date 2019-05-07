@@ -100,19 +100,25 @@
   "MENU": {
     "HOME": "Accueil",
     "TRIPS": "Marées",
+    "DATA_ENTRY_DIVIDER": "Saisie de données",
+    "EXTRACTION_DIVIDER": "Extractions",
     "OBSERVED_LOCATIONS": "Contrôles criée",
     "ADMINISTRATION_DIVIDER": "Administration",
+    "REFERENTIAL_DIVIDER": "Référentiels",
     "USERS": "Utilisateurs",
     "VESSELS": "Navires",
-    "REFERENTIAL": "Listes",
-    "CONFIGURATION": "Configuration serveur",
+    "REFERENTIAL": "Listes de références",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
-    "BTN_ACCOUNT": "Compte"
+    "LOCAL_SETTINGS": "Paramètres",
+    "SERVER_SETTINGS": "Configuration serveur",
+    "LOGOUT": "Se déconnecter",
+    "ABOUT": "À propos"
   },
   "ABOUT": {
     "TITLE": "À propos",
     "VERSION": "<b>v{{version}}</b>",
+    "LICENSE": "Application <b>libre</b> (Licence GNU AGPLv3).",
     "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
     "BTN_REPORT_ISSUE": "Remonter un problème",
     "SOURCE_CODE": "Code source :",
@@ -173,16 +179,26 @@
     },
     "SETTINGS": {
       "TITLE": "Préférences",
-      "DESCRIPTION": "Voici les réglages possibles pour l'usage de l'application :",
+      "DESCRIPTION": "Les préférences ci-dessous sont utilisées pour tous les courriers électroniques ou les rapports qui vous sont envoyés.",
       "LOCALE": "Langue",
-      "LAT_LONG_FORMAT": "Format latitude/longitude",
-      "USAGE_MODE": "Mode de fonctionnement",
-      "USAGE_MODE_FIELD": "Saisie sur le terrain",
-      "USAGE_MODE_DESK": "Saisie au bureau (a posteriori)"
+      "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
     "ERROR": {
       "SUBSCRIBE_ACCOUNT_ERROR": "Echec de l'abonnement distant au compte utilisateur."
     }
+  },
+  "SETTINGS": {
+    "TITLE": "Paramètres",
+    "DESCRIPTION": "Voici les options de configuration de l'application :",
+    "LOCALE": "Langue",
+    "LAT_LONG_FORMAT": "Format latitude/longitude",
+    "PEER_URL": "Addresse du noeud réseau",
+    "USAGE_MODE": "Mode de fonctionnement",
+    "USAGE_MODES":  {
+      "FIELD": "Saisie sur le terrain",
+      "DESK": "Saisie au bureau (a posteriori)"
+    },
+    "BTN_CHANGE_PEER": "Changer de noeud"
   },
   "USER": {
     "TITLE": "Utilisateur",
@@ -367,7 +383,7 @@
       "TITLE": "Nouvelle vente"
     },
     "EDIT": {
-      "TITLE": "Modifier la vente"
+      "TITLE": "{{location}} - Vente du {{dateTime}}"
     },
     "TABLE": {
       "VESSEL": "Navire",
@@ -609,6 +625,15 @@
       "LOAD_EXTRACTION_TYPES_ERROR": "Erreur de chargement des type d'extraction",
       "LOAD_EXTRACTION_ROWS_ERROR": "Erreur de chargement des lignes de données.",
       "DOWNLOAD_EXTRACTION_FILE_ERROR": "Erreur de téléchargement du fichier d'extraction."
+    }
+  },
+  "NETWORK": {
+    "PEER": {
+      "OFFLINE": "Noeud injoignable",
+      "SELECT_MODAL": {
+        "TITLE": "Noeud réseau",
+        "HELP": "Veuillez choisir un noeud réseau auquel vous connecter :"
+      }
     }
   },
   "ERROR": {

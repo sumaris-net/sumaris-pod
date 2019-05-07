@@ -1,22 +1,21 @@
-import {Component, OnInit, Input} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {SaleValidatorService} from "../services/sale.validator";
 import {
+  entityToString,
+  EntityUtils,
+  LocationLevelIds,
+  ReferentialRef,
+  referentialToString,
   Sale,
   VesselFeatures,
-  LocationLevelIds,
-  referentialToString,
-  entityToString,
-  vesselFeaturesToString,
-  EntityUtils,
-  ReferentialRef
+  vesselFeaturesToString
 } from "../services/trip.model";
-import {Platform} from '@ionic/angular';
 import {Moment} from 'moment/moment';
 import {AppForm} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
-import {mergeMap, debounceTime, switchMap} from 'rxjs/operators';
-import {VesselService, ReferentialRefService} from '../../referential/referential.module';
+import {debounceTime, mergeMap, switchMap} from 'rxjs/operators';
+import {ReferentialRefService, VesselService} from '../../referential/referential.module';
 
 @Component({
   selector: 'form-sale',
@@ -51,12 +50,11 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     protected saleValidatorService: SaleValidatorService,
     protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(dateAdapter, platform, saleValidatorService.getFormGroup());
+    super(dateAdapter, saleValidatorService.getFormGroup());
   }
 
   ngOnInit() {

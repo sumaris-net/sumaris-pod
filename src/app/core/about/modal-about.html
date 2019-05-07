@@ -20,12 +20,12 @@
     <!-- Version info -->
     <ion-item>
       <ion-icon slot="start" name="none" item-start color="dark"></ion-icon>
-      <ion-label>
+      <ion-label text-wrap>
         <h2>
-
           {{'APP_NAME'|translate}}
           <span [innerHTML]="'ABOUT.VERSION'| translate: {version: appVersion}"></span>
         </h2>
+        <p [innerHTML]="'ABOUT.LICENSE'| translate"></p>
       </ion-label>
     </ion-item>
 

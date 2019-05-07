@@ -16,8 +16,11 @@
       <!-- TAB: user details -->
       <mat-tab label="{{'ACCOUNT.USER_DETAILS.TITLE'|translate}}" padding>
         <ng-template mat-tab-label>
-          <ion-icon slot="start" name="contact"></ion-icon>
+          <mat-icon>
+            <ion-icon matPrefix slot="start" name="contact"></ion-icon>
+          </mat-icon>
           <ion-label>{{'ACCOUNT.USER_DETAILS.TITLE'|translate}}</ion-label>
+          <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && form.invalid"></ion-icon>
         </ng-template>
 
         <ion-grid no-padding>
@@ -138,7 +141,9 @@
       <!-- TAB: settings -->
       <mat-tab label="{{'ACCOUNT.SETTINGS.TITLE'|translate}}" formGroupName="settings">
         <ng-template mat-tab-label>
-          <ion-icon slot="start" name="hammer"></ion-icon>
+          <mat-icon>
+            <ion-icon matPrefix slot="start" name="settings"></ion-icon>
+          </mat-icon>
           <ion-label translate>ACCOUNT.SETTINGS.TITLE</ion-label>
         </ng-template>
 
@@ -177,17 +182,7 @@
 
               <form formGroupName="content">
 
-                <!-- Usage mode -->
-                <mat-form-field>
-                  <mat-select [placeholder]="'ACCOUNT.SETTINGS.USAGE_MODE'|translate" formControlName="usageMode"
-                              required>
-                    <mat-option *ngFor="let item of usageModes" [value]="item">
-                      {{'ACCOUNT.SETTINGS.USAGE_MODE_'+item|translate}}
-                    </mat-option>
-                  </mat-select>
-                  <mat-error *ngIf="settingsContentForm.controls['usageMode'].hasError('required') && settingsContentForm.controls['usageMode'].dirty"
-                             translate>ERROR.FIELD_REQUIRED</mat-error>
-                </mat-form-field>
+
               </form>
             </ion-col>
 

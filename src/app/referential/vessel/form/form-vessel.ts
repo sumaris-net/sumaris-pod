@@ -1,8 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {VesselValidatorService} from "../../services/vessel.validator";
 import {FormGroup} from "@angular/forms";
 import {LocationLevelIds, ReferentialRef, referentialToString, VesselFeatures} from "../../services/model";
-import {Platform} from '@ionic/angular';
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
@@ -25,13 +24,12 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected platform: Platform,
     protected vesselValidatorService: VesselValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, platform, vesselValidatorService.getFormGroup());
+    super(dateAdapter, vesselValidatorService.getFormGroup());
   }
 
   ngOnInit() {

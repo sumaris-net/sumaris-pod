@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
@@ -7,17 +7,19 @@ import {Account, Configuration, Department} from '../services/model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
 import {fadeInAnimation} from "../../shared/shared.module";
+import {PlatformService} from "../services/platform.service";
 
-export function getRandomImage(files : String[]) {
-  let imgIndex = Math.floor(Math.random() * files.length)  ;
-   return files[imgIndex]; 
- };
+export function getRandomImage(files: String[]) {
+  const imgIndex = Math.floor(Math.random() * files.length);
+  return files[imgIndex];
+};
 
 @Component({
   moduleId: module.id.toString(),
   selector: 'page-home',
   templateUrl: 'home.html',
   styleUrls: ['./home.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInAnimation]
 })
 export class HomePage implements OnDestroy {
@@ -34,24 +36,28 @@ export class HomePage implements OnDestroy {
   contentStyle = {};
 
   constructor(
-    public accountService: AccountService,
-    public modalCtrl: ModalController,
-    public translate: TranslateService,
-    public configService: ConfigService
+    private accountService: AccountService,
+    private modalCtrl: ModalController,
+    private translate: TranslateService,
+    private configService: ConfigService,
+    private platform: PlatformService,
+    private cd: ChangeDetectorRef
   ) {
-    
-    this.isLogin = accountService.isLogin();
-    if (this.isLogin) {
-      this.onLogin(this.accountService.account);
-    }
 
-    // Subscriptions
-    this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
-    this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
-    this.subscriptions.push(this.configService.config.subscribe(config => {
-      this.onConfigReady(config);
-      this.loading = false;
-    }));
+    this.platform.ready().then(() => {
+      this.isLogin = accountService.isLogin();
+      if (this.isLogin) {
+        this.onLogin(this.accountService.account);
+      }
+      // Subscriptions
+      this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
+      this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
+      this.subscriptions.push(this.configService.config.subscribe(config => {
+        this.onConfigReady(config);
+        this.loading = false;
+        this.markForCheck();
+      }));
+    });
   };
 
   ngOnDestroy() {
@@ -70,12 +76,12 @@ export class HomePage implements OnDestroy {
 
     if (config.backgroundImages && config.backgroundImages.length) {
       const bgImage = getRandomImage(config.backgroundImages);
-      this.contentStyle = {'background-image' : `url(${bgImage})`};
-    }
-    else {
+      this.contentStyle = {'background-image': `url(${bgImage})`};
+    } else {
       const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
-      this.contentStyle = {'background-color' : primaryColor};
+      this.contentStyle = {'background-color': primaryColor};
     }
+    this.markForCheck();
   }
 
   onLogin(account: Account) {
@@ -84,16 +90,18 @@ export class HomePage implements OnDestroy {
     this.displayName = account &&
       ((account.firstName && (account.firstName + " ") || "") +
         (account.lastName || "")) || "";
+    this.markForCheck();
   }
 
   onLogout() {
     //console.log('[home] Logout');
     this.isLogin = false;
     this.displayName = "";
+    this.markForCheck();
   }
 
   async register() {
-    const modal = await this.modalCtrl.create({ component: RegisterModal });
+    const modal = await this.modalCtrl.create({component: RegisterModal});
     return modal.present();
   }
 
@@ -103,5 +111,10 @@ export class HomePage implements OnDestroy {
 
   changeLanguage(locale: string) {
     this.translate.use(locale);
+    this.markForCheck();
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

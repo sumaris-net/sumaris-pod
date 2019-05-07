@@ -1,5 +1,6 @@
 import {Moment} from "moment/moment";
 import {fromDateISOString, isNil, toDateISOString} from "../../shared/shared.module";
+import {isNilOrBlank} from "../../shared/functions";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -47,12 +48,12 @@ export function getMainProfile(profiles?: string[]): UserProfileLabel {
 export function getMainProfileIndex(profiles?: string[]): number {
   if (!profiles && !profiles.length) return PRIORITIZED_USER_PROFILES.length - 1; // return last profile
   const index = PRIORITIZED_USER_PROFILES.findIndex(pp => profiles.indexOf(pp) > -1);
-  return (index != -1) ? index : (PRIORITIZED_USER_PROFILES.length - 1);
+  return (index !== -1) ? index : (PRIORITIZED_USER_PROFILES.length - 1);
 }
 
 export function hasUpperOrEqualsProfile(actualProfiles: string[], expectedProfile: UserProfileLabel): boolean {
   const expectedProfileIndex = PRIORITIZED_USER_PROFILES.indexOf(expectedProfile);
-  return expectedProfileIndex != -1 && getMainProfileIndex(actualProfiles) <= expectedProfileIndex;
+  return expectedProfileIndex !== -1 && getMainProfileIndex(actualProfiles) <= expectedProfileIndex;
 }
 
 export declare interface Cloneable<T> {
@@ -118,6 +119,7 @@ export class EntityUtils {
   static isNotEmpty(obj: any | Entity<any>): boolean {
     return !!obj && obj['id'];
   }
+
   static isEmpty(obj: any | Entity<any>): boolean {
     return !obj || !obj['id'];
   }
@@ -136,7 +138,7 @@ export class EntityUtils {
     throw new Error(`Invalid form path: '${key}' is not an valid object.`);
   }
 
-  static getMapAsArray(source?: Map<string, string>): {key: string; value?: string;}[] {
+  static getMapAsArray(source?: Map<string, string>): { key: string; value?: string; }[] {
     return Object.getOwnPropertyNames(source || {})
       .map(key => {
         return {
@@ -146,13 +148,13 @@ export class EntityUtils {
       });
   }
 
-  static getArrayAsMap(source?: {key: string; value?: string;}[]) : Map<string, string> {
+  static getArrayAsMap(source?: { key: string; value?: string; }[]): Map<string, string> {
     const target = new Map<string, string>();
-    (source||[]).forEach(item => target.set(item.key, item.value));
+    (source || []).forEach(item => target.set(item.key, item.value));
     return target;
   }
 
-  static getObjectAsArray(source?: {[key: string]: string} ): {key: string; value?: string;}[] {
+  static getObjectAsArray(source?: { [key: string]: string }): { key: string; value?: string; }[] {
     return Object.getOwnPropertyNames(source || {})
       .map(key => {
         return {
@@ -162,9 +164,9 @@ export class EntityUtils {
       });
   }
 
-  static getArrayAsObject(source?: {key: string; value?: string;}[]) : {[key: string]: string} {
-    return (source||[]).reduce((res, item) => {
-      res[item.key]= item.value;
+  static getArrayAsObject(source?: { key: string; value?: string; }[]): { [key: string]: string } {
+    return (source || []).reduce((res, item) => {
+      res[item.key] = item.value;
       return res;
     }, {});
   }
@@ -172,7 +174,7 @@ export class EntityUtils {
 
 /* -- Referential -- */
 
-export class Referential extends Entity<Referential>  {
+export class Referential extends Entity<Referential> {
 
   static fromObject(source: any): Referential {
     const res = new Referential();
@@ -241,7 +243,7 @@ export class Referential extends Entity<Referential>  {
   }
 }
 
-export class ReferentialRef extends Entity<ReferentialRef>  {
+export class ReferentialRef extends Entity<ReferentialRef> {
 
   static fromObject(source: any): ReferentialRef {
     const res = new ReferentialRef();
@@ -275,7 +277,7 @@ export class ReferentialRef extends Entity<ReferentialRef>  {
   }
 
   asObject(minify?: boolean): any {
-    if (minify) return { id: this.id }; // minify=keep id only
+    if (minify) return {id: this.id}; // minify=keep id only
     const target: any = super.asObject();
     delete target.entityName;
     return target;
@@ -294,7 +296,7 @@ export class ReferentialRef extends Entity<ReferentialRef>  {
 
 /* -- Configuration -- */
 
-export class Configuration extends Entity<Configuration>  {
+export class Configuration extends Entity<Configuration> {
 
   static fromObject(source: Configuration): Configuration {
     const res = new Configuration();
@@ -309,7 +311,7 @@ export class Configuration extends Entity<Configuration>  {
 
   smallLogo: string;
   largeLogo: string;
-  properties: {[key: string]: string};
+  properties: { [key: string]: string };
   backgroundImages: string[];
   partners: Department[];
 
@@ -320,14 +322,14 @@ export class Configuration extends Entity<Configuration>  {
   clone(): Configuration {
     return this.copy(new Configuration());
   }
- 
+
   copy(target: Configuration): Configuration {
     target.fromObject(this);
     return target;
   }
 
   asObject(minify?: boolean): any {
-    if (minify) return { id: this.id }; // minify=keep id only
+    if (minify) return {id: this.id}; // minify=keep id only
     const target: any = super.asObject();
     target.creationDate = toDateISOString(this.creationDate);
     target.partners = (this.partners || []).map(p => p.asObject());
@@ -347,8 +349,7 @@ export class Configuration extends Entity<Configuration>  {
 
     if (source.properties && source.properties instanceof Array) {
       this.properties = EntityUtils.getArrayAsObject(source.properties);
-    }
-    else {
+    } else {
       this.properties = source.properties;
     }
 
@@ -394,7 +395,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
   }
 
   asObject(minify?: boolean): any {
-    if (minify) return { id: this.id }; // minify=keep id only
+    if (minify) return {id: this.id}; // minify=keep id only
     const target: any = super.asObject();
     target.department = this.department && this.department.asObject() || undefined;
     target.profiles = this.profiles && this.profiles.slice(0) || [];
@@ -426,7 +427,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
   }
 }
 
-export class Department extends Referential implements Cloneable<Department>{
+export class Department extends Referential implements Cloneable<Department> {
 
   logo: string;
   siteUrl: string;
@@ -451,7 +452,7 @@ export class Department extends Referential implements Cloneable<Department>{
   }
 
   asObject(minify?: boolean): any {
-    if (minify) return { id: this.id }; // minify=keep id only
+    if (minify) return {id: this.id}; // minify=keep id only
     const target: any = super.asObject();
     delete target.entityName;
     return target;
@@ -469,8 +470,7 @@ export class Department extends Referential implements Cloneable<Department>{
 export class UserSettings extends Entity<UserSettings> implements Cloneable<UserSettings> {
   locale: string;
   latLongFormat: string;
-  usageMode: string;
-  content: {usageMode?: UsageMode};
+  content: {};
   nonce: string;
 
   clone(): UserSettings {
@@ -491,18 +491,17 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
     this.locale = source.locale;
     this.latLongFormat = source.latLongFormat;
     if (isNil(source.content) || typeof source.content === 'object') {
-      this.content = source.content || {usageMode: 'DESK'};
-    }
-    else {
-      this.content = source.content && JSON.parse(source.content) || {usageMode: 'DESK'};
+      this.content = source.content || {};
+    } else {
+      this.content = source.content && JSON.parse(source.content) || {};
     }
     this.nonce = source.nonce;
     return this;
   }
 }
 
-/** 
- * An user account
+/**
+ * A user account
  */
 export class Account extends Person {
 
@@ -542,4 +541,94 @@ export class Account extends Person {
     source.settings && this.settings.fromObject(source.settings);
     return this;
   }
+}
+
+/* -- Network -- */
+
+export class Peer extends Entity<Peer> implements Cloneable<Peer> {
+
+  static fromObject(source: any): Peer {
+    const res = new Peer();
+    res.fromObject(source);
+    return res;
+  }
+
+  static parseUrl(peerUrl: string) {
+    const url = new URL(peerUrl);
+    return Peer.fromObject({
+      dns: url.hostname,
+      port: !isNilOrBlank(url.port) && url.port,
+      useSsl: url.protocol && (url.protocol.startsWith('https') || url.protocol.startsWith('wss'))
+    });
+  }
+
+  dns: string;
+  ipv4: string;
+  ipv6: string;
+  port: number;
+  useSsl: boolean;
+  pubkey: string;
+
+  favicon: string;
+  status: 'UP'|'DOWN';
+  softwareName: string;
+  softwareVersion: string;
+  label: string;
+  name: string;
+
+  constructor() {
+    super();
+  }
+
+  clone(): Peer {
+    return this.copy(new Peer());
+  }
+
+  copy(target: Peer): Peer {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(minify?: boolean): any {
+    const target: any = super.asObject(minify);
+    return target;
+  }
+
+  fromObject(source: any): Entity<Peer> {
+    super.fromObject(source);
+    this.dns = source.dns;
+    this.ipv4 = source.ipv4;
+    this.ipv6 = source.ipv6;
+    this.port = source.port && parseInt(source.port);
+    this.pubkey = source.pubkey;
+    this.useSsl = source.useSsl || (this.port === 443);
+    return this;
+  }
+
+  equals(other: Peer): boolean {
+    return super.equals(other) && this.pubkey === other.pubkey && this.url === other.url;
+  }
+
+  get url(): string {
+    return (this.useSsl ? 'https://' : 'http://') + this.hostAndPort;
+  }
+
+  get hostAndPort(): string {
+    return (this.dns || this.ipv4 || this.ipv6) +
+      ((this.port !== 80 && this.port !== 443) ? ':' + this.port : '');
+  }
+
+  get reachable(): boolean {
+    return this.status && this.status === 'UP';
+  }
+}
+
+/* -- Local settings -- */
+
+export declare interface LocalSettings {
+  pages?: any;
+  peerUrl?: string;
+  latLongFormat?: string;
+  locale?: string;
+  usageMode?: UsageMode;
 }
