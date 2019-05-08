@@ -128,7 +128,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      * @return a {@link String} object.
      */
     public String getVersionAsString() {
-        return getVersion().toString();
+        return applicationConfig.getOption(SumarisConfigurationOption.VERSION.getKey());
     }
 
     /**

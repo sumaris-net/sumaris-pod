@@ -31,6 +31,8 @@ import javax.transaction.Transactional;
 @Transactional
 public interface ImageService {
 
+    String URI_IMAGE_SUFFIX = "image:";
+
     ImageAttachmentVO get(int id);
 
     void fillAvatar(PersonVO person);

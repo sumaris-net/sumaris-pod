@@ -25,18 +25,33 @@ package net.sumaris.server.http.rest;
 
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
+import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
+import net.sumaris.core.vo.technical.SoftwareVO;
+import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ResourceLoaderAware;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 @RestController
-public class ImageRestController {
+public class ImageRestController implements ResourceLoaderAware {
 
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(ImageRestController.class);
@@ -49,6 +64,15 @@ public class ImageRestController {
 
     @Autowired
     private ImageService imageService;
+
+    @Autowired
+    private SoftwareService softwareService;
+
+    private ResourceLoader resourceLoader;
+
+    public void setResourceLoader(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
 
     @ResponseBody
     @RequestMapping(value = RestPaths.PERSON_AVATAR_PATH, method = RequestMethod.GET,
@@ -96,5 +120,49 @@ public class ImageRestController {
                 .contentLength(bytes.length)
                 .contentType(MediaType.parseMediaType(image.getContentType()))
                 .body(bytes);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = RestPaths.FAVICON, method = RequestMethod.GET,
+            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public ResponseEntity<byte[]> getFavicon() {
+
+        SoftwareVO software = softwareService.getDefault();
+        if (software == null) return ResponseEntity.notFound().build();
+
+        String favicon = MapUtils.getString(software.getProperties(), SumarisServerConfigurationOption.SITE_FAVICON.getKey());
+        if (StringUtils.isBlank(favicon)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (favicon.startsWith(ImageService.URI_IMAGE_SUFFIX)) {
+            String imageId = favicon.substring(ImageService.URI_IMAGE_SUFFIX.length());
+            return getImage(imageId);
+        }
+
+        // Try to return the resource
+        try {
+            Resource faviconResource = resourceLoader.getResource(favicon);
+            InputStream in = faviconResource.getInputStream();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+            IOUtils.copy(in, bos);
+            bos.close();
+
+            return ResponseEntity.ok()
+                    .contentLength(faviconResource.contentLength())
+                    //.contentType(MediaType.parseMediaType("applicaiton"))
+                    .body(bos.toByteArray());
+        } catch(IOException e) {
+            log.error(e.getMessage(), e);
+        }
+
+        // Try a redirection
+        try  {
+            return ResponseEntity.created(new URI(favicon)).build();
+        } catch(URISyntaxException e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.notFound().build();
+        }
     }
 }

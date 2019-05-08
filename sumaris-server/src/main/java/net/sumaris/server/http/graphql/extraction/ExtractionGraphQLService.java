@@ -27,9 +27,9 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.service.ExtractionService;
-import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
+import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.DownloadController;
 import org.slf4j.Logger;
@@ -40,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.List;
 
 @Service

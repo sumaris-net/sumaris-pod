@@ -23,7 +23,10 @@ package net.sumaris.server.http.graphql.technical;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLEnvironment;
+import io.leangen.graphql.annotations.GraphQLMutation;
+import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -33,6 +36,7 @@ import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.rest.RestPaths;
+import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,8 +57,6 @@ import java.util.stream.Stream;
 @Transactional
 public class ConfigurationGraphQLService {
 
-    public static final String URI_DEPARTMENT_SUFFIX = "department:";
-    public static final String URI_IMAGE_SUFFIX = "image:";
     public static final String JSON_START_SUFFIX = "{";
 
     private static final Log log = LogFactory.getLog(ConfigurationGraphQLService.class);
@@ -171,8 +173,8 @@ public class ConfigurationGraphQLService {
             int[] ids = Stream.of(values)
                     .map(String::trim)
                     .mapToInt(uri -> {
-                if (uri.startsWith(URI_DEPARTMENT_SUFFIX)) {
-                    return Integer.parseInt(uri.substring(URI_DEPARTMENT_SUFFIX.length()));
+                if (uri.startsWith(DepartmentService.URI_DEPARTMENT_SUFFIX)) {
+                    return Integer.parseInt(uri.substring(DepartmentService.URI_DEPARTMENT_SUFFIX.length()));
                 }
                 return -1;
             })
@@ -217,8 +219,8 @@ public class ConfigurationGraphQLService {
         if (StringUtils.isBlank(imageUri)) return null;
 
         // Resolve URI like 'image:<ID>'
-        if (imageUri.startsWith(URI_IMAGE_SUFFIX)) {
-            return imageUrl.replace("{id}", imageUri.substring(URI_IMAGE_SUFFIX.length()));
+        if (imageUri.startsWith(ImageService.URI_IMAGE_SUFFIX)) {
+            return imageUrl.replace("{id}", imageUri.substring(ImageService.URI_IMAGE_SUFFIX.length()));
         }
         // should be a URL, so return it
         return imageUri;

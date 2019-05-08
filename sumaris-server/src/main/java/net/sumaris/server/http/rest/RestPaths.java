@@ -35,4 +35,9 @@ public interface RestPaths {
     String IMAGE_PATH = BASE_PATH + "/image/{id}";
 
     String DOWNLOAD_PATH = "/download";
+
+    String FAVICON = BASE_PATH + "/favicon";
+
+    String NODE_INFO_PATH = BASE_PATH + "/node/info";
+
 }

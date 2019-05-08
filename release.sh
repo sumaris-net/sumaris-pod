@@ -13,7 +13,7 @@ if [[ ! "_$failure" = "_" ]]; then
     exit 1
 fi
 
-mvn release:prepare
+#mvn release:prepare
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
@@ -21,7 +21,7 @@ fi
 echo "**********************************"
 echo "* Performing release..."
 echo "**********************************"
-mvn release:perform -Darguments="-DskipTests" --quiet
+mvn release:perform -Darguments="-DskipTests -Denv=hsqldb"
 if [[ $? -ne 0 ]]; then
     exit 1
 fi

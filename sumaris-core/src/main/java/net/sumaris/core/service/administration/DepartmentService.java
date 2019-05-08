@@ -33,6 +33,8 @@ import java.util.List;
 @Transactional
 public interface DepartmentService {
 
+    String URI_DEPARTMENT_SUFFIX = "department:";
+
     @Transactional(readOnly = true)
     List<DepartmentVO> findByFilter(DepartmentFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
