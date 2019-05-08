@@ -41,27 +41,6 @@
             </button>
 
           </ion-row>
-
-<!--          <ion-row no-padding>-->
-<!--            <ion-col no-padding>-->
-<!--              <ion-button menuClose small expand="block" color="secondary"-->
-<!--                          [routerLink]="['/account']"-->
-<!--                          routerDirection="root"-->
-<!--                          routerLinkActive="ion-color-primary"-->
-<!--                          (click)="menu.close()">-->
-<!--                <ion-icon name="contact" slot="start"></ion-icon>-->
-<!--                <ion-label translate>MENU.BTN_ACCOUNT</ion-label>-->
-<!--              </ion-button>-->
-<!--            </ion-col>-->
-<!--            <ion-col no-padding>-->
-<!--              <ion-button menuClose small expand="block" color="medium"-->
-<!--                          (click)="menu.close() && logout()">-->
-<!--                <ion-icon name="log-out" slot="start"></ion-icon>-->
-<!--                <ion-label translate>COMMON.BTN_LOGOUT</ion-label>-->
-<!--              </ion-button>-->
-<!--            </ion-col>-->
-<!--          </ion-row>-->
-
         </ion-grid>
 
       </ion-toolbar>
@@ -70,7 +49,8 @@
     <ion-content [class.has-user-header]="isLogin">
 
       <ion-list lines="none">
-        <ion-menu-toggle auto-hide="false" *ngFor="let item of filteredItems ; trackBy: trackByFn">
+        <ion-menu-toggle auto-hide="false" *ngFor="let item of filteredItems ; trackBy: trackByFn"
+                         [class]="item.cssClass">
 
           <!-- link -->
           <ion-item *ngIf="!loading && item.path"
@@ -80,7 +60,6 @@
                     routerDirection="root"
                     routerLinkActive="selected"
                     (click)="menu.close()"
-                    [class]="item.cssCLass"
                     [routerLinkActiveOptions]="{exact: (item.path == '/')}">
             <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
             <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
@@ -91,7 +70,6 @@
           <ion-item @fadeInAnimation
                     *ngIf="!loading && item.action"
                     tappable class="text-1x"
-                    [class]="item.cssCLass"
                     (click)="menu.close() && doAction(item.action)">
             <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
             <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>

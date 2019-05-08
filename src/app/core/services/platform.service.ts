@@ -3,15 +3,13 @@ import {Platform} from "@ionic/angular";
 import {ConfigService} from './config.service';
 import {NetworkService} from "./network.service";
 import {Platforms} from "@ionic/core";
+import {SplashScreen} from "@ionic-native/splash-screen/ngx";
+import {StatusBar} from "@ionic-native/status-bar/ngx";
+import {Keyboard} from "@ionic-native/keyboard/ngx";
 
-
-export declare interface BasePlatform {
-  is(platformName: Platforms): boolean;
-  mobile: boolean;
-}
 
 @Injectable()
-export class PlatformService implements BasePlatform {
+export class PlatformService {
 
   private _started = false;
   private _startPromise: Promise<void>;
@@ -25,14 +23,14 @@ export class PlatformService implements BasePlatform {
 
   constructor(
     private platform: Platform,
+    private splashScreen: SplashScreen,
+    private statusBar: StatusBar,
+    private keyboard: Keyboard,
     private configurationService: ConfigService,
     private networkService: NetworkService
   ) {
 
     this.start();
-
-    this.touchUi = platform.is('mobile') || platform.is('tablet') || platform.is('phablet');
-    this.mobile = platform.is('mobile');
   }
 
   is(platformName: Platforms): boolean {
@@ -41,16 +39,29 @@ export class PlatformService implements BasePlatform {
 
   protected async start() {
     if (this._startPromise) return this._startPromise;
+    if (this._started) return;
 
     this._started = false;
 
     this._startPromise = Promise.all([
-      this.platform.ready(),
+      this.platform.ready()
+        .then(() => {
+
+          this.configureCordovaPlugins();
+
+          this.touchUi = this.platform.is('mobile') || this.platform.is('tablet') || this.platform.is('phablet');
+          this.mobile = this.platform.is('mobile');
+        }),
       this.networkService.ready()
     ])
       .then(() => {
         this._started = true;
         this._startPromise = undefined;
+
+        // Wait 1 more seconds, before hiding the splash screen
+        setTimeout(() => {
+          this.splashScreen.hide();
+        }, 1000);
       });
     return this._startPromise;
   }
@@ -59,6 +70,13 @@ export class PlatformService implements BasePlatform {
     if (this._started) return Promise.resolve();
     if (this._startPromise) return this._startPromise;
     return this.start();
+  }
+
+  protected configureCordovaPlugins() {
+    console.info("[platform] Setting Cordova plugins...");
+    this.statusBar.styleDefault();
+    this.statusBar.overlaysWebView(false);
+    this.keyboard.hideFormAccessoryBar(true);
   }
 }
 

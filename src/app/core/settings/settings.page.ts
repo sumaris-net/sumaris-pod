@@ -55,17 +55,17 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
     // By default, disable the form
     this.disable();
-
-  };
+  }
 
   async ngOnInit() {
     super.ngOnInit();
 
-    // Make sure plateform is ready
-    await this.platform.ready();
-
-    // Then load data
-    await this.load();
+    // Make sure platform is ready
+    this.platform.ready()
+      // Then load data
+      .then(() => {
+        return this.load();
+      });
   }
 
   async load() {
@@ -116,15 +116,8 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     this.error = undefined;
     const data = this.form.value;
 
+    // Check peer alive, before saving
     const peerChanged = this.form.get('peerUrl').dirty;
-    if (peerChanged) {
-      const peerAlive = await this.networkService.checkPeerAlive(data.peerUrl);
-      if (!peerAlive) {
-        this.error = "PEER_ERROR";
-        this.saving = false;
-        return;
-      }
-    }
 
     try {
       this.disable();
@@ -132,6 +125,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       await this.accountService.saveLocalSettings(data);
       this.markAsPristine();
 
+      // Update the network peer
       if (peerChanged) {
         this.networkService.peer = Peer.parseUrl(data.peerUrl);
       }
@@ -177,7 +171,13 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
   }
 
+  async cancel() {
+    await this.load();
+  }
+
   referentialToString = referentialToString;
+
+  /* -- protected functions -- */
 
   protected markForCheck() {
     this.cd.markForCheck();

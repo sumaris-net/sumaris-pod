@@ -20,76 +20,86 @@
   </button>
 </mat-menu>
 
-<ion-content padding [ngStyle]="contentStyle" class="no-padding-xs">
+<ion-content [ngStyle]="contentStyle"
+             class="no-padding-xs"
+             >
+    <!-- loading spinner -->
+    <div class="loading-page" [class.hidden]="!loading">
+      <div class="spinner" *ngIf="loading">
+        <p>Loading...</p>
+        <div class="sk-cube1 sk-cube"></div>
+        <div class="sk-cube2 sk-cube"></div>
+        <div class="sk-cube4 sk-cube"></div>
+        <div class="sk-cube3 sk-cube"></div>
+      </div>
+    </div>
 
-  <div hidden-xs hidden-sm>
-    <ion-toolbar translucent>
-      <ion-buttons slot="end">
-        <!-- change locale button -->
-        <ion-button color="secondary" fill="solid" [matMenuTriggerFor]="matmenu">
-          <mat-icon slot="start">public</mat-icon>
-          <ion-label>&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
+    <div hidden-xs hidden-sm>
+      <ion-toolbar translucent>
+        <ion-buttons slot="end">
+          <!-- change locale button -->
+          <ion-button color="secondary" fill="solid" [matMenuTriggerFor]="matmenu">
+            <mat-icon slot="start">public</mat-icon>
+            <ion-label>&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </div>
+
+    <p class="hidden-xs" padding>&nbsp;
+      <br/>
+      <br/>
+    </p>
+    <p class="hidden-xs">&nbsp;</p>
+
+    <ion-card @fadeInAnimation *ngIf="!loading">
+      <ion-card-content>
+        <h1 [innerHTML]="'HOME.WELCOME'|translate: {appName: appName}"></h1>
+        <ion-text color="primary">
+          <img class="logo" src="{{ logo }}"/>
+          <br/>
+          <span [innerHTML]="description"></span>
+        </ion-text>
+      </ion-card-content>
+
+      <ion-footer>
+        <ion-label *ngIf="!isLogin">
+          <br/>
+          <span translate>HOME.REGISTER_HELP</span>
+        </ion-label>
+
+        <ion-button expand="block" color="primary" *ngIf="!isLogin" (click)="register()">
+          <span translate>HOME.BTN_REGISTER</span>
         </ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </div>
 
-  <p class="hidden-xs" padding>&nbsp;
-    <br/>
-    <br/>
-  </p>
-  <p class="hidden-xs">&nbsp;</p>
+        <ion-button expand="block" color="light" [routerLink]="['/account']" *ngIf="!isLogin">
+          <span translate>AUTH.BTN_LOGIN</span>
+        </ion-button>
 
-  <ion-spinner [hidden]="!loading"></ion-spinner>
+        <ion-button expand="block" color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
+          <ion-icon name="contact" slot="start"></ion-icon>
+          <span translate>HOME.BTN_MY_ACCOUNT</span>
+        </ion-button>
 
-  <ion-card [hidden]="loading" @fadeInAnimation>
-    <ion-card-content>
-      <h1 [innerHTML]="'HOME.WELCOME'|translate: {appName: appName}"></h1>
-      <ion-text color="primary">
-        <img class="logo" src="{{ logo }}"/>
-        <br/>
-        <span [innerHTML]="description"></span>
-      </ion-text>
-    </ion-card-content>
+        <p *ngIf="isLogin" ion-text color="primary" class="hidden-xs hidden-sm">
+          <span [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></span>
+          <br/>
+          <a ion-text color="danger" href="#" (click)="logout($event)">
+            <span translate>HOME.BTN_DISCONNECT</span>
+          </a>
+        </p>
+      </ion-footer>
+    </ion-card>
 
-    <ion-footer>
-      <ion-label *ngIf="!isLogin">
-        <br/>
-        <span translate>HOME.REGISTER_HELP</span>
-      </ion-label>
-
-      <ion-button expand="block" color="primary" *ngIf="!isLogin" (click)="register()">
-        <span translate>HOME.BTN_REGISTER</span>
-      </ion-button>
-
-      <ion-button expand="block" color="light" [routerLink]="['/account']" *ngIf="!isLogin">
-        <span translate>AUTH.BTN_LOGIN</span>
-      </ion-button>
-
-      <ion-button expand="block" color="secondary" [routerLink]="['/account']" *ngIf="isLogin">
-        <ion-icon name="contact" slot="start"></ion-icon>
-        <span translate>HOME.BTN_MY_ACCOUNT</span>
-      </ion-button>
-
-      <p *ngIf="isLogin" ion-text color="primary" class="hidden-xs hidden-sm">
-        <span [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></span>
-        <br/>
-        <a ion-text color="danger" href="#" (click)="logout($event)">
-          <span translate>HOME.BTN_DISCONNECT</span>
-        </a>
-      </p>
-    </ion-footer>
-  </ion-card>
-
-  <p class="hidden-xs">&nbsp;</p>
-  <div class="visible-sm" style="width: 100%; display: block !important; height: 1px; ">&nbsp;</div>
+    <p class="hidden-xs">&nbsp;</p>
+    <div class="visible-sm" style="width: 100%; display: block !important; height: 1px; ">&nbsp;</div>
 
 
-  <!-- Display configured Departments logos -->
-  <div class="bottom-banner" [hidden]="loadingBanner" @fadeInAnimation>
-    <a href="{{ item.siteUrl }}" *ngFor="let item of partners | async ">
-      <img class="logo" src="{{ item.logo }}" alt="{{item.label}}"  [title]="item.label" />
-    </a>
-  </div>
+    <!-- Display configured Departments logos -->
+    <div class="bottom-banner" *ngIf="!loadingBanner" @fadeInAnimation>
+      <a href="{{ item.siteUrl }}" *ngFor="let item of partners | async ">
+        <img class="logo" src="{{ item.logo }}" alt="{{item.label}}"  [title]="item.label" />
+      </a>
+    </div>
 
 </ion-content>

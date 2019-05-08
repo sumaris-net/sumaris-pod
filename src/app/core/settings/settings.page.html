@@ -4,12 +4,6 @@
 
 <ion-content>
 
-  <!-- error -->
-  <ion-item *ngIf="error">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-  </ion-item>
-
   <form [formGroup]="form" novalidate (ngSubmit)="save($event)" class="form-container">
 
     <ion-grid no-padding>
@@ -22,6 +16,12 @@
         <ion-col padding>
 
           <p [innerHTML]="'SETTINGS.DESCRIPTION'|translate"></p>
+
+          <!-- error -->
+          <ion-item *ngIf="error">
+            <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+            <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+          </ion-item>
 
           <mat-form-field>
             <mat-select [placeholder]="'SETTINGS.LOCALE'|translate" formControlName="locale" required>
@@ -64,12 +64,14 @@
           <mat-form-field>
             <input matInput type="text" [placeholder]="'SETTINGS.PEER_URL'|translate" formControlName="peerUrl" required>
 
-            <button type="button" mat-icon-button matSuffix (click)="showSelectPeerModal()" tabindex="-1" [title]="'SETTINGS.BTN_CHANGE_PEER'|translate">
+            <button mat-icon-button type="button" matSuffix (click)="showSelectPeerModal()" tabindex="-1" [title]="'SETTINGS.BTN_CHANGE_PEER'|translate">
               <mat-icon>search</mat-icon>
             </button>
 
             <mat-error *ngIf="form.controls['peerUrl'].touched && form.controls['peerUrl'].hasError('required')"
                        translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="form.controls['peerUrl'].touched && form.controls['peerUrl'].hasError('peerAlive')"
+                       translate>SETTINGS.ERROR.PEER_NOT_REACHABLE</mat-error>
           </mat-form-field>
         </ion-col>
 

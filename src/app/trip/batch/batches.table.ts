@@ -74,6 +74,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   set value(data: Batch[]) {
     if (this.data !== data) {
       this.data = data;
+      if (!this.loading) console.log("UPDATING batch table value", data);
       if (!this.loading) this.onRefresh.emit();
     }
   }
@@ -89,7 +90,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   @Input()
   set program(value: string) {
     if (this._program !== value && isNotNil(value)) {
-      if (this.debug) console.debug("[batch-table] Setting program:" + value);
+      //if (this.debug) console.debug("[batch-table] Setting program:" + value);
       this._program = value;
       if (!this.loading) this._onRefreshPmfms.emit('set program');
     }
@@ -185,28 +186,24 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     this.taxonGroups = this.registerCellValueChanges('taxonGroup')
       .pipe(
         debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value,
-          {
+        switchMap((value) => this.referentialRefService.suggest(value, {
             entityName: 'TaxonGroup',
             levelId: TaxonGroupIds.FAO,
             searchAttribute: 'label'
-          })
-        ),
-        // Save implicit value, when only one result
+          })),
+        // Remember implicit value
         tap(items => this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined));
 
     // Taxon name combo
     this.taxonNames = this.registerCellValueChanges('taxonName')
       .pipe(
         debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value,
-          {
+        switchMap((value) => this.referentialRefService.suggest(value, {
             entityName: 'TaxonName',
             levelId: TaxonomicLevelIds.SPECIES,
             searchAttribute: 'label'
-          })
-        ),
-        // Save implicit value, when only one result
+          })),
+        // Remember implicit value
         tap(items => this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined));
 
   }
@@ -437,11 +434,11 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     return !this.excludesColumns.includes(columnName);
   }
 
-  markForCheck() {
-    this.cd.markForCheck();
-  }
-
   referentialToString = referentialToString;
   getPmfmColumnHeader = getPmfmName;
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }
 

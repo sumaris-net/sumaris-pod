@@ -12,6 +12,7 @@ import {ReferentialRef} from "../../core/services/model";
 import {FetchPolicy} from "apollo-client";
 import {ReferentialFilter} from "./referential.service";
 import {DataService, SuggestionDataService} from "../../shared/services/data-service.class";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 const LoadAllQuery: any = gql`
   query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -30,10 +31,10 @@ export class ReferentialRefService extends BaseDataService
   implements SuggestionDataService<ReferentialRef>, DataService<ReferentialRef, ReferentialFilter> {
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(apollo);
+    super(graphql);
 
     // -- For DEV only
     //this._debug = !environment.production;

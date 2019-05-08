@@ -8,6 +8,7 @@ import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment on SaleVO {
@@ -125,10 +126,10 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
 export class SaleService extends BaseDataService implements TableDataService<Sale, SaleFilter>{
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(apollo);
+    super(graphql);
 
     // -- For DEV only
     //this._debug = !environment.production;

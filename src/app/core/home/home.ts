@@ -53,9 +53,13 @@ export class HomePage implements OnDestroy {
       this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
       this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
       this.subscriptions.push(this.configService.config.subscribe(config => {
-        this.onConfigReady(config);
-        this.loading = false;
+        this.onConfigChanged(config);
         this.markForCheck();
+
+        setTimeout(() => {
+          this.loading = false;
+          this.markForCheck();
+        }, 500);
       }));
     });
   };
@@ -65,7 +69,9 @@ export class HomePage implements OnDestroy {
     this.subscriptions = [];
   }
 
-  onConfigReady(config: Configuration) {
+  onConfigChanged(config: Configuration) {
+    console.debug("[home] Configuration changed:", config);
+
     this.appName = config.label;
     this.logo = config.largeLogo || config.smallLogo;
     this.description = config.name;
@@ -81,7 +87,6 @@ export class HomePage implements OnDestroy {
       const primaryColor = config.properties && config.properties['sumaris.color.primary'] || '#144391';
       this.contentStyle = {'background-color': primaryColor};
     }
-    this.markForCheck();
   }
 
   onLogin(account: Account) {

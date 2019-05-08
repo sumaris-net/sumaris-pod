@@ -8,6 +8,15 @@ import {ModalController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
 import {Subject} from "rxjs";
 import {SETTINGS_STORAGE_KEY} from "../constants";
+import {SplashScreen} from "@ionic-native/splash-screen/ngx";
+import {HttpClient} from "@angular/common/http";
+
+export interface NodeInfo {
+  softwareName: string;
+  softwareVersion: string;
+  nodeLabel?: string;
+  nodeName?: string;
+}
 
 @Injectable()
 export class NetworkService {
@@ -27,8 +36,7 @@ export class NetworkService {
     if (this._started) {
       this.stop()
         .then(() => this.start(peer));
-    }
-    else {
+    } else {
       this.start(peer);
     }
   }
@@ -41,7 +49,9 @@ export class NetworkService {
     private translate: TranslateService,
     private modalCtrl: ModalController,
     private cryptoService: CryptoService,
-    private storage: Storage
+    private storage: Storage,
+    private http: HttpClient,
+    private splashScreen: SplashScreen
   ) {
     this.resetData();
 
@@ -56,9 +66,14 @@ export class NetworkService {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;
 
+    console.info("[network] Starting network...");
+
     // Restoring local settings
     this._startPromise = (!peer && this.restoreLocally() || Promise.resolve(peer))
-      .then(async (peer: Peer|undefined) => {
+      .then(async (peer: Peer | undefined) => {
+
+        // Make sure to hide the splashscreen, before open the modal
+        if (!peer) this.splashScreen.hide();
 
         // No peer in settings: ask user to choose
         while (!peer) {
@@ -70,6 +85,11 @@ export class NetworkService {
         this._startPromise = undefined;
 
         this.onStart.next(peer);
+      })
+      .catch((err) => {
+        console.error(err && err.message || err);
+        this._started = false;
+        this._startPromise = undefined;
       });
     return this._startPromise;
   }
@@ -94,7 +114,7 @@ export class NetworkService {
     const settingsStr = await this.storage.get(SETTINGS_STORAGE_KEY);
     const settings = settingsStr && JSON.parse(settingsStr) || undefined;
     if (settings && settings.peerUrl) {
-      console.debug(`[network] Will peer {${settings.peerUrl}} (found in the local storage)`);
+      console.debug(`[network] Use peer {${settings.peerUrl}} (found in the local storage)`);
       return Peer.parseUrl(settings.peerUrl);
     }
   }
@@ -103,9 +123,18 @@ export class NetworkService {
    * Check if the peer is alive
    * @param email
    */
-  async checkPeerAlive(serverUrl: string): Promise<boolean> {
-    // TODO check on a ping URL ?
-    return true;
+  async checkPeerAlive(peer: string | Peer): Promise<boolean> {
+    try {
+      await this.getNodeInfo(peer);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  getNodeInfo(peer: string | Peer): Promise<NodeInfo> {
+    const peerUrl = (peer instanceof Peer) ? peer.url : (peer as string);
+    return this.get(peerUrl + '/api/node/info');
   }
 
   /* -- Protected methods -- */
@@ -114,6 +143,20 @@ export class NetworkService {
     this._peer = null;
   }
 
+
+  protected async get<T>(uri: string): Promise<T> {
+    try {
+      return (await this.http.get(uri).toPromise()) as T;
+    } catch (err) {
+      if (err && err.message) {
+        console.error("[network] " + err.message);
+      }
+      else {
+        console.error(`[network] Error on get request ${uri}: ${err.status}`);
+      }
+      throw {code: err.status, message: "ERROR.UNKNOWN_NETWORK_ERROR"};
+    }
+  }
 
 
   public async showSelectPeerModal(): Promise<Peer | undefined> {
@@ -152,4 +195,5 @@ export class NetworkService {
     });
     return Promise.resolve(peers);
   }
+
 }

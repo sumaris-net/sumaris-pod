@@ -22,7 +22,9 @@ export function trimEmptyToNull<T>(str: string | null | undefined): string | nul
   const value = str && str.trim() || undefined;
   return value && value.length && value || null;
 }
-
+export function toBoolean(obj: boolean | null | undefined, defaultValue: boolean): boolean {
+  return (obj !== undefined && obj !== null) ? obj : defaultValue;
+}
 export const toDateISOString = function (value): string | undefined {
   if (!value) return undefined;
   if (typeof value == "string") {

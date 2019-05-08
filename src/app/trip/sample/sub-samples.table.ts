@@ -8,7 +8,7 @@ import {
   OnInit
 } from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, filter, map, tap} from "rxjs/operators";
+import {debounceTime, filter, first, map, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -48,7 +48,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
 
   private _program: string;
   private _acquisitionLevel: string;
-  private _implicitParent: Sample;
+  private _implicitValues: { [key: string]: any } = {};
   private _availableSortedParents: Sample[] = [];
   private _availableParents: Sample[] = [];
   private _dataSubject = new BehaviorSubject<LoadResult<Sample>>({data: []});
@@ -76,7 +76,6 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
   @Input()
   set program(value: string) {
     if (this._program !== value && isNotNil(value)) {
-      //if (this.debug) console.debug("[sub-samples-table] Setting program:" + value);
       this._program = value;
       if (!this.loading) this._onRefreshPmfms.emit();
     }
@@ -142,8 +141,8 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
       Sample, this, this, {
         prependNewElements: false,
-        suppressErrors: false,
-        onNewRow: (row) => this.onNewSample(row.currentData)
+        suppressErrors: true,
+        onNewRow: (row) => this.onNewSampleRow(row)
       }));
     //this.debug = true;
   };
@@ -152,7 +151,8 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     super.ngOnInit();
 
     this.registerSubscription(
-      this._onRefreshPmfms.asObservable().subscribe((event) => this.refreshPmfms(event || 'ngOnInit'))
+      this._onRefreshPmfms.asObservable()
+        .subscribe((event) => this.refreshPmfms(event || 'ngOnInit'))
     );
 
     this.registerSubscription(
@@ -190,18 +190,13 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
           // Search on rankOrder
           return this._availableSortedParents.filter(p => p.rankOrder && p.rankOrder.toString().startsWith(value));
         }),
-
-        // Remember parent implicit value
-        tap((items) => this._implicitParent = (items.length === 1) && items[0] || undefined)
+        // Save implicit value, when only one result
+        tap(items => this._implicitValues['parent'] = (items.length === 1) && items[0])
       );
   }
 
   getRowValidator(): FormGroup {
-    return this.getFormGroup();
-  }
-
-  getFormGroup(data?: any): FormGroup {
-    const formGroup = this.validatorService.getFormGroup(data);
+    const formGroup = this.validatorService.getRowValidator();
     if (this.measurementValuesFormGroupConfig) {
       formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
     }
@@ -213,11 +208,11 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: any,
+    selectionFilter?: any,
     options?: any
   ): Observable<LoadResult<Sample>> {
     if (!this.data) {
-      if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
+      if (this.debug) console.debug("[sub-sample-table] Unable to load row: no value!");
       return Observable.empty(); // Not initialized
     }
 
@@ -226,23 +221,27 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
       this.save()
         .then(saved => {
           if (saved) {
-            this.watchAll(offset, size, sortBy, sortDirection, filter, options);
+            this.watchAll(offset, size, sortBy, sortDirection, selectionFilter, options);
             this._dirty = true; // restore previous state
           }
         });
     } else {
       sortBy = (sortBy !== 'id') && sortBy || 'rankOrder'; // Replace id by rankOrder
+      sortBy = (sortBy !== 'parent') && sortBy || 'parent.rankOrder'; // Replace parent by its rankOrder
 
       const now = Date.now();
       if (this.debug) console.debug("[sub-sample-table] Loading rows...", this.data);
 
       this.pmfms
-        .filter(pmfms => pmfms && pmfms.length > 0)
-        .first()
+        .pipe(
+          filter(isNotNil),
+          first()
+        )
         .subscribe(pmfms => {
           // Transform entities into object array
-          const data = this.data.map(json => {
-            json.measurementValues = MeasurementUtils.normalizeFormValues(json.measurementValues, pmfms);
+          const data = this.data.map(sample => {
+            const json = sample.asObject();
+            json.measurementValues = MeasurementUtils.normalizeFormValues(sample.measurementValues, pmfms);
             return json;
           });
 
@@ -311,12 +310,17 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     return sample.measurementValues && sample.measurementValues[PmfmIds.TAG_ID] || `#${sample.rankOrder}`;
   }
 
-  onParentCellBlur(event: FocusEvent, row: TableElement<any>) {
+  onCellFocus(event: any, row: TableElement<any>, columnName: string) {
+    this.startCellValueChanges(columnName, row);
+  }
+
+  onCellBlur(event: FocusEvent, row: TableElement<any>, columnName: string) {
+    this.stopCellValueChanges(columnName);
     // Apply last implicit value
-    if (row.validator.controls.parent.hasError('entity') && this._implicitParent) {
-      row.validator.controls.parent.setValue(this._implicitParent);
+    if (row.validator.controls[columnName].hasError('entity') && isNotNil(this._implicitValues[columnName])) {
+      row.validator.controls[columnName].setValue(this._implicitValues[columnName]);
     }
-    this._implicitParent = undefined;
+    this._implicitValues[columnName] = undefined;
   }
 
   async autoFillTable() {
@@ -340,7 +344,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     if (data.length > startRowCount) {
       this._dataSubject.next({data: data});
       this._dirty = true;
-      this.cd.markForCheck();
+      this.markForCheck();
     }
   }
 
@@ -355,6 +359,12 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
+  protected async onNewSampleRow(row: TableElement<Sample>): Promise<void> {
+    const batch = row.currentData;
+    await this.onNewSample(batch);
+    row.currentData = batch;
+  }
+
   protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
     // Set computed values
     sample.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
@@ -366,15 +376,14 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
       .forEach(pmfm => {
         sample.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
       });
-
-    this.cd.markForCheck();
+    this.markForCheck();
   }
 
   /**
    * Can be overwrite by subclasses (e.g. monitoring individual table)
    **/
   protected startListenRow(row: TableElement<Sample>) {
-    this.startCellValueChanges('parent', row);
+    //this.startCellValueChanges('parent', row);
   }
 
   protected getI18nColumnName(columnName: string): string {
@@ -442,7 +451,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
       .map(r => r.currentData);
 
     if (hasRemovedSample) this._dataSubject.next({data: data});
-    this.cd.markForCheck();
+    //this.markForCheck();
   }
 
   protected sortSamples(data: Sample[], sortBy?: string, sortDirection?: string): Sample[] {
@@ -461,12 +470,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
-    const candLoadPmfms = isNotNil(this._program) && isNotNil(this._acquisitionLevel);
-    if (!candLoadPmfms) {
-      return undefined;
-    }
-
-    if (this.debug) console.debug("[sub-samples-table] refreshPmfms");
+    if (isNil(this._program) || isNil(this._acquisitionLevel)) return undefined;
 
     this.loading = true;
     this.loadingPmfms = true;
@@ -491,10 +495,10 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }>
     return pmfms;
   }
 
-  markForCheck() {
+  getPmfmColumnHeader = getPmfmName;
+
+  protected arkForCheck() {
     this.cd.markForCheck();
   }
-
-  getPmfmColumnHeader = getPmfmName;
 }
 

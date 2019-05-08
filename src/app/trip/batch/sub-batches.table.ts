@@ -24,7 +24,7 @@ import {
   getPmfmName,
   MeasurementUtils,
   PmfmStrategy,
-  referentialToString,
+  referentialToString, Sample,
   TaxonGroupIds
 } from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
@@ -56,11 +56,13 @@ const SUBBATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> implements OnInit, OnDestroy, ValidatorService, TableDataService<Batch, any> {
+export class SubBatchesTable extends AppTable<Batch, { operationId?: number }>
+  implements OnInit, OnDestroy, ValidatorService, TableDataService<Batch, any> {
 
   private _program: string;
   private _acquisitionLevel: string;
   private _implicitValues: { [key: string]: any } = {};
+  private _availableSortedParents: Batch[] = [];
   private _availableParents: Batch[] = [];
   private _dataSubject = new BehaviorSubject<LoadResult<Batch>>({data: []});
   private _onRefreshPmfms = new EventEmitter<any>();
@@ -74,6 +76,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
   taxonGroups: Observable<ReferentialRef[]>;
   taxonNames: Observable<ReferentialRef[]>;
   filteredParents: Observable<Batch[]>;
+  excludesColumns = new Array<String>();
 
   set value(data: Batch[]) {
     if (this.data !== data) {
@@ -86,16 +89,11 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     return this.data;
   }
 
-  protected get dataSubject(): BehaviorSubject<LoadResult<Batch>> {
-    return this._dataSubject;
-  }
-
   @Input()
   set program(value: string) {
     if (this._program !== value && isNotNil(value)) {
-      if (this.debug) console.debug("[sub-batch-table] Setting program:" + value);
       this._program = value;
-      if (!this.loading) this._onRefreshPmfms.emit('set program');
+      if (!this.loading) this._onRefreshPmfms.emit();
     }
   }
 
@@ -115,14 +113,17 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     return this._acquisitionLevel;
   }
 
-  @Input() showCommentsColumn: boolean = true;
-  @Input() showTaxonGroupColumn: boolean = true;
-  @Input() showTaxonNameColumn: boolean = true;
+  @Input() showCommentsColumn = true;
+  @Input() showTaxonGroupColumn = true;
+  @Input() showTaxonNameColumn = true;
 
   set availableParents(parents: Batch[]) {
     if (this._availableParents !== parents) {
+
+      this._availableParents = parents;
+
       // Sort parents by by Tag-ID
-      this._availableParents = this.sortBatches(parents, PmfmIds.TAG_ID.toString());
+      this._availableSortedParents = this.sortBatches(parents, PmfmIds.TAG_ID.toString());
 
       // Link samples to parent, and delete orphan
       this.linkBatchesToParentAndDeleteOrphan();
@@ -149,7 +150,10 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
-      RESERVED_START_COLUMNS.concat(SUBBATCH_RESERVED_START_COLUMNS).concat(SUBBATCH_RESERVED_END_COLUMNS).concat(RESERVED_END_COLUMNS)
+      RESERVED_START_COLUMNS
+        .concat(SUBBATCH_RESERVED_START_COLUMNS)
+        .concat(SUBBATCH_RESERVED_END_COLUMNS)
+        .concat(RESERVED_END_COLUMNS)
     );
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.autoLoad = false;
@@ -166,14 +170,13 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
   async ngOnInit() {
     super.ngOnInit();
 
-    let excludesColumns: String[] = new Array<String>();
-    if (!this.showCommentsColumn) excludesColumns.push('comments');
-    if (!this.showTaxonGroupColumn) excludesColumns.push('taxonGroup');
-    if (!this.showTaxonNameColumn) excludesColumns.push('taxonName');
+    if (!this.showCommentsColumn) this.excludesColumns.push('comments');
+    if (!this.showTaxonGroupColumn) this.excludesColumns.push('taxonGroup');
+    if (!this.showTaxonNameColumn) this.excludesColumns.push('taxonName');
 
     this.registerSubscription(
       this._onRefreshPmfms.asObservable()
-        .subscribe(() => this.refreshPmfms('ngOnInit'))
+        .subscribe((event) => this.refreshPmfms(event || 'ngOnInit'))
     );
 
     this.registerSubscription(
@@ -189,7 +192,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
             .concat(SUBBATCH_RESERVED_END_COLUMNS)
             .concat(RESERVED_END_COLUMNS)
             // Remove columns to hide
-            .filter(column => !excludesColumns.includes(column));
+            .filter(column => !this.excludesColumns.includes(column));
 
           this.loading = false;
 
@@ -232,24 +235,18 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
           if (EntityUtils.isNotEmpty(value)) return [value];
           value = (typeof value === "string" && value !== "*") && value || undefined;
           if (this.debug) console.debug("[sub-batch-table] Searching parent {" + (value || '*') + "}...");
-          if (isNil(value)) return this._availableParents; // All
+          if (isNil(value)) return this._availableSortedParents; // All
           const ucValueParts = value.trim().toUpperCase().split(" ", 1);
           // Search on labels (taxonGroup or taxonName)
-          return this._availableParents.filter(p =>
+          return this._availableSortedParents.filter(p =>
             (p.taxonGroup && p.taxonGroup.label && p.taxonGroup.label.toUpperCase().indexOf(ucValueParts[0]) === 0) ||
             (p.taxonName && p.taxonName.label && p.taxonName.label.toUpperCase().indexOf(ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]) === 0)
           );
         }),
         // Save implicit value, when only one result
         tap(items => this._implicitValues['parent'] = (items.length === 1) && items[0])
-      )
-    ;
+      );
 
-    // add implicit value
-    this.registerSubscription(
-      this.filteredParents.subscribe(items => {
-        this._implicitValues['parent'] = (items.length === 1) && items[0];
-      }));
 
     // Listening on column 'IS_DEAD' value changes
     this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
@@ -276,7 +273,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
   }
 
   getRowValidator(): FormGroup {
-    let formGroup = this.validatorService.getRowValidator();
+    const formGroup = this.validatorService.getRowValidator();
     if (this.measurementValuesFormGroupConfig) {
       formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
     }
@@ -440,7 +437,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
   }
 
   /**
-   * Can be overrided in subclasses
+   * Can be overwrite by subclasses
    **/
   protected startListenRow(row: TableElement<Batch>) {
     this.startCellValueChanges('discard', row);
@@ -463,7 +460,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
 
     data.forEach(s => {
       const parentId = s.parentId || (s.parent && s.parent.id);
-      s.parent = isNotNil(parentId) ? this.availableParents.find(p => p.id === parentId) : null;
+      s.parent = isNotNil(parentId) ? this._availableParents.find(p => p.id === parentId) : null;
     });
   }
 
@@ -489,13 +486,13 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
             return true; // not yet a parent: keep (.e.g new row)
           }
           // Update the parent, by taxonGroup+taxonName
-          s.parent = this.availableParents.find(p =>
+          s.parent = this._availableParents.find(p =>
             (p && ((!p.taxonGroup && !parentTaxonGroupId) || (p.taxonGroup && p.taxonGroup.id == parentTaxonGroupId))
               && ((!p.taxonName && !parentTaxonNameId) || (p.taxonName && p.taxonName.id == parentTaxonNameId))));
 
         } else {
           // Update the parent, by id
-          s.parent = this.availableParents.find(p => p.id == parentId);
+          s.parent = this._availableParents.find(p => p.id == parentId);
         }
 
         // Could not found the parent anymore (parent has been delete)
@@ -511,6 +508,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
       .map(r => r.currentData);
 
     if (hasRemovedBatch) this._dataSubject.next({data: data});
+    //this.markForCheck();
   }
 
   protected sortBatches(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {

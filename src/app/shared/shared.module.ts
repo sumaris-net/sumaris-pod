@@ -23,13 +23,13 @@ import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {TableDataService, DataService, LoadResult} from "./services/data-service.class";
-import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toDateISOString} from "./functions";
+import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toDateISOString, toBoolean} from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 
 export {
   DataService, TableDataService, LoadResult,
-  isNil, isNotNil, nullIfUndefined,
+  isNil, isNotNil, nullIfUndefined, toBoolean,
   toDateISOString, fromDateISOString,
   fadeInAnimation, fadeInOutAnimation,
   DateFormatPipe, ToolbarComponent

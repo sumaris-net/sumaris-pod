@@ -38,7 +38,6 @@ import {TranslateService} from '@ngx-translate/core';
 import {MeasurementsValidatorService} from "../services/trip.validators";
 import {isNotNil, LoadResult} from "../../shared/shared.module";
 
-
 const PMFM_ID_REGEXP = /\d+/;
 const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonName', 'sampleDate'];
 const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -68,6 +67,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   data: Sample[];
   taxonGroups: Observable<ReferentialRef[]>;
   taxonNames: Observable<ReferentialRef[]>;
+  excludesColumns = new Array<String>();
 
   set value(data: Sample[]) {
     if (this.data !== data) {
@@ -109,9 +109,9 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     return this._acquisitionLevel;
   }
 
-  @Input() showCommentsColumn: boolean = true;
-  @Input() showTaxonGroupColumn: boolean = true;
-  @Input() showTaxonNameColumn: boolean = true;
+  @Input() showCommentsColumn = true;
+  @Input() showTaxonGroupColumn = true;
+  @Input() showTaxonNameColumn = true;
 
   constructor(
     protected route: ActivatedRoute,
@@ -140,7 +140,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     this.setDatasource(new AppTableDataSource<any, { operationId?: number }>(
       Sample, this, this, {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: true,
         onNewRow: (row) => this.onNewSampleRow(row)
       }));
     //this.debug = true;
@@ -149,10 +149,9 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   async ngOnInit(): Promise<void> {
     super.ngOnInit();
 
-    const excludesColumns: String[] = new Array<String>();
-    if (!this.showCommentsColumn) excludesColumns.push('comments');
-    if (!this.showTaxonGroupColumn) excludesColumns.push('taxonGroup');
-    if (!this.showTaxonNameColumn) excludesColumns.push('taxonName');
+    if (!this.showCommentsColumn) this.excludesColumns.push('comments');
+    if (!this.showTaxonGroupColumn) this.excludesColumns.push('taxonGroup');
+    if (!this.showTaxonNameColumn) this.excludesColumns.push('taxonName');
 
     this.registerSubscription(
       this._onRefreshPmfms.asObservable()
@@ -161,9 +160,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
 
     this.registerSubscription(
       this.pmfms
-        .pipe(
-          filter(isNotNil)
-        )
+        .pipe(filter(isNotNil))
         .subscribe(pmfms => {
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
           let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
@@ -174,10 +171,9 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
             .concat(SAMPLE_RESERVED_END_COLUMNS)
             .concat(RESERVED_END_COLUMNS)
             // Remove columns to hide
-            .filter(column => !excludesColumns.includes(column));
+            .filter(column => !this.excludesColumns.includes(column));
 
           this.loading = false;
-
           if (this.data) this.onRefresh.emit();
         }));
 
@@ -185,7 +181,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     this.taxonGroups = this.registerCellValueChanges('taxonGroup')
       .pipe(
         debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value,{
+        switchMap((value) => this.referentialRefService.suggest(value, {
               entityName: 'TaxonGroup',
               levelId: TaxonGroupIds.FAO,
               searchAttribute: 'label'
@@ -209,8 +205,11 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   }
 
   getRowValidator(): FormGroup {
-    let formGroup = this.validatorService.getFormGroup();
+    let formGroup = this.validatorService.getRowValidator();
     if (this.measurementValuesFormGroupConfig) {
+      if (formGroup.contains('measurementValues')) {
+        formGroup.removeControl('measurementValues');
+      }
       formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
     }
     return formGroup;
@@ -225,7 +224,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     options?: any
   ): Observable<LoadResult<Sample>> {
     if (!this.data) {
-      if (this.debug) console.debug("[sample-table] Unable to load row: value not set (or not started)");
+      if (this.debug) console.debug("[sample-table] Unable to load rows: no value!");
       return Observable.empty(); // Not initialized
     }
 
@@ -261,7 +260,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
           this.sortSamples(data, sortBy, sortDirection);
           if (this.debug) console.debug(`[sample-table] Rows loaded in ${Date.now() - now}ms`, data);
 
-          this._dataSubject.next({data: data});
+          this._dataSubject.next({data: data, total: data.length});
         });
     }
 
@@ -343,7 +342,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
       .forEach(pmfm => {
         sample.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
       });
-    this.cd.markForCheck();
+    this.markForCheck();
   }
 
   protected getI18nColumnName(columnName: string): string {
@@ -372,9 +371,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
-    if (isNil(this._program) || isNil(this._acquisitionLevel)) {
-      return undefined;
-    }
+    if (isNil(this._program) || isNil(this._acquisitionLevel)) return undefined;
 
     this.loading = true;
     this.loadingPmfms = true;
@@ -394,12 +391,16 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
 
     this.pmfms.next(pmfms);
 
-    this.cd.markForCheck();
+    this.markForCheck();
 
     return pmfms;
   }
 
   referentialToString = referentialToString;
   getPmfmColumnHeader = getPmfmName;
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }
 

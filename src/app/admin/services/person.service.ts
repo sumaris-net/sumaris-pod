@@ -7,6 +7,7 @@ import {TableDataService, LoadResult, DataService} from "../../shared/shared.mod
 import {BaseDataService} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
+import {GraphqlService} from "../../core/services/graphql.service";
 //import {environment} from "../../../environments/environment";
 
 export const PersonFragments = {
@@ -67,9 +68,9 @@ const DeletePersons: any = gql`
 export class PersonService extends BaseDataService implements TableDataService<Person, PersonFilter>, DataService<Person, PersonFilter> {
 
   constructor(
-    protected apollo: Apollo
+    protected graphql: GraphqlService
   ) {
-    super(apollo);
+    super(graphql);
 
     // for DEV only -----
     //this._debug = !environment.production;
@@ -77,11 +78,11 @@ export class PersonService extends BaseDataService implements TableDataService<P
 
   /**
    * Load/search some persons
-   * @param offset 
-   * @param size 
-   * @param sortBy 
-   * @param sortDirection 
-   * @param filter 
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
    */
   public watchAll(
     offset: number,
@@ -103,11 +104,11 @@ export class PersonService extends BaseDataService implements TableDataService<P
 
     console.debug("[person-service] Watching persons, using filter: ", variables);
     return this.watchQuery<{ persons: Person[]; personsCount: number }>({
-        query: LoadAllQuery,
-        variables: variables,
-        error: { code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR" },
-        fetchPolicy: 'network-only'
-      })
+      query: LoadAllQuery,
+      variables: variables,
+      error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
+      fetchPolicy: 'network-only'
+    })
       .pipe(
         map(({persons, personsCount}) => {
           return {
@@ -133,7 +134,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
     const res = await this.query<{ persons: Person[]; personsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR" },
+      error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
       fetchPolicy: 'network-only'
     });
 
@@ -162,7 +163,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
       variables: {
         persons: json
       },
-      error: { code: ErrorCodes.SAVE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.SAVE_PERSONS_ERROR" }
+      error: {code: ErrorCodes.SAVE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.SAVE_PERSONS_ERROR"}
     });
     (res && res.savePersons && data)
       .forEach(entity => {
@@ -189,7 +190,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
       variables: {
         ids: ids
       },
-      error: { code: ErrorCodes.DELETE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.DELETE_PERSONS_ERROR" }
+      error: {code: ErrorCodes.DELETE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.DELETE_PERSONS_ERROR"}
     });
 
     // Update the cache
@@ -207,7 +208,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
 
   /* -- protected methods -- */
 
-  protected asObject(source: Person|any): any {
+  protected asObject(source: Person | any): any {
     if (!source) return undefined;
 
     if (!(source instanceof Person)) {

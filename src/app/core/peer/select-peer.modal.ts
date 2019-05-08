@@ -1,9 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {Peer} from "../services/model";
-import {merge, Observable, Subject} from "rxjs";
+import {Observable, Subject} from "rxjs";
 import {fadeInAnimation} from "../../shared/material/material.animations";
-import {debounceTime, map, mergeMap} from "rxjs/operators";
 import {HttpClient} from "@angular/common/http";
 
 @Component({
@@ -80,7 +79,7 @@ export class SelectPeerModal {
   }
 
   protected async refreshPeer(peer: Peer): Promise<Peer> {
-    const uri = peer.url + '/api/summary';
+    const uri = peer.url + '/api/node/info';
     try {
       const summary: any = await this.http.get(uri).toPromise();
       peer.status = 'UP';

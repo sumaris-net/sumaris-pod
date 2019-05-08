@@ -73,6 +73,7 @@ import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {SelectPeerModal} from "./peer/select-peer.modal";
 import {SettingsPage} from "./settings/settings.page";
 import {LocalSettingsValidatorService} from "./services/local-settings.validator";
+import {GraphqlService} from "./services/graphql.service";
 
 export {
   environment,
@@ -198,6 +199,7 @@ export function HttpLoaderFactory(http: HttpClient) {
   providers: [
     PlatformService,
     NetworkService,
+    GraphqlService,
     AccountService,
     AuthGuardService,
     CryptoService,

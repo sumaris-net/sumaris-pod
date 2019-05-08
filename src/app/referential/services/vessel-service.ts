@@ -11,6 +11,7 @@ import {Moment} from "moment";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 export declare class VesselFilter {
   date?: Date | Moment;
@@ -139,10 +140,10 @@ const DeleteVessels: any = gql`
 export class VesselService extends BaseDataService implements SuggestionDataService<VesselFeatures>, TableDataService<VesselFeatures, VesselFilter>{
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     private accountService: AccountService
   ) {
-    super(apollo);
+    super(graphql);
   }
 
   /**

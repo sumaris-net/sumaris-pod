@@ -12,6 +12,7 @@ import {ErrorCodes} from "./trip.errors";
 import {map, throttleTime} from "rxjs/operators";
 import {FetchPolicy} from "apollo-client";
 import {ObservedLocationFilter} from "./observed-location.service";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 
 export declare class ObservedVesselFilter extends ObservedLocationFilter {
@@ -65,10 +66,10 @@ export class ObservedVesselService extends BaseDataService implements TableDataS
   private mock = true;
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(apollo);
+    super(graphql);
 
     // FOR DEV ONLY
     this._debug = !environment.production;

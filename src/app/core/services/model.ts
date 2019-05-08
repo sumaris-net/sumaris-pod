@@ -1,5 +1,5 @@
 import {Moment} from "moment/moment";
-import {fromDateISOString, isNil, toDateISOString} from "../../shared/shared.module";
+import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../shared/shared.module";
 import {isNilOrBlank} from "../../shared/functions";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
@@ -557,7 +557,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
     const url = new URL(peerUrl);
     return Peer.fromObject({
       dns: url.hostname,
-      port: !isNilOrBlank(url.port) && url.port,
+      port: isNilOrBlank(url.port) ? undefined : url.port,
       useSsl: url.protocol && (url.protocol.startsWith('https') || url.protocol.startsWith('wss'))
     });
   }
@@ -599,7 +599,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
     this.dns = source.dns;
     this.ipv4 = source.ipv4;
     this.ipv6 = source.ipv6;
-    this.port = source.port && parseInt(source.port);
+    this.port = isNotNil(source.port) ? +source.port : undefined;
     this.pubkey = source.pubkey;
     this.useSsl = source.useSsl || (this.port === 443);
     return this;
@@ -615,7 +615,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
 
   get hostAndPort(): string {
     return (this.dns || this.ipv4 || this.ipv6) +
-      ((this.port !== 80 && this.port !== 443) ? ':' + this.port : '');
+      ((this.port && this.port !== 80 && this.port !== 443) ? ':' + this.port : '');
   }
 
   get reachable(): boolean {

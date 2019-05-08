@@ -117,6 +117,9 @@ ion-menu {
   }
 
   ion-footer {
+    // Avoid top border to be hide by 'hidden-xs' and 'hidden-sm'
+    display: block !important;
+
     ion-toolbar {
 
       ion-title {

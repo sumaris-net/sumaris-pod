@@ -14,7 +14,6 @@ import {
 import {Subject, Subscription} from "rxjs";
 import gql from "graphql-tag";
 import {TranslateService} from "@ngx-translate/core";
-import {Apollo} from "apollo-angular";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
@@ -24,6 +23,7 @@ import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {SETTINGS_STORAGE_KEY} from "../constants";
+import {GraphqlService} from "./graphql.service";
 
 
 export declare interface AccountHolder {
@@ -205,18 +205,29 @@ export class AccountService extends BaseDataService {
   }
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     private translate: TranslateService,
     private cryptoService: CryptoService,
     private storage: Storage
   ) {
-    super(apollo);
+    super(graphql);
 
     this.resetData();
 
     this.start();
 
-    this._debug = true;
+    // Send auth token to the graphql layer, when changed
+    this.onAuthTokenChange.subscribe((token) => this.graphql.setAuthToken(token));
+
+    this.graphql.onStart.subscribe(async () => {
+      if (this.isLogin()) {
+        console.debug("[account] Graphql restarted. Force logout, to auth again");
+        await this.logout();
+      }
+    });
+
+    // For DEV only
+    this._debug = !environment.production;
   }
 
   private resetData() {
@@ -231,12 +242,13 @@ export class AccountService extends BaseDataService {
 
   async start() {
     if (this._startPromise) return this._startPromise;
+    if (this._started) return;
 
     // Restoring local settings
     this._startPromise = this.restoreLocally()
       .then((account) => {
         this._started = true;
-        if (account) this.onLogin.next(this.data.account);
+        this._startPromise = undefined;
       });
     return this._startPromise;
   }
@@ -544,21 +556,24 @@ export class AccountService extends BaseDataService {
       console.error(error);
       // TODO: do not logout, but allow navigation on local data ?
       this.logout();
-      return
+      return;
     }
 
     // No account: stop here (= data not loaded)
     if (!accountStr) return;
 
-    let accountObj: any = JSON.parse(accountStr);
+    const accountObj: any = JSON.parse(accountStr);
     if (!accountObj) return;
 
-    let account = Account.fromObject(accountObj);
-    if (account.pubkey != pubkey) return;
+    const account = Account.fromObject(accountObj);
+    if (account.pubkey !== pubkey) return;
 
     this.data.account = account;
     this.data.mainProfile = getMainProfile(account.profiles);
     this.data.loaded = true;
+
+    // Emit event
+    this.onLogin.next(this.data.account);
 
     return account;
   }
@@ -626,9 +641,6 @@ export class AccountService extends BaseDataService {
       this.storage.remove(ACCOUNT_STORAGE_KEY),
       this.storage.remove(SECKEY_STORAGE_KEY)
     ]);
-
-    // Clear cache
-    await this.apollo.getClient().cache.reset();
 
     // Notify observers
     this.onLogout.next();

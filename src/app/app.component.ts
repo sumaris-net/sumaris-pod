@@ -56,16 +56,10 @@ export class AppComponent {
     private platform: PlatformService,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
-    private configurationService: ConfigService,
-    private splashScreen: SplashScreen,
-    private statusBar: StatusBar,
-    private keyboard: Keyboard
+    private configurationService: ConfigService
   ) {
 
     this.platform.ready().then(() => {
-
-      // Configure Cordova plugins
-      this.configureCordovaPlugins();
 
       // Listen for config changed
       this.configurationService.config.subscribe(config => this.onConfigChanged(config));
@@ -73,17 +67,13 @@ export class AppComponent {
       // Add additional account fields
       this.addAccountFields();
 
-      // Wait 1 more seconds, before hiding the splash screen
-      setTimeout(() => {
-        this.splashScreen.hide();
-      }, 1000);
     });
   }
 
   public onActivate(event) {
     // Make sure to scroll on top before changing state
     // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
-    let scrollToTop = window.setInterval(() => {
+    const scrollToTop = window.setInterval(() => {
       let pos = window.pageYOffset;
       if (pos > 0) {
         window.scrollTo(0, pos - 20); // how far to scroll on each step
@@ -120,7 +110,6 @@ export class AppComponent {
 
   }
 
-  additionnal
 
   protected updateTheme(options: { colors?: { primary?: string; secondary?: string; tertiary?: string; } }) {
     if (!options) return;
@@ -137,13 +126,6 @@ export class AppComponent {
         }
       });
     }
-  }
-
-  protected configureCordovaPlugins() {
-    console.info("[app] Setting cordova plugins...");
-    this.statusBar.styleDefault();
-    this.statusBar.overlaysWebView(false);
-    this.keyboard.hideFormAccessoryBar(true);
   }
 
   protected addAccountFields() {

@@ -23,7 +23,9 @@ export class SampleValidatorService implements ValidatorService {
       sampleDate: ['', Validators.required],
       taxonGroup: [null, SharedValidators.entity],
       taxonName: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-      comments: ['']
+      comments: [''],
+      parent: ['', SharedValidators.entity],
+      dirty: ['']
     });
   }
 }

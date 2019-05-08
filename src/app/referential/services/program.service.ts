@@ -7,6 +7,7 @@ import {BaseDataService, LoadResult, ReferentialRef, TableDataService} from "../
 import {ErrorCodes} from "./errors";
 import {Apollo} from "apollo-angular";
 import {ReferentialFragments} from "../services/referential.queries";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 export declare class ProgramFilter {
   searchText?: string;
@@ -93,9 +94,9 @@ const LoadProgramGears: any = gql`
 export class ProgramService extends BaseDataService implements TableDataService<Program, ProgramFilter> {
 
   constructor(
-    protected apollo: Apollo
+    protected graphql: GraphqlService
   ) {
-    super(apollo);
+    super(graphql);
 
     // -- For DEV only
     //this._debug = !environment.production;

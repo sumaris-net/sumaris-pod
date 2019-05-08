@@ -1,14 +1,15 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Apollo} from "apollo-angular";
 import {BaseDataService} from "./base.data-service.class";
 import {Configuration} from "./model";
 import {environment} from "../../../environments/environment";
 import {Storage} from "@ionic/storage";
 import {BehaviorSubject, Observable} from "rxjs";
 import {ErrorCodes} from "./errors";
-import {filter, first, map} from "rxjs/operators";
+import {filter} from "rxjs/operators";
 import {FetchPolicy} from "apollo-client";
+import {NetworkService} from "./network.service";
+import {GraphqlService} from "./graphql.service";
 
 
 const CONFIGURATION_STORAGE_KEY = "configuration";
@@ -76,65 +77,55 @@ export class ConfigService extends BaseDataService {
 
   get config(): Observable<Configuration> {
     // If first call: start loading
-    if (!this._started) this.start();
-    return this.$data
-      .pipe(
-        filter(config => config != null)
-      );
+    if (!this._started) {
+      this.start();
+    }
+    return this.$data.pipe(filter(config => config != null));
   }
 
   constructor(
-    protected apollo: Apollo,
-    protected storage: Storage
+    protected graphql: GraphqlService,
+    protected storage: Storage,
+    protected networkService: NetworkService
   ) {
-    super(apollo);
+    super(graphql);
+
+    networkService.onStart.subscribe(() => {
+      if (this.started) this.stop();
+      this.start();
+    });
   }
 
-  async start(): Promise<any> {
+  start(): Promise<any> {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;
 
-    console.debug("[config] Loading configuration (from pod)...");
+    console.info("[config] Starting configuration...");
 
-    this._startPromise = new Promise(async (resolve) => {
-      let data;
-      try {
-        data = await this.load();
-
-        if (data) {
-          // Save it into local storage, for next startup
-          setTimeout(() => this.saveLocally(data), 500);
-        }
-      } catch (err) {
+    this._startPromise = this.loadOrRestoreLocally()
+      .then(() => {
+        this._started = true;
+        this._startPromise = undefined;
+      })
+      .catch((err) => {
         console.error(err && err.message || err);
-      }
-
-      // If not loaded remotely: try to restore it
-      if (!data) {
-        data = await this.restoreLocally();
-      }
-
-      // Make sure label has been filled
-      data.label = data.label || environment.name;
-
-      // Reset name if same
-      data.name = (data.name !== data.label) ? data.name : undefined;
-
-      this.$data.next(data);
-      this._started = true;
-      this._startPromise = undefined;
-
-      resolve();
-    });
+        this._startPromise = undefined;
+      });
     return this._startPromise;
 
+  }
+
+  stop() {
+    this._started = false;
+    this._startPromise = undefined;
   }
 
   async load(options?: {
     fetchPolicy?: FetchPolicy
   }): Promise<Configuration> {
 
-    console.debug("[config] Loading pod configuration...");
+    const now = Date.now();
+    console.debug("[config] Loading remote configuration...");
 
     const res = await this.query<{ configuration: Configuration }>({
       query: LoadQuery,
@@ -144,7 +135,7 @@ export class ConfigService extends BaseDataService {
     });
 
     const data = res && res.configuration && Configuration.fromObject(res && res.configuration);
-    console.info("[config] Configuration loaded (from pod): ", data);
+    console.info(`[config] Remote configuration loaded in ${Date.now() - now}ms:`, data);
     return data;
   }
 
@@ -185,6 +176,34 @@ export class ConfigService extends BaseDataService {
   }
 
   /* -- private method -- */
+
+  private async loadOrRestoreLocally() {
+    let data;
+    try {
+      data = await this.load({fetchPolicy: "network-only"});
+
+      if (data) {
+        // Save it into local storage, for next startup
+        setTimeout(() => this.saveLocally(data), 500);
+      }
+    } catch (err) {
+      console.error(err && err.message || err);
+    }
+
+    // If not loaded remotely: try to restore it
+    if (!data) {
+      data = await this.restoreLocally();
+    }
+
+    // Make sure label has been filled
+    data.label = data.label || environment.name;
+
+    // Reset name if same
+    data.name = (data.name !== data.label) ? data.name : undefined;
+
+    this.$data.next(data);
+
+  }
 
   private async restoreLocally(): Promise<Configuration> {
     let data: Configuration;

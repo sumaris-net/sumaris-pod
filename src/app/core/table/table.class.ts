@@ -15,7 +15,7 @@ import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
-import {isNotNil} from "../../shared/shared.module";
+import {isNotNil, LoadResult} from "../../shared/shared.module";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -168,7 +168,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
               if (this.debug) console.debug("[table] Skipping data load: no dataSource defined");
               return Observable.of(undefined);
             }
-            if (this.debug) console.debug("[table] Calling dataSource.load()...");
+            if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
             return this.dataSource.watchAll(
               this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
               this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,

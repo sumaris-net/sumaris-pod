@@ -10,6 +10,7 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 
 import {FetchPolicy} from "apollo-client";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 export declare class ReferentialFilter {
   entityName: string;
@@ -86,10 +87,10 @@ const DeleteReferentials: any = gql`
 export class ReferentialService extends BaseDataService implements TableDataService<Referential, ReferentialFilter> {
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(apollo);
+    super(graphql);
     this._debug = true;
   }
 

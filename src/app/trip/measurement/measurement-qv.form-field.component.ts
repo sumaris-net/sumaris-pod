@@ -211,7 +211,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   }
 
   private updateTabIndex() {
-    console.log("Updating tab index !");
     if (this.tabindex && this.tabindex !== -1) {
       if (this.matInput) {
         this.matInput.nativeElement.tabIndex = this.tabindex;

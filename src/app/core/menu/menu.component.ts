@@ -87,13 +87,12 @@ export class MenuComponent implements OnInit {
   }
 
   onLogin(account: Account) {
-    console.info('[menu] Account logged');
+    console.info('[menu] Update using logged account');
     this.account = account;
     this.isLogin = true;
     this.splitPaneOpened = true;
     this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     this.updateItems();
-    this.cd.markForCheck();
 
     setTimeout(() => {
       this.loading = false;
@@ -102,7 +101,7 @@ export class MenuComponent implements OnInit {
   }
 
   async onLogout(skipRedirect?: boolean) {
-    console.debug("[menu] logout");
+    if (!skipRedirect) console.debug("[menu] logout");
     this.isLogin = false;
     this.splitPaneOpened = false;
     this.splitPane.when = false;

@@ -12,6 +12,7 @@ import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {Fragments} from "./trip.queries";
 import {FetchPolicy} from "apollo-client";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -207,10 +208,10 @@ export class TripService extends BaseDataService implements TableDataService<Tri
   protected loading = false;
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(apollo);
+    super(graphql);
 
     // FOR DEV ONLY
     //this._debug = !environment.production;

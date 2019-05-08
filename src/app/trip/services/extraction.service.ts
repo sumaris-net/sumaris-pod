@@ -10,6 +10,7 @@ import {AccountService} from "../../core/services/account.service";
 import {ExtractionResult, ExtractionType} from "./extraction.model";
 import {FetchPolicy} from "apollo-client";
 import {trimEmptyToNull} from "../../shared/functions";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 
 export declare class ExtractionFilter {
@@ -62,10 +63,10 @@ const GetFileQuery: any = gql`
 export class ExtractionService extends BaseDataService{
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(apollo);
+    super(graphql);
 
     // FOR DEV ONLY
     this._debug = !environment.production;

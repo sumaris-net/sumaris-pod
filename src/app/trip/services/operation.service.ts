@@ -9,6 +9,7 @@ import {AccountService, BaseDataService} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy} from "apollo-client";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -138,10 +139,10 @@ const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
 export class OperationService extends BaseDataService implements TableDataService<Operation, OperationFilter> {
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(apollo);
+    super(graphql);
 
     // -- For DEV only
     //this._debug = !environment.production;

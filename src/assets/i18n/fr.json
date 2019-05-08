@@ -198,7 +198,10 @@
       "FIELD": "Saisie sur le terrain",
       "DESK": "Saisie au bureau (a posteriori)"
     },
-    "BTN_CHANGE_PEER": "Changer de noeud"
+    "BTN_CHANGE_PEER": "Changer de noeud",
+    "ERROR": {
+      "PEER_NOT_REACHABLE": "Noeud injoignable."
+    }
   },
   "USER": {
     "TITLE": "Utilisateur",

@@ -13,6 +13,7 @@ import {isNil} from "./trip.model";
 import {ErrorCodes} from "./trip.errors";
 import {map, throttleTime} from "rxjs/operators";
 import {FetchPolicy} from "apollo-client";
+import {GraphqlService} from "../../core/services/graphql.service";
 
 
 export declare class ObservedLocationFilter {
@@ -114,10 +115,10 @@ const LoadQuery: any = gql`
 export class ObservedLocationService extends BaseDataService implements TableDataService<ObservedLocation, ObservedLocationFilter> {
 
   constructor(
-    protected apollo: Apollo,
+    protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(apollo);
+    super(graphql);
 
     // FOR DEV ONLY
     this._debug = !environment.production;
