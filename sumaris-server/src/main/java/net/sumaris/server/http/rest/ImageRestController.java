@@ -28,6 +28,7 @@ import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.codec.binary.Base64;
@@ -43,6 +44,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -67,6 +69,9 @@ public class ImageRestController implements ResourceLoaderAware {
 
     @Autowired
     private SoftwareService softwareService;
+
+    @Autowired
+    private SumarisServerConfiguration config;
 
     private ResourceLoader resourceLoader;
 
@@ -125,7 +130,7 @@ public class ImageRestController implements ResourceLoaderAware {
     @ResponseBody
     @RequestMapping(value = RestPaths.FAVICON, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public ResponseEntity<byte[]> getFavicon() {
+    public Object getFavicon() {
 
         SoftwareVO software = softwareService.getDefault();
         if (software == null) return ResponseEntity.notFound().build();
@@ -151,18 +156,18 @@ public class ImageRestController implements ResourceLoaderAware {
 
             return ResponseEntity.ok()
                     .contentLength(faviconResource.contentLength())
-                    //.contentType(MediaType.parseMediaType("applicaiton"))
                     .body(bos.toByteArray());
         } catch(IOException e) {
             log.error(e.getMessage(), e);
         }
 
         // Try a redirection
-        try  {
-            return ResponseEntity.created(new URI(favicon)).build();
-        } catch(URISyntaxException e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.notFound().build();
+        if (!favicon.startsWith("http")) {
+            if (!favicon.startsWith("/")) {
+                return new RedirectView(config.getServerUrl() + "/" + favicon);
+            }
+            return new RedirectView(config.getServerUrl() + favicon);
         }
+        return new RedirectView(favicon);
     }
 }
