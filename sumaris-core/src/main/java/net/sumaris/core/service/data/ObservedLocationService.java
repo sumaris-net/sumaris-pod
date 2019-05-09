@@ -58,9 +58,9 @@ public interface ObservedLocationService {
 	@Transactional(readOnly = true)
 	ObservedLocationVO get(int id);
 
-	ObservedLocationVO save(ObservedLocationVO data, boolean withOperation);
+	ObservedLocationVO save(ObservedLocationVO data, boolean withObservedVessel);
 
-	List<ObservedLocationVO> save(List<ObservedLocationVO> data, boolean withOperation);
+	List<ObservedLocationVO> save(List<ObservedLocationVO> data, boolean withObservedVessel);
 
 	void delete(int id);
 

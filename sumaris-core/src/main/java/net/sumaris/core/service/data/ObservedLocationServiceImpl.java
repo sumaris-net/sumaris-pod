@@ -89,7 +89,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public ObservedLocationVO save(final ObservedLocationVO source, final boolean withOperation) {
+	public ObservedLocationVO save(final ObservedLocationVO source, final boolean withObservedVessel) {
 		Preconditions.checkNotNull(source);
 		Preconditions.checkNotNull(source.getProgram(), "Missing program");
 		Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
@@ -120,11 +120,11 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public List<ObservedLocationVO> save(List<ObservedLocationVO> observedLocations, final boolean withOperation) {
+	public List<ObservedLocationVO> save(List<ObservedLocationVO> observedLocations, final boolean withObservedVessel) {
 		Preconditions.checkNotNull(observedLocations);
 
 		return observedLocations.stream()
-				.map(t -> save(t, withOperation))
+				.map(t -> save(t, withObservedVessel))
 				.collect(Collectors.toList());
 	}
 
