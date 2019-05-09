@@ -48,7 +48,6 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     alertCtrl: AlertController,
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
-    protected accountService: AccountService,
     protected dataService: ObservedLocationService,
     protected settingsService: LocalSettingsService,
     protected cd: ChangeDetectorRef
@@ -90,9 +89,8 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
       // Create using default values
       const data = new ObservedLocation();
 
-      const isOnFieldMode = this.accountService.isUsageMode('FIELD');
       // If is on field mode, fill default values
-      if (isOnFieldMode) {
+      if (this.isOnFieldMode) {
         data.startDateTime = moment();
         // TODO : get the default program from local settings ?
         //data.program = ...;

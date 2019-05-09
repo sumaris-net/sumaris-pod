@@ -33,14 +33,14 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected tripValidatorService: TripValidatorService,
+    protected validatorService: TripValidatorService,
     protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, tripValidatorService.getFormGroup());
+    super(dateAdapter, validatorService.getFormGroup());
   }
 
   ngOnInit() {

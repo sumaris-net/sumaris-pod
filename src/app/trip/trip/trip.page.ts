@@ -8,7 +8,7 @@ import {EntityUtils, Trip} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AccountService, AppFormUtils, AppTabPage, environment} from '../../core/core.module';
+import {AppFormUtils, AppTabPage, environment} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {TranslateService} from '@ngx-translate/core';
 import {Subject} from 'rxjs';
@@ -55,7 +55,6 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     alertCtrl: AlertController,
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
-    protected accountService: AccountService,
     protected dataService: TripService,
     protected settingsService: LocalSettingsService,
     protected cd: ChangeDetectorRef

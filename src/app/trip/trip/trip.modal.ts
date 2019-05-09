@@ -7,6 +7,7 @@ import {TripPage} from "./trip.page";
 import {TranslateService} from '@ngx-translate/core';
 import {DateFormatPipe} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'modal-trip',
@@ -23,17 +24,17 @@ export class TripModal extends TripPage {
     alterCtrl: AlertController,
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
-    protected tripService: TripService,
-    protected accountService: AccountService,
+    protected dataService: TripService,
+    protected settingsService: LocalSettingsService,
     protected viewCtrl: ModalController,
     protected cd: ChangeDetectorRef) {
-    super(route, router, alterCtrl, translate, dateFormat, accountService, tripService, cd);
+    super(route, router, alterCtrl, translate, dateFormat, dataService, settingsService, cd);
   }
 
   async save(event: any): Promise<boolean> {
 
     try {
-      let saved = await super.save(event);
+      const saved = await super.save(event);
       if (saved) {
         this.viewCtrl.dismiss(this.data);
       }
@@ -50,11 +51,11 @@ export class TripModal extends TripPage {
   }
 
   public isEnd(): boolean {
-    return this.stepper.selectedIndex == 2;
+    return this.stepper.selectedIndex === 2;
   }
 
   public isBeginning(): boolean {
-    return this.stepper.selectedIndex == 0;
+    return this.stepper.selectedIndex === 0;
   }
 
   public slidePrev() {
