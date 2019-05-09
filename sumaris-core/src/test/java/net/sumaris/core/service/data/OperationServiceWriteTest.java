@@ -70,9 +70,9 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
 
     @Before
     public void setUp() {
-        this.parent = tripService.get(dbResource.getFixtures().getTripId(0));
-        Assume.assumeNotNull(this.parent);
         this.fixtures = dbResource.getFixtures();
+        this.parent = tripService.get(fixtures.getTripId(0));
+        Assume.assumeNotNull(this.parent);
     }
 
     @Test
@@ -214,6 +214,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
             sample.setLabel(AcquisitionLevelEnum.SURVIVAL_TEST.label + "#1");
             sample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
             sample.setComments("A survival test sample #1");
+            sample.setProgram(fixtures.getDefaultProgram());
 
             // Measurements (as map)
             sample.setMeasurementValues(
@@ -238,7 +239,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
                 // Measurements (as map)
                 childSample.setMeasurementValues(
                         ImmutableMap.<Integer, String>builder()
-                                .put(100, "0")
+                                .put(fixtures.getPmfmSampleIsDead(), "0")
                                 .build());
                 children.add(childSample);
             }

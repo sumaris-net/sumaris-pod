@@ -590,8 +590,15 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         }
 
         PmfmVO pmfm = pmfmDao.get(pmfmId);
+        if (pmfm == null) {
+            throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to find pmfm with id=" + pmfmId);
+        }
 
         ParameterValueType type = ParameterValueType.fromPmfm(pmfm);
+        if (type == null) {
+            throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to find the type of the pmfm with id=" + pmfmId);
+        }
+
         switch (type) {
             case BOOLEAN:
                 target.setNumericalValue(Boolean.parseBoolean(value) || "1".equals(value) ? 1d : 0d);

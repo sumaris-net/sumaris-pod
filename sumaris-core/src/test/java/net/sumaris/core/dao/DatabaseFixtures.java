@@ -188,4 +188,8 @@ public class DatabaseFixtures {
 		return 82;
 	}
 
+	public Integer getPmfmSampleIsDead() {
+		return 94;
+	}
+
 }
