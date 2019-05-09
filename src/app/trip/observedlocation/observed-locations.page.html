@@ -103,7 +103,7 @@
   </ion-item>
 
   <!-- table -->
-  <mat-table #table [dataSource]="dataSource" matSort matSortActive="dateTime" matSortDirection="asc"
+  <mat-table #table [dataSource]="dataSource" matSort matSortActive="startDateTime" matSortDirection="asc"
              matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
@@ -176,7 +176,7 @@
         <ion-label translate>OBSERVED_LOCATION.TABLE.OBSERVERS</ion-label>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <ion-text>{{ personsToString(row.currentData.observers) }}</ion-text>
+        <ion-text>{{ personsToString(row.currentData?.observers) }}</ion-text>
       </mat-cell>
     </ng-container>
 

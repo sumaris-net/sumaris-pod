@@ -132,7 +132,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     // Saving variables, to be able to update the cache when saving or deleting
     this._lastVariables.loadAll = variables;
 
-    return this.watchQuery<{ referentials: any[]; referentialsCount: number }>({
+    return this.graphql.watchQuery<{ referentials: any[]; referentialsCount: number }>({
         query: LoadAllQuery,
         variables: variables,
         error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
@@ -180,7 +180,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const now = new Date();
     if (this._debug) console.debug(`[referential-service] Saving all ${entityName}...`, json);
 
-    const res = await this.mutate<{ saveReferentials: Referential[] }>({
+    const res = await this.graphql.mutate<{ saveReferentials: Referential[] }>({
       mutation: SaveReferentials,
       variables: {
         referentials: json
@@ -230,7 +230,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const now = new Date();
     if (this._debug) console.debug(`[referential-service] Saving ${entity.entityName}...`, json);
 
-    const data = await this.mutate<{ saveReferentials: any }>({
+    const data = await this.graphql.mutate<{ saveReferentials: any }>({
       mutation: SaveReferentials,
       variables: {
         referentials: [json]
@@ -282,7 +282,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const now = new Date();
     if (this._debug) console.debug(`[referential-service] Deleting ${entityName}...`, ids);
 
-    const res = await this.mutate<any>({
+    const res = await this.graphql.mutate<any>({
       mutation: DeleteReferentials,
       variables: {
         entityName: entityName,
@@ -309,7 +309,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
    */
   loadTypes(): Observable<ReferentialType[]> {
     if (this._debug) console.debug("[referential-service] Loading referential types...");
-    return this.watchQuery<{ referentialTypes: ReferentialType[] }>({
+    return this.graphql.watchQuery<{ referentialTypes: ReferentialType[] }>({
       query: LoadReferentialTypes,
       variables: null,
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ENTITIES_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ENTITIES_ERROR" }
@@ -331,7 +331,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const now = new Date();
     if (this._debug) console.debug(`[referential-service] Loading levels for ${entityName}...`);
 
-    const data = await this.query<{ referentialLevels: Referential[] }>({
+    const data = await this.graphql.query<{ referentialLevels: Referential[] }>({
       query: LoadReferentialLevels,
       variables: {
         entityName: entityName

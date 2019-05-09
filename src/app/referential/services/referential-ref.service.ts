@@ -85,7 +85,7 @@ export class ReferentialRefService extends BaseDataService
     const now = new Date();
     if (this._debug) console.debug(`[referential-ref-service] Watching references on ${entityName}...`, variables);
 
-    return this.watchQuery<{ referentials: any[]; referentialsCount: number }>({
+    return this.graphql.watchQuery<{ referentials: any[]; referentialsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
@@ -139,7 +139,7 @@ export class ReferentialRefService extends BaseDataService
     const now = Date.now();
     if (this._debug) console.debug(`[referential-ref-service] Loading references on ${entityName}...`, variables);
 
-    const res = await this.query<{ referentials: any[]; referentialsCount: number }>({
+    const res = await this.graphql.query<{ referentials: any[]; referentialsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },

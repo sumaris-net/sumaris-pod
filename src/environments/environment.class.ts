@@ -12,5 +12,6 @@ export class Environment {
   mock?: boolean;
   listenRemoteChanges?: boolean;
 
-  defaultPeers?: {host: string; port: number; useSsl?: boolean;}[];
+  defaultPeer?: { host: string; port: number; useSsl?: boolean; } | undefined | null;
+  defaultPeers?: { host: string; port: number; useSsl?: boolean; }[];
 };

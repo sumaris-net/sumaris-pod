@@ -23,7 +23,7 @@ import {
   referentialToString,
   vesselFeaturesToString
 } from "../../referential/referential.module";
-import {debounceTime, switchMap} from "rxjs/operators";
+import {debounceTime, startWith, switchMap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 
 @Component({
@@ -103,8 +103,8 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     // Programs combo (filter)
     this.programs = this.filterForm.controls['program']
       .valueChanges
-      .startWith('')
       .pipe(
+        startWith('*'),
         debounceTime(250),
         switchMap(value => this.referentialRefService.suggest(value,{entityName: 'Program'}))
       );

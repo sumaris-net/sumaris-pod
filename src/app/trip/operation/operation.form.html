@@ -94,13 +94,15 @@
               </mat-date-time>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
-              <mat-latlong formControlName="latitude" type="latitude" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
+              <mat-latlong formControlName="latitude" type="latitude" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
+                  [latLongPattern]="latLongFormat">
               </mat-latlong>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
               <mat-latlong formControlName="longitude"
                            type="longitude"
-                           [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
+                           [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
+                           [latLongPattern]="latLongFormat">
                 <button type="button" mat-icon-button matSuffix (click)="fillPosition('startPosition')" tabindex="-1" *ngIf="enableGps">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
@@ -128,11 +130,17 @@
               </mat-date-time>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
-              <mat-latlong formControlName="latitude" type="latitude" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate">
+              <mat-latlong formControlName="latitude"
+                           type="latitude"
+                           [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
+                           [latLongPattern]="latLongFormat">
               </mat-latlong>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
-              <mat-latlong formControlName="longitude" type="longitude" [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate">
+              <mat-latlong formControlName="longitude"
+                           type="longitude"
+                           [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
+                           [latLongPattern]="latLongFormat">
                 <button type="button" mat-icon-button matSuffix (click)="fillPosition('endPosition')" tabindex="-1" *ngIf="enableGps">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>

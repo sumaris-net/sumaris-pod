@@ -155,7 +155,7 @@ const LoadQuery: any = gql`
   }
   ${TripFragments.trip}
 `;
-const SaveTrips: any = gql`
+const SaveAllQuery: any = gql`
   mutation saveTrips($trips:[TripVOInput]){
     saveTrips(trips: $trips){
       ...TripFragment
@@ -163,38 +163,38 @@ const SaveTrips: any = gql`
   }
   ${TripFragments.trip}
 `;
-const ControlTrip: any = gql`
-  mutation controlTrip($trip:TripVOInput){
+const ControlMutation: any = gql`
+  mutation ControlTrip($trip:TripVOInput){
     controlTrip(trip: $trip){
       ...TripFragment
     }
   }
   ${TripFragments.trip}
 `;
-const ValidateTrip: any = gql`
-  mutation validateTrip($trip:TripVOInput){
+const ValidateMutation: any = gql`
+  mutation ValidateTrip($trip:TripVOInput){
     validateTrip(trip: $trip){
       ...TripFragment
     }
   }
   ${TripFragments.trip}
 `;
-const UnvalidateTrip: any = gql`
-  mutation unvalidateTrip($trip:TripVOInput){
+const UnvalidateMutation: any = gql`
+  mutation UnvalidateTrip($trip:TripVOInput){
     unvalidateTrip(trip: $trip){
       ...TripFragment
     }
   }
   ${TripFragments.trip}
 `;
-const DeleteTrips: any = gql`
-  mutation deleteTrips($ids:[Int]){
+const DeleteByIdsMutation: any = gql`
+  mutation DeleteTrips($ids:[Int]){
     deleteTrips(ids: $ids)
   }
 `;
 
 const UpdateSubscription = gql`
-  subscription updateTrip($id: Int, $interval: Int){
+  subscription UpdateTrip($id: Int, $interval: Int){
     updateTrip(id: $id, interval: $interval) {
       ...TripFragment
     }
@@ -242,7 +242,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
 
     let now = Date.now();
     if (this._debug) console.debug("[trip-service] Watching trips... using options:", variables);
-    return this.watchQuery<{ trips: Trip[]; tripsCount: number }>({
+    return this.graphql.watchQuery<{ trips: Trip[]; tripsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" }
@@ -273,7 +273,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     const now = Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
 
-    const res = await this.query<{ trip: Trip }>({
+    const res = await this.graphql.query<{ trip: Trip }>({
       query: LoadQuery,
       variables: {
         id: id
@@ -329,8 +329,8 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving trips...", json);
 
-    const res = await this.mutate<{ saveTrips: Trip[] }>({
-      mutation: SaveTrips,
+    const res = await this.graphql.mutate<{ saveTrips: Trip[] }>({
+      mutation: SaveAllQuery,
       variables: {
         trips: json
       },
@@ -361,31 +361,31 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     const json = this.asObject(entity);
     const isNew = isNil(entity.id);
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving trip...", json);
 
-    const res = await this.mutate<{ saveTrips: any }>({
-      mutation: SaveTrips,
+    const res = await this.graphql.mutate<{ saveTrips: any }>({
+      mutation: SaveAllQuery,
       variables: {
         trips: [json]
       },
       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" }
     });
 
-    const savedTrip = res && res.saveTrips && res.saveTrips[0];
-    if (savedTrip) {
-      this.copyIdAndUpdateDate(savedTrip, entity);
+    const savedEntity = res && res.saveTrips && res.saveTrips[0];
+    if (savedEntity) {
+      this.copyIdAndUpdateDate(savedEntity, entity);
 
       // Add to cache
       if (isNew && this._lastVariables.loadAll) {
         this.addToQueryCache({
           query: LoadAllQuery,
           variables: this._lastVariables.loadAll
-        }, 'trips', savedTrip);
+        }, 'trips', savedEntity);
       }
     }
 
-    if (this._debug) console.debug("[trip-service] Trip saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+    if (this._debug) console.debug(`[trip-service] Trip saved in ${Date.now() - now}ms`, entity);
 
     return entity;
   }
@@ -411,8 +411,8 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     const now = new Date();
     if (this._debug) console.debug("[trip-service] Control trip...", json);
 
-    const res = await this.mutate<{ controlTrip: any }>({
-      mutation: ControlTrip,
+    const res = await this.graphql.mutate<{ controlTrip: any }>({
+      mutation: ControlMutation,
       variables: {
         trip: json
       },
@@ -441,7 +441,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       throw "Entity must be controlled before validate !"
     }
     if (isNotNil(entity.validationDate)) {
-      throw "Entity is already validated !"
+      throw "Entity is already validated !";
     }
 
     // Prepare to save
@@ -453,19 +453,19 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     const now = new Date();
     if (this._debug) console.debug("[trip-service] Validate trip...", json);
 
-    const res = await this.mutate<{ validateTrip: any }>({
-      mutation: ValidateTrip,
+    const res = await this.graphql.mutate<{ validateTrip: any }>({
+      mutation: ValidateMutation,
       variables: {
         trip: json
       },
       error: { code: ErrorCodes.VALIDATE_TRIP_ERROR, message: "TRIP.ERROR.VALIDATE_TRIP_ERROR" }
     });
 
-    let savedTrip = res && res.validateTrip;
-    if (savedTrip) {
-      this.copyIdAndUpdateDate(savedTrip, entity);
-      entity.controlDate = savedTrip.controlDate || entity.controlDate;
-      entity.validationDate = savedTrip.validationDate || entity.validationDate;
+    let savedEntity = res && res.validateTrip;
+    if (savedEntity) {
+      this.copyIdAndUpdateDate(savedEntity, entity);
+      entity.controlDate = savedEntity.controlDate || entity.controlDate;
+      entity.validationDate = savedEntity.validationDate || entity.validationDate;
     }
 
     if (this._debug) console.debug("[trip-service] Trip validated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
@@ -480,7 +480,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
   async unvalidateTrip(entity: Trip) {
 
     if (isNil(entity.validationDate)) {
-      throw "Entity is not validated yet !"
+      throw "Entity is not validated yet !";
     }
 
     // Prepare to save
@@ -492,19 +492,19 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     const now = new Date();
     if (this._debug) console.debug("[trip-service] Unvalidate trip...", json);
 
-    const res = await this.mutate<{ unvalidateTrip: any }>({
-      mutation: UnvalidateTrip,
+    const res = await this.graphql.mutate<{ unvalidateTrip: any }>({
+      mutation: UnvalidateMutation,
       variables: {
         trip: json
       },
       error: { code: ErrorCodes.UNVALIDATE_TRIP_ERROR, message: "TRIP.ERROR.UNVALIDATE_TRIP_ERROR" }
     });
 
-    let savedTrip = res && res.unvalidateTrip;
-    if (savedTrip) {
-      this.copyIdAndUpdateDate(savedTrip, entity);
-      entity.controlDate = savedTrip.controlDate || entity.controlDate;
-      entity.validationDate = savedTrip.validationDate; // should be null
+    let savedEntity = res && res.unvalidateTrip;
+    if (savedEntity) {
+      this.copyIdAndUpdateDate(savedEntity, entity);
+      entity.controlDate = savedEntity.controlDate || entity.controlDate;
+      entity.validationDate = savedEntity.validationDate; // should be null
     }
 
     if (this._debug) console.debug("[trip-service] Trip unvalidated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
@@ -517,16 +517,15 @@ export class TripService extends BaseDataService implements TableDataService<Tri
    * @param entities
    */
   async deleteAll(entities: Trip[]): Promise<any> {
-
-    let ids = entities && entities
+    const ids = entities && entities
       .map(t => t.id)
-      .filter(id => (id > 0));
+      .filter(isNotNil);
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[trip-service] Deleting trips... ids:", ids);
 
-    const res = await this.mutate<any>({
-      mutation: DeleteTrips,
+    const res = await this.graphql.mutate<any>({
+      mutation: DeleteByIdsMutation,
       variables: {
         ids: ids
       }
@@ -540,7 +539,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       }, 'trips', ids);
     }
 
-    if (this._debug) console.debug("[trip-service] Trips deleted in " + (new Date().getTime() - now.getTime()) + "ms");
+    if (this._debug) console.debug(`[trip-service] Trips deleted in ${Date.now() - now}ms`);
 
     return res;
   }

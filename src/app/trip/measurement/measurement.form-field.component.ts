@@ -1,17 +1,18 @@
 import {
-  Component,
-  Optional,
-  OnInit,
-  Input,
-  forwardRef,
   ChangeDetectionStrategy,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  Component,
+  forwardRef,
+  Input,
+  OnInit,
+  Optional
 } from '@angular/core';
-import {PmfmStrategy, getPmfmName} from "../services/trip.model";
-import {NG_VALUE_ACCESSOR, ControlValueAccessor, FormControl, FormGroupDirective, FormBuilder} from '@angular/forms';
+import {getPmfmName, PmfmStrategy} from "../services/trip.model";
+import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material";
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {AppFormUtils} from "../../core/core.module";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 const noop = () => {
 };
@@ -59,6 +60,10 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     return this.formControl.value;
   }
 
+  get latLongFormat(): string {
+    return this.settingsService.settings.latLongFormat || 'DDMM';
+  }
+
   writeValue(obj: any): void {
     if (this.pmfm.isNumeric && Number.isNaN(obj)) {
       //console.log("WARN: trying to set NaN value, in a measurement field ! " + this.constructor.name);
@@ -72,6 +77,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
   }
 
   constructor(
+    protected settingsService: LocalSettingsService,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
@@ -147,4 +153,5 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
   }
 
   filterNumberInput = AppFormUtils.filterNumberInput;
+
 }

@@ -16,6 +16,8 @@ export const environment: Environment = {
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
 
+  // Leave null,
+  defaultPeer: null,
   defaultPeers: [
     {
       host: 'www.sumaris.net',

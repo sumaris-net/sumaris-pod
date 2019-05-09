@@ -6,6 +6,7 @@ import {Platforms} from "@ionic/core";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {StatusBar} from "@ionic-native/status-bar/ngx";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
+import {LocalSettingsService} from "./local-settings.service";
 
 
 @Injectable()
@@ -26,7 +27,7 @@ export class PlatformService {
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
     private keyboard: Keyboard,
-    private configurationService: ConfigService,
+    private settingsService: LocalSettingsService,
     private networkService: NetworkService
   ) {
 
@@ -42,6 +43,7 @@ export class PlatformService {
     if (this._started) return;
 
     this._started = false;
+    console.info("[platform] Starting platform...");
 
     this._startPromise = Promise.all([
       this.platform.ready()
@@ -52,11 +54,13 @@ export class PlatformService {
           this.touchUi = this.platform.is('mobile') || this.platform.is('tablet') || this.platform.is('phablet');
           this.mobile = this.platform.is('mobile');
         }),
+      this.settingsService.ready(),
       this.networkService.ready()
     ])
       .then(() => {
         this._started = true;
         this._startPromise = undefined;
+        console.debug("[platform] Platform started");
 
         // Wait 1 more seconds, before hiding the splash screen
         setTimeout(() => {

@@ -1,33 +1,38 @@
-import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController} from "@ionic/angular";
 
-import {AccountService, AppFormUtils, AppTabPage, ReferentialRef} from '../../core/core.module';
+import {AccountService, AppFormUtils, AppTabPage, EntityUtils} from '../../core/core.module';
 import {TranslateService} from '@ngx-translate/core';
 import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
 import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
 import * as moment from "moment";
+import {Moment} from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocation} from "../services/observed-location.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import {ObservedVesselsTable} from "./observed-vessels.table";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'page-observed-location',
-  templateUrl: './observed-location.page.html'
+  templateUrl: './observed-location.page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationPage extends AppTabPage<ObservedLocation> implements OnInit {
 
-  protected _enableListenChanges: boolean = false; // TODO: enable
+  protected _enableListenChanges = (environment.listenRemoteChanges === true);
 
+  programSubject = new Subject<string>();
   title = new Subject<string>();
   saving: boolean = false;
   defaultBackHref: string = "/observations";
   showVesselTable = false;
   onRefresh = new EventEmitter<any>();
+  isOnFieldMode: boolean;
 
   @ViewChild('observedLocationForm') observedLocationForm: ObservedLocationForm;
 
@@ -44,9 +49,13 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
     protected accountService: AccountService,
-    protected dataService: ObservedLocationService
+    protected dataService: ObservedLocationService,
+    protected settingsService: LocalSettingsService,
+    protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, translate);
+
+    this.isOnFieldMode = this.settingsService.isUsageMode('FIELD');
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -56,8 +65,8 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     super.ngOnInit();
 
     // Register forms & tables
-    this.registerForms([this.observedLocationForm, this.measurementsForm]);
-      //.registerTables([this.physicalGearTable, this.operationTable]);
+    this.registerForms([this.observedLocationForm, this.measurementsForm])
+      .registerTables([this.vesselTable]);
 
     this.disable();
 
@@ -75,7 +84,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
   async load(id?: number, options?: any) {
     this.error = null;
 
-    // New saleControl
+    // New data
     if (isNil(id)) {
 
       // Create using default values
@@ -86,53 +95,80 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
       if (isOnFieldMode) {
         data.startDateTime = moment();
         // TODO : get the default program from local settings ?
-        data.program = ReferentialRef.fromObject({label: environment.defaultProgram});
+        //data.program = ...;
       }
 
       this.updateView(data);
       this.loading = false;
       this.showVesselTable = false;
+      this.startListenProgramChanges();
     }
 
-    // Load existing saleControl
+    // Load existing data
     else {
       const data = await this.dataService.load(id);
       this.updateView(data);
       this.loading = false;
       this.showVesselTable = true;
-      this.startListenChanges();
+      this.startListenRemoteChanges();
     }
   }
 
-  startListenChanges() {
-    if (!this._enableListenChanges) return;
+  startListenProgramChanges() {
 
-    // TODO
-    /*const subscription = this.dataService.listenChanges(this.data.id)
-      .subscribe((data: ObservedLocation | undefined) => {
-        const newUpdateDate = data && (data.updateDate as Moment)|| undefined;
-        if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
-          if (this.debug) console.debug("[sale-control] Detected update on server", newUpdateDate);
-          if (!this.dirty) {
-            this.updateView(data);
-          }
-        }
-      });
+    // If new trip
+    if (isNil(this.data.id)) {
 
-    // Add log when closing
-    if (this.debug) subscription.add(() => console.debug('[sale-control] [WS] Stop to listen changes'));
-
-    this.registerSubscription(subscription);*/
+      // Listen program changes (only if new data)
+      if (this.observedLocationForm && this.observedLocationForm.form) {
+        this.registerSubscription(this.observedLocationForm.form.controls['program'].valueChanges
+          .subscribe(program => {
+            if (EntityUtils.isNotEmpty(program)) {
+              console.debug("[observed-location] Propagate program change: " + program.label);
+              this.programSubject.next(program.label);
+            }
+          })
+        );
+      }
+    }
   }
 
-  updateView(data: ObservedLocation | null) {
+
+  startListenRemoteChanges() {
+    // Listen for changes on server
+    if (isNotNil(this.data.id) && this._enableListenChanges) {
+      this.registerSubscription(
+        this.dataService.listenChanges(this.data.id)
+          .subscribe((data: ObservedLocation | undefined) => {
+            const newUpdateDate = data && (data.updateDate as Moment) || undefined;
+            if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
+              if (this.debug) console.debug("[trip] Changes detected on server, at:", newUpdateDate);
+              if (!this.dirty) {
+                this.updateView(data, true);
+              }
+            }
+          })
+        );
+    }
+  }
+
+  updateView(data: ObservedLocation | null, updateVessels?: boolean) {
     this.data = data;
     this.observedLocationForm.value = data;
+    const isSaved = isNotNil(data.id);
+    if (isSaved) {
+      this.observedLocationForm.form.controls['program'].disable();
+      this.programSubject.next(data.program.label);
+    }
     this.measurementsForm.value = data && data.measurements || [];
     this.measurementsForm.updateControls();
 
-    this.vesselTable && this.vesselTable.setParent(data);
+    this.showVesselTable = isSaved;
+    if (updateVessels && this.vesselTable) {
+      this.vesselTable.setParent(data);
+    }
 
+    // Quality metadata
     this.qualityForm.value = data;
 
     this.updateTitle();
@@ -164,7 +200,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     this.saving = true;
     this.error = undefined;
 
-    if (this.debug) console.debug("[page-sale-control] Saving control...");
+    if (this.debug) console.debug("[observed-location] Saving control...");
 
     // Update ObservedLocation from JSON
     let json = this.observedLocationForm.value;
@@ -175,32 +211,41 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     const formDirty = this.dirty;
     const isNew = this.isNewData();
 
-    // TODO Update vessels, from table
-    //await this.vesselTable.save();
-    //this.data.vessels = this.vesselTable.value;
-
     this.disable();
 
     try {
       // Save saleControl form (with sale)
       const updatedData = formDirty ? await this.dataService.save(this.data) : this.data;
-      formDirty && this.markAsPristine();
-      formDirty && this.markAsUntouched();
+      if (formDirty) {
+        this.markAsPristine();
+        this.markAsUntouched();
+      }
 
+      // Save vessels
+      const isVesselSaved = !this.vesselTable || await this.vesselTable.save();
+      if (isVesselSaved && this.vesselTable) {
+        this.vesselTable.markAsPristine();
+      }
 
       // Update the view (e.g metadata)
-      this.updateView(updatedData);
+      this.updateView(updatedData, isNew/*will update tripId in filter*/);
 
-      // Update route location
+      // Is first save
       if (isNew) {
+
+        // Open the gear tab
+        this.selectedTabIndex = 1;
+        const queryParams = Object.assign({}, this.route.snapshot.queryParams, {tab: this.selectedTabIndex});
+
+        // Update route location
         this.router.navigate(['../' + updatedData.id], {
           relativeTo: this.route,
-          queryParams: this.route.snapshot.queryParams,
+          queryParams: queryParams,
           replaceUrl: true // replace the current state in history
         });
 
-        // Subscription to changes
-        this.startListenChanges();
+        // Subscription to remote changes
+        this.startListenRemoteChanges();
       }
 
       this.submitted = false;
@@ -221,12 +266,16 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
   enable() {
     if (!this.data || isNotNil(this.data.validationDate)) return false;
     // If not a new data, check user can write
-    if ((this.data.id || this.data.id === 0) && !this.dataService.canUserWrite(this.data)) {
-      if (this.debug) console.warn("[sale-control] Leave form disable (User has NO write access)");
+    if (isNotNil(this.data.id) && !this.dataService.canUserWrite(this.data)) {
+      if (this.debug) console.warn("[observed-location] Leave form disable (User has NO write access)");
       return;
     }
-    if (this.debug) console.debug("[sale-control] Enabling form (User has write access)");
+    if (this.debug) console.debug("[observed-location] Enabling form (User has write access)");
     super.enable();
+    // Leave program disable once saved
+    if (isNotNil(this.data.id)) {
+      this.observedLocationForm.form.controls['program'].disable();
+    }
   }
 
   protected async saveIfDirtyAndConfirm(): Promise<boolean> {
@@ -276,12 +325,12 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
   async updateTitle(data?: ObservedLocation) {
     data = data || this.data;
 
-    // new saleControl
     let title;
+    // new data
     if (!data || isNil(data.id)) {
       title = await this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
     }
-    // Existing saleControl
+    // Existing data
     else {
       title = await this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
         location: data.location && (data.location.label || data.location.name),
@@ -294,9 +343,12 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
   }
 
   protected logFormErrors() {
-    if (this.debug) console.debug("[page-sale-control] Form not valid. Detecting where...");
+    if (this.debug) console.debug("[observed-location] Form not valid. Detecting where...");
     if (!this.observedLocationForm.empty && this.observedLocationForm.invalid) {
-      AppFormUtils.logFormErrors(this.observedLocationForm.form, "[page-sale-control] [sale-form] ");
+      AppFormUtils.logFormErrors(this.observedLocationForm.form, "[observed-location] [sale-form] ");
+    }
+    if (this.measurementsForm.invalid) {
+      AppFormUtils.logFormErrors(this.measurementsForm.form, "[page-trip] [measurementsForm-form] ");
     }
   }
 
@@ -322,7 +374,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
   }
 
   public async onControl(event: Event) {
-    // Stop if saleControl is not valid
+    // Stop if data is not valid
     if (!this.valid) {
       // Stop the control
       event && event.preventDefault();
@@ -335,7 +387,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
       // Stop the control
       event && event.preventDefault();
 
-      console.debug("[sale-control] Saving control, before settings as controlled...");
+      console.debug("[observed-location] Saving data, before control...");
       const saved = await this.save(new Event('save'));
       if (saved) {
         // Loop
@@ -343,5 +395,11 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
       }
 
     }
+  }
+
+  /* -- protected methods -- */
+
+  protected markForCHeck() {
+    this.cd.markForCheck();
   }
 }

@@ -171,7 +171,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     this._lastVariables.loadAll = variables;
 
     if (this._debug) console.debug("[operation-service] Loading operations... using options:", variables);
-    return this.watchQuery<{ operations?: Operation[] }>({
+    return this.graphql.watchQuery<{ operations?: Operation[] }>({
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
@@ -213,7 +213,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     const now = Date.now();
     if (this._debug) console.debug(`[operation-service] Loading operation #${id}...`);
 
-    const res = await this.query<{ operation: Operation }>({
+    const res = await this.graphql.query<{ operation: Operation }>({
       query: LoadQuery,
       variables: {
         id: id
@@ -279,7 +279,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     const now = new Date();
     if (this._debug) console.debug("[operation-service] Saving operations...", json);
 
-    const res = await this.mutate<{ saveOperations: Operation[] }>({
+    const res = await this.graphql.mutate<{ saveOperations: Operation[] }>({
       mutation: SaveOperations,
       variables: {
         operations: json
@@ -316,7 +316,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     const now = new Date();
     if (this._debug) console.debug("[operation-service] Saving operation...", json);
 
-    const res = await this.mutate<{ saveOperations: Operation[] }>({
+    const res = await this.graphql.mutate<{ saveOperations: Operation[] }>({
       mutation: SaveOperations,
       variables: {
         operations: [json]
@@ -356,7 +356,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     const now = new Date();
     if (this._debug) console.debug("[operation-service] Deleting operations... ids:", ids);
 
-    await this.mutate<any>({
+    await this.graphql.mutate<any>({
       mutation: DeleteOperations,
       variables: {
         ids: ids

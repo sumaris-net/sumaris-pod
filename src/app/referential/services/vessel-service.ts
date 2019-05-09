@@ -170,7 +170,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
     const now = Date.now();
     if (this._debug) console.debug("[vessel-service] Getting vessels using options:", variables);
 
-    return this.watchQuery<{ vessels: any[] }>({
+    return this.graphql.watchQuery<{ vessels: any[] }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR" }
@@ -209,7 +209,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
       filter: filter
     };
     console.debug("[vessel-service] Getting vessels using options:", variables);
-    const res = await this.query<{ vessels: any[] }>({
+    const res = await this.graphql.query<{ vessels: any[] }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR" }
@@ -249,7 +249,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
   async load(id: number): Promise<VesselFeatures | null> {
     console.debug("[vessel-service] Loading vessel " + id);
 
-    const data = await this.query<{ vessels: any }>({
+    const data = await this.graphql.query<{ vessels: any }>({
       query: LoadQuery,
       variables: {
         vesselId: id,
@@ -268,7 +268,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
   async loadByVesselFeaturesId(id: number): Promise<VesselFeatures | null> {
     console.debug("[vessel-service] Loading vessel by features " + id);
 
-    const data = await this.query<{ vessels: any }>({
+    const data = await this.graphql.query<{ vessels: any }>({
       query: LoadQuery,
       variables: {
         vesselId: null,
@@ -298,7 +298,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
     const json = vessels.map(t => this.asObject(t));
     console.debug("[vessel-service] Saving vessels: ", json);
 
-    const res = await this.mutate<{ saveVessels: any }>({
+    const res = await this.graphql.mutate<{ saveVessels: any }>({
       mutation: SaveVessels,
       variables: {
         vessels: json
@@ -328,7 +328,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
 
     console.debug("[vessel-service] Saving vessel: ", json);
 
-    const res = await this.mutate<{ saveVessels: any }>({
+    const res = await this.graphql.mutate<{ saveVessels: any }>({
       mutation: SaveVessels,
       variables: {
         vessels: [json]
@@ -349,7 +349,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
 
     console.debug("[vessel-service] Deleting vessels... ids:", ids);
 
-    return this.mutate<any>({
+    return this.graphql.mutate<any>({
       mutation: DeleteVessels,
       variables: {
         ids: ids

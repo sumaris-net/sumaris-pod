@@ -127,7 +127,7 @@ export class ConfigService extends BaseDataService {
     const now = Date.now();
     console.debug("[config] Loading remote configuration...");
 
-    const res = await this.query<{ configuration: Configuration }>({
+    const res = await this.graphql.query<{ configuration: Configuration }>({
       query: LoadQuery,
       variables: {},
       error: {code: ErrorCodes.LOAD_CONFIG_ERROR, message: "ERROR.LOAD_CONFIG_ERROR"},
@@ -150,7 +150,7 @@ export class ConfigService extends BaseDataService {
     const json = config.asObject();
 
     // Execute mutation
-    const res = await this.mutate<{ saveConfiguration: any }>({
+    const res = await this.graphql.mutate<{ saveConfiguration: any }>({
       mutation: SaveMutation,
       variables: {
         config: json

@@ -91,7 +91,8 @@
                type="latitude"
                [placeholder]="placeholder"
                [required]="pmfm.isMandatory"
-               [tabindex]="tabindex">
+               [tabindex]="tabindex"
+               [latLongPattern]="latLongFormat">
   </mat-latlong>
 
   <!-- longitude -->
@@ -101,7 +102,8 @@
                type="longitude"
                [placeholder]="placeholder"
                [required]="pmfm.isMandatory"
-               [tabindex]="tabindex">
+               [tabindex]="tabindex"
+               [latLongPattern]="latLongFormat">
   </mat-latlong>
 
   <!-- other -->

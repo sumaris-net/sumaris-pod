@@ -17,6 +17,7 @@ import {
 import {UsageMode} from "../../core/services/model";
 import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'form-operation',
@@ -34,6 +35,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   onFocusPhysicalGear: EventEmitter<any> = new EventEmitter<any>();
   onFocusMetier: EventEmitter<any> = new EventEmitter<any>();
   enableGps: boolean;
+  latLongFormat: string;
 
   @Input() showComment = true;
   @Input() showError = true;
@@ -62,6 +64,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected physicalGearValidatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected accountService: AccountService,
+    protected settingsService: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -70,8 +73,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   ngOnInit() {
-    this.usageMode = this.usageMode || (this.accountService.isUsageMode('FIELD') ? 'FIELD' : 'DESK');
+    this.usageMode = this.usageMode || (this.settingsService.isUsageMode('FIELD') ? 'FIELD' : 'DESK');
     this.enableGps = (this.usageMode === 'FIELD'); /* TODO: && platform has sensor */
+    this.latLongFormat = this.settingsService.latLongFormat;
 
     // Combo: physicalGears
     this.physicalGears =

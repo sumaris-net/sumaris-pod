@@ -74,6 +74,7 @@ import {SelectPeerModal} from "./peer/select-peer.modal";
 import {SettingsPage} from "./settings/settings.page";
 import {LocalSettingsValidatorService} from "./services/local-settings.validator";
 import {GraphqlService} from "./services/graphql.service";
+import {LocalSettingsService} from "./services/local-settings.service";
 
 export {
   environment,
@@ -197,8 +198,9 @@ export function HttpLoaderFactory(http: HttpClient) {
     FormButtonsBarComponent,
   ],
   providers: [
-    PlatformService,
+    LocalSettingsService,
     NetworkService,
+    PlatformService,
     GraphqlService,
     AccountService,
     AuthGuardService,

@@ -1,7 +1,6 @@
 import {Injectable} from "@angular/core";
 import {BaseDataService} from "../../core/services/base.data-service.class";
 import {LoadResult, TableDataService} from "../../shared/services/data-service.class";
-import {Apollo} from "apollo-angular";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {Moment} from "moment";
@@ -9,11 +8,12 @@ import {environment} from "../../../environments/environment";
 import {ObservedLocation} from "./observed-location.model";
 import gql from "graphql-tag";
 import {Fragments} from "./trip.queries";
-import {isNil} from "./trip.model";
+import {fillRankOrder, isNil, isNotNil, Person, Trip} from "./trip.model";
 import {ErrorCodes} from "./trip.errors";
 import {map, throttleTime} from "rxjs/operators";
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
+import {TripFragments} from "./trip.service";
 
 
 export declare class ObservedLocationFilter {
@@ -111,6 +111,29 @@ const LoadQuery: any = gql`
   }
   ${ObservedLocationFragments.observedLocation}
 `;
+// Save all query
+const SaveAllQuery: any = gql`
+  mutation SaveObservedLocations($observedLocations:[ObservedLocationVOInput]){
+    saveObservedLocations(observedLocations: $observedLocations){
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+`;
+const DeleteByIdsMutation: any = gql`
+  mutation DeleteObservedLocations($ids:[Int]){
+    deleteObservedLocations(ids: $ids)
+  }
+`;
+
+const UpdateSubscription = gql`
+  subscription UpdateObservedLocation($id: Int, $interval: Int){
+    updateObservedLocation(id: $id, interval: $interval) {
+      ...ObservedLocationFragment
+    }
+  }
+  ${ObservedLocationFragments.observedLocation}
+`;
 @Injectable()
 export class ObservedLocationService extends BaseDataService implements TableDataService<ObservedLocation, ObservedLocationFilter> {
 
@@ -141,36 +164,35 @@ export class ObservedLocationService extends BaseDataService implements TableDat
 
     let now;
     if (this._debug) {
-      now = Date.now();
+      const now = Date.now();
       console.debug("[observed-location-service] Watching observed locations... using options:", variables);
     }
-    return this.watchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
+    return this.graphql.watchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR" }
+      error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"}
     })
-    .pipe(
-      throttleTime(200),
-      map(res => {
-        const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
-        const total = res && res.observedLocationsCount || 0;
-        if (this._debug) {
-          if (now) {
-            console.debug(`[observed-location-service] Loaded {${data.length || 0}} observed locations in ${Date.now() - now}ms`, data);
-            now = undefined;
+      .pipe(
+        throttleTime(200),
+        map(res => {
+          const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
+          const total = res && res.observedLocationsCount || 0;
+          if (this._debug) {
+            if (now) {
+              console.debug(`[observed-location-service] Loaded {${data.length || 0}} observed locations in ${Date.now() - now}ms`, data);
+              now = undefined;
+            } else {
+              console.debug(`[observed-location-service] Refreshed {${data.length || 0}} observed locations`);
+            }
           }
-          else {
-            console.debug(`[observed-location-service] Refreshed {${data.length || 0}} observed locations`);
-          }
-        }
-        return {
-          data: data,
-          total: total
-        };
-      }));
+          return {
+            data: data,
+            total: total
+          };
+        }));
   }
 
-  async load(id: number, options?: {fetchPolicy: FetchPolicy}): Promise<ObservedLocation> {
+  async load(id: number, options?: { fetchPolicy: FetchPolicy }): Promise<ObservedLocation> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
@@ -181,12 +203,12 @@ export class ObservedLocationService extends BaseDataService implements TableDat
       return this.getMockData().data.find(sc => sc.id === id);
     }
 
-    const res = await this.query<{ observedLocation: ObservedLocation }>({
+    const res = await this.graphql.query<{ observedLocation: ObservedLocation }>({
       query: LoadQuery,
       variables: {
         id: id
       },
-      error: { code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR" },
+      error: {code: ErrorCodes.LOAD_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'cache-first'
     });
     const data = res && res.observedLocation && ObservedLocation.fromObject(res.observedLocation);
@@ -195,20 +217,125 @@ export class ObservedLocationService extends BaseDataService implements TableDat
     return data;
   }
 
-  async save(data: ObservedLocation): Promise<ObservedLocation> {
-    console.warn("TODO: save observed location");
-    // TODO
-    return data;
+  public listenChanges(id: number): Observable<ObservedLocation> {
+    if (!id && id !== 0) throw "Missing argument 'id' ";
+
+    if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for trip {${id}}...`);
+
+    return this.subscribe<{ updateObservedLocation: ObservedLocation }, { id: number, interval: number }>({
+      query: UpdateSubscription,
+      variables: {
+        id: id,
+        interval: 10
+      },
+      error: {
+        code: ErrorCodes.SUBSCRIBE_OBSERVED_LOCATION_ERROR,
+        message: 'OBSERVED_LOCATION.ERROR.SUBSCRIBE_ERROR'
+      }
+    })
+      .pipe(
+        map(res => {
+          const data = res && res.updateObservedLocation && ObservedLocation.fromObject(res.updateObservedLocation);
+          if (data && this._debug) console.debug(`[observed-location-service] Observed location {${id}} updated on server !`, data);
+          return data;
+        })
+      );
   }
 
-  async saveAll(data: ObservedLocation[], options?: any): Promise<ObservedLocation[]> {
-    // TODO:
-    return [];
+  async save(entity: ObservedLocation): Promise<ObservedLocation> {
+
+    // Prepare to save
+    this.fillDefaultProperties(entity);
+
+    // Transform into json
+    const json = this.asObject(entity);
+    const isNew = isNil(entity.id);
+
+    const now = Date.now();
+    if (this._debug) console.debug("[observed-location-service] Saving observed location...", json);
+
+    const res = await this.graphql.mutate<{ saveObservedLocations: any }>({
+      mutation: SaveAllQuery,
+      variables: {
+        observedLocations: [json]
+      },
+      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"}
+    });
+
+    const savedEntity = res && res.saveObservedLocations && res.saveObservedLocations[0];
+    if (savedEntity) {
+      this.copyIdAndUpdateDate(savedEntity, entity);
+
+      // Add to cache
+      if (isNew && this._lastVariables.loadAll) {
+        this.addToQueryCache({
+          query: LoadAllQuery,
+          variables: this._lastVariables.loadAll
+        }, 'observedLocations', savedEntity);
+      }
+    }
+
+    if (this._debug) console.debug(`[observed-location-service] Observed location saved in ${Date.now() - now}ms`, entity);
+
+    return entity;
   }
 
-  async deleteAll(data: ObservedLocation[], options?: any): Promise<any> {
-    // TODO:
-    return {};
+  async saveAll(entities: ObservedLocation[], options?: any): Promise<ObservedLocation[]> {
+    if (!entities) return entities;
+
+    const json = entities.map(t => {
+      // Fill default properties (as recorder department and person)
+      this.fillDefaultProperties(t);
+      return this.asObject(t);
+    });
+
+    const now = Date.now();
+    if (this._debug) console.debug("[observed-location-service] Saving Observed locations...", json);
+
+    const res = await this.graphql.mutate<{ saveObservedLocations: ObservedLocation[] }>({
+      mutation: SaveAllQuery,
+      variables: {
+        trips: json
+      },
+      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ALL_ERROR"}
+    });
+    (res && res.saveObservedLocations && entities || [])
+      .forEach(entity => {
+        const savedEntity = res.saveObservedLocations.find(obj => entity.equals(obj));
+        this.copyIdAndUpdateDate(savedEntity, entity);
+      });
+
+    if (this._debug) console.debug(`[observed-location-service] Observed locations saved in ${Date.now() - now}ms`, entities);
+
+    return entities;
+  }
+
+  async deleteAll(entities: ObservedLocation[], options?: any): Promise<any> {
+    const ids = entities && entities
+      .map(t => t.id)
+      .filter(isNotNil);
+
+    const now = Date.now();
+    if (this._debug) console.debug("[observed-location-service] Deleting observed locations... ids:", ids);
+
+    const res = await this.graphql.mutate<any>({
+      mutation: DeleteByIdsMutation,
+      variables: {
+        ids: ids
+      }
+    });
+
+    // Update the cache
+    if (this._lastVariables.loadAll) {
+      this.removeToQueryCacheByIds({
+        query: LoadAllQuery,
+        variables: this._lastVariables.loadAll
+      }, 'observedLocations', ids);
+    }
+
+    if (this._debug) console.debug(`[observed-location-service] Observed locations deleted in ${Date.now() - now}ms`);
+
+    return res;
   }
 
   canUserWrite(date: ObservedLocation): boolean {
@@ -227,61 +354,117 @@ export class ObservedLocationService extends BaseDataService implements TableDat
   /* -- private -- */
 
   getMockData(): LoadResult<ObservedLocation> {
-    const recorderPerson = {id: 1, firstName:'Jacques', lastName: 'Dupond'};
-    const recorderPerson2 = {id: 2, firstName:'Alfred', lastName: 'Dupont'};
+    const recorderPerson = {id: 1, firstName: 'Jacques', lastName: 'Dupond'};
+    const recorderPerson2 = {id: 2, firstName: 'Alfred', lastName: 'Dupont'};
     const observers = [recorderPerson];
-    const location = {id: 30, label:'DZ', name:'Douarnenez'};
-    const location2 = {id: 31, label:'GV', name:'Guilvinec'};
+    const location = {id: 30, label: 'DZ', name: 'Douarnenez'};
+    const location2 = {id: 31, label: 'GV', name: 'Guilvinec'};
 
     const data = [
-        ObservedLocation.fromObject({
-          id:1,
-          program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-01T03:50:00Z',
-          location: location,
-          recorderPerson: recorderPerson,
-          observers: [recorderPerson],
-          sales: [
-            {
-              id: 100,
-              startDateTime: '2019-01-01T03:50:00Z',
-              location: location,
-              vesselFeatures: {id: 1, vesselId:1, name:'Vessel 1', exteriorMarking:'FRA000851751'}
-            }
-          ],
-          measurementValues: {
-            130: {id: '220', label: 'AV V', name: 'Avant-vente'}
+      ObservedLocation.fromObject({
+        id: 1,
+        program: {id: 11, label: 'ADAP-CONTROLE', name: 'Contrôle en criée'},
+        startDateTime: '2019-01-01T03:50:00Z',
+        location: location,
+        recorderPerson: recorderPerson,
+        observers: [recorderPerson],
+        sales: [
+          {
+            id: 100,
+            startDateTime: '2019-01-01T03:50:00Z',
+            location: location,
+            vesselFeatures: {id: 1, vesselId: 1, name: 'Vessel 1', exteriorMarking: 'FRA000851751'}
           }
-        }),
-        ObservedLocation.fromObject({
-          id:2,
-          program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-02T03:50:00Z',
-          location: location,
-          recorderPerson: recorderPerson2,
-          observers: [recorderPerson2]
-        }),
-        ObservedLocation.fromObject({
-          id:3,
-          program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-03T03:50:00Z',
-          location:location2,
-          recorderPerson: recorderPerson,
-          observers: [recorderPerson]
-        }),
-        ObservedLocation.fromObject({
-          id:4,
-          program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-          startDateTime: '2019-01-04T03:50:00Z',
-          location: location2,
-          recorderPerson: recorderPerson2,
-          observers: [recorderPerson2, recorderPerson]
-        }),
-      ];
+        ],
+        measurementValues: {
+          130: {id: '220', label: 'AV V', name: 'Avant-vente'}
+        }
+      }),
+      ObservedLocation.fromObject({
+        id: 2,
+        program: {id: 11, label: 'ADAP-CONTROLE', name: 'Contrôle en criée'},
+        startDateTime: '2019-01-02T03:50:00Z',
+        location: location,
+        recorderPerson: recorderPerson2,
+        observers: [recorderPerson2]
+      }),
+      ObservedLocation.fromObject({
+        id: 3,
+        program: {id: 11, label: 'ADAP-CONTROLE', name: 'Contrôle en criée'},
+        startDateTime: '2019-01-03T03:50:00Z',
+        location: location2,
+        recorderPerson: recorderPerson,
+        observers: [recorderPerson]
+      }),
+      ObservedLocation.fromObject({
+        id: 4,
+        program: {id: 11, label: 'ADAP-CONTROLE', name: 'Contrôle en criée'},
+        startDateTime: '2019-01-04T03:50:00Z',
+        location: location2,
+        recorderPerson: recorderPerson2,
+        observers: [recorderPerson2, recorderPerson]
+      }),
+    ];
 
     return {
       data: data,
       total: data.length
     };
+  }
+
+  protected asObject(entity: ObservedLocation): any {
+    const copy: any = entity.asObject(true/*minify*/);
+
+    // Fill return date using departure date
+    copy.endDateTime = copy.endDateTime || copy.startDateTime;
+
+    // Keep id only, on person and department
+    copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
+    copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
+
+    delete copy.vessels;
+
+    return copy;
+  }
+
+  protected fillDefaultProperties(entity: ObservedLocation) {
+    // If new trip
+    if (!entity.id || entity.id < 0) {
+
+      const person: Person = this.accountService.account;
+
+      // Recorder department
+      if (person && person.department) {
+        entity.recorderDepartment.id = person.department.id;
+      }
+
+      // Recorder person
+      if (person && person.id) {
+        entity.recorderPerson.id = person.id;
+      }
+    }
+
+    // Measurement: compute rankOrder
+    fillRankOrder(entity.measurements);
+  }
+
+  copyIdAndUpdateDate(source: ObservedLocation | undefined, target: ObservedLocation) {
+    if (!source) return;
+
+    // Update (id and updateDate)
+    target.id = source.id || target.id;
+    target.updateDate = source.updateDate || target.updateDate;
+    target.creationDate = source.creationDate || target.creationDate;
+    target.dirty = false;
+
+    // Update measurements
+    if (target.measurements && source.measurements) {
+      target.measurements.forEach(entity => {
+        const savedMeasurement = source.measurements.find(m => entity.equals(m));
+        entity.id = savedMeasurement && savedMeasurement.id || entity.id;
+        entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
+        entity.dirty = false;
+      });
+    }
   }
 }

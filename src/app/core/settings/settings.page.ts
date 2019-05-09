@@ -13,6 +13,7 @@ import {LocalSettingsValidatorService} from "../services/local-settings.validato
 import {PlatformService} from "../services/platform.service";
 import {NetworkService} from "../services/network.service";
 import {isNilOrBlank} from "../../shared/functions";
+import {LocalSettingsService} from "../services/local-settings.service";
 
 @Component({
   selector: 'page-settings',
@@ -44,6 +45,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     protected networkService: NetworkService,
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
+    protected settingsService: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getFormGroup());
@@ -73,7 +75,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     this.loading = true;
     console.debug("[settings] Loading settings...");
 
-    const data = this.accountService.localSettings || {};
+    const data = this.settingsService.settings || {};
 
     // If user login, will use account settings
     if (this.accountService.isLogin()) {
@@ -122,7 +124,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     try {
       this.disable();
 
-      await this.accountService.saveLocalSettings(data);
+      await this.settingsService.saveLocalSettings(data);
       this.markAsPristine();
 
       // Update the network peer

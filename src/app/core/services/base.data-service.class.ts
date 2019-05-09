@@ -26,30 +26,6 @@ export abstract class BaseDataService {
   /**
    * @deprecated
    */
-  protected async query<T, V = R>(opts: {
-    query: any,
-    variables: V,
-    error?: ServiceError,
-    fetchPolicy?: FetchPolicy
-  }): Promise<T> {
-    return this.graphql.query(opts);
-  }
-
-  /**
-   * @deprecated
-   */
-  protected watchQuery<T, V = R>(opts: {
-    query: any,
-    variables: V,
-    error?: ServiceError,
-    fetchPolicy?: FetchPolicy
-  }): Observable<T> {
-    return this.graphql.watchQuery(opts);
-  }
-
-  /**
-   * @deprecated
-   */
   protected mutate<T, V = R>(opts: {
     mutation: any,
     variables: V,

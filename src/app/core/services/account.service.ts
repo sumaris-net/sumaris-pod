@@ -3,7 +3,8 @@ import {base58, CryptoService, KeyPair} from "./crypto.service";
 import {
   Account,
   getMainProfile,
-  hasUpperOrEqualsProfile, LocalSettings,
+  hasUpperOrEqualsProfile,
+  LocalSettings,
   Referential,
   ReferentialRef,
   StatusIds,
@@ -13,17 +14,16 @@ import {
 } from "./model";
 import {Subject, Subscription} from "rxjs";
 import gql from "graphql-tag";
-import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
 
-import {isNotNil, toDateISOString} from "../../shared/shared.module";
+import {toDateISOString} from "../../shared/shared.module";
 import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
-import {SETTINGS_STORAGE_KEY} from "../constants";
 import {GraphqlService} from "./graphql.service";
+import {LocalSettingsService} from "./local-settings.service";
 
 
 export declare interface AccountHolder {
@@ -32,7 +32,6 @@ export declare interface AccountHolder {
   authToken: string;
   pubkey: string;
   account: Account;
-  localSettings: LocalSettings;
   // TODO : use this ?
   mainProfile: String;
 }
@@ -116,7 +115,7 @@ const IsEmailExistsQuery: any = gql`
 export declare type IsEmailExistsVariables = {
   email: string;
   hash: string;
-}
+};
 
 // Save (create or update) account mutation
 const SaveMutation: any = gql`
@@ -188,8 +187,7 @@ export class AccountService extends BaseDataService {
     authToken: null,
     pubkey: null,
     mainProfile: null,
-    account: null,
-    localSettings: null
+    account: null
   };
 
   private _startPromise: Promise<any>;
@@ -206,7 +204,7 @@ export class AccountService extends BaseDataService {
 
   constructor(
     protected graphql: GraphqlService,
-    private translate: TranslateService,
+    private settingsService: LocalSettingsService,
     private cryptoService: CryptoService,
     private storage: Storage
   ) {
@@ -237,7 +235,6 @@ export class AccountService extends BaseDataService {
     this.data.pubkey = null;
     this.data.mainProfile = null;
     this.data.account = new Account();
-    this.data.localSettings = null;
   }
 
   async start() {
@@ -246,7 +243,7 @@ export class AccountService extends BaseDataService {
 
     // Restoring local settings
     this._startPromise = this.restoreLocally()
-      .then((account) => {
+      .then(() => {
         this._started = true;
         this._startPromise = undefined;
       });
@@ -306,11 +303,12 @@ export class AccountService extends BaseDataService {
     return this.hasProfileAndIsEnable('USER');
   }
 
+  /**
+   * @deprecated
+   * @param mode
+   */
   public isUsageMode(mode: UsageMode): boolean {
-    if (!this.isLogin()) return false;
-    return this.data.localSettings &&
-      (this.data.localSettings.usageMode === mode) ||
-      (mode === 'DESK'); //  Default mode
+    return this.settingsService.isUsageMode(mode);
   }
 
   public isOnlyGuest(): boolean {
@@ -358,8 +356,8 @@ export class AccountService extends BaseDataService {
       data.account.pubkey = base58.encode(keypair.publicKey);
 
       // Default values
-      data.account.settings.locale = data.account.settings.locale || this.translate.currentLang || this.translate.defaultLang;
-      data.account.settings.latLongFormat = environment.defaultLatLongFormat || 'DDMM';
+      data.account.settings.locale = this.settingsService.locale;
+      data.account.settings.latLongFormat = this.settingsService.latLongFormat;
       data.account.department.id = data.account.department.id || environment.defaultDepartmentId;
 
       this.data.keypair = keypair;
@@ -487,8 +485,8 @@ export class AccountService extends BaseDataService {
       // Fill default values
       account.avatar = account.avatar || "../assets/img/person.png";
       account.settings = account.settings || new UserSettings();
-      account.settings.locale = account.settings.locale || this.translate.currentLang;
-      account.settings.latLongFormat = account.settings.latLongFormat || 'DDMM';
+      account.settings.locale = account.settings.locale || this.settingsService.locale;
+      account.settings.latLongFormat = account.settings.latLongFormat || this.settingsService.latLongFormat || 'DDMM';
 
       // Read main profile
       this.data.mainProfile = getMainProfile(account.profiles);
@@ -521,17 +519,12 @@ export class AccountService extends BaseDataService {
       this.storage.get(PUBKEY_STORAGE_KEY),
       this.storage.get(TOKEN_STORAGE_KEY),
       this.storage.get(ACCOUNT_STORAGE_KEY),
-      this.storage.get(SETTINGS_STORAGE_KEY),
       this.storage.get(SECKEY_STORAGE_KEY)
-    ])
+    ]);
     const pubkey = values[0];
     const token = values[1];
     const accountStr = values[2];
-    const settingsStr = values[3];
-    const seckey = values[4];
-
-    // Restore local settings
-    this.data.localSettings = settingsStr && JSON.parse(settingsStr) || {};
+    const seckey = values[3];
 
     // Quit if no pubkey
     if (!pubkey) return;
@@ -659,7 +652,7 @@ export class AccountService extends BaseDataService {
     if (this._debug) console.debug("[account-service] Loading account {" + pubkey.substring(0, 6) + "}...");
     var now = new Date();
 
-    const res = await this.query<{ account: any }>({
+    const res = await this.graphql.query<{ account: any }>({
       query: LoadQuery,
       variables: {
         pubkey: pubkey
@@ -709,7 +702,7 @@ export class AccountService extends BaseDataService {
     delete json.mainProfile; // Not known on server
 
     // Execute mutation
-    const res = await this.mutate<{ saveAccount: any }>({
+    const res = await this.graphql.mutate<{ saveAccount: any }>({
       mutation: isNew ? CreateMutation : SaveMutation,
       variables: {
         account: json
@@ -751,7 +744,7 @@ export class AccountService extends BaseDataService {
 
     if (this._debug) console.debug("[account] Checking if {" + email + "} exists...");
 
-    const data = await this.query<{ isEmailExists: boolean }, IsEmailExistsVariables>({
+    const data = await this.graphql.query<{ isEmailExists: boolean }, IsEmailExistsVariables>({
       query: IsEmailExistsQuery,
       variables: {
         email: email,
@@ -766,10 +759,10 @@ export class AccountService extends BaseDataService {
 
   async sendConfirmationEmail(email: String, locale?: string): Promise<boolean> {
 
-    locale = locale || this.translate.currentLang;
+    locale = locale || this.settingsService.locale;
     console.debug("[account] Sending confirmation email to {" + email + "} with locale {" + locale + "}...");
 
-    return await this.mutate<boolean>({
+    return await this.graphql.mutate<boolean>({
       mutation: SendConfirmEmailMutation,
       variables: {
         email: email,
@@ -786,7 +779,7 @@ export class AccountService extends BaseDataService {
 
     console.debug("[account-service] Sendng confirm request for email {" + email + "} with code {" + code + "}...");
 
-    const res = await this.mutate<{ confirmAccountEmail: boolean }>({
+    const res = await this.graphql.mutate<{ confirmAccountEmail: boolean }>({
       mutation: ConfirmEmailMutation,
       variables: {
         email: email,
@@ -851,44 +844,18 @@ export class AccountService extends BaseDataService {
     return subscription;
   }
 
-  get localSettings(): LocalSettings {
-    return Object.assign({}, this.data.localSettings);
-  }
-
-  getLocalSetting(key: string, defaultValue?: string): string {
-    return this.data.localSettings && isNotNil(this.data.localSettings[key]) && this.data.localSettings[key] || defaultValue;
-  }
-
-  async saveLocalSettings(settings: LocalSettings) {
-    this.data.localSettings = this.data.localSettings || {};
-
-    Object.assign(this.data.localSettings, settings || {});
-
-    // Update local settings
-    await this.storeLocalSettings();
-  }
-
+  /**
+   * @deprecated
+   */
   public getPageSettings(pageId: string, propertyName?: string): string[] {
-    const key = pageId.replace(/[/]/g, '__');
-    return this.data.localSettings && this.data.localSettings.pages
-      && this.data.localSettings.pages[key] && (propertyName && this.data.localSettings.pages[key][propertyName] || this.data.localSettings.pages[key]);
+    return this.settingsService.getPageSettings(pageId, propertyName);
   }
 
+  /**
+   * @deprecated
+   */
   public async savePageSetting(pageId: string, value: any, propertyName?: string) {
-    const key = pageId.replace(/[/]/g, '__');
-
-    this.data.localSettings = this.data.localSettings || {};
-    this.data.localSettings.pages = this.data.localSettings.pages || {}
-    if (propertyName) {
-      this.data.localSettings.pages[key] = this.data.localSettings.pages[key] || {};
-      this.data.localSettings.pages[key][propertyName] = value;
-    }
-    else {
-      this.data.localSettings.pages[key] = value;
-    }
-
-    // Update local settings
-    await this.storeLocalSettings();
+    await this.settingsService.savePageSetting(pageId, value, propertyName);
   }
 
   get additionalAccountFields(): AccountFieldDef[] {
@@ -919,7 +886,7 @@ export class AccountService extends BaseDataService {
 
     // Check if valid
     if (token) {
-      const data = await this.query<{ authenticate: boolean }, { token: string }>({
+      const data = await this.graphql.query<{ authenticate: boolean }, { token: string }>({
         query: AuthQuery,
         variables: {
           token: token
@@ -945,7 +912,7 @@ export class AccountService extends BaseDataService {
       code: ErrorCodes.AUTH_CHALLENGE_ERROR,
       message: "ERROR.AUTH_CHALLENGE_ERROR"
     };
-    const data = await this.query<{
+    const data = await this.graphql.query<{
       authChallenge: {
         pubkey: string,
         challenge: string,
@@ -981,18 +948,5 @@ export class AccountService extends BaseDataService {
   }
 
   /* -- Protected methods -- */
-
-
-  private storeLocalSettings(): Promise<any> {
-    console.debug("[account] Store local settings", this.data.localSettings);
-    if (!this.data.localSettings) {
-      return this.storage.remove(SETTINGS_STORAGE_KEY);
-    }
-    else {
-      const settingsStr = JSON.stringify(this.data.localSettings);
-      return this.storage.set(SETTINGS_STORAGE_KEY, settingsStr);
-    }
-  }
-
 
 }

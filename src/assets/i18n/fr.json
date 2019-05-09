@@ -439,7 +439,8 @@
       "LOAD_ERROR": "Erreur de chargement du contrôle en criée",
       "LOAD_ALL_ERROR": "Erreur de chargement des contrôles en criée",
       "SAVE_ERROR": "Erreur de sauvegarde du contrôle en criée",
-      "SAVE_ALL_ERROR": "Erreur de sauvegarde des contrôles en criée"
+      "SAVE_ALL_ERROR": "Erreur de sauvegarde des contrôles en criée",
+      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du contrôle en criée."
     }
   },
   "OBSERVED_VESSEL": {

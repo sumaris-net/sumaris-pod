@@ -95,7 +95,7 @@ export class ObservedVesselService extends BaseDataService implements TableDataS
       now = Date.now();
       console.debug("[observed-location-service] Watching observed vessels... using options:", variables);
     }
-    return this.watchQuery<{ observedVessels: ObservedVessel[]; observedVesselCount: number }>({
+    return this.graphql.watchQuery<{ observedVessels: ObservedVessel[]; observedVesselCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_OBSERVED_VESSELS_ERROR, message: "OBSERVED_VESSEL.ERROR.LOAD_ALL_ERROR"}

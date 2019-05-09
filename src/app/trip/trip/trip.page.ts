@@ -16,6 +16,7 @@ import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import * as moment from "moment";
 import {Moment} from "moment";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'page-trip',
@@ -34,6 +35,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   showOperationTable = false;
   showGearTable = false;
   onRefresh = new EventEmitter<any>();
+  isOnFieldMode: boolean;
 
   @ViewChild('tripForm') tripForm: TripForm;
 
@@ -54,10 +56,13 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
     protected accountService: AccountService,
-    protected tripService: TripService,
+    protected dataService: TripService,
+    protected settingsService: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, translate);
+
+    this.isOnFieldMode = this.settingsService.isUsageMode('FIELD');
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -81,23 +86,22 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
         this.load(parseInt(id));
       }
     });
-
-
   }
 
   async load(id?: number, options?: any) {
     this.error = null;
 
-    // New trip
+    // New data
     if (isNil(id)) {
 
       // Create using default values
       const data = new Trip();
 
-      const isOnFieldMode = this.accountService.isUsageMode('FIELD');
       // If is on field mode, fill default values
-      if (isOnFieldMode) {
+      if (this.isOnFieldMode) {
         data.departureDateTime = moment();
+        // TODO : get the default program from local settings ?
+        //data.program = ...
       }
 
       this.updateView(data, true);
@@ -107,9 +111,9 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       this.startListenProgramChanges();
     }
 
-    // Load existing trip
+    // Load existing data
     else {
-      const data = await this.tripService.load(id);
+      const data = await this.dataService.load(id);
       this.updateView(data, true);
       this.loading = false;
       this.showGearTable = true;
@@ -123,16 +127,13 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     // If new trip
     if (isNil(this.data.id)) {
 
-      // Listen program changes (only if new trip)
+      // Listen program changes (only if new data)
       if (this.tripForm && this.tripForm.form) {
         this.registerSubscription(this.tripForm.form.controls['program'].valueChanges
           .subscribe(program => {
             if (EntityUtils.isNotEmpty(program)) {
               console.debug("[trip] Propagate program change: " + program.label);
               this.programSubject.next(program.label);
-            } else {
-              console.debug("[trip] Propagate program reset");
-              //this.programSubject.next(null);
             }
           })
         );
@@ -145,7 +146,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     // Listen for changes on server
     if (isNotNil(this.data.id) && this._enableListenChanges) {
       this.registerSubscription(
-        this.tripService.listenChanges(this.data.id)
+        this.dataService.listenChanges(this.data.id)
           .subscribe((data: Trip | undefined) => {
             const newUpdateDate = data && (data.updateDate as Moment) || undefined;
             if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
@@ -238,7 +239,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     try {
       // Save trip form (with sale)
-      const updatedData = formDirty ? await this.tripService.save(this.data) : this.data;
+      const updatedData = formDirty ? await this.dataService.save(this.data) : this.data;
       if (formDirty) {
         this.markAsPristine();
         this.markAsUntouched();
@@ -253,13 +254,12 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       // Update the view (e.g metadata)
       this.updateView(updatedData, isNew/*will update tripId in filter*/);
 
-      // Is First save
+      // Is first save
       if (isNew) {
 
         // Open the gear tab
-        const queryParams = this.route.snapshot.queryParams;
-        queryParams["tab"] = 1;
         this.selectedTabIndex = 1;
+        const queryParams = Object.assign({}, this.route.snapshot.queryParams, {tab: this.selectedTabIndex});
 
         // Update route location
         this.router.navigate(['../' + updatedData.id], {
@@ -289,8 +289,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   enable() {
     if (!this.data || isNotNil(this.data.validationDate)) return false;
-    // If not a new trip, check user can write
-    if (isNotNil(this.data.id) && !this.tripService.canUserWrite(this.data)) {
+    // If not a new data, check user can write
+    if (isNotNil(this.data.id) && !this.dataService.canUserWrite(this.data)) {
       if (this.debug) console.warn("[trip] Leave form disable (User has NO write access)");
       return;
     }
@@ -363,12 +363,12 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   async updateTitle(data?: Trip) {
     data = data || this.data;
 
-    // new trip
     let title;
+    // new data
     if (!data || isNil(data.id)) {
       title = await this.translate.get('TRIP.NEW.TITLE').toPromise();
     }
-    // Existing trip
+    // Existing data
     else {
       title = await this.translate.get('TRIP.EDIT.TITLE', {
         vessel: data.vesselFeatures && (data.vesselFeatures.exteriorMarking || data.vesselFeatures.name),
@@ -417,8 +417,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }
   }
 
-  public async onTripControl(event: Event) {
-    // Stop if trip is not valid
+  public async onControl(event: Event) {
+    // Stop if data is not valid
     if (!this.valid) {
       // Stop the control
       event && event.preventDefault();
@@ -431,8 +431,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       // Stop the control
       event && event.preventDefault();
 
-      console.debug("[trip] Saving trip, before control...");
-      const saved = await this.save(new Event('save'))
+      console.debug("[trip] Saving data, before control...");
+      const saved = await this.save(new Event('save'));
       if (saved) {
         // Loop
         this.qualityForm.control(new Event('control'));
@@ -441,7 +441,9 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }
   }
 
-  protected markForCheck() {
+  /* -- protected methods -- */
+
+  protected markForCHeck() {
     this.cd.markForCheck();
   }
 }

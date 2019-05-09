@@ -6,7 +6,7 @@
   <mat-label *ngIf="!mobile && !readonly && labelPlaceholder">{{labelPlaceholder}}</mat-label>
   <input *ngIf="!readonly" matInput type="text" [textMask]="{mask: mask, keepCharPositions: true, maxDecimals: maxDecimals, placeholderChar: placeholderChar}"
     [formControl]="textFormControl" autocomplete="off" [placeholder]="inputPlaceholder|translate" (blur)="_onBlur($event)"
-    [required]="required">
+    [required]="required" [tabindex]="tabindex">
 
   <div matSuffix>
     <ng-content select="[matSuffix]"></ng-content>

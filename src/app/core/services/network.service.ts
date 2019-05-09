@@ -7,7 +7,7 @@ import {Peer} from "./model";
 import {ModalController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
 import {Subject} from "rxjs";
-import {SETTINGS_STORAGE_KEY} from "../constants";
+import {SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
 
@@ -117,6 +117,9 @@ export class NetworkService {
       console.debug(`[network] Use peer {${settings.peerUrl}} (found in the local storage)`);
       return Peer.parseUrl(settings.peerUrl);
     }
+
+    // Return the default peer, if exists
+    return environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
   }
 
   /**

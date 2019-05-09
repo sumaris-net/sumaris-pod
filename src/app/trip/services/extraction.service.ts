@@ -77,7 +77,7 @@ export class ExtractionService extends BaseDataService{
    */
   loadTypes(): Observable<ExtractionType[]> {
     if (this._debug) console.debug("[extraction-service] Loading extractions...");
-    return this.watchQuery<{ extractionTypes: ExtractionType[] }>({
+    return this.graphql.watchQuery<{ extractionTypes: ExtractionType[] }>({
       query: LoadTypes,
       variables: null,
       error: { code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_EXTRACTION_TYPES_ERROR" }
@@ -124,7 +124,7 @@ export class ExtractionService extends BaseDataService{
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading rows... using options:", variables);
-    const res = await this.query<{ extractionRows: ExtractionResult }>({
+    const res = await this.graphql.query<{ extractionRows: ExtractionResult }>({
       query: LoadRowsQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_EXTRACTION_ROWS_ERROR" },
@@ -165,7 +165,7 @@ export class ExtractionService extends BaseDataService{
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Download extraction file... using options:", variables);
-    const res = await this.query<{ extractionFile: string }>({
+    const res = await this.graphql.query<{ extractionFile: string }>({
       query: GetFileQuery,
       variables: variables,
       error: { code: ErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_EXTRACTION_FILE_ERROR" },

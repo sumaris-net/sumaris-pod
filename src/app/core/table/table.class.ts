@@ -15,7 +15,7 @@ import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
-import {isNotNil, LoadResult} from "../../shared/shared.module";
+import {isNotNil} from "../../shared/shared.module";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -39,7 +39,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   protected pageSize: number;
   protected _onDestroy = new Subject();
 
-  inlineEdition: boolean = false;
+  inlineEdition = false;
   displayedColumns: string[];
   resultsLength = 0;
   loading = true;
@@ -121,7 +121,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
   }
 
-  constructor(
+  protected constructor(
     protected route: ActivatedRoute,
     protected router: Router,
     protected platform: Platform,

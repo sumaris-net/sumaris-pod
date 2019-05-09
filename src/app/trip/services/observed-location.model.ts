@@ -59,10 +59,10 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
 
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
-    target.program = this.program && this.program.asObject(false/*keep for trips list*/) || undefined;
+    target.program = this.program && this.program.asObject(false/*keep it for table*/) || undefined;
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
-    target.location = this.location && this.location.asObject(false/*keep for trips list*/) || undefined;
+    target.location = this.location && this.location.asObject(false/*keep it for table*/) || undefined;
 
     // TODO: remove this
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;

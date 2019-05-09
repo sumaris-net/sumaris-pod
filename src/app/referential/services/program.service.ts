@@ -127,7 +127,7 @@ export class ProgramService extends BaseDataService implements TableDataService<
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Loading programs using options:", variables);
 
-    return this.watchQuery<{ programs: any[], referentialsCount: number }>({
+    return this.graphql.watchQuery<{ programs: any[], referentialsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"}
@@ -154,7 +154,7 @@ export class ProgramService extends BaseDataService implements TableDataService<
   }
 
   watchByLabel(label: string): Observable<Program> {
-    return this.watchQuery<{ program: any }>({
+    return this.graphql.watchQuery<{ program: any }>({
       query: LoadQuery,
       variables: {
         label: label
@@ -167,7 +167,7 @@ export class ProgramService extends BaseDataService implements TableDataService<
   }
 
   async loadByLabel(label: string): Promise<Program> {
-    const res = await this.query<{ program: any }>({
+    const res = await this.graphql.query<{ program: any }>({
       query: LoadQuery,
       variables: {
         label: label
@@ -190,7 +190,7 @@ export class ProgramService extends BaseDataService implements TableDataService<
     // TODO: add a cache ?
 
     if (this._debug) console.debug(`[referential-service] Getting pmfms (program=${program}, acquisitionLevel=${options && options.acquisitionLevel}, gear=${options && options.gear})`);
-    const data = await this.query<{ programPmfms: PmfmStrategy[] }>({
+    const data = await this.graphql.query<{ programPmfms: PmfmStrategy[] }>({
       query: LoadProgramPmfms,
       variables: {
         program: program
@@ -228,7 +228,7 @@ export class ProgramService extends BaseDataService implements TableDataService<
    */
   async loadGears(program: string): Promise<ReferentialRef[]> {
     if (this._debug) console.debug(`[referential-service] Getting gears for program ${program}`);
-    const data = await this.query<{ programGears: ReferentialRef[] }>({
+    const data = await this.graphql.query<{ programGears: ReferentialRef[] }>({
       query: LoadProgramGears,
       variables: {
         program: program

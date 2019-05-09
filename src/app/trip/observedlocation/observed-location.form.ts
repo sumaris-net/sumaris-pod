@@ -1,45 +1,45 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SaleValidatorService} from "../services/sale.validator";
 import {
   entityToString,
   EntityUtils,
-  LocationLevelIds, Person, personToString, Referential,
+  LocationLevelIds,
+  Person,
+  personToString,
+  Referential,
   ReferentialRef,
-  referentialToString,
-  Sale
+  referentialToString
 } from "../services/trip.model";
-import {Platform} from '@ionic/angular';
 import {Moment} from 'moment/moment';
 import {AppForm} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
 import {debounceTime, mergeMap, startWith, switchMap} from 'rxjs/operators';
 import {ReferentialRefService} from '../../referential/referential.module';
-import {ObservedLocationService} from "../services/observed-location.service";
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
+import {ObservedLocation} from "../services/observed-location.model";
 
 @Component({
   selector: 'form-observed-location',
   templateUrl: './observed-location.form.html',
   styleUrls: ['./observed-location.form.scss']
 })
-export class ObservedLocationForm extends AppForm<Sale> implements OnInit {
+export class ObservedLocationForm extends AppForm<ObservedLocation> implements OnInit {
 
   programs: Observable<ReferentialRef[]>;
   locations: Observable<ReferentialRef[]>;
   persons: Observable<Person[]>;
 
-  @Input() required: boolean = true;
-  @Input() showError: boolean = true;
-  @Input() showEndDateTime: boolean = true;
-  @Input() showComment: boolean = true;
-  @Input() showButtons: boolean = true;
+  @Input() required = true;
+  @Input() showError = true;
+  @Input() showEndDateTime = true;
+  @Input() showComment = true;
+  @Input() showButtons = true;
 
   get empty(): any {
-    let value = this.value;
+    const value = this.value;
     return (!value.location || !value.location.id)
-      && (!value.dateTime)
+      && (!value.startDateTime)
       && (!value.comments || !value.comments.length);
   }
 
@@ -75,16 +75,11 @@ export class ObservedLocationForm extends AppForm<Sale> implements OnInit {
       .valueChanges
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.referentialRefService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
+        mergeMap(value => this.referentialRefService.suggest(value, {
               entityName: 'Location',
-              levelId: LocationLevelIds.PORT,
-              searchText: value as string
-            }).first().map(({data}) => data);
-        }));
+              levelId: LocationLevelIds.PORT
+          }))
+      );
 
     // Combo: observers
     this.persons = this.form.controls['recorderPerson']

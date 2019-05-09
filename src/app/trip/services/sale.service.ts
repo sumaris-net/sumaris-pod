@@ -162,7 +162,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
     this._lastVariables.loadAll = variables;
 
     if (this._debug) console.debug("[sale-service] Loading sales... using options:", variables);
-    return this.watchQuery<{ sales?: Sale[] }>({
+    return this.graphql.watchQuery<{ sales?: Sale[] }>({
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_SALES_ERROR, message: "TRIP.SALE.ERROR.LOAD_SALES_ERROR" },
@@ -201,7 +201,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
   load(id: number): Observable<Sale | null> {
     if (this._debug) console.debug("[sale-service] Loading sale {" + id + "}...");
 
-    return this.watchQuery<{ sale: Sale }>({
+    return this.graphql.watchQuery<{ sale: Sale }>({
       query: LoadQuery,
       variables: {
         id: id
@@ -273,7 +273,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
     const now = new Date();
     if (this._debug) console.debug("[sale-service] Saving sales...", json);
 
-    const res = await this.mutate<{ saveSales: Sale[] }>({
+    const res = await this.graphql.mutate<{ saveSales: Sale[] }>({
       mutation: SaveSales,
       variables: {
         sales: json
@@ -310,7 +310,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
     const now = new Date();
     if (this._debug) console.debug("[sale-service] Saving sale...", json);
 
-    const res = await this.mutate<{ saveSales: Sale[] }>({
+    const res = await this.graphql.mutate<{ saveSales: Sale[] }>({
       mutation: SaveSales,
       variables: {
         sales: [json]
@@ -350,7 +350,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
     const now = new Date();
     if (this._debug) console.debug("[sale-service] Deleting sales... ids:", ids);
 
-    await this.mutate<any>({
+    await this.graphql.mutate<any>({
       mutation: DeleteSales,
       variables: {
         ids: ids

@@ -103,7 +103,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
     this._lastVariables.loadAll = variables;
 
     console.debug("[person-service] Watching persons, using filter: ", variables);
-    return this.watchQuery<{ persons: Person[]; personsCount: number }>({
+    return this.graphql.watchQuery<{ persons: Person[]; personsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
@@ -131,7 +131,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
     this._lastVariables.loadAll = variables;
 
     console.debug("[person-service] Loading persons, using filter: ", variables);
-    const res = await this.query<{ persons: Person[]; personsCount: number }>({
+    const res = await this.graphql.query<{ persons: Person[]; personsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_PERSONS_ERROR, message: "ERROR.LOAD_PERSONS_ERROR"},
@@ -158,7 +158,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
     const now = Date.now();
     if (this._debug) console.debug("[person-service] Saving persons...", data);
 
-    const res = await this.mutate<{ savePersons: Person[] }>({
+    const res = await this.graphql.mutate<{ savePersons: Person[] }>({
       mutation: SavePersons,
       variables: {
         persons: json
@@ -185,7 +185,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
     const now = new Date();
     if (this._debug) console.debug("[person-service] Deleting persons... ids:", ids);
 
-    const res = await this.mutate<any>({
+    const res = await this.graphql.mutate<any>({
       mutation: DeletePersons,
       variables: {
         ids: ids
