@@ -25,6 +25,7 @@ package net.sumaris.core.service.referential;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -50,6 +51,9 @@ public class LocationServiceReadTest extends AbstractServiceTest {
 		// Check label with a position inside the Mediterranean sea
 		label = service.getLocationLabelByLatLong(42.27f, 5.4f);
 		assertEquals("M24C2", label);
+
+		Assert.fail();
+
 	}
 
 	@Test

@@ -3,18 +3,24 @@
 mkdir -p .local
 
 echo "**********************************"
-echo "* Preparing release..."
+echo "* Rollback previous release..."
 echo "**********************************"
-#result=`mvn release:clean`
-#failure=`echo "$result" | grep -m1 -P "\[INFO\] BUILD FAILURE"  | grep -oP "BUILD \w+"`
-# prepare failed
-if [[ ! "_$failure" = "_" ]]; then
-    echo "$result" | grep -P "\[ERROR\] "
-    exit 1
+if [[ -f "pom.xml.releaseBackup" ]]; then
+    result=`mvn release:rollback`
+    failure=`echo "$result" | grep -m1 -P "\[INFO\] BUILD FAILURE"  | grep -oP "BUILD \w+"`
+     prepare failed
+    if [[ ! "_$failure" = "_" ]]; then
+        echo "$result" | grep -P "\[ERROR\] "
+        exit 1
+    fi
 fi
 
-#mvn release:prepare
+echo "**********************************"
+echo "* Preparing release..."
+echo "**********************************"
+mvn release:prepare
 if [[ $? -ne 0 ]]; then
+    #mvn release:rollback --quiet
     exit 1
 fi
 
