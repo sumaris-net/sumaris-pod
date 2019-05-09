@@ -145,7 +145,12 @@ public class ImageRestController implements ResourceLoaderAware {
             return getImage(imageId);
         }
 
-        // Try to return the resource
+        // Redirect to the URL
+        if (favicon.startsWith("http")) {
+            return new RedirectView(favicon);
+        }
+
+        // Try to read as a local resource
         try {
             Resource faviconResource = resourceLoader.getResource(favicon);
             InputStream in = faviconResource.getInputStream();
@@ -153,21 +158,17 @@ public class ImageRestController implements ResourceLoaderAware {
 
             IOUtils.copy(in, bos);
             bos.close();
+            in.close();
 
             return ResponseEntity.ok()
                     .contentLength(faviconResource.contentLength())
                     .body(bos.toByteArray());
         } catch(IOException e) {
-            log.error(e.getMessage(), e);
+            // Not a local resource: continue
         }
 
-        // Try a redirection
-        if (!favicon.startsWith("http")) {
-            if (!favicon.startsWith("/")) {
-                return new RedirectView(config.getServerUrl() + "/" + favicon);
-            }
-            return new RedirectView(config.getServerUrl() + favicon);
-        }
-        return new RedirectView(favicon);
+        // Redirect as a relative URL
+        return new RedirectView(config.getServerUrl() + (favicon.startsWith("/") ? "" : "/") + favicon);
+
     }
 }
