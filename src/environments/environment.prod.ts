@@ -9,7 +9,6 @@ export const environment: Environment = {
   remoteBaseUrl: "https://www.sumaris.net",
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
-  defaultProgram: 'SUMARIS',
   apolloFetchPolicy: 'cache-first',
   mock: false,
 
@@ -18,13 +17,16 @@ export const environment: Environment = {
 
   // Leave null,
   defaultPeer: null,
+
+  // Production and public peers
   defaultPeers: [
+    // TODO: change to production peer
     {
-      host: 'www.sumaris.net',
+      host: 'test.sumaris.net',
       port: 443
     },
+    // TODO: change to production peer
     {
-      // TODO: change to production ADAP node
       host: 'adap.e-is.pro',
       port: 443
     }

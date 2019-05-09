@@ -19,14 +19,15 @@ export const environment: Environment = {
   defaultLocale: "fr",
   defaultLatLongFormat: 'DDMM',
 
-  //defaultProgram: "ADAP-MER",
-  defaultProgram: "SUMARiS",
-
   apolloFetchPolicy: 'cache-first',
 
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
 
+  defaultPeer: {
+    host: 'localhost',
+    port: 8080
+  },
   defaultPeers: [
     {
       host: 'localhost',
@@ -43,7 +44,7 @@ export const environment: Environment = {
   ],
 
   // DEV only
-  mock: false,
+  mock: false
 };
 
 /*
