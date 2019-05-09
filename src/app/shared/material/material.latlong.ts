@@ -131,12 +131,6 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     }
 
     this.inputPlaceholder = 'COMMON.' + (this.type === 'longitude' && 'D' || '') + this.latLongPattern + '_PLACEHOLDER';
-    if (this.type == 'longitude') {
-      console.log("inputplaceholder longitude:" + this.inputPlaceholder);
-    }
-    else {
-      console.log("inputplaceholder latitude:" + this.inputPlaceholder);
-    }
 
     this.textFormControl = this.formBuilder.control(
       this.required ? ['', Validators.required] : ['']

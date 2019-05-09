@@ -97,6 +97,8 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
+  @Input() tabindex: number;
+
   @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
   @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
   @ViewChild('timePicker') timePicker: NgxTimePicker;

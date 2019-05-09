@@ -11,24 +11,23 @@ export const environment: Environment = {
   version: (pkg.version as string),
   production: false,
   baseUrl: '/',
-
-  remoteBaseUrl: "http://192.168.0.28:8080",
-  //remoteBaseUrl: "https://adap.e-is.pro",
-  //remoteBaseUrl: "https://www.sumaris.net",
-
   defaultLocale: "fr",
   defaultLatLongFormat: 'DDMM',
-
   apolloFetchPolicy: 'cache-first',
+  mock: false,
 
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
 
-  defaultPeer: {
-    host: 'localhost',
-    port: 8080
-  },
+  // defaultPeer: {
+  //   host: '192.168.0.28',
+  //   port: 8080
+  // },
   defaultPeers: [
+    {
+      host: '192.168.0.28',
+      port: 8080
+    },
     {
       host: 'localhost',
       port: 8080
@@ -43,8 +42,7 @@ export const environment: Environment = {
     }
   ],
 
-  // DEV only
-  mock: false
+
 };
 
 /*

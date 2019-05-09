@@ -677,7 +677,7 @@ export class Operation extends DataEntity<Operation> {
 
     // Batches list to tree
     if (source.batches) {
-      let batches = (source.batches || []).map(Batch.fromObject);
+      const batches = (source.batches || []).map(Batch.fromObject);
       this.catchBatch = batches.find(b => isNil(b.parentId) && (isNil(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
       if (this.catchBatch) {
         batches.forEach(s => {
@@ -687,7 +687,13 @@ export class Operation extends DataEntity<Operation> {
         });
         // Link to children
         batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
-        this.catchBatch.children = batches.filter(b => b.parent === this.catchBatch);
+        if (this.catchBatch.children && this.catchBatch.children.length) {
+          console.log("TODO: not need to reset children of catch batch ?", this.catchBatch);
+        }
+        else {
+          this.catchBatch.children = batches.filter(b => b.parent === this.catchBatch);
+        }
+
         //console.debug("[trip-model] Operation.catchBatch as tree:", this.catchBatch);
       }
     }

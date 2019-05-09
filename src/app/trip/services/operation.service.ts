@@ -40,37 +40,37 @@ export const OperationFragments = {
   `,
   operation: gql`fragment OperationFragment on OperationVO {
     id
-      startDateTime
-      endDateTime
-      fishingStartDateTime
-      fishingEndDateTime
-      rankOrderOnPeriod
-      physicalGearId
-      tripId
-      comments
-      hasCatch
-      updateDate
-      metier {
-        ...ReferentialFragment
-      }
-      recorderDepartment {
-        ...RecorderDepartmentFragment
-      }
-      positions {
-        ...PositionFragment
-      }
-      measurements {
-        ...MeasurementFragment
-      }
-      gearMeasurements {
-        ...MeasurementFragment
-      }
-      samples {
-        ...SampleFragment
-      }
-      batches {
-        ...BatchFragment
-      }
+    startDateTime
+    endDateTime
+    fishingStartDateTime
+    fishingEndDateTime
+    rankOrderOnPeriod
+    physicalGearId
+    tripId
+    comments
+    hasCatch
+    updateDate
+    metier {
+      ...ReferentialFragment
+    }
+    recorderDepartment {
+      ...RecorderDepartmentFragment
+    }
+    positions {
+      ...PositionFragment
+    }
+    measurements {
+      ...MeasurementFragment
+    }
+    gearMeasurements {
+      ...MeasurementFragment
+    }
+    samples {
+      ...SampleFragment
+    }
+    batches {
+      ...BatchFragment
+    }
   }
   ${Fragments.recorderDepartment}
   ${Fragments.position}
@@ -98,9 +98,9 @@ const LoadQuery: any = gql`
   query Operation($id: Int) {
     operation(id: $id) {
       ...OperationFragment
-    }  
+    }
   }
-  ${OperationFragments.operation}  
+  ${OperationFragments.operation}
 `;
 const SaveOperations: any = gql`
   mutation saveOperations($operations:[OperationVOInput]){
@@ -108,7 +108,7 @@ const SaveOperations: any = gql`
       ...OperationFragment
     }
   }
-  ${OperationFragments.operation}  
+  ${OperationFragments.operation}
 `;
 const DeleteOperations: any = gql`
   mutation deleteOperations($ids:[Int]){

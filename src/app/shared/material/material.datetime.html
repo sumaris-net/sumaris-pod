@@ -28,7 +28,8 @@
          (keyup.arrowdown)="openDatePicker($event, datePicker1)"
          (keyup.escape)="$event.preventDefault() && $event.stopPropagation()"
          (tap)="openDatePickerIfTouchUi($event)"
-         [required]="required">
+         [required]="required"
+         [tabindex]="tabindex">
   <input matInput type="text" [formControl]="formControl" hidden [matDatepicker]="datePicker1" (dateChange)="onDatePickerChange($event)">
 
   <button type="button" matSuffix (click)="openDatePicker($event, datePicker1)" mat-icon-button tabindex="-1" [disabled]="formControl.disabled">
@@ -71,14 +72,14 @@
                (keyup.arrowdown)="openDatePicker($event, datePicker2)"
                (keyup.escape)="$event.preventDefault() && $event.stopPropagation()"
                (tap)="openDatePickerIfTouchUi($event, datePicker2)"
-               [required]="required">
+               [required]="required"
+               [tabindex]="tabindex">
 
         <input matInput type="text" [formControl]="formControl" hidden [matDatepicker]="datePicker2" (dateChange)="onDatePickerChange($event)">
         <button type="button" mat-icon-button tabindex="-1" matSuffix #datePickerButton2 (click)="openDatePicker($event, datePicker2)" [disabled]="formControl.disabled">
           <mat-icon>keyboard_arrow_down</mat-icon>
         </button>
-        <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #datePicker2
-                        ></mat-datepicker>
+        <mat-datepicker [touchUi]="touchUi" [disabled]="formControl.disabled" #datePicker2></mat-datepicker>
 
       </mat-form-field>
       <div class="mat-form-field-subscript mat-form-field-subscript-wrapper" >
@@ -113,7 +114,8 @@
                [required]="required"
                (tap)="openTimePickerIfTouchUi($event)"
                (keyup.arrowdown)="openTimePicker($event)"
-               (blur)="checkIfTouched()">
+               (blur)="checkIfTouched()"
+               [tabindex]="tabindex !== undefined ? tabindex+1 : undefined">
 
         <input matInput type="text" [formControl]="form.controls['hour']" hidden [ngxTimepicker]="timePicker" [format]="24">
 

@@ -3,7 +3,6 @@ export class Environment {
   version: string;
   production: boolean;
   baseUrl: string;
-  remoteBaseUrl: string;
   defaultLocale: string;
   defaultLatLongFormat?: 'DD' | 'DDMM' | 'DDMMSS';
   defaultDepartmentId?: number;

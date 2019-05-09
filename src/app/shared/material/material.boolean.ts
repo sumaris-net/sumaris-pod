@@ -10,7 +10,6 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {Platform} from '@ionic/angular';
 import {FloatLabelType, MatCheckbox, MatCheckboxChange, MatRadioButton, MatRadioChange} from '@angular/material';
 import {ControlValueAccessor, FormBuilder, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
@@ -40,7 +39,6 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
   protected writing = false;
 
   showRadio = false;
-  radioTabIndex: number;
 
   @Input() disabled = false;
 
