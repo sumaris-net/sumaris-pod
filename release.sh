@@ -2,27 +2,32 @@
 
 mkdir -p .local
 
-echo "**********************************"
-echo "* Rollback previous release..."
-echo "**********************************"
+
+# Rollback previous release, if need
 if [[ -f "pom.xml.releaseBackup" ]]; then
+    echo "**********************************"
+    echo "* Rollback previous release..."
+    echo "**********************************"
     result=`mvn release:rollback`
     failure=`echo "$result" | grep -m1 -P "\[INFO\] BUILD FAILURE"  | grep -oP "BUILD \w+"`
-     prepare failed
+    # rollback failed
     if [[ ! "_$failure" = "_" ]]; then
         echo "$result" | grep -P "\[ERROR\] "
         exit 1
     fi
+    echo "Rollback previous release [OK]"
 fi
+
 
 echo "**********************************"
 echo "* Preparing release..."
 echo "**********************************"
 mvn release:prepare
 if [[ $? -ne 0 ]]; then
-    #mvn release:rollback --quiet
     exit 1
 fi
+echo "Prepare release [OK]"
+
 
 echo "**********************************"
 echo "* Performing release..."
@@ -31,6 +36,7 @@ mvn release:perform -Darguments="-DskipTests -Denv=hsqldb"
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
+
 
 echo "**********************************"
 echo "* Generating DB..."
@@ -51,16 +57,23 @@ zip -q -r "sumaris-db-$version.zip" db
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
+echo "Generate DB [OK]"
 
+
+echo "**********************************"
+echo "* Pushing changes to upstream..."
+echo "**********************************"
 # Push git
 cd $dirname
 git push
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
     exit
 fi
 
 # Pause (if propagation is need between hosted git server and github)
 sleep 10s
+echo "Push changes to upstream [OK]"
+
 
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
@@ -70,6 +83,18 @@ cd $dirname/target/checkout
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
+echo "Upload artifacts to github [OK]"
 
+
+echo "----------------------------------"
 echo "RELEASE finished !"
+echo "----------------------------------"
+
+echo "Rebuild new SNAPSHOT version..."
+mvn clean install -DSkipTests --quiet
+if [[ $? -ne 0 ]]; then
+    exit 1
+fi
+echo "Rebuild new SNAPSHOT version [OK]"
+
 

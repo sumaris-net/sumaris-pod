@@ -24,13 +24,25 @@ package net.sumaris.core;
  * #L%
  */
 
+import net.sumaris.core.dao.data.BatchDaoWriteTest;
+import net.sumaris.core.dao.data.SampleDaoWriteTest;
 import net.sumaris.core.dao.technical.schema.DatabaseSchemaDaoTest;
 import net.sumaris.core.dao.data.TripDaoWriteTest;
+import net.sumaris.core.service.administration.StrategyServiceTest;
+import net.sumaris.core.service.data.OperationServiceWriteTest;
+import net.sumaris.core.service.data.TripServiceQualityTest;
+import net.sumaris.core.service.data.TripServiceReadTest;
+import net.sumaris.core.service.referential.LocationServiceReadTest;
+import net.sumaris.core.service.referential.LocationServiceWriteTest;
+import net.sumaris.core.service.referential.ReferentialServiceReadTest;
+import net.sumaris.core.service.technical.SoftwareServiceTest;
 import net.sumaris.core.service.technical.schema.DatabaseSchemaServiceTest;
 import net.sumaris.core.service.FileImportServiceTest;
 import net.sumaris.core.service.administration.DepartmentServiceTest;
 import net.sumaris.core.service.administration.PersonServiceTest;
 import net.sumaris.core.service.data.TripServiceWriteTest;
+import net.sumaris.core.util.crypto.CryptoUtilsTest;
+import net.sumaris.core.util.crypto.MD5UtilTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -41,14 +53,27 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
 		// DAO
-		DatabaseSchemaDaoTest.class,
+		BatchDaoWriteTest.class,
+		SampleDaoWriteTest.class,
 		TripDaoWriteTest.class,
+		DatabaseSchemaDaoTest.class,
 		// Service
 		DepartmentServiceTest.class,
 		PersonServiceTest.class,
+		StrategyServiceTest.class,
+		OperationServiceWriteTest.class,
+		TripServiceQualityTest.class,
 		TripServiceWriteTest.class,
+		TripServiceReadTest.class,
+		LocationServiceReadTest.class,
+		LocationServiceWriteTest.class,
+		ReferentialServiceReadTest.class,
 		DatabaseSchemaServiceTest.class,
-		FileImportServiceTest.class
+		SoftwareServiceTest.class,
+		FileImportServiceTest.class,
+		// Util
+		CryptoUtilsTest.class,
+		MD5UtilTest.class
 })
 public class AllTests {
 
