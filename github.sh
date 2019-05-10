@@ -86,6 +86,7 @@ case "$1" in
       echo "Sending web build..."
       if [[ -f "$dirname/www/sumaris-app.zip" ]]; then
         curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T $dirname/www/sumaris-app.zip $upload_url?name=sumaris-app-v$current-web.zip
+        echo " -> OK!"
       else
         echo "Could not found web release. Skipping."
       fi
@@ -93,6 +94,7 @@ case "$1" in
       echo "Sending Android build..."
       if [[ -f "$dirname/platforms/android/app/build/outputs/apk/release/app-release.apk" ]]; then
         curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T $dirname/platforms/android/app/build/outputs/apk/release/app-release.apk $upload_url?name=sumaris-app-v$current-android.apk
+        echo " -> OK!"
       else
         echo "Could not found Android release. Skipping."
       fi

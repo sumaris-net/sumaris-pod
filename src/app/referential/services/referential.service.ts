@@ -191,7 +191,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     if (res && res.saveReferentials) {
       // Update entites (id and update date)
       entities.forEach(entity => {
-        const data = res.saveReferentials.find(res => (res.id == entity.id || res.label == entity.label));
+        const data = res.saveReferentials.find(res => (res.id === entity.id || res.label === entity.label));
         entity.id = data && data.id || entity.id;
         entity.updateDate = data && data.updateDate || entity.updateDate;
         entity.dirty = false;

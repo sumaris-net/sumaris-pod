@@ -49,7 +49,9 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     this.serviceOptions = config && config.serviceOptions || {};
     this._config = config || {prependNewElements: false};
     this._useValidator = isNotNil(validatorService);
-    this._debug = true;
+
+    // For DEV ONLY
+    //this._debug = !environment.production;
   }
 
   watchAll(offset: number,
@@ -67,9 +69,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
         takeUntil(this._onWatchAll),
         map(res => {
           if (this._saving) {
-            console.error("[table-datasource] Service ${this.dataService.constructor.name} sent data, while will saving... should skip ?")
-          }
-          else {
+            console.error(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while will saving... should skip ?`);
+          } else {
             this.onLoading.emit(false);
             if (this._debug) console.debug(`[table-datasource] Service ${this.dataService.constructor.name} sent new data: updating datasource...`, res);
             this.updateDatasource(res.data);
@@ -112,11 +113,12 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       if (this._useValidator) {
         dataToSave = [];
         data = rows.map(row => {
-          const currentData = saveAsEntity ? new this.dataConstructor().fromObject(row.validator.value) as T : row.currentData;
+          const currentData = saveAsEntity ? new this.dataConstructor().fromObject(row.currentData) as T : row.currentData;
           // Filter to keep only dirty row
-          if (!onlyDirtyRows || row.validator.dirty) dataToSave.push(currentData);
+          if (onlyDirtyRows && row.validator.dirty) dataToSave.push(currentData);
           return currentData;
         });
+        if (!onlyDirtyRows) dataToSave = data;
       }
       // Or use the current data without conversion (when no validator service used)
       else {
@@ -135,10 +137,9 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
       const savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
 
-      //dataToSave.map(t => t.dirty = false);
       if (this._debug) console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
-      //if (this._debug) console.debug('[table-datasource] Updating datasource...', data);
-      //this.updateDatasource(data, {emitEvent: false});
+      if (this._debug) console.debug('[table-datasource] Updating datasource...', data);
+      this.updateDatasource(data, {emitEvent: false});
       return true;
     } catch (error) {
       if (this._debug) console.error('[table-datasource] Error while saving: ' + error && error.message || error);
