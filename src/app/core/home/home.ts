@@ -68,7 +68,7 @@ export class HomePage implements OnDestroy {
         setTimeout(() => {
           this.loading = false;
           this.markForCheck();
-        }, this.showSpinner ? 500 : 0);
+        }, 500);
       }));
     });
   };
