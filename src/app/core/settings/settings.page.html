@@ -23,7 +23,7 @@
 
           <p [innerHTML]="'SETTINGS.DESCRIPTION'|translate"></p>
 
-          <!-- inherited from account ?-->
+          <!-- account inheritance -->
           <mat-form-field [hidden]="isLogin">
             <input matInput hidden formControlName="accountInheritance" type="text">
             <mat-checkbox (change)="setAccountInheritance($event.checked)" [checked]="accountInheritance">
