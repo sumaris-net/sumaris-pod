@@ -90,6 +90,7 @@ export class SelectPeerModal {
       peer.softwareName = summary.softwareName;
       peer.softwareVersion = summary.softwareVersion;
       peer.label = summary.nodeLabel;
+      peer.name = summary.nodeName;
     } catch (err) {
       console.error(`[select-peer] Could not access to {${uri}}: ${err && err.statusText}`);
       peer.status = 'DOWN';
