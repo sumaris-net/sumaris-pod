@@ -21,23 +21,47 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# Sign files
-echo "Signing APK file..."
+# Signature
 KEYSTORE_FILE=${PROJECT_DIR}/.local/Sumaris.keystore
 KEY_ALIAS=Sumaris
 KEY_PWD=
-APK_DIR=${PROJECT_DIR}/platform/android/app/release
+APK_DIR=${PROJECT_DIR}/platforms/android/app/build/outputs/apk/release
 APK_UNSIGNED_FILE=${APK_DIR}/app-release.apk
-APK_SIGNED_FILE=${APK_DIR}/app-release-signed.apk
+BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/28.*/"
 
 if [[ ! -f "${APK_UNSIGNED_FILE}" ]]; then
   echo "APK file not found at: ${APK_UNSIGNED_FILE}"
   exit 1
 fi
-jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${KEYSTORE_FILE} ${APK_UNSIGNED_FILE} Sumaris
 
-BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/28.*/"
+# Check if signed
 cd ${BUILD_TOOLS_DIR}
-./zipalign -v 4 ${APK_UNSIGNED_FILE} ${APK_SIGNED_FILE}
+./apksigner verify ${APK_UNSIGNED_FILE}
 
-./apksigner verify ${APK_SIGNED_FILE}
+# Not signed ? Do it !
+if [[ $? -ne 0 ]]; then
+  echo "It seems that the APK file ${APK_UNSIGNED_FILE} is not signed !"
+  if [[ ! -f "${KEYSTORE_FILE}" ]]; then
+    echo "ERROR: Unable to sign: no keystore file found at ${KEYSTORE_FILE} !"
+    exit 1
+  fi
+
+  echo "Signing APK file ${APK_UNSIGNED_FILE}..."
+  APK_SIGNED_FILE=${APK_DIR}/app-release-signed.apk
+
+  jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${KEYSTORE_FILE} ${APK_UNSIGNED_FILE} Sumaris
+
+  BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/28.*/"
+  cd ${BUILD_TOOLS_DIR}
+  ./zipalign -v 4 ${APK_UNSIGNED_FILE} ${APK_SIGNED_FILE}
+
+  ./apksigner verify ${APK_SIGNED_FILE}
+  if [[ $? -ne 0 ]]; then
+    echo "Signing failed !"
+    exit 1
+  fi
+
+  # Do file replacement
+  rm ${APK_UNSIGNED_FILE}
+  mv ${APK_SIGNED_FILE} ${APK_UNSIGNED_FILE}
+fi
