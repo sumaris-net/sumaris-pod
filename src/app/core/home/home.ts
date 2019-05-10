@@ -36,6 +36,10 @@ export class HomePage implements OnDestroy {
   appName: string;
   contentStyle = {};
 
+  get currentLocaleCode(): string {
+    return (this.translate.currentLang || this.translate.defaultLang).substr(0,2);
+  }
+
   constructor(
     private accountService: AccountService,
     private modalCtrl: ModalController,

@@ -24,10 +24,10 @@
           <p [innerHTML]="'SETTINGS.DESCRIPTION'|translate"></p>
 
           <!-- inherited from account ?-->
-          <mat-form-field [hidden]="!accountService.isLogin()">
+          <mat-form-field [hidden]="isLogin">
             <input matInput hidden formControlName="accountInheritance" type="text">
             <mat-checkbox (change)="setAccountInheritance($event.checked)" [checked]="accountInheritance">
-              <span [innerHTML]="'SETTINGS.INHERIT_FROM_ACCOUNT'|translate"></span></mat-checkbox>
+              <span translate>SETTINGS.INHERIT_FROM_ACCOUNT</span></mat-checkbox>
             <mat-error *ngIf="form.controls['accountInheritance'].hasError('required') && form.controls['accountInheritance'].touched"
                        translate>ERROR.FIELD_REQUIRED
             </mat-error>

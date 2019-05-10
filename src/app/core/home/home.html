@@ -40,7 +40,7 @@
           <!-- change locale button -->
           <ion-button color="secondary" fill="solid" [matMenuTriggerFor]="matmenu">
             <mat-icon slot="start">public</mat-icon>
-            <ion-label>&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
+            <ion-label>&nbsp;{{ currentLocaleCode | uppercase }}</ion-label>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>

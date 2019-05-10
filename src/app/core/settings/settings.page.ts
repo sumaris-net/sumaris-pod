@@ -30,7 +30,6 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
   loading = true;
   saving = false;
-  isLogin = false;
   usageModes: UsageMode[] = ['FIELD', 'DESK'];
   localeMap = {
     'fr': 'Français',
@@ -39,8 +38,12 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   locales: String[] = [];
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
 
-  get accountInheritance() {
+  get accountInheritance(): boolean {
     return this.form.controls['accountInheritance'].value;
+  }
+
+  get isLogin(): boolean {
+    return this.accountService.isLogin();
   }
 
   constructor(
@@ -155,34 +158,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     }
   }
 
-  showAccount() {
-    console.log("TODO: open account");
-  }
-
-  async showSelectPeerModal() {
-    const peer = await this.networkService.showSelectPeerModal();
-    if (peer && peer.url) {
-      const control = this.form.get('peerUrl') as FormControl;
-      control.setValue(peer.url, {emitEvent: true, onlySelf: false});
-      control.markAsDirty({onlySelf: false});
-      this.markAsDirty();
-    }
-
-  }
-
-  async cancel() {
-    await this.load();
-  }
-
-  referentialToString = referentialToString;
-
-  /* -- protected functions -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  protected setAccountInheritance(enable: boolean, opts?: {emitEvent?: boolean;}) {
+  public setAccountInheritance(enable: boolean, opts?: {emitEvent?: boolean;}) {
     // Make sure to update the value in control
     this.form.controls['accountInheritance'].setValue(enable, opts);
     if (this._data.accountInheritance !== enable) {
@@ -190,7 +166,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     }
 
     if (enable) {
-      if (this.accountService.isLogin()) {
+      if (this.isLogin) {
         // Force using account settings
         const account = this.accountService.account;
 
@@ -222,5 +198,34 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       this.markForCheck();
     }
   }
+
+  showAccount() {
+    console.log("TODO: open account");
+  }
+
+  async showSelectPeerModal() {
+    const peer = await this.networkService.showSelectPeerModal();
+    if (peer && peer.url) {
+      const control = this.form.get('peerUrl') as FormControl;
+      control.setValue(peer.url, {emitEvent: true, onlySelf: false});
+      control.markAsDirty({onlySelf: false});
+      this.markAsDirty();
+    }
+
+  }
+
+  async cancel() {
+    await this.load();
+  }
+
+  referentialToString = referentialToString;
+
+  /* -- protected functions -- */
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+
 
 }
