@@ -25,7 +25,7 @@
              >
     <!-- loading spinner -->
     <div class="loading-page" [class.hidden]="!loading">
-      <div class="spinner" *ngIf="loading">
+      <div class="spinner" *ngIf="loading && showSpinner">
         <p>Loading...</p>
         <div class="sk-cube1 sk-cube"></div>
         <div class="sk-cube2 sk-cube"></div>

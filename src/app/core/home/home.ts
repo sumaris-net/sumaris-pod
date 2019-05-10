@@ -26,6 +26,7 @@ export function getRandomImage(files: String[]) {
 export class HomePage implements OnDestroy {
 
   loading = true;
+  showSpinner = true;
   displayName: String = '';
   isLogin: boolean;
   subscriptions: Subscription[] = [];
@@ -49,6 +50,8 @@ export class HomePage implements OnDestroy {
     private platform: PlatformService,
     private cd: ChangeDetectorRef
   ) {
+
+    this.showSpinner = !this.platform.started;
 
     this.platform.ready().then(() => {
       this.isLogin = accountService.isLogin();
