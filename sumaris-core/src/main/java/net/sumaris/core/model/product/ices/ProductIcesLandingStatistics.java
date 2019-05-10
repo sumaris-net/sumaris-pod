@@ -60,7 +60,7 @@ public class ProductIcesLandingStatistics implements Serializable, IDataEntity<I
     public static final String COLUMN_OFFICIAL_LANDINGS_VALUE = "official_landings_value";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "p01_ices_landing_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_ices_landing_seq")
     @SequenceGenerator(name = "p01_ices_landing_seq", sequenceName="p01_ices_landing_seq")
     private Integer id;
 

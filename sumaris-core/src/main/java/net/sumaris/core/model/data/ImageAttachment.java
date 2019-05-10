@@ -39,7 +39,7 @@ public class ImageAttachment implements IDataEntity<Integer>,
         IWithRecorderDepartmentEntityBean<Integer, Department> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "IMAGE_ATTACHMENT_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "IMAGE_ATTACHMENT_SEQ")
     @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ")
     private Integer id;
 

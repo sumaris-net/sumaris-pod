@@ -108,23 +108,23 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
     @Test
     public void saveByOperationId() {
 
-        List<BatchVO> list = Lists.newArrayList();
+        List<BatchVO> batches = Lists.newArrayList();
 
         {
-            BatchVO batch = new BatchVO();
-            batch.setOperationId(parentOperation.getId());
-            batch.setComments("Catch batch ope #" + parentOperation.getId());
+            BatchVO catchBatch = new BatchVO();
+            catchBatch.setOperationId(parentOperation.getId());
+            catchBatch.setComments("Catch batch ope #" + parentOperation.getId());
 
-            batch.setLabel("CATCH_BATCH");
-            batch.setExhaustiveInventory(false);
-            batch.setRankOrder(1);
+            catchBatch.setLabel("CATCH_BATCH");
+            catchBatch.setExhaustiveInventory(false);
+            catchBatch.setRankOrder(1);
 
             // Recorder department
             DepartmentVO recorderDepartment = new DepartmentVO();
             recorderDepartment.setId(dbResource.getFixtures().getDepartmentId(0));
-            batch.setRecorderDepartment(recorderDepartment);
+            catchBatch.setRecorderDepartment(recorderDepartment);
 
-            list.add(batch);
+            batches.add(catchBatch);
 
             // Child 1
             {
@@ -152,16 +152,16 @@ public class BatchDaoWriteTest extends AbstractDaoTest {
 
                 child.setQuantificationMeasurements(ImmutableList.of(weightMeasurement));
 
-                // Set the parent
-                child.setParent(batch);
+                // Link to parent
+                child.setParent(catchBatch);
 
                 // Add to full list
-                list.add(child);
+                batches.add(child);
             }
         }
 
         // Execute saveByOperationId()
-        List<BatchVO> savedResult = dao.saveByOperationId(parentOperation.getId(), list);
+        List<BatchVO> savedResult = dao.saveByOperationId(parentOperation.getId(), batches);
         Assert.assertNotNull(savedResult);
         Assert.assertEquals(2, savedResult.size());
 

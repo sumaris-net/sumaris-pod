@@ -58,7 +58,7 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     public static final String PROPERTY_OBSERVERS = "observers";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "OBSERVED_LOCATION_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OBSERVED_LOCATION_SEQ")
     @SequenceGenerator(name = "OBSERVED_LOCATION_SEQ", sequenceName="OBSERVED_LOCATION_SEQ")
     private Integer id;
 

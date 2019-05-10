@@ -112,7 +112,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         // Remember existing entities
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getSamples()));
 
-        // Save each gears
+        // Save each entities
         List<SampleVO> result = sources.stream().map(source -> {
             source.setOperationId(operationId);
             source.setProgram(parentProgram);
@@ -126,6 +126,14 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
             sourcesIdsToRemove.forEach(this::delete);
         }
+
+        // Remove parent (use only parentId)
+        result.stream().forEach(batch -> {
+            if (batch.getParent() != null) {
+                batch.setParentId(batch.getParent().getId());
+                batch.setParent(null);
+            }
+        });
 
         return result;
     }

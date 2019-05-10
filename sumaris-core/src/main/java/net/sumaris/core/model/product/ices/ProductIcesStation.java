@@ -69,7 +69,7 @@ public class ProductIcesStation implements Serializable, IDataEntity<Integer> {
     public static final String COLUMN_MESH_SIZE_SELECTION_DEVICE  = "mesh_size_selection_device";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "p01_ices_station_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_ices_station_seq")
     @SequenceGenerator(name = "p01_ices_station_seq", sequenceName="p01_ices_station_seq")
     private Integer id;
 

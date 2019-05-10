@@ -116,6 +116,14 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
             sourcesIdsToRemove.forEach(this::delete);
         }
 
+        // Remove parent (use only parentId)
+        result.stream().forEach(batch -> {
+            if (batch.getParent() != null) {
+                batch.setParentId(batch.getParent().getId());
+                batch.setParent(null);
+            }
+        });
+
         return result;
     }
 

@@ -56,7 +56,7 @@ public class ProductIcesSpeciesList implements Serializable, IDataEntity<Integer
     public static final String COLUMN_LENGTH_CODE = "length_code";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "p01_ices_species_list_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_ices_species_list_seq")
     @SequenceGenerator(name = "p01_ices_species_list_seq", sequenceName="p01_ices_species_list_seq")
     private Integer id;
 

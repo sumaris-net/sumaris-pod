@@ -40,7 +40,7 @@ public class ObservedLocationMeasurement implements IMeasurementEntity {
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "OBSERVED_LOCATION_MEASURME_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OBSERVED_LOCATION_MEASURME_SEQ")
     @SequenceGenerator(name = "OBSERVED_LOCATION_MEASURME_SEQ", sequenceName="OBSERVED_LOCATION_MEASURME_SEQ")
     private Integer id;
 

@@ -54,7 +54,7 @@ public class ProductIcesTrip implements Serializable, IDataEntity<Integer> {
     public static final String COLUMN_SAMPLING_METHOD = "sampling_method";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "p01_ices_trip_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_ices_trip_seq")
     @SequenceGenerator(name = "p01_ices_trip_seq", sequenceName="p01_ices_trip_seq")
     private Integer id;
 
