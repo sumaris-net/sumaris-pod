@@ -2,6 +2,7 @@
 
 mkdir -p .local
 
+RELEASE_OPTS="-DskipTests"
 
 # Rollback previous release, if need
 if [[ -f "pom.xml.releaseBackup" ]]; then
@@ -22,7 +23,7 @@ fi
 echo "**********************************"
 echo "* Preparing release..."
 echo "**********************************"
-mvn release:prepare
+mvn release:prepare -Darguments="${RELEASE_OPTS}"
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
