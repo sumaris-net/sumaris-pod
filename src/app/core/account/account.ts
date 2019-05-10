@@ -37,8 +37,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
   };
   locales: String[] = [];
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
-  usageModes: UsageMode[] = ['FIELD', 'DESK'];
-  saving: boolean = false;
+  saving = false;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,

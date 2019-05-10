@@ -20,6 +20,7 @@ export class LocalSettingsValidatorService implements ValidatorService {
 
   getFormGroup(data?: LocalSettings): FormGroup {
     return this.formBuilder.group({
+      accountInheritance: [data && data.accountInheritance || true, Validators.required],
       locale: [data && data.locale || null, Validators.required],
       latLongFormat: [data && data.latLongFormat || null, Validators.required],
       usageMode: [data && data.usageMode || 'DESK', Validators.required],

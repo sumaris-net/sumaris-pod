@@ -26,6 +26,7 @@ import {ReferentialRefService} from "../../referential/referential.module";
 import {OperationFilter, OperationService} from "../services/operation.service";
 import {PositionValidatorService} from "../services/position.validator";
 import {TranslateService} from "@ngx-translate/core";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 @Component({
@@ -56,7 +57,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected platform: Platform,
     protected location: Location,
     protected modalCtrl: ModalController,
-    protected accountService: AccountService,
+    protected settingsService: LocalSettingsService,
     protected validatorService: OperationValidatorService,
     protected dataService: OperationService,
     protected referentialRefService: ReferentialRefService,
@@ -64,7 +65,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, accountService,
+    super(route, router, platform, location, modalCtrl, settingsService,
       RESERVED_START_COLUMNS
         .concat(
           ['metier',
@@ -86,8 +87,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     );
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false;
-    this.inlineEdition=false;
-    this.latLongPattern = accountService.account.settings.latLongFormat || 'DDMM';
+    this.inlineEdition = false;
+    this.latLongPattern = settingsService.settings.latLongFormat;
     this.pageSize = 1000; // Do not use paginator
   };
 

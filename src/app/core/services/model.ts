@@ -629,6 +629,7 @@ export declare interface LocalSettings {
   pages?: any;
   peerUrl?: string;
   latLongFormat?: string;
+  accountInheritance?: boolean;
   locale?: string;
   usageMode?: UsageMode;
 }

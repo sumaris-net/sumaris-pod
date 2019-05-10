@@ -1,10 +1,11 @@
 import {Injectable} from "@angular/core";
-import {LocalSettings, Peer, UsageMode} from "./model";
+import {Account, LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
 import {isNotNil} from "../../shared/shared.module";
 import {environment} from "../../../environments/environment";
+import {Subject} from "rxjs";
 
 export const SETTINGS_STORAGE_KEY = "settings";
 
@@ -13,18 +14,20 @@ export class LocalSettingsService {
 
   private _startPromise: Promise<any>;
   private _started = false;
-  private _data: LocalSettings;
+  private data: LocalSettings;
+
+  public onChange = new Subject<LocalSettings>();
 
   get settings(): LocalSettings {
-    return this._data;
+    return this.data;
   }
 
   get locale(): string {
-    return this._data && this._data.locale || this.translate.currentLang || this.translate.defaultLang;
+    return this.data && this.data.locale || this.translate.currentLang || this.translate.defaultLang;
   }
 
   get latLongFormat(): string {
-    return this._data && this._data.latLongFormat || 'DDMM';
+    return this.data && this.data.latLongFormat || 'DDMM';
   }
 
   constructor(
@@ -38,14 +41,17 @@ export class LocalSettingsService {
   }
 
   private resetData() {
-    this._data = this._data || {};
+    this.data = this.data || {};
 
-    this._data.locale = this.translate.currentLang || this.translate.defaultLang;
-    this._data.latLongFormat = environment.defaultLatLongFormat || 'DDMM';
-    this._data.usageMode = 'DESK';
+    this.data.locale = this.translate.currentLang || this.translate.defaultLang;
+    this.data.latLongFormat = environment.defaultLatLongFormat || 'DDMM';
+    this.data.usageMode = 'DESK';
+    this.data.accountInheritance = true;
 
     const defaultPeer = environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
-    this._data.peerUrl = defaultPeer && defaultPeer.url || undefined;
+    this.data.peerUrl = defaultPeer && defaultPeer.url || undefined;
+
+    if (this._started) this.onChange.next(this.data);
   }
 
   async start() {
@@ -73,7 +79,7 @@ export class LocalSettingsService {
 
 
   public isUsageMode(mode: UsageMode): boolean {
-    return (this._data && this._data.usageMode || 'DESK') === mode;
+    return (this.data && this.data.usageMode || 'DESK') === mode;
   }
 
   public async restoreLocally(): Promise<LocalSettings | undefined> {
@@ -82,41 +88,54 @@ export class LocalSettingsService {
     const settingsStr = await this.storage.get(SETTINGS_STORAGE_KEY);
 
     // Restore local settings
-    this._data = settingsStr && JSON.parse(settingsStr) || {};
+    this.data = settingsStr && JSON.parse(settingsStr) || {};
 
-    return this._data;
+    // Emit event
+    this.onChange.next(this.data);
+
+    return this.data;
   }
 
   getLocalSetting(key: string, defaultValue?: string): string {
-    return this._data && isNotNil(this._data[key]) && this._data[key] || defaultValue;
+    return this.data && isNotNil(this.data[key]) && this.data[key] || defaultValue;
   }
 
   async saveLocalSettings(settings: LocalSettings) {
-    this._data = this._data || {};
+    this.data = this.data || {};
 
-    Object.assign(this._data, settings || {});
+    Object.assign(this.data, settings || {});
 
     // Save locally
     await this.saveLocally();
+
+    // Emit event
+    this.onChange.next(this.data);
+  }
+
+
+  async setLocalSetting(propertyName: string, value: any) {
+    const data = {};
+    data[propertyName] = value;
+    await this.saveLocalSettings(data);
   }
 
   public getPageSettings(pageId: string, propertyName?: string): string[] {
     const key = pageId.replace(/[/]/g, '__');
-    return this._data && this._data.pages
-      && this._data.pages[key] && (propertyName && this._data.pages[key][propertyName] || this._data.pages[key]);
+    return this.data && this.data.pages
+      && this.data.pages[key] && (propertyName && this.data.pages[key][propertyName] || this.data.pages[key]);
   }
 
   public async savePageSetting(pageId: string, value: any, propertyName?: string) {
     const key = pageId.replace(/[/]/g, '__');
 
-    this._data = this._data || {};
-    this._data.pages = this._data.pages || {}
+    this.data = this.data || {};
+    this.data.pages = this.data.pages || {}
     if (propertyName) {
-      this._data.pages[key] = this._data.pages[key] || {};
-      this._data.pages[key][propertyName] = value;
+      this.data.pages[key] = this.data.pages[key] || {};
+      this.data.pages[key][propertyName] = value;
     }
     else {
-      this._data.pages[key] = value;
+      this.data.pages[key] = value;
     }
 
     // Update local settings
@@ -127,13 +146,13 @@ export class LocalSettingsService {
 
 
   private saveLocally(): Promise<any> {
-    if (!this._data) {
+    if (!this.data) {
       console.debug("[settings] Removing local settings fro storage");
       return this.storage.remove(SETTINGS_STORAGE_KEY);
     }
     else {
-      console.debug("[settings] Store local settings", this._data);
-      return this.storage.set(SETTINGS_STORAGE_KEY, JSON.stringify(this._data));
+      console.debug("[settings] Store local settings", this.data);
+      return this.storage.set(SETTINGS_STORAGE_KEY, JSON.stringify(this.data));
     }
   }
 

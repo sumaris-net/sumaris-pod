@@ -8,6 +8,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
 import {fadeInAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
+import {LocalSettingsService} from "../services/local-settings.service";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -40,6 +41,7 @@ export class HomePage implements OnDestroy {
     private modalCtrl: ModalController,
     private translate: TranslateService,
     private configService: ConfigService,
+    private settingsService: LocalSettingsService,
     private platform: PlatformService,
     private cd: ChangeDetectorRef
   ) {
@@ -115,8 +117,11 @@ export class HomePage implements OnDestroy {
   }
 
   changeLanguage(locale: string) {
-    this.translate.use(locale);
-    this.markForCheck();
+
+    this.settingsService.saveLocalSettings({locale: locale})
+      .then(() => {
+        this.markForCheck();
+      });
   }
 
   protected markForCheck() {

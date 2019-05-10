@@ -16,6 +16,7 @@ import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
 import {isNotNil} from "../../shared/shared.module";
+import {LocalSettingsService} from "../services/local-settings.service";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -127,7 +128,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     protected platform: Platform,
     protected location: Location,
     protected modalCtrl: ModalController,
-    protected accountService: AccountService,
+    protected settingsService: AccountService|LocalSettingsService,
     protected columns: string[],
     public dataSource?: AppTableDataSource<T, F>,
     protected filter?: F
@@ -426,7 +427,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   }
 
   protected getDisplayColumns(): string[] {
-    var userColumns = this.accountService.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
+    var userColumns = this.settingsService.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
     // No user override: use defaults
     if (!userColumns) return this.columns;
 
@@ -472,7 +473,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.markForCheck();
 
         // Update user settings
-        await this.accountService.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
+        await this.settingsService.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
       });
     return modal.present();
   }

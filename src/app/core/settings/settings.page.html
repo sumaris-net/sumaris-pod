@@ -15,14 +15,25 @@
 
         <ion-col padding>
 
-          <p [innerHTML]="'SETTINGS.DESCRIPTION'|translate"></p>
-
           <!-- error -->
           <ion-item *ngIf="error">
             <ion-icon color="danger" slot="start" name="alert"></ion-icon>
             <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
           </ion-item>
 
+          <p [innerHTML]="'SETTINGS.DESCRIPTION'|translate"></p>
+
+          <!-- inherited from account ?-->
+          <mat-form-field [hidden]="!accountService.isLogin()">
+            <input matInput hidden formControlName="accountInheritance" type="text">
+            <mat-checkbox (change)="setAccountInheritance($event.checked)" [checked]="accountInheritance">
+              <span [innerHTML]="'SETTINGS.INHERIT_FROM_ACCOUNT'|translate"></span></mat-checkbox>
+            <mat-error *ngIf="form.controls['accountInheritance'].hasError('required') && form.controls['accountInheritance'].touched"
+                       translate>ERROR.FIELD_REQUIRED
+            </mat-error>
+          </mat-form-field>
+
+          <!-- locale -->
           <mat-form-field>
             <mat-select [placeholder]="'SETTINGS.LOCALE'|translate" formControlName="locale" required>
               <mat-option *ngFor="let locale of locales" [value]="locale">

@@ -189,7 +189,8 @@
   },
   "SETTINGS": {
     "TITLE": "Paramètres",
-    "DESCRIPTION": "Voici les options de configuration de l'application :",
+    "DESCRIPTION": "Voici les paramètres de l'application :",
+    "INHERIT_FROM_ACCOUNT": "Utiliser les préférences du <a (click)=\"showAccount()\">compte utilisateur</a>",
     "LOCALE": "Langue",
     "LAT_LONG_FORMAT": "Format latitude/longitude",
     "PEER_URL": "Addresse du noeud réseau",

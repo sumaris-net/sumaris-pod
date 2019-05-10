@@ -216,6 +216,7 @@ export class CoreModule {
 
   constructor(
     translate: TranslateService,
+    settingsService: LocalSettingsService,
     accountService: AccountService,
     dateAdapter: DateAdapter<any>) {
 
@@ -247,9 +248,17 @@ export class CoreModule {
       }
     });
 
+    settingsService.onChange.subscribe(settings => {
+      if (settings && settings.locale && settings.locale !== translate.currentLang) {
+        translate.use(settings.locale);
+      }
+    });
+
     accountService.onLogin.subscribe(account => {
-      if (account.settings && account.settings.locale && account.settings.locale != translate.currentLang) {
-        translate.use(account.settings.locale);
+      if (settingsService.settings.accountInheritance) {
+        if (account.settings && account.settings.locale && account.settings.locale !== translate.currentLang) {
+          translate.use(account.settings.locale);
+        }
       }
     });
   }

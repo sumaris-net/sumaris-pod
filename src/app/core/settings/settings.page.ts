@@ -4,16 +4,17 @@ import {Account, LocalSettings, Peer, referentialToString, UsageMode} from '../s
 import {FormBuilder, FormControl} from '@angular/forms';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
-import {Platform} from '@ionic/angular';
+import {DateAdapter, MatCheckboxChange} from "@angular/material";
 import {AppFormUtils} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 import {ValidatorService} from "angular4-material-table";
 import {LocalSettingsValidatorService} from "../services/local-settings.validator";
 import {PlatformService} from "../services/platform.service";
 import {NetworkService} from "../services/network.service";
-import {isNilOrBlank} from "../../shared/functions";
+import {isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
+import {distinctUntilChanged, startWith} from "rxjs/operators";
+import {merge} from "rxjs";
 
 @Component({
   selector: 'page-settings',
@@ -25,10 +26,11 @@ import {LocalSettingsService} from "../services/local-settings.service";
 })
 export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDestroy {
 
+  private _data: LocalSettings;
+
   loading = true;
   saving = false;
   isLogin = false;
-  data: LocalSettings;
   usageModes: UsageMode[] = ['FIELD', 'DESK'];
   localeMap = {
     'fr': 'Français',
@@ -36,6 +38,10 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   };
   locales: String[] = [];
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
+
+  get accountInheritance() {
+    return this.form.controls['accountInheritance'].value;
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -56,18 +62,18 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     }
 
     // By default, disable the form
-    this.disable();
+    this._enable = false;
   }
 
   async ngOnInit() {
     super.ngOnInit();
 
     // Make sure platform is ready
-    this.platform.ready()
-      // Then load data
-      .then(() => {
-        return this.load();
-      });
+    await this.platform.ready();
+
+    await this.load();
+
+    this.accountService.onLogin.subscribe(() => this.setAccountInheritance(this.accountInheritance));
   }
 
   async load() {
@@ -77,12 +83,8 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
     const data = this.settingsService.settings || {};
 
-    // If user login, will use account settings
-    if (this.accountService.isLogin()) {
-      this.copyFromAccount(data, this.accountService.account);
-    }
-
     // Set defaults
+    data.accountInheritance = toBoolean(data.accountInheritance, true);
     data.locale = data.locale || this.translate.currentLang || this.translate.defaultLang;
     data.latLongFormat = data.latLongFormat || 'DDMMSS';
     data.usageMode = data.usageMode || 'DESK';
@@ -94,15 +96,21 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       data.peerUrl = peer && peer.url;
     }
 
-    this.setValue(data);
+    // Remember data
+    this._data = data;
+
+    this.form.patchValue(data, {emitEvent: false});
     this.markAsPristine();
-    this.enable();
+
+    this.enable({emitEvent: false});
+
+    // Apply inheritance
+    this.setAccountInheritance(data.accountInheritance, {emitEvent: false});
 
     this.loading = false;
     this.error = null;
     this.markForCheck();
 
-    this.accountService.onLogin.subscribe(account => this.onLogin(account));
 
   }
 
@@ -125,6 +133,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       this.disable();
 
       await this.settingsService.saveLocalSettings(data);
+      this._data = data;
       this.markAsPristine();
 
       // Update the network peer
@@ -136,30 +145,18 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       console.error(err);
       this.error = err && err.message || err;
     } finally {
+      this.enable({emitEvent: false});
+
+      // Apply inheritance
+      this.setAccountInheritance(data.accountInheritance, {emitEvent: false});
+
       this.saving = false;
-      this.enable();
+      this.markForCheck();
     }
   }
 
-  onLogin(account: Account) {
-    this.isLogin = true;
-
-    // Force using account settings
-    const data = this.form.value;
-    this.copyFromAccount(data, account);
-
-    this.setValue(data);
-    this.markAsPristine();
-    this.enable();
-    this.markForCheck();
-  }
-
-  copyFromAccount(data: LocalSettings, account: Account) {
-    data = data || {};
-
-    // Force using account settings
-    data.locale = (account.settings && account.settings.locale) || this.data.locale;
-    data.latLongFormat = (account.settings && account.settings.latLongFormat) || this.data.latLongFormat;
+  showAccount() {
+    console.log("TODO: open account");
   }
 
   async showSelectPeerModal() {
@@ -184,4 +181,46 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  protected setAccountInheritance(enable: boolean, opts?: {emitEvent?: boolean;}) {
+    // Make sure to update the value in control
+    this.form.controls['accountInheritance'].setValue(enable, opts);
+    if (this._data.accountInheritance !== enable) {
+      this.form.controls['accountInheritance'].markAsDirty({onlySelf: false});
+    }
+
+    if (enable) {
+      if (this.accountService.isLogin()) {
+        // Force using account settings
+        const account = this.accountService.account;
+
+        // Copy values
+        if (account.settings) {
+          if (account.settings.locale) this.form.get('locale').setValue(account.settings.locale, opts);
+          if (account.settings.latLongFormat) this.form.get('latLongFormat').setValue(account.settings.latLongFormat, opts);
+        }
+        // Disable fields
+        this.form.get('locale').disable(opts);
+        this.form.get('latLongFormat').disable(opts);
+      } else {
+        // Enable fields
+        this.form.get('locale').enable(opts);
+        this.form.get('latLongFormat').enable(opts);
+      }
+    } else {
+      // Restore previous values
+      this.form.get('latLongFormat').setValue(this._data.locale, opts);
+      this.form.get('latLongFormat').setValue(this._data.latLongFormat, opts);
+
+      // Enable fields
+      this.form.get('locale').enable(opts);
+      this.form.get('latLongFormat').enable(opts);
+    }
+
+    // Mark for check, if need
+    if (!opts || opts.emitEvent) {
+      this.markForCheck();
+    }
+  }
+
 }
