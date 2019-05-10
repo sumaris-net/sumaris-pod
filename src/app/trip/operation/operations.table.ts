@@ -34,8 +34,8 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
   templateUrl: 'operations.table.html',
   styleUrls: ['operations.table.scss'],
   providers: [
-    { provide: ValidatorService, useClass: OperationValidatorService },
-    { provide: ValidatorService, useClass: PositionValidatorService }
+    {provide: ValidatorService, useClass: OperationValidatorService},
+    {provide: ValidatorService, useClass: PositionValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -98,6 +98,12 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
 
     this.tripId && this.setTripId(this.tripId);
 
+    this.registerSubscription(
+      this.settingsService.onChange.subscribe((settings) => {
+        if (this.loading) return; // skip
+        this.latLongPattern = settings.latLongFormat;
+        this.markForCheck();
+      }));
   }
 
   setTrip(data: Trip) {
@@ -128,7 +134,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
             text: translations['COMMON.NO'],
             role: 'cancel',
             cssClass: 'secondary',
-            handler: () => { }
+            handler: () => {
+            }
           },
           {
             text: translations['COMMON.YES'],
