@@ -6,6 +6,7 @@ import {Storage} from '@ionic/storage';
 import {isNotNil} from "../../shared/shared.module";
 import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
+import {isNotNilOrBlank} from "../../shared/functions";
 
 export const SETTINGS_STORAGE_KEY = "settings";
 
@@ -87,8 +88,10 @@ export class LocalSettingsService {
     // Restore from storage
     const settingsStr = await this.storage.get(SETTINGS_STORAGE_KEY);
 
-    // Restore local settings
-    this.data = settingsStr && JSON.parse(settingsStr) || {};
+    // Restore local settings (or keep old settings)
+    if (isNotNilOrBlank(settingsStr)) {
+      this.data = JSON.parse(settingsStr);
+    }
 
     // Emit event
     this.onChange.next(this.data);

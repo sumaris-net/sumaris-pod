@@ -7,7 +7,7 @@ import {Peer} from "./model";
 import {ModalController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
 import {Subject} from "rxjs";
-import {SETTINGS_STORAGE_KEY} from "./local-settings.service";
+import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
 
@@ -51,7 +51,8 @@ export class NetworkService {
     private cryptoService: CryptoService,
     private storage: Storage,
     private http: HttpClient,
-    private splashScreen: SplashScreen
+    private splashScreen: SplashScreen,
+    private settingsService: LocalSettingsService
   ) {
     this.resetData();
 
@@ -90,7 +91,11 @@ export class NetworkService {
         console.error(err && err.message || err);
         this._started = false;
         this._startPromise = undefined;
-      });
+      })
+
+      // Wait settings starts, then save peer in settings
+      .then(() => this.settingsService.ready())
+      .then(() => this.settingsService.saveLocalSettings({peerUrl: this._peer.url}));
     return this._startPromise;
   }
 

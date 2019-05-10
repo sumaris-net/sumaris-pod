@@ -33,7 +33,8 @@
     <ion-item tappable ripple
               *ngFor="let peer of $peers | async"
               (click)="selectPeer(peer)"
-              [detail]="peer.reachable">
+              [detail]="peer.reachable"
+              [disabled]="!peer.reachable">
 
       <!-- icon -->
       <ion-avatar slot="start" *ngIf="peer.reachable" >
@@ -65,7 +66,7 @@
 
       <!-- Peer is DOWN -->
       <ion-label text-wrap *ngIf="!peer.reachable">
-        <ion-text color="medium">
+        <ion-text color="dark">
           <h3>{{peer.hostAndPort}}</h3>
         </ion-text>
         <ion-text color="danger">
