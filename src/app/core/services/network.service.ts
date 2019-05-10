@@ -10,6 +10,7 @@ import {Subject} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
+import {toBoolean} from "../../shared/shared.module";
 
 export interface NodeInfo {
   softwareName: string;
@@ -79,7 +80,7 @@ export class NetworkService {
         // No peer in settings: ask user to choose
         while (!peer) {
           console.debug("[network] No peer defined. Asking user to choose a peer.");
-          peer = await this.showSelectPeerModal();
+          peer = await this.showSelectPeerModal({allowSelectDownPeer: false});
         }
         this._peer = peer;
         this._started = true;
@@ -167,7 +168,9 @@ export class NetworkService {
   }
 
 
-  public async showSelectPeerModal(): Promise<Peer | undefined> {
+  public async showSelectPeerModal(opts?: {allowSelectDownPeer?: boolean;}): Promise<Peer | undefined> {
+
+    opts = opts || {};
 
     const $peers = new Subject();
 
@@ -175,7 +178,8 @@ export class NetworkService {
       component: SelectPeerModal,
       componentProps: {
         peers: $peers,
-        canCancel: false
+        canCancel: false,
+        allowSelectDownPeer: toBoolean(opts.allowSelectDownPeer, true)
       },
       keyboardClose: true,
       showBackdrop: true

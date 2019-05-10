@@ -17,10 +17,12 @@ export class SelectPeerModal {
   $peers = new Subject<Peer[]>();
 
   @Input() canCancel = true;
+  @Input() allowSelectDownPeer = true;
 
   set peers(peers: Observable<Peer[]>) {
     peers.subscribe(res => this.refreshPeers(res));
   }
+
 
   constructor(
     private http: HttpClient,
@@ -34,8 +36,10 @@ export class SelectPeerModal {
   }
 
   selectPeer(item: Peer) {
-    console.debug("[select-peer-modal] User select the peer:", item);
-    this.viewCtrl.dismiss(item);
+    if (this.allowSelectDownPeer || item.reachable) {
+      console.debug("[select-peer-modal] User select the peer:", item);
+      this.viewCtrl.dismiss(item);
+    }
   }
 
   async refreshPeers(peers: Peer[]) {
