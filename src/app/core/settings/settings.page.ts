@@ -77,6 +77,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     await this.load();
 
     this.accountService.onLogin.subscribe(() => this.setAccountInheritance(this.accountInheritance));
+    this.accountService.onLogout.subscribe(() => this.setAccountInheritance(this.accountInheritance));
   }
 
   async load() {
@@ -158,7 +159,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     }
   }
 
-  public setAccountInheritance(enable: boolean, opts?: {emitEvent?: boolean;}) {
+  public setAccountInheritance(enable: boolean, opts?: { emitEvent?: boolean; }) {
     // Make sure to update the value in control
     this.form.controls['accountInheritance'].setValue(enable, opts);
     if (this._data.accountInheritance !== enable) {
@@ -199,10 +200,6 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     }
   }
 
-  showAccount() {
-    console.log("TODO: open account");
-  }
-
   async showSelectPeerModal() {
     const peer = await this.networkService.showSelectPeerModal();
     if (peer && peer.url) {
@@ -225,7 +222,6 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
 
 
 }
