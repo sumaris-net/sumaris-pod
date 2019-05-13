@@ -175,8 +175,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     console.info(`[referential] Loading ${entityName}...`);
     this.onRefresh.emit();
 
-    this.router.navigate([entityName], {
-      relativeTo: this.route.parent,
+    this.router.navigate(['..', entityName], {
+      relativeTo: this.route,
       skipLocationChange: false
     });
   }
