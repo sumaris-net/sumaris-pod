@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ElementRef,
   forwardRef,
   Input,
   OnInit,
@@ -105,7 +104,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   @ViewChild('datePickerButton1') datePickerButton1: MatButton;
   @ViewChild('datePickerButton2') datePickerButton2: MatButton;
   @ViewChild('timePickerButton') timePickerButton: MatButton;
-
 
   constructor(
     platform: Platform,
@@ -445,8 +443,18 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   public openTimePickerIfTouchUi(event: UIEvent) {
     if (!this.touchUi) return;
 
+    event.preventDefault();
+
     // Avoid focus on the input, to avoid keyboard (on Android)
     if (this.timePickerButton) this.timePickerButton.focus();
+
+    if (this.keyboard.isVisible) {
+      this.keyboard.hide();
+      this.keyboard.onKeyboardHide().pipe(first()).subscribe(() => {
+        this.openTimePicker(event);
+      });
+    }
+
 
     // Open the picker
     this.openTimePicker(event);
@@ -456,7 +464,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     if (this.timePicker) {
       event.preventDefault();
       this.timePicker.open();
-      this.keyboard.hide();
     }
   }
 

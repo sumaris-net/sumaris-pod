@@ -131,7 +131,7 @@
                                  [cancelBtnTmpl]="timePickerCancelButton"
                                  [confirmBtnTmpl]="timePickerOkButton"
                                  [preventOverlayClick]="true"
-                                 [enableKeyboardInput]="!touchUi"
+                                 [enableKeyboardInput]="false"
                                  (keyup.escape)="onTimePickerKeyup($event)"
                                  (keyup.enter)="onTimePickerKeyup($event)">
           <!-- cancel button -->
@@ -147,7 +147,6 @@
               <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
             </ion-button>
           </ng-template>
-
 
         </ngx-material-timepicker>
       </mat-form-field>

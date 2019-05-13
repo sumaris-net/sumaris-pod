@@ -22,8 +22,8 @@ import {MatPaginatorI18n} from "./material/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
-import {TableDataService, DataService, LoadResult} from "./services/data-service.class";
-import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toDateISOString, toBoolean} from "./functions";
+import {DataService, LoadResult, TableDataService} from "./services/data-service.class";
+import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toBoolean, toDateISOString} from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 
@@ -44,7 +44,7 @@ export {
     TextMaskModule,
     IonicModule,
     TranslateModule.forChild(),
-    NgxMaterialTimepickerModule.forRoot()
+    NgxMaterialTimepickerModule
   ],
   declarations: [
     AutofocusDirective,
