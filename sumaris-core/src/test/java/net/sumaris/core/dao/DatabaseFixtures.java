@@ -53,7 +53,11 @@ public class DatabaseFixtures {
 			case 0:
 				return "benoit.lavenier@e-is.pro";
 			case 1:
-				return "observer@test.sumaris.net";
+				return "obs@sumaris.net";
+			case 2:
+				return "demo@sumaris.net";
+			case 3:
+				return "disable@sumaris.net";
 
 			default:
 				return "no-reply@sumaris.net";
