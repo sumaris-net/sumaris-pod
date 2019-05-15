@@ -60,7 +60,7 @@ export class PlatformService {
       .then(() => {
         this._started = true;
         this._startPromise = undefined;
-        console.debug("[platform] Platform started");
+        console.info(`[platform] Platform started: mobile=${this.mobile} touchUi=${this.touchUi}`);
 
         // Wait 1 more seconds, before hiding the splash screen
         setTimeout(() => {

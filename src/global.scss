@@ -515,15 +515,6 @@ ion-alert button.alert-button {
 // Date and time picker
 // --------------------------------------------------
 
-ngx-material-timepicker {
-  --clock-hand-color: var(--ion-color-accent) !important;
-
-  header {
-    --dial-background-color: var(--ion-color-primary) !important;
-    color: var(--ion-color-primary-contrast) !important;
-  }
-}
-
 mat-calendar {
   .mat-calendar-header {
     background-color: var(--ion-color-primary) !important;
@@ -542,6 +533,21 @@ mat-calendar {
   .mat-calendar-arrow {
     border-top-color: var(--ion-color-primary-contrast) !important;
   }
+}
+
+ngx-material-timepicker {
+  --clock-hand-color: var(--ion-color-accent) !important;
+
+  .timepicker {
+
+
+    header {
+      --dial-background-color: var(--ion-color-primary) !important;
+      color: var(--ion-color-primary-contrast) !important;
+    }
+
+  }
+
 }
 
 // --------------------------------------------------
