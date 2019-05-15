@@ -79,7 +79,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 					ProductIcesTrip.COLUMN_VESSEL_SIZE,
 					ProductIcesTrip.COLUMN_VESSEL_TYPE,
 					ProductIcesTrip.COLUMN_HARBOUR,
-					ProductIcesTrip.COLUMN_OPERATION_COUNT,
+					ProductIcesTrip.COLUMN_NUMBER_OF_SETS,
 					ProductIcesTrip.COLUMN_DAYS_AT_SEA,
 					ProductIcesTrip.COLUMN_VESSEL_IDENTIFIER,
 					ProductIcesTrip.COLUMN_SAMPLING_COUNTRY,

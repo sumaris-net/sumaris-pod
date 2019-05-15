@@ -10,8 +10,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 public class LocationsTest {
@@ -77,6 +76,76 @@ public class LocationsTest {
 		Set<String> labels = Locations.getAllCgpmGfcmRectangleLabels(resourceLoader, false);
 		assertNotNull(labels);
 		assertEquals(1545, labels.size());
+	}
+
+	@Test
+	public void convertSquareToRectangle() {
+		// Check ICES rectangle(NW quadrant)
+		String rectangleLabel = Locations.convertSquare10ToRectangle("14250013");// 42°5'N 1°3'W
+		assertNotNull(rectangleLabel);
+		assertEquals("14E8", rectangleLabel);
+
+		// Check ICES rectangle (NE quadrant)
+		rectangleLabel = Locations.convertSquare10ToRectangle("25140033");
+		assertNotNull(rectangleLabel);
+		assertEquals("32F3", rectangleLabel);
+
+		// Check CGPM rectangle (NE quadrant)
+		rectangleLabel = Locations.convertSquare10ToRectangle("24200051");
+		assertNotNull(rectangleLabel);
+		assertEquals("M24C2", rectangleLabel);
+	}
+
+	@Test
+	public void convertRectangleToSquares10() {
+		{
+			Set<String> squares = Locations.convertRectangleToSquares10("14E1");
+			assertNotNull(squares);
+			assertEquals(21, squares.size());
+			assertTrue(squares.contains("14230090"));
+		}
+
+		{
+			Set<String> squares = Locations.convertRectangleToSquares10("M24C2");
+			assertNotNull(squares);
+			assertEquals(9 /* 3x3 */, squares.size());
+			assertTrue(squares.contains("24200051"));
+		}
+
+	}
+
+	@Test
+	public void getSquare10LabelByLatLong() {
+		{
+			String squareLabel = Locations.getSquare10LabelByLatLong(35.3, 3.6);
+			assertNotNull(squareLabel);
+			assertEquals("23510033", squareLabel);
+		}
+
+		{
+			String rectLabel = "14E1";
+			Geometry geom = Locations.getGeometryFromRectangleLabel(rectLabel);
+			String squareLabel = Locations.getSquare10LabelByLatLong(geom.getCoordinate().y, geom.getCoordinate().x);
+			assertNotNull(squareLabel);
+			assertEquals("14230090", squareLabel);
+
+			// Inverse conversion
+			String convertedRectLabel = Locations.convertSquare10ToRectangle(squareLabel);
+			assertNotNull(squareLabel);
+			assertEquals(rectLabel, convertedRectLabel);
+		}
+	}
+
+	@Test
+	public void getAllSquare10Labels() {
+
+		Set<String> squares = Locations.getAllSquare10Labels(resourceLoader, true);
+		assertNotNull(squares);
+		assertTrue(squares.size() > 0);
+		assertTrue(squares.contains("14230090"));
+		assertTrue(squares.contains("25140033"));
+		assertTrue(squares.contains("24200051"));
+		assertEquals(138501, squares.size());
 	}
 
 }

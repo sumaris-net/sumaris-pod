@@ -208,7 +208,7 @@
               <goal>regex-property</goal>
             </goals>
             <configuration>
-              <value>${project.build.outputDirectory}</value>
+              <value>${project.build.directory}/generated-sources/resources</value>
               <regex>\\</regex>
               <replacement>/</replacement>
               <name>escapedOutputDirectory</name>
@@ -230,6 +230,7 @@
         </dependencies>
         <executions>
           <execution>
+            <id>generate-reflections-xml</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>execute</goal>

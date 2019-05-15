@@ -100,7 +100,7 @@
     <elasticsearch.version>6.2.2</elasticsearch.version>
     <jna.version>4.5.1</jna.version>
     <tyrus.version>1.14</tyrus.version>
-    <jackson.version>2.9.7</jackson.version>
+    <jackson.version>2.9.7</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
     <stringtemplate.version>4.0.2</stringtemplate.version>
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
     <commonBeanutilsVersion>1.9.3</commonBeanutilsVersion>
@@ -114,15 +114,14 @@
     <spring-data.version>2.0.11.RELEASE</spring-data.version>
     <querydsl.version>4.2.1</querydsl.version>
     <aspectj.version>1.8.13</aspectj.version>
-    <javassist.version>3.22.0-GA</javassist.version>
+    <javassist.version>3.23.1-GA</javassist.version>
     <cglib.version>3.2.4</cglib.version>
     <jts.version>1.14.0</jts.version>
-    <!--<ehcache.version>2.5.7</ehcache.version>ehcache version MUST be < 2.6.* -->
-    <ehcache.version>2.10.3</ehcache.version><!--try with 2.6.x version-->
+    <ehcache.version>2.10.5</ehcache.version>
     <ehcache-monitor.version>2.7.11</ehcache-monitor.version>
     <lombok.version>1.18.6</lombok.version>
     <spring-boot.version>2.0.3.RELEASE</spring-boot.version>
-    <spring-boot-plugin.version>2.0.1.RELEASE</spring-boot-plugin.version>
+    <spring-boot-plugin.version>2.0.3.RELEASE</spring-boot-plugin.version>
     <ozimov-email.version>0.6.3</ozimov-email.version>
     <reflections.version>0.9.11</reflections.version>
     <rxjava.version>2.1.5</rxjava.version>
