@@ -105,9 +105,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
   @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
   @ViewChild('timePicker') timePicker: NgxTimePicker;
-  @ViewChild('datePickerButton1') datePickerButton1: MatButton;
-  @ViewChild('datePickerButton2') datePickerButton2: MatButton;
-  @ViewChild('timePickerButton') timePickerButton: MatButton;
 
   constructor(
     platform: Platform,
@@ -350,10 +347,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
     this.preventEvent(event);
 
-    // Avoid focus on the input, to avoid keyboard (on Android)
-    //const pickerButton = this.datePickerButton1 || this.datePickerButton2;
-    //if (pickerButton) pickerButton.focus();
-
     if (this.keyboard.isVisible) {
       this.keyboard.hide();
       this.keyboard.onKeyboardHide().pipe(first()).subscribe(() => {
@@ -380,9 +373,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     if (!this.mobile || event.defaultPrevented) return;
 
     this.preventEvent(event);
-
-    // Avoid focus on the input, to avoid keyboard (on Android)
-    //if (this.timePickerButton) this.timePickerButton.focus();
 
     if (this.keyboard.isVisible) {
       this.keyboard.hide();
