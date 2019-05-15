@@ -309,6 +309,11 @@ $screen-xl: 1200px;
   }
 }
 
+form ion-col>ion-label[float-center],
+form ion-col>ion-label[float-end] {
+  text-align: end !important;
+}
+
 // --------------------------------------------------
 // Custom usefull CSS style
 // --------------------------------------------------
