@@ -46,9 +46,13 @@ mat-table  {
   }
 
   .mat-cell {
+    a {
+      color: var(--ion-color-dark) !important;
+    }
     a:hover {
       text-decoration: underline;
-      text-decoration-color: var(--ion-color-secondary) !important;
+      text-decoration-color: var(--ion-color-primary) !important;
+      color: var(--ion-color-primary) !important;
       cursor: pointer !important;
     }
   }
