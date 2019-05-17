@@ -36,7 +36,7 @@
     <!-- other fields -->
     <select alias="VESSEL_LENGTH" type="number">CAST(VF.LENGTH_OVER_ALL AS DOUBLE) / 100</select>
     <select alias="VESSEL_POWER" type="number">VF.ADMINISTRATIVE_POWER</select>
-    <select alias="VESSEL_SIZE" type="number">VF.GROSS_TONNAGE_GRT</select>
+    <select alias="VESSEL_SIZE" type="number">CAST(FLOOR(COALESCE(VF.GROSS_TONNAGE_GT, VF.GROSS_TONNAGE_GRT) / 100) AS INT)</select>
     <select alias="VESSEL_TYPE" type="number">4</select> <!-- Other boat -->
     <select alias="HARBOUR" type="text">L.LABEL</select>
     <select alias="HAUL_COUNT" type="number">

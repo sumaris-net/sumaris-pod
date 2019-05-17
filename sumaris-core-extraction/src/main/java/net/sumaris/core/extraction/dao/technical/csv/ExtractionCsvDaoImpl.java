@@ -58,10 +58,10 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
 
     @Override
     public void dumpQueryToCSV(File file, String query,
-                               Map<String, String> fieldNamesByAlias,
-                               Map<String, String> dateFormats,
-                               Map<String, String> decimalFormats,
-                               List<String> ignoredFields) throws IOException {
+                               Map<String, String> aliasByColumnMap,
+                               Map<String, String> dateFormatsByColumnMap,
+                               Map<String, String> decimalFormatsByColumnMap,
+                               Set<String> excludeColumnNames) throws IOException {
 
         // create output file
         Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8));
@@ -75,7 +75,7 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
         // fill result set
         queryAllowEmptyResultSet(
                 query,
-                new CsvResultSetExtractor(csvWriter, true, fieldNamesByAlias, dateFormats, decimalFormats, ignoredFields));
+                new CsvResultSetExtractor(csvWriter, true, aliasByColumnMap, dateFormatsByColumnMap, decimalFormatsByColumnMap, excludeColumnNames));
 
         // flush result set in file and close
         csvWriter.flush();
@@ -114,9 +114,12 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
         private final CsvResultSetHelperService helperService;
 
         CsvResultSetExtractor(CSVWriter csvWriter, boolean showColumnHeaders,
-                              Map<String, String> fieldNamesByAlias, Map<String, String> dateFormats, Map<String, String> decimalFormats, List<String> ignoredFields) {
+                              Map<String, String> aliasByColumnMap,
+                              Map<String, String> dateFormatsByColumnMap,
+                              Map<String, String> decimalFormatsByColumnMap,
+                              Set<String> excludeColumnNames) {
             writer = csvWriter;
-            helperService = new CsvResultSetHelperService(fieldNamesByAlias, dateFormats, decimalFormats, ignoredFields);
+            helperService = new CsvResultSetHelperService(aliasByColumnMap, dateFormatsByColumnMap, decimalFormatsByColumnMap, excludeColumnNames);
             writer.setResultService(helperService);
             this.showColumnHeaders = showColumnHeaders;
         }
@@ -137,24 +140,24 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
 
     private class CsvResultSetHelperService extends ResultSetHelperService {
 
-        private final Map<String, String> fieldNamesByAlias;
-        private final Map<String, String> dateFormats;
-        private final Map<String, String> decimalFormats;
+        private final Map<String, String> aliasByColumnMap;
+        private final Map<String, String> dateFormatsByColumnMap;
+        private final Map<String, String> decimalFormatsByColumnMap;
         private final Map<String, DecimalFormat> decimalFormatsCache;
-        private final List<String> ignoredFields;
-        private final Set<Integer> ignoredFieldsIndexes;
+        private final Set<String> excludeColumnNames;
+        private final Set<Integer> excludeColumnIndexes;
         private int nbRowsWritten = 0;
 
-        private CsvResultSetHelperService(Map<String, String> fieldNamesByAlias,
-                                          Map<String, String> dateFormats,
-                                          Map<String, String> decimalFormats,
-                                          List<String> ignoredFields) {
-            this.fieldNamesByAlias = fieldNamesByAlias;
-            this.dateFormats = dateFormats;
-            this.decimalFormats = decimalFormats;
+        private CsvResultSetHelperService(Map<String, String> aliasByColumnMap,
+                                          Map<String, String> dateFormatsByColumnMap,
+                                          Map<String, String> decimalFormatsByColumnMap,
+                                          Set<String> excludeColumnNames) {
+            this.aliasByColumnMap = aliasByColumnMap;
+            this.dateFormatsByColumnMap = dateFormatsByColumnMap;
+            this.decimalFormatsByColumnMap = decimalFormatsByColumnMap;
             this.decimalFormatsCache = new HashMap<>();
-            this.ignoredFields = ignoredFields;
-            this.ignoredFieldsIndexes = new TreeSet<>(Comparator.reverseOrder());
+            this.excludeColumnNames = excludeColumnNames;
+            this.excludeColumnIndexes = new TreeSet<>(Comparator.reverseOrder());
         }
 
         int getNbRowsWritten() {
@@ -168,12 +171,12 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
             List<String> names = new ArrayList<>();
             for (int i = 0; i < meta.getColumnCount(); i++) {
                 String columnName = meta.getColumnLabel(i + 1);
-                if (ignoredFields != null && ignoredFields.contains(columnName)) {
-                    ignoredFieldsIndexes.add(i);
+                if (excludeColumnNames != null && excludeColumnNames.contains(columnName)) {
+                    excludeColumnIndexes.add(i);
                     continue;
                 }
-                if (fieldNamesByAlias != null && fieldNamesByAlias.containsKey(columnName)) {
-                    columnName = fieldNamesByAlias.get(columnName);
+                if (aliasByColumnMap != null && aliasByColumnMap.containsKey(columnName)) {
+                    columnName = aliasByColumnMap.get(columnName);
                 }
                 names.add(columnName);
             }
@@ -186,7 +189,7 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
             nbRowsWritten++;
             String[] values = super.getColumnValues(rs, trim, dateFormatString, timeFormatString);
 
-            for (Integer index : ignoredFieldsIndexes)
+            for (Integer index : excludeColumnIndexes)
                 values = ArrayUtils.remove(values, index);
 
             return values;
@@ -207,8 +210,8 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
             if (decimalFormatsCache.containsKey(columnName)) {
                 return decimalFormatsCache.get(columnName).format(value);
             }
-            if (decimalFormats != null && decimalFormats.containsKey(columnName)) {
-                DecimalFormat decimalFormat = new DecimalFormat(decimalFormats.get(columnName));
+            if (decimalFormatsByColumnMap != null && decimalFormatsByColumnMap.containsKey(columnName)) {
+                DecimalFormat decimalFormat = new DecimalFormat(decimalFormatsByColumnMap.get(columnName));
                 decimalFormatsCache.put(columnName, decimalFormat);
                 return decimalFormat.format(value);
             }
@@ -220,8 +223,8 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
         protected String handleDate(ResultSet rs, int columnIndex, String dateFormatString) throws SQLException {
             // handle date column
             String columnName = rs.getMetaData().getColumnLabel(columnIndex);
-            if (dateFormats != null && dateFormats.containsKey(columnName)) {
-                return super.handleDate(rs, columnIndex, dateFormats.get(columnName));
+            if (dateFormatsByColumnMap != null && dateFormatsByColumnMap.containsKey(columnName)) {
+                return super.handleDate(rs, columnIndex, dateFormatsByColumnMap.get(columnName));
             }
             return super.handleDate(rs, columnIndex, dateFormatString);
         }
@@ -230,8 +233,8 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
         protected String handleTimestamp(ResultSet rs, int columnIndex, String timestampFormatString) throws SQLException {
             // handle timestamp column
             String columnName = rs.getMetaData().getColumnLabel(columnIndex);
-            if (dateFormats != null && dateFormats.containsKey(columnName)) {
-                return super.handleTimestamp(rs, columnIndex, dateFormats.get(columnName));
+            if (dateFormatsByColumnMap != null && dateFormatsByColumnMap.containsKey(columnName)) {
+                return super.handleTimestamp(rs, columnIndex, dateFormatsByColumnMap.get(columnName));
             }
             return super.handleTimestamp(rs, columnIndex, timestampFormatString);
         }

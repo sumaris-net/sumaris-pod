@@ -10,12 +10,12 @@ package net.sumaris.core.dao.referential.location;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -24,32 +24,41 @@ package net.sumaris.core.dao.referential.location;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.PhysicalGear;
+import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.referential.*;
+import net.sumaris.core.model.referential.location.LocationAssociation;
+import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.referential.ValidityStatus;
-import net.sumaris.core.model.referential.ValidityStatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevel;
+import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository("locationDao")
 public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao {
 
-    /** Logger. */
+    /**
+     * Logger.
+     */
     private static final Logger log =
             LoggerFactory.getLogger(LocationDaoImpl.class);
 
@@ -58,8 +67,7 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
 
         try {
             return getByLabel(label);
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
             return null;
         }
@@ -172,6 +180,44 @@ public class LocationDaoImpl extends HibernateDaoSupport implements LocationDao 
 
         Query q = getEntityManager().createNamedQuery("fillLocationHierarchy");
         q.getResultList();
+    }
+
+    @Override
+    public boolean hasAssociation(int childLocationId, int parentLocationId) {
+        EntityManager em = getEntityManager();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
+        CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        Root<LocationAssociation> root = query.from(LocationAssociation.class);
+
+        ParameterExpression<Integer> childIdParam = builder.parameter(Integer.class);
+        ParameterExpression<Integer> parentIdParam = builder.parameter(Integer.class);
+
+        query.select(builder.count(root))
+                .where(
+                        builder.and(
+                                builder.equal(root.get(LocationAssociation.PROPERTY_CHILD_LOCATION).get(IDataEntity.PROPERTY_ID), childIdParam),
+                                builder.equal(root.get(LocationAssociation.PROPERTY_PARENT_LOCATION).get(IDataEntity.PROPERTY_ID), parentIdParam)
+                        )
+                );
+
+        return em.createQuery(query)
+                .setParameter(childIdParam, childLocationId)
+                .setParameter(parentIdParam, parentLocationId)
+                .getSingleResult() > 0;
+    }
+
+    @Override
+    public void addAssociation(int childLocationId, int parentLocationId, double childSurfaceRatio) {
+        LocationAssociation entity = new LocationAssociation();
+        entity.setChildLocation(load(Location.class, childLocationId));
+        entity.setParentLocation(load(Location.class, parentLocationId));
+        entity.setChildSurfaceRatio(childSurfaceRatio);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        getEntityManager().persist(entity);
     }
 
     /* -- protected methods -- */

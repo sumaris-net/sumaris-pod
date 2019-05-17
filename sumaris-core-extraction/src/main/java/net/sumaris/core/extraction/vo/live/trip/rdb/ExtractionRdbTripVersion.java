@@ -1,17 +1,17 @@
-package net.sumaris.core.extraction.vo.live.trip.ices;
+package net.sumaris.core.extraction.vo.live.trip.rdb;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public enum ExtractionIcesVersion {
+public enum ExtractionRdbTripVersion {
 
-    // Version v1.3 ICES RDB data exchange format
+    // Version v1.3 P01 RDB data exchange format
     VERSION_1_3("1.3")
     ;
 
     private String label;
 
-    ExtractionIcesVersion(String label) {
+    ExtractionRdbTripVersion(String label) {
         this.label = label;
     }
 

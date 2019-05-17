@@ -1,4 +1,4 @@
-package net.sumaris.server.http.graphql.data;
+package net.sumaris.server.http.graphql.extraction;
 
 /*-
  * #%L
@@ -30,7 +30,6 @@ import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
-import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.rest.DownloadController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +44,6 @@ import java.util.List;
 @Service
 @Transactional
 public class ExtractionGraphQLService {
-
-    private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
-
-    @Autowired
-    private SumarisServerConfiguration configuration;
 
     @Autowired
     private ExtractionService extractionService;
@@ -93,7 +87,7 @@ public class ExtractionGraphQLService {
         Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
         Preconditions.checkNotNull(type.getLabel(), "Argument 'type.label' must not be null.");
 
-        File tempFile = extractionService.getFile(type, filter);
+        File tempFile = extractionService.extractAsFile(type, filter);
         String fileServerPath = downloadController.registerFile(tempFile, true);
 
        return fileServerPath;

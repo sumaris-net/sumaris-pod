@@ -22,7 +22,7 @@
 
 <queries name="extractionCreateSpeciesListTable">
 
-  <query type="create" temp="false" table="&amp;speciesListTableName">
+  <query type="create" temp="false" table="&amp;rawSpeciesListTableName">
 
     <!-- PK (inherited) -->
     <select alias="RECORD_TYPE" type="text">'SL'</select>
@@ -34,14 +34,14 @@
     <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
     <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
 
-    <!-- PK (new field) -->
+    <!-- PK (new fields) -->
     <select alias="SPECIES" type="text">TG.LABEL</select>
     <select alias="CATCH_CATEGORY" type="text">(SELECT QV.LABEL FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&amp;catchCategoryPmfmId)</select>
     <select alias="LANDING_CATEGORY" type="text">null</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">null</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select>
     <select alias="SUBSAMPLING_CATEGORY" type="text">null</select>
-    <select alias="SEX" type="text">null</select>
+    <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
 
     <!-- other fields -->
     <select alias="WEIGHT" type="number"><![CDATA[COALESCE(
@@ -57,7 +57,8 @@
     <select alias="LENGTH_CODE" type="text">'mm'</select>
 
     <!-- need to link other tables -->
-    <select alias="SAMPLE_NUMBER" type="hidden">COALESCE(SAMPLING_B.ID, SORTING_B.ID)</select>
+    <select alias="SAMPLE_ID" type="hidden">COALESCE(SAMPLING_B.ID, SORTING_B.ID)</select>
+    <select alias="SAMPLE_RANK_ORDER" type="hidden">SORTING_B.RANK_ORDER</select>
 
     <from alias="S">&amp;stationTableName</from>
     <from join="true">INNER JOIN BATCH CATCH_B ON CATCH_B.OPERATION_FK = S.STATION_NUMBER AND CATCH_B.PARENT_BATCH_FK IS NULL</from>
@@ -70,7 +71,7 @@
     <where>1=1</where>
     <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != 'I']]></where>
 
-    <orderby direction="ASC">S.STATION_NUMBER, SORTING_B.RANK_ORDER</orderby>
+    <orderby direction="ASC">S.STATION_NUMBER, SAMPLE_RANK_ORDER</orderby>
 
   </query>
 

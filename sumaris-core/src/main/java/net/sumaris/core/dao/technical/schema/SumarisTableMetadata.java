@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.SortDirection;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.boot.model.relational.QualifiedTableName;
@@ -41,6 +42,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -189,6 +191,35 @@ public class SumarisTableMetadata {
 	public String getSelectAllQuery() {
 		return selectAllQuery;
 	}
+
+	public String getSelectQuery(Collection<String> columnNames,
+								 String whereClause) {
+		return getSelectQuery(false, columnNames, whereClause, null, null);
+	}
+
+	public String getSelectQuery(boolean distinct,
+								 Collection<String> columnNames,
+								 String whereClause,
+								 String sort,
+								 SortDirection direction) {
+		String sql = String.format(QUERY_SELECT_ALL,
+				(distinct ? "DISTINCT " : "") + createSelectParams(columnNames, tableAlias),
+				getName(),
+				tableAlias);
+
+		// Where clause
+		if (StringUtils.isNotBlank(whereClause)) {
+			sql += whereClause;
+		}
+
+		// Add order by
+		if (StringUtils.isNotBlank(sort)) {
+			sql += String.format(" ORDER BY %s.%s %s", tableAlias, sort, (direction != null ? direction.name() : ""));
+		}
+
+		return sql;
+	}
+
 
 	/**
 	 * <p>Getter for the field <code>insertQuery</code>.</p>

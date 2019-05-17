@@ -42,6 +42,10 @@ public interface LocationDao {
 
     LocationVO toLocationVO(Location source);
 
+    boolean hasAssociation(int childLocationId, int parentLocationId);
+
+    void addAssociation(int childLocationId, int parentLocationId, double childSurfaceRatio);
+
     /**
      * Update technical table LOCATION_HIERARCHY, from child/parent links found in LOCATION
      */

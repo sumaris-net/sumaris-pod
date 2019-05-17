@@ -61,8 +61,6 @@ import java.util.Set;
 @Transactional
 public class DataGraphQLService {
 
-    private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
-
     @Autowired
     private VesselService vesselService;
 

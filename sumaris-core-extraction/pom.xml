@@ -44,6 +44,11 @@
 			<artifactId>xmlquery</artifactId>
 			<version>1.0</version>
 		</dependency>
+		<dependency>
+			<groupId>jaxen</groupId>
+			<artifactId>jaxen</artifactId>
+			<version>1.2.0</version>
+		</dependency>
 
 		<!-- OpenCSV for extraction result -->
 		<dependency>

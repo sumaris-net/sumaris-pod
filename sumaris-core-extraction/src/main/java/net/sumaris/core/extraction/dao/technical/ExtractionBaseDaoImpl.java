@@ -24,15 +24,24 @@ package net.sumaris.core.extraction.dao.technical;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.referential.ReferentialService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jdom2.Element;
+import org.jdom2.filter.Filters;
+import org.jdom2.xpath.XPathFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataRetrievalFailureException;
 
 import javax.persistence.Query;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,13 +53,16 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionBaseDaoImpl.class);
 
-    protected static final String TABLE_NAME_PREFIX = "EXT_";
+    protected static final String XML_QUERY_PATH = "xmlQuery";
 
     @Autowired
     protected SumarisConfiguration configuration;
 
     @Autowired
     protected ReferentialService referentialService;
+
+    @Autowired
+    ApplicationContext applicationContext;
 
     @Autowired
     public ExtractionBaseDaoImpl() {
@@ -72,13 +84,13 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
 
 
     protected int queryUpdate(String query) {
-        if (log.isDebugEnabled()) log.debug("execute: " + query);
+        if (log.isDebugEnabled()) log.debug("aggregate: " + query);
         Query nativeQuery = getEntityManager().createNativeQuery(query);
         return nativeQuery.executeUpdate();
     }
 
     protected long queryCount(String query) {
-        if (log.isDebugEnabled()) log.debug("execute: " + query);
+        if (log.isDebugEnabled()) log.debug("aggregate: " + query);
         Query nativeQuery = getEntityManager().createNativeQuery(query);
         Object result = nativeQuery.getSingleResult();
         if (result == null)
@@ -93,4 +105,14 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
     protected Integer getReferentialIdByUniqueLabel(Class<? extends IItemReferentialEntity> entityClass, String label) {
         return referentialService.getIdByUniqueLabel(entityClass, label);
     }
+
+    /**
+     * Create a new XML Query
+     * @return
+     */
+    protected XMLQuery createXMLQuery() {
+        return applicationContext.getBean("xmlQuery", XMLQuery.class);
+    }
+
+
 }

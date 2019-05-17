@@ -75,7 +75,7 @@
     <select alias="PROJECT" type="text">S.PROJECT</select>
     <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
     <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
-    <select alias="INDIVIDUAL_NUMBER" type="hidden">T.ID</select> <!--TODO : remove this column after insertion ?-->
+    <select alias="INDIVIDUAL_ID" type="hidden">T.ID</select><!-- hidden column, use to link in children table -->
 
     <!-- SURVIVAL TEST -->
     <select alias="SPECIE_CODE" type="number">TN.LABEL</select>
@@ -92,7 +92,7 @@
     <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = T.REFERENCE_TAXON_FK AND TN.IS_REFERENT= 1</from>
 
     <groupby>
-      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, INDIVIDUAL_NUMBER, SPECIE_CODE, SPECIE_NAME
+      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, INDIVIDUAL_ID, SPECIE_CODE, SPECIE_NAME
     </groupby>
   </query>
 

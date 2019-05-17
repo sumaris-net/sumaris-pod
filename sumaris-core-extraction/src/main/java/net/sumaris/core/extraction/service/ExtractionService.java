@@ -19,7 +19,6 @@ import java.util.List;
 @Transactional
 public interface ExtractionService {
 
-
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> getAllTypes();
 
@@ -31,12 +30,16 @@ public interface ExtractionService {
                                String sort,
                                SortDirection direction) ;
 
+    @Transactional
+    ExtractionContextVO extract(ExtractionTypeVO type, ExtractionFilterVO filter);
+
     @Transactional(rollbackFor = IOException.class)
-    File getFile(ExtractionTypeVO type,
-                 ExtractionFilterVO filter) throws IOException;
+    File extractAsFile(ExtractionTypeVO type,
+                       ExtractionFilterVO filter) throws IOException;
 
     @Transactional
-    File getFile(ExtractionLiveFormat format, ExtractionTripFilterVO filter);
+    File extractTripAsFile(ExtractionLiveFormat format, ExtractionTripFilterVO filter);
+
 
     @Transactional
     void clean(ExtractionContextVO context);

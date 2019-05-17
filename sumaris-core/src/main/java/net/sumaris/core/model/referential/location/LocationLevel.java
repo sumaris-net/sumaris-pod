@@ -38,7 +38,8 @@ import java.util.Date;
 public class LocationLevel implements Serializable, IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "LOCATION_LEVEL_SEQ")
+    @SequenceGenerator(name = "LOCATION_LEVEL_SEQ", sequenceName="LOCATION_LEVEL_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

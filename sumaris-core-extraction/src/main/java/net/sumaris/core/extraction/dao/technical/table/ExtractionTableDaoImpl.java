@@ -10,12 +10,12 @@ package net.sumaris.core.extraction.dao.technical.table;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,17 +23,16 @@ package net.sumaris.core.extraction.dao.technical.table;
  */
 
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.*;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.*;
-import org.apache.commons.collections4.CollectionUtils;
+import net.sumaris.core.util.Beans;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -42,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import javax.persistence.Query;
 import javax.sql.DataSource;
@@ -50,189 +50,218 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Allow to export rows from a table (in VO), with metadata on each columns
+ *
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Repository("extractionTableDao")
 @Lazy
 public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements ExtractionTableDao {
 
-	private static final Logger log = LoggerFactory.getLogger(ExtractionTableDaoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ExtractionTableDaoImpl.class);
 
-	@Autowired
-	protected SumarisDatabaseMetadata databaseMetadata;
+    @Autowired
+    protected SumarisDatabaseMetadata databaseMetadata;
 
-	@Autowired
-	protected DataSource dataSource = null;
+    @Autowired
+    protected DataSource dataSource = null;
 
-	@Override
-	public List<String> getAllTableNames() {
-		return ImmutableList.copyOf(databaseMetadata.getTableNames());
-	}
+    @Override
+    public List<String> getAllTableNames() {
+        return ImmutableList.copyOf(databaseMetadata.getTableNames());
+    }
 
-	@Override
-	public ExtractionResultVO getTable(String tableName) {
-		return getTableRows(tableName, null, 0, 0, null, null);
-	}
+    @Override
+    public ExtractionResultVO getTable(String tableName) {
+        return getTableRows(tableName, null, 0, 0, null, null);
+    }
 
-	@Override
-	public ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
-		Preconditions.checkNotNull(tableName);
+    @Override
+    public ExtractionResultVO getTableRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
+        Preconditions.checkNotNull(tableName);
 
-		SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
-		Preconditions.checkNotNull(table, "Unknown table: " + tableName);
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
+        Preconditions.checkNotNull(table, "Unknown table: " + tableName);
 
-		ExtractionResultVO result = new ExtractionResultVO();
+        ExtractionResultVO result = new ExtractionResultVO();
 
-		// Set columns metadata
-		List<ExtractionColumnMetadataVO> columns = table.getColumnNames().stream()
-				.map(table::getColumnMetadata)
-				.map(this::toExtractionColumnVO)
-				.collect(Collectors.toList());
-		result.setColumns(columns);
+        List<String> columnNames = table.getColumnNames().stream()
+                // Include/exclude some columns
+                .filter(createIncludeExcludePredicate(filter))
+                .collect(Collectors.toList());
 
-		// Compute the rank order
-		String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableName);
-		if (ArrayUtils.isNotEmpty(orderedColumnNames)) {
-			int maxRankOrder = -1;
-			for (ExtractionColumnMetadataVO column : columns) {
-				int rankOrder = ArrayUtils.indexOf(orderedColumnNames, column.getName().toLowerCase());
-				if (rankOrder != -1) {
-					column.setRankOrder(rankOrder+1);
-					maxRankOrder = Math.max(maxRankOrder, rankOrder+1);
-				}
-			}
-			// Set rankOrder of unknown columns (e.g. new columns)
-			for (ExtractionColumnMetadataVO column : columns) {
-				if (column.getRankOrder() == null) {
-					column.setRankOrder(++maxRankOrder);
-				}
-			}
-		}
+        // Set columns metadata
+        List<ExtractionColumnMetadataVO> columns = columnNames.stream()
+                // Get column metadata
+                .map(table::getColumnMetadata)
+                // Transform in VO
+                .map(this::toExtractionColumnVO)
+                .collect(Collectors.toList());
+        result.setColumns(columns);
 
-		String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
+        // Compute the rank order
+        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableName);
+        if (ArrayUtils.isNotEmpty(orderedColumnNames)) {
+            int maxRankOrder = -1;
+            for (ExtractionColumnMetadataVO column : columns) {
+                int rankOrder = ArrayUtils.indexOf(orderedColumnNames, column.getName().toLowerCase());
+                if (rankOrder != -1) {
+                    column.setRankOrder(rankOrder + 1);
+                    maxRankOrder = Math.max(maxRankOrder, rankOrder + 1);
+                }
+            }
+            // Set rankOrder of unknown columns (e.g. new columns)
+            for (ExtractionColumnMetadataVO column : columns) {
+                if (column.getRankOrder() == null) {
+                    column.setRankOrder(++maxRankOrder);
+                }
+            }
+        }
 
-		// Count rows
-		Number total = getRowCount(table, whereClause);
-		result.setTotal(total);
+        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
 
-		if (size > 0 && total.longValue() > 0) {
-			List<String[]> rows = getRows(table, whereClause, offset, size, sort, direction);
-			result.setRows(rows);
-		}
+        // Count rows
+        Number total = getRowCount(table, whereClause);
+        result.setTotal(total);
 
-		return result;
-	}
+        if (size > 0 && total.longValue() > 0) {
+            List<String[]> rows = getRows(table,  filter.isDistinct(), columnNames, whereClause, offset, size, sort, direction);
+            result.setRows(rows);
+        }
 
-	@Override
-	public void dropTable(String tableName) {
-		Preconditions.checkNotNull(tableName);
-		Preconditions.checkArgument(tableName.toUpperCase().startsWith("EXT_"));
+        return result;
+    }
 
-		log.debug(String.format("Dropping extraction table {%s}...", tableName));
-		Connection conn = DataSourceUtils.getConnection(dataSource);
-		try {
-			Statement stmt = conn.createStatement();
-			stmt.executeUpdate("DROP TABLE " + tableName.toUpperCase());
+    @Override
+    public void dropTable(String tableName) {
+        Preconditions.checkNotNull(tableName);
+        Preconditions.checkArgument(tableName.toUpperCase().startsWith("EXT_"));
 
-		}
-		catch (SQLException e) {
-			throw new SumarisTechnicalException(String.format("Cannot drop extraction table {%s}...", tableName), e);
-		}
-		finally {
-			DataSourceUtils.releaseConnection(conn, dataSource);
-		}
-	}
+        log.debug(String.format("Dropping extraction table {%s}...", tableName));
+        Connection conn = DataSourceUtils.getConnection(dataSource);
+        try {
+            Statement stmt = conn.createStatement();
+            stmt.executeUpdate("DROP TABLE " + tableName.toUpperCase());
 
-	/* -- protected method -- */
+        } catch (SQLException e) {
+            throw new SumarisTechnicalException(String.format("Cannot drop extraction table {%s}...", tableName), e);
+        } finally {
+            DataSourceUtils.releaseConnection(conn, dataSource);
+        }
+    }
 
-	protected Number getRowCount(SumarisTableMetadata table, String whereClause) {
+    /* -- protected method -- */
 
-		String sql = table.getCountAllQuery();
+    protected Number getRowCount(SumarisTableMetadata table, String whereClause) {
 
-		if (StringUtils.isNotBlank(whereClause)) {
-			sql += whereClause;
-		}
+        String sql = table.getCountAllQuery();
 
-		Number total = (Number) getEntityManager()
-				.createNativeQuery(sql)
-				.getSingleResult();
-		return total;
-	}
+        if (StringUtils.isNotBlank(whereClause)) {
+            sql += whereClause;
+        }
 
-	protected List<String[]> getRows(SumarisTableMetadata table, String whereClause, int offset, int size, String sort, SortDirection direction) {
+        Number total = (Number) getEntityManager()
+                .createNativeQuery(sql)
+                .getSingleResult();
+        return total;
+    }
 
-		String tableAlias = "t";
+    protected List<String[]> getRows(SumarisTableMetadata table,
+                                     boolean distinct,
+                                     List<String> columnNames,
+                                     String whereClause, int offset, int size, String sort, SortDirection direction) {
+        String sql = table.getSelectQuery(distinct, columnNames, whereClause, sort, direction);
+        Query query = getEntityManager().createNativeQuery(sql)
+                .setFirstResult(offset)
+                .setMaxResults(size);
+        return toTableRowsVO(query.getResultList(), columnNames.size());
+    }
 
-		String sql = table.getSelectAllQuery();
+    protected List<String[]> toTableRowsVO(List<Object[]> rows, final int resultLength) {
+        return rows.stream().map(r -> toTableRowVO(r, resultLength))
+                .collect(Collectors.toList());
+    }
 
-		// Where clause
-		if (StringUtils.isNotBlank(whereClause)) {
-			sql += whereClause;
-		}
+    protected String[] toTableRowVO(Object[] row, int columnCount) {
+        String[] result = new String[columnCount];
+        if (columnCount <= 0) columnCount = row.length;
+        for (int i = 0; i < columnCount; i++) {
+            if (row[i] != null) {
+                result[i] = row[i].toString();
+            } else {
+                result[i] = null;
+            }
+        }
+        return result;
+    }
 
-		// Add order by
-		if (StringUtils.isNotBlank(sort)) {
-			sql += String.format(" ORDER BY %s.%s %s", tableAlias, sort, (direction != null ? direction.name() : ""));
-		}
+    protected ExtractionColumnMetadataVO toExtractionColumnVO(SumarisColumnMetadata columnMetadata) {
+        ExtractionColumnMetadataVO column = new ExtractionColumnMetadataVO();
+        column.setName(columnMetadata.getName());
 
-		Query query = getEntityManager().createNativeQuery(sql)
-				.setFirstResult(offset)
-				.setMaxResults(size);
-		return toTableRowsVO(query.getResultList(), table.getColumnsCount());
-	}
+        column.setDescription(columnMetadata.getDescription());
+        column.setDefaultValue(columnMetadata.getDefaultValue());
 
-	protected List<String[]> toTableRowsVO(List<Object[]> rows, final int resultLength) {
-		return rows.stream().map(r -> toTableRowVO(r, resultLength))
-				.collect(Collectors.toList());
-	}
+        String type;
+        switch (columnMetadata.getTypeCode()) {
+            case Types.NUMERIC:
+            case Types.INTEGER:
+            case Types.BIGINT:
+                type = "integer";
+                break;
+            case Types.FLOAT:
+            case Types.DOUBLE:
+                type = "double";
+                break;
+            case Types.VARCHAR:
+            case Types.LONGVARCHAR:
+            case Types.NVARCHAR:
+                type = "string";
+                break;
+            default:
+                type = columnMetadata.getTypeName().toLowerCase();
+        }
+        column.setType(type);
+        return column;
+    }
 
-	protected String[] toTableRowVO(Object[] row, int resultLength){
-		String[] result = new String[resultLength];
-		if (resultLength <= 0) resultLength = row.length;
-		for (int i = 0; i < resultLength ; i++) {
-			if (row[i] != null) {
-				result[i] = row[i].toString();
-			} else {
-				result[i] = null;
-			}
-		}
-		return result;
-	}
-
-	protected ExtractionColumnMetadataVO toExtractionColumnVO(SumarisColumnMetadata columnMetadata){
-		ExtractionColumnMetadataVO column = new ExtractionColumnMetadataVO();
-		column.setName(columnMetadata.getName());
-
-		column.setDescription(columnMetadata.getDescription());
-		column.setDefaultValue(columnMetadata.getDefaultValue());
-
-		String type;
-		switch (columnMetadata.getTypeCode()) {
-			case Types.NUMERIC:
-			case Types.INTEGER:
-			case Types.BIGINT:
-				type = "integer";
-				break;
-			case Types.FLOAT:
-			case Types.DOUBLE:
-				type = "double";
-				break;
-			case Types.VARCHAR:
-			case Types.LONGVARCHAR:
-			case Types.NVARCHAR:
-				type = "string";
-				break;
-			default:
-				type = columnMetadata.getTypeName().toLowerCase();
-		}
-		column.setType(type);
-		return column;
-	}
+    protected Predicate<String> createIncludeExcludePredicate(ExtractionFilterVO filter) {
+        return createIncludeExcludePredicate(filter.getIncludeColumnNames(), filter.getExcludeColumnNames());
+    }
 
 
+    protected Predicate<String> createIncludeExcludePredicate(Set<String> includes, Set<String> excludes) {
+        final boolean includeAll = CollectionUtils.isEmpty(includes);
+        final boolean excludeNone = CollectionUtils.isEmpty(excludes);
+
+        if (includeAll && excludeNone) {
+            return (column) -> true;
+        }
+
+        return (column) -> {
+            boolean isInclude = includeAll || includes.stream().anyMatch((include) -> {
+                if (include.contains("*")) {
+                    final String regexp = include.replaceAll("[*]", ".*");
+                    return column.matches(regexp);
+                }
+                return column.equalsIgnoreCase(include);
+            });
+
+            boolean isExclude = !excludeNone && excludes.stream().anyMatch((exclude) -> {
+                if (exclude.contains("*")) {
+                    final String regexp = exclude.replaceAll("[*]", ".*");
+                    return column.matches(regexp);
+                }
+                return column.equalsIgnoreCase(exclude);
+            });
+
+            return isInclude && !isExclude;
+        };
+    }
 
 }

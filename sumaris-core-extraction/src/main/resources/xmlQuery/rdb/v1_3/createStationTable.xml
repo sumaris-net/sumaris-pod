@@ -48,7 +48,7 @@
     <select alias="POS_END_LON" type="number">P_END.LONGITUDE</select>
 
     <select alias="AREA" type="text">null</select>
-    <select alias="STATISTICAL_RECTANGLE" type="text">null</select> <!-- TODO : get it from po lat/lon -->
+    <select alias="STATISTICAL_RECTANGLE" type="text">F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)</select>
     <select alias="SUB_POLYGON" type="text">null</select>
     <select alias="MAIN_FISHING_DEPTH" type="number">(SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;mainFishingDepthPmfmId)</select>
     <select alias="MAIN_WATER_DEPTH" type="number">(SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;mainWaterDepthPmfmId)</select>
@@ -56,7 +56,7 @@
     <select alias="NATIONAL_METIER" type="text">null</select>
     <select alias="EU_METIER_LEVEL5" type="text">M.LABEL</select>
     <select alias="EU_METIER_LEVEL6" type="text">null</select>
-    <select alias="GEAR_TYPE" type="text">G.LABEL</select>
+    <select alias="GEAR_TYPE" group="gearType" type="text">G.LABEL</select>
     <select alias="MESH_SIZE" type="number">(SELECT PGM.NUMERICAL_VALUE FROM PHYSICAL_GEAR_MEASUREMENT PGM WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&amp;meshSizePmfmId)</select>
     <select alias="SELECTION_DEVICE" type="text"><![CDATA[
     (SELECT QV.LABEL FROM PHYSICAL_GEAR_MEASUREMENT PGM

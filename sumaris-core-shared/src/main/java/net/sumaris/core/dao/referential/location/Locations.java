@@ -428,20 +428,6 @@ public class Locations {
     }
 
     public static Set<String> getAllSquare10Labels(ResourceLoader resourceLoader, boolean failSafe) {
-
-//        if (resourceLoader != null) {
-//            try {
-//                return readLines(resourceLoader.getResource("classpath:referential/square10.txt"));
-//            } catch (SumarisTechnicalException e) {
-//                if (failSafe) {
-//                    // continue
-//                } else {
-//                    throw e;
-//                }
-//            }
-//        }
-
-        // Fail safe: will generate all rectangle (not only in sea area !)
         return ImmutableSet.<String>builder()
                 .addAll(getAllIcesRectangleLabels(resourceLoader, failSafe))
                 .addAll(getAllCgpmGfcmRectangleLabels(resourceLoader, failSafe))

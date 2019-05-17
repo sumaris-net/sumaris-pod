@@ -24,16 +24,85 @@ package net.sumaris.core.extraction.dao.technical;
  * #L%
  */
 import fr.ifremer.common.xmlquery.HSQLDBSingleXMLQuery;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.dao.technical.xml.XPaths;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jdom2.Attribute;
+import org.jdom2.Element;
+import org.jdom2.filter.Filters;
+import org.jdom2.xpath.XPathFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author ludovic.pecquot@e-is.pro
  */
-@Component
+@Component("xmlQuery")
 @Scope("prototype")
 public class XMLQuery extends HSQLDBSingleXMLQuery {
 
     // let default values here for HSQLDB
 
+    /**
+     * Get column names, with type="hidden"
+     * @return
+     */
+    public Set<String> getHiddenColumnNames() {
+
+        try {
+            List<Element> selectElements = XPaths.compile("//query/select[contains(@type, 'hidden')]", Filters.element())
+                    .evaluate(getDocument());
+            if (CollectionUtils.isEmpty(selectElements)) return null;
+
+            return selectElements.stream()
+                    .map(element -> element.getAttribute("alias"))
+                    .filter(Objects::nonNull)
+                    .map(attribute -> attribute.getValue())
+                    .filter(Objects::nonNull)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    public Set<String> getVisibleColumnNames() {
+
+        try {
+            List<Element> selectElements = XPaths.compile("//query/select", Filters.element())
+                    .evaluate(getDocument());
+            if (CollectionUtils.isEmpty(selectElements)) return null;
+
+            return selectElements.stream()
+                    // Exclude hidden columns
+                    .filter(element -> {
+                        Attribute typeAttr = element.getAttribute("type");
+                        return typeAttr == null || !"hidden".equalsIgnoreCase(typeAttr.getValue());
+                    })
+                    // Get alias
+                    .map(element -> element.getAttribute("alias"))
+                    .filter(Objects::nonNull)
+                    .map(attribute -> attribute.getValue())
+                    .filter(Objects::nonNull)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    /**
+     * Return if option="DISTINCT" has been set on the query
+     * @return
+     */
+    public boolean hasDistinctOption() {
+        Attribute optionAtr = getFirstQueryTag().getAttribute("option");
+        return optionAtr != null && "distinct".equalsIgnoreCase(optionAtr.getValue());
+    }
 }

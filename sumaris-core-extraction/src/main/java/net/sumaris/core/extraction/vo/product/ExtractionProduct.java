@@ -5,7 +5,7 @@ package net.sumaris.core.extraction.vo.product;
  */
 public enum ExtractionProduct {
 
-    ICES ("ICES",
+    P01_RDB("P01_RDB",
             "TR", "HH", "SL", "HL", "CL"
             // TODO add "CA", "CE"
             )

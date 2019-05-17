@@ -29,11 +29,11 @@ import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
-import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
-import net.sumaris.server.http.graphql.data.ExtractionGraphQLService;
+import net.sumaris.server.http.graphql.extraction.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
+import net.sumaris.server.http.graphql.technical.ConfigurationGraphQLService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,11 +41,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.config.annotation.ServletWebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
-import org.springframework.web.util.UrlPathHelper;
 
 @Configuration
 @EnableWebSocket

@@ -47,7 +47,7 @@ public class ProductIcesTrip implements Serializable, IDataEntity<Integer> {
     public static final String COLUMN_VESSEL_SIZE = "vessel_size";
     public static final String COLUMN_VESSEL_TYPE = "vessel_type";
     public static final String COLUMN_HARBOUR = "harbour";
-    public static final String COLUMN_OPERATION_COUNT = "number_hauls";
+    public static final String COLUMN_NUMBER_OF_SETS = "number_hauls";
     public static final String COLUMN_DAYS_AT_SEA = "days_at_sea";
     public static final String COLUMN_VESSEL_IDENTIFIER = "vessel_identifier";
     public static final String COLUMN_SAMPLING_COUNTRY= "sampling_country";
@@ -91,8 +91,8 @@ public class ProductIcesTrip implements Serializable, IDataEntity<Integer> {
     @Column(name = COLUMN_HARBOUR, length = 50)
     private String harbour;
 
-    @Column(scale = 5, name = COLUMN_OPERATION_COUNT)
-    private Integer operationCount;
+    @Column(scale = 5, name = COLUMN_NUMBER_OF_SETS)
+    private Integer numberOfSets;
 
     @Column(scale = 5,name = COLUMN_DAYS_AT_SEA)
     private Integer daysAtSea;

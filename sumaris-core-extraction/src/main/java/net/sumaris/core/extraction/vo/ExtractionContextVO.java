@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.*;
 
@@ -23,6 +24,12 @@ public abstract class ExtractionContextVO {
     @FieldNameConstants.Exclude
     Map<String, String> tableNames = new LinkedHashMap<>();
 
+    @FieldNameConstants.Exclude
+    Map<String, Set<String>> hiddenColumnNames = new LinkedHashMap<>();
+
+    @FieldNameConstants.Exclude
+    Set<String> tableNameWithDistinct = new HashSet<>();
+
     public abstract String getLabel();
 
     /**
@@ -31,7 +38,25 @@ public abstract class ExtractionContextVO {
      * @param sheetName
      */
     public void addTableName(String tableName, String sheetName) {
+        addTableName(tableName, sheetName, null, false);
+    }
+
+    /**
+     * Register a table (with rows inside)
+     * @param tableName
+     * @param sheetName
+     * @param hiddenColumnNames
+     */
+    public void addTableName(String tableName, String sheetName,
+                             Set<String> hiddenColumnNames,
+                             boolean enableDistinct) {
         tableNames.put(tableName, sheetName);
+        if (CollectionUtils.isNotEmpty(hiddenColumnNames)) {
+            this.hiddenColumnNames.put(tableName, hiddenColumnNames);
+        }
+        if (enableDistinct) {
+            this.tableNameWithDistinct.add(tableName);
+        }
     }
 
     public String getSheetName(String tableName) {
@@ -57,4 +82,20 @@ public abstract class ExtractionContextVO {
         return tableNames.containsValue(sheetName);
     }
 
+    /**
+     * Return the hidden columns of the given table
+     * @param tableName
+     * @param hiddenColumns
+     */
+    public Set<String> getHiddenColumns(String tableName) {
+        return hiddenColumnNames.get(tableName);
+    }
+
+    /**
+     * Return is distinct is enable on the table
+     * @param tableName
+     */
+    public boolean isDistinctEnable(String tableName) {
+        return tableNameWithDistinct.contains(tableName);
+    }
 }

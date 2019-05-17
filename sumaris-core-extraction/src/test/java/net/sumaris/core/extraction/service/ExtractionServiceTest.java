@@ -9,8 +9,6 @@ import net.sumaris.core.extraction.vo.live.ExtractionLiveFormat;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ZipUtils;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,26 +24,18 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     @Autowired
     private ExtractionService service;
 
-    @Before
-    public void setUp() throws Exception {
-    }
+    @Test
+    public void extractLiveTripAsFile_ICES() {
 
-    @After
-    public void tearDown() throws Exception {
+        // Test the RDB format
+        service.extractTripAsFile(ExtractionLiveFormat.RDB, null);
     }
 
     @Test
-    public void exportTripToFileIces() {
+    public void extractLiveTripAsFile_SurvivalTest() {
 
-        // ICES export:
-        service.getFile(ExtractionLiveFormat.ICES, null);
-    }
-
-    @Test
-    public void exportTripToFileSurvivalTest() {
-
-        // Survival test:
-        File outputFile = service.getFile(ExtractionLiveFormat.SURVIVAL_TEST, null);
+        // Test Survival test format
+        File outputFile = service.extractTripAsFile(ExtractionLiveFormat.SURVIVAL_TEST, null);
 
         File debugFile = new File("target/result.zip");
         File debugDirectory = new File("target/result");

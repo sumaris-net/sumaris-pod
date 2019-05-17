@@ -8,35 +8,6 @@
   <property name="dbms" value="hsqldb" dbms="hsqldb"/>
   
   <!-- Processing updates -->
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.1.0.xml"/>
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.6.3.xml"/>
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.6.4.xml"/>
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.8.0.xml"/>
-
-  <include relativeToChangelogFile="true" file="${dbms}/sumaris/db-changelog-0.8.0.xml"/>
-  <include relativeToChangelogFile="true" file="${dbms}/sumaris/db-changelog-0.8.1.xml"/>
-
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.0.xml"/>
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.3.xml"/>
-
-  <include relativeToChangelogFile="true" file="${dbms}/sumaris/db-changelog-0.9.3.xml"/>
-
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.4.xml"/>
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.5.xml"/>
-
-  <include relativeToChangelogFile="true" file="${dbms}/sumaris/db-changelog-0.9.5.xml"/>
-
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.7.xml"/>
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.9.xml"/>
-
-  <include relativeToChangelogFile="true" file="${dbms}/sumaris/db-changelog-0.9.9.xml"/>
-
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.9.12.xml"/>
-
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.10.0.xml"/>
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-0.10.2.xml"/>
-
-  <!-- Refresh schema objects (functions, procedures, triggers, ...)
-  <include relativeToChangelogFile="true" file="${dbms}/db-changelog-refresh.xml"/>-->
+  <include relativeToChangelogFile="true" file="${dbms}/db-changelog.xml"/>
   
 </databaseChangeLog>

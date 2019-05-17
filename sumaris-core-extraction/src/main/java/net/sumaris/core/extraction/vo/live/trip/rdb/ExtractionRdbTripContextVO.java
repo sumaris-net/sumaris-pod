@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo.live.trip.ices;
+package net.sumaris.core.extraction.vo.live.trip.rdb;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -10,10 +10,11 @@ import net.sumaris.core.extraction.vo.live.trip.ExtractionTripContextVO;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExtractionIcesContextVO extends ExtractionTripContextVO {
+public class ExtractionRdbTripContextVO extends ExtractionTripContextVO {
 
     String tripTableName; // TR table
     String stationTableName; // HH table
+    String rawSpeciesListTableName; // SL-raw (not distinct) table
     String speciesListTableName; // SL table
     String speciesLengthTableName; // HL table
     String sampleTableName; // CA table

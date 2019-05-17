@@ -36,6 +36,8 @@ import java.util.Date;
 public class LocationAssociation implements Serializable {
 
     public static final String PROPERTY_LOCATION_LEVEL = "locationLevel";
+    public static final String PROPERTY_PARENT_LOCATION = "parentLocation";
+    public static final String PROPERTY_CHILD_LOCATION = "childLocation";
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)

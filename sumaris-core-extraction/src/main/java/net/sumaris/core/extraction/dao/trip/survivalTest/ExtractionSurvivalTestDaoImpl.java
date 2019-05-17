@@ -1,13 +1,12 @@
 package net.sumaris.core.extraction.dao.trip.survivalTest;
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.extraction.dao.trip.ices.ExtractionIcesDaoImpl;
+import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.live.trip.ices.ExtractionIcesContextVO;
+import net.sumaris.core.extraction.vo.live.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.extraction.vo.live.trip.survivalTest.ExtractionSurvivalTestContextVO;
-import net.sumaris.core.extraction.vo.live.trip.ExtractionTripContextVO;
 import net.sumaris.core.extraction.vo.live.trip.survivalTest.ExtractionSurvivalTestVersion;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.slf4j.Logger;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("extractionSurvivalTestDao")
 @Lazy
-public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestContextVO> extends ExtractionIcesDaoImpl<C> implements ExtractionSurvivalTestDao {
+public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestContextVO> extends ExtractionRdbTripDaoImpl<C> implements ExtractionSurvivalTestDao {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionSurvivalTestDaoImpl.class);
 
@@ -38,17 +37,17 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     public C execute(ExtractionTripFilterVO filter, ExtractionFilterVO genericFilter) {
         String sheetName = filter != null ? filter.getSheetName() : null;
 
-        // Execute ICES extraction
+        // Execute RDB extraction
         C context = super.execute(filter, genericFilter);
 
-        // Stop here
-        if (sheetName != null && context.hasSheet(sheetName)) return context;
-
-        // Init context
+        // Override some context properties
         context.setFormatName(SURVIVAL_TEST_FORMAT);
         context.setFormatVersion(version);
         context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
         context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
+
+        // Stop here
+        if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         // Survival test table
         long rowCount = createSurvivalTestTable(context);
@@ -67,11 +66,11 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     /* -- protected methods -- */
 
     @Override
-    protected XMLQuery createTripQuery(ExtractionIcesContextVO context) {
+    protected XMLQuery createTripQuery(C context) {
         XMLQuery xmlQuery = super.createTripQuery(context);
 
         // Inject specific select clause
-        xmlQuery.injectQuery(getXMLQueryURL(context,"injectionTripTable"));
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
 
         // Bind PMFM ids
         xmlQuery.bind("mainMetierPmfmId", String.valueOf(PmfmEnum.MAIN_METIER.getId()));
@@ -83,19 +82,12 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         return xmlQuery;
     }
 
-//    @Override
-//    protected long createTripTable(ExtractionIcesContextVO context) {
-//        long rowCount = super.createTripTable(context);
-//
-//        long
-//    }
-
     @Override
-    protected XMLQuery createStationQuery(ExtractionIcesContextVO context) {
+    protected XMLQuery createStationQuery(C context) {
         XMLQuery xmlQuery = super.createStationQuery(context);
 
         // Inject specific select clause
-        xmlQuery.injectQuery(getXMLQueryURL(context,"injectionStationTable"));
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionStationTable"));
 
         // Bind PMFM ids
         xmlQuery.bind("substrateTypePmfmId", String.valueOf(PmfmEnum.SUBSTRATE_TYPE.getId()));
@@ -114,12 +106,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     }
 
     @Override
-    protected XMLQuery createSpeciesListQuery(ExtractionIcesContextVO context, boolean excludeInvalidStation) {
-        return super.createSpeciesListQuery(context, false/*Always include invalid station*/);
-    }
-
-    @Override
-    protected XMLQuery createSpeciesLengthQuery(ExtractionIcesContextVO context) {
+    protected XMLQuery createSpeciesLengthQuery(C context) {
         XMLQuery xmlQuery = super.createSpeciesLengthQuery(context);
 
         // Inject specific select clause
@@ -134,11 +121,11 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     }
 
     @Override
-    protected Class<? extends ExtractionIcesContextVO> getContextClass() {
+    protected Class<? extends ExtractionRdbTripContextVO> getContextClass() {
         return ExtractionSurvivalTestContextVO.class;
     }
 
-    protected String getQueryFullName(ExtractionTripContextVO context, String queryName) {
+    protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getFormatVersion());
 
@@ -155,14 +142,14 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         }
     }
 
-    protected long createSurvivalTestTable(ExtractionSurvivalTestContextVO context) {
+    protected long createSurvivalTestTable(C context) {
 
         log.info("Processing survival tests...");
-        XMLQuery xmlQuery = createXMLQuery(context,"createSurvivalTestTable");
+        XMLQuery xmlQuery = createXMLQuery(context, "createSurvivalTestTable");
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("survivalTestTableName", context.getSurvivalTestTableName());
 
-        // execute insertion
+        // aggregate insertion
         execute(xmlQuery);
         long count = countFrom(context.getSurvivalTestTableName());
 
@@ -173,20 +160,23 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
         // Add result table to context
         if (count > 0) {
-            context.addTableName(context.getSurvivalTestTableName(), ST_SHEET_NAME);
+            context.addTableName(context.getSurvivalTestTableName(),
+                    ST_SHEET_NAME,
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
             log.debug(String.format("Survival test table: %s rows inserted", count));
         }
         return count;
     }
 
-    protected long createReleaseTable(ExtractionSurvivalTestContextVO context) {
+    protected long createReleaseTable(C context) {
 
         log.info("Processing releases...");
-        XMLQuery xmlQuery = createXMLQuery(context,"createReleaseTable");
+        XMLQuery xmlQuery = createXMLQuery(context, "createReleaseTable");
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("releaseTableName", context.getReleaseTableName());
 
-        // execute insertion
+        // aggregate insertion
         execute(xmlQuery);
         long count = countFrom(context.getReleaseTableName());
 
@@ -197,7 +187,10 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
         // Add result table to context
         if (count > 0) {
-            context.addTableName(context.getReleaseTableName(), RL_SHEET_NAME);
+            context.addTableName(context.getReleaseTableName(),
+                    RL_SHEET_NAME,
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
             log.debug(String.format("Release table: %s rows inserted", count));
         }
         return count;

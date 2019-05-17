@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.12.0.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-1">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="LOCATION_LEVEL_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="LOCATION_LEVEL_SEQ"/>
+        <sql>
+            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from LOCATION_LEVEL
+        </sql>
+        <sql>
+            select NEXT VALUE FOR LOCATION_LEVEL_SEQ from STATUS where ID=1
+        </sql>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-200">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='0.12.0'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">0.12.0</column>
+            <column name="DESCRIPTION">
+                - Add LOCATION_LEVEL_SEQ
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+            <column name="COMMENTS">
+                - Add LOCATION_LEVEL_SEQ
+            </column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

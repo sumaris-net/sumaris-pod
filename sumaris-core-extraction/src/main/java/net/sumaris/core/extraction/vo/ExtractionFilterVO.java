@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.vo;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class ExtractionFilterVO {
@@ -36,4 +37,10 @@ public class ExtractionFilterVO {
     private List<ExtractionFilterCriterionVO> criteria;
 
     private String sheetName;
+
+    private boolean distinct = false;
+
+    private Set<String> includeColumnNames;
+
+    private Set<String> excludeColumnNames;
 }

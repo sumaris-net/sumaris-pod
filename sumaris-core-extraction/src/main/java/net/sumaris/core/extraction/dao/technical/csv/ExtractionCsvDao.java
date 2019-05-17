@@ -21,10 +21,11 @@ package net.sumaris.core.extraction.dao.technical.csv;
  * #L%
  */
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Ludovic Pecquot <ludovic.pecquot>
@@ -42,16 +43,16 @@ public interface ExtractionCsvDao {
      *
      * @param file              the output file
      * @param query             the query string
-     * @param fieldNamesByAlias map the output column name by aliased field name
-     * @param dateFormats       map the output format for dates by aliased field name
-     * @param decimalFormats    map the output format for decimals by aliased field name
-     * @param ignoredFields     list of fields to ignore
+     * @param aliasByColumnMap  output column alias, by column name
+     * @param dateFormats       output format, by column name
+     * @param decimalFormats    output decimal format, by column name
+     * @param excludeColumnNames set of columns to exclude
      */
     void dumpQueryToCSV(File file,
                         String query,
-                        Map<String, String> fieldNamesByAlias,
-                        Map<String, String> dateFormats,
-                        Map<String, String> decimalFormats,
-                        List<String> ignoredFields) throws IOException;
+                        @Nullable Map<String, String> aliasByColumnMap,
+                        @Nullable Map<String, String> dateFormats,
+                        @Nullable Map<String, String> decimalFormats,
+                        @Nullable Set<String> excludeColumnNames) throws IOException;
 
 }

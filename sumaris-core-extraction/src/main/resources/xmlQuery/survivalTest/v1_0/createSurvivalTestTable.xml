@@ -69,7 +69,7 @@
     <select alias="PROJECT" type="text">S.PROJECT</select>
     <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
     <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
-    <select alias="INDIVIDUAL_NUMBER" type="hidden">T.ID</select>
+    <select alias="INDIVIDUAL_ID" type="hidden">T.ID</select> <!-- hidden column -->
 
     <!-- SURVIVAL TEST -->
     <select alias="SPECIE_CODE" type="number">TN.LABEL</select>
@@ -100,15 +100,16 @@
     <select alias="WATER_TEMP_C" type="text">MAX(DECODE(T.PMFM_LABEL, 'WATER_TEMP_C', T.NUM_VALUE))</select>
     <select alias="AIR_TEMP_C" type="text">MAX(DECODE(T.PMFM_LABEL, 'AIR_TEMP_C', T.NUM_VALUE))</select>
     <select alias="CLOUD_COVER_PCT" type="text">MAX(DECODE(T.PMFM_LABEL, 'CLOUD_COVER_PCT', T.NUM_VALUE))</select>
+    <select alias="COMMENTS" type="text">MAX(DECODE(T.PMFM_LABEL, 'CLOUD_COVER_PCT', T.NUM_VALUE))</select>
 
     <from alias="S">&amp;stationTableName</from>
     <from join="true">INNER JOIN SAMPLE_WITH_MEAS T ON T.STATION_NUMBER = S.STATION_NUMBER</from>
     <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = T.REFERENCE_TAXON_FK AND TN.IS_REFERENT= 1</from>
 
     <groupby>
-      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, INDIVIDUAL_NUMBER, SPECIE_CODE, SPECIE_NAME, SCORING_DATE
+      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER,
+      INDIVIDUAL_ID, SPECIE_CODE, SPECIE_NAME, SCORING_DATE
     </groupby>
-    <!--<orderby direction="ASC">SA.ID</orderby>-->
   </query>
 
 </queries>

@@ -24,8 +24,14 @@ package net.sumaris.core.vo.referential;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class LocationVO extends ReferentialVO {
 
     private Integer validityStatusId;
+
+    private List<LocationAssociationVO> parents;
+
+    private List<LocationAssociationVO> children;
 }

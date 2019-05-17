@@ -1,20 +1,19 @@
-package net.sumaris.core.extraction.dao.trip.ices;
+package net.sumaris.core.extraction.dao.trip.rdb;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
-import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.Daos;
+import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.core.extraction.dao.trip.AggregationTripDao;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.live.ExtractionPmfmInfoVO;
 import net.sumaris.core.extraction.vo.live.trip.ExtractionTripContextVO;
-import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.live.trip.ices.ExtractionIcesContextVO;
-import net.sumaris.core.extraction.vo.live.trip.ices.ExtractionIcesVersion;
+import net.sumaris.core.extraction.vo.live.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.core.extraction.vo.live.trip.rdb.ExtractionRdbTripVersion;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -22,10 +21,8 @@ import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,19 +39,13 @@ import java.util.stream.Collectors;
 import static org.nuiton.i18n.I18n.t;
 
 /**
- * @author Ludovic Pecquot <ludovic.pecquot>
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-@Repository("extractionIcesDao")
+@Repository("aggregationRdbDao")
 @Lazy
-public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends ExtractionBaseDaoImpl implements ExtractionIcesDao {
+public class AggregationRdbDaoImpl<C extends ExtractionRdbTripContextVO> extends ExtractionBaseDaoImpl implements AggregationRdbDao<C>, AggregationTripDao {
 
-    private static final Logger log = LoggerFactory.getLogger(ExtractionIcesDaoImpl.class);
-
-    private static final String HH_SHEET_NAME = "HH";
-    private static final String SL_SHEET_NAME = "SL";
-    private static final String HL_SHEET_NAME = "HL";
-    private static final String CA_SHEET_NAME = "CA";
+    private static final Logger log = LoggerFactory.getLogger(AggregationRdbDaoImpl.class);
 
     private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + TR_SHEET_NAME + "_%s";
     private static final String HH_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HH_SHEET_NAME + "_%s";
@@ -62,7 +53,6 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
     private static final String HL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + HL_SHEET_NAME + "_%s";
     private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + CA_SHEET_NAME + "_%s";
 
-    protected static final String XML_QUERY_PATH = "xmlQuery";
 
     @Autowired
     protected StrategyService strategyService;
@@ -80,67 +70,38 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
     protected SumarisDatabaseMetadata databaseMetadata;
 
     @Override
-    public C execute(ExtractionTripFilterVO filter, ExtractionFilterVO genericFilter) {
-
-        if (log.isInfoEnabled()) {
-            log.info(String.format("Beginning extraction %s", filter == null ? "without tripFilter" : "with filters:"));
-            if (filter != null) {
-                log.info(String.format("Program label: %s", filter.getProgramLabel()));
-                log.info(String.format("  Location Id: %s", filter.getLocationId()));
-                log.info(String.format("   Start date: %s", filter.getStartDate()));
-                log.info(String.format("     End date: %s", filter.getEndDate()));
-                log.info(String.format("    Vessel Id: %s", filter.getVesselId()));
-                log.info(String.format("    RecDep Id: %s", filter.getRecorderDepartmentId()));
-            }
-        }
+    public <R extends C> R aggregate(C rawDataContext) {
 
         // Init context
-        C context = createNewContext();
-        context.setTripFilter(filter);
-        context.setFilter(genericFilter);
-        context.setFormatName(ICES_FORMAT);
-        context.setFormatVersion(ExtractionIcesVersion.VERSION_1_3.getLabel());
+        R context = createNewContext();
+        context.setTripFilter(rawDataContext.getTripFilter());
+        context.setFilter(rawDataContext.getFilter());
+        context.setFormatName(RDB_FORMAT);
+        context.setFormatVersion(ExtractionRdbTripVersion.VERSION_1_3.getLabel());
         context.setId(System.currentTimeMillis());
+
+        // Compute table names
         context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
         context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
         context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
         context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
         context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
 
-        // Expected sheet name
-        String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
-
         // Trip
-        long rowCount = createTripTable(context);
-        if (rowCount == 0) throw new DataNotFoundException(t("sumaris.extraction.noData"));
-        if (sheetName != null && context.hasSheet(sheetName)) return context;
-
-        // Get programs from trips
-        List<String> programLabels = getTripProgramLabels(context);
-        Preconditions.checkArgument(CollectionUtils.isNotEmpty(programLabels));
-        log.debug("Detected programs: " + programLabels);
-
-        // Get PMFMs from strategies
-        final MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId = new ArrayListValuedHashMap<>();
-        programLabels.stream()
-                .map(programService::getByLabel)
-                .map(ProgramVO::getId)
-                .forEach(programId -> pmfmStrategiesByProgramId.putAll(programId, strategyService.getPmfmStrategies(programId)));
-        List<ExtractionPmfmInfoVO> pmfmInfos = getPmfmInfos(context, pmfmStrategiesByProgramId);
-        context.setPmfmInfos(pmfmInfos);
+        long rowCount;
+        //rowCount = createTripTable(context);
+        //if (rowCount == 0) throw new DataNotFoundException(t("sumaris.aggregation.noData"));
 
         // Station
-        rowCount = createStationTable(context);
+        rowCount = createStationTable(rawDataContext, context);
         if (rowCount == 0) return context;
-        if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         // Species List
-        rowCount = createSpeciesListTable(context);
-        if (rowCount == 0) return context;
-        if (sheetName != null && context.hasSheet(sheetName)) return context;
+        //rowCount = createSpeciesListTable(context);
+        //if (rowCount == 0) return context;
 
         // Species Length
-        createSpeciesLengthTable(context);
+        //createSpeciesLengthTable(context);
 
         return context;
 
@@ -149,8 +110,8 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
     /* -- protected methods -- */
 
-    protected <R extends ExtractionIcesContextVO> R createNewContext() {
-        Class<? extends ExtractionIcesContextVO> contextClass = getContextClass();
+    protected <R extends ExtractionRdbTripContextVO> R createNewContext() {
+        Class<? extends ExtractionRdbTripContextVO> contextClass = getContextClass();
         Preconditions.checkNotNull(contextClass);
 
         try {
@@ -160,11 +121,11 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         }
     }
 
-    protected Class<? extends ExtractionIcesContextVO> getContextClass() {
-        return ExtractionIcesContextVO.class;
+    protected Class<? extends ExtractionRdbTripContextVO> getContextClass() {
+        return ExtractionRdbTripContextVO.class;
     }
 
-    protected List<ExtractionPmfmInfoVO> getPmfmInfos(ExtractionIcesContextVO context, MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId) {
+    protected List<ExtractionPmfmInfoVO> getPmfmInfos(ExtractionRdbTripContextVO context, MultiValuedMap<Integer, PmfmStrategyVO> pmfmStrategiesByProgramId) {
 
         Map<String, String> acquisitionLevelAliases = buildAcquisitionLevelAliases(
                 pmfmStrategiesByProgramId.values().stream()
@@ -213,7 +174,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return result.toString();
     }
 
-    protected List<String> getTripProgramLabels(ExtractionIcesContextVO context) {
+    protected List<String> getTripProgramLabels(ExtractionRdbTripContextVO context) {
 
         XMLQuery xmlQuery = createXMLQuery(context,"distinctTripProgram");
         xmlQuery.bind("tableName", context.getTripTableName());
@@ -221,11 +182,11 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return query(xmlQuery.getSQLQueryAsString(), String.class);
     }
 
-    protected long createTripTable(ExtractionIcesContextVO context) {
+    protected long createTripTable(ExtractionRdbTripContextVO context) {
 
         XMLQuery xmlQuery = createTripQuery(context);
 
-        // execute insertion
+        // aggregate insertion
         execute(xmlQuery);
         long count = countFrom(context.getTripTableName());
 
@@ -236,13 +197,15 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
 
         // Add result table to context
         if (count > 0) {
-            context.addTableName(context.getTripTableName(), TR_SHEET_NAME);
+            context.addTableName(context.getTripTableName(), TR_SHEET_NAME,
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
             log.debug(String.format("Trip table: %s rows inserted", count));
         }
         return count;
     }
 
-    protected XMLQuery createTripQuery(ExtractionIcesContextVO context){
+    protected XMLQuery createTripQuery(ExtractionRdbTripContextVO context){
         XMLQuery xmlQuery = createXMLQuery(context, "createTripTable");
         xmlQuery.bind("tripTableName", context.getTripTableName());
 
@@ -276,11 +239,11 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return xmlQuery;
     }
 
-    protected long createStationTable(ExtractionIcesContextVO context) {
+    protected long createStationTable(C rawDataContext, ExtractionRdbTripContextVO context) {
 
-        XMLQuery xmlQuery = createStationQuery(context);
+        XMLQuery xmlQuery = createStationQuery(rawDataContext, context);
 
-        // execute insertion
+        // aggregate insertion
         execute(xmlQuery);
         long count = countFrom(context.getStationTableName());
 
@@ -297,27 +260,20 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return count;
     }
 
-    protected XMLQuery createStationQuery(ExtractionIcesContextVO context) {
+    protected XMLQuery createStationQuery(C rawDataContext, ExtractionRdbTripContextVO context) {
 
         XMLQuery xmlQuery = createXMLQuery(context, "createStationTable");
-        xmlQuery.bind("tripTableName", context.getTripTableName());
+        xmlQuery.bind("rawStationTableName", rawDataContext.getStationTableName());
         xmlQuery.bind("stationTableName", context.getStationTableName());
-
-        // Bind some PMFM ids
-        xmlQuery.bind("meshSizePmfmId", String.valueOf(PmfmEnum.SMALLER_MESH_GAUGE_MM.getId()));
-        xmlQuery.bind("mainFishingDepthPmfmId", String.valueOf(PmfmEnum.GEAR_DEPTH_M.getId()));
-        xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmEnum.BOTTOM_DEPTH_M.getId()));
-        xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
-        xmlQuery.bind("normalProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
 
         return xmlQuery;
     }
 
-    protected long createSpeciesListTable(ExtractionIcesContextVO context) {
+    protected long createSpeciesListTable(ExtractionRdbTripContextVO context) {
 
         XMLQuery xmlQuery = createSpeciesListQuery(context, true/*exclude invalid station*/);
 
-        // execute insertion
+        // aggregate insertion
         execute(xmlQuery);
         long count = countFrom(context.getSpeciesListTableName());
 
@@ -334,7 +290,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return count;
     }
 
-    protected XMLQuery createSpeciesListQuery(ExtractionIcesContextVO context, boolean excludeInvalidStation) {
+    protected XMLQuery createSpeciesListQuery(ExtractionRdbTripContextVO context, boolean excludeInvalidStation) {
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
@@ -349,11 +305,11 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
     }
 
 
-    protected long createSpeciesLengthTable(ExtractionIcesContextVO context) {
+    protected long createSpeciesLengthTable(ExtractionRdbTripContextVO context) {
 
         XMLQuery xmlQuery = createSpeciesLengthQuery(context);
 
-        // execute insertion
+        // aggregate insertion
         execute(xmlQuery);
         long count = countFrom(context.getSpeciesLengthTableName());
 
@@ -370,7 +326,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         return count;
     }
 
-    protected XMLQuery createSpeciesLengthQuery(ExtractionIcesContextVO context) {
+    protected XMLQuery createSpeciesLengthQuery(ExtractionRdbTripContextVO context) {
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesLengthTable");
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
@@ -398,7 +354,7 @@ public class ExtractionIcesDaoImpl<C extends ExtractionIcesContextVO> extends Ex
         Preconditions.checkNotNull(context.getFormatName());
         Preconditions.checkNotNull(context.getFormatVersion());
 
-        return String.format("%s/v%s/%s",
+        return String.format("%s/v%s/aggregation/%s",
                 context.getFormatName(),
                 context.getFormatVersion().replaceAll("[.]", "_"),
                 queryName);

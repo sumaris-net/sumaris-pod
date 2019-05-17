@@ -29,6 +29,7 @@ public class ExtractionTypeVO {
 
     private String category;
     private String label;
+    private String version;
     private String[] sheetNames;
 
 }

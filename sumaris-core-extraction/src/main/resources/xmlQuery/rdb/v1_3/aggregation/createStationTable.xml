@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="aggregationCreateStationTable">
+
+  <query type="create" temp="false" table="&amp;stationTableName">
+
+    <!-- PK -->
+    <select alias="RECORD_TYPE" type="text">'HH'</select>
+    <select alias="SAMPLING_TYPE" type="text">T.SAMPLING_TYPE</select>
+    <select alias="LANDING_COUNTRY" type="text">T.LANDING_COUNTRY</select>
+    <select alias="VESSEL_COUNTRY" type="text">T.VESSEL_COUNTRY</select>
+    <select alias="YEAR" type="number">T.YEAR</select>
+    <select alias="PROJECT" type="text">T.PROJECT</select>
+
+    <select alias="VESSEL_LENGTH" type="text">'TODO'</select>
+    <select alias="VESSEL_COUNT" type="text">'TODO'</select>
+
+    <!-- use the min trip/station as ID -->
+    <select alias="TRIP_CODE" type="number">MIN(T.TRIP_CODE)</select>
+    <select alias="STATION_NUMBER" type="number">MIN(T.STATION_NUMBER)</select>
+
+    <!-- other fields -->
+
+    <select alias="FISHING_VALIDITY" type="text">'V'</select>
+    <select alias="AGGREGATION_LEVEL" type="text">'T'</select>
+    <!--    <select alias="CATCH_REGISTRATION" type="text">'All'</select>-->
+    <!--    <select alias="SPECIES_REGISTRATION" type="text">'Par'</select>-->
+
+    <select alias="MONTH" type="number">CAST(SUBSTR(T.DATE, 6, 2) as INTEGER)</select>
+    <select alias="FISHING_TIME" type="number">SUM(T.FISHING_TIME)</select>
+    <select alias="STATION_COUNT" type="number">COUNT(DISTINCT T.STATION_NUMBER)</select>
+
+    <!--    <select alias="AREA" type="text">null</select>-->
+    <!--    <select alias="STATISTICAL_RECTANGLE" type="text">null</select> &lt;!&ndash; TODO : get it from po lat/lon &ndash;&gt;-->
+    <!--    <select alias="SUB_POLYGON" type="text">null</select>-->
+
+    <!-- Compute a square code -->
+    <select alias="SQUARE" type="text">TRUNC((T.POS_END_LAT+90)*1000+(T.POS_END_LON+180))</select>
+
+    <!--    <select alias="MAIN_FISHING_DEPTH" type="number">(SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;mainFishingDepthPmfmId)</select>-->
+    <!--    <select alias="MAIN_WATER_DEPTH" type="number">(SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;mainWaterDepthPmfmId)</select>-->
+
+    <!--    <select alias="NATIONAL_METIER" type="text">null</select>-->
+    <!--    <select alias="EU_METIER_LEVEL5" type="text">M.LABEL</select>-->
+    <!--    <select alias="EU_METIER_LEVEL6" type="text">null</select>-->
+        <select alias="GEAR_TYPE" type="text">T.GEAR_TYPE</select>
+    <!--    <select alias="MESH_SIZE" type="number">(SELECT PGM.NUMERICAL_VALUE FROM PHYSICAL_GEAR_MEASUREMENT PGM WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&amp;meshSizePmfmId)</select>-->
+    <!--    <select alias="SELECTION_DEVICE" type="text"><![CDATA[-->
+    <!--    (SELECT QV.LABEL FROM PHYSICAL_GEAR_MEASUREMENT PGM-->
+    <!--      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=PGM.QUALITATIVE_VALUE_FK-->
+    <!--    WHERE-->
+    <!--      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&selectionDevicePmfmId)]]></select>-->
+    <!--    <select alias="MESH_SIZE_IN_SELECTION_DEVICE" type="text">null</select>-->
+
+    <from alias="T">&amp;rawStationTableName</from>
+
+    <where>1=1</where>
+    <where operator="AND" group="excludeInvalidStation"><![CDATA[T.FISHING_VALIDITY != 'I']]></where>
+
+    <groupby>
+      SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_COUNTRY, YEAR, PROJECT, VESSEL_LENGTH, MONTH, SQUARE, GEAR_TYPE
+    </groupby>
+
+    <orderby direction="ASC">SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_COUNTRY, YEAR, PROJECT, VESSEL_LENGTH, MONTH, SQUARE, GEAR_TYPE</orderby>
+
+  </query>
+
+</queries>
