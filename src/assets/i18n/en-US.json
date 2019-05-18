@@ -110,14 +110,15 @@
     "REFERENTIAL": "Referential",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
-    "BTN_ACCOUNT": "Account",
-    "SETTINGS_DIVIDER": "Settings",
     "LOCAL_SETTINGS": "Settings",
-    "POD_SETTINGS": "Server settings"
+    "SERVER_SETTINGS": "Server settings",
+    "LOGOUT": "Logout",
+    "ABOUT": "About"
   },
   "ABOUT": {
     "TITLE": "About",
     "VERSION": "<b>v{{version}}</b>",
+    "LICENSE": "<b>Free/libre software</b> (License GNU AGPLv3).",
     "REPORT_ISSUE": "Please report any issue to us!",
     "BTN_REPORT_ISSUE": "Report an issue",
     "SOURCE_CODE": "Source core:",
@@ -186,6 +187,23 @@
       "SUBSCRIBE_ACCOUNT_ERROR": "Error while listening account's changes."
     }
   },
+  "SETTINGS": {
+    "TITLE": "Settings",
+    "DESCRIPTION": "Here are the options for configuring the application:",
+    "INHERIT_FROM_ACCOUNT": "Use the preferences of the logged in user",
+    "LOCALE": "Language",
+    "LAT_LONG_FORMAT": "Latitude/longitude format",
+    "PEER_URL": "Network peer address",
+    "USAGE_MODE": "Usage mode",
+    "USAGE_MODES":  {
+      "FIELD": "On field",
+      "DESK": "In office"
+    },
+    "BTN_CHANGE_PEER": "Change peer",
+    "ERROR": {
+      "PEER_NOT_REACHABLE": "Unreachable peer"
+    }
+  },
   "USER": {
     "TITLE": "User",
     "AVATAR": "Avatar",
@@ -232,7 +250,7 @@
       "TITLE": "{{vessel}} - Trip of {{departureDateTime}}",
       "OTHER_FEATURES": "Other features:"
     },
-    "LIST": {
+    "TABLE": {
       "TITLE": "Fishing trips",
       "VESSEL": "Vessel",
       "PROGRAM": "Programme",
@@ -369,22 +387,13 @@
       "TITLE": "New sale"
     },
     "EDIT": {
-      "TITLE": "{{location}} - Sale of {{dateTime}}",
-      "OTHER_FEATURES": "Other features:"
+      "TITLE": "{{location}} - Sale of {{dateTime}}"
     },
     "TABLE": {
-      "TITLE": "Sale",
-      "PROGRAM": "Program",
+      "VESSEL": "Vessel",
       "START_DATE_TIME": "Date/time",
-      "QUALITY": "Status",
-      "LOCATION": "Lieu de vente",
       "OBSERVERS": "Observers",
-      "COMMENTS": "Comments",
-      "FILTER": {
-        "START_DATE": "Start period",
-        "END_DATE": "End period",
-        "LOCATION": "Location"
-      }
+      "COMMENTS": "Comments"
     },
     "ERROR": {
       "LOAD_ERROR": "Error while loading the sale.",
@@ -404,6 +413,7 @@
     "LOCATION": "Auction",
     "TAB_GENERAL": "Details",
     "TAB_VESSELS": "Observed vessels",
+    "OBSERVER": "Observer #1",
     "OBSERVERS": "Observers:",
     "NEW": {
       "TITLE": "New control"
@@ -430,7 +440,19 @@
       "LOAD_ERROR": "Error while loading the observation.",
       "LOAD_ALL_ERROR": "Error while loading observations.",
       "SAVE_ERROR": "Error while saving the observation.",
-      "SAVE_ALL_ERROR": "Error while saving observations."
+      "SAVE_ALL_ERROR": "Error while saving observations.",
+      "SUBSCRIBE_ERROR": "Error while subscribe to observations changes"
+    }
+  },
+  "OBSERVED_VESSEL": {
+    "TABLE": {
+      "VESSEL": "Vessel",
+      "DATE_TIME": "Date/Time",
+      "OBSERVERS": "Observers",
+      "COMMENTS": "Comments"
+    },
+    "ERROR": {
+      "LOAD_ALL_ERROR": "Error while loading observed vessels."
     }
   },
   "QUALITY": {
@@ -583,8 +605,17 @@
       }
     },
     "LIVE": {
+      "COST": {
+        "TITLE": "Raw data (COST v1.4)",
+        "SHEET": {
+          "TR": "Trips (TR)",
+          "HH": "Fishing stations (HH)",
+          "SL": "Species list (SL)",
+          "HL": "Species length (HL)"
+        }
+      },
       "ICES": {
-        "TITLE": "Live data (format ICES v1.3)",
+        "TITLE": "Raw data (ICES v1.3)",
         "SHEET": {
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",
@@ -593,7 +624,7 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Live data (format SUMARiS v1.0)",
+        "TITLE": "Raw data (SUMARiS v1.0)",
         "SHEET": {
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",
@@ -608,6 +639,15 @@
       "LOAD_EXTRACTION_TYPES_ERROR": "Error while load extraction types",
       "LOAD_EXTRACTION_ROWS_ERROR": "Error while loading data rows.",
       "DOWNLOAD_EXTRACTION_FILE_ERROR": "Error while dowbnloading extraction file."
+    }
+  },
+  "NETWORK": {
+    "PEER": {
+      "OFFLINE": "Unreachable peer",
+      "SELECT_MODAL": {
+        "TITLE": "Network peer",
+        "HELP": "Please choose a network peer to connect to:"
+      }
     }
   },
   "ERROR": {

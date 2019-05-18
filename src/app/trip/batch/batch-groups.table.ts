@@ -15,7 +15,7 @@ import {
 } from "../services/trip.validators";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {BatchesTable} from "./batches.table";
-import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
+import {isNil, isNotNil, LoadResult, toFloat, toInt} from "../../shared/shared.module";
 import {MethodIds} from "../../referential/services/model";
 import {first, filter} from "rxjs/operators";
 
@@ -177,11 +177,11 @@ export class BatchGroupsTable extends BatchesTable {
       if (isNotNil(this.qvPmfm)) {
         batch.children = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex: number) => {
           let i = qvIndex * 5;
-          const individualCount = parseInt(groupColumnValues[i++]);
-          const weight = parseFloat(groupColumnValues[i++]);
-          const samplingRatio = parseFloat(groupColumnValues[i++]);
-          const samplingIndividualCount = parseFloat(groupColumnValues[i++]);
-          const samplingWeight = parseFloat(groupColumnValues[i++]);
+          const individualCount = toInt(groupColumnValues[i++]);
+          const weight = toFloat(groupColumnValues[i++]);
+          const samplingRatio = toInt(groupColumnValues[i++]);
+          const samplingIndividualCount = toFloat(groupColumnValues[i++]);
+          const samplingWeight = toFloat(groupColumnValues[i++]);
 
           const isEstimatedWeight = this.weightMethodForm && this.weightMethodForm.controls[qvIndex].value || false;
 

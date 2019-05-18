@@ -110,14 +110,15 @@
     "REFERENTIAL": "Referential",
     "EXTRACTIONS": "Extractions",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
-    "BTN_ACCOUNT": "Account",
-    "SETTINGS_DIVIDER": "Settings",
     "LOCAL_SETTINGS": "Settings",
-    "POD_SETTINGS": "Server settings"
+    "SERVER_SETTINGS": "Server settings",
+    "LOGOUT": "Logout",
+    "ABOUT": "About"
   },
   "ABOUT": {
     "TITLE": "About",
     "VERSION": "<b>v{{version}}</b>",
+    "LICENSE": "<b>Free/libre software</b> (License GNU AGPLv3).",
     "REPORT_ISSUE": "Please report any issue to us!",
     "BTN_REPORT_ISSUE": "Report an issue",
     "SOURCE_CODE": "Source core:",
@@ -187,8 +188,9 @@
     }
   },
   "SETTINGS": {
-    "TITLE": "Paramètres",
+    "TITLE": "Settings",
     "DESCRIPTION": "Here are the options for configuring the application:",
+    "INHERIT_FROM_ACCOUNT": "Use the preferences of the logged in user",
     "LOCALE": "Language",
     "LAT_LONG_FORMAT": "Latitude/longitude format",
     "PEER_URL": "Network peer address",
@@ -197,7 +199,10 @@
       "FIELD": "On field",
       "DESK": "In office"
     },
-    "BTN_CHANGE_PEER": "Change peer"
+    "BTN_CHANGE_PEER": "Change peer",
+    "ERROR": {
+      "PEER_NOT_REACHABLE": "Unreachable peer"
+    }
   },
   "USER": {
     "TITLE": "User",
@@ -435,7 +440,8 @@
       "LOAD_ERROR": "Error while loading the observation.",
       "LOAD_ALL_ERROR": "Error while loading observations.",
       "SAVE_ERROR": "Error while saving the observation.",
-      "SAVE_ALL_ERROR": "Error while saving observations."
+      "SAVE_ALL_ERROR": "Error while saving observations.",
+      "SUBSCRIBE_ERROR": "Error while subscribe to observations changes"
     }
   },
   "OBSERVED_VESSEL": {
@@ -586,7 +592,7 @@
     },
     "PRODUCT": {
       "ICES": {
-        "TITLE": "Data call (format ICES v1.3)",
+        "TITLE": "Data call (ICES RDB v1.3)",
         "SHEET": {
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",
@@ -599,8 +605,17 @@
       }
     },
     "LIVE": {
+      "COST": {
+        "TITLE": "Raw data (COST v1.4)",
+        "SHEET": {
+          "TR": "Trips (TR)",
+          "HH": "Fishing stations (HH)",
+          "SL": "Species list (SL)",
+          "HL": "Species length (HL)"
+        }
+      },
       "ICES": {
-        "TITLE": "Live data (format ICES v1.3)",
+        "TITLE": "Raw data (ICES RDB v1.3)",
         "SHEET": {
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",
@@ -609,7 +624,7 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Live data (format SUMARiS v1.0)",
+        "TITLE": "Raw data (SUMARiS v1.0)",
         "SHEET": {
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",
@@ -628,6 +643,7 @@
   },
   "NETWORK": {
     "PEER": {
+      "OFFLINE": "Unreachable peer",
       "SELECT_MODAL": {
         "TITLE": "Network peer",
         "HELP": "Please choose a network peer to connect to:"

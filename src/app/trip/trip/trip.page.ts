@@ -419,6 +419,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   public async onControl(event: Event) {
     // Stop if data is not valid
     if (!this.valid) {
+      console.warn("[trip] Unable to control: invalid form");
       // Stop the control
       event && event.preventDefault();
 

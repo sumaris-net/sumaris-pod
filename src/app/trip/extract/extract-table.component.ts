@@ -262,6 +262,8 @@ export class ExtractTable implements OnInit {
     // Skip if same
     if (this.filterForm.get('sheetName').value === sheetName) return;
 
+    // Reset sort
+    this.sort.active = undefined;
 
     const sheetsForm = this.filterForm.get('sheets') as FormGroup;
     let criteriaForm = sheetsForm.get(sheetName);

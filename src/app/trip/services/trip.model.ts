@@ -467,11 +467,11 @@ export class MeasurementUtils {
     if (!source) return true;
     return isNil(source.alphanumericalValue)
       && isNil(source.numericalValue)
-      && (!source.qualitativeValue || isNil(source.qualitativeValue.id))
+      && (!source.qualitativeValue || isNil(source.qualitativeValue.id));
   }
 
   static isNotEmpty(source: Measurement | any): boolean {
-    return !MeasurementUtils.isEmpty(source)
+    return !MeasurementUtils.isEmpty(source);
   }
 }
 

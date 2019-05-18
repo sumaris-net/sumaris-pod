@@ -15,7 +15,7 @@ import {TripService} from "../services/trip.service";
 export class EntityQualityFormComponent{
 
   data: DataRootEntity<any>;
-  loading: boolean = true;
+  loading = true;
   canControl: boolean;
   canValidate: boolean;
   canUnvalidate: boolean;

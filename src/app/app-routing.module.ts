@@ -180,7 +180,7 @@ const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: '/extraction/product/ices',
+        redirectTo: '/extraction/product/p01_rdb',
         data: {
           profile: 'SUPERVISOR'
         }
@@ -191,7 +191,7 @@ const routes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: '/extraction/product/ices',
+            redirectTo: '/extraction/product/p01_rdb',
             data: {
               profile: 'SUPERVISOR'
             }

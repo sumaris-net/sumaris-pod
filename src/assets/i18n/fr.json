@@ -201,7 +201,7 @@
     },
     "BTN_CHANGE_PEER": "Changer de noeud",
     "ERROR": {
-      "PEER_NOT_REACHABLE": "Noeud injoignable."
+      "PEER_NOT_REACHABLE": "Noeud injoignable"
     }
   },
   "USER": {
@@ -591,8 +591,8 @@
       "LIVE": "Temp réel"
     },
     "PRODUCT": {
-      "ICES": {
-        "TITLE": "Data call (format ICES v1.3)",
+      "P01_RDB": {
+        "TITLE": "Declarative data (RDB v1.3)",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",
@@ -605,8 +605,17 @@
       }
     },
     "LIVE": {
-      "ICES": {
-        "TITLE": "Live data (format ICES v1.3)",
+      "COST": {
+        "TITLE": "Collected data (COST v1.4)",
+        "SHEET": {
+          "TR": "Marées (TR)",
+          "HH": "Opérations (HH)",
+          "SL": "Captures (SL)",
+          "HL": "Mensurations (HL)"
+        }
+      },
+      "RDB": {
+        "TITLE": "Collected data (RDB v1.3)",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",
@@ -615,7 +624,7 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Live data (format SUMARiS v1.0)",
+        "TITLE": "Collected data (SUMARiS v1.0)",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",
