@@ -325,7 +325,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 })
                 .collect(Collectors.toList());
 
-        // Remove unused items
+        // Remove unused tableNames
         if (MapUtils.isNotEmpty(sourceToRemove)) {
             sourceToRemove.values().forEach(entity -> getEntityManager().remove(entity));
         }
@@ -412,7 +412,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
             }
         }
 
-        // Remove unused items
+        // Remove unused tableNames
         if (MapUtils.isNotEmpty(sourceToRemove)) {
             sourceToRemove.values().forEach(entity -> getEntityManager().remove(entity));
         }

@@ -5,15 +5,14 @@ import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.Daos;
+import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.live.ExtractionPmfmInfoVO;
-import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.live.trip.rdb.ExtractionRdbTripContextVO;
-import net.sumaris.core.extraction.vo.live.trip.rdb.ExtractionRdbTripVersion;
+import net.sumaris.core.extraction.vo.ExtractionPmfmInfoVO;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripVersion;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -32,7 +31,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
-
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -72,24 +71,25 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
     protected SumarisDatabaseMetadata databaseMetadata;
 
     @Override
-    public C execute(ExtractionTripFilterVO filter, ExtractionFilterVO genericFilter) {
+    public C execute(ExtractionFilterVO filter) {
 
+        ExtractionTripFilterVO tripFilter = toTripFilterVO(filter);
         if (log.isInfoEnabled()) {
-            log.info(String.format("Beginning extraction %s", filter == null ? "without tripFilter" : "with filters:"));
+            log.info(String.format("Beginning extraction %s", filter == null ? "without filter" : "with filters:"));
             if (filter != null) {
-                log.info(String.format("Program label: %s", filter.getProgramLabel()));
-                log.info(String.format("  Location Id: %s", filter.getLocationId()));
-                log.info(String.format("   Start date: %s", filter.getStartDate()));
-                log.info(String.format("     End date: %s", filter.getEndDate()));
-                log.info(String.format("    Vessel Id: %s", filter.getVesselId()));
-                log.info(String.format("    RecDep Id: %s", filter.getRecorderDepartmentId()));
+                log.info(String.format("Program label: %s", tripFilter.getProgramLabel()));
+                log.info(String.format("  Location Id: %s", tripFilter.getLocationId()));
+                log.info(String.format("   Start date: %s", tripFilter.getStartDate()));
+                log.info(String.format("     End date: %s", tripFilter.getEndDate()));
+                log.info(String.format("    Vessel Id: %s", tripFilter.getVesselId()));
+                log.info(String.format("    RecDep Id: %s", tripFilter.getRecorderDepartmentId()));
             }
         }
 
         // Init context
         C context = createNewContext();
-        context.setTripFilter(filter);
-        context.setFilter(genericFilter);
+        context.setTripFilter(tripFilter);
+        context.setFilter(filter);
         context.setFormatName(RDB_FORMAT);
         context.setFormatVersion(ExtractionRdbTripVersion.VERSION_1_3.getLabel());
         context.setId(System.currentTimeMillis());

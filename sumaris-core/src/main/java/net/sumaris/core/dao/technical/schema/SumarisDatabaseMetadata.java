@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.cache.CacheNames;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.boot.Metadata;
@@ -41,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
@@ -110,10 +112,12 @@ public class SumarisDatabaseMetadata {
 		//loadAllTables();
 	}
 
+	@Cacheable(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
 	public SumarisTableMetadata getTable(String name) throws HibernateException {
 		return getTable(name, defaultSchemaName, defaultCatalogName);
 	}
 
+	@Cacheable(cacheNames = CacheNames.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
 	public SumarisHibernateTableMetadata getHibernateTable(String name) throws HibernateException {
 		return (SumarisHibernateTableMetadata) getTable(name);
 	}
@@ -301,7 +305,8 @@ public class SumarisDatabaseMetadata {
 
 			// Add to cached (if not extraction)
 			// TODO: use include/exclude pattern, by configuration
-			if (!qualifiedTableName.getTableName().getText().toUpperCase().startsWith("EXT_")) {
+			String tableName = qualifiedTableName.getTableName().getText().toLowerCase();
+			if (!tableName.startsWith("EXT_") && tableName.startsWith("AGG_"))  {
 				tables.put(fullTableName, sumarisTableMetadata);
 			}
 		}

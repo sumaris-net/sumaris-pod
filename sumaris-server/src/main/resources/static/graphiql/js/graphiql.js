@@ -21666,7 +21666,7 @@ exports.default = keyMap;
  * Creates a keyed JS object from an array, given a function to produce the keys
  * for each value in the array.
  *
- * This provides a convenient lookup for the array items if the key function
+ * This provides a convenient lookup for the array tableNames if the key function
  * produces unique results.
  *
  *     const phoneBook = [
@@ -23780,7 +23780,7 @@ var printDocASTReducer = {
 
 /**
  * Given maybeArray, print an empty string if it is null or empty, otherwise
- * print all items together separated by separator if provided
+ * print all tableNames together separated by separator if provided
  */
 function join(maybeArray, separator) {
   return maybeArray ? maybeArray.filter(function (x) {

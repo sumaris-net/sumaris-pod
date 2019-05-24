@@ -24,7 +24,7 @@ public enum LocationLevelEnum implements Serializable {
 
     public static LocationLevelEnum byLabel(final String label) {
         return Arrays.stream(values())
-                .filter(level -> level.label == label)
+                .filter(level -> label.equals(level.label))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + label));
     }

@@ -2,6 +2,7 @@ package net.sumaris.core.extraction.dao.technical.schema;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -13,6 +14,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Types;
+import java.util.Collection;
 
 /**
  * Helper class for extraction
@@ -52,7 +54,7 @@ public class SumarisTableMetadatas {
 
             // Get the column to tripFilter
             Preconditions.checkNotNull(criterion.getName());
-            SumarisColumnMetadata column = table.getColumnMetadata(criterion.getName().toLowerCase());
+            SumarisColumnMetadata column = table != null ? table.getColumnMetadata(criterion.getName().toLowerCase()) : null;
             if (column == null) {
                 if (sheetName != null) {
                     throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found", criterion.getName()));
@@ -157,4 +159,39 @@ public class SumarisTableMetadatas {
                 || column.getTypeCode() == Types.FLOAT;
     }
 
+    public static boolean isNotNumericColumn(SumarisColumnMetadata column) {
+        return !isNumericColumn(column);
+    }
+
+    public static String getSelectGroupByQuery(String tableName,
+                                        Collection<String> columnNames,
+                                        String whereClause,
+                                        Collection<String> groupByColumnNames,
+                                        Collection<String> sortColumnNames,
+                                        SortDirection direction) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT ")
+                .append(Joiner.on(',').join(columnNames))
+                .append(" FROM ")
+                .append(tableName);
+
+        // Where clause
+        if (StringUtils.isNotBlank(whereClause)) {
+            sb.append(" ").append(whereClause);
+        }
+
+        // Group by clause
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(groupByColumnNames)) {
+            sb.append(" GROUP BY ").append(Joiner.on(',').join(groupByColumnNames));
+        }
+        // Add order by
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(sortColumnNames)) {
+            String directionStr = direction != null ? (" " + direction.name()) : "";
+            sb.append(" ORDER BY ")
+                    .append(Joiner.on( directionStr + ",").join(sortColumnNames))
+                    .append(directionStr);
+        }
+
+        return sb.toString();
+    }
 }

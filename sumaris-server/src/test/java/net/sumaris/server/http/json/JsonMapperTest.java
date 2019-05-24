@@ -25,20 +25,28 @@ package net.sumaris.server.http.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.server.service.BaseServiceTest;
+import net.sumaris.server.ServerTestConfiguration;
+import net.sumaris.server.service.AbstractServiceTest;
+import org.geojson.Feature;
+import org.geojson.FeatureCollection;
+import org.geojson.Point;
 import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
-import java.util.Date;
+import java.util.HashMap;
 
-// FIXME: bad database init
-@Ignore
-public class JsonMapperTest extends BaseServiceTest {
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = {JsonMapperConfiguration.class})
+@TestPropertySource(locations="classpath:sumaris-core-server-test.properties")
+public class JsonMapperTest {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -50,5 +58,30 @@ public class JsonMapperTest extends BaseServiceTest {
 
         String json = new String(objectMapper.writeValueAsBytes(trip), "UTF8");
         Assert.assertNotNull(json);
+    }
+
+    @Test
+    public void testGeoJsonSerialisation() throws JsonProcessingException, UnsupportedEncodingException, IOException {
+
+        FeatureCollection features = new FeatureCollection();
+
+        Feature feature = new Feature();
+        feature.setGeometry(new Point(49,10));
+
+        HashMap<String, Object> properties = new HashMap<>();
+        properties.put("weight", "12");
+        feature.setProperties(properties);
+        features.add(feature);
+
+        String json = new String(objectMapper.writeValueAsBytes(features), "UTF8");
+        Assert.assertNotNull(json);
+
+        // Deserialize
+        FeatureCollection target = objectMapper.readValue(json.getBytes(), FeatureCollection.class);
+        Assert.assertNotNull(target);
+        Assert.assertNotNull(target.getFeatures());
+        Assert.assertNotNull(target.getFeatures().get(0));
+        Assert.assertNotNull(target.getFeatures().get(0).getProperties());
+        Assert.assertEquals(properties.size(), target.getFeatures().get(0).getProperties().size());
     }
 }

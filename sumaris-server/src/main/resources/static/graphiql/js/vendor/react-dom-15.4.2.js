@@ -4792,7 +4792,7 @@ var ReactCompositeComponent = {
     try {
       markup = this.performInitialMount(renderedElement, hostParent, hostContainerInfo, transaction, context);
     } catch (e) {
-      // Roll back to checkpoint, handle error (which may add items to the transaction), and take a new checkpoint
+      // Roll back to checkpoint, handle error (which may add tableNames to the transaction), and take a new checkpoint
       transaction.rollback(checkpoint);
       this._instance.unstable_handleError(e);
       if (this._pendingStateQueue) {
@@ -14874,7 +14874,7 @@ var _prodInvariant = _dereq_(125);
 var invariant = _dereq_(150);
 
 /**
- * Accumulates items that must not be null or undefined into the first one. This
+ * Accumulates tableNames that must not be null or undefined into the first one. This
  * is used to conserve memory by avoiding array allocations, and thus sacrifices
  * API cleanness. Since `current` can be null before being passed in and not
  * null after this function, make sure to assign it back to `current`:
@@ -14883,11 +14883,11 @@ var invariant = _dereq_(150);
  *
  * This API should be sparingly used. Try `accumulate` for something cleaner.
  *
- * @return {*|array<*>} An accumulation of items.
+ * @return {*|array<*>} An accumulation of tableNames.
  */
 
 function accumulateInto(current, next) {
-  !(next != null) ? "development" !== 'production' ? invariant(false, 'accumulateInto(...): Accumulated items must not be null or undefined.') : _prodInvariant('30') : void 0;
+  !(next != null) ? "development" !== 'production' ? invariant(false, 'accumulateInto(...): Accumulated tableNames must not be null or undefined.') : _prodInvariant('30') : void 0;
 
   if (current == null) {
     return next;
@@ -15433,9 +15433,9 @@ module.exports = flattenChildren;
 'use strict';
 
 /**
- * @param {array} arr an "accumulation" of items which is either an Array or
+ * @param {array} arr an "accumulation" of tableNames which is either an Array or
  * a single item. Useful when paired with the `accumulate` module. This is a
- * simple utility that allows us to reason about a collection of items, but
+ * simple utility that allows us to reason about a collection of tableNames, but
  * handling the case when there is exactly one item (and we do not need to
  * allocate an array).
  */

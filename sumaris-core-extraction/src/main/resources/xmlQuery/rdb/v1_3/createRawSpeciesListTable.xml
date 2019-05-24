@@ -28,7 +28,7 @@
     <select alias="RECORD_TYPE" type="text">'SL'</select>
     <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
-    <select alias="VESSEL_COUNTRY" type="text">S.VESSEL_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
     <select alias="YEAR" type="number">S.YEAR</select>
     <select alias="PROJECT" type="text">S.PROJECT</select>
     <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>

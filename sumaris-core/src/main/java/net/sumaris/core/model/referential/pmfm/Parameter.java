@@ -78,7 +78,7 @@ public class Parameter implements IItemReferentialEntity {
     @Column(name = "is_date")
     private Boolean isDate;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = QualitativeValue.class, mappedBy = "parameter")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = QualitativeValue.class, mappedBy = QualitativeValue.PROPERTY_PARAMETER)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<QualitativeValue> qualitativeValues = new ArrayList<>();
 

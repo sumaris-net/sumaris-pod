@@ -1,9 +1,8 @@
 package net.sumaris.core.util;
 
-import net.sumaris.core.dao.technical.model.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
 import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.IWithVesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 
@@ -20,7 +19,7 @@ public class DataBeans extends Beans {
         // helper class does not instantiate
     }
 
-    public static <T extends Serializable, D extends IDataEntity<Integer>> void setDefaultRecorderDepartment(
+    public static <T extends Serializable, D extends IEntity<Integer>> void setDefaultRecorderDepartment(
             IWithRecorderDepartmentEntityBean<T, D> target,
             D defaultValue) {
         if (target == null) return;
@@ -31,7 +30,7 @@ public class DataBeans extends Beans {
         }
     }
 
-    public static <T extends Serializable, D extends IDataEntity<Integer>> void setDefaultRecorderPerson(
+    public static <T extends Serializable, D extends IEntity<Integer>> void setDefaultRecorderPerson(
             IWithRecorderPersonEntityBean<T, D> target,
             D defaultValue) {
         if (target == null) return;

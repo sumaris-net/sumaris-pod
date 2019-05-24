@@ -24,13 +24,13 @@ package net.sumaris.core.extraction.vo;
 
 import lombok.Data;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
 @Data
 public class ExtractionFilterVO {
 
-    private boolean preview;
 
     private String operator;
 
@@ -38,9 +38,19 @@ public class ExtractionFilterVO {
 
     private String sheetName;
 
-    private boolean distinct = false;
+    private Boolean preview;
+
+    private Boolean distinct;
 
     private Set<String> includeColumnNames;
 
     private Set<String> excludeColumnNames;
+
+    public boolean isDistinct() {
+        return distinct != null ? distinct.booleanValue() : false;
+    }
+
+    public boolean isPreview() {
+        return preview != null ? preview.booleanValue() : false;
+    }
 }

@@ -24,7 +24,7 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import com.google.common.collect.Sets;
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 
@@ -34,7 +34,7 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "pmfm_strategy")
-public class PmfmStrategy implements IDataEntity<Integer> {
+public class PmfmStrategy implements IEntity<Integer> {
 
     public static final String PROPERTY_STRATEGY = "strategy";
     public static final String PROPERTY_ACQUISITION_LEVEL = "acquisitionLevel";

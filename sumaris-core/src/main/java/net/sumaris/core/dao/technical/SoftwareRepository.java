@@ -1,6 +1,6 @@
 package net.sumaris.core.dao.technical;
 
-import net.sumaris.core.model.technical.Software;
+import net.sumaris.core.model.technical.configuration.Software;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

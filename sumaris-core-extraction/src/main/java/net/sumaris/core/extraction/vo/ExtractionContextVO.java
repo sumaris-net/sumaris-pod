@@ -1,6 +1,7 @@
 package net.sumaris.core.extraction.vo;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -15,10 +16,13 @@ import java.util.*;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public abstract class ExtractionContextVO {
+public class ExtractionContextVO {
 
     long id;
 
+    String label;
+    String formatName;
+    String formatVersion;
     ExtractionFilterVO filter;
 
     @FieldNameConstants.Exclude
@@ -30,7 +34,25 @@ public abstract class ExtractionContextVO {
     @FieldNameConstants.Exclude
     Set<String> tableNameWithDistinct = new HashSet<>();
 
-    public abstract String getLabel();
+    public ExtractionContextVO() {
+
+    }
+
+    protected ExtractionContextVO(ExtractionContextVO source) {
+
+        this.id = source.id;
+        this.label = source.label;
+        this.formatName = source.formatName;
+        this.formatVersion = source.formatVersion;
+        this.tableNames.putAll(source.tableNames);
+        this.hiddenColumnNames.putAll(source.hiddenColumnNames);
+        this.tableNameWithDistinct.addAll(source.tableNameWithDistinct);
+    }
+
+
+    public String getLabel() {
+        return label != null ? label : (this.formatName != null ? this.formatName.toLowerCase() : null);
+    }
 
     /**
      * Register a table (with rows inside)

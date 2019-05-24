@@ -22,11 +22,11 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
 
-public interface IWithVesselFeaturesVO<T extends Serializable, V extends VesselFeaturesVO> extends IDataEntity<T> {
+public interface IWithVesselFeaturesVO<T extends Serializable, V extends VesselFeaturesVO> extends IEntity<T> {
 
     String PROPERTY_VESSEL_FEATURES = "vesselFeatures";
 

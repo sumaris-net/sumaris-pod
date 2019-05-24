@@ -24,5 +24,9 @@ package net.sumaris.core.dao.technical;
 
 public enum SortDirection {
     ASC,
-    DESC
+    DESC;
+
+    public static SortDirection fromString(String direction) {
+        return direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null;
+    }
 }

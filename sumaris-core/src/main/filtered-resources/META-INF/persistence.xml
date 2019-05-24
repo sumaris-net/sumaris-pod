@@ -52,7 +52,7 @@
     <class>net.sumaris.core.model.referential.metier.Metier</class>
     <class>net.sumaris.core.model.referential.taxon.TaxonGroup</class>
     <class>net.sumaris.core.model.referential.taxon.TaxonGroupType</class>
-    <class>net.sumaris.core.model.system.SystemVersion</class>
+    <class>net.sumaris.core.model.technical.versionning.SystemVersion</class>
 
 
     <properties>

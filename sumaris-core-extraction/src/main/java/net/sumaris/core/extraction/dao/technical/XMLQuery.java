@@ -13,20 +13,23 @@ package net.sumaris.core.extraction.dao.technical;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+
+import com.google.common.base.Preconditions;
 import fr.ifremer.common.xmlquery.HSQLDBSingleXMLQuery;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.xml.XPaths;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 import org.jdom2.filter.Filters;
@@ -51,6 +54,7 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
 
     /**
      * Get column names, with type="hidden"
+     *
      * @return
      */
     public Set<String> getHiddenColumnNames() {
@@ -73,6 +77,21 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
     }
 
     public Set<String> getVisibleColumnNames() {
+        return getColumnNames(element -> {
+            Attribute typeAttr = element.getAttribute("type");
+            return typeAttr == null || !"hidden".equalsIgnoreCase(typeAttr.getValue());
+        });
+    }
+
+    public Set<String> getNotNumericColumnNames() {
+        return getColumnNames(element -> {
+            Attribute typeAttr = element.getAttribute("type");
+            return typeAttr == null || !"number".equalsIgnoreCase(typeAttr.getValue());
+        });
+    }
+
+    public Set<String> getColumnNames(final Predicate<Element> filter) {
+        Preconditions.checkNotNull(filter);
 
         try {
             List<Element> selectElements = XPaths.compile("//query/select", Filters.element())
@@ -80,11 +99,8 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
             if (CollectionUtils.isEmpty(selectElements)) return null;
 
             return selectElements.stream()
-                    // Exclude hidden columns
-                    .filter(element -> {
-                        Attribute typeAttr = element.getAttribute("type");
-                        return typeAttr == null || !"hidden".equalsIgnoreCase(typeAttr.getValue());
-                    })
+                    // Apply filter
+                    .filter(filter::evaluate)
                     // Get alias
                     .map(element -> element.getAttribute("alias"))
                     .filter(Objects::nonNull)
@@ -99,6 +115,7 @@ public class XMLQuery extends HSQLDBSingleXMLQuery {
 
     /**
      * Return if option="DISTINCT" has been set on the query
+     *
      * @return
      */
     public boolean hasDistinctOption() {

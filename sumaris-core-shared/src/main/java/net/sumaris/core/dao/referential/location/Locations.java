@@ -111,6 +111,10 @@ public class Locations {
 
 
     public static Geometry getGeometryFromRectangleLabel(String rectangleLabel) {
+        return getGeometryFromRectangleLabel(rectangleLabel, false);
+    }
+
+    public static Geometry getGeometryFromRectangleLabel(String rectangleLabel, boolean useMultiPolygon) {
         Preconditions.checkNotNull(rectangleLabel);
         Preconditions.checkArgument(StringUtils.isNotBlank(rectangleLabel), "Argument 'rectangleLabel' must not be empty string.");
 
@@ -126,7 +130,7 @@ public class Locations {
             double latitude = Double.parseDouble(nbdemidegreeLat) * 0.5f + 30;
 
             double longitude = Double.parseDouble(rest) * 0.5f + (letter.charAt(0) - 65) * 5 - 6f;
-            geometry = Geometries.createRectangleGeometry(longitude, latitude, longitude + 0.5f, latitude + 0.5f, true /*=MultiPolygon*/);
+            geometry = Geometries.createRectangleGeometry(longitude, latitude, longitude + 0.5f, latitude + 0.5f, useMultiPolygon /*=MultiPolygon*/);
         }
 
         // If rectangle inside "Atlantic (nord-east)" :
@@ -145,7 +149,7 @@ public class Locations {
             double latitude = Double.parseDouble(nbdemidegreeLat) * 0.5f + 35.5f;
             double longitude = Double.parseDouble(rest) + (letter.charAt(0) - 65) * 10 - 50;
 
-            geometry = Geometries.createRectangleGeometry(longitude, latitude, longitude + 1, latitude + 0.5f, true /*=MultiPolygon*/);
+            geometry = Geometries.createRectangleGeometry(longitude, latitude, longitude + 1, latitude + 0.5f, useMultiPolygon /*=MultiPolygon*/);
         }
 
         return geometry;
@@ -155,19 +159,21 @@ public class Locations {
      * Compute the polygon from the 10 min x 10 min square label.
      *
      * @param square1010 10x10 minutes square label
+     * @deprecated use getGeometryFromMinuteSquareLabel() instead
      */
+    @Deprecated
     public static Geometry getGeometryFromSquare10Label(String square1010) {
-        return getGeometryFromMinuteSquareLabel(square1010, 10);
+        return getGeometryFromMinuteSquareLabel(square1010, 10, true);
     }
 
-    public static Geometry getGeometryFromMinuteSquareLabel(String label, int minute) {
+    public static Geometry getGeometryFromMinuteSquareLabel(String label, int minute, boolean useMultiPolygon) {
         Preconditions.checkNotNull(label);
         Preconditions.checkArgument(StringUtils.isNotBlank(label));
         if (minute < 10) {
-            Preconditions.checkArgument(label.length() == 10);
+            Preconditions.checkArgument(label.length() == 10, String.format("Invalid square format. Expected 10 characters for %s'x%s' square", minute, minute));
         }
         else {
-            Preconditions.checkArgument(label.length() == 8);
+            Preconditions.checkArgument(label.length() == 8, String.format("Invalid square format. Expected 8 characters for %s'x%s' square", minute, minute));
         }
 
         int cadran = Integer.parseInt(label.substring(0, 1));
@@ -216,7 +222,7 @@ public class Locations {
                 latitude,
                 longitude + signLongitude * minute / 60.0,
                 latitude + signLatitude * minute / 60.0,
-                true /*=MultiPolygon*/);
+                useMultiPolygon /*=MultiPolygon*/);
     }
 
     /**
@@ -372,9 +378,10 @@ public class Locations {
      *
      * @param latitude  a latitude (in decimal degrees - WG84)
      * @param longitude a longitude (in decimal degrees - WG84)
+     * @param squareSize Size of the square, in minutes
      * @return A label
      */
-    public static String getMinuteSquareLabelByLatLong(Number latitude, Number longitude, int minute) {
+    public static String getMinuteSquareLabelByLatLong(Number latitude, Number longitude, int squareSize) {
         if (longitude == null || latitude == null) {
             return null;
         }
@@ -399,9 +406,9 @@ public class Locations {
         // Latitude
         lat = Math.abs(lat);
         int intLatitude = (int)Math.floor(lat);
-        int decLatitude = (int)Math.floor((lat - intLatitude) * 60 / minute);
+        int decLatitude = (int)Math.floor((lat - intLatitude) * 60 / squareSize);
         result.append(Strings.padStart(String.valueOf(intLatitude), 2, '0'));
-        if (minute >= 10) {
+        if (squareSize >= 10) {
             // minute in one character
             result.append(decLatitude);
         }
@@ -410,12 +417,12 @@ public class Locations {
             result.append(Strings.padStart(String.valueOf(decLatitude), 2, '0'));
         }
 
-        // Latitude
+        // Longitude
         lon = Math.abs(lon);
         int intLongitude = (int)Math.floor(lon);
-        int decLongitude = (int)Math.floor((lon - intLongitude) * 60 / minute);
+        int decLongitude = (int)Math.floor((lon - intLongitude) * 60 / squareSize);
         result.append(Strings.padStart(String.valueOf(intLongitude), 3, '0'));
-        if (minute >= 10) {
+        if (squareSize >= 10) {
             // minute in one character
             result.append(decLongitude);
         }

@@ -26,13 +26,13 @@ package net.sumaris.core.extraction.dao.technical.table;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.*;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.vo.*;
-import net.sumaris.core.util.Beans;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -49,10 +49,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Allow to export rows from a table (in VO), with metadata on each columns
@@ -96,32 +94,8 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 .collect(Collectors.toList());
 
         // Set columns metadata
-        List<ExtractionColumnMetadataVO> columns = columnNames.stream()
-                // Get column metadata
-                .map(table::getColumnMetadata)
-                // Transform in VO
-                .map(this::toExtractionColumnVO)
-                .collect(Collectors.toList());
+        List<ExtractionColumnMetadataVO> columns = toExtractionColumnVOs(table, columnNames);
         result.setColumns(columns);
-
-        // Compute the rank order
-        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableName);
-        if (ArrayUtils.isNotEmpty(orderedColumnNames)) {
-            int maxRankOrder = -1;
-            for (ExtractionColumnMetadataVO column : columns) {
-                int rankOrder = ArrayUtils.indexOf(orderedColumnNames, column.getName().toLowerCase());
-                if (rankOrder != -1) {
-                    column.setRankOrder(rankOrder + 1);
-                    maxRankOrder = Math.max(maxRankOrder, rankOrder + 1);
-                }
-            }
-            // Set rankOrder of unknown columns (e.g. new columns)
-            for (ExtractionColumnMetadataVO column : columns) {
-                if (column.getRankOrder() == null) {
-                    column.setRankOrder(++maxRankOrder);
-                }
-            }
-        }
 
         String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
 
@@ -130,7 +104,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         result.setTotal(total);
 
         if (size > 0 && total.longValue() > 0) {
-            List<String[]> rows = getRows(table,  filter.isDistinct(), columnNames, whereClause, offset, size, sort, direction);
+            List<String[]> rows = getRows(table, filter.isDistinct(), columnNames, whereClause, offset, size, sort, direction);
             result.setRows(rows);
         }
 
@@ -155,6 +129,69 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         }
     }
 
+    @Override
+    public ExtractionResultVO getTableGroupByRows(String tableName,
+                                                  ExtractionFilterVO filter,
+                                                  Set<String> groupByColumnNames,
+                                                  Map<String, SQLAggregatedFunction> otherColumnNames,
+                                                  int offset, int size, String sort, SortDirection direction) {
+        Preconditions.checkNotNull(tableName);
+
+        ExtractionResultVO result = new ExtractionResultVO();
+
+        List<String> columnNames = ImmutableList.<String>builder()
+                .addAll(groupByColumnNames)
+                .addAll(otherColumnNames.keySet())
+                .build();
+
+        String whereClause = null;
+
+        // Set columns metadata
+        {
+            SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+            if (table != null && table.getColumnsCount() > 0) {
+                List<ExtractionColumnMetadataVO> columns = toExtractionColumnVOs(table, columnNames);
+                result.setColumns(columns);
+
+                whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
+            } else {
+                // TODO
+//                List<ExtractionColumnMetadataVO> columns = toExtractionColumnVOs(columnNames);
+//                result.setColumns(columns);
+            }
+        }
+
+        List<String> columnNamesWithFunction = columnNames.stream()
+                .map(c -> {
+                    SQLAggregatedFunction sqlAggregatedFunction = otherColumnNames.get(c);
+                    if (sqlAggregatedFunction == null) return c;
+                    return String.format("%s(%s)", sqlAggregatedFunction.name().toLowerCase(), c);
+                })
+                .collect(Collectors.toList());
+
+        String sql = SumarisTableMetadatas.getSelectGroupByQuery(
+                tableName,
+                columnNamesWithFunction,
+                whereClause,
+                groupByColumnNames,
+                groupByColumnNames, // Sort by same columns, because of pageable
+                direction);
+
+        // Execute the query
+        int columnCount = columnNamesWithFunction.size();
+        List<String[]> rows = query(sql, r -> this.toTableRowVO(r, columnCount), offset, size);
+        result.setRows(rows);
+
+        // Count rows
+        //Number total = getRowCount(table, whereClause);
+        //result.setTotal(total);
+
+        //if (size > 0 && total.longValue() > 0) {
+        //}
+
+        return result;
+    }
+
     /* -- protected method -- */
 
     protected Number getRowCount(SumarisTableMetadata table, String whereClause) {
@@ -176,10 +213,8 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                                      List<String> columnNames,
                                      String whereClause, int offset, int size, String sort, SortDirection direction) {
         String sql = table.getSelectQuery(distinct, columnNames, whereClause, sort, direction);
-        Query query = getEntityManager().createNativeQuery(sql)
-                .setFirstResult(offset)
-                .setMaxResults(size);
-        return toTableRowsVO(query.getResultList(), columnNames.size());
+        int columnCount = columnNames.size();
+        return query(sql, r -> toTableRowVO(r, columnCount), offset, size);
     }
 
     protected List<String[]> toTableRowsVO(List<Object[]> rows, final int resultLength) {
@@ -198,6 +233,38 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
             }
         }
         return result;
+    }
+
+    protected List<ExtractionColumnMetadataVO> toExtractionColumnVOs(SumarisTableMetadata table,
+                                                                     Collection<String> columnNames) {
+        List<ExtractionColumnMetadataVO> columns = columnNames.stream()
+                // Get column metadata
+                .map(table::getColumnMetadata)
+                .filter(Objects::nonNull)
+                // Transform in VO
+                .map(this::toExtractionColumnVO)
+                .collect(Collectors.toList());
+
+        // Compute the rank order
+        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(table.getName().toUpperCase());
+        if (ArrayUtils.isNotEmpty(orderedColumnNames)) {
+            int maxRankOrder = -1;
+            for (ExtractionColumnMetadataVO column : columns) {
+                int rankOrder = ArrayUtils.indexOf(orderedColumnNames, column.getName().toLowerCase());
+                if (rankOrder != -1) {
+                    column.setRankOrder(rankOrder + 1);
+                    maxRankOrder = Math.max(maxRankOrder, rankOrder + 1);
+                }
+            }
+            // Set rankOrder of unknown columns (e.g. new columns)
+            for (ExtractionColumnMetadataVO column : columns) {
+                if (column.getRankOrder() == null) {
+                    column.setRankOrder(++maxRankOrder);
+                }
+            }
+        }
+
+        return columns;
     }
 
     protected ExtractionColumnMetadataVO toExtractionColumnVO(SumarisColumnMetadata columnMetadata) {
@@ -233,7 +300,6 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     protected Predicate<String> createIncludeExcludePredicate(ExtractionFilterVO filter) {
         return createIncludeExcludePredicate(filter.getIncludeColumnNames(), filter.getExcludeColumnNames());
     }
-
 
     protected Predicate<String> createIncludeExcludePredicate(Set<String> includes, Set<String> excludes) {
         final boolean includeAll = CollectionUtils.isEmpty(includes);

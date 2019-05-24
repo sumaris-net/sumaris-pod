@@ -25,6 +25,12 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import net.sumaris.core.model.referential.grouping.Grouping;
+import net.sumaris.core.model.referential.grouping.GroupingClassification;
+import net.sumaris.core.model.referential.grouping.GroupingLevel;
+import net.sumaris.core.model.technical.extraction.ExtractionProduct;
+import net.sumaris.core.model.technical.extraction.ExtractionProductColumn;
+import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -102,9 +108,16 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     // Program/strategy
                     Program.class,
                     Strategy.class,
-                    AcquisitionLevel.class
-                    //test
-                    , TranscribingItem.class
+                    AcquisitionLevel.class,
+                    // Transcribing
+                    TranscribingItem.class,
+                    // Grouping
+                    GroupingClassification.class,
+                    GroupingLevel.class,
+                    Grouping.class,
+                    // Product
+                    ExtractionProduct.class,
+                    ExtractionProductTable.class
             ), Class::getSimpleName);
 
     private Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
@@ -131,6 +144,11 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         I18n.n("sumaris.persistence.table.program");
         I18n.n("sumaris.persistence.table.acquisitionLevel");
         I18n.n("sumaris.persistence.table.transcribingItem");
+        I18n.n("sumaris.persistence.table.groupingClassification");
+        I18n.n("sumaris.persistence.table.groupingLevel");
+        I18n.n("sumaris.persistence.table.grouping");
+        I18n.n("sumaris.persistence.table.extractionProduct");
+        I18n.n("sumaris.persistence.table.extractionProductTable");
     }
 
     protected static Map<String, PropertyDescriptor> initLevelPropertyNameMap() {
@@ -152,6 +170,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         result.put(TaxonName.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonName.PROPERTY_TAXONOMIC_LEVEL));
         result.put(Strategy.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Strategy.class, Strategy.PROPERTY_PROGRAM));
         result.put(Metier.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Metier.class, Metier.PROPERTY_GEAR));
+        result.put(GroupingLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(GroupingLevel.class, GroupingLevel.PROPERTY_GROUPING_CLASSIFICAION));
+        result.put(Grouping.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Grouping.class, Grouping.PROPERTY_GROUPING_LEVEL));
+        result.put(ExtractionProductTable.class.getSimpleName(), BeanUtils.getPropertyDescriptor(ExtractionProductTable.class, ExtractionProductTable.PROPERTY_PRODUCT));
 
         return result;
     }

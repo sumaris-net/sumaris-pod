@@ -17,6 +17,373 @@
             select NEXT VALUE FOR LOCATION_LEVEL_SEQ from STATUS where ID=1
         </sql>
     </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-2">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="GROUPING_CLASSIFICATION_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="GROUPING_CLASSIFICATION_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-3">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="GROUPING_ITEM_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="GROUPING_ITEM_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-4">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="GROUPING_LEVEL_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="GROUPING_LEVEL_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-5">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="GROUPING_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="GROUPING_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-6">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="EXTRACTION_PRODUCT_TABLE_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="EXTRACTION_PRODUCT_TABLE_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-7">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="EXTRACTION_PRODUCT_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="EXTRACTION_PRODUCT_SEQ"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-8">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="grouping"/></not>
+        </preConditions>
+        <createTable tableName="grouping">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="grouping_pk"/>
+            </column>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="label" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_value" type="DOUBLE"/>
+            <column name="min_value" type="DOUBLE"/>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="grouping_classification_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="grouping_level_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_grouping_fk" type="INT"/>
+            <column name="status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="validity_status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-9">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="grouping_classification"/></not>
+        </preConditions>
+        <createTable tableName="grouping_classification">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="grouping_classification_pk"/>
+            </column>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="is_mandatory" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="object_reference_query" type="VARCHAR(255)"/>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="object_type_fk" type="INT"/>
+            <column name="status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-10">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="grouping_item"/></not>
+        </preConditions>
+        <createTable tableName="grouping_item">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="grouping_item_pk"/>
+            </column>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="object_id" type="INT"/>
+            <column name="grouping_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-11">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="grouping_level"/></not>
+        </preConditions>
+        <createTable tableName="grouping_level">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="grouping_level_pk"/>
+            </column>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="label" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="grouping_classification_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_grouping_level_fk" type="INT"/>
+            <column name="status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-12">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="object_type"/></not>
+        </preConditions>
+        <createTable tableName="object_type">
+            <column autoIncrement="true" name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="object_type_pk"/>
+            </column>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="label" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Product tables -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-13">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="extraction_product"/></not>
+        </preConditions>
+        <createTable tableName="extraction_product">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="extraction_product_pk"/>
+            </column>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="label" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-14">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="extraction_product_table"/></not>
+        </preConditions>
+        <createTable tableName="extraction_product_table">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="extraction_product_table_pk"/>
+            </column>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="table_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="extraction_product_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-19">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="transcribing_item_type" columnName="object_type_fk"/></not>
+        </preConditions>
+        <addColumn tableName="transcribing_item_type">
+            <column name="object_type_fk" type="integer"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-20" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="object_type_fk" baseTableName="transcribing_item_type" constraintName="FK5ojjwppfs0uonrb34qsblix7g" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="object_type"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-21" failOnError="false">
+        <addUniqueConstraint columnNames="label, grouping_level_fk" constraintName="grouping_unique_c" tableName="grouping"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-22" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="grouping_level" constraintName="FK2j1mod8n89xb61nhncebvp4ep" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-24" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="extraction_product_fk" baseTableName="extraction_product_table" constraintName="FK6q42719cpkhmotq9v13roybne" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-25" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="EXTRACTION_PRODUCT" constraintName="FK7pp9u7590d7sne5uwjb00owu9" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-26" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="extraction_product_table" constraintName="FKbilankm5xfyetb0te6se6p56r" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-27" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="grouping_classification_fk" baseTableName="grouping" constraintName="FKbofhf624wut5if3hfxa0figt2" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="grouping_classification"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-28" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="grouping_classification_fk" baseTableName="grouping_level" constraintName="FKe54orlcak5kphvquswxs97few" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="grouping_classification"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-29" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="grouping_classification" constraintName="FKevmoud0t59g5obqx11705whol" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-30" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="object_type_fk" baseTableName="grouping_classification" constraintName="FKf17d9i13ts6i7920ngy48eqgh" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="object_type"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-31" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="grouping" constraintName="FKgk3swct9h00i1317i6i1ccnpr" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-32" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="object_type" constraintName="FKjnk18hybtw60el42pxy2ciobl" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-33" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="parent_grouping_level_fk" baseTableName="grouping_level" constraintName="FKl54x902i0iqmshy4l418ykyws" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="grouping_level"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-34" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="parent_grouping_fk" baseTableName="grouping" constraintName="FKpprve7jh91rb3lg8xdp54aep8" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="grouping"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-35" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="validity_status_fk" baseTableName="grouping" constraintName="FKr7ryyj6gm7uvlywa9vfpyuhd" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="validity_status"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-36" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="grouping_fk" baseTableName="grouping_item" constraintName="FKrgsugk5jrdaiwys7ijr8xceuk" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="grouping"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-37" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="grouping_level_fk" baseTableName="grouping" constraintName="FKt67yeayawtey46sx4936qyr1x" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="grouping_level"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-38">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="extraction_product_table" columnName="catalog"/></not>
+        </preConditions>
+        <addColumn tableName="extraction_product_table">
+            <column name="catalog" type="varchar(30)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-39" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="extraction_product_table" columnName="schema"/></not>
+        </preConditions>
+        <addColumn tableName="extraction_product_table">
+            <column name="schema" type="varchar(30)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-40">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="EXTRACTION_PRODUCT_COLUMN_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="EXTRACTION_PRODUCT_COLUMN_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-41">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="EXTRACTION_PRODUCT_VALUE_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="EXTRACTION_PRODUCT_VALUE_SEQ"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-42">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="extraction_product_column"/></not>
+        </preConditions>
+        <createTable tableName="extraction_product_column">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="extraction_product_column_pk"/>
+            </column>
+            <column name="label" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+            </column>
+            <column name="column_name" type="VARCHAR(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="extraction_product_table_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-43">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="extraction_product_value"/></not>
+        </preConditions>
+        <createTable tableName="extraction_product_value">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="extraction_product_value_pk"/>
+            </column>
+            <column name="label" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)"/>
+            <column name="extraction_product_column_fk" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_fk" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-44" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="extraction_product_table_fk" baseTableName="extraction_product_column" constraintName="FK1i8qeaxax6qmu9g44iq33kca0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product_table"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-45" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="extraction_product_column_fk" baseTableName="extraction_product_value" constraintName="FKhf142n0vbqe0nehckqrni1wq" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product_column"/>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-46" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="parent_fk" baseTableName="extraction_product_value" constraintName="FKnc6jnrclnieoktksg99abcuh1" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product_value"/>
+    </changeSet>
 
     <!-- update SYSTEM_VERSION -->
     <changeSet author="benoit.lavenier@e-is.pro" id="1557825240447-200">
@@ -28,11 +395,15 @@
             <column name="LABEL">0.12.0</column>
             <column name="DESCRIPTION">
                 - Add LOCATION_LEVEL_SEQ
+                - Add tables GROUPING_*
+                - Add tables EXTRACTION_PRODUCT and EXTRACTION_PRODUCT_TABLE
             </column>
             <column name="CREATION_DATE" valueComputed="sysdate" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp" />
             <column name="COMMENTS">
                 - Add LOCATION_LEVEL_SEQ
+                - Add tables GROUPING_*
+                - Add tables EXTRACTION_PRODUCT and EXTRACTION_PRODUCT_TABLE
             </column>
         </insert>
     </changeSet>

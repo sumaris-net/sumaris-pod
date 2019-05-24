@@ -6,12 +6,12 @@ package net.sumaris.core.extraction.vo;
 public enum ExtractionCategoryEnum {
 
     /**
-     * Re-computed extraction
+     * Fixed content
      */
     PRODUCT,
 
     /**
-     * Live extraction, from raw data
+     * Raw data extraction
      */
     LIVE
 }

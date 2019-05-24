@@ -28,7 +28,7 @@ import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.referential.location.LocationDao;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.ObservedLocation;
@@ -463,7 +463,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
             else {
                 Map<Integer, Person> observersToRemove = Beans.splitById(target.getObservers());
                 source.getObservers().stream()
-                        .map(IDataEntity::getId)
+                        .map(IEntity::getId)
                         .forEach(personId -> {
                     if (observersToRemove.remove(personId) == null) {
                         // Add new item
@@ -471,7 +471,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
                     }
                 });
 
-                // Remove deleted items
+                // Remove deleted tableNames
                 target.getObservers().removeAll(observersToRemove.values());
             }
         }

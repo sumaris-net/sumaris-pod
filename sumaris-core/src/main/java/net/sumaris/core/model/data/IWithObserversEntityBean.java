@@ -22,12 +22,12 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
 import java.util.Set;
 
-public interface IWithObserversEntityBean<T extends Serializable, P extends IDataEntity<Integer>> extends IDataEntity<T> {
+public interface IWithObserversEntityBean<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
 
     String PROPERTY_OBSERVERS = "observers";
 

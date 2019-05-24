@@ -35,7 +35,7 @@ import net.sumaris.core.service.data.TripServiceReadTest;
 import net.sumaris.core.service.referential.LocationServiceReadTest;
 import net.sumaris.core.service.referential.LocationServiceWriteTest;
 import net.sumaris.core.service.referential.ReferentialServiceReadTest;
-import net.sumaris.core.service.technical.SoftwareServiceTest;
+import net.sumaris.core.service.technical.configuration.SoftwareServiceTest;
 import net.sumaris.core.service.technical.schema.DatabaseSchemaServiceTest;
 import net.sumaris.core.service.FileImportServiceTest;
 import net.sumaris.core.service.administration.DepartmentServiceTest;

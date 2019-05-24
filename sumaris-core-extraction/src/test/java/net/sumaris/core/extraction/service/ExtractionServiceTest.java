@@ -5,7 +5,7 @@ import net.sumaris.core.extraction.dao.DatabaseResource;
 import java.io.File;
 import java.io.IOException;
 
-import net.sumaris.core.extraction.vo.live.ExtractionLiveFormat;
+import net.sumaris.core.extraction.vo.ExtractionRawFormatEnum;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ZipUtils;
 import org.apache.commons.io.FileUtils;
@@ -28,14 +28,14 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     public void extractLiveTripAsFile_ICES() {
 
         // Test the RDB format
-        service.extractTripAsFile(ExtractionLiveFormat.RDB, null);
+        service.executeAndDumpTrips(ExtractionRawFormatEnum.RDB, null);
     }
 
     @Test
     public void extractLiveTripAsFile_SurvivalTest() {
 
         // Test Survival test format
-        File outputFile = service.extractTripAsFile(ExtractionLiveFormat.SURVIVAL_TEST, null);
+        File outputFile = service.executeAndDumpTrips(ExtractionRawFormatEnum.SURVIVAL_TEST, null);
 
         File debugFile = new File("target/result.zip");
         File debugDirectory = new File("target/result");

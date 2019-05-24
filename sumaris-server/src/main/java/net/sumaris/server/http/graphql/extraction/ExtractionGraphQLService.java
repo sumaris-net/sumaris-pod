@@ -31,8 +31,6 @@ import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.server.http.rest.DownloadController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +55,7 @@ public class ExtractionGraphQLService {
     @Transactional(readOnly = true)
     //@IsUser
     public List<ExtractionTypeVO> getAllExtractionTypes() {
-        return extractionService.getAllTypes();
+        return extractionService.getAllExtractionTypes();
     }
 
     @GraphQLQuery(name = "extractionRows", description = "Preview some extraction rows")
@@ -75,7 +73,7 @@ public class ExtractionGraphQLService {
         Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
         Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
 
-        return extractionService.getRows(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        return extractionService.executeAndRead(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
     @GraphQLQuery(name = "extractionFile", description = "Execute extraction to a file")
@@ -87,9 +85,10 @@ public class ExtractionGraphQLService {
         Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
         Preconditions.checkNotNull(type.getLabel(), "Argument 'type.label' must not be null.");
 
-        File tempFile = extractionService.extractAsFile(type, filter);
+        File tempFile = extractionService.executeAndDump(type, filter);
         String fileServerPath = downloadController.registerFile(tempFile, true);
 
        return fileServerPath;
     }
+
 }

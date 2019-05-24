@@ -4,10 +4,10 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.live.trip.rdb.ExtractionRdbTripContextVO;
-import net.sumaris.core.extraction.vo.live.trip.survivalTest.ExtractionSurvivalTestContextVO;
-import net.sumaris.core.extraction.vo.live.trip.survivalTest.ExtractionSurvivalTestVersion;
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
+import net.sumaris.core.extraction.vo.trip.survivalTest.ExtractionSurvivalTestVersion;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +34,11 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     private String version = ExtractionSurvivalTestVersion.VERSION_1_0.getLabel();
 
     @Override
-    public C execute(ExtractionTripFilterVO filter, ExtractionFilterVO genericFilter) {
+    public C execute(ExtractionFilterVO filter) {
         String sheetName = filter != null ? filter.getSheetName() : null;
 
         // Execute RDB extraction
-        C context = super.execute(filter, genericFilter);
+        C context = super.execute(filter);
 
         // Override some context properties
         context.setFormatName(SURVIVAL_TEST_FORMAT);

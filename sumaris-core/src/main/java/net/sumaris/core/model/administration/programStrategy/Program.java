@@ -25,7 +25,6 @@ package net.sumaris.core.model.administration.programStrategy;
 import lombok.Data;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.technical.SoftwareProperty;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;

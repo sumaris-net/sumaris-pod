@@ -28,7 +28,7 @@
     <select alias="RECORD_TYPE" type="text">'TR'</select>
     <select alias="SAMPLING_TYPE" type="text">'S'</select>
     <select alias="LANDING_COUNTRY" type="text">PL.LABEL</select>
-    <select alias="VESSEL_COUNTRY" type="text">VL.LABEL</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">VL.LABEL</select>
     <select alias="YEAR" type="number">EXTRACT(YEAR FROM T.RETURN_DATE_TIME)</select>
     <select alias="PROJECT" type="text">P.LABEL</select>
     <select alias="TRIP_CODE" type="number">T.ID</select>

@@ -22,11 +22,11 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
 
-public interface IWithRecorderDepartmentEntityBean<T extends Serializable, P extends IDataEntity<Integer>> extends IDataEntity<T> {
+public interface IWithRecorderDepartmentEntityBean<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
 
     String PROPERTY_RECORDER_DEPARTMENT = "recorderDepartment";
 

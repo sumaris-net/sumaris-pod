@@ -29,7 +29,6 @@ import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -98,11 +97,11 @@ public class Gear implements IItemReferentialEntity {
     @JoinColumn(name = "parent_gear_fk")
     private Gear parent;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Gear.class, mappedBy = "parent")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Gear.class, mappedBy = Gear.PROPERTY_PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Gear> children;
 
-    @ManyToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = "gears")
+    @ManyToMany(fetch = FetchType.LAZY, targetEntity = Strategy.class, mappedBy = Strategy.PROPERTY_GEARS)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<Strategy> strategies;
 

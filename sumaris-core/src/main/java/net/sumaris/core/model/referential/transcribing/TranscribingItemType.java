@@ -24,6 +24,7 @@ package net.sumaris.core.model.referential.transcribing;
 
 import lombok.Data;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
@@ -61,7 +62,11 @@ public class TranscribingItemType implements IItemReferentialEntity  {
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObjectType.class)
+    @JoinColumn(name = "object_type_fk")
+    private ObjectType objectType;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TranscribingSystem.class)
     @JoinColumn(name = "transcribing_system_fk")
     private TranscribingSystem system;
 }

@@ -74,3 +74,71 @@ BEGIN ATOMIC
     RETURN NULL;
 END;
 //
+
+DROP FUNCTION F_TO_SQUARE IF EXISTS;
+//
+
+-- Convert lat/lon into a square label
+-- See doc: Locations.getSquare10LabelByLatLong()
+CREATE FUNCTION F_TO_SQUARE(lat DOUBLE, lon DOUBLE, square_size INT)
+    RETURNS VARCHAR(10)
+BEGIN ATOMIC
+--$ ********************************************************************
+--$
+--$  MOD : F_TO_SQUARE
+--$  ROL : Compute the square code
+--$  param :
+--$    - lat: latitude, in decimal degrees
+--$    - lon: longitude, in decimal degrees
+--$    - square_size: size of the square, in minutes
+--$
+--$  return : the square code
+--$
+--$ History :
+--$  16/05/19 BL Creation (used by aggregation)
+--$
+--$ ********************************************************************
+    DECLARE quadrant INTEGER;
+    DECLARE absLat, absLon DOUBLE;
+    DECLARE intLatitude, decLatitude, intLongitude, decLongitude INTEGER;
+    DECLARE resultLatitude, resultLongitude VARCHAR(5);
+
+    IF (lat IS NULL OR lon IS NULL) THEN
+        RETURN NULL;
+    END IF;
+
+    -- Get the quadrant
+    IF (lon <= 0 AND lat >= 0) THEN
+        SET quadrant = 1;
+    ELSEIF (lon > 0 AND lat > 0) THEN
+        SET quadrant = 2;
+    ELSEIF (lon > 0 AND lat < 0) THEN
+        SET quadrant = 3;
+    ELSE
+        SET quadrant = 4;
+    END IF;
+
+    -- Latitude
+    SET absLat = ABS(lat);
+    SET intLatitude = FLOOR(absLat);
+    SET decLatitude = FLOOR((absLat - intLatitude) * 60 / square_size);
+    --SET resultLatitude = LPAD(intLatitude, 2, '0');
+    IF(square_size >= 10) THEN
+        SET resultLatitude = CONCAT(LPAD(intLatitude, 2, '0'), decLatitude);
+    ELSE
+        SET resultLatitude = CONCAT(LPAD(intLatitude, 2, '0'), LPAD(decLatitude, 2, '0'));
+    END IF;
+
+    -- Longitude
+    SET absLon = ABS(lon);
+    SET intLongitude = FLOOR(absLon);
+    SET decLongitude = FLOOR((absLon - intLongitude) * 60 / square_size);
+    IF(square_size >= 10) THEN
+        SET resultLongitude = CONCAT(LPAD(intLongitude, 3, '0'), decLongitude);
+    ELSE
+        SET resultLongitude = CONCAT(LPAD(intLongitude, 3, '0'), LPAD(decLongitude, 2, '0'));
+    END IF;
+
+    RETURN CONCAT(quadrant, resultLatitude, resultLongitude);
+END;
+//

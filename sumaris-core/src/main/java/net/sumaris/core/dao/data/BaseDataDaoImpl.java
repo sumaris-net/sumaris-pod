@@ -3,6 +3,7 @@ package net.sumaris.core.dao.data;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
@@ -95,7 +96,7 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
                 Set<Person> observers = target.getId() != null ? target.getObservers() : Sets.newHashSet();
                 Map<Integer, Person> observersToRemove = Beans.splitById(observers);
                 source.getObservers().stream()
-                        .map(net.sumaris.core.dao.technical.model.IDataEntity::getId)
+                        .map(IEntity::getId)
                         .filter(Objects::nonNull)
                         .forEach(personId -> {
                             if (observersToRemove.remove(personId) == null) {
@@ -104,7 +105,7 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
                             }
                         });
 
-                // Remove deleted items
+                // Remove deleted tableNames
                 if (MapUtils.isNotEmpty(observersToRemove)) {
                     observers.removeAll(observersToRemove.values());
                 }

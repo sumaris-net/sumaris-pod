@@ -2,14 +2,14 @@ package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IDataEntity;
-import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.extraction.ExtractionProductDao;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
@@ -19,20 +19,21 @@ import net.sumaris.core.extraction.dao.trip.cost.ExtractionCostTripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
 import net.sumaris.core.extraction.vo.*;
-import net.sumaris.core.extraction.vo.live.ExtractionLiveContextVO;
-import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.live.ExtractionLiveFormat;
-import net.sumaris.core.extraction.vo.product.ExtractionProduct;
-import net.sumaris.core.extraction.vo.product.ExtractionProductContextVO;
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
-import net.sumaris.core.util.*;
+import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.Files;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.ZipUtils;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,25 +58,20 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionServiceImpl.class);
 
-    private static Map<String, String> rdbProductTableBySheet = ImmutableMap.<String, String>builder()
-            .put("TR", DatabaseTableEnum.P01_ICES_TRIP.name())
-            .put("HH", DatabaseTableEnum.P01_ICES_STATION.name())
-            .put("SL", DatabaseTableEnum.P01_ICES_SPECIES_LIST.name())
-            .put("HL", DatabaseTableEnum.P01_ICES_SPECIES_LENGTH.name())
-            .put("CL", DatabaseTableEnum.P01_ICES_LANDING.name())
-            .build();
-
     @Autowired
     SumarisConfiguration configuration;
 
     @Resource(name = "extractionRdbTripDao")
-    ExtractionRdbTripDao rdbExtractionTripDao;
+    ExtractionRdbTripDao extractionRdbTripDao;
 
     @Resource(name = "extractionCostTripDao")
     ExtractionCostTripDao extractionCostTripDao;
 
     @Resource(name = "extractionSurvivalTestDao")
     ExtractionSurvivalTestDao extractionSurvivalTestDao;
+
+    @Autowired
+    ExtractionProductDao extractionProductDao;
 
     @Autowired
     protected ExtractionTableDao extractionTableDao;
@@ -98,29 +94,26 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Autowired
     private ExtractionService self;
 
-    private List<ExtractionTypeVO> extractionTypes;
-
     @PostConstruct
     protected void afterPropertiesSet() {
-        // Init extractions types
-        extractionTypes = ImmutableList.<ExtractionTypeVO>builder()
-                .addAll(getProductExtractionTypes())
-                .addAll(getLiveExtractionTypes())
-                .build();
+
 
         // Make sure statistical rectangle exists (need by trip extraction)
         initRectangleLocations();
     }
 
     @Override
-    public List<ExtractionTypeVO> getAllTypes() {
-        return extractionTypes;
+    public List<ExtractionTypeVO> getAllExtractionTypes() {
+        return ImmutableList.<ExtractionTypeVO>builder()
+                        .addAll(getProductExtractionTypes())
+                        .addAll(getLiveExtractionTypes())
+                        .build();
     }
 
     @Override
-    public ExtractionResultVO getRows(ExtractionTypeVO type, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
+    public ExtractionResultVO executeAndRead(ExtractionTypeVO type, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
         // Make sure type has category AND label filled
-        ExtractionTypeVO checkedType = checkAndGetFullType(type);
+        ExtractionTypeVO checkedType = Extractions.checkAndFindType(this.getAllExtractionTypes(), type);
         ExtractionCategoryEnum category = ExtractionCategoryEnum.valueOf(checkedType.getCategory().toUpperCase());
 
         // Force preview
@@ -130,21 +123,57 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (category) {
             case PRODUCT:
-                ExtractionProduct product = ExtractionProduct.valueOf(checkedType.getLabel().toUpperCase());
-                return extractProductAsRows(product, filter, offset, size, sort, direction);
+                ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel().toUpperCase());
+                return readProductRows(product, filter, offset, size, sort, direction);
             case LIVE:
                 String formatName = checkedType.getLabel();
-                return extractLiveDataAsRows(formatName, filter, offset, size, sort, direction);
+                return extractRawDataAndRead(formatName, filter, offset, size, sort, direction);
             default:
                 throw new SumarisTechnicalException(String.format("Extraction of category %s not implemented yet !", type.getCategory()));
         }
     }
 
+    @Override
+    public ExtractionResultVO read(ExtractionContextVO context, ExtractionFilterVO filter,
+                                   int offset, int size, String sort, SortDirection direction) {
+        Preconditions.checkNotNull(context);
+
+        filter = filter != null ? filter : new ExtractionFilterVO();
+
+        String tableName;
+        if (StringUtils.isNotBlank(filter.getSheetName())) {
+            tableName = context.getTableNameBySheetName(filter.getSheetName());
+        }
+        else {
+            tableName = context.getTableNames().iterator().next();
+        }
+
+        // Missing the expected sheet = no data
+        if (tableName == null) return createEmptyResult();
+
+        // Create a filter for rows previous, with only includes/exclude columns,
+        // because criterion are not need (already applied when writing temp tables)
+        ExtractionFilterVO rowsFilter = new ExtractionFilterVO();
+        rowsFilter.setIncludeColumnNames(filter.getIncludeColumnNames()); // Copy given include columns
+        rowsFilter.setExcludeColumnNames(SetUtils.union(
+                SetUtils.emptyIfNull(filter.getIncludeColumnNames()),
+                SetUtils.emptyIfNull(context.getHiddenColumns(tableName))
+        ));
+
+        // Force distinct if there is excluded columns AND distinct is enable on the XML query
+        boolean enableDistinct = filter.isDistinct() || CollectionUtils.isNotEmpty(rowsFilter.getExcludeColumnNames())
+                && context.isDistinctEnable(tableName);
+        rowsFilter.setDistinct(enableDistinct);
+
+        // Get rows from exported tables
+        return extractionTableDao.getTableRows(tableName, rowsFilter, offset, size, sort, direction);
+
+    }
 
     @Override
-    public File extractAsFile(ExtractionTypeVO type, ExtractionFilterVO filter) throws IOException {
+    public File executeAndDump(ExtractionTypeVO type, ExtractionFilterVO filter) throws IOException {
         // Make sure type has category AND label filled
-        ExtractionTypeVO checkedType = checkAndGetFullType(type);
+        ExtractionTypeVO checkedType = Extractions.checkAndFindType(getAllExtractionTypes(), type);
         ExtractionCategoryEnum category = ExtractionCategoryEnum.valueOf(checkedType.getCategory().toUpperCase());
 
         filter = filter != null ? filter : new ExtractionFilterVO();
@@ -154,11 +183,11 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (category) {
             case PRODUCT:
-                ExtractionProduct product = ExtractionProduct.valueOf(checkedType.getLabel().toUpperCase());
-                return extractProductAsFile(product, filter);
+                ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel().toUpperCase());
+                return dumpProductToFile(product, filter);
             case LIVE:
-                ExtractionLiveFormat format = ExtractionLiveFormat.valueOf(checkedType.getLabel().toUpperCase());
-                return extractLiveDataAsFile(format, filter);
+                ExtractionRawFormatEnum format = ExtractionRawFormatEnum.valueOf(checkedType.getLabel().toUpperCase());
+                return extractRawDataAndDumpToFile(format, filter);
             default:
                 throw new SumarisTechnicalException(String.format("Extraction of category %s not implemented yet !", type.getCategory()));
         }
@@ -166,9 +195,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public ExtractionContextVO extract(ExtractionTypeVO type, ExtractionFilterVO filter) {
+    public ExtractionContextVO execute(ExtractionTypeVO type, ExtractionFilterVO filter) {
         // Make sure type has category AND label filled
-        ExtractionTypeVO checkedType = checkAndGetFullType(type);
+        ExtractionTypeVO checkedType = Extractions.checkAndFindType(getAllExtractionTypes(), type);
         ExtractionCategoryEnum category = ExtractionCategoryEnum.valueOf(checkedType.getCategory().toUpperCase());
 
         filter = filter != null ? filter : new ExtractionFilterVO();
@@ -178,12 +207,12 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (category) {
             case PRODUCT:
-                throw new IllegalArgumentException("extract not implemented yet for product");
+                throw new IllegalArgumentException("execute not implemented yet for product");
                 //    ExtractionProduct product = ExtractionProduct.valueOf(checkedType.getLabel().toUpperCase());
                 //    return extractProductToTables(product, filter);
             case LIVE:
-                ExtractionLiveFormat format = ExtractionLiveFormat.valueOf(checkedType.getLabel().toUpperCase());
-                return extractLiveDataAsContext(format, filter);
+                ExtractionRawFormatEnum format = ExtractionRawFormatEnum.valueOf(checkedType.getLabel().toUpperCase());
+                return extractRawData(format, filter);
             default:
                 throw new SumarisTechnicalException(String.format("Extraction of category %s not implemented yet !", type.getCategory()));
         }
@@ -191,10 +220,10 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public File extractTripAsFile(ExtractionLiveFormat format, ExtractionTripFilterVO tripFilter) {
+    public File executeAndDumpTrips(ExtractionRawFormatEnum format, ExtractionTripFilterVO tripFilter) {
 
-        ExtractionFilterVO filter = rdbExtractionTripDao.toExtractionFilterVO(tripFilter);
-        return extractLiveDataAsFile(format, filter);
+        ExtractionFilterVO filter = extractionRdbTripDao.toExtractionFilterVO(tripFilter);
+        return extractRawDataAndDumpToFile(format, filter);
     }
 
     @Override
@@ -209,21 +238,49 @@ public class ExtractionServiceImpl implements ExtractionService {
                 .forEach(extractionTableDao::dropTable);
     }
 
+    @Override
+    public ExtractionProductVO toProductVO(ExtractionContextVO source) {
+        if (source == null) return null;
+        Preconditions.checkNotNull(source.getLabel());
+
+        ExtractionProductVO target = new ExtractionProductVO();
+
+        target.setLabel(source.getLabel().toUpperCase());
+        target.setName(String.format("Extraction #%s", source.getId()));
+
+        target.setTables(SetUtils.emptyIfNull(source.getTableNames())
+                .stream()
+                .map(t -> {
+                    ExtractionProductTableVO table = new ExtractionProductTableVO();
+                    table.setLabel(source.getSheetName(t));
+                    table.setName(t);
+                    table.setTableName(t);
+                    return table;
+                })
+                .collect(Collectors.toList()));
+
+        return target;
+    }
+
     /* -- protected -- */
 
     protected List<ExtractionTypeVO> getProductExtractionTypes() {
-        return Arrays.stream(ExtractionProduct.values())
+        return ListUtils.emptyIfNull(extractionProductDao.getAll())
+                .stream()
                 .map(product -> {
                     ExtractionTypeVO type = new ExtractionTypeVO();
-                    type.setLabel(product.name().toLowerCase());
+                    type.setLabel(product.getLabel().toLowerCase());
                     type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
-                    type.setSheetNames(product.getSheetNames());
+
+                    Collection<String> sheetNames = product.getSheetNames();
+                    type.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
+
                     return type;
                 }).collect(Collectors.toList());
     }
 
     protected List<ExtractionTypeVO> getLiveExtractionTypes() {
-        return Arrays.stream(ExtractionLiveFormat.values())
+        return Arrays.stream(ExtractionRawFormatEnum.values())
                 .map(format -> {
                     ExtractionTypeVO type = new ExtractionTypeVO();
                     type.setLabel(format.name().toLowerCase());
@@ -235,63 +292,48 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
 
-    protected ExtractionResultVO extractLiveDataAsRows(String formatStr, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
+    protected ExtractionResultVO extractRawDataAndRead(String formatStr, ExtractionFilterVO filter,
+                                                       int offset, int size, String sort, SortDirection direction) {
         Preconditions.checkNotNull(formatStr);
 
-        ExtractionLiveFormat format = ExtractionLiveFormat.valueOf(formatStr.toUpperCase());
+        ExtractionRawFormatEnum format = ExtractionRawFormatEnum.valueOf(formatStr.toUpperCase());
 
         filter.setPreview(true);
 
         // Replace default sort attribute
-        if (IDataEntity.PROPERTY_ID.equalsIgnoreCase(sort)) {
+        if (IEntity.PROPERTY_ID.equalsIgnoreCase(sort)) {
             sort = null;
         }
 
-        // Execute the live export (to temp tables)
-        ExtractionLiveContextVO context = extractLiveDataAsContext(format, filter);
-
-        String tableName = context.getTableNames().iterator().next();
-        if (StringUtils.isNotBlank(filter.getSheetName())) {
-            tableName = context.getTableNameBySheetName(filter.getSheetName());
+        // Execute extraction into temp tables
+        ExtractionContextVO context;
+        try {
+            context = extractRawData(format, filter);
+        }
+        catch(DataNotFoundException e) {
+            return createEmptyResult();
         }
 
-        // Missing the expected sheet = no data
-        if (tableName == null) return createEmptyResult();
-
-        // Create a filter for rows previous, with only includes/exclude columns,
-        // because criterion are not need (already applied when writing temp tables)
-        ExtractionFilterVO previousFilter = new ExtractionFilterVO();
-        previousFilter.setIncludeColumnNames(filter.getIncludeColumnNames()); // Copy given include columns
-        previousFilter.setExcludeColumnNames(SetUtils.union(
-                SetUtils.emptyIfNull(filter.getIncludeColumnNames()),
-                SetUtils.emptyIfNull(context.getHiddenColumns(tableName))
-        ));
-
-        // Force distinct if there is excluded columns AND distinct is enable on the XML query
-        boolean enableDistinct = filter.isDistinct() || CollectionUtils.isNotEmpty(previousFilter.getExcludeColumnNames())
-                && context.isDistinctEnable(tableName);
-        previousFilter.setDistinct(enableDistinct);
-
-        // Get rows from exported tables
-        ExtractionResultVO result = extractionTableDao.getTableRows(tableName, previousFilter, offset, size, sort, direction);
-
-        // Clean created tables
-        asyncClean(context);
-
-        return result;
+        try {
+            // Read
+            return read(context, filter, offset, size, sort, direction);
+        } finally {
+            // Clean created tables
+            asyncClean(context);
+        }
     }
 
-    protected File extractLiveDataAsFile(ExtractionLiveFormat format, ExtractionFilterVO filter) {
+    protected File extractRawDataAndDumpToFile(ExtractionRawFormatEnum format, ExtractionFilterVO filter) {
         Preconditions.checkNotNull(format);
 
         // Execute live extraction to temp tables
-        ExtractionLiveContextVO context = extractLiveDataAsContext(format, filter);
+        ExtractionContextVO context = extractRawData(format, filter);
 
         // Dump tables
-        return writeTablesToFile(context, null /*no filter, because already applied*/);
+        return dumpTablesToFile(context, null /*no filter, because already applied*/);
     }
 
-    protected ExtractionResultVO extractProductAsRows(ExtractionProduct product, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
+    protected ExtractionResultVO readProductRows(ExtractionProductVO product, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
         Preconditions.checkNotNull(product);
         Preconditions.checkNotNull(filter);
         Preconditions.checkArgument(offset >= 0);
@@ -299,53 +341,38 @@ public class ExtractionServiceImpl implements ExtractionService {
         Preconditions.checkArgument(size >= 0, "'size' must be greater or equals to 0");
 
         // Get table name
-        String tableName = getProductTableName(product, filter.getSheetName());
+        String tableName = Extractions.getTableName(product, filter.getSheetName());
 
         // Get table rows
         return extractionTableDao.getTableRows(tableName, filter, offset, size, sort, direction);
     }
 
-    protected File extractProductAsFile(ExtractionProduct product, ExtractionFilterVO filter) throws IOException {
+    protected File dumpProductToFile(ExtractionProductVO product, ExtractionFilterVO filter) throws IOException {
         Preconditions.checkNotNull(product);
         Preconditions.checkNotNull(filter);
 
-        ExtractionProductContextVO context = new ExtractionProductContextVO();
+        // Create a new context
+        ExtractionProductContextVO context = new ExtractionProductContextVO(product);
         context.setId(System.currentTimeMillis());
-        context.setProduct(product);
-
-        // No sheet (product with only one table)
-        if (ArrayUtils.isEmpty(product.getSheetNames())) {
-            String tableName = getProductTableName(product, null);
-            context.addTableName(tableName, context.getLabel(), filter.getExcludeColumnNames(), filter.isDistinct());
-        }
-
-        // One or more sheet
-        else {
-            Arrays.stream(product.getSheetNames())
-                    .forEach(sheetName -> {
-                        String tableName = getProductTableName(product, sheetName);
-                        context.addTableName(tableName, sheetName, null, filter.isDistinct());
-                    });
-        }
 
         // Dump to file
-        return writeTablesToFile(context, filter);
+        return dumpTablesToFile(context, filter);
     }
 
-    protected ExtractionLiveContextVO extractLiveDataAsContext(ExtractionLiveFormat format,
-                                                               ExtractionFilterVO filter) {
+    protected ExtractionContextVO extractRawData(ExtractionRawFormatEnum format,
+                                                 ExtractionFilterVO filter) {
 
-        ExtractionLiveContextVO context;
+        ExtractionContextVO context;
 
         switch (format) {
             case RDB:
-                context = rdbExtractionTripDao.execute(rdbExtractionTripDao.toTripFilterVO(filter), filter);
+                context = extractionRdbTripDao.execute(filter);
                 break;
             case COST:
-                context = extractionCostTripDao.execute(rdbExtractionTripDao.toTripFilterVO(filter), filter);
+                context = extractionCostTripDao.execute(filter);
                 break;
             case SURVIVAL_TEST:
-                context = extractionSurvivalTestDao.execute(extractionSurvivalTestDao.toTripFilterVO(filter), filter);
+                context = extractionSurvivalTestDao.execute(filter);
                 break;
             default:
                 throw new SumarisTechnicalException("Unknown extraction type: " + format);
@@ -354,8 +381,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         return context;
     }
 
-    protected File writeTablesToFile(ExtractionContextVO context,
-                                     @Nullable ExtractionFilterVO filter) {
+    protected File dumpTablesToFile(ExtractionContextVO context,
+                                    @Nullable ExtractionFilterVO filter) {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getLabel());
 
@@ -388,7 +415,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
                         // Compute the table output file
                         File tempCsvFile = new File(outputDirectory, context.getSheetName(tableName) + ".csv");
-                        writeTableToFile(tableName, tableFilter, tempCsvFile);
+                        dumpTableToFile(tableName, tableFilter, tempCsvFile);
                         return tempCsvFile;
                     } catch (IOException e) {
                         log.error(String.format("Could not generate CSV file for table {%s}", tableName), e);
@@ -435,7 +462,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         return outputFile;
     }
 
-    protected void writeTableToFile(String tableName, ExtractionFilterVO filter, File outputFile) throws IOException {
+    protected void dumpTableToFile(String tableName, ExtractionFilterVO filter, File outputFile) throws IOException {
         SumarisTableMetadata table;
         try {
             table = databaseMetadata.getTable(tableName);
@@ -469,7 +496,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     }
 
-    protected void asyncClean(ExtractionContextVO context) {
+    public void asyncClean(ExtractionContextVO context) {
         if (taskExecutor == null) {
             clean(context);
         } else {
@@ -524,10 +551,6 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
     }
 
-    protected Map<String, String> getAliasByColumnMap(SumarisTableMetadata table) {
-        return getAliasByColumnMap(table.getColumnNames());
-    }
-
     protected Map<String, String> getAliasByColumnMap(Set<String> tableNames) {
         return tableNames.stream()
                 .collect(Collectors.toMap(
@@ -543,52 +566,4 @@ public class ExtractionServiceImpl implements ExtractionService {
         return result;
     }
 
-    protected ExtractionTypeVO checkAndGetFullType(ExtractionTypeVO type) throws IllegalArgumentException {
-        Preconditions.checkNotNull(type, "Missing argument 'type' ");
-        Preconditions.checkNotNull(type.getLabel(), "Missing argument 'type.label'");
-
-        // Retrieve the extraction type, from list
-        final String extractionLabel = type.getLabel();
-        if (type.getCategory() == null) {
-            type = this.extractionTypes.stream()
-                    .filter(aType -> aType.getLabel().equalsIgnoreCase(extractionLabel))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type label {%s}", extractionLabel)));
-        } else {
-            final String extractionCategory = type.getCategory();
-            type = this.extractionTypes.stream()
-                    .filter(aType -> aType.getLabel().equalsIgnoreCase(extractionLabel) && aType.getCategory().equalsIgnoreCase(extractionCategory))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type category/label {%s/%s}", extractionCategory, extractionLabel)));
-        }
-        return type;
-    }
-
-    protected String getProductTableName(ExtractionProduct product, String sheetName) {
-        if (StringUtils.isNotBlank(sheetName)) {
-            Preconditions.checkArgument(
-                    product.getSheetNames() != null && Arrays.asList(product.getSheetNames()).contains(sheetName.toUpperCase()),
-                    String.format("Invalid sheet {%s}: not exists on product {%s}", sheetName, product.name()));
-        }
-
-        // Or use default sheetname
-        else if (ArrayUtils.isNotEmpty(product.getSheetNames())) {
-            sheetName = product.getSheetNames()[0];
-        }
-
-        // Get table name
-        String tableName = null;
-        if (StringUtils.isNotBlank(sheetName)) {
-            if (product == ExtractionProduct.P01_RDB) {
-                tableName = rdbProductTableBySheet.get(sheetName);
-            }
-            if (StringUtils.isBlank(tableName)) {
-                tableName = "P_" + product.name() + "_" + sheetName.toUpperCase();
-            }
-        } else {
-            tableName = "P_" + product.name();
-        }
-
-        return tableName;
-    }
 }

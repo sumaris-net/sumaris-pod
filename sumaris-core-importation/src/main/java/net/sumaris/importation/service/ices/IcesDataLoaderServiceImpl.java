@@ -5,7 +5,7 @@ import com.google.common.collect.*;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.schema.*;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.product.ices.*;
+import net.sumaris.core.model.technical.extraction.rdb.*;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.vo.referential.TaxonNameVO;
@@ -46,143 +46,143 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 	protected static final String MIXED_COLUMN_RECORD_TYPE = "record_type";
 
 	protected static List<DatabaseTableEnum> orderedTables = ImmutableList.of(
-			DatabaseTableEnum.P01_ICES_TRIP,
-			DatabaseTableEnum.P01_ICES_STATION,
-			DatabaseTableEnum.P01_ICES_SPECIES_LIST,
-			DatabaseTableEnum.P01_ICES_SPECIES_LENGTH,
+			DatabaseTableEnum.P01_RDB_TRIP,
+			DatabaseTableEnum.P01_RDB_STATION,
+			DatabaseTableEnum.P01_RDB_SPECIES_LIST,
+			DatabaseTableEnum.P01_RDB_SPECIES_LENGTH,
 			// TODO CA
-			DatabaseTableEnum.P01_ICES_LANDING
+			DatabaseTableEnum.P01_RDB_LANDING
 			// TODO CE
 	);
 
 	protected static Map<String, DatabaseTableEnum> tableByRecordTypeMap = ImmutableMap.<String, DatabaseTableEnum>builder()
-			.put("TR", DatabaseTableEnum.P01_ICES_TRIP)
-			.put("HH", DatabaseTableEnum.P01_ICES_STATION)
-			.put("SL", DatabaseTableEnum.P01_ICES_SPECIES_LIST)
-			.put("HL", DatabaseTableEnum.P01_ICES_SPECIES_LENGTH)
+			.put("TR", DatabaseTableEnum.P01_RDB_TRIP)
+			.put("HH", DatabaseTableEnum.P01_RDB_STATION)
+			.put("SL", DatabaseTableEnum.P01_RDB_SPECIES_LIST)
+			.put("HL", DatabaseTableEnum.P01_RDB_SPECIES_LENGTH)
 			// TODO CA
-			.put("CL", DatabaseTableEnum.P01_ICES_LANDING)
+			.put("CL", DatabaseTableEnum.P01_RDB_LANDING)
 			// TODO CE
 			.build();
 
 	protected static Map<DatabaseTableEnum, String[]> headersByTableMap = ImmutableMap.<DatabaseTableEnum, String[]>builder()
-			.put(ProductIcesTrip.TABLE, new String[]{
+			.put(ProductRdbTrip.TABLE, new String[]{
 					MIXED_COLUMN_RECORD_TYPE,
-					ProductIcesTrip.COLUMN_SAMPLING_TYPE,
-					ProductIcesTrip.COLUMN_VESSEL_FLAG_COUNTRY,
-					ProductIcesTrip.COLUMN_LANDING_COUNTRY,
-					ProductIcesTrip.COLUMN_YEAR,
-					ProductIcesTrip.COLUMN_PROJECT,
-					ProductIcesTrip.COLUMN_TRIP_CODE,
-					ProductIcesTrip.COLUMN_VESSEL_LENGTH,
-					ProductIcesTrip.COLUMN_VESSEL_POWER,
-					ProductIcesTrip.COLUMN_VESSEL_SIZE,
-					ProductIcesTrip.COLUMN_VESSEL_TYPE,
-					ProductIcesTrip.COLUMN_HARBOUR,
-					ProductIcesTrip.COLUMN_NUMBER_OF_SETS,
-					ProductIcesTrip.COLUMN_DAYS_AT_SEA,
-					ProductIcesTrip.COLUMN_VESSEL_IDENTIFIER,
-					ProductIcesTrip.COLUMN_SAMPLING_COUNTRY,
-					ProductIcesTrip.COLUMN_SAMPLING_METHOD
+					ProductRdbTrip.COLUMN_SAMPLING_TYPE,
+					ProductRdbTrip.COLUMN_VESSEL_FLAG_COUNTRY,
+					ProductRdbTrip.COLUMN_LANDING_COUNTRY,
+					ProductRdbTrip.COLUMN_YEAR,
+					ProductRdbTrip.COLUMN_PROJECT,
+					ProductRdbTrip.COLUMN_TRIP_CODE,
+					ProductRdbTrip.COLUMN_VESSEL_LENGTH,
+					ProductRdbTrip.COLUMN_VESSEL_POWER,
+					ProductRdbTrip.COLUMN_VESSEL_SIZE,
+					ProductRdbTrip.COLUMN_VESSEL_TYPE,
+					ProductRdbTrip.COLUMN_HARBOUR,
+					ProductRdbTrip.COLUMN_NUMBER_OF_SETS,
+					ProductRdbTrip.COLUMN_DAYS_AT_SEA,
+					ProductRdbTrip.COLUMN_VESSEL_IDENTIFIER,
+					ProductRdbTrip.COLUMN_SAMPLING_COUNTRY,
+					ProductRdbTrip.COLUMN_SAMPLING_METHOD
 			})
-			.put(ProductIcesStation.TABLE, new String[]{
+			.put(ProductRdbStation.TABLE, new String[]{
 					MIXED_COLUMN_RECORD_TYPE,
-					ProductIcesStation.COLUMN_SAMPLING_TYPE,
-					ProductIcesStation.COLUMN_VESSEL_FLAG_COUNTRY,
-					ProductIcesStation.COLUMN_LANDING_COUNTRY,
-					ProductIcesStation.COLUMN_YEAR,
-					ProductIcesStation.COLUMN_PROJECT,
-					ProductIcesStation.COLUMN_TRIP_CODE,
-					ProductIcesStation.COLUMN_STATION_NUMBER,
-					ProductIcesStation.COLUMN_FISHING_VALIDITY,
-					ProductIcesStation.COLUMN_AGGREGATION_LEVEL,
-					ProductIcesStation.COLUMN_CATCH_REGISTRATION,
-					ProductIcesStation.COLUMN_SPECIES_REGISTRATION,
-					ProductIcesStation.COLUMN_DATE,
-					ProductIcesStation.COLUMN_TIME,
-					ProductIcesStation.COLUMN_FISHING_DURATION,
-					ProductIcesStation.COLUMN_POS_START_LAT,
-					ProductIcesStation.COLUMN_POS_START_LON,
-					ProductIcesStation.COLUMN_POS_END_LAT,
-					ProductIcesStation.COLUMN_POS_END_LON,
-					ProductIcesStation.COLUMN_AREA,
-					ProductIcesStation.COLUMN_STATISTICAL_RECTANGLE,
-					ProductIcesStation.COLUMN_SUB_POLYGON,
-					ProductIcesStation.COLUMN_MAIN_FISHING_DEPTH,
-					ProductIcesStation.COLUMN_MAIN_WATER_DEPTH,
-					ProductIcesStation.COLUMN_NATIONAL_METIER,
-					ProductIcesStation.COLUMN_EU_METIER_LEVEL5,
-					ProductIcesStation.COLUMN_EU_METIER_LEVEL6,
-					ProductIcesStation.COLUMN_GEAR_TYPE,
-					ProductIcesStation.COLUMN_MESH_SIZE,
-					ProductIcesStation.COLUMN_SELECTION_DEVICE,
-					ProductIcesStation.COLUMN_MESH_SIZE_SELECTION_DEVICE
+					ProductRdbStation.COLUMN_SAMPLING_TYPE,
+					ProductRdbStation.COLUMN_VESSEL_FLAG_COUNTRY,
+					ProductRdbStation.COLUMN_LANDING_COUNTRY,
+					ProductRdbStation.COLUMN_YEAR,
+					ProductRdbStation.COLUMN_PROJECT,
+					ProductRdbStation.COLUMN_TRIP_CODE,
+					ProductRdbStation.COLUMN_STATION_NUMBER,
+					ProductRdbStation.COLUMN_FISHING_VALIDITY,
+					ProductRdbStation.COLUMN_AGGREGATION_LEVEL,
+					ProductRdbStation.COLUMN_CATCH_REGISTRATION,
+					ProductRdbStation.COLUMN_SPECIES_REGISTRATION,
+					ProductRdbStation.COLUMN_DATE,
+					ProductRdbStation.COLUMN_TIME,
+					ProductRdbStation.COLUMN_FISHING_TIME,
+					ProductRdbStation.COLUMN_POS_START_LAT,
+					ProductRdbStation.COLUMN_POS_START_LON,
+					ProductRdbStation.COLUMN_POS_END_LAT,
+					ProductRdbStation.COLUMN_POS_END_LON,
+					ProductRdbStation.COLUMN_AREA,
+					ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE,
+					ProductRdbStation.COLUMN_SUB_POLYGON,
+					ProductRdbStation.COLUMN_MAIN_FISHING_DEPTH,
+					ProductRdbStation.COLUMN_MAIN_WATER_DEPTH,
+					ProductRdbStation.COLUMN_NATIONAL_METIER,
+					ProductRdbStation.COLUMN_EU_METIER_LEVEL5,
+					ProductRdbStation.COLUMN_EU_METIER_LEVEL6,
+					ProductRdbStation.COLUMN_GEAR_TYPE,
+					ProductRdbStation.COLUMN_MESH_SIZE,
+					ProductRdbStation.COLUMN_SELECTION_DEVICE,
+					ProductRdbStation.COLUMN_MESH_SIZE_SELECTION_DEVICE
 			})
-			.put(ProductIcesSpeciesList.TABLE, new String[]{
+			.put(ProductRdbSpeciesList.TABLE, new String[]{
 					MIXED_COLUMN_RECORD_TYPE,
-					ProductIcesSpeciesList.COLUMN_SAMPLING_TYPE,
-					ProductIcesSpeciesList.COLUMN_VESSEL_FLAG_COUNTRY,
-					ProductIcesSpeciesList.COLUMN_LANDING_COUNTRY,
-					ProductIcesSpeciesList.COLUMN_YEAR,
-					ProductIcesSpeciesList.COLUMN_PROJECT,
-					ProductIcesSpeciesList.COLUMN_TRIP_CODE,
-					ProductIcesSpeciesList.COLUMN_STATION_NUMBER,
-					ProductIcesSpeciesList.COLUMN_SPECIES,
-					ProductIcesSpeciesList.COLUMN_SEX,
-					ProductIcesSpeciesList.COLUMN_CATCH_CATEGORY,
-					ProductIcesSpeciesList.COLUMN_LANDING_CATEGORY,
-					ProductIcesSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
-					ProductIcesSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY,
-					ProductIcesSpeciesList.COLUMN_SUBSAMPLING_CATEGORY,
-					ProductIcesSpeciesList.COLUMN_WEIGHT,
-					ProductIcesSpeciesList.COLUMN_SUBSAMPLING_WEIGHT,
-					ProductIcesSpeciesList.COLUMN_LENGTH_CODE
+					ProductRdbSpeciesList.COLUMN_SAMPLING_TYPE,
+					ProductRdbSpeciesList.COLUMN_VESSEL_FLAG_COUNTRY,
+					ProductRdbSpeciesList.COLUMN_LANDING_COUNTRY,
+					ProductRdbSpeciesList.COLUMN_YEAR,
+					ProductRdbSpeciesList.COLUMN_PROJECT,
+					ProductRdbSpeciesList.COLUMN_TRIP_CODE,
+					ProductRdbSpeciesList.COLUMN_STATION_NUMBER,
+					ProductRdbSpeciesList.COLUMN_SPECIES,
+					ProductRdbSpeciesList.COLUMN_SEX,
+					ProductRdbSpeciesList.COLUMN_CATCH_CATEGORY,
+					ProductRdbSpeciesList.COLUMN_LANDING_CATEGORY,
+					ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
+					ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY,
+					ProductRdbSpeciesList.COLUMN_SUBSAMPLING_CATEGORY,
+					ProductRdbSpeciesList.COLUMN_WEIGHT,
+					ProductRdbSpeciesList.COLUMN_SUBSAMPLING_WEIGHT,
+					ProductRdbSpeciesList.COLUMN_LENGTH_CODE
 			})
-			.put(ProductIcesSpeciesLength.TABLE, new String[]{
+			.put(ProductRdbSpeciesLength.TABLE, new String[]{
 					MIXED_COLUMN_RECORD_TYPE,
-					ProductIcesSpeciesLength.COLUMN_SAMPLING_TYPE,
-					ProductIcesSpeciesLength.COLUMN_VESSEL_FLAG_COUNTRY,
-					ProductIcesSpeciesLength.COLUMN_LANDING_COUNTRY,
-					ProductIcesSpeciesLength.COLUMN_YEAR,
-					ProductIcesSpeciesLength.COLUMN_PROJECT,
-					ProductIcesSpeciesLength.COLUMN_TRIP_CODE,
-					ProductIcesSpeciesLength.COLUMN_STATION_NUMBER,
-					ProductIcesSpeciesLength.COLUMN_SPECIES,
-					ProductIcesSpeciesLength.COLUMN_CATCH_CATEGORY,
-					ProductIcesSpeciesLength.COLUMN_LANDING_CATEGORY,
-					ProductIcesSpeciesLength.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
-					ProductIcesSpeciesLength.COLUMN_COMMERCIAL_SIZE_CATEGORY,
-					ProductIcesSpeciesLength.COLUMN_SUBSAMPLING_CATEGORY,
-					ProductIcesSpeciesLength.COLUMN_SEX,
-					ProductIcesSpeciesLength.COLUMN_INDIVIDUAL_SEX,
-					ProductIcesSpeciesLength.COLUMN_LENGTH_CLASS,
-					ProductIcesSpeciesLength.COLUMN_NUMBER_AT_LENGTH
+					ProductRdbSpeciesLength.COLUMN_SAMPLING_TYPE,
+					ProductRdbSpeciesLength.COLUMN_VESSEL_FLAG_COUNTRY,
+					ProductRdbSpeciesLength.COLUMN_LANDING_COUNTRY,
+					ProductRdbSpeciesLength.COLUMN_YEAR,
+					ProductRdbSpeciesLength.COLUMN_PROJECT,
+					ProductRdbSpeciesLength.COLUMN_TRIP_CODE,
+					ProductRdbSpeciesLength.COLUMN_STATION_NUMBER,
+					ProductRdbSpeciesLength.COLUMN_SPECIES,
+					ProductRdbSpeciesLength.COLUMN_CATCH_CATEGORY,
+					ProductRdbSpeciesLength.COLUMN_LANDING_CATEGORY,
+					ProductRdbSpeciesLength.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
+					ProductRdbSpeciesLength.COLUMN_COMMERCIAL_SIZE_CATEGORY,
+					ProductRdbSpeciesLength.COLUMN_SUBSAMPLING_CATEGORY,
+					ProductRdbSpeciesLength.COLUMN_SEX,
+					ProductRdbSpeciesLength.COLUMN_INDIVIDUAL_SEX,
+					ProductRdbSpeciesLength.COLUMN_LENGTH_CLASS,
+					ProductRdbSpeciesLength.COLUMN_NUMBER_AT_LENGTH
 			})
 			// TODO CA
-			.put(ProductIcesLandingStatistics.TABLE, new String[]{
+			.put(ProductRdbLandingStatistics.TABLE, new String[]{
 					MIXED_COLUMN_RECORD_TYPE,
-					ProductIcesLandingStatistics.COLUMN_VESSEL_FLAG_COUNTRY,
-					ProductIcesLandingStatistics.COLUMN_LANDING_COUNTRY,
-					ProductIcesLandingStatistics.COLUMN_YEAR,
-					ProductIcesLandingStatistics.COLUMN_QUARTER,
-					ProductIcesLandingStatistics.COLUMN_MONTH,
-					ProductIcesLandingStatistics.COLUMN_AREA,
-					ProductIcesLandingStatistics.COLUMN_STATISTICAL_RECTANGLE,
-					ProductIcesLandingStatistics.COLUMN_SUB_POLYGON,
-					ProductIcesLandingStatistics.COLUMN_SPECIES,
-					ProductIcesLandingStatistics.COLUMN_LANDING_CATEGORY,
-					ProductIcesLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
-					ProductIcesLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY,
-					ProductIcesLandingStatistics.COLUMN_NATIONAL_METIER,
-					ProductIcesLandingStatistics.COLUMN_EU_METIER_LEVEL5,
-					ProductIcesLandingStatistics.COLUMN_EU_METIER_LEVEL6,
-					ProductIcesLandingStatistics.COLUMN_HARBOUR,
-					ProductIcesLandingStatistics.COLUMN_VESSEL_LENGTH_CATEGORY,
-					ProductIcesLandingStatistics.COLUMN_UNALLOCATED_CATCH_WEIGHT,
-					ProductIcesLandingStatistics.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT,
-					ProductIcesLandingStatistics.COLUMN_OFFICIAL_LANDINGS_WEIGHT,
-					ProductIcesLandingStatistics.COLUMN_LANDINGS_MULTIPLIER,
-					ProductIcesLandingStatistics.COLUMN_OFFICIAL_LANDINGS_VALUE
+					ProductRdbLandingStatistics.COLUMN_VESSEL_FLAG_COUNTRY,
+					ProductRdbLandingStatistics.COLUMN_LANDING_COUNTRY,
+					ProductRdbLandingStatistics.COLUMN_YEAR,
+					ProductRdbLandingStatistics.COLUMN_QUARTER,
+					ProductRdbLandingStatistics.COLUMN_MONTH,
+					ProductRdbLandingStatistics.COLUMN_AREA,
+					ProductRdbLandingStatistics.COLUMN_STATISTICAL_RECTANGLE,
+					ProductRdbLandingStatistics.COLUMN_SUB_POLYGON,
+					ProductRdbLandingStatistics.COLUMN_SPECIES,
+					ProductRdbLandingStatistics.COLUMN_LANDING_CATEGORY,
+					ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE,
+					ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY,
+					ProductRdbLandingStatistics.COLUMN_NATIONAL_METIER,
+					ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL5,
+					ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL6,
+					ProductRdbLandingStatistics.COLUMN_HARBOUR,
+					ProductRdbLandingStatistics.COLUMN_VESSEL_LENGTH_CATEGORY,
+					ProductRdbLandingStatistics.COLUMN_UNALLOCATED_CATCH_WEIGHT,
+					ProductRdbLandingStatistics.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT,
+					ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_WEIGHT,
+					ProductRdbLandingStatistics.COLUMN_LANDINGS_MULTIPLIER,
+					ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_VALUE
 			})
 			// TODO CE
 			.build();
@@ -190,33 +190,33 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
 	protected static final Map<String, String> headerReplacements = ImmutableMap.<String, String>builder()
 			// FRA synonyms
-			.put("landCtry", ProductIcesLandingStatistics.COLUMN_LANDING_COUNTRY)
-			.put("vslFlgCtry", ProductIcesLandingStatistics.COLUMN_VESSEL_FLAG_COUNTRY)
-			.put("year", ProductIcesLandingStatistics.COLUMN_YEAR)
-			.put("quarter", ProductIcesLandingStatistics.COLUMN_QUARTER)
-			.put("month", ProductIcesLandingStatistics.COLUMN_MONTH)
-			.put("area", ProductIcesLandingStatistics.COLUMN_AREA)
-			.put("rect", ProductIcesLandingStatistics.COLUMN_STATISTICAL_RECTANGLE)
-			.put("subRect", ProductIcesLandingStatistics.COLUMN_SUB_POLYGON)
-			.put("taxon", ProductIcesLandingStatistics.COLUMN_SPECIES)
-			.put("landCat", ProductIcesLandingStatistics.COLUMN_LANDING_CATEGORY)
-			.put("commCatScl", ProductIcesLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE)
-			.put("commCat", ProductIcesLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY)
-			.put("foCatNat", ProductIcesLandingStatistics.COLUMN_NATIONAL_METIER)
-			.put("foCatEu5", ProductIcesLandingStatistics.COLUMN_EU_METIER_LEVEL5)
-			.put("foCatEu6", ProductIcesLandingStatistics.COLUMN_EU_METIER_LEVEL6)
-			.put("harbour", ProductIcesLandingStatistics.COLUMN_HARBOUR)
-			.put("vslLenCat", ProductIcesLandingStatistics.COLUMN_VESSEL_LENGTH_CATEGORY)
-			.put("unallocCatchWt", ProductIcesLandingStatistics.COLUMN_UNALLOCATED_CATCH_WEIGHT)
-			.put("misRepCatchWt", ProductIcesLandingStatistics.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT)
-			.put("landWt", ProductIcesLandingStatistics.COLUMN_OFFICIAL_LANDINGS_WEIGHT)
-			.put("landMult", ProductIcesLandingStatistics.COLUMN_LANDINGS_MULTIPLIER)
-			.put("landValue", ProductIcesLandingStatistics.COLUMN_OFFICIAL_LANDINGS_VALUE)
+			.put("landCtry", ProductRdbLandingStatistics.COLUMN_LANDING_COUNTRY)
+			.put("vslFlgCtry", ProductRdbLandingStatistics.COLUMN_VESSEL_FLAG_COUNTRY)
+			.put("year", ProductRdbLandingStatistics.COLUMN_YEAR)
+			.put("quarter", ProductRdbLandingStatistics.COLUMN_QUARTER)
+			.put("month", ProductRdbLandingStatistics.COLUMN_MONTH)
+			.put("area", ProductRdbLandingStatistics.COLUMN_AREA)
+			.put("rect", ProductRdbLandingStatistics.COLUMN_STATISTICAL_RECTANGLE)
+			.put("subRect", ProductRdbLandingStatistics.COLUMN_SUB_POLYGON)
+			.put("taxon", ProductRdbLandingStatistics.COLUMN_SPECIES)
+			.put("landCat", ProductRdbLandingStatistics.COLUMN_LANDING_CATEGORY)
+			.put("commCatScl", ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY_SCALE)
+			.put("commCat", ProductRdbLandingStatistics.COLUMN_COMMERCIAL_SIZE_CATEGORY)
+			.put("foCatNat", ProductRdbLandingStatistics.COLUMN_NATIONAL_METIER)
+			.put("foCatEu5", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL5)
+			.put("foCatEu6", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL6)
+			.put("harbour", ProductRdbLandingStatistics.COLUMN_HARBOUR)
+			.put("vslLenCat", ProductRdbLandingStatistics.COLUMN_VESSEL_LENGTH_CATEGORY)
+			.put("unallocCatchWt", ProductRdbLandingStatistics.COLUMN_UNALLOCATED_CATCH_WEIGHT)
+			.put("misRepCatchWt", ProductRdbLandingStatistics.COLUMN_AREA_MISREPORTED_CATCH_WEIGHT)
+			.put("landWt", ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_WEIGHT)
+			.put("landMult", ProductRdbLandingStatistics.COLUMN_LANDINGS_MULTIPLIER)
+			.put("landValue", ProductRdbLandingStatistics.COLUMN_OFFICIAL_LANDINGS_VALUE)
 
 			// BEL synonyms
-			.put("FAC_National", ProductIcesLandingStatistics.COLUMN_NATIONAL_METIER)
-			.put("FAC_EC_lvl5", ProductIcesLandingStatistics.COLUMN_EU_METIER_LEVEL5)
-			.put("FAC_EC_lvl6", ProductIcesLandingStatistics.COLUMN_EU_METIER_LEVEL6)
+			.put("FAC_National", ProductRdbLandingStatistics.COLUMN_NATIONAL_METIER)
+			.put("FAC_EC_lvl5", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL5)
+			.put("FAC_EC_lvl6", ProductRdbLandingStatistics.COLUMN_EU_METIER_LEVEL6)
 
 
 			.build();
@@ -269,12 +269,12 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
 	@Override
 	public void loadLanding(File inputFile, String country, boolean validate, boolean appendData) throws IOException, FileValidationException {
-		loadTable(inputFile, DatabaseTableEnum.P01_ICES_LANDING, country, validate, appendData);
+		loadTable(inputFile, DatabaseTableEnum.P01_RDB_LANDING, country, validate, appendData);
 	}
 
 	@Override
 	public void loadTrip(File inputFile, String country, boolean validate, boolean appendData) throws IOException, FileValidationException {
-		loadTable(inputFile, DatabaseTableEnum.P01_ICES_TRIP, country, validate, appendData);
+		loadTable(inputFile, DatabaseTableEnum.P01_RDB_TRIP, country, validate, appendData);
 	}
 
 	@Override
@@ -344,7 +344,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
 		// If not append : then remove old data
 		if (!appendData) {
-			String[] filterCols = StringUtils.isNotBlank(country) ? new String[] { ProductIcesTrip.COLUMN_VESSEL_FLAG_COUNTRY } : null;
+			String[] filterCols = StringUtils.isNotBlank(country) ? new String[] { ProductRdbTrip.COLUMN_VESSEL_FLAG_COUNTRY } : null;
 			String[] filterVals = StringUtils.isNotBlank(country) ? new String[] { country } : null;
 			List<DatabaseTableEnum> deleteOrderedTables = orderedTables.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
 			for (DatabaseTableEnum table: deleteOrderedTables) {
@@ -389,7 +389,7 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 		if (!appendData) {
 
 			if (StringUtils.isNotBlank(country)) {
-				dataLoaderService.remove(table, new String[] { ProductIcesTrip.COLUMN_VESSEL_FLAG_COUNTRY }, new String[] { country });
+				dataLoaderService.remove(table, new String[] { ProductRdbTrip.COLUMN_VESSEL_FLAG_COUNTRY }, new String[] { country });
 			} else {
 				dataLoaderService.remove(table, null, null);
 			}
@@ -421,8 +421,8 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 
 			// If species list table
 			if (table != null && (
-					table == DatabaseTableEnum.P01_ICES_SPECIES_LIST
-				|| table == DatabaseTableEnum.P01_ICES_SPECIES_LENGTH)
+					table == DatabaseTableEnum.P01_RDB_SPECIES_LIST
+				|| table == DatabaseTableEnum.P01_RDB_SPECIES_LENGTH)
 			) {
 
 				// Get taxon name, to create a replacement map
@@ -544,11 +544,11 @@ public class IcesDataLoaderServiceImpl implements IcesDataLoaderService {
 		// Special case for GBR
 		if ("GBR".equals(country)) {
 			return (table, headers) -> {
-				if (table == ProductIcesStation.TABLE) {
+				if (table == ProductRdbStation.TABLE) {
 					List<String> result = Lists.newArrayList(headers);
 
 					// Remove missing columns in the GRB file
-					result.remove(ProductIcesStation.COLUMN_FISHING_VALIDITY);
+					result.remove(ProductRdbStation.COLUMN_FISHING_VALIDITY);
 
 					return result.toArray(new String[result.size()]);
 				}

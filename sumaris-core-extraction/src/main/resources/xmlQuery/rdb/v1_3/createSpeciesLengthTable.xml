@@ -27,7 +27,7 @@
     <with alias="BATCH_LENGTH">
       <subquery>
         <subselect alias="SAMPLE_ID" type="number">SL.SAMPLE_ID</subselect>
-        <subselect alias="BATCH_ID" type="number">B.ID</subselect>
+        <subselect alias="ID" type="number">B.ID</subselect>
         <subselect alias="SEX" type="text">(SELECT QV.LABEL FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK WHERE SM.BATCH_FK = B.ID and SM.PMFM_FK=&amp;sexPmfmId)</subselect>
         <subselect alias="LENGTH_CLASS" type="number">(SELECT SM.NUMERICAL_VALUE*10 FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK = B.ID and SM.PMFM_FK=&amp;lengthTotalPmfmId)</subselect>
         <subselect alias="INDIVIDUAL_COUNT" type="number">COALESCE(B.INDIVIDUAL_COUNT,1)</subselect>
@@ -41,7 +41,7 @@
     <select alias="RECORD_TYPE" type="text">'HL'</select>
     <select alias="SAMPLING_TYPE" type="text">SL.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">SL.LANDING_COUNTRY</select>
-    <select alias="VESSEL_COUNTRY" type="text">SL.VESSEL_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">SL.VESSEL_FLAG_COUNTRY</select>
     <select alias="YEAR" type="number">SL.YEAR</select>
     <select alias="PROJECT" type="text">SL.PROJECT</select>
     <select alias="TRIP_CODE" type="number">SL.TRIP_CODE</select>
@@ -63,7 +63,7 @@
     <from join="true">INNER JOIN BATCH_LENGTH B ON B.SAMPLE_ID=SL.SAMPLE_ID</from>
 
     <groupby>
-      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
+      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
       CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY
     </groupby>
     <groupby group="sex">SEX, INDIVIDUAL_SEX</groupby>

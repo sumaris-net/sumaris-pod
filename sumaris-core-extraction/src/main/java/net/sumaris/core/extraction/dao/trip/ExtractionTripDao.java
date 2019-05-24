@@ -5,7 +5,7 @@ import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.vo.ExtractionFilterCriterionVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
@@ -25,6 +25,7 @@ public interface ExtractionTripDao extends ExtractionDao {
         if (source == null) return target;
 
         Beans.copyProperties(source, target);
+        target.setPreview(source.isPreview());
 
         if (CollectionUtils.isNotEmpty(source.getCriteria())) {
 

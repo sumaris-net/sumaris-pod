@@ -56,6 +56,13 @@
 			<artifactId>opencsv</artifactId>
 		</dependency>
 
+		<!-- Gdal (SIG utilities) -->
+		<dependency>
+			<groupId>org.gdal</groupId>
+			<artifactId>gdal</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
 		<!-- Unit test -->
 		<dependency>
 			<groupId>net.sumaris</groupId>

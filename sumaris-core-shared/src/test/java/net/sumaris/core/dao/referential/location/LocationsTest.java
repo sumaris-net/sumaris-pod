@@ -2,6 +2,7 @@ package net.sumaris.core.dao.referential.location;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +95,7 @@ public class LocationsTest {
 		rectangleLabel = Locations.convertSquare10ToRectangle("24200051");
 		assertNotNull(rectangleLabel);
 		assertEquals("M24C2", rectangleLabel);
+
 	}
 
 	@Test
@@ -148,4 +150,26 @@ public class LocationsTest {
 		assertEquals(138501, squares.size());
 	}
 
+	@Test
+	public void getGeometryFromSquare10Label() {
+
+		Double lat = 49.9d;
+		Double lon = 0.01d;
+
+		String square10Label = Locations.getSquare10LabelByLatLong(lat,lon);
+		Assert.assertEquals("24950000", square10Label);
+
+		// Check other case
+		Geometry geometry = Locations.getGeometryFromSquare10Label("24950000");
+		assertNotNull(geometry);
+
+		Coordinate startPoint = geometry.getCoordinates()[0];
+		Assert.assertTrue(startPoint.x <= lon);
+		Assert.assertTrue(startPoint.y <= lat);
+
+		Coordinate endPoint = geometry.getCoordinates()[2];
+		Assert.assertTrue(endPoint.x >= lon);
+		Assert.assertTrue(endPoint.y >= lat);
+
+	}
 }

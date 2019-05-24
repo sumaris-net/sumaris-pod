@@ -4,9 +4,9 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.extraction.dao.technical.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
-import net.sumaris.core.extraction.vo.live.trip.ExtractionTripFilterVO;
-import net.sumaris.core.extraction.vo.live.trip.cost.ExtractionCostTripVersion;
-import net.sumaris.core.extraction.vo.live.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.core.extraction.vo.trip.cost.ExtractionCostTripVersion;
+import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripContextVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -25,8 +25,8 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO> ext
     private String version = ExtractionCostTripVersion.VERSION_1_4.getLabel();
 
     @Override
-    public C execute(ExtractionTripFilterVO filter, ExtractionFilterVO genericFilter) {
-        C context = super.execute(filter, genericFilter);
+    public C execute(ExtractionFilterVO filter) {
+        C context = super.execute(filter);
 
         // Override some context properties
         context.setFormatName(COST_FORMAT);

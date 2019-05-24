@@ -28,7 +28,7 @@
     <select alias="RECORD_TYPE" type="text">'SL'</select>
     <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
-    <select alias="VESSEL_COUNTRY" type="text">S.VESSEL_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
     <select alias="YEAR" type="number">S.YEAR</select>
     <select alias="PROJECT" type="text">S.PROJECT</select>
     <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
@@ -51,7 +51,7 @@
     <where>1=1</where>
 
     <groupby>
-      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
+      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
       CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY,
       SEX, LENGTH_CODE
     </groupby>

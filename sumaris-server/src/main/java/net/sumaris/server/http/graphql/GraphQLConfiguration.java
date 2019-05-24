@@ -27,9 +27,11 @@ import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
+import io.leangen.graphql.metadata.strategy.type.DefaultTypeTransformer;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
+import net.sumaris.server.http.graphql.extraction.AggregationGraphQLService;
 import net.sumaris.server.http.graphql.extraction.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
@@ -67,6 +69,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     private ExtractionGraphQLService extractionGraphQLService;
 
     @Autowired
+    private AggregationGraphQLService aggregationGraphQLService;
+
+    @Autowired
     private AuthGraphQLService authGraphQLService;
 
     @Autowired
@@ -80,13 +85,18 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         return new GraphQLSchemaGenerator()
                 .withResolverBuilders(new AnnotatedResolverBuilder())
                 .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
-                .withOperationsFromSingleton(dataService, DataGraphQLService.class)
+                //.withOperationsFromSingleton(dataService, DataGraphQLService.class)
                 .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
                 .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
                 .withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class)
+                .withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class)
                 .withOperationsFromSingleton(podConfigurationService, ConfigurationGraphQLService.class)
 
-                .withValueMapperFactory(new JacksonValueMapperFactory.Builder().withPrototype(objectMapper).build())
+                // Replace raw and unbounded type with Object
+                //.withTypeTransformer(new DefaultTypeTransformer(true, true))
+                .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
+                        .withPrototype(objectMapper)
+                        .build())
                 .generate();
     }
 

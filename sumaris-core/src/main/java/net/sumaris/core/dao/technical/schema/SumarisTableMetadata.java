@@ -202,23 +202,27 @@ public class SumarisTableMetadata {
 								 String whereClause,
 								 String sort,
 								 SortDirection direction) {
-		String sql = String.format(QUERY_SELECT_ALL,
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format(QUERY_SELECT_ALL,
 				(distinct ? "DISTINCT " : "") + createSelectParams(columnNames, tableAlias),
 				getName(),
-				tableAlias);
+				tableAlias));
 
 		// Where clause
 		if (StringUtils.isNotBlank(whereClause)) {
-			sql += whereClause;
+			sb.append(" ").append(whereClause);
 		}
 
 		// Add order by
 		if (StringUtils.isNotBlank(sort)) {
-			sql += String.format(" ORDER BY %s.%s %s", tableAlias, sort, (direction != null ? direction.name() : ""));
+			sb.append(" ORDER BY ")
+					.append(String.format("%s.%s %s", tableAlias, sort, (direction != null ? direction.name() : "")));
 		}
 
-		return sql;
+		return sb.toString();
 	}
+
+
 
 
 	/**

@@ -26,12 +26,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.sumaris.core.dao.referential.StatusRepository;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.Software;
-import net.sumaris.core.model.technical.SoftwareProperty;
+import net.sumaris.core.model.technical.configuration.Software;
+import net.sumaris.core.model.technical.configuration.SoftwareProperty;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import org.apache.commons.collections4.MapUtils;
@@ -40,16 +39,15 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Repository("softwareDao")
 public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
     @Autowired
     private SoftwareRepository repository;
-
-    @Autowired
-    private StatusRepository statusRepository;
 
     public SoftwareVO get(String label) {
         return toVO(repository.getOneByLabel(label));

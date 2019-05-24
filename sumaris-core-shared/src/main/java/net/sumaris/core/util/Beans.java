@@ -27,7 +27,7 @@ package net.sumaris.core.util;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -165,8 +165,8 @@ public class Beans {
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
-    public static <K extends Serializable, V extends IDataEntity<K>> Map<K, V> splitById(Iterable<V> list) {
-        return getMap(Maps.uniqueIndex(list, IDataEntity::getId));
+    public static <K extends Serializable, V extends IEntity<K>> Map<K, V> splitById(Iterable<V> list) {
+        return getMap(Maps.uniqueIndex(list, IEntity::getId));
     }
 
     /**
@@ -177,8 +177,8 @@ public class Beans {
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
-    public static <K extends Serializable, V extends IDataEntity<K>> List<K> collectIds(Collection<V> list) {
-        return transformCollection(list, IDataEntity::getId);
+    public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(Collection<V> list) {
+        return transformCollection(list, IEntity::getId);
     }
 
     /**

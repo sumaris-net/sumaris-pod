@@ -38,6 +38,13 @@ public interface CacheNames {
 
     String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";
 
+    String PRODUCTS = "net.sumaris.core.dao.technical.product.productsCache";
+    String PRODUCT_BY_LABEL = "net.sumaris.core.dao.technical.product.productByLabelCache";
+
+    // Technical caches
+    String TABLE_META_BY_NAME = "net.sumaris.core.dao.technical.schema.tableMetaByName";
+
+    // Hibernate caches
     String QUERY_CACHE_NAME = "org.hibernate.cache.spi.QueryResultsRegion";
     String TIMESTAMPS_REGION_CACHE_NAME = "org.hibernate.cache.spi.TimestampsRegion";
 }

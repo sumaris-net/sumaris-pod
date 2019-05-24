@@ -100,7 +100,7 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
 
     /* -- measurements -- */
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGearMeasurement.class, mappedBy = "physicalGear")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGearMeasurement.class, mappedBy = PhysicalGearMeasurement.PROPERTY_PHYSICAL_GEAR)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PhysicalGearMeasurement> measurements = new ArrayList<>();
 

@@ -1374,7 +1374,7 @@ public class Daos {
     }
 
     /**
-     * Set collection items. Wille reuse the instance of the collection is possible
+     * Set collection tableNames. Wille reuse the instance of the collection is possible
      *
      * @param existingEntities a {@link Collection} object.
      * @param function         a {@link Function} object.
@@ -1390,7 +1390,7 @@ public class Daos {
     }
 
     /**
-     * Set collection items. Wille reuse the instance of the collection is possible
+     * Set collection tableNames. Wille reuse the instance of the collection is possible
      *
      * @param existingEntities a {@link Collection} object.
      * @param function         a {@link Function} object.

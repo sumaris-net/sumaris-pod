@@ -22,12 +22,11 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IDataEntity;
+import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
-import java.util.Set;
 
-public interface IWithVesselEntity<T extends Serializable> extends IDataEntity<T> {
+public interface IWithVesselEntity<T extends Serializable> extends IEntity<T> {
 
     String PROPERTY_VESSEL = "vessel";
 

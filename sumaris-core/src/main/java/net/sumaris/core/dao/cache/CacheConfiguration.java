@@ -129,6 +129,22 @@ public class CacheConfiguration {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, 600);
     }
 
+    @Bean
+    public EhCacheFactoryBean productByLabelCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCT_BY_LABEL, 100);
+    }
+
+    @Bean
+    public EhCacheFactoryBean productsCache() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PRODUCTS, 1);
+    }
+
+    @Bean
+    public EhCacheFactoryBean tableMetaByNameCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.TABLE_META_BY_NAME, 1500, 1500, 500);
+    }
+
+
     /* protected */
     protected net.sf.ehcache.CacheManager ehcache() {
         return cacheManager != null ? cacheManager : ehcacheFactory().getObject();

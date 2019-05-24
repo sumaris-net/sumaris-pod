@@ -196,4 +196,16 @@ public class DatabaseFixtures {
 		return 94;
 	}
 
+	/* -- product -- */
+
+	public Integer getProductId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+
+			default:
+				return 1;
+		}
+	}
 }

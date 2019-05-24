@@ -64,7 +64,7 @@
     <select alias="RECORD_TYPE" type="text">'ST'</select>
     <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
-    <select alias="VESSEL_COUNTRY" type="text">S.VESSEL_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
     <select alias="YEAR" type="number">S.YEAR</select>
     <select alias="PROJECT" type="text">S.PROJECT</select>
     <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
@@ -107,7 +107,7 @@
     <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = T.REFERENCE_TAXON_FK AND TN.IS_REFERENT= 1</from>
 
     <groupby>
-      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER,
+      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER,
       INDIVIDUAL_ID, SPECIE_CODE, SPECIE_NAME, SCORING_DATE
     </groupby>
   </query>
