@@ -109,6 +109,7 @@
     "VESSELS": "Navires",
     "REFERENTIAL": "Listes de références",
     "EXTRACTIONS": "Extractions",
+    "MAP": "Cartes",
     "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
     "LOCAL_SETTINGS": "Paramètres",
     "SERVER_SETTINGS": "Configuration serveur",
@@ -570,9 +571,12 @@
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Télécharger le fichier CSV",
     "COMMON": {
+      "VESSEL_FLAG_COUNTRY": "Pavillon",
+      "HARBOUR": "Port",
       "YEAR": "Année",
       "PROJECT": "Projet",
-      "AREA": "Zone"
+      "AREA": "Zone",
+      "STATISTICAL_RECTANGLE": "Rectangle statistique"
     },
     "FILTER": {
       "TITLE": "Critères de recherche :",
@@ -585,6 +589,17 @@
       "HELP": "Pour filtrer rapidement, cliquez dans la cellule. Maintenez la touche 'Ctrl' pour filtrer sur plusieurs valeurs.",
       "NO_FILTER_PARENTHESIS": "(non filtrés)",
       "WITH_FILTER_PARENTHESIS": "(filtrés)"
+    },
+    "MAP": {
+      "DETAILS": "Détails",
+      "STATS": "Statistiques",
+      "LEGEND": "Légende",
+      "LEGEND_FORM": {
+        "TITLE": "Paramètres",
+        "COLOR": "Couleur :",
+        "OPACITY_PLACEHOLDER": "Opacité (%)",
+        "MIN_MAX": "Bornes :"
+      }
     },
     "CATEGORY": {
       "PRODUCT": "Data call",
@@ -636,9 +651,11 @@
       }
     },
     "ERROR": {
-      "LOAD_EXTRACTION_TYPES_ERROR": "Erreur de chargement des type d'extraction",
-      "LOAD_EXTRACTION_ROWS_ERROR": "Erreur de chargement des lignes de données.",
-      "DOWNLOAD_EXTRACTION_FILE_ERROR": "Erreur de téléchargement du fichier d'extraction."
+      "LOAD_TYPES_ERROR": "Erreur de chargement des types d'extraction",
+      "LOAD_ROWS_ERROR": "Erreur de chargement des lignes de données.",
+      "DOWNLOAD_FILE_ERROR": "Erreur de téléchargement du fichier d'extraction.",
+      "LOAD_GEO_TYPES_ERROR": "Erreur de chargement des types de données spatiale",
+      "LOAD_GEO_DATA_ERROR": "Erreur de chargement des données spatiales"
     }
   },
   "NETWORK": {

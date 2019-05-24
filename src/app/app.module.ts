@@ -3,13 +3,13 @@ import "./vendor";
 import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {NgModule} from "@angular/core";
-import {IonicModule} from "@ionic/angular";
+import {IonicModule, IonicRouteStrategy} from "@ionic/angular";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, MAT_TABS_CONFIG} from "@angular/material";
 import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
-import { SplashScreen } from '@ionic-native/splash-screen/ngx';
-import { StatusBar } from '@ionic-native/status-bar/ngx';
-import { Keyboard } from '@ionic-native/keyboard/ngx';
+import {SplashScreen} from '@ionic-native/splash-screen/ngx';
+import {StatusBar} from '@ionic-native/status-bar/ngx';
+import {Keyboard} from '@ionic-native/keyboard/ngx';
 // App modules
 import {AppComponent} from "./app.component";
 import {AppRoutingModule} from "./app-routing.module";
@@ -19,19 +19,22 @@ import {AdminModule} from "./admin/admin.module";
 import {ReferentialModule} from "./referential/referential.module";
 import {TripModule} from "./trip/trip.module";
 import {environment} from "../environments/environment";
-import {NgxMaterialTimepickerTheme, TimepickerDirective} from "ngx-material-timepicker";
 import {HttpClientModule} from "@angular/common/http";
 import {HTTP} from "@ionic-native/http/ngx";
+import {LeafletModule} from "@asymmetrik/ngx-leaflet";
+import {Camera} from "@ionic-native/camera/ngx";
+import {RouteReuseStrategy} from "@angular/router";
 
 @NgModule({
   declarations: [
-    AppComponent 
+    AppComponent
   ],
   imports: [
     AppRoutingModule,
     BrowserModule,
     HttpClientModule,
     IonicModule.forRoot(),
+    LeafletModule.forRoot(),
     // functional modules
     CoreModule,
     AdminModule,
@@ -43,11 +46,12 @@ import {HTTP} from "@ionic-native/http/ngx";
     StatusBar,
     SplashScreen,
     Keyboard,
+    Camera,
     HTTP,
-    { provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/') },
+    {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
-    { provide: MAT_DATE_LOCALE, useValue: 'en' },
-    { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE] },
+    {provide: MAT_DATE_LOCALE, useValue: 'en'},
+    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {
       provide: MAT_DATE_FORMATS, useValue: {
         parse: {
@@ -66,7 +70,8 @@ import {HTTP} from "@ionic-native/http/ngx";
       useValue: {
         //animationDuration: '0ms'
       }
-    }
+    },
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ]
 })
 export class AppModule {

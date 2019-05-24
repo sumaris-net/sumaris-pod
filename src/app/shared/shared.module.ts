@@ -26,6 +26,7 @@ import {DataService, LoadResult, TableDataService} from "./services/data-service
 import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toBoolean, toFloat, toInt, toDateISOString} from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
+import {Color, ColorScale} from "./graph/graph-colors";
 
 export {
   DataService, TableDataService, LoadResult,
@@ -33,8 +34,9 @@ export {
   toBoolean, toFloat, toInt,
   toDateISOString, fromDateISOString,
   fadeInAnimation, fadeInOutAnimation,
-  DateFormatPipe, ToolbarComponent
-}
+  DateFormatPipe, ToolbarComponent,
+  Color, ColorScale
+};
 
 @NgModule({
   imports: [

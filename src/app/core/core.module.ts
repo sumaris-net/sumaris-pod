@@ -110,6 +110,7 @@ export {
   DataService,
   TableDataService,
   LoadResult,
+  LocalSettingsService,
   toDateISOString,
   fromDateISOString,
   joinProperties,

@@ -1,0 +1,313 @@
+<app-toolbar></app-toolbar>
+
+<ion-content>
+
+  <!-- -->
+  <ion-card color="light" class="bottom-left filter">
+    <ion-card-content no-padding>
+
+      <mat-expansion-panel #filterExpansionPanel color="transparent" no-padding>
+        <mat-expansion-panel-header no-padding color="transparent">
+          <mat-panel-title>
+            <ion-label>
+
+              <ion-card-title>
+                <!-- product name -->
+                <span>{{$title | async}}</span>
+                <!-- Loading spinner -->
+                <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+              </ion-card-title>
+
+              <!-- no data -->
+              <ion-card-subtitle [hidden]="!ready || loading || hasData">
+                <ion-label color="danger" translate>COMMON.NO_RESULT</ion-label>
+              </ion-card-subtitle>
+
+            </ion-label>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <nav mat-tab-nav-bar hidden>
+          <a mat-tab-link *ngFor="let item of $sheetNames | async"
+             (click)="onSheetChange(item)"
+             [active]="item === sheetName">
+            <ion-text>{{getI18nSheetName(item)}}</ion-text>
+            <mat-icon *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
+          </a>
+        </nav>
+
+        <form [formGroup]="form">
+          <ion-item *ngIf="form.get('year').value">
+            <ion-label>Year</ion-label>
+            <ion-badge [color]="hasData || loading ? 'primary' : 'danger'">{{form.get('year').value}}</ion-badge>
+          </ion-item>
+
+          <form [formGroup]="form.get('sheets')" (ngSubmit)="onRefresh.emit()"
+                *ngIf="form.get('sheets').get(sheetName) && true">
+            <div [formArrayName]="sheetName">
+              <!--              <ion-item *ngFor="let criterionForm of criteriaForm?.controls; let i=index">-->
+              <!--                <ion-row no-padding [formGroupName]="i">-->
+              <!--                  &lt;!&ndash; column name &ndash;&gt;-->
+              <!--                  <mat-form-field>-->
+              <!--                    <mat-select formControlName="name" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_NAME'|translate">-->
+              <!--                      <mat-option *ngFor="let column of $columns | async" [value]="column.name">{{ getI18nColumnName(column.name) }}</mat-option>-->
+              <!--                    </mat-select>-->
+              <!--                  </mat-form-field>-->
+
+              <!--                  &lt;!&ndash; operator &ndash;&gt;-->
+              <!--                  <mat-form-field class="operator">-->
+              <!--                    <mat-select formControlName="operator">-->
+              <!--                      <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name || operator.symbol) | translate }}</mat-option>-->
+              <!--                    </mat-select>-->
+              <!--                  </mat-form-field>-->
+
+              <!--                  &lt;!&ndash; value &ndash;&gt;-->
+              <!--                  <mat-form-field>-->
+              <!--                    <input matInput autocomplete="off" [placeholder]="(criterionForm.controls['operator'].value == 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate" formControlName="value">-->
+              <!--                  </mat-form-field>-->
+
+              <!--                  &lt;!&ndash; second value (for between operator) &ndash;&gt;-->
+              <!--                  <mat-form-field *ngIf="criterionForm.controls['operator'].value === 'BETWEEN'">-->
+              <!--                    <input matInput autocomplete="off" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate" formControlName="endValue">-->
+              <!--                  </mat-form-field>-->
+
+              <!--                  <ion-button type="button" color="light" [disabled]="loading" [title]="'COMMON.BTN_DELETE'|translate"-->
+              <!--                          (click)="removeFilterCriterion($event, i)">-->
+              <!--                    <mat-icon>close</mat-icon>-->
+              <!--                  </ion-button>-->
+
+              <!--                  <ion-button type="button"  color="light" [disabled]="loading" *ngIf="i == criteriaForm?.length-1" [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"-->
+              <!--                          (click)="addFilterCriterion()">-->
+              <!--                    <mat-icon>add</mat-icon>-->
+              <!--                  </button>-->
+              <!--                </ion-row>-->
+              <!--                <ion-item no-padding [formGroupName]="i">-->
+              <!--                  <ion-label>{{getCriteriaName(criterionForm)}}</ion-label>-->
+              <!--                  <ion-badge>{{criterionForm.get('value').value}}</ion-badge>-->
+              <!--                </ion-item>-->
+              <!--              </ion-item>-->
+            </div>
+          </form>
+
+        </form>
+
+        <mat-action-row no-padding>
+          <button mat-button (click)="onRefresh.emit($event)"><span translate>COMMON.BTN_APPLY</span></button>
+        </mat-action-row>
+      </mat-expansion-panel>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- bottom right -->
+  <ion-grid class="bottom-right">
+
+    <ion-row>
+      <ion-col></ion-col>
+
+      <ion-col align-self-end>
+
+        <!-- feature details -->
+        <ion-card color="light" class="details" *ngIf="$detailsTitle | async" @fadeInAnimation>
+
+          <ion-card-header>
+            <ion-card-subtitle [innerHTML]="$detailsTitle|async"></ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+            <p>
+              <ng-container *ngFor="let item of $details | async">
+                <ion-text color="primary100">{{getI18nColumnName(item.name)}}</ion-text>
+                <ion-text>:&nbsp;</ion-text>
+                <ion-text color="dark"><b>{{item.value}}</b></ion-text>
+                <br/>
+              </ng-container>
+            </p>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- global stats -->
+        <ion-card color="light" *ngIf="$statsTitle | async" @fadeInAnimation>
+          <ion-card-header>
+            <ion-card-subtitle><span translate>EXTRACTION.MAP.STATS</span></ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content no-padding>
+            <p>
+              <ng-container *ngFor="let item of $stats | async">
+                <ion-text color="primary100">{{getI18nColumnName(item.name)}}</ion-text>
+                <ion-text>:&nbsp;</ion-text>
+                <ion-text>{{item.value}}</ion-text>
+                <br/>
+              </ng-container>
+            </p>
+          </ion-card-content>
+        </ion-card>
+
+      </ion-col>
+
+      <ion-col size="auto" no-padding align-self-end>
+        <!-- legend -->
+        <ion-card color="light" class="legend" *ngIf="data.total && ($legendItems | async)" @fadeInAnimation>
+          <ion-card-header>
+            <ion-card-subtitle>
+              <ion-label>
+                <span translate>EXTRACTION.MAP.LEGEND</span>
+                <div hidden-xs hidden-sm *ngIf="!showLegendForm">
+                  <ion-icon mat-icon-button (click)="doEditLegend($event)" name="create"></ion-icon>
+                </div>
+              </ion-label>
+            </ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+
+            <ion-row *ngFor="let item of $legendItems | async">
+              <ion-col size="2" [ngStyle]="{'background-color': item.color}"></ion-col>
+              <ion-col>
+                <ion-label nowrap>{{item.label}}</ion-label>
+              </ion-col>
+            </ion-row>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+
+    <!-- legend form  -->
+    <ion-row>
+      <ion-col>
+        <ion-card color="light" *ngIf="showLegendForm" @fadeInAnimation class="legend-form">
+
+          <ion-card-header>
+            <ion-card-subtitle>
+              <ion-label translate>EXTRACTION.MAP.LEGEND_FORM.TITLE</ion-label>
+            </ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content no-padding>
+            <form [formGroup]="legendForm" class="form-container">
+              <ion-grid>
+
+                <!-- RGB color-->
+                <ion-row formGroupName="color">
+                  <ion-col size="4">
+                    <ion-label float-end translate>EXTRACTION.MAP.LEGEND_FORM.COLOR</ion-label>
+                  </ion-col>
+                  <ion-col class="rgb">
+                    <mat-form-field>
+                      <input matInput type="number"
+                             autocomplete="off"
+                             min="0" max="255"
+                             placeholder="R"
+                             step="1"
+                             formControlName="r">
+                      <mat-error *ngIf="legendForm.get('color').get('r').hasError('required')" translate>
+                        ERROR.FIELD_REQUIRED
+                      </mat-error>
+                    </mat-form-field>
+                  </ion-col>
+                  <ion-col class="rgb">
+                    <mat-form-field class="rgb">
+                      <input matInput type="number"
+                             autocomplete="off"
+                             min="0" max="255"
+                             placeholder="G"
+                             step="1"
+                             formControlName="g">
+                      <mat-error *ngIf="legendForm.get('color').get('b').hasError('required')" translate>
+                        ERROR.FIELD_REQUIRED
+                      </mat-error>
+                    </mat-form-field>
+
+                  </ion-col>
+                  <ion-col class="rgb">
+                    <mat-form-field class="rgb">
+                      <input matInput type="number"
+                             autocomplete="off"
+                             min="0" max="255"
+                             placeholder="B"
+                             step="1"
+                             formControlName="b">
+                      <mat-error *ngIf="legendForm.get('color').get('b').hasError('required')" translate>
+                        ERROR.FIELD_REQUIRED
+                      </mat-error>
+                    </mat-form-field>
+
+                  </ion-col>
+                </ion-row>
+
+                <!-- Opacity/max -->
+                <ion-row>
+                  <ion-col size-lg="4" offset="4">
+                    <mat-form-field>
+                      <input matInput type="number"
+                             autocomplete="off"
+                             min="0" max="100"
+                             [placeholder]="'EXTRACTION.MAP.LEGEND_FORM.OPACITY_PLACEHOLDER'|translate"
+                             step="10"
+                             formControlName="opacity"
+                      >
+                      <mat-error *ngIf="legendForm.get('min').hasError('required')" translate>
+                        ERROR.FIELD_REQUIRED
+                      </mat-error>
+                    </mat-form-field>
+                  </ion-col>
+                </ion-row>
+
+                <!-- Min/max -->
+                <ion-row>
+                  <ion-col size="4">
+                    <ion-label float-end translate>EXTRACTION.MAP.LEGEND_FORM.MIN_MAX</ion-label>
+                  </ion-col>
+                  <ion-col size="4">
+                    <mat-form-field>
+                      <input matInput type="number"
+                             autocomplete="off"
+                             min="0"
+                             placeholder="Min"
+                             step="1"
+                             formControlName="min"
+                      >
+                      <mat-error *ngIf="legendForm.get('min').hasError('required')" translate>
+                        ERROR.FIELD_REQUIRED
+                      </mat-error>
+                    </mat-form-field>
+                  </ion-col>
+                  <ion-col size="4">
+                    <mat-form-field>
+                      <input matInput type="number"
+                             autocomplete="off"
+                             min="0"
+                             placeholder="Max"
+                             step="1"
+                             formControlName="max">
+                      <mat-error *ngIf="legendForm.get('max').hasError('required')" translate>
+                        ERROR.FIELD_REQUIRED
+                      </mat-error>
+                    </mat-form-field>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+
+              <mat-action-row no-padding>
+                <button mat-button (click)="doCancelLegend($event)"><span translate>COMMON.BTN_CANCEL</span></button>
+                <button mat-button (click)="doApplyLegend($event)"><span translate>COMMON.BTN_APPLY</span></button>
+              </mat-action-row>
+            </form>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+
+  </ion-grid>
+
+
+  <!-- map -->
+  <div *ngIf="ready"
+       leaflet
+       (leafletMapReady)="onMapReady($event)"
+       [leafletOptions]="options">
+
+    <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
+  </div>
+
+
+</ion-content>

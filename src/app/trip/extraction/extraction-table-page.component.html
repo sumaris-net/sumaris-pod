@@ -5,11 +5,11 @@
 
   <mat-toolbar>
     <mat-toolbar-row>
-      <form [formGroup]="filterForm" novalidate>
+      <form [formGroup]="form" novalidate>
         <mat-form-field floatLabel="never">
-          <mat-select formControlName="extractionType" (ngModelChange)="onExtractionTypeChange($event)">
-            <mat-option *ngFor="let item of $extractionTypes | async" [value]="item">
-             <ion-text [innerHTML]="getI18nExtractionTypeName(item)"></ion-text>
+          <mat-select formControlName="type" (ngModelChange)="onTypeChange($event)">
+            <mat-option *ngFor="let item of $types | async" [value]="item">
+             <ion-text [innerHTML]="getI18nTypeName(item)"></ion-text>
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -45,7 +45,7 @@
 
   <nav mat-tab-nav-bar >
     <a mat-tab-link *ngFor="let item of $sheetNames | async"
-       (click)="onSheetTabChange(item)"
+       (click)="onSheetChange(item)"
        [active]="item === sheetName">
       <ion-text>{{getI18nSheetName(item)}}</ion-text>
       <mat-icon *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
@@ -56,7 +56,7 @@
   <mat-expansion-panel #filterExpansionPanel color="primary" no-padding>
     <mat-expansion-panel-header >
       <mat-panel-title hidden-xs hidden-sm>
-        <ion-text>
+        <ion-label>
           <!-- Loading spinner -->
           <ion-spinner [ngClass]="{'center':true}" *ngIf="loading && !filterExpansionPanel.expanded"></ion-spinner>
           <ng-container *ngIf="!loading && !filterExpansionPanel.expanded">
@@ -71,11 +71,11 @@
           <span *ngIf="filterExpansionPanel.expanded">
             {{ 'EXTRACTION.FILTER.TITLE' | translate}}
           </span>
-        </ion-text>
+        </ion-label>
       </mat-panel-title>
     </mat-expansion-panel-header>
 
-    <form [formGroup]="filterForm.get('sheets')" (ngSubmit)="onRefresh.emit()" *ngIf="filterForm.get('sheets').get(sheetName) && true">
+    <form [formGroup]="form.get('sheets')" (ngSubmit)="onRefresh.emit()" *ngIf="form.get('sheets').get(sheetName) && true">
       <div [formArrayName]="sheetName">
         <ng-container *ngFor="let criterionForm of criteriaForm?.controls; let i=index">
           <ion-row no-padding [formGroupName]="i">
@@ -123,13 +123,13 @@
           <ion-col>
             <!-- Loading spinner -->
             <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
-            <ion-text [hidden]="loading || filterForm.dirty" [color]="data?.total === 0 && 'danger'">
+            <ion-text [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
               {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total | numberFormat)} }}
             </ion-text>
           </ion-col>
           <ion-col no-padding size="auto">
             <!-- Search button -->
-            <button mat-button [color]="filterForm.dirty ? 'primary' : undefined" padding
+            <button mat-button [color]="dirty ? 'primary' : undefined" padding
                     (click)="onRefresh.emit(true)"
                     [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}</button>
           </ion-col>

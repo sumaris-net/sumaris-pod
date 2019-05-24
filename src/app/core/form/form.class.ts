@@ -19,6 +19,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   get value(): any {
     return this.form.value;
   }
+
   set value(data: any) {
     this.setValue(data);
   }
@@ -26,21 +27,27 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   get dirty(): boolean {
     return this.form.dirty;
   }
+
   get invalid(): boolean {
     return this.form.invalid;
   }
+
   get valid(): boolean {
     return this.form.valid;
   }
+
   get empty(): boolean {
     return !this.form.dirty && !this.form.touched;
   }
+
   get untouched(): boolean {
     return this.form.untouched;
   }
+
   get enabled(): boolean {
     return this._enable;
   }
+
   get disabled(): boolean {
     return !this._enable;
   }
@@ -73,9 +80,9 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   @Output()
   onSubmit: EventEmitter<any> = new EventEmitter<any>();
 
-  constructor(
+  protected constructor (
     protected dateAdapter: DateAdapter<Moment>,
-    public form: FormGroup
+    public form?: FormGroup
   ) {
   }
 
@@ -118,15 +125,15 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     if (this.debug) console.debug("[form] Updating form... ", json);
 
     // Apply to form
-    this.form.setValue(json, { emitEvent: false });
+    this.form.setValue(json, {emitEvent: false});
 
     this.markForCheck();
   }
 
   /**
    * Transform an object (e.g. an entity) into a json compatible with the given form
-   * @param form 
-   * @param data 
+   * @param form
+   * @param data
    */
   protected toJsonFormValue(form: FormGroup, data: any): Object {
     let value = {};
@@ -134,12 +141,10 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     for (let key in form.controls) {
       if (form.controls[key] instanceof FormGroup) {
         value[key] = this.toJsonFormValue(form.controls[key] as FormGroup, data[key]);
-      }
-      else {
+      } else {
         if (data[key] && typeof data[key] == "object" && data[key]._isAMomentObject) {
           value[key] = this.dateAdapter.format(data[key], DATE_ISO_PATTERN);
-        }
-        else {
+        } else {
           value[key] = data[key] || (data[key] === 0 ? 0 : null); // Do NOT replace 0 by null
         }
       }

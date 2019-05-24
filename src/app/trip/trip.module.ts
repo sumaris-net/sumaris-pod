@@ -31,7 +31,7 @@ import {
     MeasurementsValidatorService, BatchValidatorService, BatchGroupsValidatorService, SampleValidatorService,
     SubSampleValidatorService, SubBatchValidatorService
 } from './services/trip.validators';
-import {ExtractTable} from "./extract/extract-table.component";
+import {ExtractionTablePage} from "./extraction/extraction-table-page.component";
 import {ObservedLocationForm} from "./observedlocation/observed-location.form";
 import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
@@ -39,13 +39,16 @@ import {ObservedLocationService} from "./services/observed-location.service";
 import {ObservedLocationValidatorService} from "./services/observed-location.validator";
 import {ObservedVesselsTable} from "./observedlocation/observed-vessels.table";
 import {SaleService} from "./services/sale.service";
+import {ExtractionMapPage} from "./extraction/extraction-map-page.component";
+import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 
-export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent }
+export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
 @NgModule({
     imports: [
       CommonModule,
-      CoreModule
+      CoreModule,
+      LeafletModule
     ],
     declarations: [
       TripsPage,
@@ -73,7 +76,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       SubBatchesTable,
       IndividualMonitoringTable,
       EntityQualityFormComponent,
-      ExtractTable
+      ExtractionTablePage,
+      ExtractionMapPage
     ],
     exports: [
       TripsPage,
@@ -88,7 +92,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       OperationTable,
       MeasurementsForm,
       MeasurementQVFormField,
-      ExtractTable,
+      ExtractionTablePage,
+      ExtractionMapPage,
       EntityQualityFormComponent
     ],
     entryComponents: [
@@ -101,7 +106,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       MeasurementsForm,
       MeasurementQVFormField,
       MeasurementFormField,
-      ExtractTable,
+      ExtractionTablePage,
+      ExtractionMapPage,
       ObservedLocationPage,
       ObservedLocationsPage
     ],

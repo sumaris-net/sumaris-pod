@@ -10,11 +10,12 @@ import {VesselPage} from './referential/vessel/page/page-vessel';
 import {ReferentialsPage} from './referential/list/referentials';
 import {TripPage, TripsPage} from './trip/trip.module';
 import {OperationPage} from './trip/operation/operation.page';
-import {ExtractTable} from "./trip/extract/extract-table.component";
+import {ExtractionTablePage} from "./trip/extraction/extraction-table-page.component";
 import {ConfigPage} from './admin/config/config.component';
 import {ObservedLocationPage} from "./trip/observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.page";
 import {SettingsPage} from "./core/settings/settings.page";
+import {ExtractionMapPage} from "./trip/extraction/extraction-map-page.component";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -198,7 +199,42 @@ const routes: Routes = [
           },
           {
             path: ':label',
-            component: ExtractTable,
+            component: ExtractionTablePage,
+            data: {
+              profile: 'SUPERVISOR'
+            }
+          }
+        ]
+      }
+    ]
+  },
+
+  {
+    path: 'map',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: '/map/product/p01_rdb',
+        data: {
+          profile: 'SUPERVISOR'
+        }
+      },
+      {
+        path: ':category',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: '/map/product/p01_rdb',
+            data: {
+              profile: 'SUPERVISOR'
+            }
+          },
+          {
+            path: ':label',
+            component: ExtractionMapPage,
             data: {
               profile: 'SUPERVISOR'
             }

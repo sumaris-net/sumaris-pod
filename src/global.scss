@@ -241,6 +241,17 @@ mat-option:not(:last-child) {
   }
 }
 
+mat-expansion-panel {
+  --expansion-panel-padding: 0 24px 16px;
+  --expansion-panel-header-padding: 0 24px;
+
+  mat-expansion-panel-header {
+    padding: var(--expansion-panel-header-padding, var(--expansion-panel-padding));
+  }
+  .mat-expansion-panel-body {
+    padding: var(--expansion-panel-padding);
+  }
+}
 
 // --------------------------------------------------
 // Material Table

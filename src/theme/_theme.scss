@@ -39,6 +39,23 @@ $mat-indigo-app: (
     A700: $light-primary-text
   )
 );
+$mat-light-theme-background: (
+  status-bar: map_get($mat-grey, 300),
+  app-bar:    map_get($mat-grey, 100),
+  background: var(--background, map_get($mat-grey, 50)),
+  hover:      rgba(black, 0.04), // TODO(kara): check style with Material Design UX
+  card:       white,
+  dialog:     white,
+  disabled-button: rgba(black, 0.12),
+  raised-button: white,
+  focused-button: $dark-focused,
+  selected-button: map_get($mat-grey, 300),
+  selected-disabled-button: map_get($mat-grey, 400),
+  disabled-button-toggle: map_get($mat-grey, 200),
+  unselected-chip: map_get($mat-grey, 300),
+  disabled-list-option: map_get($mat-grey, 200),
+);
+
 // FIXME: Why loader toolbar is so dark ?
 $candy-app-primary: mat-palette($mat-indigo-app, 500, 100, 900);
 //$candy-app-primary: mat-palette($mat-indigo, 500, 100, 900);

@@ -29,3 +29,14 @@ export class ExtractionRow extends Array<any> {
     super()
   }
 }
+
+
+export declare class AggregationType extends ExtractionType {
+
+}
+
+export declare class AggregationStrata {
+  space: 'area'|'rect'|'square';
+  time: 'year'|'quarter'|'month';
+  tech: string;
+}

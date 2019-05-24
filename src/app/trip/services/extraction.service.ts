@@ -7,10 +7,11 @@ import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
-import {ExtractionResult, ExtractionType} from "./extraction.model";
+import {AggregationStrata, AggregationType, ExtractionResult, ExtractionType} from "./extraction.model";
 import {FetchPolicy} from "apollo-client";
 import {trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/services/graphql.service";
+import {FeatureCollection, GeoJsonObject} from "geojson";
 
 
 export declare class ExtractionFilter {
@@ -27,6 +28,7 @@ export declare class ExtractionFilterCriterion {
   values?: string[];
   endValue?: string;
 }
+
 const LoadTypes: any = gql`
   query ExtractionTypes{
     extractionTypes {
@@ -59,8 +61,31 @@ const GetFileQuery: any = gql`
 `;
 
 
+const LoadGeoTypes: any = gql`
+  query GeoTypes {
+    aggregationTypes {
+      label
+      category
+      sheetNames
+    }
+  }
+`;
+
+const LoadGeoDataQuery = gql`
+  query geoJsonAggregation(
+    $type: AggregationTypeVOInput,
+    $filter: ExtractionFilterVOInput,
+    $strata: AggregationStrataVOInput,
+    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      geoJsonAggregation(
+        type: $type, filter: $filter, strata: $strata, 
+        offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection
+      )
+  }`;
+
+
 @Injectable()
-export class ExtractionService extends BaseDataService{
+export class ExtractionService extends BaseDataService {
 
   constructor(
     protected graphql: GraphqlService,
@@ -76,15 +101,15 @@ export class ExtractionService extends BaseDataService{
    * Load extraction types
    */
   loadTypes(): Observable<ExtractionType[]> {
-    if (this._debug) console.debug("[extraction-service] Loading extractions...");
+    if (this._debug) console.debug("[extraction-service] Loading extraction types...");
     return this.graphql.watchQuery<{ extractionTypes: ExtractionType[] }>({
       query: LoadTypes,
       variables: null,
-      error: { code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_EXTRACTION_TYPES_ERROR" }
+      error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"}
     })
       .pipe(
         map((data) => {
-          return  (data && data.extractionTypes || []);
+          return (data && data.extractionTypes || []);
         })
       );
   }
@@ -98,15 +123,15 @@ export class ExtractionService extends BaseDataService{
    * @param filter
    */
   async loadRows(
-          type: ExtractionType,
-          offset: number,
-          size: number,
-          sortBy?: string,
-          sortDirection?: string,
-          filter?: ExtractionFilter,
-          options?: {
-            fetchPolicy?: FetchPolicy
-          }): Promise<ExtractionResult> {
+    type: ExtractionType,
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: string,
+    filter?: ExtractionFilter,
+    options?: {
+      fetchPolicy?: FetchPolicy
+    }): Promise<ExtractionResult> {
 
     const variables: any = {
       type: {
@@ -127,14 +152,14 @@ export class ExtractionService extends BaseDataService{
     const res = await this.graphql.query<{ extractionRows: ExtractionResult }>({
       query: LoadRowsQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_EXTRACTION_ROWS_ERROR" },
+      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     const data = res && res.extractionRows;
     if (!data) return null;
 
     // Compute column index
-    (data.columns || []).forEach( (c, index) =>  c.index = index );
+    (data.columns || []).forEach((c, index) => c.index = index);
     if (this._debug) console.debug(`[extraction-service] Rows ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, res);
 
     return data;
@@ -151,7 +176,7 @@ export class ExtractionService extends BaseDataService{
     filter?: ExtractionFilter,
     options?: {
       fetchPolicy?: FetchPolicy
-    }): Promise<string|undefined> {
+    }): Promise<string | undefined> {
 
     const variables: any = {
       type: {
@@ -168,7 +193,7 @@ export class ExtractionService extends BaseDataService{
     const res = await this.graphql.query<{ extractionFile: string }>({
       query: GetFileQuery,
       variables: variables,
-      error: { code: ErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_EXTRACTION_FILE_ERROR" },
+      error: {code: ErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     const fileUrl = res && res.extractionFile;
@@ -179,10 +204,61 @@ export class ExtractionService extends BaseDataService{
     return fileUrl;
   }
 
-  prepareFilter(source?: ExtractionFilter|any): ExtractionFilter {
+  /**
+   * Load aggregation types
+   */
+  loadGeoTypes(): Observable<AggregationType[]> {
+    if (this._debug) console.debug("[extraction-service] Loading geo types...");
+    return this.graphql.watchQuery<{ aggregationTypes: AggregationType[] }>({
+      query: LoadGeoTypes,
+      variables: null,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"}
+    })
+      .pipe(
+        map((data) => (data && data.aggregationTypes || []))
+      );
+  }
+
+  /**
+   * Load aggregation as GeoJson
+   */
+  async loadGeoData(type: AggregationType,
+                    strata: AggregationStrata,
+                    offset: number,
+                    size: number,
+                    sortBy?: string,
+                    sortDirection?: string,
+                    filter?: ExtractionFilter,
+                    options?: {
+                      fetchPolicy?: FetchPolicy
+                    }): Promise<FeatureCollection> {
+    options = options || {};
+
+    const variables: any = {
+      type: {
+        category: type.category,
+        label: type.label
+      },
+      strata: strata,
+      filter: filter,
+      offset: offset || 0,
+      size: size || 1000
+    };
+
+    const res = await this.graphql.query<{ geoJsonAggregation: any }>({
+      query: LoadGeoDataQuery,
+      variables: variables,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_DATA_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_DATA_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || 'network-only'
+    });
+
+    return (res && res.geoJsonAggregation as FeatureCollection) || null;
+  }
+
+  prepareFilter(source?: ExtractionFilter | any): ExtractionFilter {
     if (isNil(source)) return undefined;
 
-    const target:ExtractionFilter = {
+    const target: ExtractionFilter = {
       sheetName: source.sheetName
     };
 
@@ -190,7 +266,7 @@ export class ExtractionService extends BaseDataService{
       .filter(criterion => isNotNil(criterion.name) && isNotNil(trimEmptyToNull(criterion.value)))
       .map(criterion => {
         const isMulti = isNotNil(criterion.value) && criterion.value.indexOf(',') != -1;
-        switch(criterion.operator) {
+        switch (criterion.operator) {
           case '=':
             if (isMulti) {
               criterion.operator = 'IN';

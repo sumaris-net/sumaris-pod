@@ -28,22 +28,27 @@
               {
                 "glob": "**/*.svg",
                 "input": "node_modules/ionicons/dist/ionicons/svg",
-                "output": "./svg"
+                "output": "svg"
               },
               {
                 "glob": "**/*.*",
                 "input": "node_modules/ionicons/dist/fonts",
-                "output": "./assets/fonts"
+                "output": "assets/fonts"
               },
               {
                 "glob": "**/*.*",
                 "input": "node_modules/roboto-fontface/fonts/roboto",
-                "output": "./"
+                "output": "/"
               },
               {
                 "glob": "**/*.*",
                 "input": "node_modules/material-design-icons/iconfont",
-                "output": "./"
+                "output": "/"
+              },
+              {
+                "glob": "**/*.*",
+                "input": "node_modules/leaflet/dist/images",
+                "output": "/"
               },
               {
                 "glob": "sitemap.xml",
@@ -67,6 +72,9 @@
               },
               {
                 "input": "src/global.scss"
+              },
+              {
+                "input":  "node_modules/leaflet/dist/leaflet.css"
               }
             ],
             "scripts": [],
