@@ -5,15 +5,14 @@ import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {Moment} from "moment";
 import {environment} from "../../../environments/environment";
-import {ObservedLocation} from "./observed-location.model";
+import {ObservedLocation} from "./trip.model";
 import gql from "graphql-tag";
 import {Fragments} from "./trip.queries";
-import {fillRankOrder, isNil, isNotNil, Person, Trip} from "./trip.model";
+import {isNil, isNotNil, Person} from "./trip.model";
 import {ErrorCodes} from "./trip.errors";
 import {map, throttleTime} from "rxjs/operators";
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {TripFragments} from "./trip.service";
 
 
 export declare class ObservedLocationFilter {
@@ -78,6 +77,7 @@ export const ObservedLocationFragments = {
     recorderPerson {
       ...RecorderPersonFragment
     }
+    measurementValues
     measurements {
       ...MeasurementFragment
     }
@@ -173,7 +173,7 @@ export class ObservedLocationService extends BaseDataService implements TableDat
       error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"}
     })
       .pipe(
-        throttleTime(200),
+        //throttleTime(200),
         map(res => {
           const data = (res && res.observedLocations || []).map(ObservedLocation.fromObject);
           const total = res && res.observedLocationsCount || 0;
@@ -445,7 +445,7 @@ export class ObservedLocationService extends BaseDataService implements TableDat
     }
 
     // Measurement: compute rankOrder
-    fillRankOrder(entity.measurements);
+    //fillRankOrder(entity.measurements);
   }
 
   copyIdAndUpdateDate(source: ObservedLocation | undefined, target: ObservedLocation) {
@@ -458,13 +458,13 @@ export class ObservedLocationService extends BaseDataService implements TableDat
     target.dirty = false;
 
     // Update measurements
-    if (target.measurements && source.measurements) {
+    /*if (target.measurements && source.measurements) {
       target.measurements.forEach(entity => {
         const savedMeasurement = source.measurements.find(m => entity.equals(m));
         entity.id = savedMeasurement && savedMeasurement.id || entity.id;
         entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
         entity.dirty = false;
       });
-    }
+    }*/
   }
 }

@@ -246,6 +246,7 @@ export class Referential extends Entity<Referential> {
 export class ReferentialRef extends Entity<ReferentialRef> {
 
   static fromObject(source: any): ReferentialRef {
+    if (isNil(source)) return null;
     const res = new ReferentialRef();
     res.fromObject(source);
     return res;

@@ -27,7 +27,8 @@ export class BatchValidatorService implements ValidatorService {
       taxonName: ['', SharedValidators.entity],
       comments: [''],
       parent: ['', SharedValidators.entity],
-      dirty: ['']
+      dirty: [''],
+      measurementValues: this.formBuilder.group({})
     });
   }
 }

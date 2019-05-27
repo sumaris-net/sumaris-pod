@@ -1,18 +1,18 @@
 import {ChangeDetectorRef, EventEmitter, Input, Output} from '@angular/core';
-import {isNil, isNotNil, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
-import {Platform} from "@ionic/angular";
+import {Entity, isNil, isNotNil, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject, merge} from 'rxjs';
 import {AppForm, AppFormUtils} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {filter, first, startWith, throttleTime} from "rxjs/operators";
+import {IEntityWithMeasurement} from "../services/model/measurement.model";
 
-export abstract class MeasurementValuesForm<T extends { measurementValues: { [key: string]: any } }> extends AppForm<T> {
+export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> {
 
-  protected _onValueChanged = new EventEmitter<any>();
+  protected _onValueChanged = new EventEmitter<T>();
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected _program: string;
   protected _gear: string = null;
@@ -21,20 +21,35 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
 
   loading = false;
   loadingPmfms = true;
+
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
+  @Input() compact = false;
+
+  @Input() floatLabel: FloatLabelType = "auto";
+
   @Input() requiredGear = false;
+
+  @Output()
+  valueChanges: EventEmitter<any> = new EventEmitter<any>();
+
+  @Input()
+  set program(value: string) {
+    if (this._program !== value && isNotNil(value)) {
+      this._program = value;
+      if (!this.loading) this._onRefreshPmfms.emit();
+    }
+  }
 
   get program(): string {
     return this._program;
   }
 
   @Input()
-  set program(value: string) {
-    if (this._program === value) return; // Skip if same
-    this._program = value;
-    if (!this.loading) {
-      this._onRefreshPmfms.emit('set program');
+  set acquisitionLevel(value: string) {
+    if (this._acquisitionLevel !== value && isNotNil(value)) {
+      this._acquisitionLevel = value;
+      if (!this.loading) this._onRefreshPmfms.emit();
     }
   }
 
@@ -43,10 +58,10 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
   }
 
   @Input()
-  set acquisitionLevel(value: string) {
-    if (this._acquisitionLevel !== value && isNotNil(value)) {
-      this._acquisitionLevel = value;
-      if (!this.loading) this._onRefreshPmfms.emit('set acquisitionLevel');
+  set gear(value: string) {
+    if (this._gear !== value && isNotNil(value)) {
+      this._gear = value;
+      if (!this.loading || this.requiredGear) this._onRefreshPmfms.emit();
     }
   }
 
@@ -55,40 +70,31 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
   }
 
   @Input()
-  set gear(value: string) {
-    if (this._gear !== value && isNotNil(value)) {
-      this._gear = value;
-      if (!this.loading || this.requiredGear) {
-        this._onRefreshPmfms.emit('set gear');
-      }
-    }
-  }
-
   public set value(value: T) {
     if (this.data !== value) {
       this.data = value;
-      this._onValueChanged.emit();
+      this.setValue(value);
+      this._onValueChanged.emit(value);
     }
   }
 
   public get value(): T {
 
-    if (this.form.controls.measurementValues) {
-      const pmfmForm = this.form.controls.measurementValues as FormGroup;
+    const json = this.form.value;
+
+    const pmfmForm = this.form.get('measurementValues');
+    if (pmfmForm && pmfmForm instanceof FormGroup) {
       // Find dirty pmfms, to avoid full update
       const dirtyPmfms = (this.pmfms.getValue() || []).filter(pmfm => pmfmForm.controls[pmfm.pmfmId].dirty);
       if (dirtyPmfms.length) {
-        this.data.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementUtils.toEntityValues(pmfmForm.value, dirtyPmfms));
+        json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementUtils.toEntityValues(pmfmForm.value, dirtyPmfms));
       }
     }
 
-    return this.data;
+    return json;
   }
 
-  @Output()
-  valueChanges: EventEmitter<any> = new EventEmitter<any>();
-
-  constructor(protected dateAdapter: DateAdapter<Moment>,
+  protected constructor(protected dateAdapter: DateAdapter<Moment>,
               protected measurementValidatorService: MeasurementsValidatorService,
               protected formBuilder: FormBuilder,
               protected programService: ProgramService,
@@ -96,6 +102,9 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
               form: FormGroup
   ) {
     super(dateAdapter, form);
+
+    // TODO: DEV only
+    //this.debug = true;
   }
 
   ngOnInit() {
@@ -115,12 +124,14 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
         .subscribe((_) => this.updateControls('merge', this.pmfms.getValue())));
 
     // Listen form changes
-    this.form.valueChanges
-      .subscribe((_) => {
-        if (!this.loading && this.valueChanges.observers.length) {
-          this.valueChanges.emit(this.value);
-        }
-      });
+    this.registerSubscription(
+      this.form.valueChanges
+        .subscribe((_) => {
+          if (!this.loading && this.valueChanges.observers.length) {
+            this.valueChanges.emit(this.value);
+          }
+        })
+    );
   }
 
   public markAsTouched() {
@@ -132,7 +143,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
         pmfmForm.controls[pmfm.pmfmId].markAsTouched({onlySelf: true});
       });
     }
-    this.markForCheck();
+    super.markForCheck();
   }
 
   /* -- protected methods -- */
@@ -148,6 +159,8 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
     this.loading = true;
     this.loadingPmfms = true;
 
+    this.pmfms.next(null);
+
     // Load pmfms
     const pmfms = (await this.programService.loadProgramPmfms(
       this._program,
@@ -157,7 +170,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
       })) || [];
 
     if (!pmfms.length && this.debug) {
-      console.warn(`${this.logPrefix} No pmfm found for '${this._program}' and gear '${this._gear}'. Please fill program's strategies for acquisition level '${this._acquisitionLevel}'.`);
+      console.debug(`${this.logPrefix} No pmfm found (program=${this._program}, acquisitionLevel=${this._acquisitionLevel}, gear='${this._gear}'. Please fill program's strategies !`);
     }
 
     this.loadingPmfms = false;
@@ -167,14 +180,17 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
     if (this.enabled) this.loading = false;
 
     this.markForCheck();
+
+    return pmfms;
   }
 
   public updateControls(event?: string, pmfms?: PmfmStrategy[]) {
     if (isNil(this.data)) return; // not ready
     pmfms = pmfms || this.pmfms.getValue();
 
-    if (this.form.enabled) {
-      this.form.disable();
+    let formGroup = this.form.get('measurementValues');
+    if (formGroup && formGroup.enabled) {
+      formGroup.disable({onlySelf: true, emitEvent: false});
     }
 
     // Waiting end of pmfm load
@@ -197,8 +213,10 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
     // No pmfms (= empty form)
     if (!pmfms.length) {
       // Reset form
-      this.measurementValidatorService.updateFormGroup(this.form, []);
-      this.form.reset({}, {onlySelf: true, emitEvent: false});
+      if (formGroup && formGroup instanceof FormGroup) {
+        this.measurementValidatorService.updateFormGroup(formGroup, []);
+        formGroup.reset({}, {onlySelf: true, emitEvent: false});
+      }
       this.loading = false;
       return true;
     }
@@ -207,19 +225,20 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
     if (this.debug) console.debug(`${this.logPrefix} Updating form, using pmfms:`, pmfms);
 
     // Create measurementValues form group
-    if (!this.form.controls['measurementValues']) {
-      this.form.addControl('measurementValues', this.measurementValidatorService.getFormGroup(pmfms));
+    if (!formGroup) {
+      formGroup = this.measurementValidatorService.getFormGroup(pmfms);
+      this.form.addControl('measurementValues', formGroup);
+      formGroup.disable({onlySelf: true, emitEvent: false});
     }
 
     // Or update if already exist
     else {
-      const form = this.form.controls['measurementValues'] as FormGroup;
-      this.measurementValidatorService.updateFormGroup(form, pmfms);
+      this.measurementValidatorService.updateFormGroup(formGroup as FormGroup, pmfms);
     }
 
-    const json = AppFormUtils.getFormValueFromEntity(this.data, this.form);
-    json.measurementValues = MeasurementUtils.normalizeFormValues(json.measurementValues, pmfms);
-    this.form.patchValue(json, {
+    let measurementValues = AppFormUtils.getFormValueFromEntity(this.data.measurementValues, formGroup as FormGroup);
+    measurementValues = MeasurementUtils.normalizeFormValues(measurementValues, pmfms);
+    formGroup.patchValue(measurementValues, {
       onlySelf: true,
       emitEvent: false
     });
@@ -227,16 +246,17 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
 
     if (this.debug) console.debug(`${this.logPrefix} Form controls updated`);
 
-    this.markAsUntouched();
-    this.markAsPristine();
+    formGroup.markAsUntouched();
+    formGroup.markAsPristine();
 
     // Restore enable state (because form.setValue() can change it !)
     if (this._enable) {
-      this.enable({onlySelf: true, emitEvent: false});
-    } else if (this.form.enabled) {
-      this.disable({onlySelf: true, emitEvent: false});
+      formGroup.enable({onlySelf: true, emitEvent: false});
+    } else if (formGroup.enabled) {
+      formGroup.disable({onlySelf: true, emitEvent: false});
     }
 
+    // if (this.enabled)
     this.loading = false;
 
     this.markForCheck();

@@ -48,8 +48,8 @@
           <ion-icon margin-right name="pin" matPrefix></ion-icon>
           <input matInput [placeholder]="'OBSERVED_LOCATION.LOCATION'|translate" [matAutocomplete]="autoSaleLocation"
             formControlName="location">
-          <mat-error *ngIf="form.controls['location'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls['location'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+          <mat-error *ngIf="form.controls.location.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.location.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Location combo -->
@@ -84,8 +84,8 @@
           <ion-icon margin-right name="pin" matPrefix></ion-icon>
           <input matInput [placeholder]="'OBSERVED_LOCATION.LOCATION'|translate" [matAutocomplete]="autoSaleLocation"
             formControlName="location">
-          <mat-error *ngIf="form.controls['location'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls['location'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+          <mat-error *ngIf="form.controls.location.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.location.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Location combo -->
@@ -142,8 +142,8 @@
           <!--<ion-icon margin-right name="contact" matPrefix></ion-icon>-->
           <input matInput [placeholder]="'OBSERVED_LOCATION.OBSERVER'|translate" [matAutocomplete]="autoObserver"
                  formControlName="recorderPerson">
-          <mat-error *ngIf="form.controls['recorderPerson'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls['recorderPerson'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+          <mat-error *ngIf="form.controls.recorderPerson.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.recorderPerson.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- observer combo -->
@@ -172,6 +172,22 @@
       </ion-col>
     </ion-row>
 
+    <!-- Measurements -->
+    <ion-row>
+      <ion-col size="12" size-md="2" size-lg="3" align-self-end>
+        <ion-label float-end translate>OBSERVED_LOCATION.EDIT.OTHER_FEATURES</ion-label>
+      </ion-col>
+      <ion-col>
+        <!-- pmfms -->
+        <mat-form-field-measurement *ngFor="let pmfm of pmfms | async; index as i;"
+                                    [pmfm]="pmfm"
+                                    [formControl]="form.get('measurementValues').controls[pmfm.pmfmId]"
+                                    [compact]="compact"
+                                    [tabindex]="10 + i*2"
+                                    [floatLabel]="floatLabel">
+        </mat-form-field-measurement>
+      </ion-col>
+    </ion-row>
 
     <ng-content></ng-content>
 

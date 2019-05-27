@@ -25,7 +25,8 @@ export class ObservedLocationValidatorService implements ValidatorService {
       'startDateTime': ['', Validators.required],
       'endDateTime': [''],
       'recorderPerson': ['', Validators.required],
-      'comments': ['']
+      'comments': [''],
+      'measurementValues': this.formBuilder.group({})
     }, {
       validator: Validators.compose([SharedValidators.dateIsAfter('startDateTime', 'endDateTime') ])
     });

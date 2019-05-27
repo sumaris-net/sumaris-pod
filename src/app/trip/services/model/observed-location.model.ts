@@ -1,20 +1,13 @@
-import {fromDateISOString, isNotNil, Person, ReferentialRef, toDateISOString} from "../../core/core.module";
+import {fromDateISOString, isNotNil, Person, ReferentialRef, toDateISOString} from "../../../core/core.module";
 
-import {
-  DataRootEntity,
-  DataRootVesselEntity,
-  Measurement,
-  MeasurementUtils,
-  Sale,
-  Sample,
-  VesselFeatures
-} from "./trip.model";
+import {DataRootEntity, DataRootVesselEntity} from "./base.model";
 
 
 import {Moment} from "moment/moment";
+import {IEntityWithMeasurement} from "./measurement.model";
 
 
-export class ObservedLocation extends DataRootEntity<ObservedLocation> {
+export class ObservedLocation extends DataRootEntity<ObservedLocation> implements IEntityWithMeasurement<ObservedLocation> {
 
   static fromObject(source: any): ObservedLocation {
     const res = new ObservedLocation();
@@ -26,22 +19,15 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
   startDateTime: Moment;
   endDateTime: Moment;
   location: ReferentialRef;
-
-  // TODO: remove this
-  measurements: Measurement[];
   measurementValues: { [key: string]: any };
 
   vessels: ObservedVessel[];
   observers: Person[];
 
-  // TODO: add observers
-
   constructor() {
     super();
     this.program = new ReferentialRef();
     this.location = new ReferentialRef();
-    // TODO: remove this
-    this.measurements = [];
     this.measurementValues = {};
     this.observers = [];
     this.vessels = [];
@@ -63,9 +49,6 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.location = this.location && this.location.asObject(false/*keep it for table*/) || undefined;
-
-    // TODO: remove this
-    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
 
     // Measurement: keep only the map
     if (minify) {
@@ -89,8 +72,6 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation> {
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
     source.location && this.location.fromObject(source.location);
-    // TODO: remove this
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
 
     if (source.measurementValues) {
       this.measurementValues = source.measurementValues;
@@ -198,3 +179,4 @@ export class ObservedVessel extends DataRootVesselEntity<ObservedVessel> {
   }
 
 }
+

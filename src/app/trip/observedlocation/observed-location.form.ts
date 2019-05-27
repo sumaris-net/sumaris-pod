@@ -1,8 +1,9 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {
   entityToString,
-  EntityUtils,
+  EntityUtils, isNotNil,
   LocationLevelIds,
+  ObservedLocation,
   Person,
   personToString,
   Referential,
@@ -10,21 +11,24 @@ import {
   referentialToString
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {AppForm} from '../../core/core.module';
+import {AcquisitionLevelCodes} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
-import {debounceTime, mergeMap, startWith, switchMap} from 'rxjs/operators';
-import {ReferentialRefService} from '../../referential/referential.module';
+import {debounceTime, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
+import {ProgramService, ReferentialRefService} from '../../referential/referential.module';
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
-import {ObservedLocation} from "../services/observed-location.model";
+import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
+import {MeasurementsValidatorService} from "../services/measurement.validator";
+import {FormBuilder} from "@angular/forms";
 
 @Component({
   selector: 'form-observed-location',
   templateUrl: './observed-location.form.html',
-  styleUrls: ['./observed-location.form.scss']
+  styleUrls: ['./observed-location.form.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationForm extends AppForm<ObservedLocation> implements OnInit {
+export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation> implements OnInit {
 
   programs: Observable<ReferentialRef[]>;
   locations: Observable<ReferentialRef[]>;
@@ -49,11 +53,19 @@ export class ObservedLocationForm extends AppForm<ObservedLocation> implements O
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
+    protected measurementValidatorService: MeasurementsValidatorService,
+    protected formBuilder: FormBuilder,
+    protected programService: ProgramService,
+    protected cd: ChangeDetectorRef,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService
   ) {
-    super(dateAdapter, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
+
+    console.log("Creating OBS LOC form");
+    this._enable = false;
+    this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
   }
 
   ngOnInit() {
@@ -67,7 +79,12 @@ export class ObservedLocationForm extends AppForm<ObservedLocation> implements O
         debounceTime(250),
         switchMap(value => this.referentialRefService.suggest(value, {
           entityName: 'Program'
-        }))
+        })),
+        tap(res => {
+          if (res && res.length === 1) {
+            this.program = res[0].label;
+          }
+        })
       );
 
     // Combo: locations
@@ -94,10 +111,30 @@ export class ObservedLocationForm extends AppForm<ObservedLocation> implements O
               searchText: value as string
             }).first().map(({data}) => data);
         }));
+
+    this._onValueChanged.subscribe((value) => {
+      if (value && value.program && value.program.label) {
+        this.program = value.program.label;
+      }
+    });
   }
 
   addObserver() {
     console.log('TODO: add observer');
+  }
+
+  enable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }): void {
+    console.log('Enabling form');
+    super.enable(opts);
+
+    // Leave program disable once data has been saved
+    if (isNotNil(this.data.id) && !this.form.controls['program'].disabled) {
+      this.form.controls['program'].disable({emitEvent: false});
+      this.markForCheck();
+    }
   }
 
   entityToString = entityToString;
@@ -106,5 +143,9 @@ export class ObservedLocationForm extends AppForm<ObservedLocation> implements O
 
   programToString(value: Referential): string {
     return value && value.label || undefined;
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

@@ -19,7 +19,7 @@ import {AppTableDataSource} from "../../core/table/table-datasource.class";
 import {debounceTime, startWith, switchMap} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
-import {ObservedLocation} from "../services/observed-location.model";
+import {ObservedLocation} from "../services/trip.model";
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {qualityFlagToColor} from "../../referential/services/model";
 

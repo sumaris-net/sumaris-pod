@@ -13,6 +13,8 @@ import {
 } from "../../core/core.module";
 import {
   getPmfmName,
+  ObservedLocation,
+  ObservedVessel,
   personsToString,
   PmfmStrategy,
   referentialToString,
@@ -23,11 +25,10 @@ import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {ProgramService, ReferentialRefService} from "../../referential/referential.module";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {FormBuilder} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
 import {MeasurementsValidatorService, SaleValidatorService} from "../services/trip.validators";
 import {isNotNil, LoadResult} from "../../shared/shared.module";
-import {ObservedLocation, ObservedVessel} from "../services/observed-location.model";
 import {ObservedVesselFilter, ObservedVesselService} from "../services/observed-vessel.service";
 
 const PMFM_ID_REGEXP = /\d+/;

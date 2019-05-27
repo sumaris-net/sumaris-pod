@@ -41,17 +41,16 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   onLoading = new BehaviorSubject<boolean>(null);
 
-  @Input() showError: boolean = false;
+  @Input() showError = false;
 
-  @Input() compact: boolean = false;
+  @Input() compact = false;
 
   @Input() floatLabel: FloatLabelType = "auto";
 
-  @Input() requiredGear: boolean = false;
+  @Input() requiredGear = false;
 
   @Output()
   valueChanges: EventEmitter<any> = new EventEmitter<any>();
-
 
   @Input()
   set program(value: string) {
@@ -91,7 +90,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   @Input()
   set value(value: any) {
-    //if (this.debug) console.debug(`${this.logPrefix} Set form value`, value);
     if (this.data !== value) {
       // Transform entity into json
       this.data = (value || []).map(m => {
@@ -273,6 +271,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
     return true;
   }
+
+  /** -- protected methods  -- */
 
   protected get logPrefix(): string {
     const acquisitionLevel = this._acquisitionLevel && this._acquisitionLevel.toLowerCase().replace(/[_]/g, '-') || '?';

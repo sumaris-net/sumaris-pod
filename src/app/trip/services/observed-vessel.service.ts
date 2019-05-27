@@ -1,11 +1,10 @@
 import {Injectable} from "@angular/core";
 import {BaseDataService} from "../../core/services/base.data-service.class";
 import {LoadResult, TableDataService} from "../../shared/services/data-service.class";
-import {Apollo} from "apollo-angular";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {environment} from "../../../environments/environment";
-import {ObservedVessel} from "./observed-location.model";
+import {ObservedVessel} from "./trip.model";
 import gql from "graphql-tag";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";

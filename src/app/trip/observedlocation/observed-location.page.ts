@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnI
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController} from "@ionic/angular";
 
-import {AccountService, AppFormUtils, AppTabPage, EntityUtils} from '../../core/core.module';
+import {AppFormUtils, AppTabPage, EntityUtils} from '../../core/core.module';
 import {TranslateService} from '@ngx-translate/core';
 import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
@@ -10,7 +10,7 @@ import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {Moment} from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
-import {ObservedLocation} from "../services/observed-location.model";
+import {ObservedLocation} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {MeasurementsForm} from "../measurement/measurements.form.component";
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
@@ -36,7 +36,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
   @ViewChild('observedLocationForm') observedLocationForm: ObservedLocationForm;
 
-  @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
+  //@ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
 
   @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
 
@@ -64,7 +64,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     super.ngOnInit();
 
     // Register forms & tables
-    this.registerForms([this.observedLocationForm, this.measurementsForm])
+    this.registerForms([this.observedLocationForm])
       .registerTables([this.vesselTable]);
 
     this.disable();
@@ -158,8 +158,8 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
       this.observedLocationForm.form.controls['program'].disable();
       this.programSubject.next(data.program.label);
     }
-    this.measurementsForm.value = data && data.measurements || [];
-    this.measurementsForm.updateControls();
+    //this.measurementsForm.value = data && data.measurements || [];
+    //this.measurementsForm.updateControls();
 
     this.showVesselTable = isSaved;
     if (updateVessels && this.vesselTable) {
@@ -200,11 +200,8 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
     if (this.debug) console.debug("[observed-location] Saving control...");
 
-    // Update ObservedLocation from JSON
-    let json = this.observedLocationForm.value;
-    json.measurements = this.measurementsForm.value;
-
-    this.data.fromObject(json);
+    // Update data from JSON
+    this.data.fromObject(this.observedLocationForm.value);
 
     const formDirty = this.dirty;
     const isNew = this.isNewData();
@@ -263,17 +260,15 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
   enable() {
     if (!this.data || isNotNil(this.data.validationDate)) return false;
+
     // If not a new data, check user can write
     if (isNotNil(this.data.id) && !this.dataService.canUserWrite(this.data)) {
       if (this.debug) console.warn("[observed-location] Leave form disable (User has NO write access)");
       return;
     }
+
     if (this.debug) console.debug("[observed-location] Enabling form (User has write access)");
     super.enable();
-    // Leave program disable once saved
-    if (isNotNil(this.data.id)) {
-      this.observedLocationForm.form.controls['program'].disable();
-    }
   }
 
   protected async saveIfDirtyAndConfirm(): Promise<boolean> {
@@ -345,28 +340,23 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     if (!this.observedLocationForm.empty && this.observedLocationForm.invalid) {
       AppFormUtils.logFormErrors(this.observedLocationForm.form, "[observed-location] [sale-form] ");
     }
-    if (this.measurementsForm.invalid) {
-      AppFormUtils.logFormErrors(this.measurementsForm.form, "[page-trip] [measurementsForm-form] ");
-    }
+    // if (this.measurementsForm.invalid) {
+    //   AppFormUtils.logFormErrors(this.measurementsForm.form, "[page-trip] [measurementsForm-form] ");
+    // }
   }
 
   /**
    * Open the first tab that is invalid
    */
   protected openFirstInvalidTab() {
-    const tab0Invalid = this.observedLocationForm.invalid || this.measurementsForm.invalid;
-    //TODO
-    const tab1Invalid = false;// this.physicalGearTable.invalid;
-    const tab2Invalid = false;// this.operationTable.invalid;
+    const tab0Invalid = this.observedLocationForm.invalid;
+    const tab1Invalid = this.vesselTable.invalid;
 
-    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
+    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : this.selectedTabIndex);
     if (this.selectedTabIndex === 0 && !tab0Invalid) {
       this.selectedTabIndex = invalidTabIndex;
     }
     else if (this.selectedTabIndex === 1 && !tab1Invalid) {
-      this.selectedTabIndex = invalidTabIndex;
-    }
-    else if (this.selectedTabIndex === 2 && !tab2Invalid) {
       this.selectedTabIndex = invalidTabIndex;
     }
   }
@@ -397,7 +387,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
   /* -- protected methods -- */
 
-  protected markForCHeck() {
-    this.cd.markForCheck();
+  protected markForCheck() {
+    //this.cd.markForCheck();
   }
 }

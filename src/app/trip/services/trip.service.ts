@@ -1,11 +1,10 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Apollo} from "apollo-angular";
-import {Observable, Subject} from "rxjs-compat";
+import {Observable} from "rxjs-compat";
 import {fillRankOrder, isNil, Person, Trip} from "./trip.model";
-import {TableDataService, LoadResult, isNotNil} from "../../shared/shared.module";
+import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
-import {map, skipUntil, skipWhile, throttleTime} from "rxjs/operators";
+import {map, throttleTime} from "rxjs/operators";
 import {Moment} from "moment";
 
 import {ErrorCodes} from "./trip.errors";
@@ -450,7 +449,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     // Transform into json
     const json = this.asObject(entity);
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[trip-service] Validate trip...", json);
 
     const res = await this.graphql.mutate<{ validateTrip: any }>({
@@ -461,14 +460,14 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       error: { code: ErrorCodes.VALIDATE_TRIP_ERROR, message: "TRIP.ERROR.VALIDATE_TRIP_ERROR" }
     });
 
-    let savedEntity = res && res.validateTrip;
+    const savedEntity = res && res.validateTrip;
     if (savedEntity) {
       this.copyIdAndUpdateDate(savedEntity, entity);
       entity.controlDate = savedEntity.controlDate || entity.controlDate;
       entity.validationDate = savedEntity.validationDate || entity.validationDate;
     }
 
-    if (this._debug) console.debug("[trip-service] Trip validated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+    if (this._debug) console.debug(`[trip-service] Trip validated in ${Date.now() - now}ms`, entity);
 
     return entity;
   }
@@ -489,7 +488,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     // Transform into json
     const json = this.asObject(entity);
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[trip-service] Unvalidate trip...", json);
 
     const res = await this.graphql.mutate<{ unvalidateTrip: any }>({
@@ -507,7 +506,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       entity.validationDate = savedEntity.validationDate; // should be null
     }
 
-    if (this._debug) console.debug("[trip-service] Trip unvalidated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+    if (this._debug) console.debug(`[trip-service] Trip unvalidated in ${Date.now() - now}ms`, entity);
 
     return entity;
   }

@@ -2,6 +2,7 @@ import {AbstractControl, FormArray, FormGroup} from "@angular/forms";
 import {nullIfUndefined} from "../../shared/shared.module";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment, Moment} from "moment";
+import {Entity} from "../services/model";
 
 export class AppFormUtils {
     static copyForm2Entity = copyForm2Entity;
