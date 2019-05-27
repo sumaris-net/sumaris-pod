@@ -76,6 +76,8 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     }
 
     @Test
+    @Ignore
+    // Ignore because delete() is call before get()
     public void get() {
         OperationVO vo = service.get(1);
         Assert.assertNotNull(vo);
@@ -83,7 +85,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
     }
 
     @Test
-    public void save() {
+    public void saveAndGet() {
         OperationVO vo = createOperation();
         int batchCount = countBatches(vo);
         int sampleCount = countSamples(vo);
@@ -104,7 +106,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         {
             // Should NOT be loaded in VO
             Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getMeasurements()));
-            List<MeasurementVO> reloadMeasurements = measurementService.getVesselUseMeasurementsByOperationId(savedVo.getId());
+            List<MeasurementVO> reloadMeasurements = measurementService.getOperationVesselUseMeasurements(savedVo.getId());
             Assert.assertEquals(CollectionUtils.size(savedVo.getMeasurements()), CollectionUtils.size(reloadMeasurements));
         }
 

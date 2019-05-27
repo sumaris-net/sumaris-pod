@@ -42,9 +42,14 @@ public class MeasurementServiceImpl implements MeasurementService {
 	protected MeasurementDao measurementDao;
 
     @Override
-    public List<MeasurementVO> getVesselUseMeasurementsByTripId(int tripId) {
-        return measurementDao.getVesselUseMeasurementsByTripId(tripId);
+    public List<MeasurementVO> getTripVesselUseMeasurements(int tripId) {
+        return measurementDao.getTripVesselUseMeasurements(tripId);
     }
+
+	@Override
+	public Map<Integer, String> getTripVesselUseMeasurementsMap(int tripId) {
+		return measurementDao.getTripVesselUseMeasurementsMap(tripId);
+	}
 
 	@Override
 	public List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId) {
@@ -52,13 +57,28 @@ public class MeasurementServiceImpl implements MeasurementService {
 	}
 
 	@Override
-	public List<MeasurementVO> getVesselUseMeasurementsByOperationId(int operationId) {
-		return measurementDao.getVesselUseMeasurementsByOperationId(operationId);
+	public Map<Integer, String> getPhysicalGearMeasurementsMap(int physicalGearId) {
+		return measurementDao.getPhysicalGearMeasurementsMap(physicalGearId);
 	}
 
 	@Override
-	public List<MeasurementVO> getGearUseMeasurementsByOperationId(int operationId) {
-		return measurementDao.getGearUseMeasurementsByOperationId(operationId);
+	public List<MeasurementVO> getOperationVesselUseMeasurements(int operationId) {
+		return measurementDao.getOperationVesselUseMeasurements(operationId);
+	}
+
+	@Override
+	public List<MeasurementVO> getOperationGearUseMeasurements(int operationId) {
+		return measurementDao.getOperationGearUseMeasurements(operationId);
+	}
+
+	@Override
+	public Map<Integer, String> getOperationGearUseMeasurementsMap(int operationId) {
+		return measurementDao.getOperationGearUseMeasurementsMap(operationId);
+	}
+
+	@Override
+	public Map<Integer, String> getOperationVesselUseMeasurementsMap(int operationId) {
+		return measurementDao.getOperationVesselUseMeasurementsMap(operationId);
 	}
 
 	@Override
@@ -79,5 +99,15 @@ public class MeasurementServiceImpl implements MeasurementService {
 	@Override
 	public Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId) {
 		return measurementDao.getBatchQuantificationMeasurementsMap(batchId);
+	}
+
+	@Override
+	public List<MeasurementVO> getObservedLocationMeasurements(int observedLocationId) {
+		return measurementDao.getObservedLocationMeasurements(observedLocationId);
+	}
+
+	@Override
+	public Map<Integer, String> getObservedLocationMeasurementsMap(int observedLocationId) {
+		return measurementDao.getObservedLocationMeasurementsMap(observedLocationId);
 	}
 }

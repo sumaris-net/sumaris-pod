@@ -118,6 +118,10 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Landing.class, mappedBy = Landing.PROPERTY_OBSERVED_LOCATION)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Landing> landings = new ArrayList<>();
+
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ObservedLocationMeasurement.class, mappedBy = ObservedLocationMeasurement.PROPERTY_OBSERVED_LOCATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ObservedLocationMeasurement> measurements = new ArrayList<>();

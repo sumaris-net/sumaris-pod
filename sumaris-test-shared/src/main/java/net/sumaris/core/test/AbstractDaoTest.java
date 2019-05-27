@@ -26,23 +26,16 @@ package net.sumaris.core.test;
 
 
 import net.sf.ehcache.CacheManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
-import org.springframework.boot.test.context.SpringBootTest;
-
 import javax.persistence.EntityManager;
-import javax.transaction.TransactionManager;
 
 /**
  * <p>Abstract AbstractDaoTest class.</p>

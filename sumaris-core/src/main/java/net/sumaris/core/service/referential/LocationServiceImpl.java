@@ -243,7 +243,7 @@ public class LocationServiceImpl implements LocationService{
 
                 // Load rectangle geometry
                 LocationArea locationArea = locationAreaDao.findById(objectId).orElse(null);
-                MultiPolygon geometry = (MultiPolygon) Locations.getGeometryFromRectangleLabel(rectangleLabel);
+                MultiPolygon geometry = (MultiPolygon) Locations.getGeometryFromRectangleLabel(rectangleLabel, true);
                 Preconditions.checkNotNull(geometry, "No geometry found for rectangle with label:" + rectangleLabel);
 
                 if (locationArea == null) {

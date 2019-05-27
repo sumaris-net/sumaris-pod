@@ -449,7 +449,7 @@ public class Locations {
         Preconditions.checkNotNull(rectangleLabel);
         Preconditions.checkArgument(StringUtils.isNotBlank(rectangleLabel), "Argument 'rectangleLabel' must not be empty string.");
 
-        Geometry geom = getGeometryFromRectangleLabel(rectangleLabel);
+        Geometry geom = getGeometryFromRectangleLabel(rectangleLabel, false);
 
         if (geom == null) return null;
 

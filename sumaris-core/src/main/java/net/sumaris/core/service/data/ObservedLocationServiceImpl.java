@@ -24,19 +24,16 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.SaleDao;
 import net.sumaris.core.dao.data.ObservedLocationDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.ObservedLocationMeasurement;
-import net.sumaris.core.model.data.SampleMeasurement;
-import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,6 +98,11 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 		// Reset control date
 		source.setControlDate(null);
+
+		// If not set, fill endDateTime with startDateTime
+		if (source.getEndDateTime() == null) {
+			source.setEndDateTime(source.getStartDateTime());
+		}
 
 		// Save
 		ObservedLocationVO savedObservedLocation = observedLocationDao.save(source);
@@ -179,7 +181,6 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		DataBeans.setDefaultRecorderDepartment(measurement, parent.getRecorderDepartment());
 		DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
 
-		measurement.setObservedLocationId(parent.getId());
 		measurement.setEntityName(ObservedLocationMeasurement.class.getSimpleName());
 	}
 }

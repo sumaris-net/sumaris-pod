@@ -87,6 +87,18 @@ public class DatabaseFixtures {
 		}
 	}
 
+
+	public Integer getObservedLocationId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+
+			default:
+				return 1;
+		}
+	}
+
 	public Integer getSampleId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

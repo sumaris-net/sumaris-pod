@@ -48,6 +48,7 @@ public class Landing implements IRootDataEntity<Integer>,
     public static final String PROPERTY_SALE_TYPE = "saleType";
     public static final String PROPERTY_TRIP = "trip";
     public static final String PROPERTY_LANDING_LOCATION = "landingLocation";
+    public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "SALE_SEQ")

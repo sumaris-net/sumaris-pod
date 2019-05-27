@@ -36,11 +36,11 @@ import static org.junit.Assert.assertNotNull;
 
 public class LocationServiceReadTest extends AbstractServiceTest {
 
-	@Autowired
-	private LocationService service;
-
 	@ClassRule
 	public static final DatabaseResource dbResource = DatabaseResource.readDb();
+
+	@Autowired
+	private LocationService service;
 
 	@Test
 	public void getLocationLabelByLatLong() {
@@ -51,9 +51,6 @@ public class LocationServiceReadTest extends AbstractServiceTest {
 		// Check label with a position inside the Mediterranean sea
 		label = service.getLocationLabelByLatLong(42.27f, 5.4f);
 		assertEquals("M24C2", label);
-
-		Assert.fail();
-
 	}
 
 	@Test

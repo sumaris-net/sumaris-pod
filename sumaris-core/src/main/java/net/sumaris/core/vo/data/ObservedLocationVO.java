@@ -65,8 +65,8 @@ public class ObservedLocationVO implements IRootDataVO<Integer>,
     private Set<PersonVO> observers;
     private ProgramVO program;
 
-    private List<MeasurementVO> measurements; // sale_measurement
-    private Map<Integer, String> measurementValues; // sale_measurement
+    private List<MeasurementVO> measurements; // observed_location_measurement
+    private Map<Integer, String> measurementValues; // observed_location_measurement
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

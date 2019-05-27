@@ -124,7 +124,6 @@ public class SampleServiceImpl implements SampleService {
 			measurement.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		measurement.setOperationId(parent.getId());
 		measurement.setEntityName(entityClass.getSimpleName());
 	}
 }

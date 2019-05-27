@@ -85,7 +85,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         return new GraphQLSchemaGenerator()
                 .withResolverBuilders(new AnnotatedResolverBuilder())
                 .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
-                //.withOperationsFromSingleton(dataService, DataGraphQLService.class)
+                .withOperationsFromSingleton(dataService, DataGraphQLService.class)
                 .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
                 .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
                 .withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class)
@@ -94,6 +94,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
                 // Replace raw and unbounded type with Object
                 //.withTypeTransformer(new DefaultTypeTransformer(true, true))
+
                 .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
                         .withPrototype(objectMapper)
                         .build())

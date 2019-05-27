@@ -34,7 +34,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name="observed_location_measurement")
-public class ObservedLocationMeasurement implements IMeasurementEntity {
+public class ObservedLocationMeasurement implements IMeasurementEntity, ISortedMeasurementEntity {
 
     public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
     public static final String PROPERTY_RANK_ORDER = "rankOrder";

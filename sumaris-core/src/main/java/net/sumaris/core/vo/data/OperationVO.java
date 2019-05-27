@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
@@ -66,8 +67,12 @@ public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
     private Integer physicalGearId;
 
     private List<VesselPositionVO> positions;
+
     private List<MeasurementVO> measurements;
+    private Map<Integer, String> measurementValues;
+
     private List<MeasurementVO> gearMeasurements;
+    private Map<Integer, String> gearMeasurementValues;
 
     private List<SampleVO> samples;
 

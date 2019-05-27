@@ -29,11 +29,11 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.OperationDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.GearUseMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.VesselUseMeasurement;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -111,18 +111,28 @@ public class OperationServiceImpl implements OperationService {
 
 		// Save measurements (vessel use measurement)
 		{
-			List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-			measurements.forEach(m -> fillDefaultProperties(savedOperation, m, VesselUseMeasurement.class));
-			measurements = measurementDao.saveVesselUseMeasurementsByOperationId(savedOperation.getId(), measurements);
-			savedOperation.setMeasurements(measurements);
+			if (source.getMeasurementValues() != null) {
+				measurementDao.saveOperationVesselUseMeasurementsMap(savedOperation.getId(), source.getMeasurementValues());
+			}
+			else {
+				List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(savedOperation, m, VesselUseMeasurement.class));
+				measurements = measurementDao.saveOperationVesselUseMeasurements(savedOperation.getId(), measurements);
+				savedOperation.setMeasurements(measurements);
+			}
 		}
 
 		// Save gear measurements (gear use measurement)
 		{
-			List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
-			measurements.forEach(m -> fillDefaultProperties(savedOperation, m, GearUseMeasurement.class));
-			measurements = measurementDao.saveGearUseMeasurementsByOperationId(savedOperation.getId(), measurements);
-			savedOperation.setGearMeasurements(measurements);
+			if (source.getGearMeasurementValues() != null) {
+				measurementDao.saveOperationGearUseMeasurementsMap(savedOperation.getId(), source.getGearMeasurementValues());
+			}
+			else {
+				List<MeasurementVO> measurements = Beans.getList(source.getGearMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(savedOperation, m, GearUseMeasurement.class));
+				measurements = measurementDao.saveOperationGearUseMeasurements(savedOperation.getId(), measurements);
+				savedOperation.setGearMeasurements(measurements);
+			}
 		}
 
 		// Save samples
@@ -213,7 +223,6 @@ public class OperationServiceImpl implements OperationService {
 			measurement.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		measurement.setOperationId(parent.getId());
 		measurement.setEntityName(entityClass.getSimpleName());
 	}
 

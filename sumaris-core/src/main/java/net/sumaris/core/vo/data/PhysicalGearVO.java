@@ -35,6 +35,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class PhysicalGearVO implements IRootDataVO<Integer>,
@@ -46,7 +47,6 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
 
     private Integer rankOrder;
     private ReferentialVO gear;
-    private List<MeasurementVO> measurements;
 
     private String comments;
     private Date creationDate;
@@ -60,6 +60,9 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
     private PersonVO recorderPerson;
 
     private ProgramVO program;
+
+    private List<MeasurementVO> measurements;
+    private Map<Integer, String> measurementValues;
 
     // Parent entity
     private TripVO trip;

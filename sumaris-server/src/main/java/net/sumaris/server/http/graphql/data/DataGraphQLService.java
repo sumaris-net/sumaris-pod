@@ -45,8 +45,6 @@ import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -411,8 +409,7 @@ public class DataGraphQLService {
                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
-        List<OperationVO> res = operationService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
-        return res;
+        return operationService.getAllByTripId(filter.getTripId(), offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
     }
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -505,26 +502,62 @@ public class DataGraphQLService {
 
     /* -- Measurements -- */
 
+    // Trip
     @GraphQLQuery(name = "measurements", description = "Get trip's measurements")
-    public List<MeasurementVO> getTripMeasurements(@GraphQLContext TripVO trip) {
-        return measurementService.getVesselUseMeasurementsByTripId(trip.getId());
+    public List<MeasurementVO> getTripVesselUseMeasurements(@GraphQLContext TripVO trip) {
+        return measurementService.getTripVesselUseMeasurements(trip.getId());
     }
 
+    @GraphQLQuery(name = "measurementValues", description = "Get trip's measurements")
+    public Map<Integer, String> getTripVesselUseMeasurementsMap(@GraphQLContext TripVO trip) {
+        if (trip.getMeasurementValues() == null) {
+            return measurementService.getTripVesselUseMeasurementsMap(trip.getId());
+        }
+        return trip.getMeasurementValues();
+    }
+
+    // Operation
     @GraphQLQuery(name = "measurements", description = "Get operation's measurements")
-    public List<MeasurementVO> getOperationMeasurements(@GraphQLContext OperationVO operation) {
-        return measurementService.getVesselUseMeasurementsByOperationId(operation.getId());
+    public List<MeasurementVO> getOperationVesselUseMeasurements(@GraphQLContext OperationVO operation) {
+        return measurementService.getOperationVesselUseMeasurements(operation.getId());
+    }
+
+    @GraphQLQuery(name = "measurementValues", description = "Get operation's measurements")
+    public Map<Integer, String> getOperationVesselUseMeasurementsMap(@GraphQLContext OperationVO operation) {
+        if (operation.getMeasurementValues() == null) {
+            return measurementService.getOperationVesselUseMeasurementsMap(operation.getId());
+        }
+        return operation.getMeasurementValues();
     }
 
     @GraphQLQuery(name = "gearMeasurements", description = "Get operation's gear measurements")
     public List<MeasurementVO> getOperationGearUseMeasurements(@GraphQLContext OperationVO operation) {
-        return measurementService.getGearUseMeasurementsByOperationId(operation.getId());
+        return measurementService.getOperationGearUseMeasurements(operation.getId());
     }
 
+    @GraphQLQuery(name = "gearMeasurementValues", description = "Get operation's gear measurements")
+    public Map<Integer, String> getOperationGearUseMeasurementsMap(@GraphQLContext OperationVO operation) {
+        if (operation.getGearMeasurementValues() == null) {
+            return measurementService.getOperationGearUseMeasurementsMap(operation.getId());
+        }
+        return operation.getGearMeasurementValues();
+    }
+
+    // Physical gear
     @GraphQLQuery(name = "measurements", description = "Get physical gear measurements")
     public List<MeasurementVO> getPhysicalGearMeasurements(@GraphQLContext PhysicalGearVO physicalGear) {
         return measurementService.getPhysicalGearMeasurements(physicalGear.getId());
     }
 
+    @GraphQLQuery(name = "measurementValues", description = "Get physical gear measurements")
+    public Map<Integer, String> getPhysicalGearMeasurementsMap(@GraphQLContext PhysicalGearVO physicalGear) {
+        if (physicalGear.getMeasurementValues() == null) {
+            return measurementService.getPhysicalGearMeasurementsMap(physicalGear.getId());
+        }
+        return physicalGear.getMeasurementValues();
+    }
+
+    // Sample
     @GraphQLQuery(name = "measurements", description = "Get sample measurements")
     public List<MeasurementVO> getSampleMeasurements(@GraphQLContext SampleVO sample) {
         return measurementService.getSampleMeasurements(sample.getId());
@@ -538,6 +571,7 @@ public class DataGraphQLService {
         return sample.getMeasurementValues();
     }
 
+    // Batch
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getBatchMeasurementValues(@GraphQLContext BatchVO batch) {
         if (MapUtils.isEmpty(batch.getMeasurementValues())) {
@@ -549,24 +583,24 @@ public class DataGraphQLService {
         return batch.getMeasurementValues();
     }
 
-//    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
-//    public List<Map.Entry<Integer, Object>> getBatchMeasurementsValues(@GraphQLContext BatchVO sample) {
-//        Map<Integer, Object> map = Maps.newHashMap();
-//        map.putAll(measurementService.getBatchSortingMeasurementsMap(sample.getId()));
-//        map.putAll(measurementService.getBatchQuantificationMeasurementsMap(sample.getId()));
-//        return ImmutableList.copyOf(map.entrySet());
-//    }
+    // Observed location
+    @GraphQLQuery(name = "measurements", description = "Get measurement values")
+    public List<MeasurementVO> getObservedLocationMeasurements(@GraphQLContext ObservedLocationVO observedLocation) {
+        if (observedLocation.getMeasurements() != null) {
+            return measurementService.getObservedLocationMeasurements(observedLocation.getId());
+        }
+        return observedLocation.getMeasurements();
+    }
 
-    // TODO: remove if not used
-//    @GraphQLQuery(name = "sortingMeasurementValues", description = "Get sorting measurement values (as a key/value map, using pmfmId as key)")
-//    public Map<Integer, Object> getSortingMeasurementsMap(@GraphQLContext BatchVO sample) {
-//        return measurementService.getBatchSortingMeasurementsMap(sample.getId());
-//    }
-//    @GraphQLQuery(name = "quantificationMeasurementValues", description = "Get quantification measurement values (as a key/value map, using pmfmId as key)")
-//    public Map<Integer, Object> getQuantificationMeasurementsMap(@GraphQLContext BatchVO sample) {
-//        return measurementService.getBatchQuantificationMeasurementsMap(sample.getId());
-//    }
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, String> getObservedLocationMeasurementsMap(@GraphQLContext ObservedLocationVO observedLocation) {
+        if (MapUtils.isEmpty(observedLocation.getMeasurementValues())) {
+            return measurementService.getObservedLocationMeasurementsMap(observedLocation.getId());
+        }
+        return observedLocation.getMeasurementValues();
+    }
 
+    // Measurement pmfm
     @GraphQLQuery(name = "pmfm", description = "Get measurement's pmfm")
     public PmfmVO getMeasurementPmfm(@GraphQLContext MeasurementVO measurement) {
         return pmfmService.get(measurement.getPmfmId());

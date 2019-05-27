@@ -24,12 +24,10 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.PhysicalGearMeasurement;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -115,15 +113,21 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
 
         // Save measurements on each gears
         // NOTE: using the savedGear to be sure to get an id
-        result.forEach(savedGear -> {
-            List<MeasurementVO> measurements = Beans.getList(savedGear.getMeasurements());
-            int rankOrder = 1;
-            for (MeasurementVO m: measurements) {
-                fillDefaultProperties(savedGear, m);
-                m.setRankOrder(rankOrder++);
+        result.forEach(source -> {
+
+            if (source.getMeasurementValues() != null) {
+                measurementDao.savePhysicalGearMeasurementsMap(source.getId(), source.getMeasurementValues());
             }
-            measurements = measurementDao.savePhysicalGearMeasurementByPhysicalGearId(savedGear.getId(), measurements);
-            savedGear.setMeasurements(measurements);
+            else {
+                List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+                int rankOrder = 1;
+                for (MeasurementVO m : measurements) {
+                    fillDefaultProperties(source, m);
+                    m.setRankOrder(rankOrder++);
+                }
+                measurements = measurementDao.savePhysicalGearMeasurements(source.getId(), measurements);
+                source.setMeasurements(measurements);
+            }
         });
 
         return result;
@@ -259,7 +263,6 @@ public class PhysicalGearDaoImpl extends BaseDataDaoImpl implements PhysicalGear
             measurement.setRecorderPerson(parent.getRecorderPerson());
         }
 
-        measurement.setPhysicalGearId(parent.getId());
         measurement.setEntityName(PhysicalGearMeasurement.class.getSimpleName());
     }
 }

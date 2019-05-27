@@ -22,6 +22,7 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
+import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.service.AbstractServiceTest;
@@ -29,12 +30,16 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 public class ReferentialServiceReadTest extends AbstractServiceTest{
+
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
     @Autowired
     private ReferentialService service;
@@ -43,7 +48,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
     public void findByFilter() {
         ReferentialFilterVO filter = new ReferentialFilterVO();
 
-        filter.setSearchText("XB");
+        filter.setSearchText("FRA");
         filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});
 
         List<ReferentialVO> results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);

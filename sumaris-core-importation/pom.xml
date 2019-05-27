@@ -11,6 +11,15 @@
   <name>SUMARiS:: Core Importation</name>
   <description>SUMARiS core importation library</description>
 
+  <properties>
+    <!-- i18n configuration -->
+    <i18n.bundleOutputName>sumaris-core-importation-i18n</i18n.bundleOutputName>
+    <i18n.generateCsvFile>true</i18n.generateCsvFile>
+    <i18n.bundleCsvFile>
+      ${project.build.directory}/generated-sources/resources/META-INF/${i18n.bundleOutputName}.csv
+    </i18n.bundleCsvFile>
+    <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>net.sumaris</groupId>
@@ -55,4 +64,44 @@
     </dependency>
   </dependencies>
 
+  <build>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.nuiton.i18n</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+
+        <executions>
+          <execution>
+            <id>scan-sources</id>
+            <configuration>
+              <entries>
+                <entry>
+                  <specificGoal>parserValidation</specificGoal>
+                  <basedir>${maven.src.dir}/main/java/</basedir>
+                  <includes>
+                    <param>**/**-validation.xml</param>
+                  </includes>
+                </entry>
+              </entries>
+            </configuration>
+            <goals>
+              <goal>parserJava</goal>
+              <goal>parserValidation</goal>
+              <goal>gen</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>make-bundle</id>
+            <goals>
+              <goal>bundle</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+
+  </build>
 </project>

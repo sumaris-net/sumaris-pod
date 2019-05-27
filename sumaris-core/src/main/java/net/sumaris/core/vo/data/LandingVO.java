@@ -26,6 +26,7 @@ import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
 import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -39,13 +40,12 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
-public class LandingVO implements IUpdateDateEntityBean<Integer, Date>,
-        IWithRecorderPersonEntityBean<Integer, PersonVO>,
-        IWithRecorderDepartmentEntityBean<Integer, DepartmentVO>,
+public class LandingVO implements IRootDataVO<Integer>,
         IWithVesselFeaturesVO<Integer, VesselFeaturesVO>{
 
     public static final String PROPERTY_LANDING_DATE_TIME = "landingDateTime";
     public static final String PROPERTY_TRIP = "trip";
+    public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
 
     private Integer id;
     private String comments;
@@ -54,6 +54,8 @@ public class LandingVO implements IUpdateDateEntityBean<Integer, Date>,
     private Date controlDate;
     private Date validationDate;
     private Integer qualityFlagId;
+    private Date qualificationDate;
+    private String qualificationComments;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
@@ -65,14 +67,17 @@ public class LandingVO implements IUpdateDateEntityBean<Integer, Date>,
     private Set<PersonVO> observers;
     private List<SampleVO> samples;
 
-    private TripVO trip;
-    private Integer tripId;
+    private ProgramVO program;
+
+    private List<MeasurementVO> measurements;
+    private Map<Integer, String> measurementValues;
 
     private ObservedLocationVO observedLocation;
     private Integer observedLocationId;
 
-    private List<MeasurementVO> measurements;
-    private Map<Integer, String> measurementValues;
+    private TripVO trip;
+    private Integer tripId;
+
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

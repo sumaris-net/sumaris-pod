@@ -42,12 +42,14 @@ public class AuthGraphQLService {
     @Autowired
     private AuthService authService;
 
-    /* -- Authentifcation -- */
+    /* -- Authentication -- */
 
     @GraphQLQuery(name = "authenticate", description = "Authenticate using a token")
     public boolean authenticate( @GraphQLArgument(name = "token") String token) {
         if (!authService.authenticate(token).isPresent()) {
-            throw new SumarisTechnicalException(ErrorCodes.UNAUTHORIZED, "Invalid authentication token");
+            log.warn("Invalid authentication token: " + token);
+            //throw new SumarisTechnicalException(ErrorCodes.UNAUTHORIZED, "Invalid authentication token");
+            return false;
         }
         return true;
     }

@@ -164,7 +164,6 @@ public class BatchServiceImpl implements BatchService {
 			measurement.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		measurement.setOperationId(parent.getId());
 		measurement.setEntityName(entityClass.getSimpleName());
 	}
 }

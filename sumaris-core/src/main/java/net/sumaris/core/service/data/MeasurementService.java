@@ -39,16 +39,28 @@ import java.util.Map;
 public interface MeasurementService {
 
     @Transactional(readOnly = true)
-    List<MeasurementVO> getVesselUseMeasurementsByTripId(int tripId);
+    List<MeasurementVO> getTripVesselUseMeasurements(int tripId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getTripVesselUseMeasurementsMap(int tripId);
 
     @Transactional(readOnly = true)
     List<MeasurementVO> getPhysicalGearMeasurements(int physicalGearId);
 
     @Transactional(readOnly = true)
-    List<MeasurementVO> getVesselUseMeasurementsByOperationId(int operationId);
+    Map<Integer, String> getPhysicalGearMeasurementsMap(int physicalGearId);
 
     @Transactional(readOnly = true)
-    List<MeasurementVO> getGearUseMeasurementsByOperationId(int operationId);
+    List<MeasurementVO> getOperationVesselUseMeasurements(int operationId);
+
+    @Transactional(readOnly = true)
+    List<MeasurementVO> getOperationGearUseMeasurements(int operationId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getOperationVesselUseMeasurementsMap(int operationId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getOperationGearUseMeasurementsMap(int operationId);
 
     @Transactional(readOnly = true)
     List<MeasurementVO> getSampleMeasurements(int sampleId);
@@ -61,5 +73,11 @@ public interface MeasurementService {
 
     @Transactional(readOnly = true)
     Map<Integer, String> getBatchQuantificationMeasurementsMap(int batchId);
+
+    @Transactional(readOnly = true)
+    List<MeasurementVO> getObservedLocationMeasurements(int observedLocationId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getObservedLocationMeasurementsMap(int observedLocationId);
 
 }

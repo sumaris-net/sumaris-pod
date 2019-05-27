@@ -125,7 +125,6 @@ public class SaleServiceImpl implements SaleService {
 			measurement.setRecorderDepartment(parent.getRecorderDepartment());
 		}
 
-		measurement.setOperationId(parent.getId());
 		measurement.setEntityName(entityClass.getSimpleName());
 	}
 }

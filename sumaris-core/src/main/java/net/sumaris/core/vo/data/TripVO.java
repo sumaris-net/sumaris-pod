@@ -33,6 +33,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -76,7 +77,9 @@ public class TripVO implements IRootDataVO<Integer>,
 
     private List<OperationVO> operations;
     private List<PhysicalGearVO> gears;
+
     private List<MeasurementVO> measurements; // vessel_use_measurement
+    private Map<Integer, String> measurementValues; // vessel_use_measurement
 
 
     public String toString() {

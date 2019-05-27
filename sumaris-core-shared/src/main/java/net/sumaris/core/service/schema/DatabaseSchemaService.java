@@ -96,7 +96,7 @@ public interface DatabaseSchemaService {
      *
      * @param outputFile a {@link File} object.
      */
-	@Transactional()
+	@Transactional(readOnly = true)
     void generateDiffChangeLog(File outputFile);
 
     /**

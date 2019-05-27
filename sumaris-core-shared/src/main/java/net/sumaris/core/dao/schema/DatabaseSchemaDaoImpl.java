@@ -47,6 +47,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -193,10 +195,10 @@ public class DatabaseSchemaDaoImpl
         EnumSet<TargetType> targets = doUpdate ?
                 EnumSet.of(TargetType.SCRIPT, TargetType.DATABASE) :  EnumSet.of(TargetType.SCRIPT);
 
-        SchemaUpdate schemaExport = new SchemaUpdate();
-        schemaExport.setDelimiter(";");
-        schemaExport.setOutputFile(filename);
-        schemaExport.execute(targets, getMetadata());
+        SchemaUpdate task = new SchemaUpdate();
+        task.setDelimiter(";");
+        task.setOutputFile(filename);
+        task.execute(targets, getMetadata());
     }
 
     /** {@inheritDoc} */
@@ -636,9 +638,12 @@ public class DatabaseSchemaDaoImpl
 
     protected Metadata getMetadata() {
 
-        //SessionFactory session = getSessionFactory();
-        //Map<String, Object> sessionSettings = null;
-        //if (session  == null) {
+        Map<String, Object> sessionSettings = null;
+        SessionFactory session = null;
+        if (getEntityManager() != null) {
+            session = getEntityManager().unwrap(Session.class).getSessionFactory();
+        }
+        if (session  == null) {
             try {
                 // To be able to retrieve connection from datasource
                 Connection conn = Daos.createConnection(config.getConnectionProperties());
@@ -648,7 +653,7 @@ public class DatabaseSchemaDaoImpl
                 throw new SumarisTechnicalException("Could not open connection: " + config.getJdbcURL());
             }
 
-        Map<String, Object> sessionSettings = Maps.newHashMap();
+            sessionSettings = Maps.newHashMap();
             sessionSettings.put(Environment.DIALECT, config.getHibernateDialect());
             sessionSettings.put(Environment.DRIVER, config.getJdbcDriver());
             sessionSettings.put(Environment.URL, config.getJdbcURL());
@@ -656,12 +661,12 @@ public class DatabaseSchemaDaoImpl
 
             sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, HibernatePhysicalNamingStrategy.class.getName());
             //sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, "org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy");
-        //}
-        //else {
+        }
+        else {
             // To be able to retrieve connection from datasource
-        //    HibernateConnectionProvider.setDataSource(dataSource);
-        //    sessionSettings = session.getProperties();
-        //}
+            HibernateConnectionProvider.setDataSource(dataSource);
+            sessionSettings = session.getProperties();
+        }
 
 
         MetadataSources metadata = new MetadataSources(

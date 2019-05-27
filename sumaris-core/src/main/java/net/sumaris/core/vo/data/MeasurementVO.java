@@ -64,13 +64,6 @@ public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date>,
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
-    // Parent entity
-    private Integer tripId;
-    private Integer physicalGearId;
-    private Integer operationId;
-    private Integer sampleId;
-    private Integer observedLocationId;
-
     private String entityName;
 
     public String toString() {
