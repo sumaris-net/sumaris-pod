@@ -1,4 +1,4 @@
-import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
+import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
 import {fromDateISOString, isNil, isNotNil} from "../functions";
@@ -167,4 +167,14 @@ export class SharedValidators {
     }
   }
 
+  static requiredArrayMinLength(minLength?: number): ValidatorFn {
+    minLength = minLength || 1;
+    return (group: FormArray): ValidationErrors | null => {
+      console.log("requiredArrayMinLength");
+      if (!group || group.length < minLength) {
+        return {required: true};
+      }
+      return null;
+    };
+  }
 }

@@ -55,13 +55,13 @@ export class ReferentialRefService extends BaseDataService
            sortDirection?: string,
            filter?: ReferentialFilter,
            options?: {
-      [key: string]: any;
-      fetchPolicy?: FetchPolicy;
-    }): Observable<LoadResult<ReferentialRef>> {
+             [key: string]: any;
+             fetchPolicy?: FetchPolicy;
+           }): Observable<LoadResult<ReferentialRef>> {
 
     if (!filter || !filter.entityName) {
       console.error("[referential-ref-service] Missing filter.entityName");
-      throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" };
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
 
     const entityName = filter.entityName;
@@ -78,6 +78,7 @@ export class ReferentialRefService extends BaseDataService
         searchText: filter.searchText,
         searchAttribute: filter.searchAttribute,
         levelId: filter.levelId,
+        levelIds: filter.levelIds,
         statusIds: isNotNil(filter.statusId) ? [filter.statusId] : [StatusIds.ENABLE]
       }
     };
@@ -88,7 +89,7 @@ export class ReferentialRefService extends BaseDataService
     return this.graphql.watchQuery<{ referentials: any[]; referentialsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
       fetchPolicy: options && options.fetchPolicy || "cache-first"
     })
       .pipe(
@@ -104,18 +105,18 @@ export class ReferentialRefService extends BaseDataService
   }
 
   async loadAll(offset: number,
-           size: number,
-           sortBy?: string,
-           sortDirection?: string,
-           filter?: ReferentialFilter,
-           options?: {
-             [key: string]: any;
-             fetchPolicy?: FetchPolicy;
-           }): Promise<LoadResult<ReferentialRef>> {
+                size: number,
+                sortBy?: string,
+                sortDirection?: string,
+                filter?: ReferentialFilter,
+                options?: {
+                  [key: string]: any;
+                  fetchPolicy?: FetchPolicy;
+                }): Promise<LoadResult<ReferentialRef>> {
 
     if (!filter || !filter.entityName) {
       console.error("[referential-ref-service] Missing filter.entityName");
-      throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" };
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
     }
 
     const entityName = filter.entityName;
@@ -131,8 +132,8 @@ export class ReferentialRefService extends BaseDataService
         name: filter.name,
         searchText: filter.searchText,
         searchAttribute: filter.searchAttribute,
-        levelId: filter.levelId,
-        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : [StatusIds.ENABLE]
+        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
+        statusIds: isNotNil(filter.statusId) ?  [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
       }
     };
 
@@ -142,7 +143,7 @@ export class ReferentialRefService extends BaseDataService
     const res = await this.graphql.query<{ referentials: any[]; referentialsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
       fetchPolicy: options && options.fetchPolicy || "cache-first"
     });
     const data = (res && res.referentials || []).map(ReferentialRef.fromObject);
@@ -156,7 +157,10 @@ export class ReferentialRefService extends BaseDataService
   async suggest(value: any, options: {
     entityName: string;
     levelId?: number;
+    levelIds?: number[];
     searchAttribute?: string;
+    statusId?: number;
+    statusIds?: number[];
   }): Promise<ReferentialRef[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
@@ -164,8 +168,11 @@ export class ReferentialRefService extends BaseDataService
       {
         entityName: options.entityName,
         levelId: options.levelId,
+        levelIds: options.levelIds,
         searchText: value as string,
-        searchAttribute: options.searchAttribute
+        searchAttribute: options.searchAttribute,
+        statusId: options.statusId,
+        statusIds: options.statusIds
       });
     return res.data;
   }

@@ -17,6 +17,10 @@ import {EntityQualityFormComponent} from "../quality/entity-quality-form.compone
 import * as moment from "moment";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {filter, switchMap} from "rxjs/operators";
+import {ProgramProperties} from "../../referential/services/model";
+import {ProgramService} from "../../referential/services/program.service";
+import {isNotNilOrBlank} from "../../shared/functions";
 
 @Component({
   selector: 'page-trip',
@@ -32,10 +36,12 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   title = new Subject<string>();
   saving: boolean = false;
   defaultBackHref = "/trips";
-  showOperationTable = false;
-  showGearTable = false;
   onRefresh = new EventEmitter<any>();
   isOnFieldMode: boolean;
+
+  showSaleForm = false;
+  showGearTable = false;
+  showOperationTable = false;
 
   @ViewChild('tripForm') tripForm: TripForm;
 
@@ -57,6 +63,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     protected dateFormat: DateFormatPipe,
     protected dataService: TripService,
     protected settingsService: LocalSettingsService,
+    protected programService: ProgramService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, translate);
@@ -76,15 +83,25 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     this.disable();
 
-    this.route.params.first().subscribe(res => {
-      const id = res && res["tripId"];
-      if (!id || id === "new") {
-        this.load();
+    // Listen route path
+    this.route.params.first().subscribe(async ({tripId}) => {
+      if (!tripId || tripId === "new") {
+        await this.load();
       }
       else {
-        this.load(parseInt(id));
+        await this.load(parseInt(tripId));
       }
     });
+
+    // Watch program, to configure tables from program properties
+    this.registerSubscription(
+      this.programSubject.asObservable()
+        .pipe(filter(isNotNilOrBlank), switchMap(label => this.programService.watchByLabel(label)))
+        .subscribe(program => {
+          if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
+          this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE, true);
+        })
+    );
   }
 
   async load(id?: number, options?: any) {

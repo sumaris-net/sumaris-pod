@@ -8,6 +8,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {DateFormatPipe} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {ProgramService} from "../../referential/services/program.service";
 
 @Component({
   selector: 'modal-trip',
@@ -27,8 +28,9 @@ export class TripModal extends TripPage {
     protected dataService: TripService,
     protected settingsService: LocalSettingsService,
     protected viewCtrl: ModalController,
+    protected programService: ProgramService,
     protected cd: ChangeDetectorRef) {
-    super(route, router, alterCtrl, translate, dateFormat, dataService, settingsService, cd);
+    super(route, router, alterCtrl, translate, dateFormat, dataService, settingsService, programService, cd);
   }
 
   async save(event: any): Promise<boolean> {

@@ -125,13 +125,11 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.disable();
 
     // Read route
-    this.route.params.first().subscribe(res => {
-      const tripId = res && res["tripId"];
-      const id = res && res["opeId"];
-      if (!id || id === "new") {
-        this.load(undefined, {tripId: tripId});
+    this.route.params.first().subscribe(async ({tripId, opeId}) => {
+      if (!opeId || opeId === "new") {
+        await this.load(undefined, {tripId: tripId});
       } else {
-        this.load(parseInt(id), {tripId: tripId});
+        await this.load(parseInt(opeId), {tripId: tripId});
       }
     });
 
@@ -166,7 +164,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         })
     );
 
-    // Enable sub batches when having pmfmf
+    // Enable sub batches when having pmfm
     this.subBatchesTable.pmfms
       .pipe(
         filter(isNotNil),
@@ -471,27 +469,15 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         });
     }
 
+    // Watch program, to configure tables from program properties
     this.registerSubscription(
       this.programSubject.asObservable()
-        .pipe(mergeMap(label => {
-          return this.programService.watchByLabel(label);
-        })) // Watch program
-        //.pipe(mergeMap(this.programService.loadByLabel)) // Load program
+        .pipe(switchMap(label => this.programService.watchByLabel(label)))
         .subscribe(program => {
           if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
-          // Configure batch columns
           if (this.batchGroupsTable) {
             this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_NAME_ENABLE);
             this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_GROUP_ENABLE);
-          }
-          if (this.subBatchesTable) {
-            //this.subBatchesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_NAME_ENABLE);
-            //this.subBatchesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_GROUP_ENABLE);
-          }
-
-          if (this.survivalTestsTable) {
-            //this.survivalTestsTable.showTaxonNameColumn = enableBatchTaxonName;
-            //this.survivalTestsTable.showTaxonGroupColumn = enableBatchTaxonGroup;
           }
         })
     );

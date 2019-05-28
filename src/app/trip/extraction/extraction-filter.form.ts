@@ -209,33 +209,33 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
     console.debug("[extraction-form] Adding filter criterion");
 
     let hasChanged = false;
-    let existingCriterionIndex = -1;
+    let index = -1;
 
     const sheetName = criterion && criterion.sheetName || this.sheetName;
     const sheetsForm = this.form.get('sheets') as FormGroup;
-    let criteriaControl = sheetsForm.get(sheetName) as FormArray;
-    if (!criteriaControl) {
-      criteriaControl = this.formBuilder.array([]);
-      sheetsForm.addControl(sheetName, criteriaControl);
+    let arrayControl = sheetsForm.get(sheetName) as FormArray;
+    if (!arrayControl) {
+      arrayControl = this.formBuilder.array([]);
+      sheetsForm.addControl(sheetName, arrayControl);
     } else {
 
       // Search by name on existing criteria
       if (criterion && isNotNil(criterion.name)) {
-        existingCriterionIndex = (criteriaControl.value || []).findIndex(c => (c.name === criterion.name));
+        index = (arrayControl.value || []).findIndex(c => (c.name === criterion.name));
       }
 
       // If last criterion has no value: use it
-      if (existingCriterionIndex === -1 && criteriaControl.length) {
+      if (index === -1 && arrayControl.length) {
         // Find last criterion (so reverse array order)
-        const lastCriterion = criteriaControl.at(criteriaControl.length - 1).value as ExtractionFilterCriterion;
-        existingCriterionIndex = isNil(lastCriterion.name) && isNil(lastCriterion.value) ? criteriaControl.length - 1 : -1;
+        const lastCriterion = arrayControl.at(arrayControl.length - 1).value as ExtractionFilterCriterion;
+        index = isNil(lastCriterion.name) && isNil(lastCriterion.value) ? arrayControl.length - 1 : -1;
       }
     }
 
     // Replace the existing criterion
-    if (existingCriterionIndex >= 0) {
+    if (index >= 0) {
       if (criterion && criterion.name) {
-        const criterionForm = criteriaControl.at(existingCriterionIndex) as FormGroup;
+        const criterionForm = arrayControl.at(index) as FormGroup;
         const existingCriterion = criterionForm.value as ExtractionFilterCriterion;
         options.appendValue = options.appendValue && isNotNil(criterion.value) && isNotNil(existingCriterion.value)
           && (existingCriterion.operator === '=' || existingCriterion.operator === '!=');
@@ -256,7 +256,7 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
 
     // Add a new criterion
     else {
-      criteriaControl.push(this.formBuilder.group({
+      arrayControl.push(this.formBuilder.group({
         name: [criterion && criterion.name || null],
         operator: [criterion && criterion.operator || '=', Validators.required],
         value: [criterion && criterion.value || null],
@@ -276,12 +276,12 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
 
   public hasFilterCriteria(sheetName?: string): boolean {
     if (isNil(sheetName)) {
-      const control = this.form.get('sheets').get(this.sheetName) as FormArray;
-      if (control && control.length === 1) {
-        const criterion = control.at(0).value as ExtractionFilterCriterion;
+      const arrayControl = this.form.get('sheets').get(this.sheetName) as FormArray;
+      if (arrayControl && arrayControl.length === 1) {
+        const criterion = arrayControl.at(0).value as ExtractionFilterCriterion;
         return trimEmptyToNull(criterion.value) && true;
       }
-      return control && control.length > 1;
+      return arrayControl && arrayControl.length > 1;
     } else {
       const control = this.form.get('sheets').get(sheetName) as FormArray;
       return control && control.controls
@@ -290,16 +290,16 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
     }
   }
 
-  public removeFilterCriterion($event: MouseEvent, index) {
-    const control = this.form.get('sheets').get(this.sheetName) as FormArray;
+  public removeFilterCriterion($event: MouseEvent, index: number) {
+    const arrayControl = this.form.get('sheets').get(this.sheetName) as FormArray;
 
     // Do not remove if last criterion
-    if (control.length === 1) {
+    if (arrayControl.length === 1) {
       this.clearFilterCriterion($event, index);
       return;
     }
 
-    control.removeAt(index);
+    arrayControl.removeAt(index);
 
     if (!$event.ctrlKey) {
       this.onRefresh.emit();
@@ -308,14 +308,14 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
     }
   }
 
-  public clearFilterCriterion($event: MouseEvent, index): boolean {
-    const control = this.form.get('sheets').get(this.sheetName) as FormArray;
+  public clearFilterCriterion($event: MouseEvent, index: number): boolean {
+    const arrayControl = this.form.get('sheets').get(this.sheetName) as FormArray;
 
-    const oldValue = control.at(index).value;
-    let needClear = (isNotNil(oldValue.name) || isNotNil(oldValue.value));
+    const oldValue = arrayControl.at(index).value;
+    const needClear = (isNotNil(oldValue.name) || isNotNil(oldValue.value));
     if (!needClear) return false;
 
-    this.setCriterionValue(control.at(index), null);
+    this.setCriterionValue(arrayControl.at(index), null);
 
     if (!$event.ctrlKey) {
       this.onRefresh.emit();

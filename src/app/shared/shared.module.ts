@@ -27,7 +27,7 @@ import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toBoolean, toFloat,
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 import {Color, ColorScale} from "./graph/graph-colors";
-
+import {ColorPickerModule} from 'ngx-color-picker';
 export {
   DataService, TableDataService, LoadResult,
   isNil, isNotNil, nullIfUndefined,
@@ -47,7 +47,8 @@ export {
     TextMaskModule,
     IonicModule,
     TranslateModule.forChild(),
-    NgxMaterialTimepickerModule
+    NgxMaterialTimepickerModule,
+    ColorPickerModule
   ],
   declarations: [
     AutofocusDirective,
@@ -79,7 +80,8 @@ export {
     MatDateTime,
     MatLatLong,
     MatBooleanField,
-    MatAutocompleteField
+    MatAutocompleteField,
+    ColorPickerModule
   ],
   providers: [
     DateFormatPipe,

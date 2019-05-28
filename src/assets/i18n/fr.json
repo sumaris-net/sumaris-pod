@@ -180,7 +180,7 @@
     },
     "SETTINGS": {
       "TITLE": "Préférences",
-      "DESCRIPTION": "Les préférences ci-dessous sont utilisées pour tous les courriers électroniques ou les rapports qui vous sont envoyés.",
+      "DESCRIPTION": "Les préférences ci-dessous serviront dans les courriers électroniques et rapports que vous recevrez.",
       "LOCALE": "Langue",
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
@@ -414,7 +414,7 @@
     "LOCATION": "Criée",
     "TAB_GENERAL": "Détails",
     "TAB_VESSELS": "Navires observés",
-    "OBSERVER": "Observateur #1",
+    "OBSERVER_PLACEHOLDER": "Observateur #",
     "OBSERVERS": "Observateurs :",
     "NEW": {
       "TITLE": "Nouveau contrôle"
@@ -676,6 +676,7 @@
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
     "FIELD_MAX": "La valeur maximale autorisée est {{max}}",
+    "FIELD_MAX_LENGTH": "Longueur maximale: {{requiredLength}}",
     "FIELD_MAX_COMPACT": "Max autorisé={{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Nombre de décimale incorrect ({{max}} max)",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale max={{max}}",

@@ -18,6 +18,7 @@ export declare class VesselFilter {
   vesselId?: number;
   searchText?: string;
 }
+
 const LoadAllQuery: any = gql`
   query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
     vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -137,7 +138,7 @@ const DeleteVessels: any = gql`
 `;
 
 @Injectable()
-export class VesselService extends BaseDataService implements SuggestionDataService<VesselFeatures>, TableDataService<VesselFeatures, VesselFilter>{
+export class VesselService extends BaseDataService implements SuggestionDataService<VesselFeatures>, TableDataService<VesselFeatures, VesselFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -148,11 +149,11 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
 
   /**
    * Load many vessels
-   * @param offset 
-   * @param size 
-   * @param sortBy 
-   * @param sortDirection 
-   * @param filter 
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
    */
   watchAll(offset: number,
            size: number,
@@ -173,16 +174,16 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
     return this.graphql.watchQuery<{ vessels: any[] }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR" }
+      error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
     })
       .pipe(
         map(({vessels}) => {
-          const data = (vessels || []).map(VesselFeatures.fromObject);
-          if (this._debug) console.debug(`[vessel-service] Vessels loaded in ${Date.now() - now}ms`, data);
-          return {
-            data: data
-          };
-        }
+            const data = (vessels || []).map(VesselFeatures.fromObject);
+            if (this._debug) console.debug(`[vessel-service] Vessels loaded in ${Date.now() - now}ms`, data);
+            return {
+              data: data
+            };
+          }
         )
       );
   }
@@ -196,10 +197,10 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
    * @param filter
    */
   async loadAll(offset: number,
-           size: number,
-           sortBy?: string,
-           sortDirection?: string,
-           filter?: VesselFilter): Promise<LoadResult<VesselFeatures>> {
+                size: number,
+                sortBy?: string,
+                sortDirection?: string,
+                filter?: VesselFilter): Promise<LoadResult<VesselFeatures>> {
 
     const variables: any = {
       offset: offset || 0,
@@ -212,7 +213,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
     const res = await this.graphql.query<{ vessels: any[] }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR" }
+      error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_VESSELS_ERROR"}
     });
 
     const data = (res && res.vessels || []).map(VesselFeatures.fromObject);
@@ -286,7 +287,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
 
   /**
    * Save many vessels
-   * @param data 
+   * @param data
    */
   async saveAll(vessels: VesselFeatures[]): Promise<VesselFeatures[]> {
 
@@ -303,7 +304,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
       variables: {
         vessels: json
       },
-      error: { code: ErrorCodes.SAVE_VESSELS_ERROR, message: "VESSEL.ERROR.SAVE_VESSELS_ERROR" }
+      error: {code: ErrorCodes.SAVE_VESSELS_ERROR, message: "VESSEL.ERROR.SAVE_VESSELS_ERROR"}
     });
     return (res && res.saveVessels && vessels || [])
       .map(t => {
@@ -316,7 +317,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
 
   /**
    * Save a trip
-   * @param data 
+   * @param data
    */
   async save(vessel: VesselFeatures): Promise<VesselFeatures> {
 
@@ -333,7 +334,7 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
       variables: {
         vessels: [json]
       },
-      error: { code: ErrorCodes.SAVE_VESSEL_ERROR, message: "VESSEL.ERROR.SAVE_VESSEL_ERROR" }
+      error: {code: ErrorCodes.SAVE_VESSEL_ERROR, message: "VESSEL.ERROR.SAVE_VESSEL_ERROR"}
     });
     const data = res && res.saveVessels && res.saveVessels[0];
     vessel.id = data && data.id || vessel.id;

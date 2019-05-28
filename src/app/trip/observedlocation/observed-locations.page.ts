@@ -115,7 +115,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         switchMap(value => this.referentialRefService.suggest(value,
             {
               entityName: 'Location',
-              levelId: LocationLevelIds.AUCTION
+              levelIds: [LocationLevelIds.AUCTION, LocationLevelIds.PORT]
             }))
       );
 

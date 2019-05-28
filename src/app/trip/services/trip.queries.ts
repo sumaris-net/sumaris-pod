@@ -29,6 +29,19 @@ export const Fragments = {
     }
     __typename
   }`,
+  person: gql`fragment PersonFragment on PersonVO {
+    id
+    firstName
+    lastName
+    avatar
+    department {
+      id
+      label
+      name
+      __typename
+    }
+    __typename
+  }`,
   location: gql`fragment LocationFragment on LocationVO {
     id
     label

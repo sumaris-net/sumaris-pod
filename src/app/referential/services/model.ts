@@ -1,10 +1,10 @@
 import {
   Cloneable, Entity, EntityUtils,
   Referential, ReferentialRef, Department, Person,
-  StatusIds,AcquisitionLevelCodes,
+  StatusIds, AcquisitionLevelCodes,
   toDateISOString, fromDateISOString, joinProperties, entityToString, referentialToString, isNotNil, isNil
 } from "../../core/core.module";
-import { Moment } from "moment/moment";
+import {Moment} from "moment/moment";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
@@ -65,12 +65,19 @@ export const PmfmLabelPatterns = {
 }
 
 export const ProgramProperties = {
+
+  // Trip
+  TRIP_SALE_ENABLE: 'sumaris.trip.sale.enable',
   BATCH_TAXON_NAME_ENABLE: 'sumaris.trip.operation.batch.taxonName.enable',
   BATCH_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.batch.taxonGroup.enable',
   SAMPLE_TAXON_NAME_ENABLE: 'sumaris.trip.operation.batch.taxonName.enable',
   SAMPLE_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.batch.taxonGroup.enable',
   SURVIVAL_TEST_TAXON_NAME_ENABLE: 'sumaris.trip.operation.survivalTest.taxonName.enable',
-  SURVIVAL_TEST_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.survivalTest.taxonGroup.enable'
+  SURVIVAL_TEST_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.survivalTest.taxonGroup.enable',
+
+  // Observed location
+  OBSERVED_LOCATION_END_DATE_TIME_ENABLE: 'sumaris.observedLocation.endDateTime.enable',
+  OBSERVED_LOCATION_LOCATION_LEVEL_IDS: 'sumaris.observedLocation.location.level.ids'
 }
 
 export const QualityFlagIds = {
@@ -86,10 +93,12 @@ export const QualityFlagIds = {
 
 const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
-export { EntityUtils, StatusIds, AcquisitionLevelCodes,
+export {
+  EntityUtils, StatusIds, AcquisitionLevelCodes,
   Cloneable, Entity, Department, Person, Referential, ReferentialRef,
   toDateISOString, fromDateISOString, joinProperties, isNotNil, isNil,
-  entityToString, referentialToString};
+  entityToString, referentialToString
+};
 
 export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
   return obj && obj.vesselId && joinProperties(obj, ['exteriorMarking', 'name']) || undefined;
@@ -125,7 +134,7 @@ export function qualityFlagToColor(qualityFlagId: number) {
   }
 }
 
-export class VesselFeatures extends Entity<VesselFeatures>  {
+export class VesselFeatures extends Entity<VesselFeatures> {
 
   static fromObject(source: any): VesselFeatures {
     const res = new VesselFeatures();
@@ -205,7 +214,7 @@ export class VesselFeatures extends Entity<VesselFeatures>  {
 }
 
 
-export class Program extends Entity<Program>  {
+export class Program extends Entity<Program> {
 
   static fromObject(source: any): Program {
     const res = new Program();
@@ -219,7 +228,7 @@ export class Program extends Entity<Program>  {
   comments: string;
   creationDate: Date | Moment;
   statusId: number;
-  properties: {[key: string]: string};
+  properties: { [key: string]: string };
 
   constructor(data?: {
     id?: number,
@@ -242,7 +251,7 @@ export class Program extends Entity<Program>  {
   }
 
   asObject(minify?: boolean): any {
-    if (minify) return { id: this.id }; // minify=keep id only
+    if (minify) return {id: this.id}; // minify=keep id only
     const target: any = super.asObject(minify);
     target.creationDate = toDateISOString(this.creationDate);
     target.properties = this.properties;
@@ -259,8 +268,7 @@ export class Program extends Entity<Program>  {
     this.creationDate = fromDateISOString(source.creationDate);
     if (source.properties && source.properties instanceof Array) {
       this.properties = EntityUtils.getArrayAsObject(source.properties);
-    }
-    else {
+    } else {
       this.properties = source.properties;
     }
     return this;
@@ -270,20 +278,25 @@ export class Program extends Entity<Program>  {
     return super.equals(other) && this.id === other.id;
   }
 
-  getPropertyAsBoolean(key: string): boolean {
-    return this.properties[key] !== "false";
+  getPropertyAsBoolean(key: string, defaultValue?: boolean): boolean {
+    return isNotNil(this.properties[key]) ? this.properties[key] !== "false" : (defaultValue || false);
+  }
+
+  getPropertyAsNumbers(key: string): number[] {
+    return this.properties[key] && this.properties[key].split(',').map(parseInt) || undefined;
   }
 }
 
 export declare type PmfmType = 'integer' | 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
 
-export class PmfmStrategy extends Entity<PmfmStrategy>  {
+export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   static fromObject(source: any): PmfmStrategy {
     const res = new PmfmStrategy();
     res.fromObject(source);
     return res;
   }
+
   pmfmId: number;
   methodId: number;
   label: string;

@@ -17,9 +17,11 @@ export declare class ReferentialFilter {
   label?: string;
   name?: string;
   levelId?: number;
+  levelIds?: number[];
   searchText?: string;
   searchAttribute?: string;
   statusId?: number;
+  statusIds?: number[];
 }
 const LoadAllQuery: any = gql`
   query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -121,8 +123,8 @@ export class ReferentialService extends BaseDataService implements TableDataServ
         name: filter.name,
         searchText: filter.searchText,
         searchAttribute: filter.searchAttribute,
-        levelId: filter.levelId,
-        statusIds: isNotNil(filter.statusId) ? [filter.statusId] : null
+        levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
+        statusIds: isNotNil(filter.statusId) ?  [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
       }
     };
 

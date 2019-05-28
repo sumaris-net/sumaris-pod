@@ -32,7 +32,7 @@
             <form-trip #tripForm (onSubmit)="save($event)" [showError]="false"  subForm>
 
               <!-- sale -->
-              <form-sale #saleForm
+              <form-sale #saleForm [hidden]="!showSaleForm"
                          [showVessel]="false" [showError]="false" [showComment]="false" [showEndDateTime]="false"
                          [required]="false"
                          [tabindex]="10">

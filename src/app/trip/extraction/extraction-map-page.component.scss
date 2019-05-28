@@ -50,7 +50,7 @@ ion-card.legend {
 }
 
 ion-card.legend-form {
-  max-width: 310px;
+  min-width: 320px;
 
   ion-row {
     max-width: 250px;
@@ -61,7 +61,11 @@ ion-card.legend-form {
   }
 
   ion-col.rgb {
-    max-width: 45px !important;
+    max-width: 60px !important;
+  }
+
+  ion-col.rgb:has(ion-icon) {
+    max-width: 65px !important;
   }
 }
 

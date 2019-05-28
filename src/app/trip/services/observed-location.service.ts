@@ -77,17 +77,14 @@ export const ObservedLocationFragments = {
     recorderPerson {
       ...RecorderPersonFragment
     }
-    measurementValues
-    measurements {
-      ...MeasurementFragment
-    }
     observers {
-      ...RecorderPersonFragment
+      ...PersonFragment
     }
+    measurementValues
   }
   ${Fragments.recorderDepartment}
   ${Fragments.recorderPerson}
-  ${Fragments.measurement}
+  ${Fragments.person}
   ${Fragments.location}
   `
 };
@@ -164,7 +161,7 @@ export class ObservedLocationService extends BaseDataService implements TableDat
 
     let now;
     if (this._debug) {
-      const now = Date.now();
+      now = Date.now();
       console.debug("[observed-location-service] Watching observed locations... using options:", variables);
     }
     return this.graphql.watchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
@@ -415,9 +412,6 @@ export class ObservedLocationService extends BaseDataService implements TableDat
   protected asObject(entity: ObservedLocation): any {
     const copy: any = entity.asObject(true/*minify*/);
 
-    // Fill return date using departure date
-    copy.endDateTime = copy.endDateTime || copy.startDateTime;
-
     // Keep id only, on person and department
     copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
     copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
@@ -443,9 +437,6 @@ export class ObservedLocationService extends BaseDataService implements TableDat
         entity.recorderPerson.id = person.id;
       }
     }
-
-    // Measurement: compute rankOrder
-    //fillRankOrder(entity.measurements);
   }
 
   copyIdAndUpdateDate(source: ObservedLocation | undefined, target: ObservedLocation) {
@@ -456,15 +447,5 @@ export class ObservedLocationService extends BaseDataService implements TableDat
     target.updateDate = source.updateDate || target.updateDate;
     target.creationDate = source.creationDate || target.creationDate;
     target.dirty = false;
-
-    // Update measurements
-    /*if (target.measurements && source.measurements) {
-      target.measurements.forEach(entity => {
-        const savedMeasurement = source.measurements.find(m => entity.equals(m));
-        entity.id = savedMeasurement && savedMeasurement.id || entity.id;
-        entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
-        entity.dirty = false;
-      });
-    }*/
   }
 }

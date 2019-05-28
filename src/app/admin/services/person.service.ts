@@ -1,13 +1,13 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Apollo} from "apollo-angular";
 import {Observable} from 'rxjs';
 import {Person} from './model';
-import {TableDataService, LoadResult, DataService} from "../../shared/shared.module";
+import {DataService, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/services/base.data-service.class";
 import {ErrorCodes} from "./errors";
 import {map} from "rxjs/operators";
 import {GraphqlService} from "../../core/services/graphql.service";
+import {EntityUtils, StatusIds} from "../../core/services/model";
 //import {environment} from "../../../environments/environment";
 
 export const PersonFragments = {
@@ -48,6 +48,9 @@ export declare class PersonFilter {
   email?: string;
   pubkey?: string;
   searchText?: string;
+  statusIds?: number[];
+  userProfileId?: number;
+  //profileLabels?: string[];
 }
 
 const SavePersons: any = gql`
@@ -143,6 +146,21 @@ export class PersonService extends BaseDataService implements TableDataService<P
       data: (data || []).map(Person.fromObject),
       total: res && res.personsCount || (data && data.length) || 0
     };
+  }
+
+  async suggest(value: any, options?: {
+    statusIds?: number[],
+    userProfileId?: number;
+  }): Promise<Person[]> {
+    if (EntityUtils.isNotEmpty(value)) return [value];
+    value = (typeof value === "string" && value !== '*') && value || undefined;
+    const res = await this.loadAll(0, !value ? 30 : 10, undefined, undefined,
+      {
+        searchText: value as string,
+        statusIds: options && options.statusIds || [StatusIds.ENABLE],
+        userProfileId: options && options.userProfileId
+      });
+    return res.data;
   }
 
   /**

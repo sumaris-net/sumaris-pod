@@ -5,7 +5,7 @@ import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
-import {debounceTime, startWith, switchMap} from 'rxjs/operators';
+import {debounceTime, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
 import {AppForm} from '../../core/core.module';
 import {
@@ -54,7 +54,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         debounceTime(250),
         switchMap(value => this.referentialRefService.suggest(value, {
           entityName: 'Program'
-        }))
+        })),
+        tap(res => this.updateImplicitValue('program', res))
       );
 
     // Combo: vessels
@@ -62,10 +63,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       .valueChanges
       .pipe(
         debounceTime(250),
-        switchMap(value => this.vesselService.suggest(value))
+        switchMap(value => this.vesselService.suggest(value)),
+        tap(res => this.updateImplicitValue('vesselFeatures', res))
       );
 
-    // Combo: sale location
+    // Combo: location
     this.locations =
       merge(
         this.form.controls['departureLocation'].valueChanges,
@@ -76,7 +78,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
           switchMap(value => this.referentialRefService.suggest(value, {
             entityName: 'Location',
             levelId: LocationLevelIds.PORT
-          }))
+          })),
+          tap(res => {
+            this.updateImplicitValue('departureLocation', res);
+            this.updateImplicitValue('returnLocation', res);
+          })
         );
   }
 

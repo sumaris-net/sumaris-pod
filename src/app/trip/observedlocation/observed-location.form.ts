@@ -1,7 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {
   entityToString,
-  EntityUtils, isNotNil,
+  EntityUtils, isNil,
+  isNotNil,
   LocationLevelIds,
   ObservedLocation,
   Person,
@@ -13,14 +14,14 @@ import {
 import {Moment} from 'moment/moment';
 import {AcquisitionLevelCodes} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
-import {Observable} from 'rxjs';
-import {debounceTime, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
 import {ProgramService, ReferentialRefService} from '../../referential/referential.module';
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {FormBuilder} from "@angular/forms";
+import {FormArray, FormBuilder, FormControl} from "@angular/forms";
 
 @Component({
   selector: 'form-observed-location',
@@ -30,15 +31,19 @@ import {FormBuilder} from "@angular/forms";
 })
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation> implements OnInit {
 
-  programs: Observable<ReferentialRef[]>;
-  locations: Observable<ReferentialRef[]>;
-  persons: Observable<Person[]>;
+  observerFocusIndex: number;
+
+  $programs: Observable<ReferentialRef[]>;
+  $locations: Observable<ReferentialRef[]>;
+  $observers: Observable<Person[]>;
+  $observerFilterValue = new BehaviorSubject<any>(undefined);
 
   @Input() required = true;
   @Input() showError = true;
   @Input() showEndDateTime = true;
   @Input() showComment = true;
   @Input() showButtons = true;
+  @Input() locationLevelIds: number[] = [LocationLevelIds.PORT];
 
   get empty(): any {
     const value = this.value;
@@ -62,8 +67,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     protected personService: PersonService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
-
-    console.log("Creating OBS LOC form");
     this._enable = false;
     this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
   }
@@ -72,7 +75,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.ngOnInit();
 
     // Combo: programs
-    this.programs = this.form.controls['program']
+    this.$programs = this.form.controls['program']
       .valueChanges
       .pipe(
         startWith('*'),
@@ -80,47 +83,154 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         switchMap(value => this.referentialRefService.suggest(value, {
           entityName: 'Program'
         })),
-        tap(res => {
-          if (res && res.length === 1) {
-            this.program = res[0].label;
-          }
-        })
+        tap(res => this.updateImplicitValue('program', res))
       );
 
+    // Propage program
+    this.form.controls['program'].valueChanges
+      .pipe(filter(EntityUtils.isNotEmpty))
+      .subscribe(({label}) => this.program = label);
+
     // Combo: locations
-    this.locations = this.form.controls['location']
+    this.$locations = this.form.controls['location']
       .valueChanges
       .pipe(
         debounceTime(250),
-        mergeMap(value => this.referentialRefService.suggest(value, {
-              entityName: 'Location',
-              levelId: LocationLevelIds.PORT
-          }))
+        switchMap(value => this.referentialRefService.suggest(value, {
+          entityName: 'Location',
+          levelIds: this.locationLevelIds
+        })),
+        tap(res => this.updateImplicitValue('location', res))
       );
 
     // Combo: observers
-    this.persons = this.form.controls['recorderPerson']
-      .valueChanges
+    this.$observers = this.$observerFilterValue
       .pipe(
         debounceTime(250),
-        mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          return this.personService.watchAll(0, !value ? 30 : 10, undefined, undefined,
-            {
-              searchText: value as string
-            }).first().map(({data}) => data);
-        }));
-
-    this._onValueChanged.subscribe((value) => {
-      if (value && value.program && value.program.label) {
-        this.program = value.program.label;
-      }
-    });
+        switchMap(value => this.personService.suggest(value)),
+        // Exclude existing observers
+        map(values => {
+          const existingIds = (this.form.get('observers').value || [])
+            .map(o => o && o.id || -1);
+          return values.filter(v => existingIds.indexOf(v.id) === -1);
+        }),
+        tap(res => this.updateImplicitValue('observer', res))
+      );
   }
 
-  addObserver() {
-    console.log('TODO: add observer');
+  public setValue(value: ObservedLocation) {
+
+    // Copy observers
+    const observers = value && value.observers && value.observers.length ? value.observers : [null];
+
+    // Clear observers array group
+    this.clearAllObservers();
+
+    super.setValue(Object.assign({}, value, {observers: []}));
+
+    // Add observers
+    observers.forEach(o => this.addObserver(o, {emitEvent: false}));
+
+    // Propagate the program
+    const program = value && value.program;
+    if (program && program.label) {
+      this.program = program.label;
+    }
+  }
+
+  public addObserver(value?: Person, options?: { emitEvent: boolean; }) {
+    options = options || {emitEvent: true};
+    console.debug("[observed-location-form] Adding observer");
+
+    let arrayControl = this.form.get('observers') as FormArray;
+    let hasChanged = false;
+    let index = -1;
+
+    if (!arrayControl) {
+      arrayControl = this.formBuilder.array([]);
+      this.form.addControl('observers', arrayControl);
+    } else {
+
+      // Search if value already exists
+      if (EntityUtils.isNotEmpty(value)) {
+        index = (arrayControl.value || []).findIndex(v => value.equals(v));
+      }
+
+      // If value not exists, but last value is empty: use it
+      if (index === -1 && arrayControl.length && EntityUtils.isEmpty(arrayControl.at(arrayControl.length - 1).value)) {
+        index = arrayControl.length - 1;
+      }
+    }
+
+    // Replace the existing value
+    if (index !== -1) {
+      if (EntityUtils.isNotEmpty(value)) {
+        arrayControl.at(index).patchValue(value, options);
+        hasChanged = true;
+      }
+      this.markForCheck();
+    } else {
+      const control = this.validatorService.getObserverControl(value);
+      arrayControl.push(control);
+      index = arrayControl.length - 1;
+      hasChanged = true;
+
+      // Redirect control change into combo observers
+      this.registerSubscription(
+        control.valueChanges.subscribe(inputValue => this.$observerFilterValue.next(inputValue)));
+
+    }
+
+    if (hasChanged) {
+      if (isNil(options.emitEvent) || options.emitEvent) {
+        // Mark array control dirty
+        if (EntityUtils.isNotEmpty(value)) {
+          arrayControl.markAsDirty();
+        }
+
+        // Force focus on control
+        this.observerFocusIndex = index;
+        setTimeout(() => this.observerFocusIndex = undefined, 700);
+
+      }
+
+      this.markForCheck();
+    }
+
+    return hasChanged;
+  }
+
+  removeObserver($event: MouseEvent, index: number) {
+    const arrayControl = this.form.get('observers') as FormArray;
+
+    // Do not remove if last criterion
+    if (arrayControl.length === 1) {
+      this.clearObserver($event, index);
+      return;
+    }
+
+    arrayControl.removeAt(index);
+
+    this.markAsDirty();
+  }
+
+  public clearObserver($event: MouseEvent, index: number) {
+    const arrayControl = this.form.get('observers') as FormArray;
+
+    const control = arrayControl.at(index);
+    if (EntityUtils.isEmpty(control.value)) return; // skip (not need to clear)
+
+    control.setValue(null);
+
+    this.markAsDirty();
+  }
+
+  public clearAllObservers() {
+    const arrayControl = this.form.get('observers') as FormArray;
+    let index = arrayControl.length - 1;
+    while (index >= 0) {
+      arrayControl.at(index--);
+    }
   }
 
   enable(opts?: {
@@ -144,6 +254,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   programToString(value: Referential): string {
     return value && value.label || undefined;
   }
+
+
+  /* -- protected method -- */
 
   protected markForCheck() {
     this.cd.markForCheck();

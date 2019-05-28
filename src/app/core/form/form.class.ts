@@ -1,15 +1,15 @@
 import {EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {FormGroup} from "@angular/forms";
+import {AbstractControl, FormGroup} from "@angular/forms";
 import {Moment} from 'moment/moment';
 import {DATE_ISO_PATTERN} from '../constants';
 import {DateAdapter} from "@angular/material";
 import {Subscription} from 'rxjs';
-import {PlatformService} from "../services/platform.service";
 
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   private _subscriptions: Subscription[];
   protected _enable = false;
+  protected _implicitValues: { [key: string]: any } = {};
   error: string = null;
 
   @Input() debug = false;
@@ -80,7 +80,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   @Output()
   onSubmit: EventEmitter<any> = new EventEmitter<any>();
 
-  protected constructor (
+  protected constructor(
     protected dateAdapter: DateAdapter<Moment>,
     public form?: FormGroup
   ) {
@@ -102,6 +102,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
       this._subscriptions.forEach(s => s.unsubscribe());
       this._subscriptions = undefined;
     }
+    this._implicitValues = {};
   }
 
   public cancel() {
@@ -176,6 +177,20 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   public markAsDirty() {
     this.form.markAsDirty();
     this.markForCheck();
+  }
+
+  public updateImplicitValue(name: string, res: any[]) {
+    this._implicitValues[name] = res && res.length === 1 ? res[0] : undefined;
+  }
+
+  public applyImplicitValue(name: string, control?: AbstractControl) {
+    control = control || this.form.get(name);
+    const value = control && this._implicitValues[name];
+    if (control && value !== undefined && value !== null) {
+      control.patchValue(value, {emitEvent: false});
+      control.markAsDirty();
+      this._implicitValues[name] = null;
+    }
   }
 
   protected markForCheck() {

@@ -16,6 +16,10 @@ import {MeasurementsForm} from "../measurement/measurements.form.component";
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import {ObservedVesselsTable} from "./observed-vessels.table";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {filter, mergeMap, switchMap} from "rxjs/operators";
+import {LocationLevelIds, ProgramProperties} from "../../referential/services/model";
+import {ProgramService} from "../../referential/services/program.service";
+import {isNotNilOrBlank} from "../../shared/functions";
 
 @Component({
   selector: 'page-observed-location',
@@ -50,6 +54,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     protected dateFormat: DateFormatPipe,
     protected dataService: ObservedLocationService,
     protected settingsService: LocalSettingsService,
+    protected programService: ProgramService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, translate);
@@ -57,7 +62,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     this.isOnFieldMode = this.settingsService.isUsageMode('FIELD');
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -69,15 +74,25 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
     this.disable();
 
-    this.route.params.first().subscribe(res => {
-      const id = res && res["observedLocationId"];
-      if (!id || id === "new") {
-        this.load();
+    this.route.params.first().subscribe(async ({observedLocationId}) => {
+      if (!observedLocationId || observedLocationId === "new") {
+        await this.load();
       }
       else {
-        this.load(parseInt(id));
+        await this.load(parseInt(observedLocationId));
       }
     });
+
+    // Watch program, to configure tables from program properties
+    this.registerSubscription(
+      this.programSubject.asObservable()
+        .pipe(filter(isNotNilOrBlank), switchMap(label => this.programService.watchByLabel(label)))
+        .subscribe(program => {
+          if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
+          this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE, false);
+          this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS) || [LocationLevelIds.PORT];
+        })
+    );
   }
 
   async load(id?: number, options?: any) {
@@ -158,8 +173,6 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
       this.observedLocationForm.form.controls['program'].disable();
       this.programSubject.next(data.program.label);
     }
-    //this.measurementsForm.value = data && data.measurements || [];
-    //this.measurementsForm.updateControls();
 
     this.showVesselTable = isSaved;
     if (updateVessels && this.vesselTable) {

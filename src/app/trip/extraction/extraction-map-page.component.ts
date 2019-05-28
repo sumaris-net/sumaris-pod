@@ -15,7 +15,7 @@ import {Color, ColorScale, fadeInAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
 import {Feature} from "geojson";
-import {distinctUntilChanged, takeUntil, throttle, throttleTime} from "rxjs/operators";
+import {throttleTime} from "rxjs/operators";
 
 @Component({
   selector: 'app-extraction-map-page',
@@ -73,6 +73,15 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     return this.ready && !this.loading && this.data && this.data.total > 0;
   }
 
+  get legendMainColorRgba(): string {
+    return this.legendForm.get('color').get('rgba').value;
+  }
+
+  set legendMainColorRgba(value: string) {
+    this.legendForm.get('color').get('rgba')
+      .patchValue(value, {emitEvent: false});
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
@@ -113,11 +122,12 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       count: [10, Validators.required],
       min: [0, Validators.required],
       max: [1000, Validators.required],
-      opacity: [layerColor.opacity *100, Validators.required],
       color: formBuilder.group({
+        rgba: [layerColor.rgba(), Validators.required],
         r: [layerColor.r, Validators.required],
         g: [layerColor.g, Validators.required],
-        b: [layerColor.b, Validators.required]
+        b: [layerColor.b, Validators.required],
+        opacity: [layerColor.opacity, Validators.required]
       })
     });
 
@@ -331,6 +341,48 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     return setTimeout(() => this.closeFeatureDetails(feature, true), 4000);
   }
 
+
+  openLegendForm(event: UIEvent) {
+    this.showLegendForm = true;
+  }
+
+  cancelLegendForm(event: UIEvent) {
+    this.showLegendForm = false;
+
+    // Reset legend color
+    const color = this.legendForm.get('color').value;
+    this.legendMainColorRgba = `rgba(${+color.r},${+color.g},${+color.b},${color.opacity || 1})`;
+  }
+
+  applyLegendForm(event: UIEvent) {
+    this.showLegendForm = false;
+
+    const value = this.legendMainColorRgba;
+
+    if (!value || (!value.startsWith('rgb(') && !value.startsWith('rgba('))) return;
+
+    // Parse parts
+    const parts = value
+      .replace('rgb(', '')
+      .replace('rgba(', '')
+      .replace(')', '')
+      .split(',');
+
+    if (parts.length !== 3 && parts.length !== 4) return;
+
+    this.legendForm.get('color').patchValue({
+      rgba: value,
+      r: +parts[0],
+      g: +parts[1],
+      b: +parts[2],
+      opacity: parts.length === 4 && +parts[3] || 1
+    }, {emitEVent: false});
+
+    this.onRefresh.emit();
+  }
+
+  /* -- protected methods -- */
+
   protected getFeatureStyleFn(scale: ColorScale, propertyName: string): L.StyleFunction<any> | null {
     if (isNil(propertyName)) return;
 
@@ -352,18 +404,18 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   }
 
   protected createLegend(): ColorScale {
-    const max = this.legendForm.get('max').value;
     const min = this.legendForm.get('min').value;
+    const max = this.legendForm.get('max').value;
     const colorValue = this.legendForm.get('color').value;
-    const opacity = this.legendForm.get('opacity').value || 100;
     const color = [colorValue.r, colorValue.g, colorValue.b];
+    const opacity = (colorValue.opacity || 1);
 
     // Create scale color (max 10 grades
     const scaleCount = Math.max(2, Math.min(max, 10));
     const scale = ColorScale.custom(scaleCount, {
-      opacity: opacity / 100,
       min: min,
       max: max,
+      opacity: opacity,
       mainColor: color
     });
 
@@ -372,18 +424,6 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     return scale;
   }
 
-  public doEditLegend(event) {
-    this.showLegendForm = true;
-  }
-
-  public doCancelLegend() {
-    this.showLegendForm = false;
-  }
-
-  public doApplyLegend() {
-    this.showLegendForm = false;
-    this.onRefresh.emit();
-  }
 
   protected getFilterValue(): ExtractionFilter {
 
