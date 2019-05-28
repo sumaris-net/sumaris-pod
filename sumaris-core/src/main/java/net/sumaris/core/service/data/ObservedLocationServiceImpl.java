@@ -99,11 +99,6 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		// Reset control date
 		source.setControlDate(null);
 
-		// If not set, fill endDateTime with startDateTime
-		if (source.getEndDateTime() == null) {
-			source.setEndDateTime(source.getStartDateTime());
-		}
-
 		// Save
 		ObservedLocationVO savedObservedLocation = observedLocationDao.save(source);
 

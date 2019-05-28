@@ -43,7 +43,7 @@ public class PersonFilterVO {
 
     private String lastName;
 
-    private List<Integer> statusIds;
+    private Integer[] statusIds;
 
     private String searchText;
 

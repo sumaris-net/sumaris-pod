@@ -606,6 +606,21 @@ public class DataGraphQLService {
         return pmfmService.get(measurement.getPmfmId());
     }
 
+    // Vessel
+    @GraphQLQuery(name = "measurements", description = "Get vessel's physical measurements")
+    public List<MeasurementVO> getVesselFeaturesMeasurements(@GraphQLContext VesselFeaturesVO vesselFeatures) {
+        return measurementService.getVesselFeaturesMeasurements(vesselFeatures.getId());
+    }
+
+    @GraphQLQuery(name = "measurementValues", description = "Get vessel's physical measurements")
+    public Map<Integer, String> getVesselFeaturesMeasurementsMap(@GraphQLContext VesselFeaturesVO vesselFeatures) {
+        if (vesselFeatures.getMeasurementValues() == null) {
+            return measurementService.getVesselFeaturesMeasurementsMap(vesselFeatures.getId());
+        }
+        return vesselFeatures.getMeasurementValues();
+    }
+
+
     /* -- protected methods -- */
 
     protected void fillTripFields(TripVO trip, Set<String> fields) {

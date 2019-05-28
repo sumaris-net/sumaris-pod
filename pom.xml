@@ -106,7 +106,10 @@
     <commonBeanutilsVersion>1.9.3</commonBeanutilsVersion>
     <opencsv.version>2.4.3</opencsv.version>
 
-    <hibernate.version>5.3.7.Final</hibernate.version><!-- /!\ error with 5.3.10 -->
+    <!-- /!\ error with 5.3.10 -->
+    <!--     (and 5.4 has API changes !) -->
+    <hibernate.version>5.3.7.Final</hibernate.version>
+
     <hibernate-tools.version>5.3.7.Final</hibernate-tools.version>
     <hibernate-search.version>5.10.4.Final</hibernate-search.version>
     <hibernate-validator.version>6.0.10.Final</hibernate-validator.version>
@@ -132,7 +135,7 @@
     <scrypt.version>1.4.0</scrypt.version>
     <geojson-jackson.version>1.8.1</geojson-jackson.version>
     <graphql-java.version>7.0</graphql-java.version>
-    <graphql-java-tools>4.3.0</graphql-java-tools>
+    <graphql-java-tools.version>4.3.0</graphql-java-tools.version>
     <graphql-java-servlet.version>4.7.0</graphql-java-servlet.version>
     <spqr.version>0.9.6</spqr.version>
 

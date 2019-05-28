@@ -53,17 +53,21 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
 
         List<ReferentialVO> results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
         Assert.assertNotNull(results);
-        Assert.assertTrue(results.size() > 0);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(results));
+
+        filter.setLevelIds(new Integer[]{-999});
+        results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
+        Assert.assertTrue(CollectionUtils.isEmpty(results));
     }
 
     @Test
     public void findByFilterWithStatus() {
         ReferentialFilterVO filter = new ReferentialFilterVO();
 
-        filter.setSearchText("XB");
+        filter.setSearchText("FRA");
         filter.setStatusIds(new Integer[]{StatusEnum.DISABLE.getId()});
 
         List<ReferentialVO> results = service.findByFilter(Location.class.getSimpleName(), filter, 0, 100);
-        Assert.assertTrue(CollectionUtils.size(results) == 0);
+        Assert.assertTrue(CollectionUtils.isEmpty(results));
     }
 }

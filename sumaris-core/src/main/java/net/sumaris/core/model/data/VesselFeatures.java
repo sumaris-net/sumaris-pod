@@ -27,9 +27,12 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Entity
@@ -46,7 +49,7 @@ public class VesselFeatures implements IDataEntity<Integer>,
     public static final String PROPERTY_EXTERIOR_MARKING = "exteriorMarking";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "VESSEL_FEATURES_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_FEATURES_SEQ")
     @SequenceGenerator(name = "VESSEL_FEATURES_SEQ", sequenceName="VESSEL_FEATURES_SEQ")
     private Integer id;
 
@@ -118,4 +121,11 @@ public class VesselFeatures implements IDataEntity<Integer>,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="base_port_location_fk", nullable = false)
     private Location basePortLocation;
+
+    /* -- measurements -- */
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPhysicalMeasurement.class, mappedBy = VesselPhysicalMeasurement.PROPERTY_VESSEL_FEATURES)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<VesselPhysicalMeasurement> measurements = new ArrayList<>();
+
 }

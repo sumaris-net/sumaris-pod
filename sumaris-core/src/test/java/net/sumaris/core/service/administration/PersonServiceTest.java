@@ -69,7 +69,7 @@ public class PersonServiceTest extends AbstractServiceTest{
 
         // Find by status (inactive person)
         filter = new PersonFilterVO();
-        filter.setStatusIds(ImmutableList.of(getConfig().getStatusIdTemporary()));
+        filter.setStatusIds(new Integer[]{getConfig().getStatusIdTemporary()});
         results = service.findByFilter(filter, 0, 100, null, null);
         Assert.assertNotNull(results);
         Assert.assertTrue(results.size() > 0);

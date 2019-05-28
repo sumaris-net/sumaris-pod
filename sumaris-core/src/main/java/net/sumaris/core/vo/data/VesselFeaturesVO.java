@@ -35,6 +35,8 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Data
 public class VesselFeaturesVO implements IRootDataVO<Integer>,
@@ -67,6 +69,9 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
+
+    private List<MeasurementVO> measurements;
+    private Map<Integer, String> measurementValues;
 
     // From parent Entity
     private Integer vesselId;

@@ -408,6 +408,11 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
 
         Beans.copyProperties(source, target);
 
+        // Remove endDateTime if same as startDateTime
+        if (target.getEndDateTime() != null && target.getEndDateTime().equals(target.getStartDateTime())) {
+            target.setEndDateTime(null);
+        }
+
         // Program
         target.setProgram(programDao.toProgramVO(source.getProgram()));
 
@@ -442,6 +447,11 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
 
         // Copy properties
         copyRootDataProperties(source, target, copyIfNull);
+
+        // If endDateTime is empty, fill using startDateTime
+        if (target.getEndDateTime() != null) {
+            target.setEndDateTime(target.getStartDateTime());
+        }
 
         // Departure location
         if (copyIfNull || source.getLocation() != null) {

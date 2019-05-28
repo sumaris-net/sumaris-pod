@@ -37,6 +37,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
@@ -153,9 +154,12 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
             searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
         }
 
+        List<Integer> statusIds = ArrayUtils.isEmpty(filter.getStatusIds()) ?
+                null : ImmutableList.copyOf(filter.getStatusIds());
+
         return entityManager.createQuery(query)
                 .setParameter(userProfileIdParam, filter.getUserProfileId())
-                .setParameter(statusIdsParam, filter.getStatusIds())
+                .setParameter(statusIdsParam, statusIds)
                 .setParameter(pubkeyParam, filter.getPubkey())
                 .setParameter(emailParam, filter.getEmail())
                 .setParameter(firstNameParam, filter.getFirstName())
@@ -174,8 +178,8 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
     public Long countByFilter(PersonFilterVO filter) {
         Preconditions.checkNotNull(filter);
 
-        List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds()) ?
-                null : filter.getStatusIds();
+        List<Integer> statusIds = ArrayUtils.isEmpty(filter.getStatusIds()) ?
+                null : ImmutableList.copyOf(filter.getStatusIds());
 
         return getEntityManager().createNamedQuery("countPersons", Long.class)
                 .setParameter("userProfileId", filter.getUserProfileId())

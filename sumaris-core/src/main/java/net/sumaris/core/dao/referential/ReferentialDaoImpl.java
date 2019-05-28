@@ -193,6 +193,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         return createFindQuery(entityClass,
                     filter.getLevelId(),
+                    filter.getLevelIds(),
                     StringUtils.trimToNull(filter.getSearchText()),
                     StringUtils.trimToNull(filter.getSearchAttribute()),
                     filter.getStatusIds(),
@@ -200,8 +201,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     sortDirection)
                 .setFirstResult(offset)
                 .setMaxResults(size)
-                .getResultList()
-                .stream()
+                .getResultStream()
                 .map(s -> toReferentialVO(entityName, s))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -440,6 +440,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
     private <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
                                          Integer levelId,
+                                         Integer[] levelIds,
                                          String searchText,
                                          String searchAttribute,
                                          Integer[] statusIds,
@@ -450,13 +451,27 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         Root<T> entityRoot = query.from(entityClass);
         query.select(entityRoot).distinct(true);
 
-        // Special case with level
+        // Level Ids
         Predicate levelClause = null;
-        ParameterExpression<Integer> levelParam = builder.parameter(Integer.class);
+        ParameterExpression<Collection> levelIdsParam = null;
+        if (ArrayUtils.isNotEmpty(levelIds)) {
+            if (levelIds.length == 1) {
+                levelId = levelIds[0];
+                levelIds = null;
+            } else {
+                levelId = null;
+                levelIdsParam = builder.parameter(Collection.class);
+                PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
+                levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID)).value(levelIdsParam);
+            }
+        }
+        // Level Id
+        ParameterExpression<Integer> levelIdParam = null;
         if (levelId != null) {
+            levelIdParam = builder.parameter(Integer.class);
             PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
             if (pd != null) {
-                levelClause = builder.equal(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID), levelParam);
+                levelClause = builder.equal(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID), levelIdParam);
             }
         }
 
@@ -558,7 +573,12 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             typedQuery.setParameter(searchAnyMatchParam, searchTextAnyMatch);
         }
         if (levelClause != null) {
-            typedQuery.setParameter(levelParam, levelId);
+            if (levelIds != null) {
+                typedQuery.setParameter(levelIdsParam, ImmutableList.copyOf(levelIds));
+            }
+            else {
+                typedQuery.setParameter(levelIdParam, levelId);
+            }
         }
         if (statusIdsClause != null) {
             typedQuery.setParameter(statusIdsParam, ImmutableList.copyOf(statusIds));

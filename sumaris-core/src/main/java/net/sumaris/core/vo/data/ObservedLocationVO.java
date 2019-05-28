@@ -62,8 +62,8 @@ public class ObservedLocationVO implements IRootDataVO<Integer>,
     private Date startDateTime;
     private Date endDateTime;
     private LocationVO location;
-    private Set<PersonVO> observers;
     private ProgramVO program;
+    private Set<PersonVO> observers;
 
     private List<MeasurementVO> measurements; // observed_location_measurement
     private Map<Integer, String> measurementValues; // observed_location_measurement

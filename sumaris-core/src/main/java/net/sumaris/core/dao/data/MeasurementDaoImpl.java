@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -405,6 +406,24 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     public Map<Integer, String> saveBatchQuantificationMeasurementsMap(int batchId, Map<Integer, String> sources) {
         Batch parent = get(Batch.class, batchId);
         return saveMeasurementsMap(BatchQuantificationMeasurement.class, sources, parent.getQuantificationMeasurements(), parent);
+    }
+
+    @Override
+    public List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId) {
+        return getMeasurementsByParentId(VesselPhysicalMeasurement.class,
+                VesselPhysicalMeasurement.PROPERTY_VESSEL_FEATURES,
+                vesselFeaturesId,
+                VesselPhysicalMeasurement.PROPERTY_ID
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getVesselFeaturesMeasurementsMap(int vesselFeaturesId) {
+        return getMeasurementsMapByParentId(VesselPhysicalMeasurement.class,
+                VesselPhysicalMeasurement.PROPERTY_VESSEL_FEATURES,
+                vesselFeaturesId,
+                VesselPhysicalMeasurement.PROPERTY_ID
+        );
     }
 
     @Override

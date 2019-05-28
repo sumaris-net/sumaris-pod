@@ -80,4 +80,10 @@ public interface MeasurementService {
     @Transactional(readOnly = true)
     Map<Integer, String> getObservedLocationMeasurementsMap(int observedLocationId);
 
+    @Transactional(readOnly = true)
+    List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getVesselFeaturesMeasurementsMap(int vesselFeaturesId);
+
 }

@@ -90,4 +90,8 @@ public interface MeasurementDao {
     List<MeasurementVO> saveBatchQuantificationMeasurements(int sampleId, List<MeasurementVO> sources);
     Map<Integer, String> saveBatchSortingMeasurementsMap(final int batchId, Map<Integer, String> sources);
     Map<Integer, String> saveBatchQuantificationMeasurementsMap(final int batchId, Map<Integer, String> sources);
+
+    // Vessel
+    List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId);
+    Map<Integer, String> getVesselFeaturesMeasurementsMap(int observedLocationId);
 }

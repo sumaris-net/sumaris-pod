@@ -24,8 +24,15 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.VesselDao;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.data.ObservedLocationMeasurement;
+import net.sumaris.core.model.data.VesselPhysicalMeasurement;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.DataBeans;
+import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.slf4j.Logger;
@@ -45,6 +52,10 @@ public class VesselServiceImpl implements VesselService {
 
 	@Autowired
 	protected VesselDao vesselDao;
+
+	@Autowired
+	protected MeasurementDao measurementDao;
+
 
 	@Override
 	public List<VesselFeaturesVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute,
@@ -68,7 +79,20 @@ public class VesselServiceImpl implements VesselService {
 		Preconditions.checkArgument(vesselFeatures.getVesselId() != null || vesselFeatures.getVesselTypeId() != null, "Missing vesselId or vesselTypeId");
 
 
-		return vesselDao.save(vesselFeatures);
+		VesselFeaturesVO savedVesselFeatures = vesselDao.save(vesselFeatures);
+
+		// Save measurements
+		if (savedVesselFeatures.getMeasurementValues() != null) {
+			measurementDao.saveObservedLocationMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getMeasurementValues());
+		}
+		else {
+			List<MeasurementVO> measurements = Beans.getList(savedVesselFeatures.getMeasurements());
+			measurements.forEach(m -> fillDefaultProperties(savedVesselFeatures, m));
+			measurements = measurementDao.saveObservedLocationMeasurements(savedVesselFeatures.getId(), measurements);
+			savedVesselFeatures.setMeasurements(measurements);
+		}
+
+		return savedVesselFeatures;
 	}
 
 	@Override
@@ -91,5 +115,17 @@ public class VesselServiceImpl implements VesselService {
 		ids.stream()
 				.filter(Objects::nonNull)
 				.forEach(this::delete);
+	}
+
+	/* protected methods */
+
+	void fillDefaultProperties(VesselFeaturesVO parent, MeasurementVO measurement) {
+		if (measurement == null) return;
+
+		// Set default value for recorder department and person
+		DataBeans.setDefaultRecorderDepartment(measurement, parent.getRecorderDepartment());
+		DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
+
+		measurement.setEntityName(VesselPhysicalMeasurement.class.getSimpleName());
 	}
 }

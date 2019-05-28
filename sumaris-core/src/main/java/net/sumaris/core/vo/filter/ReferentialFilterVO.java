@@ -30,6 +30,7 @@ public class ReferentialFilterVO {
     private String label;
     private String name;
     private Integer levelId;
+    private Integer[] levelIds;
     private String searchText;
     private String searchAttribute;
     private Integer[] statusIds;
