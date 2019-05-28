@@ -596,9 +596,9 @@
       "LEGEND": "Légende",
       "LEGEND_FORM": {
         "TITLE": "Paramètres",
-        "COLOR": "Couleur :",
         "OPACITY_PLACEHOLDER": "Opacité (%)",
-        "MIN_MAX": "Bornes :"
+        "MIN": "Min :",
+        "MAX": "Max :"
       }
     },
     "CATEGORY": {

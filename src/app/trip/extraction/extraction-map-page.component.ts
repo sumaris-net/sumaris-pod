@@ -73,14 +73,24 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     return this.ready && !this.loading && this.data && this.data.total > 0;
   }
 
-  get legendMainColorRgba(): string {
-    return this.legendForm.get('color').get('rgba').value;
+  get legendStartColor(): string {
+    return this.legendForm.get('startColor').value;
   }
 
-  set legendMainColorRgba(value: string) {
-    this.legendForm.get('color').get('rgba')
+  set legendStartColor(value: string) {
+    this.legendForm.get('startColor')
       .patchValue(value, {emitEvent: false});
   }
+
+  get legendEndColor(): string {
+    return this.legendForm.get('endColor').value;
+  }
+
+  set legendEndColor(value: string) {
+    this.legendForm.get('endColor')
+      .patchValue(value, {emitEvent: false});
+  }
+
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -117,18 +127,14 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     this.routePath = 'map';
     this._enable = true; // enable the form
 
-    const layerColor = new Color([150, 30, 30], 1);
+    const legendStartColor = new Color([255, 255, 190], 1);
+    const legendEndColor = new Color([150, 30, 30], 1);
     this.legendForm = formBuilder.group({
       count: [10, Validators.required],
       min: [0, Validators.required],
       max: [1000, Validators.required],
-      color: formBuilder.group({
-        rgba: [layerColor.rgba(), Validators.required],
-        r: [layerColor.r, Validators.required],
-        g: [layerColor.g, Validators.required],
-        b: [layerColor.b, Validators.required],
-        opacity: [layerColor.opacity, Validators.required]
-      })
+      startColor: [legendStartColor.rgba(), Validators.required],
+      endColor: [legendEndColor.rgba(), Validators.required]
     });
 
     this.loading = false;
@@ -271,7 +277,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
       // Create scale color (max 10 grades
       this.legendForm.get('max').setValue(Math.max(10, Math.round(maxValue + 0.5)), {emitEvent: false});
-      const scale = this.createLegend();
+      const scale = this.createLegendScale();
       layer.setStyle(this.getFeatureStyleFn(scale, techStrata));
 
       // Add to layers control
@@ -350,34 +356,12 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     this.showLegendForm = false;
 
     // Reset legend color
-    const color = this.legendForm.get('color').value;
-    this.legendMainColorRgba = `rgba(${+color.r},${+color.g},${+color.b},${color.opacity || 1})`;
+    //const color = this.legendForm.get('color').value;
+    //this.legendStartColor = this.scale.endColor;
   }
 
   applyLegendForm(event: UIEvent) {
     this.showLegendForm = false;
-
-    const value = this.legendMainColorRgba;
-
-    if (!value || (!value.startsWith('rgb(') && !value.startsWith('rgba('))) return;
-
-    // Parse parts
-    const parts = value
-      .replace('rgb(', '')
-      .replace('rgba(', '')
-      .replace(')', '')
-      .split(',');
-
-    if (parts.length !== 3 && parts.length !== 4) return;
-
-    this.legendForm.get('color').patchValue({
-      rgba: value,
-      r: +parts[0],
-      g: +parts[1],
-      b: +parts[2],
-      opacity: parts.length === 4 && +parts[3] || 1
-    }, {emitEVent: false});
-
     this.onRefresh.emit();
   }
 
@@ -403,20 +387,21 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     };
   }
 
-  protected createLegend(): ColorScale {
-    const min = this.legendForm.get('min').value;
-    const max = this.legendForm.get('max').value;
-    const colorValue = this.legendForm.get('color').value;
-    const color = [colorValue.r, colorValue.g, colorValue.b];
-    const opacity = (colorValue.opacity || 1);
+  protected createLegendScale(): ColorScale {
+    const json = this.legendForm.value;
+    const min = json.min||0;
+    const max = json.max;
+    const startColor = Color.parseRgba(json.startColor);
+    const endColor = Color.parseRgba(json.endColor);
 
     // Create scale color (max 10 grades
     const scaleCount = Math.max(2, Math.min(max, 10));
     const scale = ColorScale.custom(scaleCount, {
       min: min,
       max: max,
-      opacity: opacity,
-      mainColor: color
+      opacity: endColor.opacity,
+      startColor: startColor.rgb,
+      endColor: endColor.rgb
     });
 
     this.$legendItems.next(scale.legend.items);

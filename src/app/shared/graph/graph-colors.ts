@@ -39,6 +39,23 @@ export class Color {
     return colorsMap[name] as Color;
   }
 
+  static parseRgba(rgba: string): Color|null{
+      if (!rgba || (!rgba.startsWith('rgb(') && !rgba.startsWith('rgba('))) return null;
+
+      // Parse parts
+      const parts = rgba
+        .replace('rgb(', '')
+        .replace('rgba(', '')
+        .replace(')', '')
+        .split(',');
+
+      if (parts.length !== 3 && parts.length !== 4) return null;
+
+      return new Color([+parts[0], +parts[1], +parts[2]],
+        parts.length === 4 && +parts[3] || 1,
+        'custom');
+  }
+
   static transparent = function () {
     return new Color([0,0,0], 0, 'translucent');
   };
@@ -224,32 +241,41 @@ function linearColorGradientWithIntermediate(count: number,
   // From [0,1]
   options.opacity = (options.opacity > 0 && options.opacity < 1) ? options.opacity : 1;
   options.startColor = options.startColor || [255, 255, 190]; // default start = creme
-  options.mainColor = options.mainColor || [255, 0, 0]; // default main = red
   options.mainColorIndex = options.mainColorIndex && options.mainColorIndex < count - 1 ? options.mainColorIndex : count - 1;
-  options.endColor = options.endColor || [0, 0, 0];
+  options.endColor = options.endColor || [255, 0, 0]; // default main = red
   options.format = options.format || 'rgb';
 
-  // Step 1: startColor -> mainColor
-  const result = linearColorGradient(options.mainColorIndex + 1, {
-    opacity: options.opacity,
-    startColor: options.startColor,
-    endColor: options.mainColor,
-    format: options.format
-  });
-
-  // Step 2: mainColor -> endColor
-  if (options.mainColorIndex < count - 1) {
-    console.log("OK");
-    return result.concat(
-      linearColorGradient(count - options.mainColorIndex, {
-        opacity: options.opacity,
-        startColor: options.mainColor,
-        endColor: options.endColor,
-        format: options.format
-      }));
+  if (!options.mainColor) {
+    return linearColorGradient(count, {
+      opacity: options.opacity,
+      startColor: options.startColor,
+      endColor: options.endColor,
+      format: options.format
+    });
   }
+
   else {
-    return result;
+    // Step 1: startColor -> mainColor
+    const result = linearColorGradient(options.mainColorIndex + 1, {
+      opacity: options.opacity,
+      startColor: options.startColor,
+      endColor: options.mainColor,
+      format: options.format
+    });
+
+    // Step 2: mainColor -> endColor
+    if (options.mainColorIndex < count - 1) {
+      return result.concat(
+        linearColorGradient(count - options.mainColorIndex, {
+          opacity: options.opacity,
+          startColor: options.mainColor,
+          endColor: options.endColor,
+          format: options.format
+        }));
+    }
+    else {
+      return result;
+    }
   }
 }
 
