@@ -2,9 +2,9 @@ import {Injectable} from "@angular/core";
 import {base58, CryptoService, KeyPair} from "./crypto.service";
 import {
   Account,
+  EntityUtils,
   getMainProfile,
   hasUpperOrEqualsProfile,
-  LocalSettings,
   Referential,
   ReferentialRef,
   StatusIds,
@@ -321,13 +321,13 @@ export class AccountService extends BaseDataService {
   }
 
   public canUserWriteDataForDepartment(recorderDepartment: Referential | ReferentialRef): boolean {
-    if (!recorderDepartment || !recorderDepartment.id) {
+    if (EntityUtils.isEmpty(recorderDepartment)) {
       console.warn("Unable to check if user has right: invalid recorderDepartment", recorderDepartment);
       return false;
     }
 
     // Should be login, and status ENABLE
-    if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId != StatusIds.ENABLE) return false;
+    if (!this.data.account || !this.data.account.pubkey || this.data.account.statusId !== StatusIds.ENABLE) return false;
 
     if (!this.data.account.department || !this.data.account.department.id) {
       console.warn("User account has no department ! Unable to check write right against recorderDepartment");

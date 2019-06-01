@@ -28,6 +28,7 @@ import {
   vesselFeaturesToString
 } from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
+import {IWithProgramEntity} from "../../../referential/services/model";
 
 
 export {
@@ -52,20 +53,33 @@ export function fillRankOrder(values: { rankOrder: number }[]) {
   });
 }
 
-/* -- Trip entity -- */
+/* -- Data entity -- */
 
-export abstract class DataEntity<T> extends Entity<T> {
+export interface IWithRecorderDepartmentEntity<T> extends Entity<T> {
+  recorderDepartment: Department|ReferentialRef|Referential;
+}
+
+export interface IWithRecorderPersonEntity<T> extends Entity<T> {
+  recorderPerson: Person;
+}
+
+export interface IWithVesselFeaturesEntity<T> extends Entity<T> {
+  vesselFeatures: VesselFeatures;
+}
+export interface IWithObserversEntity<T> extends Entity<T> {
+  observers: Person[];
+}
+
+export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDepartmentEntity<T> {
   recorderDepartment: Department;
   controlDate: Moment;
   qualificationDate: Moment;
   qualificationComments: string;
-  // TODO use a ReferentialRef when qualification is developed
   qualityFlagId: number;
 
   protected constructor() {
     super();
     this.recorderDepartment = new Department();
-    // this.qualityFlagId = new ReferentialRef();
   }
 
   asObject(minify?: boolean): any {
@@ -84,32 +98,34 @@ export abstract class DataEntity<T> extends Entity<T> {
     this.controlDate = fromDateISOString(source.controlDate);
     this.qualificationDate = fromDateISOString(source.qualificationDate);
     this.qualificationComments = source.qualificationComments;
-    // source.qualityFlagId && this.qualityFlagId.fromObject(source.qualityFlagId);
     this.qualityFlagId = source.qualityFlagId;
     return this;
   }
 
 }
 
-export abstract class DataRootEntity<T> extends DataEntity<T> {
-  comments: string = null;
+export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRecorderPersonEntity<T>, IWithProgramEntity<T> {
   creationDate: Moment;
-  recorderPerson: Person;
   validationDate: Moment;
+  comments: string = null;
+  recorderPerson: Person;
+  program: ReferentialRef;
 
-  constructor() {
+  protected constructor() {
     super();
-    this.comments = null;
     this.creationDate = null;
     this.validationDate = null;
+    this.comments = null;
     this.recorderPerson = new Person();
+    this.program = new ReferentialRef();
   }
 
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
     target.creationDate = toDateISOString(this.creationDate);
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
     target.validationDate = toDateISOString(this.validationDate);
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
+    target.program = this.program && this.program.asObject(false/*keep for trips list*/) || undefined;
     return target;
   }
 
@@ -117,18 +133,18 @@ export abstract class DataRootEntity<T> extends DataEntity<T> {
     super.fromObject(source);
     this.comments = source.comments;
     this.creationDate = fromDateISOString(source.creationDate);
-    source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
     this.validationDate = fromDateISOString(source.validationDate);
+    source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
+    source.program && this.program.fromObject(source.program);
     return this;
   }
 }
 
 
-export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> {
+export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implements IWithVesselFeaturesEntity<T> {
   vesselFeatures: VesselFeatures;
-  // TODO: program: string;
 
-  constructor() {
+  protected constructor() {
     super();
     this.vesselFeatures = new VesselFeatures();
   }
@@ -142,7 +158,6 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> {
   fromObject(source: any): DataRootVesselEntity<T> {
     super.fromObject(source);
     source.vesselFeatures && this.vesselFeatures.fromObject(source.vesselFeatures);
-    // TODO: source.program && this.program;
     return this;
   }
 }

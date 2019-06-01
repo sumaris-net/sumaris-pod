@@ -4,7 +4,7 @@ import {
   AcquisitionLevelCodes,
   DataEntity,
   DataRootEntity,
-  DataRootVesselEntity,
+  DataRootVesselEntity, IWithObserversEntity,
   Person,
   ReferentialRef
 } from "./base.model";
@@ -20,7 +20,7 @@ const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => { return n1
 
 /* -- Data -- */
 
-export class Trip extends DataRootVesselEntity<Trip> {
+export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
 
   static fromObject(source: any): Trip {
     const res = new Trip();
@@ -28,7 +28,6 @@ export class Trip extends DataRootVesselEntity<Trip> {
     return res;
   }
 
-  program: ReferentialRef;
   departureDateTime: Moment;
   returnDateTime: Moment;
   departureLocation: ReferentialRef;
@@ -40,7 +39,6 @@ export class Trip extends DataRootVesselEntity<Trip> {
 
   constructor() {
     super();
-    this.program = new ReferentialRef();
     this.departureLocation = new ReferentialRef();
     this.returnLocation = null;
     this.measurements = [];
@@ -59,7 +57,6 @@ export class Trip extends DataRootVesselEntity<Trip> {
 
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
-    target.program = this.program && this.program.asObject(false/*keep for trips list*/) || undefined;
     target.departureDateTime = toDateISOString(this.departureDateTime);
     target.returnDateTime = toDateISOString(this.returnDateTime);
     target.departureLocation = this.departureLocation && this.departureLocation.asObject(false/*keep for trips list*/) || undefined;
@@ -73,7 +70,6 @@ export class Trip extends DataRootVesselEntity<Trip> {
 
   fromObject(source: any): Trip {
     super.fromObject(source);
-    source.program && this.program.fromObject(source.program);
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);
     source.departureLocation && this.departureLocation.fromObject(source.departureLocation);

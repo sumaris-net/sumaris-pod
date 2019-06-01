@@ -12,11 +12,10 @@ import {Moment} from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
 import {ObservedLocation} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
-import {MeasurementsForm} from "../measurement/measurements.form.component";
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
-import {ObservedVesselsTable} from "./observed-vessels.table";
+import {LandingsTable} from "../landing/landings.table";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {filter, mergeMap, switchMap} from "rxjs/operators";
+import {filter, switchMap} from "rxjs/operators";
 import {LocationLevelIds, ProgramProperties} from "../../referential/services/model";
 import {ProgramService} from "../../referential/services/program.service";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -34,17 +33,14 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
   title = new Subject<string>();
   saving: boolean = false;
   defaultBackHref: string = "/observations";
-  showVesselTable = false;
   onRefresh = new EventEmitter<any>();
   isOnFieldMode: boolean;
 
   @ViewChild('observedLocationForm') observedLocationForm: ObservedLocationForm;
 
-  //@ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
-
   @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
 
-  @ViewChild('vesselTable') vesselTable: ObservedVesselsTable;
+  @ViewChild('landingsTable') landingsTable: LandingsTable;
 
   constructor(
     route: ActivatedRoute,
@@ -62,7 +58,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     this.isOnFieldMode = this.settingsService.isUsageMode('FIELD');
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -70,16 +66,16 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
     // Register forms & tables
     this.registerForms([this.observedLocationForm])
-      .registerTables([this.vesselTable]);
+      .registerTables([this.landingsTable]);
 
     this.disable();
 
-    this.route.params.first().subscribe(async ({observedLocationId}) => {
-      if (!observedLocationId || observedLocationId === "new") {
+    this.route.params.first().subscribe(async ({id}) => {
+      if (!id || id === "new") {
         await this.load();
       }
       else {
-        await this.load(parseInt(observedLocationId));
+        await this.load(+id);
       }
     });
 
@@ -113,7 +109,6 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
       this.updateView(data);
       this.loading = false;
-      this.showVesselTable = false;
       this.startListenProgramChanges();
     }
 
@@ -122,7 +117,6 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
       const data = await this.dataService.load(id);
       this.updateView(data);
       this.loading = false;
-      this.showVesselTable = true;
       this.startListenRemoteChanges();
     }
   }
@@ -133,19 +127,16 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     if (isNil(this.data.id)) {
 
       // Listen program changes (only if new data)
-      if (this.observedLocationForm && this.observedLocationForm.form) {
-        this.registerSubscription(this.observedLocationForm.form.controls['program'].valueChanges
-          .subscribe(program => {
-            if (EntityUtils.isNotEmpty(program)) {
-              console.debug("[observed-location] Propagate program change: " + program.label);
-              this.programSubject.next(program.label);
-            }
-          })
-        );
-      }
+      this.registerSubscription(this.observedLocationForm.form.controls['program'].valueChanges
+        .subscribe(program => {
+          if (EntityUtils.isNotEmpty(program)) {
+            console.debug("[observed-location] Propagate program change: " + program.label);
+            this.programSubject.next(program.label);
+          }
+        })
+      );
     }
   }
-
 
   startListenRemoteChanges() {
     // Listen for changes on server
@@ -157,7 +148,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
             if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
               if (this.debug) console.debug("[trip] Changes detected on server, at:", newUpdateDate);
               if (!this.dirty) {
-                this.updateView(data, true);
+                this.updateView(data);
               }
             }
           })
@@ -165,18 +156,15 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     }
   }
 
-  updateView(data: ObservedLocation | null, updateVessels?: boolean) {
+  updateView(data: ObservedLocation | null) {
+    console.log("TODO");
     this.data = data;
     this.observedLocationForm.value = data;
-    const isSaved = isNotNil(data.id);
-    if (isSaved) {
+    const isNew = this.isNewData;
+    if (!isNew) {
       this.observedLocationForm.form.controls['program'].disable();
       this.programSubject.next(data.program.label);
-    }
-
-    this.showVesselTable = isSaved;
-    if (updateVessels && this.vesselTable) {
-      this.vesselTable.setParent(data);
+      this.landingsTable.setParent(data);
     }
 
     // Quality metadata
@@ -213,30 +201,29 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
 
     if (this.debug) console.debug("[observed-location] Saving control...");
 
-    // Update data from JSON
-    this.data.fromObject(this.observedLocationForm.value);
-
+    // Get data
+    const data = this.observedLocationForm.value;
     const formDirty = this.dirty;
-    const isNew = this.isNewData();
+    const isNew = this.isNewData;
 
     this.disable();
 
     try {
       // Save saleControl form (with sale)
-      const updatedData = formDirty ? await this.dataService.save(this.data) : this.data;
+      const updatedData = formDirty ? await this.dataService.save(data) : this.data;
       if (formDirty) {
         this.markAsPristine();
         this.markAsUntouched();
       }
 
       // Save vessels
-      const isVesselSaved = !this.vesselTable || await this.vesselTable.save();
-      if (isVesselSaved && this.vesselTable) {
-        this.vesselTable.markAsPristine();
+      const isVesselSaved = !this.landingsTable || await this.landingsTable.save();
+      if (isVesselSaved && this.landingsTable) {
+        this.landingsTable.markAsPristine();
       }
 
       // Update the view (e.g metadata)
-      this.updateView(updatedData, isNew/*will update tripId in filter*/);
+      this.updateView(updatedData);
 
       // Is first save
       if (isNew) {
@@ -363,7 +350,7 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
    */
   protected openFirstInvalidTab() {
     const tab0Invalid = this.observedLocationForm.invalid;
-    const tab1Invalid = this.vesselTable.invalid;
+    const tab1Invalid = this.landingsTable.invalid;
 
     const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : this.selectedTabIndex);
     if (this.selectedTabIndex === 0 && !tab0Invalid) {
@@ -398,9 +385,23 @@ export class ObservedLocationPage extends AppTabPage<ObservedLocation> implement
     }
   }
 
+  async onOpenLanding(id: number) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      await this.router.navigateByUrl(`/observations/${this.data.id}/landings/${id}`);
+    }
+  }
+
+  async onNewLanding(event?: any) {
+    const savedOrContinue = await this.saveIfDirtyAndConfirm();
+    if (savedOrContinue) {
+      await this.router.navigateByUrl(`/observations/${this.data.id}/landings/new`);
+    }
+  }
+
   /* -- protected methods -- */
 
   protected markForCheck() {
-    //this.cd.markForCheck();
+    this.cd.markForCheck();
   }
 }

@@ -24,7 +24,7 @@ import { IndividualMonitoringTable } from './sample/individualmonitoring/sample-
 import { MeasurementValuesForm } from './measurement/measurement-values.form.class';
 import { EntityQualityFormComponent} from "./quality/entity-quality-form.component";
 
-import {TripService, OperationService, ExtractionService, ObservedVesselService} from './services/trip.services';
+import {TripService, OperationService, ExtractionService, LandingService} from './services/trip.services';
 
 import {
     TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService,
@@ -37,10 +37,13 @@ import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
 import {ObservedLocationService} from "./services/observed-location.service";
 import {ObservedLocationValidatorService} from "./services/observed-location.validator";
-import {ObservedVesselsTable} from "./observedlocation/observed-vessels.table";
+import {LandingsTable} from "./landing/landings.table";
 import {SaleService} from "./services/sale.service";
 import {ExtractionMapPage} from "./extraction/extraction-map-page.component";
 import {LeafletModule} from "@asymmetrik/ngx-leaflet";
+import {LandingValidatorService} from "./services/landing.validator";
+import {LandingPage} from "./landing/landing.page";
+import {LandingForm} from "./landing/landing.form";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -68,7 +71,9 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       MeasurementQVFormField,
       MeasurementFormField,
       CatchBatchForm,
-      ObservedVesselsTable,
+      LandingsTable,
+      LandingPage,
+      LandingForm,
       SamplesTable,
       SubSamplesTable,
       BatchGroupsTable,
@@ -94,7 +99,10 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       MeasurementQVFormField,
       ExtractionTablePage,
       ExtractionMapPage,
-      EntityQualityFormComponent
+      EntityQualityFormComponent,
+      LandingsTable,
+      LandingForm,
+      LandingPage
     ],
     entryComponents: [
       TripsPage,
@@ -103,13 +111,11 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       PhysicalGearTable,
       OperationTable,
       OperationPage,
-      MeasurementsForm,
-      MeasurementQVFormField,
-      MeasurementFormField,
       ExtractionTablePage,
       ExtractionMapPage,
       ObservedLocationPage,
-      ObservedLocationsPage
+      ObservedLocationsPage,
+      LandingPage
     ],
     providers: [
       TripService,
@@ -119,7 +125,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       OperationValidatorService,
       ObservedLocationService,
       ObservedLocationValidatorService,
-      ObservedVesselService,
+      LandingService,
+      LandingValidatorService,
       SaleService,
       SaleValidatorService,
       PositionValidatorService,

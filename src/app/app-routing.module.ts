@@ -16,6 +16,7 @@ import {ObservedLocationPage} from "./trip/observedlocation/observed-location.pa
 import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.page";
 import {SettingsPage} from "./core/settings/settings.page";
 import {ExtractionMapPage} from "./trip/extraction/extraction-map-page.component";
+import {LandingPage} from "./trip/landing/landing.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -134,7 +135,7 @@ const routes: Routes = [
         path: ':tripId',
         pathMatch: 'full',
         component: TripPage,
-        runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+        runGuardsAndResolvers: 'pathParamsChange',
         data: {
           profile: 'USER'
         }
@@ -164,9 +165,17 @@ const routes: Routes = [
         }
       },
       {
-        path: ':observedLocationId',
+        path: ':id',
         component: ObservedLocationPage,
         runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'USER'
+        }
+      },
+      {
+        path: ':parentId/landings/:id',
+        component: LandingPage,
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange',
         data: {
           profile: 'USER'
         }

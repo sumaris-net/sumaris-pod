@@ -56,7 +56,6 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
 
   private _program: string;
   private _acquisitionLevel: string;
-  private _implicitValues: { [key: string]: any } = {};
   private _dataSubject = new BehaviorSubject<LoadResult<Sample>>({data: []});
   private _onRefreshPmfms = new EventEmitter<any>();
 
@@ -141,7 +140,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
       Sample, this, this, {
         prependNewElements: false,
         suppressErrors: true,
-        onNewRow: (row) => this.onNewSampleRow(row)
+        onRowCreated: (row) => this.onRowCreated(row)
       }));
     //this.debug = true;
   };
@@ -325,7 +324,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
-  protected async onNewSampleRow(row: TableElement<Sample>): Promise<void> {
+  protected async onRowCreated(row: TableElement<Sample>): Promise<void> {
     const data = row.currentData;
     await this.onNewSample(data);
     row.currentData = data;

@@ -1,13 +1,14 @@
 import {fromDateISOString, isNotNil, Person, ReferentialRef, toDateISOString} from "../../../core/core.module";
 
-import {DataRootEntity, DataRootVesselEntity} from "./base.model";
+import {DataRootEntity, DataRootVesselEntity, IWithObserversEntity} from "./base.model";
 
 
 import {Moment} from "moment/moment";
 import {IEntityWithMeasurement} from "./measurement.model";
 
 
-export class ObservedLocation extends DataRootEntity<ObservedLocation> implements IEntityWithMeasurement<ObservedLocation> {
+export class ObservedLocation extends DataRootEntity<ObservedLocation>
+  implements IEntityWithMeasurement<ObservedLocation>, IWithObserversEntity<ObservedLocation> {
 
   static fromObject(source: any): ObservedLocation {
     const res = new ObservedLocation();

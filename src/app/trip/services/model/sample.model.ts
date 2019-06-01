@@ -1,7 +1,8 @@
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
+import {EntityUtils, fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
 import {ReferentialRef} from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
-import {DataRootEntity} from "./base.model";
+import {DataEntity, DataRootEntity} from "./base.model";
+import {MeasurementUtils} from "./measurement.model";
 
 
 export class Sample extends DataRootEntity<Sample> {
@@ -29,11 +30,12 @@ export class Sample extends DataRootEntity<Sample> {
 
   constructor() {
     super();
+    this.label = null;
+    this.rankOrder = null;
     this.taxonGroup = null;
     this.measurementValues = {};
     this.children = [];
     this.individualCount = null;
-    this.rankOrder = null;
   }
 
   clone(): Sample {
@@ -48,21 +50,10 @@ export class Sample extends DataRootEntity<Sample> {
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false/*fix #32*/) || undefined;
     target.taxonName = this.taxonName && this.taxonName.asObject(false/*fix #32*/) || undefined;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
-
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
-    delete target.parent;
-
+    delete target.parent; // Do not keep parent object
     target.children = this.children && this.children.map(c => c.asObject(minify)) || undefined;
-
-    // Measurement: keep only the map
-    if (minify) {
-      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
-        .reduce((map, pmfmId) => {
-          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
-          if (isNotNil(value)) map[pmfmId] = '' + value;
-          return map;
-        }, {}) || undefined;
-    }
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, minify);
     return target;
   }
 
@@ -72,7 +63,6 @@ export class Sample extends DataRootEntity<Sample> {
     this.rankOrder = source.rankOrder;
     this.sampleDate = fromDateISOString(source.sampleDate);
     this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
-    this.comments = source.comments;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
     this.matrixId = source.matrixId;
@@ -86,11 +76,7 @@ export class Sample extends DataRootEntity<Sample> {
     }
     // Convert measurement to map
     else if (source.measurements) {
-      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
-        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-        if (value) map[m.pmfmId] = value;
-        return map;
-      }, {}) || undefined;
+      this.measurementValues = MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
     }
 
     return this;

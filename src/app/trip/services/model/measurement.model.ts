@@ -1,18 +1,13 @@
 import {Entity, fromDateISOString, isNil, isNotNil, toDateISOString} from "../../../core/core.module";
-import {
-  AcquisitionLevelCodes,
-  Department,
-  Person,
-  PmfmStrategy,
-  ReferentialRef,
-  VesselFeatures
-} from "../../../referential/referential.module";
-import {Moment} from "moment/moment";
+import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity} from "./base.model";
 
+export const PMFM_ID_REGEXP = /\d+/;
 
 export declare interface IEntityWithMeasurement<T> extends Entity<T> {
   measurementValues: { [key: string]: string };
+  rankOrder?: number;
+  comments?: string;
 }
 
 export class Measurement extends DataEntity<Measurement> {
@@ -209,6 +204,24 @@ export class MeasurementUtils {
       target[pmfm.pmfmId] = MeasurementUtils.toEntityValue(source[pmfm.pmfmId], pmfm);
     });
     return target;
+  }
+
+  static measurementValuesAsObjectMap(source: { [key: number]: any }, minify: boolean): { [key: string]: any } {
+    if (!minify) return source;
+    return source && Object.getOwnPropertyNames(source)
+      .reduce((map, pmfmId) => {
+        const value = source[pmfmId] && source[pmfmId].id || source[pmfmId];
+        if (isNotNil(value)) map[pmfmId] = '' + value;
+        return map;
+      }, {}) || undefined;
+  }
+
+  static measurementsValuesFromObjectArray(measurements: Measurement[]) {
+    return measurements && measurements.reduce((map, m) => {
+      const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
+      if (value) map[m.pmfmId] = value;
+      return map;
+    }, {}) || undefined;
   }
 
   static isEmpty(source: Measurement | any): boolean {

@@ -10,6 +10,7 @@ import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
 import {first} from "rxjs/operators";
+import {AppFormUtils} from "./form.utils";
 
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
@@ -27,6 +28,10 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   @ViewChild(ToolbarComponent) appToolbar: ToolbarComponent;
   @ViewChild(FormButtonsBarComponent) formButtonsBar: FormButtonsBarComponent;
 
+  get isNewData(): boolean {
+    return !this.data || this.data.id === undefined || this.data.id === null;
+  }
+
   public get dirty(): boolean {
     return (this._forms && !!this._forms.find(form => form.dirty)) || (this._tables && !!this._tables.find(table => table.dirty));
   }
@@ -43,7 +48,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     return this._tables;
   }
 
-  constructor(
+  protected constructor(
     protected route: ActivatedRoute,
     protected router: Router,
     protected alertCtrl: AlertController,
@@ -298,13 +303,64 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     }, 16);
   }
 
-  protected isNewData(): boolean {
-    return !this.data || this.data.id === undefined || this.data.id === null
-  }
-
   protected registerSubscription(sub: Subscription) {
     this._subscriptions.push(sub);
     if (this.debug) console.debug(`[page] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
+  }
+
+  protected async saveIfDirtyAndConfirm(): Promise<boolean> {
+    if (!this.dirty) return true;
+
+    let confirm = false;
+    let cancel = false;
+    const translations = this.translate.instant(['COMMON.BTN_SAVE', 'COMMON.BTN_CANCEL', 'COMMON.BTN_ABORT_CHANGES', 'CONFIRM.SAVE', 'CONFIRM.ALERT_HEADER']);
+    const alert = await this.alertCtrl.create({
+      header: translations['CONFIRM.ALERT_HEADER'],
+      message: translations['CONFIRM.SAVE'],
+      buttons: [
+        {
+          text: translations['COMMON.BTN_CANCEL'],
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            cancel = true;
+          }
+        },
+        {
+          text: translations['COMMON.BTN_ABORT_CHANGES'],
+          cssClass: 'secondary',
+          handler: () => {
+          }
+        },
+        {
+          text: translations['COMMON.BTN_SAVE'],
+          handler: () => {
+            confirm = true; // update upper value
+          }
+        }
+      ]
+    });
+    await alert.present();
+    await alert.onDidDismiss();
+
+    if (!confirm) return !cancel;
+
+    const saved = await this.save(event);
+    return saved;
+  }
+
+  protected logFormErrors() {
+    if (this.debug) console.debug("[root-editor-form] Page not valid. Checking where (forms, tables)...");
+    (this._forms || []).forEach(appForm => {
+      if (!appForm.empty && appForm.invalid) {
+        AppFormUtils.logFormErrors(appForm.form, `"[root-editor-form] [${appForm.constructor.name.toLowerCase()}] `);
+      }
+    });
+    (this._tables || []).forEach(appTable => {
+      if (!appTable.invalid && appTable.editedRow && appTable.editedRow.validator) {
+        AppFormUtils.logFormErrors(appTable.editedRow.validator, `"[root-editor-form] [${appTable.constructor.name.toLowerCase()}] `);
+      }
+    });
   }
 
   protected markForCheck() {

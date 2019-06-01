@@ -87,7 +87,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
     return modal.present();
   }
 
-  protected async openEditRowDetail(id: number, row?: TableElement<VesselFeatures>): Promise<boolean> {
+  protected async openRow(id: number, row?: TableElement<VesselFeatures>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
     return await this.router.navigateByUrl('/referential/vessels/' + id);

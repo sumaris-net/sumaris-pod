@@ -245,7 +245,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.data.fromObject(json);
 
     const formDirty = this.dirty;
-    const isNew = this.isNewData();
+    const isNew = this.isNewData;
 
     // Update gears, from table
     await this.physicalGearTable.save();
@@ -318,14 +318,14 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }
   }
 
-  async onOperationClick(opeId: number) {
+  async onOpenOperation(id: number) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
-      await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${opeId}`);
+      await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
     }
   }
 
-  async onNewOperationClick(event?: any) {
+  async onNewOperation(event?: any) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       await this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);

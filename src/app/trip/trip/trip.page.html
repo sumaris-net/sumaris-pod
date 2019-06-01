@@ -97,10 +97,10 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="operationTable.invalid && operationTable.dirty"></ion-icon>
       </ng-template>
 
-      <table-operations #operationTable
-                        (onOperationClick)="onOperationClick($event)"
-                        (onNewOperationClick)="onNewOperationClick($event)">
-      </table-operations>
+      <app-operation-table #operationTable
+                        (onOpenRow)="onOpenOperation($event)"
+                        (onNewRow)="onNewOperation($event)">
+      </app-operation-table>
     </mat-tab>
   </mat-tab-group>
 

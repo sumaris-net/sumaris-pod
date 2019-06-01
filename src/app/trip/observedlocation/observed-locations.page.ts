@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
 import {
@@ -42,6 +42,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
   locations: Observable<ReferentialRef[]>;
 
   constructor(
+    injector: Injector,
     protected route: ActivatedRoute,
     protected router: Router,
     protected platform: Platform,
@@ -52,7 +53,6 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected dataService: ObservedLocationService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
-    protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
@@ -74,7 +74,9 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
-      })
+      }),
+      null,
+      injector
     );
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
@@ -87,6 +89,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     this.canEdit = this.isAdmin || accountService.isUser();
     this.canDelete = this.isAdmin;
     this.inlineEdition = false;
+    this.confirmBeforeDelete = true;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -142,40 +145,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     }, 1000);
   }
 
-  async deleteSelection(confirm?: boolean) {
-    if (this.loading) return;
-
-    if (!confirm) {
-      const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE', 'CONFIRM.ALERT_HEADER']);
-      const alert = await this.alertCtrl.create({
-        header: translations['CONFIRM.ALERT_HEADER'],
-        message: translations['CONFIRM.DELETE'],
-        buttons: [
-          {
-            text: translations['COMMON.NO'],
-            role: 'cancel',
-            cssClass: 'secondary',
-            handler: () => {
-            }
-          },
-          {
-            text: translations['COMMON.YES'],
-            handler: () => {
-              confirm = true; // update upper value
-            }
-          }
-        ]
-      });
-      await alert.present();
-      await alert.onDidDismiss();
-    }
-
-    if (confirm) {
-      await super.deleteSelection();
-    }
-  }
-
-  protected openEditRowDetail(id: number): Promise<boolean> {
+  protected openRow(id: number): Promise<boolean> {
     return this.router.navigateByUrl('/observations/' + id);
   }
 

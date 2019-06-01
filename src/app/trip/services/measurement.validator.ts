@@ -5,18 +5,34 @@ import {PmfmStrategy} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 
 import {isNil, isNotNil} from '../../shared/shared.module';
+import {ProgramService} from "../../referential/services/program.service";
 
 const REGEXP_INTEGER = /^[0-9]+$/;
 const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
 
+export declare type FormGroupConfig = { [key: string]: any };
+
+
+// export abstract class ContextualValidatorService<T> extends ValidatorService {
+//
+//   abstract getRowValidator(context: any): FormGroup;
+//
+//   abstract getFormGroup(data?: T): FormGroup;
+// }
+
 @Injectable()
 export class MeasurementsValidatorService implements ValidatorService {
 
+  private _pmfmsCache: {[key: string]: PmfmStrategy[] } = {};
+  private _pmfmsFormGroupConfigCache: {[key: string]: FormGroupConfig} = {};
+
   constructor(
-    private formBuilder: FormBuilder) {
+    protected formBuilder: FormBuilder,
+    protected programService: ProgramService) {
   }
 
   public getRowValidator(options?: any): FormGroup {
+    options = options || {};
     return this.getFormGroup(options && options.pmfms || []);
   }
 
@@ -106,4 +122,6 @@ export class MeasurementsValidatorService implements ValidatorService {
 
     return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : undefined);
   }
+
+  protected
 }

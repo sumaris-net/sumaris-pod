@@ -1,4 +1,4 @@
-import {EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
+import {EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatColumnDef, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
 import {Observable, Subject} from 'rxjs';
@@ -8,7 +8,7 @@ import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
 import {Entity} from "../services/model";
 import {Subscription} from "rxjs-compat";
-import {ModalController, Platform} from "@ionic/angular";
+import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from '../services/account.service';
 import {TableSelectColumnsComponent} from './table-select-columns.component';
@@ -17,6 +17,7 @@ import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
 import {isNotNil} from "../../shared/shared.module";
 import {LocalSettingsService} from "../services/local-settings.service";
+import {TranslateService} from "@ngx-translate/core";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -34,12 +35,15 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
       formPath?: string;
     }
   } = {};
+  // TODO: change this to private:
+  protected _implicitValues: { [key: string]: any } = {};
   protected _enable = true;
   protected _dirty = false;
   protected allowRowDetail = true;
   protected pageSize: number;
   protected _onDestroy = new Subject();
 
+  excludesColumns = new Array<String>();
   inlineEdition = false;
   displayedColumns: string[];
   resultsLength = 0;
@@ -55,6 +59,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   autoLoad = true;
   settingsId: string;
   mobile: boolean;
+  confirmBeforeDelete = false;
+
+  protected translate: TranslateService;
+  protected alertCtrl: AlertController;
 
   @Input()
   debug = false;
@@ -65,6 +73,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
   @Output()
   listChange = new EventEmitter<T[]>();
+
+  @Output()
+  onOpenRow: EventEmitter<number> = new EventEmitter<number>();
+
+  @Output()
+  onNewRow: EventEmitter<void> = new EventEmitter<void>();
 
   get dirty(): boolean {
     return this._dirty;
@@ -131,9 +145,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     protected settingsService: AccountService|LocalSettingsService,
     protected columns: string[],
     public dataSource?: AppTableDataSource<T, F>,
-    protected filter?: F
+    protected filter?: F,
+    injector?: Injector
   ) {
     this.mobile = this.platform.is('mobile');
+    this.translate = injector && injector.get(TranslateService);
+    this.alertCtrl = injector && injector.get(AlertController);
   }
 
   ngOnInit() {
@@ -224,7 +241,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     if (this._initialized) this.listenDatasource(datasource);
   }
 
-  listenDatasource(dataSource: AppTableDataSource<T, F>) {
+  protected listenDatasource(dataSource: AppTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
     if (this._subscriptions.length) console.warn("Too many call of listenDatasource!", new Error());
     this.registerSubscription(dataSource.onLoading.subscribe(loading => {
@@ -350,9 +367,34 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }
   }
 
-  async deleteSelection(): Promise<void> {
+  async deleteSelection(confirm?: boolean): Promise<void> {
     if (!this._enable) return;
     if (this.loading || this.selection.isEmpty()) return;
+
+    if (this.confirmBeforeDelete && !confirm) {
+      const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE', 'CONFIRM.ALERT_HEADER']);
+      const alert = await this.alertCtrl.create({
+        header: translations['CONFIRM.ALERT_HEADER'],
+        message: translations['CONFIRM.DELETE'],
+        buttons: [
+          {
+            text: translations['COMMON.NO'],
+            role: 'cancel',
+            cssClass: 'secondary',
+            handler: () => {
+            }
+          },
+          {
+            text: translations['COMMON.YES'],
+            handler: () => {
+              confirm = true; // update upper value
+            }
+          }
+        ]
+      });
+      await alert.present();
+      await alert.onDidDismiss();
+    }
 
     if (this.debug) console.debug("[table] Delete selection...");
 
@@ -389,8 +431,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     return true;
   }
 
-  onRowClick(event: MouseEvent, row: TableElement<T>): boolean {
-    if (row.id == -1 || row.editing) return true;
+  clickRow(event: MouseEvent, row: TableElement<T>): boolean {
+    if (row.id === -1 || row.editing) return true;
     if (event.defaultPrevented || this.loading) return false;
 
     // Open the detail page (if not editing)
@@ -398,12 +440,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
       event.stopPropagation();
 
       this.loading = true;
-      setTimeout(() => {
-        this.openEditRowDetail(row.currentData.id, row)
-          .then(() => {
-            this.loading = false;
-            this.markForCheck();
-          });
+      setTimeout(async () => {
+        await this.openRow(row.currentData.id, row)
+        this.loading = false;
+        this.markForCheck();
       });
 
       return true;
@@ -412,16 +452,28 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     return this.onEditRow(event, row);
   }
 
-  protected openEditRowDetail(id: number, row?: TableElement<T>): Promise<boolean> {
-    if (!this.allowRowDetail) return Promise.resolve(false);
-    return this.router.navigate([id], {
+  protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit(id);
+      return true;
+    }
+
+    return await this.router.navigate([id], {
       relativeTo: this.route
     });
   }
 
-  protected openNewRowDetail(): Promise<any> {
-    if (!this.allowRowDetail) return Promise.resolve(false);
-    return this.router.navigate(['new'], {
+  protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onNewRow.observers.length) {
+      this.onNewRow.emit();
+      return true;
+    }
+
+    return await this.router.navigate(['new'], {
       relativeTo: this.route
     });
   }
@@ -582,6 +634,47 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
       def.subscription.unsubscribe();
       def.subscription = null;
     }
+  }
+
+  public updateImplicitValue(name: string, res: any[]) {
+    this._implicitValues[name] = res && res.length === 1 ? res[0] : undefined;
+  }
+
+  public applyImplicitValue(columnName: string, row: TableElement<any>) {
+    this.stopCellValueChanges(columnName);
+    const control = row.validator && row.validator.controls[columnName];
+    const value = control && this._implicitValues[name];
+    // Apply last implicit value
+    if (control && value !== undefined && value !== null) {
+      control.patchValue(this._implicitValues[columnName], {emitEvent: false});
+      control.markAsDirty();
+      this._implicitValues[name] = null;
+    }
+  }
+
+  onCellFocus(event: any, row: TableElement<T>, columnName: string) {
+    this.startCellValueChanges(columnName, row);
+  }
+
+  onCellBlur(event: FocusEvent, row: TableElement<T>, columnName: string) {
+    this.stopCellValueChanges(columnName);
+    this.applyImplicitValue(columnName, row);
+  }
+
+
+  setShowColumn(columnName: string, show: boolean) {
+    if (!this.excludesColumns.includes(columnName) !== show) {
+      if (!show) {
+        this.excludesColumns.push(columnName);
+      } else {
+        const index = this.excludesColumns.findIndex(value => value === columnName);
+        if (index >= 0) this.excludesColumns.splice(index, 1);
+      }
+    }
+  }
+
+  getShowColumn(columnName: string): boolean {
+    return !this.excludesColumns.includes(columnName);
   }
 
   protected markForCheck() {

@@ -83,7 +83,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     this.setDatasource(new AppTableDataSource<PhysicalGear, any>(PhysicalGear, this, null/*this.validatorService*/, {
       prependNewElements: false,
       suppressErrors: false,
-      onNewRow: (row) => this.onCreateNewGear(row)
+      onRowCreated: (row) => this.onRowCreated(row)
     }));
 
     // FOR DEV ONLY ----
@@ -175,10 +175,10 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
 
   async getMaxRankOrder(): Promise<number> {
     const rows = await this.dataSource.getRows();
-    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder|| 0), 0);
+    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
-  async onCreateNewGear(row: TableElement<PhysicalGear>): Promise<void> {
+  async onRowCreated(row: TableElement<PhysicalGear>): Promise<void> {
     // Set computed values
     const data = row.currentData;
     data.rankOrder = (await this.getMaxRankOrder()) + 1;
@@ -212,7 +212,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     return true;
   }
 
-  onRowClick(event: MouseEvent, row: TableElement<PhysicalGear>): boolean {
+  onEditRow(event: MouseEvent, row: TableElement<PhysicalGear>): boolean {
     if (!row.currentData || event.defaultPrevented) return false;
 
     // Avoid to change select row, if previous is not valid

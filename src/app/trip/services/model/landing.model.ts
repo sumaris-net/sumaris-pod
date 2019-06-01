@@ -1,17 +1,18 @@
 import {
-  DataRootVesselEntity,
+  DataRootVesselEntity, EntityUtils,
   fromDateISOString,
-  isNotNil,
+  isNotNil, IWithObserversEntity,
   Person,
   ReferentialRef,
   toDateISOString
 } from "./base.model";
 import {Moment} from "moment";
+import {MeasurementUtils} from "./measurement.model";
 
 /**
  * Landing entity
  */
-export class Landing extends DataRootVesselEntity<Landing> {
+export class Landing extends DataRootVesselEntity<Landing> implements IWithObserversEntity<Landing> {
 
   static fromObject(source: any): Landing {
     const res = new Landing();
@@ -54,16 +55,7 @@ export class Landing extends DataRootVesselEntity<Landing> {
     target.landingDateTime = toDateISOString(this.landingDateTime);
     target.landingLocation = this.landingLocation && this.landingLocation.asObject(false/*keep for landing list*/) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject(minify)) || undefined;
-
-    // Measurement: keep only the map
-    if (minify) {
-      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
-        .reduce((map, pmfmId) => {
-          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
-          if (isNotNil(value)) map[pmfmId] = '' + value;
-          return map;
-        }, {}) || undefined;
-    }
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, minify);
 
     return target;
   }
@@ -77,21 +69,20 @@ export class Landing extends DataRootVesselEntity<Landing> {
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.observedLocationId = source.observedLocationId;
     this.tripId = source.tripId;
-
-    if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
-    }
-    // Convert measurement to map
-    else if (source.measurements) {
-      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
-        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-        if (value) map[m.pmfmId] = value;
-        return map;
-      }, {}) || undefined;
-    }
+    this.measurementValues = source.measurementValues;
 
     return this;
   }
 
-
+  equals(other: Landing): boolean {
+    return super.equals(other)
+      || (
+        // Same vessel
+        (this.vesselFeatures && other.vesselFeatures && this.vesselFeatures.vesselId === other.vesselFeatures.vesselId)
+        // Same date
+        && (this.landingDateTime === other.landingDateTime)
+        // Same location
+        && EntityUtils.equals(this.landingLocation, other.landingLocation)
+      );
+  }
 }

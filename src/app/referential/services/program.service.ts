@@ -2,10 +2,9 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {PmfmStrategy, Program} from "./model";
-import {BaseDataService, LoadResult, ReferentialRef, TableDataService} from "../../core/core.module";
+import {IWithProgramEntity, PmfmStrategy, Program} from "./model";
+import {AccountService, BaseDataService, LoadResult, ReferentialRef, TableDataService} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
-import {Apollo} from "apollo-angular";
 import {ReferentialFragments} from "../services/referential.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 
@@ -94,7 +93,8 @@ const LoadProgramGears: any = gql`
 export class ProgramService extends BaseDataService implements TableDataService<Program, ProgramFilter> {
 
   constructor(
-    protected graphql: GraphqlService
+    protected graphql: GraphqlService,
+    protected accountService: AccountService
   ) {
     super(graphql);
 
@@ -234,7 +234,21 @@ export class ProgramService extends BaseDataService implements TableDataService<
         program: program
       },
       error: {code: ErrorCodes.LOAD_PROGRAM_GEARS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_GEARS_ERROR"}
-    })
+    });
     return (data && data.programGears || []).map(ReferentialRef.fromObject);
+  }
+
+  canUserWrite(data: IWithProgramEntity<any>): boolean {
+    if (!data) return false;
+
+    // If the user is the recorder: can write
+    if (data.recorderPerson && this.accountService.isLogin() && this.accountService.account.equals(data.recorderPerson)) {
+      return true;
+    }
+
+    // TODO: check rights on program (need model changes)
+
+    // Check same department
+    return this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
   }
 }

@@ -1,4 +1,5 @@
 import {Observable} from "rxjs-compat";
+import {Trip} from "../../trip/services/model/trip.model";
 
 export declare interface LoadResult<T> {
   data: T[];
@@ -21,6 +22,20 @@ export declare interface DataService<T, F> {
   saveAll(data: T[], options?: any): Promise<T[]>;
 
   deleteAll(data: T[], options?: any): Promise<any>;
+}
+
+export declare interface EditorDataService<T, F> {
+
+  load(
+    id: number,
+    options?: any
+  ): Promise<T>;
+
+  save(data: T, options?: any): Promise<T>;
+
+  delete(data: T, options?: any): Promise<any>;
+
+  listenChanges(id: number, options?: any): Observable<T | undefined>;
 }
 
 export declare interface TableDataService<T, F> {

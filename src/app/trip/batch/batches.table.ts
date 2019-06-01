@@ -58,7 +58,6 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
 
   private _program: string;
   private _acquisitionLevel: string;
-  private _implicitValues: { [key: string]: any } = {};
   private _dataSubject = new BehaviorSubject<LoadResult<Batch>>({data: []});
   private _onRefreshPmfms = new EventEmitter<any>();
 
@@ -74,7 +73,6 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   set value(data: Batch[]) {
     if (this.data !== data) {
       this.data = data;
-      if (!this.loading) console.log("UPDATING batch table value", data);
       if (!this.loading) this.onRefresh.emit();
     }
   }
@@ -157,7 +155,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
       Batch, this, this, {
         prependNewElements: false,
         suppressErrors: true,
-        onNewRow: (row) => this.onNewBatchRow(row)
+        onRowCreated: (row) => this.onRowCreated(row)
       }));
     //this.debug = true;
   };
@@ -192,7 +190,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
             searchAttribute: 'label'
           })),
         // Remember implicit value
-        tap(items => this._implicitValues['taxonGroup'] = (items.length === 1) && items[0] || undefined));
+        tap(items => this.updateImplicitValue('taxonGroup', items)));
 
     // Taxon name combo
     this.taxonNames = this.registerCellValueChanges('taxonName')
@@ -204,7 +202,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
             searchAttribute: 'label'
           })),
         // Remember implicit value
-        tap(items => this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined));
+        tap(items => this.updateImplicitValue('taxonName', items)));
 
   }
 
@@ -293,7 +291,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   }
 
   addRow(): boolean {
-    if (this.debug) console.debug("[survivaltest-table] Calling addRow()");
+    if (this.debug) console.debug("[batches-table] Calling addRow()");
 
     // Create new row
     const result = super.addRow();
@@ -303,19 +301,6 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     this.data.push(Batch.fromObject(row.currentData));
     this.editedRow = row;
     return true;
-  }
-
-  onCellFocus(event: any, row: TableElement<any>, columnName: string) {
-    this.startCellValueChanges(columnName, row);
-  }
-
-  onCellBlur(event: FocusEvent, row: TableElement<any>, columnName: string) {
-    this.stopCellValueChanges(columnName);
-    // Apply last implicit value
-    if (row.validator.controls[columnName].hasError('entity') && isNotNil(this._implicitValues[columnName])) {
-      row.validator.controls[columnName].setValue(this._implicitValues[columnName]);
-    }
-    this._implicitValues[columnName] = undefined;
   }
 
   public trackByFn(index: number, row: TableElement<Batch>) {
@@ -347,7 +332,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
-  protected async onNewBatchRow(row: TableElement<Batch>): Promise<void> {
+  protected async onRowCreated(row: TableElement<Batch>): Promise<void> {
     const batch = row.currentData;
     await this.onNewBatch(batch);
     row.currentData = batch;

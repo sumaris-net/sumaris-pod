@@ -24,7 +24,7 @@ import {
   getPmfmName,
   MeasurementUtils,
   PmfmStrategy,
-  referentialToString, Sample,
+  referentialToString,
   TaxonGroupIds
 } from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
@@ -61,7 +61,6 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }>
 
   private _program: string;
   private _acquisitionLevel: string;
-  private _implicitValues: { [key: string]: any } = {};
   private _availableSortedParents: Batch[] = [];
   private _availableParents: Batch[] = [];
   private _dataSubject = new BehaviorSubject<LoadResult<Batch>>({data: []});
@@ -162,7 +161,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }>
       Batch, this, this, {
         prependNewElements: false,
         suppressErrors: false,
-        onNewRow: (row) => this.onNewBatchRow(row)
+        onRowCreated: (row) => this.onRowCreated(row)
       }));
     //this.debug = true;
   };
@@ -375,8 +374,8 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }>
     return true;
   }
 
-  onRowClick(event: MouseEvent, row: TableElement<Batch>): boolean {
-    const canEdit = super.onRowClick(event, row);
+  onEditRow(event: MouseEvent, row: TableElement<Batch>): boolean {
+    const canEdit = super.onEditRow(event, row);
     if (canEdit) this.startListenRow(row);
     return canEdit;
   }
@@ -416,7 +415,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }>
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
-  protected async onNewBatchRow(row: TableElement<Batch>): Promise<void> {
+  protected async onRowCreated(row: TableElement<Batch>): Promise<void> {
     const batch = row.currentData;
     await this.onNewBatch(batch);
     row.currentData = batch;

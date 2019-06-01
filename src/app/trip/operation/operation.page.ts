@@ -5,7 +5,7 @@ import {OperationForm} from './operation.form';
 import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AccountService, AppFormUtils, AppTabPage, environment} from '../../core/core.module';
+import {AccountService, AppFormUtils, AppTabPage, environment, LocalSettingsService} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
 import {SamplesTable} from '../sample/samples.table';
 import {SubSamplesTable} from '../sample/sub-samples.table';
@@ -77,7 +77,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     alterCtrl: AlertController,
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
-    protected accountService: AccountService,
+    protected settings: LocalSettingsService,
     protected operationService: OperationService,
     protected tripService: TripService,
     protected programService: ProgramService,
@@ -196,7 +196,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       const data = new Operation();
 
       // If is on field mode, fill default values
-      if (this.usageMode) {
+      if (this.usageMode === 'FIELD') {
         data.startDateTime = moment();
       }
 
@@ -558,7 +558,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.data.catchBatch.children = undefined;
     }
 
-    const isNew = this.isNewData();
+    const isNew = this.isNewData;
     this.disable();
 
     try {
@@ -758,7 +758,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   }
 
   protected computeUsageMode(trip: Trip): UsageMode {
-    return this.accountService.isUsageMode('FIELD')
+    return this.settings.isUsageMode('FIELD')
     && isNotNil(trip && trip.departureDateTime)
     && trip.departureDateTime.diff(moment(), "day") < 15 ? 'FIELD' : 'DESK';
   }

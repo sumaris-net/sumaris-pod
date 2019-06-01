@@ -445,10 +445,24 @@
       "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du contrôle en criée."
     }
   },
-  "OBSERVED_VESSEL": {
+  "LANDING": {
+    "TAB_GENERAL": "Détails",
+    "TAB_SAMPLES": "Points de contrôle",
+    "DATE_TIME": "Date/Heure",
+    "LOCATION": "Lieu de débarquement",
+    "OBSERVERS": "Observateurs",
+    "OBSERVER_PLACEHOLDER": "Observateur #",
+    "NEW": {
+      "TITLE": "Nouveau navire observé"
+    },
+    "EDIT": {
+      "TITLE": "Contrôle {{vessel}}",
+      "OTHER_FEATURES": "Autres caractéristiques :"
+    },
     "TABLE": {
       "VESSEL": "Navire",
-      "DATE_TIME": "Date/heure",
+      "LANDING_DATE_TIME": "Date/heure",
+      "LANDING_LOCATION": "Port",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires"
     },

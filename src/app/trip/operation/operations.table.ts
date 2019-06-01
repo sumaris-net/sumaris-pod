@@ -30,7 +30,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 @Component({
-  selector: 'table-operations',
+  selector: 'app-operation-table',
   templateUrl: 'operations.table.html',
   styleUrls: ['operations.table.scss'],
   providers: [
@@ -44,12 +44,6 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   @Input() latLongPattern: string;
 
   @Input() tripId: number;
-
-  @Output()
-  onOperationClick: EventEmitter<number> = new EventEmitter<number>();
-
-  @Output()
-  onNewOperationClick: EventEmitter<void> = new EventEmitter<void>();
 
   constructor(
     protected route: ActivatedRoute,
@@ -152,23 +146,6 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     if (confirm) {
       await super.deleteSelection();
     }
-  }
-
-  protected async openEditRowDetail(id: number): Promise<boolean> {
-    if (this.onOperationClick.observers.length) {
-      this.onOperationClick.emit(id);
-      return true;
-    }
-
-    return await this.router.navigateByUrl(`/trips/${this.tripId}/operations/${id}`);
-  }
-
-  protected async openNewRowDetail(): Promise<boolean> {
-    if (this.onNewOperationClick.observers.length) {
-      this.onNewOperationClick.emit();
-      return true;
-    }
-    return await this.router.navigateByUrl(`/trips/${this.tripId}/operations/new`);
   }
 
   referentialToString = referentialToString;

@@ -1,9 +1,8 @@
-import {TableDataSource, ValidatorService} from 'angular4-material-table';
+import {TableDataSource, TableElement, ValidatorService} from 'angular4-material-table';
 import {Observable, Subject} from "rxjs";
-import {TableDataService, isNotNil, LoadResult, toBoolean} from '../../shared/shared.module';
+import {isNotNil, LoadResult, TableDataService, toBoolean} from '../../shared/shared.module';
 import {EventEmitter} from '@angular/core';
 import {Entity} from "../services/model";
-import {TableElement} from 'angular4-material-table';
 import {ErrorCodes} from '../services/errors';
 import {first, map, takeUntil} from "rxjs/operators";
 
@@ -12,7 +11,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   protected _debug = false;
   protected _config: {
     prependNewElements: boolean;
-    onNewRow?: (row: TableElement<T>) => Promise<void> | void;
+    onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
     useRowValidator?: boolean;
     [key: string]: any;
   };
@@ -24,21 +23,29 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   public serviceOptions: any;
   public onLoading = new EventEmitter<boolean>();
 
+  set dataService(value: TableDataService<T, F>) {
+    this._dataService = value;
+  }
+
+  get dataService() {
+    return this._dataService;
+  }
+
   /**
    * Creates a new TableDataSource instance, that can be used as datasource of `@angular/cdk` data-table.
    * @param data Array containing the initial values for the TableDataSource. If not specified, then `dataType` must be specified.
-   * @param dataService A service to load and save data
+   * @param _dataService A service to load and save data
    * @param dataType Type of data contained by the Table. If not specified, then `data` with at least one element must be specified.
    * @param validatorService Service that create instances of the FormGroup used to validate row fields.
    * @param config Additional configuration for table.
    */
   constructor(dataType: new() => T,
-              private dataService: TableDataService<T, F>,
+              private _dataService: TableDataService<T, F>,
               validatorService?: ValidatorService,
               config?: {
                 prependNewElements: boolean;
                 suppressErrors: boolean;
-                onNewRow?: (row: TableElement<T>) => Promise<void> | void;
+                onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
                 useRowValidator?: boolean;
                 serviceOptions?: {
                   saveOnlyDirtyRows?: boolean;
@@ -62,17 +69,17 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     this._onWatchAll.next();
     this.onLoading.emit(true);
-    return this.dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
+    return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
       .catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
         // Stop this pipe, on the next call of watchAll()
         takeUntil(this._onWatchAll),
         map(res => {
           if (this._saving) {
-            console.error(`[table-datasource] Service ${this.dataService.constructor.name} sent data, while will saving... should skip ?`);
+            console.error(`[table-datasource] Service ${this._dataService.constructor.name} sent data, while will saving... should skip ?`);
           } else {
             this.onLoading.emit(false);
-            if (this._debug) console.debug(`[table-datasource] Service ${this.dataService.constructor.name} sent new data: updating datasource...`, res);
+            if (this._debug) console.debug(`[table-datasource] Service ${this._dataService.constructor.name} sent new data: updating datasource...`, res);
             this.updateDatasource(res.data);
           }
           return res;
@@ -135,7 +142,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
       if (this._debug) console.debug('[table-datasource] Row to save:', dataToSave);
 
-      const savedData = await this.dataService.saveAll(dataToSave, this.serviceOptions);
+      const savedData = await this._dataService.saveAll(dataToSave, this.serviceOptions);
 
       if (this._debug) console.debug('[table-datasource] Data saved. Updated data received by service:', savedData);
       if (this._debug) console.debug('[table-datasource] Updating datasource...', data);
@@ -156,8 +163,8 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     super.createNew();
     const row = this.getRow(-1);
 
-    if (row && this._config && this._config.onNewRow) {
-      const res = this._config.onNewRow(row);
+    if (row && this._config && this._config.onRowCreated) {
+      const res = this._config.onRowCreated(row);
       // If async function, wait the end before ending
       if (res instanceof Promise) {
         res
@@ -215,7 +222,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     const row = this.getRow(id);
     this.onLoading.emit(true);
 
-    this.dataService.deleteAll([row.currentData], this.serviceOptions)
+    this._dataService.deleteAll([row.currentData], this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
         setTimeout(() => {
@@ -238,7 +245,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     const self = this;
     const selfDelete = super.delete;
 
-    return this.dataService.deleteAll(data, this.serviceOptions)
+    return this._dataService.deleteAll(data, this.serviceOptions)
       .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
         // make sure row has been deleted (because GrapQHl cache remove can failed)

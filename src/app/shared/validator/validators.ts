@@ -170,7 +170,6 @@ export class SharedValidators {
   static requiredArrayMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (group: FormArray): ValidationErrors | null => {
-      console.log("requiredArrayMinLength");
       if (!group || group.length < minLength) {
         return {required: true};
       }

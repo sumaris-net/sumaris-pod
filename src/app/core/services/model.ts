@@ -91,7 +91,9 @@ export function personsToString(data: Person[], separator?: string): string {
 export abstract class Entity<T> implements Cloneable<T> {
   id: number;
   updateDate: Date | Moment;
-  dirty: boolean = false;
+
+  // TODO: remove this ?
+  dirty = false;
 
   abstract clone(): T;
 
@@ -169,6 +171,10 @@ export class EntityUtils {
       res[item.key] = item.value;
       return res;
     }, {});
+  }
+
+  static equals(o1: Entity<any>, o2: Entity<any>): boolean {
+    return (this.isEmpty(o1) && this.isEmpty(o2)) || (o1.id === o2.id);
   }
 }
 

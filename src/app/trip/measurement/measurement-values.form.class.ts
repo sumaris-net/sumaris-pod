@@ -91,7 +91,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       }
     }
 
-    return json;
+    this.data.fromObject(json);
+
+    return this.data;
   }
 
   protected constructor(protected dateAdapter: DateAdapter<Moment>,

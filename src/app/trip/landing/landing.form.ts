@@ -4,7 +4,7 @@ import {
   EntityUtils, isNil,
   isNotNil,
   LocationLevelIds,
-  ObservedLocation,
+  Landing,
   Person,
   personToString,
   Referential,
@@ -17,19 +17,19 @@ import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
 import {ProgramService, ReferentialRefService} from '../../referential/referential.module';
-import {ObservedLocationValidatorService} from "../services/observed-location.validator";
+import {LandingValidatorService} from "../services/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormArray, FormBuilder, FormControl} from "@angular/forms";
 
 @Component({
-  selector: 'form-observed-location',
-  templateUrl: './observed-location.form.html',
-  styleUrls: ['./observed-location.form.scss'],
+  selector: 'app-landing-form',
+  templateUrl: './landing.form.html',
+  styleUrls: ['./landing.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation> implements OnInit {
+export class LandingForm extends MeasurementValuesForm<Landing> implements OnInit {
 
   observerFocusIndex: number;
 
@@ -40,15 +40,18 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
   @Input() required = true;
   @Input() showError = true;
-  @Input() showEndDateTime = true;
+  @Input() showProgram = true;
+  @Input() showLocation = true;
+  @Input() showDateTime = true;
   @Input() showComment = true;
+  @Input() showObservers = true;
   @Input() showButtons = true;
   @Input() locationLevelIds: number[] = [LocationLevelIds.PORT];
 
   get empty(): any {
     const value = this.value;
-    return (!value.location || !value.location.id)
-      && (!value.startDateTime)
+    return EntityUtils.isEmpty(value.landingLocation)
+      && (!value.landingDateTime)
       && (!value.comments || !value.comments.length);
   }
 
@@ -62,7 +65,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
     protected cd: ChangeDetectorRef,
-    protected validatorService: ObservedLocationValidatorService,
+    protected validatorService: LandingValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService
   ) {
@@ -70,7 +73,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     this._enable = false;
 
     // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
+    this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+
   }
 
   ngOnInit() {
@@ -88,13 +92,13 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         tap(res => this.updateImplicitValue('program', res))
       );
 
-    // Propage program
+    // Propagate program
     this.form.controls['program'].valueChanges
       .pipe(filter(EntityUtils.isNotEmpty))
       .subscribe(({label}) => this.program = label);
 
     // Combo: locations
-    this.$locations = this.form.controls['location']
+    this.$locations = this.form.controls['landingLocation']
       .valueChanges
       .pipe(
         debounceTime(250),
@@ -118,9 +122,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         }),
         tap(res => this.updateImplicitValue('observer', res))
       );
+
   }
 
-  public setValue(value: ObservedLocation) {
+  public setValue(value: Landing) {
 
     // Copy observers
     const observers = value && value.observers && value.observers.length ? value.observers : [null];
@@ -142,7 +147,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
   public addObserver(value?: Person, options?: { emitEvent: boolean; }) {
     options = options || {emitEvent: true};
-    console.debug("[observed-location-form] Adding observer");
+    console.debug("[landing-form] Adding observer");
 
     let arrayControl = this.form.get('observers') as FormArray;
     let hasChanged = false;

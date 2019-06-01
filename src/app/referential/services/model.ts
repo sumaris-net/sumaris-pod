@@ -134,6 +134,12 @@ export function qualityFlagToColor(qualityFlagId: number) {
   }
 }
 
+export interface IWithProgramEntity<T> extends Entity<T> {
+  program: Referential|ReferentialRef;
+  recorderPerson?: Person;
+  recorderDepartment: Referential|ReferentialRef;
+}
+
 export class VesselFeatures extends Entity<VesselFeatures> {
 
   static fromObject(source: any): VesselFeatures {

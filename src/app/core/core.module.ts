@@ -31,7 +31,7 @@ import {
   toDateISOString
 } from '../shared/shared.module';
 import {AppForm} from './form/form.class';
-import {AppTabPage} from './form/page.class';
+import {AppTabPage} from './form/tab-page.class';
 import {EntityMetadataComponent} from './form/entity-metadata.component';
 import {FormButtonsBarComponent} from './form/form-buttons-bar.component';
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from './table/table.class';
