@@ -141,9 +141,17 @@ const routes: Routes = [
         }
       },
       {
-        path: ':tripId/operations/:opeId',
+        path: ':tripId/operations/:id',
         component: OperationPage,
-        runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'USER'
+        }
+      },
+      {
+        path: ':tripId/landing/:id',
+        component: LandingPage,
+        runGuardsAndResolvers: 'pathParamsChange',
         data: {
           profile: 'USER'
         }
@@ -173,9 +181,9 @@ const routes: Routes = [
         }
       },
       {
-        path: ':parentId/landings/:id',
+        path: ':observedLocationId/landings/:id',
         component: LandingPage,
-        runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+        runGuardsAndResolvers: 'pathParamsChange',
         data: {
           profile: 'USER'
         }

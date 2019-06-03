@@ -150,6 +150,18 @@ export class SharedValidators {
     };
   }
 
+  static requiredIfEmpty(fieldName: string, anotherFieldToCheck: string): ValidatorFn {
+    return (group: FormGroup): ValidationErrors | null => {
+      const control = group.get(fieldName);
+      if (isNil(control.value) && isNil(group.get(anotherFieldToCheck).value)) {
+        const error = { required: true};
+        control.setErrors(error);
+        return error;
+      }
+      return null;
+    };
+  }
+
   static clearError(control: AbstractControl, errorCode: string) {
     if (control.hasError(errorCode)) {
       const errors = control.errors;

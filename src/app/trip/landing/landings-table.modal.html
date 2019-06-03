@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <button ion-button class="visible-xs visible-sm" (click)="cancel()">
+        {{'COMMON.BTN_CANCEL'|translate}}
+      </button>
+    </ion-buttons>
+
+    <ion-title>
+      {{'LANDING.SELECT_MODAL.TITLE' | translate }}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-spinner *ngIf="loading"></ion-spinner>
+
+      <button ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading" (click)="close($event)">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content no-padding>
+  <!-- error -->
+  <ion-item *ngIf="table.error" visible-xs visible-sm>
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="table.error|translate"></ion-label>
+  </ion-item>
+
+  <app-landing-table #table
+                     [showObserversColumn]="false"
+                     [showDateTimeColumn]="true"
+                     [canEdit]="false"
+                     (onOpenRow)="selectRow($event)"
+                     (onNewRow)="close($event)"
+  ></app-landing-table>
+
+  <!-- buttons -->
+  <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm">
+
+  </ion-toolbar>
+
+</ion-content>
+
+
+<ion-footer hidden-xs hidden-sm>
+
+  <ion-toolbar>
+
+    <ion-row no-padding nowrap>
+      <ion-col></ion-col>
+
+      <!-- buttons -->
+      <ion-col size="auto">
+        <ion-button fill="clear" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button [fill]="hasSelection() && 'solid' || 'clear'" [disabled]="!hasSelection()" (click)="close($event)" color="primary">
+          <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+
+  </ion-toolbar>
+</ion-footer>

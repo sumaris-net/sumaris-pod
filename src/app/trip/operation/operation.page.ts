@@ -125,11 +125,11 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.disable();
 
     // Read route
-    this.route.params.first().subscribe(async ({tripId, opeId}) => {
-      if (!opeId || opeId === "new") {
+    this.route.params.first().subscribe(async ({tripId, id}) => {
+      if (!id || id === "new") {
         await this.load(undefined, {tripId: tripId});
       } else {
-        await this.load(parseInt(opeId), {tripId: tripId});
+        await this.load(+id, {tripId: tripId});
       }
     });
 

@@ -2,7 +2,17 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
-import {Batch, DataEntity, isNil, Measurement, Operation, Person, Sample, VesselPosition} from "./trip.model";
+import {
+  Batch,
+  DataEntity,
+  EntityUtils,
+  isNil,
+  Measurement,
+  Operation,
+  Person,
+  Sample,
+  VesselPosition
+} from "./trip.model";
 import {map} from "rxjs/operators";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService} from "../../core/core.module";
@@ -380,8 +390,8 @@ export class OperationService extends BaseDataService implements TableDataServic
 
     // Fill Recorder department
     this.fillRecorderPartment(entity);
-    this.fillRecorderPartment(entity.startPosition)
-    this.fillRecorderPartment(entity.endPosition)
+    this.fillRecorderPartment(entity.startPosition);
+    this.fillRecorderPartment(entity.endPosition);
     entity.measurements && entity.measurements.forEach(m => this.fillRecorderPartment(m));
 
     // Fill position date s
@@ -410,19 +420,13 @@ export class OperationService extends BaseDataService implements TableDataServic
     if (!source) return;
 
     // Update (id and updateDate)
-    target.id = source.id || target.id;
-    target.updateDate = source.updateDate || target.updateDate;
-    target.dirty = false;
+    EntityUtils.copyIdAndUpdateDate(source, target);
 
     // Update positions (id and updateDate)
     if (source.positions && source.positions.length > 0) {
       [target.startPosition, target.endPosition].forEach(targetPos => {
-        let savedPos = source.positions.find(srcPos => targetPos.equals(srcPos));
-        if (savedPos) {
-          targetPos.id = savedPos.id || targetPos.id;
-          targetPos.updateDate = savedPos.updateDate || targetPos.updateDate;
-          targetPos.dirty = false;
-        }
+        const savedPos = source.positions.find(srcPos => targetPos.equals(srcPos));
+        EntityUtils.copyIdAndUpdateDate(savedPos, targetPos);
       });
     }
 
@@ -430,9 +434,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     if (target.measurements && source.measurements) {
       target.measurements.forEach(targetMeas => {
         const sourceMeas = source.measurements.find(json => targetMeas.equals(json));
-        targetMeas.id = sourceMeas && sourceMeas.id || targetMeas.id;
-        targetMeas.updateDate = sourceMeas && sourceMeas.updateDate || targetMeas.updateDate;
-        targetMeas.dirty = false;
+        EntityUtils.copyIdAndUpdateDate(sourceMeas, targetMeas);
       });
     }
 
@@ -457,10 +459,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     if (sources && targets) {
       targets.forEach(target => {
         const source = sources.find(json => target.equals(json));
-        target.id = source && source.id || target.id;
-        target.updateDate = source && source.updateDate || target.updateDate;
-        target.creationDate = source && source.creationDate || target.creationDate;
-        target.dirty = false;
+        EntityUtils.copyIdAndUpdateDate(source, target);
 
         // Apply to children
         if (target.children && target.children.length) {
@@ -479,9 +478,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     if (sources && targets) {
       targets.forEach(target => {
         const source = sources.find(json => target.equals(json));
-        target.id = source && source.id || target.id;
-        target.updateDate = source && source.updateDate || target.updateDate;
-        target.dirty = false;
+        EntityUtils.copyIdAndUpdateDate(source, target);
 
         // Apply to children
         if (target.children && target.children.length) {

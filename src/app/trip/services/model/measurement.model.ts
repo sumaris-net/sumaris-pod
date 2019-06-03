@@ -1,8 +1,41 @@
-import {Entity, fromDateISOString, isNil, isNotNil, toDateISOString} from "../../../core/core.module";
-import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
+import {
+  Entity,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  joinProperties,
+  referentialToString,
+  toDateISOString
+} from "../../../core/core.module";
+import {PmfmStrategy, ReferentialRef, VesselFeatures} from "../../../referential/referential.module";
 import {DataEntity} from "./base.model";
 
 export const PMFM_ID_REGEXP = /\d+/;
+
+
+export function measurementValueToString(value: any, pmfm: PmfmStrategy, propertyName?: string): string | undefined {
+  if (isNil(value) || !pmfm) return null;
+  switch (pmfm.type) {
+    case "qualitative_value":
+      if (value && typeof value !== "object") {
+        const qvId = parseInt(value);
+        value = pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
+      }
+      return value && (value[propertyName] || value.name || value.label) || null;
+    case "integer":
+    case "double":
+      return isNotNil(value) ? value : null;
+    case "string":
+    case "date":
+      return value || null;
+    case "boolean":
+      return (value === "true" || value === true || value === 1) ? 'COMMON.YES' :
+        ((value === "false" || value === false || value === 0) ? 'COMMON.NO' : null);
+    default:
+      throw new Error("Unknown pmfm.type: " + pmfm.type);
+  }
+}
+
 
 export declare interface IEntityWithMeasurement<T> extends Entity<T> {
   measurementValues: { [key: string]: string };

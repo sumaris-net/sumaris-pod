@@ -21,6 +21,7 @@ import {filter, switchMap} from "rxjs/operators";
 import {ProgramProperties} from "../../referential/services/model";
 import {ProgramService} from "../../referential/services/program.service";
 import {isNotNilOrBlank} from "../../shared/functions";
+import {UsageMode} from "../../core/services/model";
 
 @Component({
   selector: 'page-trip',
@@ -37,7 +38,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   saving: boolean = false;
   defaultBackHref = "/trips";
   onRefresh = new EventEmitter<any>();
-  isOnFieldMode: boolean;
+  usageMode: UsageMode;
 
   showSaleForm = false;
   showGearTable = false;
@@ -55,6 +56,10 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
 
+  get isOnFieldMode(): boolean {
+    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+  }
+
   constructor(
     route: ActivatedRoute,
     router: Router,
@@ -62,13 +67,13 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
     protected dataService: TripService,
-    protected settingsService: LocalSettingsService,
+    protected settings: LocalSettingsService,
     protected programService: ProgramService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, translate);
 
-    this.isOnFieldMode = this.settingsService.isUsageMode('FIELD');
+    this.usageMode = this.settings.usageMode;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -318,7 +323,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }
   }
 
-  async onOpenOperation(id: number) {
+  async onOpenOperation({id, row}) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);

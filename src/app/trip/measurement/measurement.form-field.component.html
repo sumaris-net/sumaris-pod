@@ -107,14 +107,16 @@
   </mat-latlong>
 
   <!-- other -->
-  <mat-form-field *ngSwitchDefault [floatLabel]="floatLabel">
-    <input matInput autocomplete="off"
-           type="text"
-           [placeholder]="placeholder"
-           [formControl]="formControl"
-           [required]="pmfm.isMandatory"
-           [tabindex]="tabindex">
-    <mat-error>Unknown PMFM type {{pmfm.type}}! Please report this error.</mat-error>
-  </mat-form-field>
+  <div *ngSwitchDefault>
+<!--    <input matInput autocomplete="off"-->
+<!--           type="text"-->
+<!--           [placeholder]="placeholder"-->
+<!--           [formControl]="formControl"-->
+<!--           [required]="pmfm.isMandatory"-->
+<!--           [tabindex]="tabindex">-->
+    <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>
+    <mat-error *ngIf="!type">Error on field for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>
+
+  </div>
 
 </ng-container>

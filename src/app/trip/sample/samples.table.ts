@@ -14,19 +14,19 @@ import {
   AccountService,
   AppTable,
   AppTableDataSource,
-  EntityUtils, isNil,
+  EntityUtils, isNil, LocalSettingsService,
   ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   TableDataService
 } from "../../core/core.module";
 import {
-  getPmfmName,
-  MeasurementUtils,
+  getPmfmName, Landing,
+  MeasurementUtils, ObservedLocation,
   PmfmStrategy,
   referentialToString,
   Sample,
-  TaxonGroupIds
+  TaxonGroupIds, Trip
 } from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -37,9 +37,12 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
 import {MeasurementsValidatorService} from "../services/trip.validators";
 import {isNotNil, LoadResult} from "../../shared/shared.module";
+import {UsageMode} from "../../core/services/model";
+import * as moment from "moment";
+import {Moment} from "moment";
 
 const PMFM_ID_REGEXP = /\d+/;
-const SAMPLE_RESERVED_START_COLUMNS: string[] = ['taxonName', 'sampleDate'];
+const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
 const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
@@ -51,7 +54,7 @@ const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends AppTable<Sample, { operationId?: number }>
+export class SamplesTable extends AppTable<Sample, { operationId?: number; landingId?: number }>
   implements OnInit, OnDestroy, ValidatorService, TableDataService<Sample, any> {
 
   private _program: string;
@@ -108,9 +111,18 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     return this._acquisitionLevel;
   }
 
-  @Input() showCommentsColumn = true;
+  get isOnFieldMode(): boolean {
+    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+  }
+
+  @Input() showLabelColumn = false;
+  @Input() showDateTimeColumn = true;
   @Input() showTaxonGroupColumn = true;
   @Input() showTaxonNameColumn = true;
+  @Input() showCommentsColumn = true;
+
+  @Input() defaultSampleDate: Moment;
+  @Input() usageMode: UsageMode;
 
   constructor(
     protected route: ActivatedRoute,
@@ -118,7 +130,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     protected platform: Platform,
     protected location: Location,
     protected modalCtrl: ModalController,
-    protected accountService: AccountService,
+    protected settings: LocalSettingsService,
     protected validatorService: SampleValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -127,7 +139,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, accountService,
+    super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat(SAMPLE_RESERVED_START_COLUMNS)
         .concat(SAMPLE_RESERVED_END_COLUMNS)
@@ -148,9 +160,11 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   async ngOnInit(): Promise<void> {
     super.ngOnInit();
 
-    if (!this.showCommentsColumn) this.excludesColumns.push('comments');
+    if (!this.showLabelColumn) this.excludesColumns.push('label');
+    if (!this.showDateTimeColumn) this.excludesColumns.push('sampleDate');
     if (!this.showTaxonGroupColumn) this.excludesColumns.push('taxonGroup');
     if (!this.showTaxonNameColumn) this.excludesColumns.push('taxonName');
+    if (!this.showCommentsColumn) this.excludesColumns.push('comments');
 
     this.registerSubscription(
       this._onRefreshPmfms.asObservable()
@@ -201,6 +215,16 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
         // Remember implicit value
         tap(items => this._implicitValues['taxonName'] = (items.length === 1) && items[0] || undefined)
       );
+  }
+
+
+  setParent(data: Landing) {
+    if (!data) {
+      this.setFilter({});
+    }
+    else if (data instanceof Landing) {
+      this.setFilter({landingId: data.id});
+    }
   }
 
   getRowValidator(): FormGroup {
@@ -288,7 +312,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   }
 
   addRow(): boolean {
-    if (this.debug) console.debug("[survivaltest-table] Calling addRow()");
+    if (this.debug) console.debug("[sample-table] Calling addRow()");
 
     // Create new row
     const result = super.addRow();
@@ -331,9 +355,22 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }>
   }
 
   protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
+    console.debug("[sample-table] Initializing new row data...");
+
     // Set computed values
     sample.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
-    sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
+
+    // generate label
+    if (!this.showLabelColumn) {
+      sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
+    }
+
+    if (isNotNil(this.defaultSampleDate)) {
+      sample.sampleDate = this.defaultSampleDate;
+    }
+    else if (this.isOnFieldMode) {
+      sample.sampleDate = moment();
+    }
 
     // Set default values
     (this.pmfms.getValue() || [])

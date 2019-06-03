@@ -22,6 +22,8 @@ export class Sample extends DataRootEntity<Sample> {
   measurementValues: { [key: string]: any };
   matrixId: number;
   batchId: number;
+  size: number;
+  sizeUnit: string;
 
   operationId: number;
   parentId: number;
@@ -65,19 +67,14 @@ export class Sample extends DataRootEntity<Sample> {
     this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
+    this.size = source.size;
+    this.sizeUnit = source.sizeUnit;
     this.matrixId = source.matrixId;
     this.parentId = source.parentId;
     this.parent = source.parent;
     this.batchId = source.batchId;
     this.operationId = source.operationId;
-
-    if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
-    }
-    // Convert measurement to map
-    else if (source.measurements) {
-      this.measurementValues = MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
-    }
+    this.measurementValues = source.measurementValues || MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
 
     return this;
   }

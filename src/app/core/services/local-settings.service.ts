@@ -31,6 +31,14 @@ export class LocalSettingsService {
     return this.data && this.data.latLongFormat || 'DDMM';
   }
 
+  get usageMode(): UsageMode {
+    return (this.data && this.data.usageMode || 'DESK');
+  }
+
+  get defaultPrograms(): string[] {
+    return (this.data && this.data.defaultPrograms || []);
+  }
+
   constructor(
     private translate: TranslateService,
     private storage: Storage
@@ -80,7 +88,7 @@ export class LocalSettingsService {
 
 
   public isUsageMode(mode: UsageMode): boolean {
-    return (this.data && this.data.usageMode || 'DESK') === mode;
+    return this.usageMode === mode;
   }
 
   public async restoreLocally(): Promise<LocalSettings | undefined> {

@@ -8,6 +8,7 @@ import {
 } from "./base.model";
 import {Moment} from "moment";
 import {MeasurementUtils} from "./measurement.model";
+import {Sample} from "./sample.model";
 
 /**
  * Landing entity
@@ -20,10 +21,9 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     return res;
   }
 
-  program: ReferentialRef;
-  landingDateTime: Moment;
-  landingLocation: ReferentialRef;
-  rankOrder: number;
+  dateTime: Moment;
+  location: ReferentialRef;
+  rankOrder?: number;
   measurementValues: { [key: string]: any };
 
   tripId: number;
@@ -31,12 +31,16 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
   observers: Person[];
 
+  samples: Sample[];
+
   constructor() {
     super();
     this.program = new ReferentialRef();
-    this.landingLocation = new ReferentialRef();
+    this.location = new ReferentialRef();
     this.observers = [];
     this.measurementValues = {};
+
+    this.samples = []; // TODO: check if OK
   }
 
   clone(): Landing {
@@ -51,20 +55,21 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
 
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
-    target.program = this.program && this.program.asObject(false/*keep it for table*/) || undefined;
-    target.landingDateTime = toDateISOString(this.landingDateTime);
-    target.landingLocation = this.landingLocation && this.landingLocation.asObject(false/*keep for landing list*/) || undefined;
+    target.dateTime = toDateISOString(this.dateTime);
+    target.location = this.location && this.location.asObject(false/*keep for landing list*/) || undefined;
     target.observers = this.observers && this.observers.map(p => p && p.asObject(minify)) || undefined;
     target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, minify);
+
+    // Samples
+    target.samples = this.samples && this.samples.map(s => s.asObject(minify)) || undefined;
 
     return target;
   }
 
   fromObject(source: any): Landing {
     super.fromObject(source);
-    source.program && this.program.fromObject(source.program);
-    this.landingDateTime = fromDateISOString(source.landingDateTime);
-    source.landingLocation && this.landingLocation.fromObject(source.landingLocation);
+    this.dateTime = fromDateISOString(source.dateTime);
+    source.location && this.location.fromObject(source.location);
     this.rankOrder = source.rankOrder;
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.observedLocationId = source.observedLocationId;
@@ -80,9 +85,9 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
         // Same vessel
         (this.vesselFeatures && other.vesselFeatures && this.vesselFeatures.vesselId === other.vesselFeatures.vesselId)
         // Same date
-        && (this.landingDateTime === other.landingDateTime)
+        && (this.dateTime === other.dateTime)
         // Same location
-        && EntityUtils.equals(this.landingLocation, other.landingLocation)
+        && EntityUtils.equals(this.location, other.location)
       );
   }
 }

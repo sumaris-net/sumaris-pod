@@ -64,11 +64,13 @@
         </ion-item>
 
         <app-landing-table #landingsTable
-                           program="programSubject|async"
                            acquisitionLevel="LANDING"
+                           [program]="programSubject|async"
+                           [showObserversColumn]="false"
+                           [showDateTimeColumn]="false"
                            (onOpenRow)="onOpenLanding($event)"
                            (onNewRow)="onNewLanding($event)"
-                           [debug]="debug"></app-landing-table>
+                           ></app-landing-table>
 
       </div>
     </mat-tab>

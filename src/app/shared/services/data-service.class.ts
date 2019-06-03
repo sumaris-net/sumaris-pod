@@ -1,5 +1,5 @@
 import {Observable} from "rxjs-compat";
-import {Trip} from "../../trip/services/model/trip.model";
+import {FetchPolicy} from "apollo-client";
 
 export declare interface LoadResult<T> {
   data: T[];
@@ -24,11 +24,16 @@ export declare interface DataService<T, F> {
   deleteAll(data: T[], options?: any): Promise<any>;
 }
 
-export declare interface EditorDataService<T, F> {
+export interface LoadEditorDataOptions {
+  fetchPolicy?: FetchPolicy;
+  [key: string]: any;
+}
+
+export declare interface EditorDataService<T, F, O = LoadEditorDataOptions> {
 
   load(
     id: number,
-    options?: any
+    options?: O
   ): Promise<T>;
 
   save(data: T, options?: any): Promise<T>;

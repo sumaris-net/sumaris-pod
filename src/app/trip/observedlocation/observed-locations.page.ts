@@ -70,7 +70,6 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       new AppTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
         prependNewElements: false,
         suppressErrors: false,
-        useRowValidator: false,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }

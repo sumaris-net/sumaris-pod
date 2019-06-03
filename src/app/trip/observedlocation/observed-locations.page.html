@@ -161,8 +161,8 @@
     </ng-container>
 
     <!-- date time  -->
-    <ng-container matColumnDef="startDateTime">
-      <mat-header-cell *matHeaderCellDef mat-sort-header >
+    <ng-container matColumnDef="startDateTime" >
+      <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
         <ion-label translate>OBSERVED_LOCATION.TABLE.START_DATE_TIME</ion-label>
       </mat-header-cell>
       <mat-cell class="mat-cell-date-time" *matCellDef="let row">

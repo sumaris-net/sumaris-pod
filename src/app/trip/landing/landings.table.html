@@ -1,8 +1,8 @@
 <mat-toolbar>
-  <button mat-icon-button *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+  <button mat-icon-button *ngIf="canEdit && !selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button small color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
           (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
@@ -86,12 +86,12 @@
   </ng-container>
 
   <!-- date time  -->
-  <ng-container matColumnDef="landingDateTime">
+  <ng-container matColumnDef="dateTime">
     <mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-      <span translate>LANDING.TABLE.LANDING_DATE_TIME</span>
+      <span translate>LANDING.TABLE.DATE_TIME</span>
     </mat-header-cell>
     <mat-cell class="mat-cell-date-time" *matCellDef="let row">
-      {{ row.currentData.landingDateTime | dateFormat: {time: true} }}
+      {{ row.currentData.dateTime | dateFormat: {time: true} }}
     </mat-cell>
   </ng-container>
 
@@ -113,33 +113,11 @@
       </ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
-      <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
-                                  [compact]="true" floatLabel="never"></mat-form-field-measurement>
+      {{measurementValueToString(row.currentData?.measurementValues[pmfm.pmfmId], pmfm) | translate}}
+<!--      <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"-->
+<!--                                  [compact]="true" floatLabel="never"></mat-form-field-measurement>-->
     </mat-cell>
   </ng-container>
-
-<!--  &lt;!&ndash; TODO: pmfm &ndash;&gt;-->
-<!--  <ng-container matColumnDef="pmfm_2">-->
-<!--    <mat-header-cell *matHeaderCellDef>-->
-<!--      Anomalie-->
-<!--    </mat-header-cell>-->
-<!--    <mat-cell *matCellDef="let row">-->
-<!--      <ng-container *ngIf="row.id &lt; 1">RAS</ng-container>-->
-<!--      <ng-container *ngIf="row.id >= 1">Dépassement</ng-container>-->
-<!--    </mat-cell>-->
-<!--  </ng-container>-->
-
-<!--  <ng-container matColumnDef="pmfm_3">-->
-<!--    <mat-header-cell *matHeaderCellDef>-->
-<!--      Alerte 15j-->
-<!--    </mat-header-cell>-->
-<!--    <mat-cell *matCellDef="let row">-->
-<!--      <ng-container *ngIf="row.id >= 1">-->
-<!--        <ion-icon color="danger" margin-right name="person" slot="icon-only"></ion-icon>-->
-<!--        <ion-icon color="danger" margin-right name="flag" slot="icon-only"></ion-icon>-->
-<!--      </ng-container>-->
-<!--    </mat-cell>-->
-<!--  </ng-container>-->
 
   <!-- Comment column --><!-- Comments column -->
   <ng-container matColumnDef="comments">
@@ -159,7 +137,9 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" class="class.mat-row-disabled" (click)="clickRow($event, row)"></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
+           [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing" (click)="clickRow($event, row)"></mat-row>
+
 </mat-table>
 
 

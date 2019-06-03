@@ -73,16 +73,18 @@ export class MenuComponent implements OnInit {
 
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     // subscriptions
     this.accountService.onLogin.subscribe(account => this.onLogin(account));
     this.accountService.onLogout.subscribe(() => this.onLogout());
+
+    this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
 
     if (this.accountService.isLogin()) {
       this.onLogin(this.accountService.account);
 
     } else {
-      this.onLogout(true);
+      await this.onLogout(true);
     }
   }
 
@@ -90,9 +92,10 @@ export class MenuComponent implements OnInit {
     console.info('[menu] Update using logged account');
     this.account = account;
     this.isLogin = true;
-    this.splitPaneOpened = true;
-    this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
+    //this.splitPaneOpened = true;
+    //this.splitPane.when = SPLIT_PANE_SHOW_WHEN;
     this.updateItems();
+    this.cd.markForCheck();
 
     setTimeout(() => {
       this.loading = false;
@@ -103,20 +106,21 @@ export class MenuComponent implements OnInit {
   async onLogout(skipRedirect?: boolean) {
     if (!skipRedirect) console.debug("[menu] logout");
     this.isLogin = false;
-    this.splitPaneOpened = false;
-    this.splitPane.when = false;
+    //this.splitPaneOpened = false;
+    //this.splitPane.when = false;
     this.account = null;
     this.updateItems();
+    this.cd.markForCheck();
 
     // Wait the end of fadeout, to reset the account
     if (!skipRedirect) {
       await this.router.navigate(['']);
     }
 
-    setTimeout(() => {
+    //setTimeout(() => {
       this.loading = false;
       this.cd.markForCheck();
-    }, 1000);
+    //}, 1000);
 
   }
 

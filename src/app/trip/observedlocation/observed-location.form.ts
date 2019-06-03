@@ -121,22 +121,20 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   }
 
   public setValue(value: ObservedLocation) {
+    if (!value) return;
 
-    // Copy observers
-    const observers = value && value.observers && value.observers.length ? value.observers : [null];
+    // Make sure to have (at least) one observer
+    value.observers = value.observers && value.observers.length ? value.observers : [null];
 
-    // Clear observers array group
-    this.clearAllObservers();
+    // Resize observers array
+    this.resizeObserversArray(value.observers.length);
 
-    super.setValue(Object.assign({}, value, {observers: []}));
-
-    // Add observers
-    observers.forEach(o => this.addObserver(o, {emitEvent: false}));
+    // Send value for form
+    super.setValue(value);
 
     // Propagate the program
-    const program = value && value.program;
-    if (program && program.label) {
-      this.program = program.label;
+    if (value.program && value.program.label) {
+      this.program = value.program.label;
     }
   }
 
@@ -227,11 +225,19 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     this.markAsDirty();
   }
 
-  public clearAllObservers() {
+  public resizeObserversArray(length: number) {
     const arrayControl = this.form.get('observers') as FormArray;
-    let index = arrayControl.length - 1;
-    while (index >= 0) {
-      arrayControl.at(index--);
+    // Increase size
+    while (arrayControl.length < length) {
+      const control = this.validatorService.getObserverControl();
+      arrayControl.push(control);
+    }
+
+    if (arrayControl.length === length) return;
+
+    // Or reduce
+    while (arrayControl.length > length) {
+      arrayControl.at(arrayControl.length - 1);
     }
   }
 

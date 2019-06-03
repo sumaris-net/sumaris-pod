@@ -21,8 +21,7 @@ export class PhysicalGearValidatorService implements ValidatorService {
       'rankOrder': ['', Validators.required],
       'creationDate': [''],
       'gear': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'comments': ['', Validators.maxLength(2000)],
-      'dirty': ['']
+      'comments': ['', Validators.maxLength(2000)]
     });
   }
 }

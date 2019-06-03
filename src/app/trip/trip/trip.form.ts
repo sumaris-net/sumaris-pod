@@ -24,12 +24,12 @@ import {
 })
 export class TripForm extends AppForm<Trip> implements OnInit {
 
-  programs: Observable<ReferentialRef[]>;
-  vessels: Observable<VesselFeatures[]>;
-  locations: Observable<ReferentialRef[]>;
+  $programs: Observable<ReferentialRef[]>;
+  $vessels: Observable<VesselFeatures[]>;
+  $locations: Observable<ReferentialRef[]>;
 
-  @Input() showComment: boolean = true;
-  @Input() showError: boolean = true;
+  @Input() showComment = true;
+  @Input() showError = true;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -47,7 +47,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     super.ngOnInit();
 
     // Combo: programs
-    this.programs = this.form.controls['program']
+    this.$programs = this.form.controls['program']
       .valueChanges
       .pipe(
         startWith('*'),
@@ -59,7 +59,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       );
 
     // Combo: vessels
-    this.vessels = this.form.controls['vesselFeatures']
+    this.$vessels = this.form.controls['vesselFeatures']
       .valueChanges
       .pipe(
         debounceTime(250),
@@ -68,7 +68,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       );
 
     // Combo: location
-    this.locations =
+    this.$locations =
       merge(
         this.form.controls['departureLocation'].valueChanges,
         this.form.controls['returnLocation'].valueChanges

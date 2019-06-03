@@ -44,6 +44,7 @@ import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {LandingValidatorService} from "./services/landing.validator";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
+import {LandingsTablesModal} from "./landing/landings-table.modal";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -74,6 +75,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LandingsTable,
       LandingPage,
       LandingForm,
+      LandingsTablesModal,
       SamplesTable,
       SubSamplesTable,
       BatchGroupsTable,
@@ -102,7 +104,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       EntityQualityFormComponent,
       LandingsTable,
       LandingForm,
-      LandingPage
+      LandingPage,
+      LandingsTablesModal
     ],
     entryComponents: [
       TripsPage,
@@ -115,7 +118,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       ExtractionMapPage,
       ObservedLocationPage,
       ObservedLocationsPage,
-      LandingPage
+      LandingPage,
+      LandingsTablesModal
     ],
     providers: [
       TripService,

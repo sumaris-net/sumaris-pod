@@ -1,6 +1,6 @@
 import {BehaviorSubject, Observable} from "rxjs-compat";
 import {isNil, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
-import {filter, first} from "rxjs/operators";
+import {filter, first, switchMap} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementUtils, PMFM_ID_REGEXP} from "../../trip/services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model";
 import {PmfmStrategy} from "../../referential/services/model";
@@ -17,7 +17,7 @@ export class MeasurementsTableDataService<T extends IEntityWithMeasurement<T>, F
 
   protected programService: ProgramService;
 
-  loadingPmfms = true;
+  loadingPmfms = false;
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   hasRankOrder = false;
   debug = false;
@@ -99,26 +99,30 @@ export class MeasurementsTableDataService<T extends IEntityWithMeasurement<T>, F
       this.pmfms
         .pipe(
           filter(isNotNil),
-          first()
+          first(),
+          switchMap((pmfms) => {
+            let cleanSortBy = sortBy;
+            // Replace sort in Pmfm by a valid path
+            if (cleanSortBy && PMFM_ID_REGEXP.test(cleanSortBy)) {
+              sortBy = undefined;
+            }
+
+            return this.delegate.watchAll(offset, size, cleanSortBy, sortDirection, selectionFilter, options);
+          })
         )
-        .subscribe(async (pmfms) => {
-
-          // Replace sort in Pmfm by a valid path
-          if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
-            sortBy = 'measurementValues.' + sortBy;
-          }
-
-          const res = await this.delegate.watchAll(offset, size, sortBy, sortDirection, selectionFilter, options).toPromise();
+        .subscribe(async (res) => {
 
           // Transform entities into object array
           const data = (res.data || []).map(t => {
             const json = t.asObject();
-            json.measurementValues = MeasurementUtils.normalizeFormValues(t.measurementValues, pmfms);
+            json.measurementValues = MeasurementUtils.normalizeFormValues(t.measurementValues, this.pmfms.getValue());
             return json;
           });
 
-          // Sort
-          this.sort(data, sortBy, sortDirection);
+          // Re sort by measurement values
+          if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
+            this.sort(data, 'measurementValues.' + sortBy, sortDirection);
+          }
 
           this._dataSubject.next({
             data: data,

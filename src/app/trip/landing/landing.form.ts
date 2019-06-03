@@ -9,14 +9,14 @@ import {
   personToString,
   Referential,
   ReferentialRef,
-  referentialToString
+  referentialToString, vesselFeaturesToString, VesselFeatures
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {AcquisitionLevelCodes} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
-import {ProgramService, ReferentialRefService} from '../../referential/referential.module';
+import {ProgramService, ReferentialRefService, VesselService} from '../../referential/referential.module';
 import {LandingValidatorService} from "../services/landing.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
@@ -34,24 +34,28 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   observerFocusIndex: number;
 
   $programs: Observable<ReferentialRef[]>;
+  $vessels: Observable<VesselFeatures[]>;
   $locations: Observable<ReferentialRef[]>;
   $observers: Observable<Person[]>;
   $observerFilterValue = new BehaviorSubject<any>(undefined);
 
   @Input() required = true;
-  @Input() showError = true;
+
   @Input() showProgram = true;
-  @Input() showLocation = true;
+  @Input() showVessel = true;
   @Input() showDateTime = true;
-  @Input() showComment = true;
+  @Input() showLocation = true;
   @Input() showObservers = true;
+  @Input() showComment = true;
+  @Input() showError = true;
+
   @Input() showButtons = true;
   @Input() locationLevelIds: number[] = [LocationLevelIds.PORT];
 
   get empty(): any {
     const value = this.value;
-    return EntityUtils.isEmpty(value.landingLocation)
-      && (!value.landingDateTime)
+    return EntityUtils.isEmpty(value.location)
+      && (!value.dateTime)
       && (!value.comments || !value.comments.length);
   }
 
@@ -67,7 +71,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected cd: ChangeDetectorRef,
     protected validatorService: LandingValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected personService: PersonService
+    protected personService: PersonService,
+    protected vesselService: VesselService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
     this._enable = false;
@@ -92,13 +97,22 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         tap(res => this.updateImplicitValue('program', res))
       );
 
+    // Combo: vessels
+    this.$vessels = this.form.controls['vesselFeatures']
+      .valueChanges
+      .pipe(
+        debounceTime(250),
+        switchMap(value => this.vesselService.suggest(value)),
+        tap(res => this.updateImplicitValue('vesselFeatures', res))
+      );
+
     // Propagate program
     this.form.controls['program'].valueChanges
       .pipe(filter(EntityUtils.isNotEmpty))
       .subscribe(({label}) => this.program = label);
 
     // Combo: locations
-    this.$locations = this.form.controls['landingLocation']
+    this.$locations = this.form.controls['location']
       .valueChanges
       .pipe(
         debounceTime(250),
@@ -127,21 +141,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   public setValue(value: Landing) {
 
-    // Copy observers
-    const observers = value && value.observers && value.observers.length ? value.observers : [null];
+    if (!value) return;
 
-    // Clear observers array group
-    this.clearAllObservers();
+    // Make sure to have (at least) one observer
+    value.observers = value.observers && value.observers.length ? value.observers : [null];
 
-    super.setValue(Object.assign({}, value, {observers: []}));
+    // Resize observers array
+    this.resizeObserversArray(value.observers.length);
 
-    // Add observers
-    observers.forEach(o => this.addObserver(o, {emitEvent: false}));
+    // Send value for form
+    super.setValue(value);
 
     // Propagate the program
-    const program = value && value.program;
-    if (program && program.label) {
-      this.program = program.label;
+    if (value.program && value.program.label) {
+      this.program = value.program.label;
     }
   }
 
@@ -232,11 +245,19 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.markAsDirty();
   }
 
-  public clearAllObservers() {
+  public resizeObserversArray(length: number) {
     const arrayControl = this.form.get('observers') as FormArray;
-    let index = arrayControl.length - 1;
-    while (index >= 0) {
-      arrayControl.at(index--);
+    // Increase size
+    while (arrayControl.length < length) {
+      const control = this.validatorService.getObserverControl();
+      arrayControl.push(control);
+    }
+
+    if (arrayControl.length === length) return;
+
+    // Or reduce
+    while (arrayControl.length > length) {
+      arrayControl.at(arrayControl.length - 1);
     }
   }
 
@@ -256,6 +277,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   entityToString = entityToString;
   referentialToString = referentialToString;
   personToString = personToString;
+  vesselFeaturesToString = vesselFeaturesToString;
 
   programToString(value: Referential): string {
     return value && value.label || undefined;

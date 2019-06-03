@@ -17,12 +17,8 @@ import {ProgramService} from "../../referential/services/program.service";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model";
 import {FormGroup} from "@angular/forms";
-import {EditorDataService} from "../../shared/services/data-service.class";
+import {EditorDataService, LoadEditorDataOptions} from "../../shared/services/data-service.class";
 
-export interface LoadEditorDataOptions {
-  parentTypeName?: string;
-  parentId?: number;
-}
 
 export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 
@@ -73,11 +69,12 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
 
     this.disable();
 
-    this.route.params.first().subscribe(async ({id, parentId}) => {
+    this.route.params.first().subscribe(async (params) => {
+      const id = params["id"];
       if (!id || id === "new") {
-        await this.load();
+        await this.load(undefined, params);
       } else {
-        await this.load(+id, {parentId});
+        await this.load(+id, params);
       }
     });
 
@@ -100,7 +97,7 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
 
       // Create using default values
       const data = new this.dataType();
-      this.usageMode = this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK';
+      this.usageMode = this.computeUsageMode(data);
       await this.onNewEntity(data, options);
       this.updateView(data);
       this.loading = false;
@@ -111,6 +108,7 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
     else {
       const data = await this.dataService.load(id, options);
       this.usageMode = this.computeUsageMode(data);
+      await this.onEntityLoaded(data, options);
       this.updateView(data);
       this.loading = false;
       this.startListenRemoteChanges();
@@ -164,7 +162,9 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
     }
 
     // Quality metadata
-    this.qualityForm.value = data;
+    if (this.qualityForm) {
+      this.qualityForm.value = data;
+    }
 
     this.updateTitle(data);
 
@@ -181,7 +181,7 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
   }
 
   async save(event): Promise<boolean> {
-    if (this.loading || this.saving) return false;
+    if (this.loading || this.saving || !this.dirty) return false;
 
     // Not valid
     if (!this.valid) {
@@ -198,19 +198,16 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
     if (this.debug) console.debug("[root-data-editor] Saving control...");
 
     // Get data
-    const data = this.value;
-    const formDirty = this.dirty;
+    const data = await this.getValue();
     const isNew = this.isNewData;
 
     this.disable();
 
     try {
       // Save saleControl form (with sale)
-      const updatedData = formDirty ? await this.dataService.save(data) : this.data;
-      if (formDirty) {
-        this.markAsPristine();
-        this.markAsUntouched();
-      }
+      const updatedData = await this.dataService.save(data);
+      this.markAsPristine();
+      this.markAsUntouched();
 
       // Update the view (e.g metadata)
       this.updateView(updatedData);
@@ -287,6 +284,8 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
 
   protected abstract onNewEntity(data: T, options?: LoadEditorDataOptions): Promise<void>;
 
+  protected abstract onEntityLoaded(data: T, options?: LoadEditorDataOptions): Promise<void>;
+
   protected abstract computeTitle(data: T): Promise<string>;
 
   protected abstract setValue(data: T);
@@ -303,8 +302,16 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
     return this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK';
   }
 
-  protected get value(): T {
-    return this.form.value;
+  protected getValue(): Promise<T> {
+    const json = this.form.value;
+
+    // Re add program, because program control can be disabled
+    json.program = this.form.controls['program'].value;
+
+    const res = new this.dataType();
+    res.fromObject(json);
+
+    return Promise.resolve(res);
   }
 
   /**
@@ -326,6 +333,9 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
     }
   }
 
+  /**
+   *
+   */
   protected markForCheck() {
     this.cd.markForCheck();
   }

@@ -18,6 +18,9 @@ export function isNotNilOrBlank<T>(obj: T | null | undefined): boolean {
 export function isNotEmptyArray<T>(obj: T[] | null | undefined): boolean {
   return obj !== undefined && obj !== null && obj.length > 0;
 }
+export function isEmptyArray<T>(obj: T[] | null | undefined): boolean {
+  return obj === undefined || obj === null || !obj.length;
+}
 export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
   return obj === undefined ? null : obj;
 }

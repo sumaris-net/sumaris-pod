@@ -1,15 +1,9 @@
 import {Observable} from "rxjs";
-import {Apollo} from "apollo-angular";
-import {ApolloQueryResult, FetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
-import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
-import {map} from "rxjs/operators";
-
-import {environment} from '../../../environments/environment';
-import {delay} from "q";
+import {ServiceError} from "./errors";
 import {GraphqlService} from "./graphql.service";
 
-export abstract class BaseDataService {
+export abstract class BaseDataService<T = any> {
 
   protected _debug = false;
   protected _lastVariables: any = {
@@ -20,7 +14,6 @@ export abstract class BaseDataService {
   protected constructor(
     protected graphql: GraphqlService
   ) {
-
   }
 
   /**

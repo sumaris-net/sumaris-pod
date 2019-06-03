@@ -15,7 +15,7 @@ import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
-import {isNotNil} from "../../shared/shared.module";
+import {isNotNil, toBoolean} from "../../shared/shared.module";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 
@@ -67,6 +67,14 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   @Input()
   debug = false;
 
+  @Input() set filter(value: F) {
+    this.setFilter(value);
+  }
+
+  get filter(): F {
+    return this._filter;
+  }
+
   @ViewChild(MatTable) table: MatTable<T>;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
@@ -75,27 +83,21 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   listChange = new EventEmitter<T[]>();
 
   @Output()
-  onOpenRow: EventEmitter<number> = new EventEmitter<number>();
+  onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>(true);
 
   @Output()
-  onNewRow: EventEmitter<void> = new EventEmitter<void>();
+  onNewRow: EventEmitter<void> = new EventEmitter<void>(true);
 
   get dirty(): boolean {
     return this._dirty;
   }
 
   get valid(): boolean {
-    if (this.editedRow && this.editedRow.editing) {
-      if (this.debug && !this.editedRow.validator.valid) {
-        this.logRowErrors(this.editedRow);
-      }
-      return this.editedRow.validator.valid;
-    }
-    return true;
+    return this.editedRow && this.editedRow.editing ? this.editedRow.validator.valid : true;
   }
 
   get invalid(): boolean {
-    return !this.valid;
+    return this.editedRow && this.editedRow.editing ? this.editedRow.validator.invalid : false;
   }
 
   disable() {
@@ -142,10 +144,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     protected platform: Platform,
     protected location: Location,
     protected modalCtrl: ModalController,
-    protected settingsService: AccountService|LocalSettingsService,
+    protected settingsService: AccountService | LocalSettingsService,
     protected columns: string[],
     public dataSource?: AppTableDataSource<T, F>,
-    protected filter?: F,
+    private _filter?: F,
     injector?: Injector
   ) {
     this.mobile = this.platform.is('mobile');
@@ -192,10 +194,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
               this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,
               this.sort && this.sort.active,
               this.sort && this.sort.direction,
-              this.filter
+              this._filter
             );
           }),
-          takeUntil(this._onDestroy)
+        takeUntil(this._onDestroy)
       )
       .catch(err => {
         this.error = err && err.message || err;
@@ -241,13 +243,21 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     if (this._initialized) this.listenDatasource(datasource);
   }
 
+  setFilter(filter: F, opts?: { emitEvent: boolean }) {
+    opts = opts || {emitEvent: true};
+    this._filter = filter;
+    if (opts.emitEvent) {
+      this.onRefresh.emit();
+    }
+  }
+
   protected listenDatasource(dataSource: AppTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
     if (this._subscriptions.length) console.warn("Too many call of listenDatasource!", new Error());
     this.registerSubscription(dataSource.onLoading.subscribe(loading => {
       this.loading = loading;
       this.markForCheck();
-    } ));
+    }));
     this.registerSubscription(dataSource.datasourceSubject.subscribe(data => {
       this.error = undefined;
       this.listChange.emit(data);
@@ -255,7 +265,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     }));
   }
 
-  addColumnDef(columnDef: MatColumnDef, options?: {skipIfExists: boolean;}) {
+  addColumnDef(columnDef: MatColumnDef, options?: { skipIfExists: boolean; }) {
     const existingColumnDef = this.table._contentColumnDefs.find((item, index, array) => item.name === columnDef.name);
     if (existingColumnDef) {
       if (options && options.skipIfExists) return; // skip
@@ -360,8 +370,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     if (this.loading) return;
     if (this.isAllSelected()) {
       this.selection.clear();
-    }
-    else {
+    } else {
       const rows = await this.dataSource.getRows();
       rows.forEach(row => this.selection.select(row));
     }
@@ -456,7 +465,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit(id);
+      this.onOpenRow.emit({id, row});
       return true;
     }
 
@@ -615,8 +624,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     const control = AppFormUtils.getControlFromPath(row.validator, def.formPath);
     if (!control) {
       console.warn(`[table] Trying to listen cell changes, on an invalid row path {${def.formPath}}`);
-    }
-    else {
+    } else {
       def.subscription = control.valueChanges
         .subscribe((value) => {
           def.eventEmitter.emit(value);

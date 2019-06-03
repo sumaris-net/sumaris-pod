@@ -1,6 +1,6 @@
-import {Injectable} from "@angular/core";
+import {Injectable, Injector} from "@angular/core";
 import {BaseDataService} from "../../core/services/base.data-service.class";
-import {LoadResult, TableDataService} from "../../shared/services/data-service.class";
+import {EditorDataService, LoadResult, TableDataService} from "../../shared/services/data-service.class";
 import {AccountService} from "../../core/services/account.service";
 import {Observable} from "rxjs";
 import {Moment} from "moment";
@@ -13,6 +13,7 @@ import {ErrorCodes} from "./trip.errors";
 import {map, throttleTime} from "rxjs/operators";
 import {FetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
+import {RootDataService} from "./root-data-service.class";
 
 
 export declare class ObservedLocationFilter {
@@ -131,23 +132,24 @@ const UpdateSubscription = gql`
   }
   ${ObservedLocationFragments.observedLocation}
 `;
+
 @Injectable()
-export class ObservedLocationService extends BaseDataService implements TableDataService<ObservedLocation, ObservedLocationFilter> {
+export class ObservedLocationService extends RootDataService<ObservedLocation, ObservedLocationFilter>
+  implements TableDataService<ObservedLocation, ObservedLocationFilter>,
+    EditorDataService<ObservedLocation, ObservedLocationFilter> {
 
   constructor(
+    injector: Injector,
     protected graphql: GraphqlService,
     protected accountService: AccountService
   ) {
-    super(graphql);
+    super(injector);
 
     // FOR DEV ONLY
     this._debug = !environment.production;
   }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: string, filter?: ObservedLocationFilter, options?: any): Observable<LoadResult<ObservedLocation>> {
-
-    // Mock
-    if (environment.mock) return Observable.of(this.getMockData());
 
     const variables: any = {
       offset: offset || 0,
@@ -194,11 +196,6 @@ export class ObservedLocationService extends BaseDataService implements TableDat
 
     const now = Date.now();
     if (this._debug) console.debug(`[observed-location-service] Loading observed location {${id}}...`);
-
-    // Mock
-    if (environment.mock) {
-      return this.getMockData().data.find(sc => sc.id === id);
-    }
 
     const res = await this.graphql.query<{ observedLocation: ObservedLocation }>({
       query: LoadQuery,
@@ -307,6 +304,10 @@ export class ObservedLocationService extends BaseDataService implements TableDat
     return entities;
   }
 
+  async delete(data: ObservedLocation): Promise<any> {
+    await this.deleteAll([data]);
+  }
+
   async deleteAll(entities: ObservedLocation[], options?: any): Promise<any> {
     const ids = entities && entities
       .map(t => t.id)
@@ -335,117 +336,15 @@ export class ObservedLocationService extends BaseDataService implements TableDat
     return res;
   }
 
-  canUserWrite(date: ObservedLocation): boolean {
-    if (!date) return false;
-
-    // If the user is the recorder: can write
-    if (date.recorderPerson && this.accountService.account.equals(date.recorderPerson)) {
-      return true;
-    }
-
-    // TODO: check rights on program (need model changes)
-
-    return this.accountService.canUserWriteDataForDepartment(date.recorderDepartment);
-  }
-
   /* -- private -- */
 
-  getMockData(): LoadResult<ObservedLocation> {
-    const recorderPerson = {id: 1, firstName: 'Jacques', lastName: 'Dupond'};
-    const recorderPerson2 = {id: 2, firstName: 'Alfred', lastName: 'Dupont'};
-    const observers = [recorderPerson];
-    const location = {id: 30, label: 'DZ', name: 'Douarnenez'};
-    const location2 = {id: 31, label: 'GV', name: 'Guilvinec'};
-
-    const data = [
-      ObservedLocation.fromObject({
-        id: 1,
-        program: {id: 11, label: 'ADAP-CONTROLE', name: 'Contrôle en criée'},
-        startDateTime: '2019-01-01T03:50:00Z',
-        location: location,
-        recorderPerson: recorderPerson,
-        observers: [recorderPerson],
-        sales: [
-          {
-            id: 100,
-            startDateTime: '2019-01-01T03:50:00Z',
-            location: location,
-            vesselFeatures: {id: 1, vesselId: 1, name: 'Vessel 1', exteriorMarking: 'FRA000851751'}
-          }
-        ],
-        measurementValues: {
-          130: {id: '220', label: 'AV V', name: 'Avant-vente'}
-        }
-      }),
-      ObservedLocation.fromObject({
-        id: 2,
-        program: {id: 11, label: 'ADAP-CONTROLE', name: 'Contrôle en criée'},
-        startDateTime: '2019-01-02T03:50:00Z',
-        location: location,
-        recorderPerson: recorderPerson2,
-        observers: [recorderPerson2]
-      }),
-      ObservedLocation.fromObject({
-        id: 3,
-        program: {id: 11, label: 'ADAP-CONTROLE', name: 'Contrôle en criée'},
-        startDateTime: '2019-01-03T03:50:00Z',
-        location: location2,
-        recorderPerson: recorderPerson,
-        observers: [recorderPerson]
-      }),
-      ObservedLocation.fromObject({
-        id: 4,
-        program: {id: 11, label: 'ADAP-CONTROLE', name: 'Contrôle en criée'},
-        startDateTime: '2019-01-04T03:50:00Z',
-        location: location2,
-        recorderPerson: recorderPerson2,
-        observers: [recorderPerson2, recorderPerson]
-      }),
-    ];
-
-    return {
-      data: data,
-      total: data.length
-    };
-  }
-
   protected asObject(entity: ObservedLocation): any {
-    const copy: any = entity.asObject(true/*minify*/);
+    const json = super.asObject(entity);
 
-    // Keep id only, on person and department
-    copy.recorderPerson = {id: entity.recorderPerson && entity.recorderPerson.id};
-    copy.recorderDepartment = entity.recorderDepartment && {id: entity.recorderDepartment && entity.recorderDepartment.id} || undefined;
+    // Remove unused properties
+    delete json.landings;
 
-    delete copy.vessels;
-
-    return copy;
+    return json;
   }
 
-  protected fillDefaultProperties(entity: ObservedLocation) {
-    // If new trip
-    if (!entity.id || entity.id < 0) {
-
-      const person: Person = this.accountService.account;
-
-      // Recorder department
-      if (person && person.department) {
-        entity.recorderDepartment.id = person.department.id;
-      }
-
-      // Recorder person
-      if (person && person.id) {
-        entity.recorderPerson.id = person.id;
-      }
-    }
-  }
-
-  copyIdAndUpdateDate(source: ObservedLocation | undefined, target: ObservedLocation) {
-    if (!source) return;
-
-    // Update (id and updateDate)
-    target.id = source.id || target.id;
-    target.updateDate = source.updateDate || target.updateDate;
-    target.creationDate = source.creationDate || target.creationDate;
-    target.dirty = false;
-  }
 }

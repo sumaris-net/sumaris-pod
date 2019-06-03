@@ -35,7 +35,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let item of programs | async" [value]="item" no-padding>
+          <mat-option *ngFor="let item of $programs | async" [value]="item" no-padding>
             <ion-row>
               <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls.program.value }"></ion-col>
               <ion-col [innerHTML]="item.name | highlight: {search: form.controls.program.value }"
@@ -78,7 +78,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel" no-padding>
+          <mat-option *ngFor="let vessel of $vessels | async" [value]="vessel" no-padding>
             <ion-row>
               <ion-col size="3"
                        [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
@@ -168,7 +168,7 @@
         </ion-col>
       </ion-row>
 
-      <mat-option *ngFor="let location of locations | async" [value]="location" no-padding>
+      <mat-option *ngFor="let location of $locations | async" [value]="location" no-padding>
         <ion-row>
           <ion-col size="3"
                    [innerHTML]="location.label | highlight: {search: form.controls['returnLocation'].value }"></ion-col>

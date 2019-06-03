@@ -1,6 +1,7 @@
 import {Moment} from "moment/moment";
 import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../shared/shared.module";
 import {isNilOrBlank} from "../../shared/functions";
+import {ObservedLocation} from "../../trip/services/model/observed-location.model";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -92,14 +93,10 @@ export abstract class Entity<T> implements Cloneable<T> {
   id: number;
   updateDate: Date | Moment;
 
-  // TODO: remove this ?
-  dirty = false;
-
   abstract clone(): T;
 
   asObject(minify?: boolean): any {
     const target: any = Object.assign({}, this);
-    delete target.dirty;
     delete target.__typename;
     target.updateDate = toDateISOString(this.updateDate);
     return target;
@@ -108,7 +105,6 @@ export abstract class Entity<T> implements Cloneable<T> {
   fromObject(source: any): Entity<T> {
     this.id = (source.id || source.id === 0) ? source.id : undefined;
     this.updateDate = fromDateISOString(source.updateDate);
-    this.dirty = source.dirty;
     return this;
   }
 
@@ -129,7 +125,7 @@ export class EntityUtils {
   static getPropertyByPath(obj: any | Entity<any>, path: string): any {
     if (isNil(obj)) return undefined;
     const i = path.indexOf('.');
-    if (i == -1) {
+    if (i === -1) {
       return obj[path];
     }
     const key = path.substring(0, i);
@@ -175,6 +171,19 @@ export class EntityUtils {
 
   static equals(o1: Entity<any>, o2: Entity<any>): boolean {
     return (this.isEmpty(o1) && this.isEmpty(o2)) || (o1.id === o2.id);
+  }
+
+  static copyIdAndUpdateDate(source: Entity<any> | undefined, target: Entity<any>) {
+    if (!source) return;
+
+    // Update (id and updateDate)
+    target.id = isNotNil(source.id) ? source.id : target.id;
+    target.updateDate = fromDateISOString(source.updateDate) || target.updateDate;
+
+    // Update creation Date, if exists
+    if (source['creationDate']) {
+      target['creationDate'] = fromDateISOString(source['creationDate']);
+    }
   }
 }
 
@@ -486,9 +495,7 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
   }
 
   asObject(minify?: boolean): any {
-    const res: any = super.asObject();
-    delete res.dirty;
-    delete res.__typename;
+    const res: any = super.asObject(minify);
     res.content = this.content && JSON.stringify(res.content) || undefined;
     return res;
   }
@@ -639,4 +646,5 @@ export declare interface LocalSettings {
   accountInheritance?: boolean;
   locale?: string;
   usageMode?: UsageMode;
+  defaultPrograms?: string[];
 }

@@ -6,7 +6,6 @@ import {MatHorizontalStepper} from "@angular/material";
 import {TripPage} from "./trip.page";
 import {TranslateService} from '@ngx-translate/core';
 import {DateFormatPipe} from "../../shared/shared.module";
-import {AccountService} from "../../core/services/account.service";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ProgramService} from "../../referential/services/program.service";
 
@@ -27,7 +26,7 @@ export class TripModal extends TripPage {
     protected dateFormat: DateFormatPipe,
     protected dataService: TripService,
     protected settingsService: LocalSettingsService,
-    protected viewCtrl: ModalController,
+    protected modalCtrl: ModalController,
     protected programService: ProgramService,
     protected cd: ChangeDetectorRef) {
     super(route, router, alterCtrl, translate, dateFormat, dataService, settingsService, programService, cd);
@@ -38,7 +37,7 @@ export class TripModal extends TripPage {
     try {
       const saved = await super.save(event);
       if (saved) {
-        this.viewCtrl.dismiss(this.data);
+        this.modalCtrl.dismiss(this.data);
       }
       return saved;
     }
@@ -49,7 +48,7 @@ export class TripModal extends TripPage {
   }
 
   async cancel() {
-    await this.viewCtrl.dismiss();
+    await this.modalCtrl.dismiss();
   }
 
   public isEnd(): boolean {

@@ -102,6 +102,7 @@ export {
   EntityUtils,
   AcquisitionLevelCodes,
   StatusIds,
+  GraphqlService,
   LocationLevelIds,
   Referential,
   ReferentialRef,

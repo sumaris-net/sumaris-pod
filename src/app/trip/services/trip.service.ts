@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
-import {fillRankOrder, isNil, Person, Trip} from "./trip.model";
+import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {map, throttleTime} from "rxjs/operators";
@@ -130,10 +130,12 @@ export const TripFragments = {
   `
 };
 
-export declare class TripFilter {
-  programLabel?: string;
+export class TripFilter {
   startDate?: Date | Moment;
   endDate?: Date | Moment;
+  programLabel?: string;
+  vesselId?: number
+  recorderDepartmentId?: number;
   locationId?: number;
 }
 const LoadAllQuery: any = gql`
@@ -398,7 +400,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     // TODO vérifier que le formulaire est dirty et/ou s'il est valide, car le control provoque une sauvegarde
 
     if (isNil(entity.id)) {
-      throw "Entity must be saved before control !"
+      throw new Error("Entity must be saved before control !");
     }
 
     // Prepare to save
@@ -418,11 +420,11 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       error: { code: ErrorCodes.CONTROL_TRIP_ERROR, message: "TRIP.ERROR.CONTROL_TRIP_ERROR" }
     });
 
-    let savedTrip = res && res.controlTrip;
-    if (savedTrip) {
-      this.copyIdAndUpdateDate(savedTrip, entity);
-      entity.controlDate = savedTrip.controlDate || entity.controlDate;
-      entity.validationDate = savedTrip.validationDate || entity.validationDate;
+    const savedEntity = res && res.controlTrip;
+    if (savedEntity) {
+      this.copyIdAndUpdateDate(savedEntity, entity);
+      entity.controlDate = savedEntity.controlDate || entity.controlDate;
+      entity.validationDate = savedEntity.validationDate || entity.validationDate;
     }
 
     if (this._debug) console.debug("[trip-service] Trip controlled in " + (new Date().getTime() - now.getTime()) + "ms", entity);
@@ -608,35 +610,24 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     if (!source) return;
 
     // Update (id and updateDate)
-    target.id = source.id || target.id;
-    target.updateDate = source.updateDate || target.updateDate;
-    target.creationDate = source.creationDate || target.creationDate;
-    target.dirty = false;
+    EntityUtils.copyIdAndUpdateDate(source, target);
 
     // Update sale
     if (target.sale && source.sale) {
-      target.sale.id = source.sale.id || target.sale.id;
-      target.sale.updateDate = source.sale.updateDate || target.sale.updateDate;
-      target.sale.creationDate = source.sale.creationDate || target.sale.creationDate;
-      target.sale.dirty = false;
+      EntityUtils.copyIdAndUpdateDate(source.sale, target.sale);
     }
 
     // Update gears
     if (target.gears && source.gears) {
       target.gears.forEach(entity => {
         const savedGear = source.gears.find(json => entity.equals(json));
-        entity.id = savedGear && savedGear.id || entity.id;
-        entity.updateDate = savedGear && savedGear.updateDate || entity.updateDate;
-        entity.creationDate = savedGear && savedGear.creationDate || entity.creationDate;
-        entity.dirty = false;
+        EntityUtils.copyIdAndUpdateDate(savedGear, entity);
 
         // Update measurements
         if (savedGear && entity.measurements && savedGear.measurements) {
           entity.measurements.forEach(entity => {
             const savedMeasurement = savedGear.measurements.find(m => entity.equals(m));
-            entity.id = savedMeasurement && savedMeasurement.id || entity.id;
-            entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
-            entity.dirty = false;
+            EntityUtils.copyIdAndUpdateDate(savedMeasurement, entity);
           });
         }
       });
@@ -646,9 +637,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     if (target.measurements && source.measurements) {
       target.measurements.forEach(entity => {
         const savedMeasurement = source.measurements.find(m => entity.equals(m));
-        entity.id = savedMeasurement && savedMeasurement.id || entity.id;
-        entity.updateDate = savedMeasurement && savedMeasurement.updateDate || entity.updateDate;
-        entity.dirty = false;
+        EntityUtils.copyIdAndUpdateDate(savedMeasurement, entity);
       });
     }
   }

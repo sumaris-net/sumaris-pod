@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {first, map} from "rxjs/operators";
-import {isNil, isNotNil, Referential, StatusIds} from "./model";
+import {EntityUtils, isNil, isNotNil, Referential, StatusIds} from "./model";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {Apollo} from "apollo-angular";
@@ -196,7 +196,6 @@ export class ReferentialService extends BaseDataService implements TableDataServ
         const data = res.saveReferentials.find(res => (res.id === entity.id || res.label === entity.label));
         entity.id = data && data.id || entity.id;
         entity.updateDate = data && data.updateDate || entity.updateDate;
-        entity.dirty = false;
       });
 
       // Update the cache
@@ -241,10 +240,8 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     });
 
     // Update entity
-    var res = data && data.saveReferentials && data.saveReferentials[0];
-    entity.id = res && res.id || entity.id;
-    entity.updateDate = res && res.updateDate || entity.updateDate;
-    entity.dirty = false;
+    const savedEntity = data && data.saveReferentials && data.saveReferentials[0];
+    EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
 
     // Update the cache
     if (isNew && this._lastVariables.loadAll) {

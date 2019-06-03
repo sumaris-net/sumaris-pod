@@ -77,7 +77,10 @@ export const ProgramProperties = {
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: 'sumaris.observedLocation.endDateTime.enable',
-  OBSERVED_LOCATION_LOCATION_LEVEL_IDS: 'sumaris.observedLocation.location.level.ids'
+  OBSERVED_LOCATION_LOCATION_LEVEL_IDS: 'sumaris.observedLocation.location.level.ids',
+
+  // Landing
+  LANDING_DETAILS_ENABLE: 'sumaris.landing.details.enable',
 }
 
 export const QualityFlagIds = {
@@ -293,6 +296,8 @@ export class Program extends Entity<Program> {
   }
 }
 
+export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING';
+
 export declare type PmfmType = 'integer' | 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
 
 export class PmfmStrategy extends Entity<PmfmStrategy> {
@@ -319,6 +324,8 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   acquisitionLevel: string;
   gears: string[];
+  taxonGroupIds: number[];
+  referenceTaxonIds: number[];
   qualitativeValues: ReferentialRef[];
 
   constructor() {

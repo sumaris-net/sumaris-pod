@@ -1,7 +1,7 @@
-import { Injectable } from "@angular/core";
-import { ValidatorService } from "angular4-material-table";
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { SharedValidators } from "../../shared/validator/validators";
+import {Injectable} from "@angular/core";
+import {ValidatorService} from "angular4-material-table";
+import {FormGroup, Validators, FormBuilder} from "@angular/forms";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Injectable()
 export class SampleValidatorService implements ValidatorService {
@@ -21,11 +21,15 @@ export class SampleValidatorService implements ValidatorService {
       rankOrder: ['', Validators.required],
       label: ['', Validators.required],
       sampleDate: ['', Validators.required],
-      taxonGroup: [null, SharedValidators.entity],
-      taxonName: [null, Validators.compose([Validators.required, SharedValidators.entity])],
+      taxonGroup: ['', SharedValidators.entity],
+      taxonName: ['', SharedValidators.entity],
       comments: [''],
-      parent: ['', SharedValidators.entity],
-      dirty: ['']
+      parent: ['', SharedValidators.entity]
+    }, {
+      validators: [
+        SharedValidators.requiredIfEmpty('taxonGroup', 'taxonName'),
+        SharedValidators.requiredIfEmpty('taxonName', 'taxonGroup')
+      ]
     });
   }
 }

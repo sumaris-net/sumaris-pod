@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
-import {Person, Sale, Sample} from "./trip.model";
+import {EntityUtils, Person, Sale, Sample} from "./trip.model";
 import {map} from "rxjs/operators";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService, environment} from "../../core/core.module";
@@ -148,9 +148,6 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
            sortBy?: string,
            sortDirection?: string,
            filter?: SaleFilter): Observable<LoadResult<Sale>> {
-
-    // Mock
-    if (environment.mock) return Observable.of(this.getMockData());
 
     const variables: any = {
       offset: offset || 0,
@@ -406,9 +403,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
     if (!source) return;
 
     // Update (id and updateDate)
-    target.id = source.id || target.id;
-    target.updateDate = source.updateDate || target.updateDate;
-    target.dirty = false;
+    EntityUtils.copyIdAndUpdateDate(source, target);
 
     // Update samples (recursively)
     if (target.samples && source.samples) {
@@ -426,10 +421,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
     if (sources && targets) {
       targets.forEach(target => {
         const source = sources.find(json => target.equals(json));
-        target.id = source && source.id || target.id;
-        target.updateDate = source && source.updateDate || target.updateDate;
-        target.creationDate = source && source.creationDate || target.creationDate;
-        target.dirty = false;
+        EntityUtils.copyIdAndUpdateDate(source, target);
 
         // Apply to children
         if (target.children && target.children.length) {
@@ -441,37 +433,4 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
 
   /* -- private -- */
 
-  getMockData(): LoadResult<Sale> {
-    const recorderPerson = {id: 1, firstName:'Jacques', lastName: 'Dupond'};
-    const observers = [recorderPerson];
-    const location = {id: 30, label:'DZ', name:'Douarnenez'};
-
-    const data = [
-      Sale.fromObject({
-        id:2,
-        program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-        vesselFeatures: {vesselId:1, exteriorMarking: 'FRA000141001', name: 'Navire 1'},
-        startDateTime: '2019-01-01T03:50:00Z',
-        saleLocation: location,
-        saleType: {id: 1, label: 'Criée', name: 'Criée'},
-        recorderPerson: recorderPerson,
-        observers: observers
-      }),
-      Sale.fromObject({
-        id:3,
-        program:  {id: 11, label:'ADAP-CONTROLE', name:'Contrôle en criée'},
-        vesselFeatures: {vesselId:1, exteriorMarking: 'FRA000141002', name: 'Navire 2'},
-        startDateTime: '2019-01-01T04:15:00Z',
-        saleLocation: location,
-        saleType: {id: 1, label: 'Criée', name: 'Criée'},
-        recorderPerson: recorderPerson,
-        observers: observers
-      })
-    ];
-
-    return {
-      total: data.length,
-      data
-    };
-  }
 }

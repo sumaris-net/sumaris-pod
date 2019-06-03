@@ -357,7 +357,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
       }
     });
     (this._tables || []).forEach(appTable => {
-      if (!appTable.invalid && appTable.editedRow && appTable.editedRow.validator) {
+      if (appTable.invalid && appTable.editedRow && appTable.editedRow.validator) {
         AppFormUtils.logFormErrors(appTable.editedRow.validator, `"[root-editor-form] [${appTable.constructor.name.toLowerCase()}] `);
       }
     });

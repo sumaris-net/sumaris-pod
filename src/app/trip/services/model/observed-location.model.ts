@@ -4,7 +4,8 @@ import {DataRootEntity, DataRootVesselEntity, IWithObserversEntity} from "./base
 
 
 import {Moment} from "moment/moment";
-import {IEntityWithMeasurement} from "./measurement.model";
+import {IEntityWithMeasurement, MeasurementUtils} from "./measurement.model";
+import {Landing} from "./landing.model";
 
 
 export class ObservedLocation extends DataRootEntity<ObservedLocation>
@@ -21,9 +22,9 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
   endDateTime: Moment;
   location: ReferentialRef;
   measurementValues: { [key: string]: any };
-
-  vessels: ObservedVessel[];
   observers: Person[];
+
+  landings: Landing[];
 
   constructor() {
     super();
@@ -31,7 +32,7 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
     this.location = new ReferentialRef();
     this.measurementValues = {};
     this.observers = [];
-    this.vessels = [];
+    this.landings = [];
   }
 
   clone(): ObservedLocation {
@@ -50,18 +51,8 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.location = this.location && this.location.asObject(false/*keep it for table*/) || undefined;
-
-    // Measurement: keep only the map
-    if (minify) {
-      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
-        .reduce((map, pmfmId) => {
-          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
-          if (isNotNil(value)) map[pmfmId] = '' + value;
-          return map;
-        }, {}) || undefined;
-    }
-
-    target.vessels = this.vessels && this.vessels.map(s => s.asObject(minify)) || undefined;
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, minify);
+    target.landings = this.landings && this.landings.map(s => s.asObject(minify)) || undefined;
     target.observers = this.observers && this.observers.map(o => o.asObject(minify)) || undefined;
 
     return target;
@@ -74,20 +65,9 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
     this.endDateTime = fromDateISOString(source.endDateTime);
     source.location && this.location.fromObject(source.location);
 
-    if (source.measurementValues) {
-      this.measurementValues = source.measurementValues;
-    }
-    // Convert measurement to map
-    else if (source.measurements) {
-      this.measurementValues = source.measurements && source.measurements.reduce((map, m) => {
-        const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-        if (value) map[m.pmfmId] = value;
-        return map;
-      }, {}) || undefined;
-    }
-
+    this.measurementValues = source.measurementValues || MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
-    this.vessels = source.vessels && source.vessels.map(ObservedVessel.fromObject) || [];
+    this.landings = source.landings && source.landings.map(Landing.fromObject) || [];
 
     return this;
   }

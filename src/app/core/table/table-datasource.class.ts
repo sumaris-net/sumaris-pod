@@ -6,15 +6,21 @@ import {Entity} from "../services/model";
 import {ErrorCodes} from '../services/errors';
 import {first, map, takeUntil} from "rxjs/operators";
 
+export interface AppTableDataSourceOptions<T extends Entity<T>> {
+  prependNewElements: boolean;
+  suppressErrors: boolean;
+  onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
+  serviceOptions?: {
+    saveOnlyDirtyRows?: boolean;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
 export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
 
   protected _debug = false;
-  protected _config: {
-    prependNewElements: boolean;
-    onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
-    useRowValidator?: boolean;
-    [key: string]: any;
-  };
+  protected _config: AppTableDataSourceOptions<T>;
   protected _creating = false;
   protected _saving = false;
   protected _useValidator = false;
@@ -31,6 +37,10 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     return this._dataService;
   }
 
+  get options(): AppTableDataSourceOptions<T> {
+    return this._config;
+  }
+
   /**
    * Creates a new TableDataSource instance, that can be used as datasource of `@angular/cdk` data-table.
    * @param data Array containing the initial values for the TableDataSource. If not specified, then `dataType` must be specified.
@@ -42,19 +52,10 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   constructor(dataType: new() => T,
               private _dataService: TableDataService<T, F>,
               validatorService?: ValidatorService,
-              config?: {
-                prependNewElements: boolean;
-                suppressErrors: boolean;
-                onRowCreated?: (row: TableElement<T>) => Promise<void> | void;
-                useRowValidator?: boolean;
-                serviceOptions?: {
-                  saveOnlyDirtyRows?: boolean;
-                  saveAsEntity?: boolean;
-                },
-              }) {
+              config?: AppTableDataSourceOptions<T>) {
     super([], dataType, validatorService, config);
     this.serviceOptions = config && config.serviceOptions || {};
-    this._config = config || {prependNewElements: false};
+    this._config = config || {prependNewElements: false, suppressErrors: true};
     this._useValidator = isNotNil(validatorService);
 
     // For DEV ONLY
@@ -97,10 +98,9 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     this.onLoading.emit(true);
 
     const onlyDirtyRows = toBoolean(this.serviceOptions.saveOnlyDirtyRows, false);
-    const saveAsEntity = this._useValidator && toBoolean(this.serviceOptions.saveAsEntity, true) ;
 
     try {
-      if (this._debug) console.debug(`[table-datasource] Saving rows... (onlyDirty=${onlyDirtyRows}, saveAsEntity=${saveAsEntity})`);
+      if (this._debug) console.debug(`[table-datasource] Saving rows... (onlyDirty=${onlyDirtyRows})`);
 
       // Get all rows
       const rows = await this.getRows();
@@ -120,7 +120,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       if (this._useValidator) {
         dataToSave = [];
         data = rows.map(row => {
-          const currentData = saveAsEntity ? new this.dataConstructor().fromObject(row.currentData) as T : row.currentData;
+          const currentData = new this.dataConstructor().fromObject(row.currentData) as T;
           // Filter to keep only dirty row
           if (onlyDirtyRows && row.validator.dirty) dataToSave.push(currentData);
           return currentData;

@@ -23,22 +23,22 @@ export class TripValidatorService implements ValidatorService {
     const isOnFieldMode = this.accountService.isUsageMode('FIELD');
 
     return this.formBuilder.group({
-      'id': [''],
-      'program': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'updateDate': [''],
-      'creationDate': [''],
-      'vesselFeatures': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'departureDateTime': ['', Validators.required],
-      'departureLocation': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'returnDateTime': ['', isOnFieldMode ? undefined : Validators.required],
-      'returnLocation': ['', isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
-      'comments': ['', Validators.maxLength(2000)]
+      id: [''],
+      program: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      updateDate: [''],
+      creationDate: [''],
+      vesselFeatures: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      departureDateTime: ['', Validators.required],
+      departureLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      returnDateTime: ['', isOnFieldMode ? undefined : Validators.required],
+      returnLocation: ['', isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
+      comments: ['', Validators.maxLength(2000)]
     }, {
       validator: Validators.compose([
         SharedValidators.dateIsAfter('departureDateTime', 'returnDateTime'),
         SharedValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
         SharedValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
-      ]),
+      ])
     });
   }
 }

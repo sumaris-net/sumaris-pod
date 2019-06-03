@@ -8,7 +8,7 @@
   <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
-    <mat-tab label="{{'LANDING.TAB_GENERAL'|translate}}">
+    <mat-tab label="{{'LANDING.TAB_GENERAL'|translate}}" >
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
@@ -30,7 +30,6 @@
 
             <!-- landing form-->
             <app-landing-form #landingForm
-                              [showProgram]="false"
                               [showError]="false"
                               (onSubmit)="save($event)">
 
@@ -47,10 +46,10 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab label="{{'LANDING.TAB_SAMPLES'|translate}}" [disabled]="!showSamples">
+    <mat-tab label="{{'LANDING.TAB_SAMPLES'|translate}}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon>
-          <ion-icon matPrefix slot="start" name="boat"></ion-icon>
+          <ion-icon matPrefix slot="start" name="flag"></ion-icon>
         </mat-icon>
         <ion-label translate>LANDING.TAB_SAMPLES</ion-label>
         <ion-icon slot="end" name="alert" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
@@ -64,12 +63,21 @@
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
+
+
         <table-samples #samplesTable
-                       program="programSubject|async"
+                       [program]="programSubject|async"
                        acquisitionLevel="SAMPLE"
-                       (onOpenRow)="onOpenSample($event)"
-                       (onNewRow)="onNewSample($event)"
+                       [showLabelColumn]="true"
+                       [showDateTimeColumn]="false"
+                       [showTaxonNameColumn]="false"
+                       [showTaxonGroupColumn]="true"
+                       [defaultSampleDate]="data?.dateTime"
+                       [usageMode]="usageMode"
                        [debug]="debug"></table-samples>
+
+<!--        (onOpenRow)="onOpenSample($event)"-->
+<!--        (onNewRow)="onNewSample($event)"-->
 
       </div>
     </mat-tab>

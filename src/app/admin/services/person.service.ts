@@ -186,7 +186,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
     (res && res.savePersons && data)
       .forEach(entity => {
         const savedPerson = res.savePersons.find(res => entity.equals(res));
-        this.copyIdAndUpdateDate(savedPerson, entity);
+        EntityUtils.copyIdAndUpdateDate(savedPerson, entity);
       });
 
     if (this._debug) console.debug(`[person-service] Persons saved in ${Date.now() - now}ms`, data);
@@ -243,13 +243,4 @@ export class PersonService extends BaseDataService implements TableDataService<P
     return target;
   }
 
-  protected copyIdAndUpdateDate(source: Person | undefined, target: Person) {
-    if (!source) return;
-
-    // Update (id and updateDate)
-    target.id = source.id || target.id;
-    target.updateDate = source.updateDate || target.updateDate;
-    target.creationDate = source.creationDate || target.creationDate;
-    target.dirty = false;
-  }
 }

@@ -99,6 +99,8 @@ export const DataFragments = {
     parentId
     sampleDate
     individualCount
+    size
+    sizeUnit
     comments
     updateDate
     creationDate

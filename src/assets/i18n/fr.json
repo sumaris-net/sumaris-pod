@@ -359,6 +359,8 @@
     },
     "SAMPLE": {
       "TABLE": {
+        "LABEL": "Lot",
+        "LABEL_PLACEHOLDER": "Lot",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Code espèce",
         "TAXON_NAME": "Espèce scientifique (FAO)",
@@ -420,7 +422,7 @@
       "TITLE": "Nouveau contrôle"
     },
     "EDIT": {
-      "TITLE": "{{location}} - Contrôle du {{dateTime}}",
+      "TITLE": "{{location}} - {{dateTime}}",
       "OTHER_FEATURES": "Autres caractéristiques :"
     },
     "TABLE": {
@@ -448,9 +450,12 @@
   "LANDING": {
     "TAB_GENERAL": "Détails",
     "TAB_SAMPLES": "Points de contrôle",
+    "PROGRAM": "Programme",
+    "VESSEL": "Navire",
+    "LANDING": "Débarquement :",
     "DATE_TIME": "Date/Heure",
     "LOCATION": "Lieu de débarquement",
-    "OBSERVERS": "Observateurs",
+    "OBSERVERS": "Observateurs :",
     "OBSERVER_PLACEHOLDER": "Observateur #",
     "NEW": {
       "TITLE": "Nouveau navire observé"
@@ -461,13 +466,20 @@
     },
     "TABLE": {
       "VESSEL": "Navire",
-      "LANDING_DATE_TIME": "Date/heure",
-      "LANDING_LOCATION": "Port",
+      "DATE_TIME": "Date/heure",
+      "LOCATION": "Lieu de débarquement",
       "OBSERVERS": "Observateurs",
       "COMMENTS": "Commentaires"
     },
+    "SELECT_MODAL": {
+      "TITLE": "Détail des navre contrôlés"
+    },
     "ERROR": {
-      "LOAD_ALL_ERROR": "Erreur de chargement des navires observés."
+      "LOAD_ALL_ERROR": "Erreur de chargement des navires observés.",
+      "LOAD_ERROR": "Erreur de chargement du navire observé.",
+      "SAVE_ERROR": "Erreur de sauvegarde du navire observé",
+      "SAVE_ALL_ERROR": "Erreur de sauvegarde des navires observés",
+      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé."
     }
   },
   "QUALITY": {

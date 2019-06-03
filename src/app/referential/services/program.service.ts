@@ -67,6 +67,8 @@ const LoadProgramPmfms: any = gql`
       acquisitionLevel
       updateDate
       gears
+      taxonGroupIds
+      referenceTaxonIds
       qualitativeValues {
         id
         label
@@ -183,8 +185,11 @@ export class ProgramService extends BaseDataService implements TableDataService<
    * Load program pmfms
    */
   async loadProgramPmfms(program: string, options?: {
-    acquisitionLevel: string,
-    gear?: string
+    acquisitionLevel: string;
+    gear?: string;
+    taxonGroupId?: number;
+    referenceTaxonId?: number;
+    debug?: boolean;
   }): Promise<PmfmStrategy[]> {
 
     // TODO: add a cache ?
@@ -199,16 +204,23 @@ export class ProgramService extends BaseDataService implements TableDataService<
       fetchPolicy: "cache-first"
     });
     const pmfmIds = []; // used to avoid duplicated pmfms
-    if (options.acquisitionLevel === "SORTING_BATCH") console.debug("data.programPmfms:", data && data.programPmfms);
+
+    // For DEBUG ONLY
+    if (options.debug) console.debug(`[program-service] PMFM for ${options.acquisitionLevel} (not filtered):`, data && data.programPmfms);
+
     const res = (data && data.programPmfms || [])
     // Filter on acquisition level and gear
       .filter(p =>
-        pmfmIds.indexOf(p.pmfmId) == -1
+        pmfmIds.indexOf(p.pmfmId) === -1
         && (
           !options || (
-            (!options.acquisitionLevel || p.acquisitionLevel == options.acquisitionLevel)
+            (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
             // Filter on gear (if PMFM has gears = compatible with all gears)
-            && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g == options.gear) !== -1)
+            && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g === options.gear) !== -1)
+            // Filter on taxon group
+            && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
+            // Filter on reference taxon
+            && (!options.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === options.referenceTaxonId) !== -1)
             // Add to list of IDs
             && pmfmIds.push(p.pmfmId)
           )
@@ -217,7 +229,9 @@ export class ProgramService extends BaseDataService implements TableDataService<
       .map(PmfmStrategy.fromObject);
     // Sort on rank order
     res.sort((p1, p2) => p1.rankOrder - p2.rankOrder);
-    if (options.acquisitionLevel === "SORTING_BATCH") console.debug("PMFM for " + options.acquisitionLevel, res);
+
+    // For DEBUG only
+    if (options.debug) console.debug(`[program-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
 
     return res;
     // TODO: translate name/label using translate service ?

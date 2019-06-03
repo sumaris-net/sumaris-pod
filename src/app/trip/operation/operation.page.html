@@ -129,7 +129,13 @@
             <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && survivalTestsTable.invalid"></ion-icon>
           </ng-template>
 
-          <table-samples #survivalTestsTable [debug]="debug" acquisitionLevel="SURVIVAL_TEST" [program]="programSubject|async">
+          <table-samples #survivalTestsTable [debug]="debug"
+                         acquisitionLevel="SURVIVAL_TEST"
+                         [showLabelColumn]="false"
+                         [showDateTimeColumn]="true"
+                         [showTaxonNameColumn]="true"
+                         [showTaxonGroupColumn]="false"
+                         [program]="programSubject|async">
           </table-samples>
         </mat-tab>
 
