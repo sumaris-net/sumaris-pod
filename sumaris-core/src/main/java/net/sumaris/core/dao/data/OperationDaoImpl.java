@@ -108,7 +108,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
     @Override
     public OperationVO get(int id) {
         Operation entity = get(Operation.class, id);
-        return toOperationVO(entity);
+        return toVO(entity);
     }
 
     @Override
@@ -189,7 +189,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
     }
 
     @Override
-    public OperationVO toOperationVO(Operation source) {
+    public OperationVO toVO(Operation source) {
         if (source == null) return null;
 
         OperationVO target = new OperationVO();
@@ -226,7 +226,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
     protected List<OperationVO> toOperationVOs(List<Operation> source) {
         return source.stream()
-                .map(this::toOperationVO)
+                .map(this::toVO)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }

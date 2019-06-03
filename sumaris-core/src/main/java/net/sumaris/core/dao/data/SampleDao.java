@@ -31,6 +31,8 @@ public interface SampleDao {
 
     List<SampleVO> getAllByOperationId(int operationId);
 
+    List<SampleVO> getAllByLandingId(int landingId);
+
     SampleVO get(int id);
 
     List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources);

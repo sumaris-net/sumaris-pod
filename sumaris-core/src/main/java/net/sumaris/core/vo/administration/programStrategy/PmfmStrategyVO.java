@@ -24,6 +24,7 @@ package net.sumaris.core.vo.administration.programStrategy;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.vo.IValueObject;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -35,7 +36,7 @@ import java.util.List;
 
 @Data
 public class
-PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date> {
+PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer>  {
 
     private Integer id;
     private Integer pmfmId;
@@ -59,6 +60,8 @@ PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date> {
 
     private String acquisitionLevel;
     private List<String> gears;
+    private List<Integer> taxonGroupIds;
+    private List<Integer> referenceTaxonIds;
 
     List<ReferentialVO> qualitativeValues;
 }

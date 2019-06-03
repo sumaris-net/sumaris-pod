@@ -27,7 +27,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class ObservedLocationFilterVO {
+public class ObservedLocationFilterVO implements IRootDataFilter {
 
     private Date startDate;
 

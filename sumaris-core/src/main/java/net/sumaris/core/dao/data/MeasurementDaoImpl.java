@@ -256,6 +256,27 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         );
     }
 
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<Integer, String> getLandingMeasurementsMap(int landingId) {
+        return getMeasurementsMapByParentId(LandingMeasurement.class,
+                LandingMeasurement.PROPERTY_LANDING,
+                landingId,
+                LandingMeasurement.PROPERTY_ID
+        );
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<MeasurementVO> getLandingMeasurements(int landingId) {
+        return getMeasurementsByParentId(LandingMeasurement.class,
+                LandingMeasurement.PROPERTY_LANDING,
+                landingId,
+                LandingMeasurement.PROPERTY_ID
+        );
+    }
+
     @Override
     public <T extends IMeasurementEntity>  MeasurementVO toMeasurementVO(T source) {
         if (source == null) return null;

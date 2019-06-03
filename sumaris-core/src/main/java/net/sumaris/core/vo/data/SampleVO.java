@@ -23,9 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
-import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -37,7 +35,7 @@ import java.util.Map;
 
 @Data
 public class SampleVO implements  IRootDataVO<Integer>,
-        IWithRecorderPersonEntityBean<Integer, PersonVO> {
+        IWithRecorderPersonEntity<Integer, PersonVO> {
 
     public static final String PROPERTY_SAMPLE_DATE = "sampleDate";
     public static final String PROPERTY_OPERATION = "operation";
@@ -59,6 +57,8 @@ public class SampleVO implements  IRootDataVO<Integer>,
     private Date sampleDate;
     private Integer rankOrder;
     private Integer individualCount;
+    private Double size;
+    private String sizeUnit;
     private ReferentialVO matrix;
     private ReferentialVO taxonGroup;
     private ReferentialVO taxonName;

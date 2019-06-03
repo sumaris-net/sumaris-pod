@@ -27,6 +27,8 @@ package net.sumaris.core.dao.technical;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
@@ -1492,5 +1494,23 @@ public class Daos {
         }
     }
 
+    public static void checkUpdateDateForUpdate(IUpdateDateEntityBean<?, ? extends Date> source,
+                                                IUpdateDateEntityBean<?, ? extends Date> entity) {
+        // Check update date
+        if (entity.getUpdateDate() != null) {
+            Timestamp serverUpdateDtNoMillisecond = Dates.resetMillisecond(entity.getUpdateDate());
+            Timestamp sourceUpdateDtNoMillisecond = Dates.resetMillisecond(source.getUpdateDate());
+            if (!Objects.equals(sourceUpdateDtNoMillisecond, serverUpdateDtNoMillisecond)) {
+                throw new BadUpdateDateException(I18n.t("sumaris.persistence.error.badUpdateDate",
+                        getTableName(entity.getClass().getSimpleName()), source.getId(), serverUpdateDtNoMillisecond,
+                        sourceUpdateDtNoMillisecond));
+            }
+        }
+    }
+
+    public static String getTableName(String entityName) {
+
+        return I18n.t("sumaris.persistence.table."+ entityName.substring(0,1).toLowerCase() + entityName.substring(1));
+    }
 
 }

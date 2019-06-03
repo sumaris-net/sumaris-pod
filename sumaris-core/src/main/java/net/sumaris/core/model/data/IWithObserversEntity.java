@@ -25,12 +25,13 @@ package net.sumaris.core.model.data;
 import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
+import java.util.Set;
 
-public interface IWithRecorderDepartmentEntityBean<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
+public interface IWithObserversEntity<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
 
-    String PROPERTY_RECORDER_DEPARTMENT = "recorderDepartment";
+    String PROPERTY_OBSERVERS = "observers";
 
-    P getRecorderDepartment();
+    Set<P> getObservers();
 
-    void setRecorderDepartment(P recorderDepartment);
+    void setObservers(Set<P> observers);
 }

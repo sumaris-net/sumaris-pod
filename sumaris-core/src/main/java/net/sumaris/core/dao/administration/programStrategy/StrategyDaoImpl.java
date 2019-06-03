@@ -25,6 +25,8 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
@@ -221,6 +223,24 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             target.setGears(gears);
+        }
+
+        // Taxon groups
+        if (CollectionUtils.isNotEmpty(source.getTaxonGroups())) {
+            List<Integer> taxonGroupIds = source.getTaxonGroups()
+                    .stream()
+                    .map(IEntity::getId)
+                    .collect(Collectors.toList());
+            target.setTaxonGroupIds(taxonGroupIds);
+        }
+
+        // Reference taxons
+        if (CollectionUtils.isNotEmpty(source.getReferenceTaxons())) {
+            List<Integer> referenceTaxonIds = source.getReferenceTaxons()
+                    .stream()
+                    .map(IEntity::getId)
+                    .collect(Collectors.toList());
+            target.setReferenceTaxonIds(referenceTaxonIds);
         }
 
         return target;

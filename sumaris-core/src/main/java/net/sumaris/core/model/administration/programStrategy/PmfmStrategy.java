@@ -27,6 +27,8 @@ import lombok.Data;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -81,4 +83,17 @@ public class PmfmStrategy implements IEntity<Integer> {
                     @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
     private Set<Gear> gears = Sets.newHashSet();
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "pmfm_strategy2taxon_group", joinColumns = {
+            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "taxon_group_fk", nullable = false, updatable = false) })
+    private Set<TaxonGroup> taxonGroups = Sets.newHashSet();
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "pmfm_strategy2reference_taxon", joinColumns = {
+            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "reference_taxon_fk", nullable = false, updatable = false) })
+    private Set<ReferenceTaxon> referenceTaxons = Sets.newHashSet();
 }

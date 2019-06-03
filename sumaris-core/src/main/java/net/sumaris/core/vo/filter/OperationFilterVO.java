@@ -24,10 +24,11 @@ package net.sumaris.core.vo.filter;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class OperationFilterVO {
+public class OperationFilterVO implements Serializable {
 
     private Integer tripId;
 }

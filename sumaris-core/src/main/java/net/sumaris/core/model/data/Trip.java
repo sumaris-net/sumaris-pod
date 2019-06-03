@@ -27,7 +27,6 @@ import lombok.Data;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.hibernate.annotations.Cascade;
@@ -51,14 +50,14 @@ import java.util.*;
                 }),
         @FetchProfile(name = Trip.FETCH_PROFILE_OBSERVERS,
                 fetchOverrides = {
-                        @FetchProfile.FetchOverride(association = IWithObserversEntityBean.PROPERTY_OBSERVERS, entity = Trip.class, mode = FetchMode.JOIN)
+                        @FetchProfile.FetchOverride(association = IWithObserversEntity.PROPERTY_OBSERVERS, entity = Trip.class, mode = FetchMode.JOIN)
                 })
 })
 @Data
 @Entity
 public class Trip implements IRootDataEntity<Integer>,
-        IWithObserversEntityBean<Integer, Person>,
-        IWithVesselEntity<Integer> {
+        IWithObserversEntity<Integer, Person>,
+        IWithVesselEntity<Integer, Vessel> {
 
     public static final String FETCH_PROFILE_LOCATION  = "trip-location";
     public static final String FETCH_PROFILE_RECORDER  = "trip-recorder";

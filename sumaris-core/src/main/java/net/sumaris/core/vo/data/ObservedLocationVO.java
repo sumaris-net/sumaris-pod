@@ -23,15 +23,11 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.data.IWithObserversEntityBean;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
-import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
+import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -42,7 +38,7 @@ import java.util.Set;
 
 @Data
 public class ObservedLocationVO implements IRootDataVO<Integer>,
-        IWithObserversEntityBean<Integer, PersonVO> {
+        IWithObserversEntity<Integer, PersonVO> {
 
     public static final String PROPERTY_START_DATE_TIME = "startDateTime";
     public static final String PROPERTY_END_DATE_TIME = "endDateTime";

@@ -57,6 +57,11 @@ public class SampleServiceImpl implements SampleService {
 	}
 
 	@Override
+	public List<SampleVO> getAllByLandingId(int landingId) {
+		return sampleDao.getAllByLandingId(landingId);
+	}
+
+	@Override
 	public SampleVO get(int saleId) {
 		return sampleDao.get(saleId);
 	}

@@ -23,7 +23,8 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
-import net.sumaris.core.model.data.IWithObserversEntityBean;
+import net.sumaris.core.model.data.IWithObserversEntity;
+import net.sumaris.core.model.data.IWithVesselFeaturesEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -38,8 +39,8 @@ import java.util.Set;
 
 @Data
 public class TripVO implements IRootDataVO<Integer>,
-        IWithObserversEntityBean<Integer, PersonVO>,
-        IWithVesselFeaturesVO<Integer, VesselFeaturesVO> {
+        IWithObserversEntity<Integer, PersonVO>,
+        IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> {
 
     public static final String PROPERTY_PROGRAM = "program";
     public static final String PROPERTY_DEPARTURE_DATE_TIME = "departureDateTime";
@@ -84,6 +85,11 @@ public class TripVO implements IRootDataVO<Integer>,
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
+
+    @Override
+    public Date getVesselDateTime() {
+        return departureDateTime;
     }
 
 }

@@ -24,22 +24,20 @@ package net.sumaris.core.vo.data;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
-import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
 public class MeasurementVO implements IUpdateDateEntityBean<Integer, Date>,
-        IWithRecorderDepartmentEntityBean<Integer, DepartmentVO>,
-        IWithRecorderPersonEntityBean<Integer, PersonVO>{
+        IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
+        IWithRecorderPersonEntity<Integer, PersonVO> {
 
     public static final String PROPERTY_NUMERICAL_VALUE = "numericalValue";
     public static final String PROPERTY_ALPHANUMERICAL_VALUE = "alphanumericalValue";

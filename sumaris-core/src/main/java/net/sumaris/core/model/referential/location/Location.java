@@ -28,12 +28,13 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.ValidityStatus;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
 @Entity
 @Cacheable
-public class Location implements IItemReferentialEntity {
+public class Location implements IItemReferentialEntity, Serializable {
 
     public static final String PROPERTY_LOCATION_LEVEL = "locationLevel";
 

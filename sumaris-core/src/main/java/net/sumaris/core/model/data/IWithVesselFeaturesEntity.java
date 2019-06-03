@@ -23,15 +23,20 @@ package net.sumaris.core.model.data;
  */
 
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.vo.data.VesselFeaturesVO;
 
+import java.beans.Transient;
 import java.io.Serializable;
-import java.util.Set;
+import java.util.Date;
 
-public interface IWithObserversEntityBean<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
+public interface IWithVesselFeaturesEntity<T extends Serializable, V extends VesselFeaturesVO> extends IEntity<T> {
 
-    String PROPERTY_OBSERVERS = "observers";
+    String PROPERTY_VESSEL_FEATURES = "vesselFeatures";
 
-    Set<P> getObservers();
+    V getVesselFeatures();
 
-    void setObservers(Set<P> observers);
+    void setVesselFeatures(V vesselFeatures);
+
+    @Transient
+    Date getVesselDateTime();
 }

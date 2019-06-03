@@ -157,7 +157,7 @@ public abstract class HibernateDaoSupport {
      * @return a T object.
      */
     @SuppressWarnings("unchecked")
-    protected <T> T load(Class<T> clazz, Serializable id) {
+    protected <T> T load(Class<? extends T> clazz, Serializable id) {
 
         if (debugEntityLoad) {
             T load = entityManager.find(clazz, id);

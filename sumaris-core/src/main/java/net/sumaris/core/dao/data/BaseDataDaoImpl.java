@@ -15,7 +15,6 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.data.IWithVesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -55,35 +54,33 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
         copyQualityFlag(source, target, copyIfNull);
     }
 
-    public <T extends Serializable> void copyRecorderDepartment(IWithRecorderDepartmentEntityBean<T, DepartmentVO> source,
-                                                                IWithRecorderDepartmentEntityBean<T, Department> target,
+    public <T extends Serializable> void copyRecorderDepartment(IWithRecorderDepartmentEntity<T, DepartmentVO> source,
+                                                                IWithRecorderDepartmentEntity<T, Department> target,
                                                                 boolean copyIfNull) {
         // Recorder department
         if (copyIfNull || source.getRecorderDepartment() != null) {
             if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
                 target.setRecorderDepartment(null);
-            }
-            else {
+            } else {
                 target.setRecorderDepartment(load(Department.class, source.getRecorderDepartment().getId()));
             }
         }
     }
 
-    public <T extends Serializable> void copyRecorderPerson(IWithRecorderPersonEntityBean<T, PersonVO> source,
-                                                            IWithRecorderPersonEntityBean<T, Person> target,
+    public <T extends Serializable> void copyRecorderPerson(IWithRecorderPersonEntity<T, PersonVO> source,
+                                                            IWithRecorderPersonEntity<T, Person> target,
                                                             boolean copyIfNull) {
         if (copyIfNull || source.getRecorderPerson() != null) {
             if (source.getRecorderPerson() == null || source.getRecorderPerson().getId() == null) {
                 target.setRecorderPerson(null);
-            }
-            else {
+            } else {
                 target.setRecorderPerson(load(Person.class, source.getRecorderPerson().getId()));
             }
         }
     }
 
-    public <T extends Serializable> void copyObservers(IWithObserversEntityBean<T, PersonVO> source,
-                                                       IWithObserversEntityBean<T, Person> target,
+    public <T extends Serializable> void copyObservers(IWithObserversEntity<T, PersonVO> source,
+                                                       IWithObserversEntity<T, Person> target,
                                                        boolean copyIfNull) {
         // Observers
         if (copyIfNull || source.getObservers() != null) {
@@ -91,8 +88,7 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
                 if (target.getId() != null && CollectionUtils.isNotEmpty(target.getObservers())) {
                     target.getObservers().clear();
                 }
-            }
-            else {
+            } else {
                 Set<Person> observers = target.getId() != null ? target.getObservers() : Sets.newHashSet();
                 Map<Integer, Person> observersToRemove = Beans.splitById(observers);
                 source.getObservers().stream()
@@ -114,15 +110,14 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
         }
     }
 
-    public <T extends Serializable> void copyVessel(IWithVesselFeaturesVO<T, ? extends VesselFeaturesVO> source,
-                                                    IWithVesselEntity<T> target,
-                                                    boolean copyIfNull) {
+    public void copyVessel(IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> source,
+                           IWithVesselEntity<Integer, Vessel> target,
+                           boolean copyIfNull) {
         // Vessel
         if (copyIfNull || (source.getVesselFeatures() != null && source.getVesselFeatures().getVesselId() != null)) {
             if (source.getVesselFeatures() == null || source.getVesselFeatures().getVesselId() == null) {
                 target.setVessel(null);
-            }
-            else {
+            } else {
                 target.setVessel(load(Vessel.class, source.getVesselFeatures().getVesselId()));
             }
         }
@@ -135,13 +130,12 @@ public abstract class BaseDataDaoImpl extends HibernateDaoSupport {
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
                 target.setQualityFlag(load(QualityFlag.class, SumarisConfiguration.getInstance().getDefaultQualityFlagId()));
-            }
-            else {
+            } else {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
         }
     }
-    
+
     public <T extends Serializable> void copyProgram(IRootDataVO<T> source,
                                                      IRootDataEntity<T> target,
                                                      boolean copyIfNull) {

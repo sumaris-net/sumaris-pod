@@ -82,10 +82,10 @@ public class TripServiceImpl implements TripService {
     public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
                                      SortDirection sortDirection, DataFetchOptions fieldOptions) {
         if (filter == null) {
-            return tripDao.getAllTrips(offset, size, sortAttribute, sortDirection, fieldOptions);
+            return tripDao.findAll(offset, size, sortAttribute, sortDirection, fieldOptions);
         }
 
-        return tripDao.findByFilter(filter, offset, size, sortAttribute, sortDirection, fieldOptions);
+        return tripDao.findAll(filter, offset, size, sortAttribute, sortDirection, fieldOptions);
     }
 
     @Override

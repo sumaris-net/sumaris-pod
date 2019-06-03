@@ -1,6 +1,6 @@
 package net.sumaris.core.vo.data;
 
-import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 
@@ -9,7 +9,7 @@ import java.util.Date;
 
 public interface IRootDataVO<T extends Serializable>
         extends IDataVO<T>,
-        IWithRecorderPersonEntityBean<T, PersonVO> {
+        IWithRecorderPersonEntity<T, PersonVO> {
 
     String PROPERTY_PROGRAM = "program";
     String PROPERTY_CREATION_DATE = "creationDate";

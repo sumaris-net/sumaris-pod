@@ -28,6 +28,7 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.pmfm.Matrix;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import org.hibernate.annotations.Cascade;
@@ -43,6 +44,9 @@ public class Sample implements IRootDataEntity<Integer> {
 
 
     public static final String PROPERTY_OPERATION = "operation";
+    public static final String PROPERTY_LANDING = "landing";
+    public static final String PROPERTY_BATCH = "batch";
+
     public static final String PROPERTY_PARENT = "parent";
     public static final String PROPERTY_SAMPLE_MEASUREMENTS = "sampleMeasurements";
 
@@ -62,6 +66,13 @@ public class Sample implements IRootDataEntity<Integer> {
 
     @Column(name = "individual_count")
     private Integer individualCount;
+
+    @Column
+    private Double size;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "size_unit_fk")
+    private Unit sizeUnit;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "taxon_group_fk")
@@ -139,10 +150,14 @@ public class Sample implements IRootDataEntity<Integer> {
     /* -- Parent link -- */
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "operation_fk", nullable = false)
+    @JoinColumn(name = "operation_fk")
     private Operation operation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_fk")
     private Batch batch;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "landing_fk")
+    private Landing landing;
 }

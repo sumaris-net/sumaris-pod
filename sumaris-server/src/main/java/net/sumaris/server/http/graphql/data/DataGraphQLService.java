@@ -34,10 +34,7 @@ import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
-import net.sumaris.core.vo.filter.OperationFilterVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
-import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -69,10 +66,13 @@ public class DataGraphQLService {
     private ObservedLocationService observedLocationService;
 
     @Autowired
-    private SaleService saleService;
+    private OperationService operationService;
 
     @Autowired
-    private OperationService operationService;
+    private LandingService landingService;
+
+    @Autowired
+    private SaleService saleService;
 
     @Autowired
     private VesselPositionService vesselPositionService;
@@ -487,6 +487,17 @@ public class DataGraphQLService {
         return sampleService.getAllByOperationId(operation.getId());
     }
 
+
+    @GraphQLQuery(name = "samples", description = "Get landing's samples")
+    public List<SampleVO> getSamplesByLanding(@GraphQLContext LandingVO landing) {
+        // Avoid a reloading (e.g. when saving)
+        if (CollectionUtils.isNotEmpty(landing.getSamples())) {
+            return landing.getSamples();
+        }
+
+        return sampleService.getAllByLandingId(landing.getId());
+    }
+
     /* -- Batch -- */
 
     @GraphQLQuery(name = "batches", description = "Get operation's batches")
@@ -500,6 +511,92 @@ public class DataGraphQLService {
         return batchService.getAllByOperationId(operation.getId());
     }
 
+    /* -- Landings -- */
+
+    @GraphQLQuery(name = "landings", description = "Search in landings")
+    @Transactional(readOnly = true)
+    //@IsUser
+    public List<LandingVO> findAllLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter,
+                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                           @GraphQLArgument(name = "sortBy", defaultValue = LandingVO.PROPERTY_DATE_TIME) String sort,
+                                           @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                           @GraphQLEnvironment() Set<String> fields
+    ) {
+        final List<LandingVO> result = landingService.findAll(filter, offset, size, sort,
+                direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null,
+                getFetchOptions(fields));
+
+        // Add additional properties if needed
+        fillLandingsFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLQuery(name = "landingCount", description = "Get total number of landings")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long countLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter) {
+        return landingService.countByFilter(filter);
+    }
+
+    @GraphQLQuery(name = "landing", description = "Get an observed location, by id")
+    @Transactional(readOnly = true)
+    @IsUser
+    public LandingVO getLanding(@GraphQLArgument(name = "id") int id,
+                                @GraphQLEnvironment() Set<String> fields) {
+        final LandingVO result = landingService.get(id);
+
+        // Add additional properties if needed
+        fillLandingFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "saveLanding", description = "Create or update an landing")
+    @IsUser
+    public LandingVO saveLanding(@GraphQLArgument(name = "landing") LandingVO landing,
+                                 @GraphQLEnvironment() Set<String> fields) {
+        final LandingVO result = landingService.save(landing);
+
+        // Fill expected fields
+        fillLandingFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "saveLandings", description = "Create or update many landings")
+    @IsUser
+    public List<LandingVO> saveLandings(@GraphQLArgument(name = "landings") List<LandingVO> landings, @GraphQLEnvironment() Set<String> fields) {
+        final List<LandingVO> result = landingService.save(landings);
+
+        // Fill expected fields
+        fillLandingsFields(result, fields);
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "deleteLanding", description = "Delete an observed location")
+    @IsUser
+    public void deleteLanding(@GraphQLArgument(name = "id") int id) {
+        landingService.delete(id);
+    }
+
+    @GraphQLMutation(name = "deleteLandings", description = "Delete many observed locations")
+    @IsUser
+    public void deleteLandings(@GraphQLArgument(name = "ids") List<Integer> ids) {
+        landingService.delete(ids);
+    }
+
+    @GraphQLSubscription(name = "updateLanding", description = "Subscribe to changes on an landing")
+    @IsUser
+    public Publisher<LandingVO> updateLanding(@GraphQLArgument(name = "id") final int id,
+                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to get changes, in seconds.") final Integer minIntervalInSecond) {
+
+        Preconditions.checkArgument(id >= 0, "Invalid id");
+        return changesPublisherService.getPublisher(Landing.class, LandingVO.class, id, minIntervalInSecond, true);
+    }
+
     /* -- Measurements -- */
 
     // Trip
@@ -510,10 +607,10 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "measurementValues", description = "Get trip's measurements")
     public Map<Integer, String> getTripVesselUseMeasurementsMap(@GraphQLContext TripVO trip) {
-        if (trip.getMeasurementValues() == null) {
-            return measurementService.getTripVesselUseMeasurementsMap(trip.getId());
+        if (trip.getMeasurementValues() != null) {
+            return trip.getMeasurementValues();
         }
-        return trip.getMeasurementValues();
+        return measurementService.getTripVesselUseMeasurementsMap(trip.getId());
     }
 
     // Operation
@@ -524,10 +621,10 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "measurementValues", description = "Get operation's measurements")
     public Map<Integer, String> getOperationVesselUseMeasurementsMap(@GraphQLContext OperationVO operation) {
-        if (operation.getMeasurementValues() == null) {
-            return measurementService.getOperationVesselUseMeasurementsMap(operation.getId());
+        if (operation.getMeasurementValues() != null) {
+            return operation.getMeasurementValues();
         }
-        return operation.getMeasurementValues();
+        return measurementService.getOperationVesselUseMeasurementsMap(operation.getId());
     }
 
     @GraphQLQuery(name = "gearMeasurements", description = "Get operation's gear measurements")
@@ -537,10 +634,10 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "gearMeasurementValues", description = "Get operation's gear measurements")
     public Map<Integer, String> getOperationGearUseMeasurementsMap(@GraphQLContext OperationVO operation) {
-        if (operation.getGearMeasurementValues() == null) {
-            return measurementService.getOperationGearUseMeasurementsMap(operation.getId());
+        if (operation.getGearMeasurementValues() != null) {
+            return operation.getGearMeasurementValues();
         }
-        return operation.getGearMeasurementValues();
+        return measurementService.getOperationGearUseMeasurementsMap(operation.getId());
     }
 
     // Physical gear
@@ -551,53 +648,64 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "measurementValues", description = "Get physical gear measurements")
     public Map<Integer, String> getPhysicalGearMeasurementsMap(@GraphQLContext PhysicalGearVO physicalGear) {
-        if (physicalGear.getMeasurementValues() == null) {
-            return measurementService.getPhysicalGearMeasurementsMap(physicalGear.getId());
+        if (physicalGear.getMeasurementValues() != null) {
+            return physicalGear.getMeasurementValues();
         }
-        return physicalGear.getMeasurementValues();
+        return measurementService.getPhysicalGearMeasurementsMap(physicalGear.getId());
     }
 
     // Sample
     @GraphQLQuery(name = "measurements", description = "Get sample measurements")
     public List<MeasurementVO> getSampleMeasurements(@GraphQLContext SampleVO sample) {
+        if (sample.getMeasurements() != null) {
+            return sample.getMeasurements();
+        }
         return measurementService.getSampleMeasurements(sample.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getSampleMeasurementValues(@GraphQLContext SampleVO sample) {
-        if (MapUtils.isEmpty(sample.getMeasurementValues())) {
-            return measurementService.getSampleMeasurementsMap(sample.getId());
+        if (sample.getMeasurementValues() != null) {
+            return sample.getMeasurementValues();
         }
-        return sample.getMeasurementValues();
+        return measurementService.getSampleMeasurementsMap(sample.getId());
     }
 
     // Batch
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getBatchMeasurementValues(@GraphQLContext BatchVO batch) {
-        if (MapUtils.isEmpty(batch.getMeasurementValues())) {
-            Map<Integer, String> map = Maps.newHashMap();
-            map.putAll(measurementService.getBatchSortingMeasurementsMap(batch.getId()));
-            map.putAll(measurementService.getBatchQuantificationMeasurementsMap(batch.getId()));
-            return map;
+        if (batch.getMeasurementValues() != null) {
+            return batch.getMeasurementValues();
         }
-        return batch.getMeasurementValues();
+        Map<Integer, String> map = Maps.newHashMap();
+        map.putAll(measurementService.getBatchSortingMeasurementsMap(batch.getId()));
+        map.putAll(measurementService.getBatchQuantificationMeasurementsMap(batch.getId()));
+        return map;
     }
 
     // Observed location
     @GraphQLQuery(name = "measurements", description = "Get measurement values")
     public List<MeasurementVO> getObservedLocationMeasurements(@GraphQLContext ObservedLocationVO observedLocation) {
         if (observedLocation.getMeasurements() != null) {
-            return measurementService.getObservedLocationMeasurements(observedLocation.getId());
+            return observedLocation.getMeasurements();
         }
-        return observedLocation.getMeasurements();
+        return measurementService.getObservedLocationMeasurements(observedLocation.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getObservedLocationMeasurementsMap(@GraphQLContext ObservedLocationVO observedLocation) {
-        if (MapUtils.isEmpty(observedLocation.getMeasurementValues())) {
-            return measurementService.getObservedLocationMeasurementsMap(observedLocation.getId());
+        if (observedLocation.getMeasurementValues() != null) {
+            return observedLocation.getMeasurementValues();
         }
-        return observedLocation.getMeasurementValues();
+        return measurementService.getObservedLocationMeasurementsMap(observedLocation.getId());
+    }
+
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, String> getLandingMeasurementsMap(@GraphQLContext LandingVO landing) {
+        if (landing.getMeasurementValues() != null) {
+            return landing.getMeasurementValues();
+        }
+        return measurementService.getLandingMeasurementsMap(landing.getId());
     }
 
     // Measurement pmfm
@@ -625,36 +733,44 @@ public class DataGraphQLService {
 
     protected void fillTripFields(TripVO trip, Set<String> fields) {
         // Add image if need
-        if (hasImageField(fields)) fillImages(trip);
+        fillImages(trip, fields);
 
         // Add vessel if need
-        if (hasVesselFeaturesField(fields) && trip.getVesselFeatures() != null && trip.getVesselFeatures().getVesselId() != null) {
-            trip.setVesselFeatures(vesselService.getByVesselIdAndDate(trip.getVesselFeatures().getVesselId(), trip.getDepartureDateTime()));
-        }
+        fillVesselFeatures(trip, fields);
     }
 
     protected void fillTrips(List<TripVO> trips, Set<String> fields) {
         // Add image if need
-        if (hasImageField(fields)) fillImages(trips);
+        fillImages(trips, fields);
 
         // Add vessel if need
-        if (hasVesselFeaturesField(fields)) {
-            trips.forEach(t -> {
-                if (t.getVesselFeatures().getVesselId() != null) {
-                    t.setVesselFeatures(vesselService.getByVesselIdAndDate(t.getVesselFeatures().getVesselId(), t.getDepartureDateTime()));
-                }
-            });
-        }
+        fillVesselFeatures(trips, fields);
     }
 
     protected void fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {
         // Add image if need
-        if (hasImageField(fields)) fillImages(observedLocation);
+        fillImages(observedLocation, fields);
     }
 
     protected void fillObservedLocationsFields(List<ObservedLocationVO> observedLocations, Set<String> fields) {
         // Add image if need
-        if (hasImageField(fields)) fillImages(observedLocations);
+        fillImages(observedLocations, fields);
+    }
+
+    protected void fillLandingFields(LandingVO landing, Set<String> fields) {
+        // Add image if need
+        fillImages(landing, fields);
+
+        // Add vessel if need
+        fillVesselFeatures(landing, fields);
+    }
+
+    protected void fillLandingsFields(List<LandingVO> landings, Set<String> fields) {
+        // Add image if need
+        fillImages(landings, fields);
+
+        // Add vessel if need
+        fillVesselFeatures(landings, fields);
     }
 
     protected boolean hasImageField(Set<String> fields) {
@@ -685,11 +801,49 @@ public class DataGraphQLService {
         return result;
     }
 
+    protected <T extends IRootDataVO<?>> List<T> fillImages(final List<T> results, Set<String> fields) {
+        if (hasImageField(fields)) results.forEach(this::fillImages);
+        return results;
+    }
+
+    protected <T extends IRootDataVO<?>> T fillImages(T result, Set<String> fields) {
+        if (hasImageField(fields) && result != null) {
+
+            // Fill avatar on recorder department (if not null)
+            imageService.fillLogo(result.getRecorderDepartment());
+
+            // Fill avatar on recorder persons (if not null)
+            imageService.fillAvatar(result.getRecorderPerson());
+        }
+
+        return result;
+    }
+
+    protected <T extends IWithVesselFeaturesEntity<?, VesselFeaturesVO>> void fillVesselFeatures(T bean, Set<String> fields) {
+        // Add vessel if need
+        if (hasVesselFeaturesField(fields)) {
+            if (bean.getVesselFeatures().getVesselId() != null) {
+                bean.setVesselFeatures(vesselService.getByVesselIdAndDate(bean.getVesselFeatures().getVesselId(), bean.getVesselDateTime()));
+            }
+        }
+    }
+
+    protected <T extends IWithVesselFeaturesEntity<?, VesselFeaturesVO>> void fillVesselFeatures(List<T> beans, Set<String> fields) {
+        // Add vessel if need
+        if (hasVesselFeaturesField(fields)) {
+            beans.forEach(bean -> {
+                if (bean.getVesselFeatures().getVesselId() != null) {
+                    bean.setVesselFeatures(vesselService.getByVesselIdAndDate(bean.getVesselFeatures().getVesselId(), bean.getVesselDateTime()));
+                }
+            });
+        }
+    }
+
     protected DataFetchOptions getFetchOptions(Set<String> fields) {
         return DataFetchOptions.builder()
-                .withObservers(fields.contains(IWithObserversEntityBean.PROPERTY_OBSERVERS + "/" + IDataEntity.PROPERTY_ID))
-                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntityBean.PROPERTY_RECORDER_DEPARTMENT + "/" + IDataEntity.PROPERTY_ID))
-                .withRecorderPerson(fields.contains(IWithRecorderPersonEntityBean.PROPERTY_RECORDER_PERSON + "/" + IDataEntity.PROPERTY_ID))
+                .withObservers(fields.contains(IWithObserversEntity.PROPERTY_OBSERVERS + "/" + IDataEntity.PROPERTY_ID))
+                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntity.PROPERTY_RECORDER_DEPARTMENT + "/" + IDataEntity.PROPERTY_ID))
+                .withRecorderPerson(fields.contains(IWithRecorderPersonEntity.PROPERTY_RECORDER_PERSON + "/" + IDataEntity.PROPERTY_ID))
                 .build();
     }
 }

@@ -1,8 +1,8 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.model.data;
 
 /*-
  * #%L
- * SUMARiS:: Core
+ * SUMARiS:: Core shared
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,23 +22,15 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.vo.data.LandingVO;
-import net.sumaris.core.vo.data.LandingVO;
+import net.sumaris.core.dao.technical.model.IEntity;
 
-import java.util.List;
+import java.io.Serializable;
 
-public interface LandingDao {
+public interface IWithRecorderPersonEntity<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
 
-    List<LandingVO> getAllByTripId(int tripÎd);
+    String PROPERTY_RECORDER_PERSON = "recorderPerson";
 
-    LandingVO get(int id);
+    P getRecorderPerson();
 
-    void delete(int id);
-
-    List<LandingVO> saveAllByObservedLocationId(int tripId, List<LandingVO> sources);
-
-    LandingVO save(LandingVO landing);
-
-    LandingVO toLandingVO(Landing landing);
+    void setRecorderPerson(P recorderPerson);
 }

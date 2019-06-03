@@ -85,9 +85,9 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<TripVO> getAllTrips(int offset, int size, String sortAttribute,
-                                    SortDirection sortDirection,
-                                    DataFetchOptions fieldOptions) {
+    public List<TripVO> findAll(int offset, int size, String sortAttribute,
+                                SortDirection sortDirection,
+                                DataFetchOptions fieldOptions) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder(); //getEntityManager().getCriteriaBuilder();
         CriteriaQuery<Trip> query = builder.createQuery(Trip.class);
@@ -119,9 +119,9 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
-                                     SortDirection sortDirection,
-                                     DataFetchOptions fieldOptions) {
+    public List<TripVO> findAll(TripFilterVO filter, int offset, int size, String sortAttribute,
+                                SortDirection sortDirection,
+                                DataFetchOptions fieldOptions) {
         Preconditions.checkNotNull(filter);
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
@@ -249,14 +249,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
     @Override
     public TripVO get(int id) {
         Trip entity = get(Trip.class, id);
-        return toTripVO(entity);
-    }
-
-    @Override
-    public <T> T getAs(int id, Class<T> targetClass) {
-        if (targetClass.isAssignableFrom(Trip.class)) return (T)get(Trip.class, id);
-        if (targetClass.isAssignableFrom(TripVO.class)) return (T) get(id);
-        throw new IllegalArgumentException("Unable to convert into " + targetClass.getName());
+        return toVO(entity);
     }
 
     @Override
@@ -317,7 +310,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
     }
 
     @Override
-    public TripVO toTripVO(Trip source) {
+    public TripVO toVO(Trip source) {
         return toTripVO(source, null);
     }
 

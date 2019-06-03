@@ -24,6 +24,7 @@ package net.sumaris.core.vo.administration.user;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.vo.IValueObject;
 import net.sumaris.core.vo.referential.UserProfileVO;
 
 import java.io.Serializable;
@@ -32,7 +33,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class PersonVO implements IUpdateDateEntityBean<Integer, Date> {
+public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
     public static final String PROPERTY_PUBKEY = "pubkey";
     public static final String PROPERTY_FIRST_NAME = "firstName";

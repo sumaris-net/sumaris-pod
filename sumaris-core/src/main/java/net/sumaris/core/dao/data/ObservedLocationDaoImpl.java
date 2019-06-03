@@ -95,7 +95,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
             );
         }
 
-        return toObservedLocationVOs(entityManager.createQuery(query).
+        return toVOs(entityManager.createQuery(query).
                 setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultList(), fetchOptions);
@@ -166,7 +166,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
                 .setParameter(locationIdParam, filter.getLocationId())
                 .setFirstResult(offset)
                 .setMaxResults(size);
-        return toObservedLocationVOs(q.getResultList(), fetchOptions);
+        return toVOs(q.getResultList(), fetchOptions);
     }
 
     @Override
@@ -230,7 +230,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     @Override
     public ObservedLocationVO get(int id) {
         ObservedLocation entity = get(ObservedLocation.class, id);
-        return toObservedLocationVO(entity, null);
+        return toVO(entity, null);
     }
 
     @Override
@@ -298,8 +298,8 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
     }
 
     @Override
-    public ObservedLocationVO toObservedLocationVO(ObservedLocation source) {
-        return toObservedLocationVO(source, null);
+    public ObservedLocationVO toVO(ObservedLocation source) {
+        return toVO(source, null);
     }
 
     @Override
@@ -393,15 +393,15 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
 
     /* -- protected methods -- */
 
-    protected List<ObservedLocationVO> toObservedLocationVOs(List<ObservedLocation> source, DataFetchOptions fetchOptions) {
+    protected List<ObservedLocationVO> toVOs(List<ObservedLocation> source, DataFetchOptions fetchOptions) {
         return source.stream()
-                .map(item -> toObservedLocationVO(item, fetchOptions))
+                .map(item -> toVO(item, fetchOptions))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
 
-    protected ObservedLocationVO toObservedLocationVO(ObservedLocation source, DataFetchOptions fetchOptions) {
+    protected ObservedLocationVO toVO(ObservedLocation source, DataFetchOptions fetchOptions) {
         if (source == null) return null;
 
         ObservedLocationVO target = new ObservedLocationVO();
@@ -449,7 +449,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         copyRootDataProperties(source, target, copyIfNull);
 
         // If endDateTime is empty, fill using startDateTime
-        if (target.getEndDateTime() != null) {
+        if (target.getEndDateTime() == null) {
             target.setEndDateTime(target.getStartDateTime());
         }
 

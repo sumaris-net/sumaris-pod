@@ -76,6 +76,8 @@ public interface MeasurementDao {
     // Landing
     List<MeasurementVO> saveLandingMeasurements(int landingId, List<MeasurementVO> sources);
     Map<Integer, String> saveLandingMeasurementsMap(final int landingId, Map<Integer, String> sources);
+    List<MeasurementVO> getLandingMeasurements(int landingId);
+    Map<Integer, String> getLandingMeasurementsMap(int landingId);
 
     // Sample
     List<MeasurementVO> getSampleMeasurements(int sampleId);

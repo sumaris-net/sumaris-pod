@@ -30,28 +30,8 @@ import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 
 import java.util.List;
 
-public interface ObservedLocationDao {
+public interface ObservedLocationDao extends
+        IRootDataDao<ObservedLocation, Integer, ObservedLocationVO, ObservedLocationFilterVO> {
 
     List<ObservedLocationVO> getAll(int offset, int size, String sortAttribute, SortDirection sortDirection, DataFetchOptions fetchOptions);
-
-    List<ObservedLocationVO> findByFilter(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
-                                          SortDirection sortDirection, DataFetchOptions fetchOptions);
-
-    Long countByFilter(ObservedLocationFilterVO filter);
-
-    ObservedLocationVO get(int id);
-
-    <T> T get(int id, Class<T> targetClass);
-
-    void delete(int id);
-
-    ObservedLocationVO save(ObservedLocationVO observedLocation);
-
-    ObservedLocationVO toObservedLocationVO(ObservedLocation observedLocation);
-
-    ObservedLocationVO control(ObservedLocationVO observedLocation);
-
-    ObservedLocationVO validate(ObservedLocationVO observedLocation);
-
-    ObservedLocationVO unvalidate(ObservedLocationVO observedLocation);
 }

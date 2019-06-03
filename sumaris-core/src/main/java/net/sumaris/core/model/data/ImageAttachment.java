@@ -35,8 +35,8 @@ import java.util.Objects;
 @Entity
 @Table(name="image_attachment")
 public class ImageAttachment implements IDataEntity<Integer>,
-        IWithRecorderPersonEntityBean<Integer, Person>,
-        IWithRecorderDepartmentEntityBean<Integer, Department> {
+        IWithRecorderPersonEntity<Integer, Person>,
+        IWithRecorderDepartmentEntity<Integer, Department> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "IMAGE_ATTACHMENT_SEQ")

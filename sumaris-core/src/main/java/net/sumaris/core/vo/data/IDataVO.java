@@ -23,18 +23,17 @@ package net.sumaris.core.vo.data;
  */
 
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
+import net.sumaris.core.vo.IValueObject;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IDataVO<T extends Serializable>
-        extends Serializable, IUpdateDateEntityBean<T, Date>,
-        IWithRecorderDepartmentEntityBean<T, DepartmentVO> {
+public interface IDataVO<ID extends Serializable>
+        extends IValueObject<ID>,
+        IUpdateDateEntityBean<ID, Date>,
+        IWithRecorderDepartmentEntity<ID, DepartmentVO> {
 
 
     String PROPERTY_CONTROL_DATE = "controlDate";

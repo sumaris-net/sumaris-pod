@@ -28,9 +28,11 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.data.Batch;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Sample;
 import net.sumaris.core.model.referential.pmfm.Matrix;
+import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.util.Beans;
@@ -46,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -73,6 +76,13 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
     @Autowired
     private PersonDao personDao;
 
+    private int unitIdNone;
+
+    @PostConstruct
+    protected void init() {
+        this.unitIdNone = config.getUnitIdNone();
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public List<SampleVO> getAllByOperationId(int operationId) {
@@ -85,13 +95,34 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
 
-        query.where(cb.equal(root.get(Sample.PROPERTY_OPERATION).get(Sample.PROPERTY_ID), tripIdParam));
+        query.where(cb.equal(root.get(Sample.PROPERTY_OPERATION).get(Operation.PROPERTY_ID), tripIdParam));
 
         // Sort by rank order
         query.orderBy(cb.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
 
         return toSampleVOs(getEntityManager().createQuery(query)
                 .setParameter(tripIdParam, operationId).getResultList(), false);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<SampleVO> getAllByLandingId(int landingId) {
+
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Sample> query = cb.createQuery(Sample.class);
+        Root<Sample> root = query.from(Sample.class);
+
+        query.select(root);
+
+        ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
+
+        query.where(cb.equal(root.get(Sample.PROPERTY_LANDING).get(Landing.PROPERTY_ID), tripIdParam));
+
+        // Sort by rank order
+        query.orderBy(cb.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
+
+        return toSampleVOs(getEntityManager().createQuery(query)
+                .setParameter(tripIdParam, landingId).getResultList(), false);
     }
 
 
@@ -224,6 +255,11 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         ReferentialVO matrix = referentialDao.toReferentialVO(source.getMatrix());
         target.setMatrix(matrix);
 
+        // Size Unit
+        if (source.getSizeUnit() != null && source.getSizeUnit().getId().intValue() != unitIdNone) {
+            target.setSizeUnit(source.getSizeUnit().getLabel());
+        }
+
         // Taxon group
         if (source.getTaxonGroup() != null) {
             ReferentialVO taxonGroup = referentialDao.toReferentialVO(source.getTaxonGroup());
@@ -295,6 +331,18 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             }
             else {
                 target.setMatrix(load(Matrix.class, source.getMatrix().getId()));
+            }
+        }
+
+        // Size Unit
+        if (copyIfNull || source.getSizeUnit() != null) {
+            if (source.getSizeUnit() == null) {
+                target.setSizeUnit(null);
+            }
+            else {
+                ReferentialVO unit = referentialDao.findByUniqueLabel(Unit.class.getSimpleName(), source.getSizeUnit());
+                Preconditions.checkNotNull(unit, String.format("Invalid 'sample.sizeUnit': unit symbol '%s' not exists", source.getSizeUnit()));
+                target.setSizeUnit(load(Unit.class, unit.getId()));
             }
         }
 

@@ -23,6 +23,7 @@ package net.sumaris.core;
  */
 
 import com.google.common.collect.ImmutableList;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
@@ -44,6 +45,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -145,6 +147,11 @@ public class Application {
 		}
 
 		return config;
+	}
+
+	@Bean
+	public JPAQueryFactory jpaQueryFactory(EntityManager em) {
+		return new JPAQueryFactory(em);
 	}
 
 	/**

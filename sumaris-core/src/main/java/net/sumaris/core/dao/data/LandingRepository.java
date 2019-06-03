@@ -1,8 +1,8 @@
-package net.sumaris.core.model.data;
+package net.sumaris.core.dao.data;
 
 /*-
  * #%L
- * SUMARiS:: Core shared
+ * SUMARiS:: Core
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,15 +22,15 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.vo.data.LandingVO;
+import net.sumaris.core.vo.filter.LandingFilterVO;
+import org.springframework.stereotype.Repository;
 
-import java.io.Serializable;
+@Repository("landingRepository")
+public interface LandingRepository extends
+        RootDataRepository<Landing, Integer, LandingVO, LandingFilterVO>,
+        LandingRepositoryExtend {
 
-public interface IWithRecorderPersonEntityBean<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
 
-    String PROPERTY_RECORDER_PERSON = "recorderPerson";
-
-    P getRecorderPerson();
-
-    void setRecorderPerson(P recorderPerson);
 }

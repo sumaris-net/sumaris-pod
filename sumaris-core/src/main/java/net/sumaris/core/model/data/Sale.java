@@ -10,12 +10,12 @@ package net.sumaris.core.model.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -40,7 +40,8 @@ import java.util.Set;
 
 @Data
 @Entity
-public class Sale implements IRootDataEntity<Integer> {
+public class Sale implements IRootDataEntity<Integer>,
+        IWithVesselEntity<Integer, Vessel> {
 
     public static final String PROPERTY_START_DATE_TIME = "startDateTime";
     public static final String PROPERTY_END_DATE_TIME = "endDateTime";
@@ -50,7 +51,7 @@ public class Sale implements IRootDataEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "SALE_SEQ")
-    @SequenceGenerator(name = "SALE_SEQ", sequenceName="SALE_SEQ")
+    @SequenceGenerator(name = "SALE_SEQ", sequenceName = "SALE_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -72,19 +73,19 @@ public class Sale implements IRootDataEntity<Integer> {
     @Column(length = 2000)
     private String comments;
 
-    @Column(name="control_date")
+    @Column(name = "control_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
-    @Column(name="validation_date")
+    @Column(name = "validation_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date validationDate;
 
-    @Column(name="qualification_date")
+    @Column(name = "qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
+    @Column(name = "qualification_comments", length = LENGTH_COMMENTS)
     private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
@@ -116,9 +117,9 @@ public class Sale implements IRootDataEntity<Integer> {
     @ManyToMany(fetch = FetchType.EAGER, targetEntity = Person.class)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     @JoinTable(name = "sale2observer_person", joinColumns = {
-            @JoinColumn(name = "sale_fk", nullable = false, updatable = false) },
+            @JoinColumn(name = "sale_fk", nullable = false, updatable = false)},
             inverseJoinColumns = {
-                    @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
+                    @JoinColumn(name = "person_fk", nullable = false, updatable = false)})
     private Set<Person> observers = Sets.newHashSet();
 
     /* -- measurements -- */

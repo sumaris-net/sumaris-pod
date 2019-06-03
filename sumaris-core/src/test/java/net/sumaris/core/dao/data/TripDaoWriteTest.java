@@ -56,7 +56,7 @@ public class TripDaoWriteTest extends AbstractDaoTest{
 
     @Test
     public void getAllTrips() {
-        List<TripVO> trips = dao.getAllTrips(0, 100, null, null, DataFetchOptions.builder().build());
+        List<TripVO> trips = dao.findAll(0, 100, null, null, DataFetchOptions.builder().build());
         Assert.assertNotNull(trips);
         Assert.assertTrue(trips.size() > 0);
     }

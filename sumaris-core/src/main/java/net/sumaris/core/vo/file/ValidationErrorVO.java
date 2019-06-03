@@ -25,9 +25,12 @@ package net.sumaris.core.vo.file;
 
 import lombok.Data;
 import net.sumaris.core.vo.ErrorType;
+import net.sumaris.core.vo.IValueObject;
+
+import java.io.Serializable;
 
 @Data
-public class ValidationErrorVO {
+public class ValidationErrorVO implements Serializable {
 
 	protected String errorCode;
 

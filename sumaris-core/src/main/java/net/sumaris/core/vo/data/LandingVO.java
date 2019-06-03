@@ -23,14 +23,12 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
-import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
+import net.sumaris.core.model.data.IWithObserversEntity;
+import net.sumaris.core.model.data.IWithVesselFeaturesEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -41,9 +39,10 @@ import java.util.Set;
 
 @Data
 public class LandingVO implements IRootDataVO<Integer>,
-        IWithVesselFeaturesVO<Integer, VesselFeaturesVO>{
+        IWithVesselFeaturesEntity<Integer, VesselFeaturesVO>,
+        IWithObserversEntity<Integer, PersonVO> {
 
-    public static final String PROPERTY_LANDING_DATE_TIME = "landingDateTime";
+    public static final String PROPERTY_DATE_TIME = "dateTime";
     public static final String PROPERTY_TRIP = "trip";
     public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
 
@@ -61,8 +60,8 @@ public class LandingVO implements IRootDataVO<Integer>,
 
     private VesselFeaturesVO vesselFeatures;
 
-    private Date landingDateTime;
-    private LocationVO landingLocation;
+    private Date dateTime;
+    private LocationVO location;
 
     private Set<PersonVO> observers;
     private List<SampleVO> samples;
@@ -81,5 +80,10 @@ public class LandingVO implements IRootDataVO<Integer>,
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
+
+    @Override
+    public Date getVesselDateTime() {
+        return dateTime;
     }
 }

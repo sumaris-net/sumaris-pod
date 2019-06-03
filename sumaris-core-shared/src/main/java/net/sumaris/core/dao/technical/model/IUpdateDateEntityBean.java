@@ -25,7 +25,7 @@ package net.sumaris.core.dao.technical.model;
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IUpdateDateEntityBean<T extends Serializable, D extends Date> extends IEntity<T> {
+public interface IUpdateDateEntityBean<ID extends Serializable, D extends Date> extends IEntity<ID> {
 
     String PROPERTY_UPDATE_DATE = "updateDate";
 

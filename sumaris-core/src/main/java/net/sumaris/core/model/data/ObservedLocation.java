@@ -28,7 +28,6 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.location.Location;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.FetchMode;
@@ -48,7 +47,7 @@ import java.util.*;
 @Data
 @Entity
 @Table(name="observed_location")
-public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserversEntityBean<Integer, Person> {
+public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserversEntity<Integer, Person> {
 
     public static final String PROPERTY_PROGRAM = "program";
     public static final String PROPERTY_START_DATE_TIME = "startDateTime";

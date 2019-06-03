@@ -29,10 +29,9 @@ import net.sumaris.core.model.administration.user.Person;
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IRootDataEntity<T extends Serializable>
-        extends IDataEntity<T>,
-        IWithRecorderPersonEntityBean<T, Person>,
-        IWithRecorderDepartmentEntityBean<T, Department> {
+public interface IRootDataEntity<ID extends Serializable>
+        extends IDataEntity<ID>,
+        IWithRecorderPersonEntity<ID, Person> {
 
     String PROPERTY_PROGRAM = "program";
     String PROPERTY_CREATION_DATE = "creationDate";

@@ -26,11 +26,11 @@ import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
 
-public interface IWithVesselEntity<T extends Serializable> extends IEntity<T> {
+public interface IWithVesselEntity<T extends Serializable, V extends IEntity<Integer>> extends IEntity<T> {
 
     String PROPERTY_VESSEL = "vessel";
 
-    Vessel getVessel();
+    V getVessel();
 
-    void setVessel(Vessel vessel);
+    void setVessel(V vessel);
 }

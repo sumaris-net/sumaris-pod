@@ -57,7 +57,9 @@ public enum PmfmEnum implements Serializable  {
     TAG_ID(82, "TAG_ID"),
     LENGTH_TOTAL_CM(81, "LENGTH_TOTAL_CM"),
     IS_DEAD(94, "IS_DEAD"),
-    DISCARD_REASON(95, "DISCARD_REASON")
+    DISCARD_REASON(95, "DISCARD_REASON"),
+
+    CONTROL_TYPE(130, "CONTROL_TYPE")
     ;
 
     public static PmfmEnum valueOf(final int id) {

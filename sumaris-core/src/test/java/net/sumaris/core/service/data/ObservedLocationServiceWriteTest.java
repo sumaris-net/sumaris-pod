@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -112,9 +113,8 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
 
         // Measurement
         Map<Integer, String> measurementValues = Maps.newHashMap();
-        measurementValues.put(130, "220"); // Type de vente = Avant-vente
+        measurementValues.put(PmfmEnum.CONTROL_TYPE.getId(), "220"); // Type de vente = Avant-vente
         vo.setMeasurementValues(measurementValues);
-
 
         return vo;
     }

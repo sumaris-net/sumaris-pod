@@ -27,7 +27,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class TripFilterVO {
+public class TripFilterVO implements IRootDataFilter, IVesselFilter {
 
     private Date startDate;
 

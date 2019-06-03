@@ -23,11 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
-import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -40,7 +36,7 @@ import java.util.Map;
 
 @Data
 public class VesselFeaturesVO implements IRootDataVO<Integer>,
-        IWithRecorderPersonEntityBean<Integer, PersonVO> {
+        IWithRecorderPersonEntity<Integer, PersonVO> {
 
     public static final String PROPERTY_START_DATE = VesselFeatures.PROPERTY_START_DATE;
     public static final String PROPERTY_EXTERIOR_MARKING = VesselFeatures.PROPERTY_EXTERIOR_MARKING;

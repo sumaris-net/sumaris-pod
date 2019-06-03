@@ -99,6 +99,17 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getLandingId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1;
+
+			default:
+				return 1;
+		}
+	}
+
 	public Integer getSampleId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
@@ -120,6 +131,8 @@ public class DatabaseFixtures {
 				return 1;
 		}
 	}
+
+	/* -- Referential -- */
 
 	public Integer getLocationPortId(int index) {
 		Preconditions.checkArgument(index >= 0);
@@ -175,7 +188,6 @@ public class DatabaseFixtures {
 		}
 	}
 
-
 	public Integer getMatrixIdForIndividual() {
 		return 2; // INDIV
 	}
@@ -184,8 +196,6 @@ public class DatabaseFixtures {
 		Preconditions.checkArgument(index >= 0);
 		return 1001 + index;
 	}
-
-
 
     public ProgramVO getDefaultProgram() {
 		ProgramVO program = new ProgramVO();

@@ -25,14 +25,13 @@ package net.sumaris.core.model.data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IDataEntity<T extends Serializable>
-        extends Serializable, IUpdateDateEntityBean<T, Date>,
-        IWithRecorderDepartmentEntityBean<T, Department> {
+public interface IDataEntity<ID extends Serializable>
+        extends Serializable, IUpdateDateEntityBean<ID, Date>,
+        IWithRecorderDepartmentEntity<ID, Department> {
 
     int LENGTH_COMMENTS = 2000;
 

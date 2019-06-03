@@ -24,12 +24,13 @@ package net.sumaris.core.vo.administration.user;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.vo.IValueObject;
 
 import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
-public class UserSettingsVO implements IUpdateDateEntityBean<Integer, Date> {
+public class UserSettingsVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
     public static final String PROPERTY_ISSUER = "issuer";
     public static final String PROPERTY_CONTENT = "content";

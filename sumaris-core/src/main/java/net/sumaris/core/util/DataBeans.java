@@ -1,9 +1,9 @@
 package net.sumaris.core.util;
 
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntityBean;
-import net.sumaris.core.model.data.IWithRecorderPersonEntityBean;
-import net.sumaris.core.vo.data.IWithVesselFeaturesVO;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.model.data.IWithVesselFeaturesEntity;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 
 import java.io.Serializable;
@@ -20,7 +20,7 @@ public class DataBeans extends Beans {
     }
 
     public static <T extends Serializable, D extends IEntity<Integer>> void setDefaultRecorderDepartment(
-            IWithRecorderDepartmentEntityBean<T, D> target,
+            IWithRecorderDepartmentEntity<T, D> target,
             D defaultValue) {
         if (target == null) return;
 
@@ -31,7 +31,7 @@ public class DataBeans extends Beans {
     }
 
     public static <T extends Serializable, D extends IEntity<Integer>> void setDefaultRecorderPerson(
-            IWithRecorderPersonEntityBean<T, D> target,
+            IWithRecorderPersonEntity<T, D> target,
             D defaultValue) {
         if (target == null) return;
 
@@ -42,7 +42,7 @@ public class DataBeans extends Beans {
     }
 
     public static <T extends Serializable, D extends VesselFeaturesVO> void setDefaultVesselFeatures(
-            IWithVesselFeaturesVO<T, D> target,
+            IWithVesselFeaturesEntity<T, D> target,
             D defaultValue) {
         if (target == null) return;
 

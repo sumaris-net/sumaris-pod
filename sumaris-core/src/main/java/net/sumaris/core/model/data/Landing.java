@@ -28,7 +28,6 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.location.Location;
 import org.hibernate.annotations.Cascade;
 
@@ -41,18 +40,18 @@ import java.util.Set;
 @Data
 @Entity
 public class Landing implements IRootDataEntity<Integer>,
-        IWithObserversEntityBean<Integer, Person>,
-        IWithVesselEntity<Integer> {
+        IWithObserversEntity<Integer, Person>,
+        IWithVesselEntity<Integer, Vessel> {
 
-    public static final String PROPERTY_LANDING_DATE_TIME = "landingDateTime";
-    public static final String PROPERTY_SALE_TYPE = "saleType";
+    public static final String PROPERTY_DATE_TIME = "dateTime";
+    public static final String PROPERTY_LOCATION = "location";
+
     public static final String PROPERTY_TRIP = "trip";
-    public static final String PROPERTY_LANDING_LOCATION = "landingLocation";
     public static final String PROPERTY_OBSERVED_LOCATION = "observedLocation";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "SALE_SEQ")
-    @SequenceGenerator(name = "SALE_SEQ", sequenceName="SALE_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_SEQ")
+    @SequenceGenerator(name = "LANDING_SEQ", sequenceName="LANDING_SEQ")
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -98,14 +97,14 @@ public class Landing implements IRootDataEntity<Integer>,
     private Vessel vessel;
 
     @Column(name = "landing_date_time", nullable = false)
-    private Date landingDateTime;
-
-    @Column(name = "end_date_time")
-    private Date endDateTime;
+    private Date dateTime;
 
     @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
     @JoinColumn(name = "landing_location_fk", nullable = false)
-    private Location landingLocation;
+    private Location location;
+
+    @Column(name = "rank_order")
+    private Integer rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)
@@ -118,6 +117,10 @@ public class Landing implements IRootDataEntity<Integer>,
             inverseJoinColumns = {
                     @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
     private Set<Person> observers = Sets.newHashSet();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.PROPERTY_LANDING)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Sample> samples = new ArrayList<>();
 
     /* -- measurements -- */
 
@@ -134,5 +137,4 @@ public class Landing implements IRootDataEntity<Integer>,
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
     @JoinColumn(name = "trip_fk")
     private Trip trip;
-
 }

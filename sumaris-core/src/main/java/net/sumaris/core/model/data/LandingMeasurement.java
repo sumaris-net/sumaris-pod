@@ -34,7 +34,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name="landing_measurement")
-public class LandingMeasurement implements IMeasurementEntity {
+public class LandingMeasurement implements ISortedMeasurementEntity {
 
     public static final String PROPERTY_LANDING = "landing";
     public static final String PROPERTY_RANK_ORDER = "rankOrder";

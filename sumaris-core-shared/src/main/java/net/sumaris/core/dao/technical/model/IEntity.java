@@ -24,12 +24,12 @@ package net.sumaris.core.dao.technical.model;
 
 import java.io.Serializable;
 
-public interface IEntity<T extends Serializable>  {
+public interface IEntity<ID extends Serializable> extends Serializable {
 
 
     String PROPERTY_ID = "id";
 
-    T getId();
+    ID getId();
 
-    void setId(T id);
+    void setId(ID id);
 }

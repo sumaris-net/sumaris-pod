@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.data;
+package net.sumaris.core.model.data;
 
 /*-
  * #%L
@@ -26,11 +26,11 @@ import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
 
-public interface IWithVesselFeaturesVO<T extends Serializable, V extends VesselFeaturesVO> extends IEntity<T> {
+public interface IWithRecorderDepartmentEntity<ID extends Serializable, P extends IEntity<Integer>> extends IEntity<ID> {
 
-    String PROPERTY_VESSEL_FEATURES = "vesselFeatures";
+    String PROPERTY_RECORDER_DEPARTMENT = "recorderDepartment";
 
-    V getVesselFeatures();
+    P getRecorderDepartment();
 
-    void setVesselFeatures(V vesselFeatures);
+    void setRecorderDepartment(P recorderDepartment);
 }
