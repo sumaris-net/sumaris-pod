@@ -24,21 +24,24 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.LandingRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.LandingMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.LandingVO;
-import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.LandingFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -48,11 +51,17 @@ public class LandingServiceImpl implements LandingService {
 
 	private static final Logger log = LoggerFactory.getLogger(LandingServiceImpl.class);
 
+    @Autowired
+    protected SumarisConfiguration config;
+
 	@Autowired
 	protected LandingRepository landingRepository;
 
 	@Autowired
 	protected MeasurementDao measurementDao;
+
+	@Autowired
+	protected SampleService sampleService;
 
 	@Override
 	public List<LandingVO> getAll(int offset, int size) {
@@ -108,6 +117,26 @@ public class LandingServiceImpl implements LandingService {
 			measurements.forEach(m -> fillDefaultProperties(savedLanding, m));
 			measurements = measurementDao.saveLandingMeasurements(savedLanding.getId(), measurements);
 			savedLanding.setMeasurements(measurements);
+		}
+
+		// Save samples
+		{
+			List<SampleVO> samples = getSamplesAsList(savedLanding);
+			samples.forEach(s -> fillDefaultProperties(savedLanding, s));
+			samples = sampleService.saveByLandingId(savedLanding.getId(), samples);
+
+			// Prepare saved samples (e.g. to be used as graphQL query response)
+			samples.forEach(sample -> {
+				// Set parentId (instead of parent object)
+				if (sample.getParent() != null) {
+					sample.setParentId(sample.getParent().getId());
+					sample.setParent(null);
+				}
+				// Remove link to children
+				sample.setChildren(null);
+			});
+
+			savedLanding.setSamples(samples);
 		}
 
 		return savedLanding;
@@ -174,5 +203,44 @@ public class LandingServiceImpl implements LandingService {
 		DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
 
 		measurement.setEntityName(LandingMeasurement.class.getSimpleName());
+	}
+
+	protected void fillDefaultProperties(LandingVO parent, SampleVO sample) {
+		if (sample == null) return;
+
+		// Copy recorder department from the parent
+		if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
+			sample.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		// Fill matrix
+		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
+			ReferentialVO matrix = new ReferentialVO();
+			matrix.setId(config.getMatrixIdIndividual());
+			sample.setMatrix(matrix);
+		}
+
+		// Fill sample (use operation end date time)
+		if (sample.getSampleDate() == null) {
+			sample.setSampleDate(parent.getDateTime());
+		}
+
+		sample.setLandingId(parent.getId());
+	}
+
+	/**
+	 * Get all samples, in the sample tree parent/children
+	 * @param parent
+	 * @return
+	 */
+	protected List<SampleVO> getSamplesAsList(final LandingVO parent) {
+		final List<SampleVO> result = Lists.newArrayList();
+		if (CollectionUtils.isNotEmpty(parent.getSamples())) {
+			parent.getSamples().forEach(sample -> {
+				fillDefaultProperties(parent, sample);
+				sampleService.treeToList(sample, result);
+			});
+		}
+		return result;
 	}
 }

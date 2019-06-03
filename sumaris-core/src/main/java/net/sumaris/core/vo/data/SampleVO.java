@@ -71,6 +71,8 @@ public class SampleVO implements  IRootDataVO<Integer>,
     private Integer batchId;
     private OperationVO operation;
     private Integer operationId;
+    private LandingVO landing;
+    private Integer landingId;
 
     private List<MeasurementVO> measurements; // sample_measurement
     private Map<Integer, String> measurementValues; // sample_measurement

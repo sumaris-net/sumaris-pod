@@ -137,7 +137,7 @@ public class OperationServiceImpl implements OperationService {
 
 		// Save samples
 		{
-			List<SampleVO> samples = getOperationSamplesAsList(savedOperation);
+			List<SampleVO> samples = getSamplesAsList(savedOperation);
 			samples.forEach(s -> fillDefaultProperties(savedOperation, s));
 			samples = sampleService.saveByOperationId(savedOperation.getId(), samples);
 
@@ -279,29 +279,7 @@ public class OperationServiceImpl implements OperationService {
 		sample.setOperationId(parent.getId());
 	}
 
-	protected void fillDefaultProperties(SampleVO parent, SampleVO sample) {
-		if (sample == null) return;
 
-		// Copy recorder department from the parent
-		if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
-			sample.setRecorderDepartment(parent.getRecorderDepartment());
-		}
-
-		// Fill matrix
-		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
-			ReferentialVO matrix = new ReferentialVO();
-			matrix.setId(config.getMatrixIdIndividual());
-			sample.setMatrix(matrix);
-		}
-
-		// Fill sample (use operation end date time)
-		if (sample.getSampleDate() == null) {
-			sample.setSampleDate(parent.getSampleDate());
-		}
-
-		sample.setParentId(parent.getId());
-		sample.setOperationId(parent.getOperationId());
-	}
 
 	protected List<BatchVO> getAllBatches(OperationVO operation) {
 		BatchVO catchBatch = operation.getCatchBatch();
@@ -332,39 +310,16 @@ public class OperationServiceImpl implements OperationService {
 	 * @param parent
 	 * @return
 	 */
-	protected List<SampleVO> getOperationSamplesAsList(final OperationVO parent) {
+	protected List<SampleVO> getSamplesAsList(final OperationVO parent) {
 		final List<SampleVO> result = Lists.newArrayList();
 		if (CollectionUtils.isNotEmpty(parent.getSamples())) {
 			parent.getSamples().forEach(sample -> {
 				fillDefaultProperties(parent, sample);
-				transformSampleTreeToList(sample, result);
+				sampleService.treeToList(sample, result);
 			});
 		}
 		return result;
 	}
 
 
-	/**
-	 * Transform a samples (with children) into a falt list, sorted with parent always before children
-	 * @param sample
-	 * @param result
-	 */
-	protected void transformSampleTreeToList(final SampleVO sample, final List<SampleVO> result) {
-		if (sample == null) return;
-
-		// Add the batch itself
-		if (!result.contains(sample)) result.add(sample);
-
-		// Process children
-		if (CollectionUtils.isNotEmpty(sample.getChildren())) {
-			// Recursive call
-			sample.getChildren().forEach(child -> {
-				fillDefaultProperties(sample, child);
-				// Link to parent
-				child.setParent(sample);
-				transformSampleTreeToList(child, result);
-			});
-		}
-
-	}
 }

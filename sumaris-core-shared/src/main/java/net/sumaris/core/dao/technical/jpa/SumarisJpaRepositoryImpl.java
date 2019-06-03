@@ -3,6 +3,7 @@ package net.sumaris.core.dao.technical.jpa;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
@@ -10,6 +11,7 @@ import org.hibernate.dialect.Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -19,6 +21,7 @@ import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -116,5 +119,20 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
 
     protected <T> JPAQuery<T> createQuery() {
         return new JPAQuery<>(entityManager);
+    }
+
+    protected <T extends IEntity<?>> Specification<T> and(Specification<T>... specs) {
+        Specification<T> result = null;
+        for (Specification<T> item: specs) {
+            if (item != null) {
+                if (result == null) {
+                    result = Specification.where(item);
+                }
+                else {
+                    result.and(item);
+                }
+            }
+        }
+        return result;
     }
 }

@@ -39,6 +39,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SampleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -114,15 +115,15 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         query.select(root);
 
-        ParameterExpression<Integer> tripIdParam = cb.parameter(Integer.class);
+        ParameterExpression<Integer> idParam = cb.parameter(Integer.class);
 
-        query.where(cb.equal(root.get(Sample.PROPERTY_LANDING).get(Landing.PROPERTY_ID), tripIdParam));
+        query.where(cb.equal(root.get(Sample.PROPERTY_LANDING).get(Landing.PROPERTY_ID), idParam));
 
         // Sort by rank order
         query.orderBy(cb.asc(root.get(PmfmStrategy.PROPERTY_RANK_ORDER)));
 
         return toSampleVOs(getEntityManager().createQuery(query)
-                .setParameter(tripIdParam, landingId).getResultList(), false);
+                .setParameter(idParam, landingId).getResultList(), false);
     }
 
 
@@ -159,16 +160,51 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         }
 
         // Remove parent (use only parentId)
-        result.stream().forEach(batch -> {
-            if (batch.getParent() != null) {
-                batch.setParentId(batch.getParent().getId());
-                batch.setParent(null);
+        result.stream().forEach(sample -> {
+            if (sample.getParent() != null) {
+                sample.setParentId(sample.getParent().getId());
+                sample.setParent(null);
             }
         });
 
         return result;
     }
 
+    @Override
+    public List<SampleVO> saveByLandingId(int landingId, List<SampleVO> sources) {
+        // Load parent entity
+        Landing parent = get(Landing.class, landingId);
+        ProgramVO parentProgram = new ProgramVO();
+        parentProgram.setId(parent.getProgram().getId());
+
+        // Remember existing entities
+        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getSamples()));
+
+        // Save each entities
+        List<SampleVO> result = sources.stream().map(source -> {
+            source.setLandingId(landingId);
+            source.setProgram(parentProgram);
+            if (source.getId() != null) {
+                sourcesIdsToRemove.remove(source.getId());
+            }
+            return save(source);
+        }).collect(Collectors.toList());
+
+        // Remove unused entities
+        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
+            sourcesIdsToRemove.forEach(this::delete);
+        }
+
+        // Remove parent (use only parentId)
+        result.stream().forEach(sample -> {
+            if (sample.getParent() != null) {
+                sample.setParentId(sample.getParent().getId());
+                sample.setParent(null);
+            }
+        });
+
+        return result;
+    }
 
     @Override
     public SampleVO save(SampleVO source) {
@@ -194,7 +230,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         }
 
         // Copy some fields from the trip
-        copySomeFieldsFromOperation(source);
+        copySomeFieldsFromParent(source);
 
         // VO -> Entity
         sampleVOToEntity(source, entity, true);
@@ -302,12 +338,17 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
         return target;
     }
 
-    protected void copySomeFieldsFromOperation(SampleVO target) {
-        OperationVO source = target.getOperation();
-        if (source == null) return;
-
-        target.setRecorderDepartment(source.getRecorderDepartment());
-
+    protected void copySomeFieldsFromParent(SampleVO target) {
+        OperationVO operation = target.getOperation();
+        if (operation != null) {
+            target.setRecorderDepartment(operation.getRecorderDepartment());
+            return;
+        }
+        LandingVO landing = target.getLanding();
+        if (landing != null) {
+            target.setRecorderDepartment(landing.getRecorderDepartment());
+            return;
+        }
     }
 
     protected List<SampleVO> toSampleVOs(List<Sample> source, boolean allFields) {
@@ -370,6 +411,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
 
         Integer parentId = source.getParentId() != null ? source.getParentId() : (source.getParent() != null ? source.getParent().getId() : null);
         Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
+        Integer landingId = source.getLandingId() != null ? source.getLandingId() : (source.getLanding() != null ? source.getLanding().getId() : null);
 
         // Parent sample
         if (copyIfNull || (parentId != null)) {
@@ -390,8 +432,16 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             if (opeId == null) {
                 target.setOperation(null);
             } else {
-                Operation operation = load(Operation.class, opeId);
-                target.setOperation(operation);
+                target.setOperation(load(Operation.class, opeId));
+            }
+        }
+
+        // Landing
+        if (copyIfNull || (landingId != null)) {
+            if (landingId == null) {
+                target.setLanding(null);
+            } else {
+                target.setLanding(load(Landing.class, landingId));
             }
         }
 

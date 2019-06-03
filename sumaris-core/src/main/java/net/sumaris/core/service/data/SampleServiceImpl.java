@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.SampleDao;
 import net.sumaris.core.util.Beans;
@@ -31,6 +32,8 @@ import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SampleMeasurement;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.SampleVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +47,9 @@ import java.util.stream.Collectors;
 public class SampleServiceImpl implements SampleService {
 
 	private static final Logger log = LoggerFactory.getLogger(SampleServiceImpl.class);
+
+	@Autowired
+	protected SumarisConfiguration config;
 
 	@Autowired
 	protected SampleDao sampleDao;
@@ -72,17 +78,17 @@ public class SampleServiceImpl implements SampleService {
 		List<SampleVO> result = sampleDao.saveByOperationId(operationId, sources);
 
 		// Save measurements
-		result.forEach(savedSample -> {
-			if (savedSample.getMeasurementValues() != null) {
-				measurementDao.saveSampleMeasurementsMap(savedSample.getId(), savedSample.getMeasurementValues());
-			}
-			else {
-				List<MeasurementVO> measurements = Beans.getList(savedSample.getMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(savedSample, m, SampleMeasurement.class));
-				measurements = measurementDao.saveSampleMeasurements(savedSample.getId(), measurements);
-				savedSample.setMeasurements(measurements);
-			}
-		});
+		saveMeasurements(result);
+
+		return result;
+	}
+
+	@Override
+	public List<SampleVO> saveByLandingId(int landingId, List<SampleVO> sources) {
+		List<SampleVO> result = sampleDao.saveByLandingId(landingId, sources);
+
+		// Save measurements
+		saveMeasurements(result);
 
 		return result;
 	}
@@ -119,7 +125,46 @@ public class SampleServiceImpl implements SampleService {
 				.forEach(this::delete);
 	}
 
+
+	/**
+	 * Transform a samples (with children) into a falt list, sorted with parent always before children
+	 * @param sample
+	 * @param result
+	 */
+	@Override
+	public void treeToList(final SampleVO sample, final List<SampleVO> result) {
+		if (sample == null) return;
+
+		// Add the batch itself
+		if (!result.contains(sample)) result.add(sample);
+
+		// Process children
+		if (CollectionUtils.isNotEmpty(sample.getChildren())) {
+			// Recursive call
+			sample.getChildren().forEach(child -> {
+				fillDefaultProperties(sample, child);
+				// Link to parent
+				child.setParent(sample);
+				treeToList(child, result);
+			});
+		}
+
+	}
 	/* -- protected methods -- */
+
+	protected void saveMeasurements(List<SampleVO> result) {
+		result.forEach(savedSample -> {
+			if (savedSample.getMeasurementValues() != null) {
+				measurementDao.saveSampleMeasurementsMap(savedSample.getId(), savedSample.getMeasurementValues());
+			}
+			else {
+				List<MeasurementVO> measurements = Beans.getList(savedSample.getMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(savedSample, m, SampleMeasurement.class));
+				measurements = measurementDao.saveSampleMeasurements(savedSample.getId(), measurements);
+				savedSample.setMeasurements(measurements);
+			}
+		});
+	}
 
 	protected void fillDefaultProperties(SampleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
 		if (measurement == null) return;
@@ -130,5 +175,29 @@ public class SampleServiceImpl implements SampleService {
 		}
 
 		measurement.setEntityName(entityClass.getSimpleName());
+	}
+
+	protected void fillDefaultProperties(SampleVO parent, SampleVO sample) {
+		if (sample == null) return;
+
+		// Copy recorder department from the parent
+		if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
+			sample.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		// Fill matrix
+		if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
+			ReferentialVO matrix = new ReferentialVO();
+			matrix.setId(config.getMatrixIdIndividual());
+			sample.setMatrix(matrix);
+		}
+
+		// Fill sample (use operation end date time)
+		if (sample.getSampleDate() == null) {
+			sample.setSampleDate(parent.getSampleDate());
+		}
+
+		sample.setParentId(parent.getId());
+		sample.setOperationId(parent.getOperationId());
 	}
 }

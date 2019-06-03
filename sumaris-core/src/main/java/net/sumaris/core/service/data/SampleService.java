@@ -44,6 +44,8 @@ public interface SampleService {
 
 	List<SampleVO> saveByOperationId(int operationId, List<SampleVO> samples);
 
+	List<SampleVO> saveByLandingId(int landingId, List<SampleVO> samples);
+
 	@Transactional(readOnly = true)
 	SampleVO get(int id);
 
@@ -54,5 +56,7 @@ public interface SampleService {
 	void delete(int id);
 
 	void delete(List<Integer> ids);
+
+	void treeToList(final SampleVO sample, final List<SampleVO> result);
 
 }

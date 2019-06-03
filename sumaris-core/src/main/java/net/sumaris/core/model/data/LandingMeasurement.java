@@ -34,13 +34,13 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name="landing_measurement")
-public class LandingMeasurement implements ISortedMeasurementEntity {
+public class LandingMeasurement implements IMeasurementEntity, ISortedMeasurementEntity {
 
     public static final String PROPERTY_LANDING = "landing";
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "LANDING_MEASUREMENT_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_MEASUREMENT_SEQ")
     @SequenceGenerator(name = "LANDING_MEASUREMENT_SEQ", sequenceName="LANDING_MEASUREMENT_SEQ")
     private Integer id;
 

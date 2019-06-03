@@ -37,6 +37,8 @@ public interface SampleDao {
 
     List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources);
 
+    List<SampleVO> saveByLandingId(int landingId, List<SampleVO> sources);
+
     /**
      * Save a sample
      * @param sample

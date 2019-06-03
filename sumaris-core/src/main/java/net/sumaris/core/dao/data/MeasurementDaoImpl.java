@@ -531,6 +531,21 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
         return classname;
     }
 
+    protected <T extends IDataEntity> Class<T> getEntityClass(T source) {
+        String classname = source.getClass().getName();
+        int index = classname.indexOf("$HibernateProxy");
+        if (index > 0) {
+            try {
+                return (Class<T>) Class.forName(classname.substring(0, index));
+            }
+            catch(ClassNotFoundException t) {
+                throw new SumarisTechnicalException(t);
+            }
+        }
+        return (Class<T>)source.getClass();
+    }
+
+
     protected <T extends IMeasurementEntity> Map<Integer, String> saveMeasurementsMap(
             final Class<? extends T> entityClass,
             Map<Integer, String> sources,
@@ -584,7 +599,7 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
                 valueToEntity(value, pmfmId, entity);
 
                 // Link to parent
-                setParent(entity, parent.getClass(), parent.getId(), false);
+                setParent(entity, getEntityClass(parent), parent.getId(), false);
 
                 // Update update_dt
                 Timestamp newUpdateDate = getDatabaseCurrentTimestamp();

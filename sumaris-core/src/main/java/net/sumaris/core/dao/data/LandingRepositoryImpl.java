@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.referential.location.LocationDao;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Trip;
@@ -40,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,11 +50,34 @@ public class LandingRepositoryImpl
         implements LandingRepositoryExtend {
 
     static Specification<Landing> hasObservedLocationId(Integer observedLocationId) {
-        return (root, query, cb) -> cb.equal(root.get(Landing.PROPERTY_OBSERVED_LOCATION), observedLocationId);
+        if (observedLocationId == null) return null;
+        return (root, query, cb) -> cb.equal(root.get(Landing.PROPERTY_OBSERVED_LOCATION).get(IEntity.PROPERTY_ID), observedLocationId);
     }
 
     static Specification<Landing> hasTripId(Integer tripId) {
-        return (root, query, cb) -> cb.equal(root.get(Landing.PROPERTY_TRIP), tripId);
+        if (tripId == null) return null;
+        return (root, query, cb) -> cb.equal(root.get(Landing.PROPERTY_TRIP).get(IEntity.PROPERTY_ID), tripId);
+    }
+
+    static Specification<Landing> hasLocationId(Integer locationId) {
+        if (locationId == null) return null;
+        return (root, query, cb) -> cb.equal(root.get(Landing.PROPERTY_LOCATION).get(IEntity.PROPERTY_ID), locationId);
+    }
+
+    static Specification<Landing> betweenDate(Date startDate, Date endDate) {
+        if (startDate == null && endDate == null) return null;
+        return (root, query, cb) -> {
+            if (startDate != null && endDate != null) {
+                return cb.and(
+                        cb.greaterThanOrEqualTo(root.get(Landing.PROPERTY_DATE_TIME), startDate),
+                        cb.lessThanOrEqualTo(root.get(Landing.PROPERTY_DATE_TIME), endDate)
+                );
+            } else if (startDate == null && endDate != null) {
+                return cb.lessThanOrEqualTo(root.get(Landing.PROPERTY_DATE_TIME), endDate);
+            } else {
+                return cb.greaterThanOrEqualTo(root.get(Landing.PROPERTY_DATE_TIME), startDate);
+            }
+        };
     }
 
     private static final Logger log =
@@ -74,14 +99,13 @@ public class LandingRepositoryImpl
     @Override
     public Specification<Landing> toSpecification(LandingFilterVO filter) {
         if (filter == null) return null;
-        if (filter.getObservedLocationId() != null) {
-            return hasObservedLocationId(filter.getObservedLocationId());
-        } else if (filter.getTripId() != null) {
-            return hasTripId(filter.getTripId());
-        }
 
-        // TODO: combine specifications
-        throw new NotImplementedException("TODO: implement other case");
+        return Specification.where(and(
+                hasObservedLocationId(filter.getObservedLocationId()),
+                hasTripId(filter.getTripId()),
+                betweenDate(filter.getStartDate(), filter.getEndDate()),
+                hasLocationId(filter.getLocationId()))
+        );
     }
 
     public Class<LandingVO> getVOClass() {
