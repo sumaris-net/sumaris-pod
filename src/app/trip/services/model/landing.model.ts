@@ -39,8 +39,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     this.location = new ReferentialRef();
     this.observers = [];
     this.measurementValues = {};
-
-    this.samples = []; // TODO: check if OK
+    this.samples = [];
   }
 
   clone(): Landing {
@@ -75,6 +74,9 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     this.observedLocationId = source.observedLocationId;
     this.tripId = source.tripId;
     this.measurementValues = source.measurementValues;
+
+    // Samples
+    this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
 
     return this;
   }
