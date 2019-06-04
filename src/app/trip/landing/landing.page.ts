@@ -30,10 +30,8 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
 
   @ViewChild('samplesTable') samplesTable: SamplesTable;
 
-  protected async getValue(): Promise<T> {
+  protected async getValue(): Promise<Landing> {
     const data = await super.getValue();
-
-    console.log("COnverting value", data);
 
     if (this.samplesTable.dirty) {
       await this.samplesTable.save();
