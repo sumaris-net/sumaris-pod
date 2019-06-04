@@ -92,7 +92,7 @@ echo "RELEASE finished !"
 echo "----------------------------------"
 
 echo "Rebuild new SNAPSHOT version..."
-mvn clean install -DSkipTests --quiet
+mvn clean install -DskipTests --quiet
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
