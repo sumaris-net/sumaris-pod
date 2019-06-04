@@ -1,6 +1,5 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
 import {BaseDataService, environment, isNil, isNotNil} from "../../core/core.module";
 import {map} from "rxjs/operators";
@@ -11,7 +10,7 @@ import {AggregationStrata, AggregationType, ExtractionResult, ExtractionType} fr
 import {FetchPolicy} from "apollo-client";
 import {trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/services/graphql.service";
-import {FeatureCollection, GeoJsonObject} from "geojson";
+import {FeatureCollection} from "geojson";
 
 
 export declare class ExtractionFilter {
