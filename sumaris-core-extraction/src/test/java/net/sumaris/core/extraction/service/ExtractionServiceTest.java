@@ -26,8 +26,6 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     private ExtractionService service;
 
     @Test
-    @Ignore
-    // FIXME: fails when running inside AllTest
     public void extractLiveTripAsFile_ICES() {
 
         // Test the RDB format
@@ -35,8 +33,6 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    @Ignore
-    // FIXME: fails when running inside AllTest
     public void extractLiveTripAsFile_SurvivalTest() {
 
         // Test Survival test format

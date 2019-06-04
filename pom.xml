@@ -1107,8 +1107,9 @@
             <excludes>
               <exclude>**/Abstract*.java</exclude>
             </excludes>
+            <!-- parallel execution NOT SUPPORT yet (cause access error on DB)
             <parallel>classes</parallel>
-            <threadCount>10</threadCount>
+            <threadCount>10</threadCount>-->
           </configuration>
         </plugin>
 
