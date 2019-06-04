@@ -98,11 +98,11 @@
     </ion-row>
 
     <!-- LOCATION + date/time-->
-    <ion-row no-padding *ngIf="showLanding || showDateTime">
+    <ion-row no-padding *ngIf="showLocation || showDateTime">
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label float-end translate>LANDING.LANDING</ion-label>
       </ion-col>
-      <ion-col *ngIf="showLanding">
+      <ion-col *ngIf="showLocation">
         <mat-form-field>
           <ion-icon matPrefix name="pin"></ion-icon>
           <input matInput [placeholder]="'LANDING.LOCATION'|translate"

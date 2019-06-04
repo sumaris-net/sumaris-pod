@@ -40,7 +40,7 @@
   <ion-button *ngIf="canControl" (click)="control($event)" expand="block" color="tertiary">
     <ion-text translate>QUALITY.CONTROL</ion-text>
   </ion-button>
-  <ion-button *ngIf="canValidate && !value.dirty" (click)="validate($event)" expand="block" color="success">
+  <ion-button *ngIf="canValidate" (click)="validate($event)" expand="block" color="success">
     <ion-text translate>QUALITY.VALIDATE</ion-text>
   </ion-button>
   <ion-button *ngIf="canUnvalidate" (click)="unvalidate($event)" expand="block" color="danger">

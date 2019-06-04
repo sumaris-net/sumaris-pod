@@ -11,9 +11,7 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-spinner *ngIf="loading"></ion-spinner>
-
-      <button ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading" (click)="close($event)">
+      <button ion-button icon-only class="visible-xs visible-sm" *ngIf="!table.loading" (click)="close($event)">
         <ion-icon name="checkmark"></ion-icon>
       </button>
     </ion-buttons>
