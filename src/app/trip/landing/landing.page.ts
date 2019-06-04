@@ -35,8 +35,8 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
 
     if (this.samplesTable.dirty) {
       await this.samplesTable.save();
-      data.samples = this.samplesTable.value;
     }
+    data.samples = this.samplesTable.value;
 
     return data;
   }
