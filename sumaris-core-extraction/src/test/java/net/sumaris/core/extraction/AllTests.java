@@ -24,6 +24,7 @@ package net.sumaris.core.extraction;
  * #L%
  */
 
+import net.sumaris.core.extraction.dao.technical.DaosTest;
 import net.sumaris.core.extraction.service.ExtractionServiceTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -35,7 +36,7 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
 		// DAO
-
+		DaosTest.class,
 		// Service
 		ExtractionServiceTest.class
 })
