@@ -28,6 +28,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
+import net.sumaris.server.http.security.IsUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +48,7 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLQuery(name = "aggregation", description = "Execute a aggregation")
+    @IsUser
     public AggregationResultVO aggregate(@GraphQLArgument(name = "type") AggregationTypeVO type,
                                                             @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                             @GraphQLArgument(name = "strata") AggregationStrataVO strata,
@@ -59,6 +61,7 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLQuery(name = "geoJsonAggregation", description = "Execute an aggregation and return as GeoJson")
+    @IsUser
     public Object getGeoJsonAggregation(@GraphQLArgument(name = "type") AggregationTypeVO type,
                                     @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                     @GraphQLArgument(name = "strata") AggregationStrataVO strata,

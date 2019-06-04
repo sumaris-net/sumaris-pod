@@ -31,6 +31,7 @@ import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.server.http.rest.DownloadController;
+import net.sumaris.server.http.security.IsUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,14 +54,13 @@ public class ExtractionGraphQLService {
 
     @GraphQLQuery(name = "extractionTypes", description = "Get all available extraction types")
     @Transactional(readOnly = true)
-    //@IsUser
     public List<ExtractionTypeVO> getAllExtractionTypes() {
         return extractionService.getAllExtractionTypes();
     }
 
     @GraphQLQuery(name = "extractionRows", description = "Preview some extraction rows")
     @Transactional
-    //@IsUser
+    @IsUser
     public ExtractionResultVO getExtractionRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                                @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
@@ -78,7 +78,7 @@ public class ExtractionGraphQLService {
 
     @GraphQLQuery(name = "extractionFile", description = "Execute extraction to a file")
     @Transactional
-    //@IsUser
+    @IsUser
     public String getExtractionFile(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                  @GraphQLArgument(name = "filter") ExtractionFilterVO filter
     ) throws IOException {
