@@ -10,6 +10,11 @@ fi
 
 ### Get version to release
 current=`grep -P "version\": \"\d+.\d+.\d+(\w*)" package.json | grep -oP "\d+.\d+.\d+(\w*)"`
+if [[ "_$version" != "_" ]]; then
+  echo "ERROR: Unable to read 'version' in the file 'package.json'."
+  echo " - Make sure the file 'package.json' exists and is readable."
+  exit 1
+fi
 echo "Current version: $current"
 
 ### Get repo URL
@@ -24,7 +29,7 @@ GITHUB_TOKEN=`cat ~/.config/sumaris/.github`
 if [[ "_$GITHUB_TOKEN" != "_" ]]; then
     GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
 else
-    echo "Unable to find github authentication token file: "
+    echo "ERROR: Unable to find github authentication token file: "
     echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
     echo " - Then copy the token and paste it in the file '~/.config/sumaris/.github' using a valid token."
     exit 1

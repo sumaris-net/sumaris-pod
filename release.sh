@@ -93,7 +93,7 @@ fi
 echo "----------------------------------"
 echo "- Compiling sources..."
 echo "----------------------------------"
-npm run build.prod --engine=browser
+npm run build.prod
 if [[ $? -ne 0 ]]; then
     exit 1
 fi

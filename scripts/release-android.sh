@@ -16,7 +16,11 @@ cd ${PROJECT_DIR}
 
 # Run the build
 echo "Running cordova build..."
+
 ionic cordova build android --warning-mode=none --color --prod --release
+# TODO: try this :
+#ionic cordova build android --warning-mode=none --color --prod --release --optimizejs --minifyjs --minifycss
+
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
