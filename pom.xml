@@ -114,7 +114,7 @@
     <hibernate-search.version>5.10.4.Final</hibernate-search.version>
     <hibernate-validator.version>6.0.10.Final</hibernate-validator.version>
     <spring.version>5.0.10.RELEASE</spring.version>
-    <spring-data.version>2.0.11.RELEASE</spring-data.version>
+    <spring-data.version>2.1.8.RELEASE</spring-data.version>
     <querydsl.version>4.2.1</querydsl.version>
     <aspectj.version>1.8.13</aspectj.version>
     <javassist.version>3.23.1-GA</javassist.version>
