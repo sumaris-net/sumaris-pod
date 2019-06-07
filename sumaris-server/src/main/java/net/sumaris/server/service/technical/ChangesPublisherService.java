@@ -40,6 +40,7 @@ public interface ChangesPublisherService {
                  Integer minIntervalInSecond,
                  final boolean startWithActualValue);
 
+    @Transactional(readOnly = true)
     <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> V
     getIfNewer(Class<T> entityClass,
                Class<V> targetClass,

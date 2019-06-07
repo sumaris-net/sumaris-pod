@@ -62,6 +62,7 @@ public class LandingVO implements IRootDataVO<Integer>,
 
     private Date dateTime;
     private LocationVO location;
+    private Integer rankOrder;
 
     private Set<PersonVO> observers;
     private List<SampleVO> samples;

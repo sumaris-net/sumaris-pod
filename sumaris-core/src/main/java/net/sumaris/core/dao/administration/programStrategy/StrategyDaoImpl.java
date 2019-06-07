@@ -173,11 +173,11 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
 
         // Set some attributes from Pmfm
         target.setPmfmId(pmfm.getId());
+
+        // Apply default values from Pmfm
         if (pmfm.getMethod() != null) {
             target.setMethodId(pmfm.getMethod().getId());
         }
-
-        // Set default value from Pmfm
         if (target.getMinValue() == null) {
             target.setMinValue(pmfm.getMinValue());
         }
