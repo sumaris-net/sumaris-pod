@@ -22,7 +22,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   loading = false;
   loadingPmfms = true;
 
-  pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
   @Input() compact = false;
 
@@ -85,7 +85,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     const pmfmForm = this.form.get('measurementValues');
     if (pmfmForm && pmfmForm instanceof FormGroup) {
       // Find dirty pmfms, to avoid full update
-      const dirtyPmfms = (this.pmfms.getValue() || []).filter(pmfm => pmfmForm.controls[pmfm.pmfmId].dirty);
+      const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => pmfmForm.controls[pmfm.pmfmId].dirty);
       if (dirtyPmfms.length) {
         json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementUtils.toEntityValues(pmfmForm.value, dirtyPmfms));
       }
@@ -121,9 +121,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.registerSubscription(
       merge(
         this._onValueChanged.pipe(startWith('ngOnInit')),
-        this.pmfms.pipe(filter(isNotNil)),
+        this.$pmfms.pipe(filter(isNotNil)),
       )
-        .subscribe((_) => this.updateControls('merge', this.pmfms.getValue())));
+        .subscribe((_) => this.updateControls('merge', this.$pmfms.getValue())));
 
     // Listen form changes
     this.registerSubscription(
@@ -138,7 +138,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   public markAsTouched() {
     this.form.markAsTouched();
-    const pmfms = this.pmfms.getValue();
+    const pmfms = this.$pmfms.getValue();
     if (pmfms && this.form && this.form.controls['measurementValues']) {
       const pmfmForm = this.form.controls['measurementValues'] as FormGroup;
       pmfms.forEach(pmfm => {
@@ -161,7 +161,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.loading = true;
     this.loadingPmfms = true;
 
-    this.pmfms.next(null);
+    this.$pmfms.next(null);
 
     // Load pmfms
     const pmfms = (await this.programService.loadProgramPmfms(
@@ -177,7 +177,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     this.loadingPmfms = false;
 
-    this.pmfms.next(pmfms);
+    this.$pmfms.next(pmfms);
 
     if (this.enabled) this.loading = false;
 
@@ -188,7 +188,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   public updateControls(event?: string, pmfms?: PmfmStrategy[]) {
     if (isNil(this.data)) return; // not ready
-    pmfms = pmfms || this.pmfms.getValue();
+    pmfms = pmfms || this.$pmfms.getValue();
 
     let formGroup = this.form.get('measurementValues');
     if (formGroup && formGroup.enabled) {
@@ -198,7 +198,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     // Waiting end of pmfm load
     if (!pmfms || this.loadingPmfms) {
       if (this.debug) console.debug(`${this.logPrefix} updateControls(${event}): waiting pmfms...`);
-      this.pmfms
+      this.$pmfms
         .pipe(
           filter(isNotNil),
           throttleTime(100), // groups pmfms updates event, if many updates in few duration

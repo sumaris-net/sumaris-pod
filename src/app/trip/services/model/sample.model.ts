@@ -2,10 +2,10 @@ import {EntityUtils, fromDateISOString, isNotNil, toDateISOString} from "../../.
 import {ReferentialRef} from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
 import {DataEntity, DataRootEntity} from "./base.model";
-import {MeasurementUtils} from "./measurement.model";
+import {IEntityWithMeasurement, MeasurementUtils} from "./measurement.model";
 
 
-export class Sample extends DataRootEntity<Sample> {
+export class Sample extends DataRootEntity<Sample> implements IEntityWithMeasurement<Sample> {
 
   static fromObject(source: any): Sample {
     const res = new Sample();

@@ -5,14 +5,16 @@
 
 <ion-content>
 
-  <mat-tab-group #matTabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" animationDuration="0s">
+  <mat-tab-group #matTabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
+                 animationDuration="0s">
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (opeForm.invalid || measurementsForm.invalid)"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger"
+                  *ngIf="submitted && (opeForm.invalid || measurementsForm.invalid)"></ion-icon>
       </ng-template>
 
       <!-- error -->
@@ -70,37 +72,42 @@
       <mat-tab-group #batchSamplingTabGroup
                      [hidden]="!showBatchSamplingTables"
                      animationDuration="0s"
-                     [(selectedIndex)]="selectedBatchSamplingTabIndex" (selectedTabChange)="onBatchSamplingTabChange($event)">
+                     [(selectedIndex)]="selectedBatchSamplingTabIndex"
+                     (selectedTabChange)="onBatchSamplingTabChange($event)">
 
         <!-- TAB: species list -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
           <ng-template mat-tab-label>
             <mat-icon>line_weight</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
-            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
+            <ion-icon slot="end" name="alert" color="danger"
+                      *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
           </ng-template>
 
           <table-batch-groups #batchGroupsTable [debug]="debug"
                               acquisitionLevel="SORTING_BATCH"
-                              [showCommentsColumn]="false"
-                              [program]="programSubject|async">
+                              [program]="programSubject | async"
+                              [showCommentsColumn]="false">
           </table-batch-groups>
         </mat-tab>
 
         <!-- TAB: individual measurements -->
-        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}" [disabled]="!enableSubBatchSamplingTable">
+        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
+                 [disabled]="!enableSubBatchSamplingTable">
           <ng-template mat-tab-label>
             <mat-icon>list</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
-            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && (subBatchesTable.invalid || false)"></ion-icon>
+            <ion-icon slot="end" name="alert" color="danger"
+                      *ngIf="submitted && (subBatchesTable.invalid || false)"></ion-icon>
           </ng-template>
 
-          <table-sub-batches #subBatchesTable [debug]="debug"
-                             acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
-                             [showTaxonGroupColumn]="false"
-                             [showTaxonNameColumn]="false"
-                             [program]="programSubject|async">
-          </table-sub-batches>
+          <app-sub-batches-table #subBatchesTable [debug]="debug"
+                                 acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
+                                 [program]="programSubject | async"
+                                 [usageMode]="usageMode"
+                                 [showTaxonGroupColumn]="false"
+                                 [showTaxonNameColumn]="false">
+          </app-sub-batches-table>
         </mat-tab>
 
         <!-- TAB: Individual releases
@@ -119,7 +126,8 @@
       <mat-tab-group #survivalTestTabGroup
                      animationDuration="0s"
                      [hidden]="!showSurvivalTestTables"
-                     [(selectedIndex)]="selectedSurvivalTestTabIndex" (selectedTabChange)="onSurvivalTestTabChange($event)">
+                     [(selectedIndex)]="selectedSurvivalTestTabIndex"
+                     (selectedTabChange)="onSurvivalTestTabChange($event)">
 
         <!-- TAB: Survival tests -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">
@@ -129,14 +137,15 @@
             <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && survivalTestsTable.invalid"></ion-icon>
           </ng-template>
 
-          <table-samples #survivalTestsTable [debug]="debug"
-                         acquisitionLevel="SURVIVAL_TEST"
-                         [showLabelColumn]="false"
-                         [showDateTimeColumn]="true"
-                         [showTaxonNameColumn]="true"
-                         [showTaxonGroupColumn]="false"
-                         [program]="programSubject|async">
-          </table-samples>
+          <app-samples-table #survivalTestsTable [debug]="debug"
+                             acquisitionLevel="SURVIVAL_TEST"
+                             [program]="programSubject|async"
+                             [usageMode]="usageMode"
+                             [showLabelColumn]="false"
+                             [showDateTimeColumn]="true"
+                             [showTaxonNameColumn]="true"
+                             [showTaxonGroupColumn]="false">
+          </app-samples-table>
         </mat-tab>
 
         <!-- TAB: Individual monitoring  -->
@@ -144,10 +153,14 @@
           <ng-template mat-tab-label>
             <mat-icon>center_focus_strong</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_MONITORING</ion-label>
-            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
+            <ion-icon slot="end" name="alert" color="danger"
+                      *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
           </ng-template>
 
-          <table-individual-monitoring #individualMonitoringTable [debug]="true" acquisitionLevel="INDIVIDUAL_MONITORING" [program]="programSubject|async"></table-individual-monitoring>
+          <app-individual-monitoring-table #individualMonitoringTable [debug]="true"
+                                       [program]="programSubject | async"
+                                       [usageMode]="usageMode"
+          ></app-individual-monitoring-table>
         </mat-tab>
 
         <!-- TAB: Individual releases  -->
@@ -155,10 +168,15 @@
           <ng-template mat-tab-label>
             <mat-icon>room</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
-            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
+            <ion-icon slot="end" name="alert" color="danger"
+                      *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
           </ng-template>
 
-          <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE" [program]="programSubject|async"></table-sub-samples>
+          <app-sub-samples-table #individualReleaseTable [debug]="debug"
+                                 acquisitionLevel="INDIVIDUAL_RELEASE"
+                                 [program]="programSubject | async"
+                                 [showLabelColumn]="false">
+          </app-sub-samples-table>
         </mat-tab>
       </mat-tab-group>
 
@@ -169,7 +187,8 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm>
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
+  <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
+                    [disabledCancel]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error">

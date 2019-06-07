@@ -182,11 +182,13 @@ export class MeasurementUtils {
 
   static normalizeFormValue(value: any, pmfm: PmfmStrategy): any {
     if (!pmfm) return value;
+    // If empty, apply the pmfm default value
+    if (isNil(value) && pmfm.defaultValue) value = pmfm.defaultValue;
     switch (pmfm.type) {
       case "qualitative_value":
-        if (value && typeof value != "object") {
+        if (isNotNil(value) && typeof value !== "object") {
           const qvId = parseInt(value);
-          return pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id == qvId) || null;
+          return pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
         }
         return value || null;
       case "integer":

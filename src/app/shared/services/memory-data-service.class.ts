@@ -1,16 +1,20 @@
-import {BehaviorSubject, Observable} from "rxjs-compat";
-import {Entity, isNil, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
-import {filter, first} from "rxjs/operators";
-import {IEntityWithMeasurement, MeasurementUtils, PMFM_ID_REGEXP} from "../../trip/services/model/measurement.model";
+import {Observable, Subject} from "rxjs-compat";
+import {LoadResult, TableDataService} from "../../core/core.module";
+import {IEntityWithMeasurement} from "../../trip/services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model";
-import {ValidatorService} from "angular4-material-table";
-import {PmfmStrategy} from "../../referential/services/model";
-import {Injector, Input} from "@angular/core";
+import {map} from "rxjs/operators";
+
+export interface InMemoryTableDataServiceOptions<T> {
+  onSort?: (data: T[], sortBy?: string, sortDirection?: string) => T[];
+  onLoaded?: (data: T[]) => void;
+}
 
 export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> implements TableDataService<T, F> {
 
-  private _dataSubject = new BehaviorSubject<LoadResult<T>>({data: [], total: 0});
-  private _dirty = false;
+  private _dataSubject = new Subject<LoadResult<T>>();
+
+  private readonly _sortFn: (data: T[], sortBy?: string, sortDirection?: string) => T[];
+  private readonly _onLoadedFn: (data: T[]) => void;
 
   hasRankOrder = false;
   debug = false;
@@ -19,7 +23,6 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> im
   set value(data: T[]) {
     if (this.data !== data) {
       this.data = data;
-      this._dirty = false;
       this._dataSubject.next({data: data || [], total: data && data.length || 0});
     }
   }
@@ -28,13 +31,14 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> im
     return this.data;
   }
 
-  get dataSubject(): BehaviorSubject<LoadResult<T>> {
-    return this._dataSubject;
-  }
-
   constructor(
-    protected dataType: new() => T
+    protected dataType: new() => T,
+    protected options?: InMemoryTableDataServiceOptions<T>
   ) {
+
+    this._sortFn = options && options.onSort || this.sort;
+    this._onLoadedFn = options && options.onLoaded || null;
+
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
   }
@@ -44,66 +48,63 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> im
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    selectionFilter?: any,
+    filter?: F,
     options?: any
   ): Observable<LoadResult<T>> {
 
-    if (!this.data){
-      console.warn("[memory-service] Waiting value to be set, to be able to send rows...");
-    }
+    if (!this.data) {
+      console.warn("[memory-data-service] Waiting value to be set...");
+    } else {
+      // /!\ Always create a copy of the original array
+      // Because datasource will only update if the array changed
+      this.data = this.data.splice(0);
 
-    // If dirty: save first
-    else if (this._dirty) {
-      this.saveAll(this.value)
-        .then(saved => {
-          if (saved) {
-            this.watchAll(offset, size, sortBy, sortDirection, selectionFilter, options);
-            this._dirty = true; // restore previous state
-          }
+      setTimeout(() => {
+        this._dataSubject.next({
+          data: this.data,
+          total: this.data.length
         });
-    }
-
-    else if (this.data) {
-      // Apply sort
-      this.sort(this.data, sortBy, sortDirection);
-
-      this._dataSubject.next({
-        data: this.data,
-        total: this.data.length
       });
     }
 
-    return this._dataSubject;
+    return this._dataSubject
+      .pipe(
+        map(({data, total}) => {
+          // Apply sort
+          data = this._sortFn(data, sortBy, sortDirection);
+
+          if (this._onLoadedFn) this._onLoadedFn(data);
+
+          return {
+            data,
+            total
+          };
+        })
+      );
   }
 
   async saveAll(data: T[], options?: any): Promise<T[]> {
-    if (!this.data) throw new Error("[memory-service] Could not save table: value not set (or not started)");
-    this._dirty = false;
+    if (!this.data) throw new Error("[memory-service] Could not save, because value not set");
+    this.data = data;
     return this.data;
   }
 
   async deleteAll(data: T[], options?: any): Promise<any> {
-    this._dirty = true;
+    if (!this.data) throw new Error("[memory-service] Could not delete, because value not set");
 
-    if (this.data) {
-      // Remove deleted item, from data
-      this.data = this.data.reduce((res, item) => {
-        const keep = data.findIndex(i => i.equals(item)) === -1;
-        return keep ? res.concat(item) : res;
-      }, []);
-    }
+    // Remove deleted item, from data
+    this.data = this.data.reduce((res, item) => {
+      const keep = data.findIndex(i => item.equals(i)) === -1;
+      return keep ? res.concat(item) : res;
+    }, []);
   }
 
-  protected sort(data: T[], sortBy?: string, sortDirection?: string): T[] {
-
+  sort(data: T[], sortBy?: string, sortDirection?: string): T[] {
     // Replace id with rankOrder
     sortBy = this.hasRankOrder && (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy || 'id';
-    const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-    return data.sort((a, b) => {
-      const valueA = EntityUtils.getPropertyByPath(a, sortBy);
-      const valueB = EntityUtils.getPropertyByPath(b, sortBy);
-      return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-    });
+
+    // Execute the sort
+    return EntityUtils.sort(data, sortBy, sortDirection);
   }
 }
 

@@ -228,9 +228,9 @@
         <ion-spinner *ngIf="loading"></ion-spinner>
 
         <!-- pmfms -->
-        <mat-form-field-measurement *ngFor="let pmfm of pmfms | async; index as i;"
+        <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
                                     [pmfm]="pmfm"
-                                    [formControl]="form.get('measurementValues').controls[pmfm.pmfmId]"
+                                    [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
                                     [compact]="compact"
                                     [tabindex]="50 + i*2"
                                     [floatLabel]="floatLabel">

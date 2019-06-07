@@ -436,6 +436,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
       this.dataSource.startEdit(row);
     }
     this.editedRow = row;
+    this.startListenRow(row);
     this._dirty = true;
     return true;
   }
@@ -450,7 +451,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
       this.loading = true;
       setTimeout(async () => {
-        await this.openRow(row.currentData.id, row)
+        await this.openRow(row.currentData.id, row);
         this.loading = false;
         this.markForCheck();
       });
@@ -566,6 +567,9 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   protected addRowToTable() {
     this.focusFirstColumn = true;
     this.dataSource.createNew();
+    this.editedRow = this.dataSource.getRow(-1);
+    // Listen row value changes
+    this.startListenRow(this.editedRow);
     this._dirty = true;
     this.resultsLength++;
     this.markForCheck();
@@ -588,6 +592,13 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     if (errorsMessage.length) {
       console.error(`[table] Row #${row.id} has errors: ${errorsMessage.slice(0, -1)})`, row);
     }
+  }
+
+  /**
+   * Can be overwrite by subclasses
+   **/
+  protected startListenRow(row: TableElement<T>) {
+
   }
 
   protected registerCellValueChanges(name: string, formPath?: string): Observable<any> {
@@ -683,6 +694,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
   getShowColumn(columnName: string): boolean {
     return !this.excludesColumns.includes(columnName);
+  }
+
+  protected startsWithUpperCase(input: string, search: string): boolean {
+    return input && input.toUpperCase().startsWith(search);
   }
 
   protected markForCheck() {

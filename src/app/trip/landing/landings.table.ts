@@ -1,8 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AcquisitionLevelCodes, AppTableDataSource, environment, isNil} from "../../core/core.module";
+import {AcquisitionLevelCodes, environment} from "../../core/core.module";
 import {
-  getPmfmName,
   Landing,
   ObservedLocation,
   personsToString,
@@ -62,39 +61,35 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       {
         prependNewElements: false,
         suppressErrors: false,
-        onRowCreated: (row) => this.onRowCreated(row),
         reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
         reservedEndColumns: LANDING_RESERVED_END_COLUMNS
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'LANDING.TABLE.';
-    this.autoLoad = false;
+    this.autoLoad = false; // waiting parent to load
     this.inlineEdition = false;
     this.debug = !environment.production;
+
+    // Set default acquisition Level
+    this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
   }
 
   ngOnInit() {
     super.ngOnInit();
-
-    // Set default acquisition Level
-    if (isNil(this.acquisitionLevel)) {
-      this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-    }
   }
 
   setParent(data: ObservedLocation | Trip) {
     if (!data) {
       this.setFilter({});
     } else if (data instanceof ObservedLocation) {
-      this.setFilter({observedLocationId: data.id});
+      this.setFilter({observedLocationId: data.id}, {emitEvent: true/*refresh*/});
     } else if (data instanceof Trip) {
-      this.setFilter({tripId: data.id});
+      this.setFilter({tripId: data.id}, {emitEvent: true/*refresh*/});
     }
   }
 
   referentialToString = referentialToString;
-  getPmfmColumnHeader = getPmfmName;
   vesselFeaturesToString = vesselFeaturesToString;
   personsToString = personsToString;
   measurementValueToString = measurementValueToString;

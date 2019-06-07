@@ -1,23 +1,17 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AccountService, isNotNil} from "../../../core/core.module";
+import {EntityUtils, isNotNil, referentialToString} from "../../../core/core.module";
 import {Sample} from "../../services/trip.model";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {Location} from '@angular/common';
-import {ProgramService, ReferentialRefService} from "../../../referential/referential.module";
 import {SubSampleValidatorService} from "../../services/sub-sample.validator";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {TranslateService} from '@ngx-translate/core';
+import {FormGroup, Validators} from "@angular/forms";
 import {AcquisitionLevelCodes} from "../../../core/services/model";
-import {MeasurementsValidatorService} from "../../services/trip.validators";
 import {PmfmIds} from "../../../referential/services/model";
-import {SubSamplesTable} from "../sub-samples.table";
-import {filter, first} from "rxjs/operators";
+import {filter} from "rxjs/operators";
+import {SubSamples2Table} from "../sub-samples2.table";
 
 
 @Component({
-  selector: 'table-individual-monitoring',
+  selector: 'app-individual-monitoring-table',
   templateUrl: '../sub-samples.table.html',
   styleUrls: ['../sub-samples.table.scss'],
   providers: [
@@ -25,37 +19,22 @@ import {filter, first} from "rxjs/operators";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class IndividualMonitoringTable extends SubSamplesTable implements OnInit {
+export class IndividualMonitoringTable extends SubSamples2Table implements OnInit {
 
   protected hasIsDeadPmfm = false;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected accountService: AccountService,
-    protected validatorService: SubSampleValidatorService,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected referentialRefService: ReferentialRefService,
-    protected programService: ProgramService,
-    protected translate: TranslateService,
-    protected formBuilder: FormBuilder,
-    protected cd: ChangeDetectorRef
+    injector: Injector
   ) {
-    super(route, router, platform, location, modalCtrl, accountService,
-      validatorService, measurementsValidatorService, referentialRefService,
-      programService, translate, formBuilder, cd
-    );
+    super(injector);
     this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
-  };
+  }
 
-  async ngOnInit(): Promise<void> {
-    await super.ngOnInit();
+  ngOnInit() {
+    super.ngOnInit();
 
-    this.pmfms
-      .pipe(filter(isNotNil), first())
+    this.measurementsDataService.$pmfms
+      .pipe(filter(isNotNil))
       .subscribe(pmfms => {
 
         // Listening on column 'IS_DEAD' value changes
@@ -106,6 +85,13 @@ export class IndividualMonitoringTable extends SubSamplesTable implements OnInit
       this.startCellValueChanges('isDead', row);
     }
   }
+
+  parentToString(parent: Sample) {
+    if (!parent) return null;
+    return parent.measurementValues && parent.measurementValues[PmfmIds.TAG_ID] || `#${parent.rankOrder}`;
+  }
+
+  referentialToString = referentialToString;
 
 }
 

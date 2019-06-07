@@ -1,15 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
-import {EntityUtils, Landing, ObservedLocation, VesselFeatures} from "../services/trip.model";
+import {EntityUtils, Landing, ObservedLocation} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
 import {LocationLevelIds, ProgramProperties} from "../../referential/services/model";
 import {AppEditorPage} from "../form/editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {LoadEditorDataOptions} from "../../shared/services/data-service.class";
-import {VesselModal} from "../../referential/vessel/modal/modal-vessel";
 import {ModalController} from "@ionic/angular";
 import {LandingsTablesModal} from "../landing/landings-table.modal";
 

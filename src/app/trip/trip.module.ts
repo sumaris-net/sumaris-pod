@@ -45,6 +45,10 @@ import {LandingValidatorService} from "./services/landing.validator";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {LandingsTablesModal} from "./landing/landings-table.modal";
+import {Samples2Table} from "./sample/samples2.table";
+import {SubSamples2Table} from "./sample/sub-samples2.table";
+import {Batches2Table} from "./batch/batches2.table";
+import {SubBatches2Table} from "./batch/sub-batches2.table";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -77,10 +81,14 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LandingForm,
       LandingsTablesModal,
       SamplesTable,
+      Samples2Table,
       SubSamplesTable,
+      SubSamples2Table,
       BatchGroupsTable,
       BatchesTable,
+      Batches2Table,
       SubBatchesTable,
+      SubBatches2Table,
       IndividualMonitoringTable,
       EntityQualityFormComponent,
       ExtractionTablePage,

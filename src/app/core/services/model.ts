@@ -185,6 +185,15 @@ export class EntityUtils {
       target['creationDate'] = fromDateISOString(source['creationDate']);
     }
   }
+
+  static sort<T extends Entity<T>>(data: T[], sortBy?: string, sortDirection?: string): T[] {
+    const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
+    return data.sort((a, b) => {
+      const valueA = EntityUtils.getPropertyByPath(a, sortBy);
+      const valueB = EntityUtils.getPropertyByPath(b, sortBy);
+      return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
+    });
+  }
 }
 
 /* -- Referential -- */

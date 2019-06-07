@@ -166,8 +166,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     // Listen for changes on server
     if (isNotNil(this.data.id) && this._enableListenChanges) {
-      this.registerSubscription(
-        this.dataService.listenChanges(this.data.id)
+      const subscription = this.dataService.listenChanges(this.data.id)
           .subscribe((data: Trip | undefined) => {
             const newUpdateDate = data && (data.updateDate as Moment) || undefined;
             if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
@@ -176,8 +175,12 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
                 this.updateView(data, true);
               }
             }
-          })
-        );
+          });
+
+      // Add log when closing
+      if (this.debug) subscription.add(() => console.debug('[trip] [WS] Stop to listen changes'));
+
+      this.registerSubscription(subscription);
     }
   }
 

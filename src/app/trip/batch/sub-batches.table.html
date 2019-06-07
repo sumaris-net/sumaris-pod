@@ -67,13 +67,15 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent" [appAutofocus]="row.id == -1 && row.editing"
+        <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent"
+               [appAutofocus]="row.id == -1 && row.editing"
                [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT' | translate)"
-               (focus)="onCellFocus($event, row, 'parent')" (blur)="onCellBlur($event, row, 'parent')" (click)="$event.target.select()" required>
+               (focus)="onCellFocus($event, row, 'parent')" (blur)="onCellBlur($event, row, 'parent')"
+               (click)="$event.target.select()" required>
         <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
 
-      <mat-autocomplete autoActiveFirstOption #autoParent="matAutocomplete" [displayWith]="parentBatchToString">
+      <mat-autocomplete autoActiveFirstOption #autoParent="matAutocomplete" [displayWith]="parentToString">
         <ion-row class="mat-autocomplete-header">
           <ion-col size="1">
             <ion-text>#</ion-text>
@@ -82,11 +84,11 @@
             <ion-text translate>TRIP.BATCH.TABLE.PARENT</ion-text>
           </ion-col>
         </ion-row>
-        <mat-option *ngFor="let batch of filteredParents | async" [value]="batch" no-padding>
+        <mat-option *ngFor="let batch of $filteredParents | async" [value]="batch" no-padding>
           <ion-row>
             <ion-col size="1" [innerHTML]="batch.rankOrder"></ion-col>
             <ion-col>
-              <span [innerHTML]="parentBatchToString(batch) | highlight: {search: row.validator.controls['parent'].value }"></span>
+              <span [innerHTML]="parentToString(batch) | highlight: {search: row.validator.controls['parent'].value }"></span>
             </ion-col>
           </ion-row>
         </mat-option>
@@ -117,7 +119,7 @@
             <ion-text translate>REFERENTIAL.NAME</ion-text>
           </ion-col>
         </ion-row>
-        <mat-option *ngFor="let item of taxonNames | async" [value]="item" no-padding>
+        <mat-option *ngFor="let item of $taxonNames | async" [value]="item" no-padding>
           <ion-row>
             <ion-col size="3" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
             <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
@@ -131,13 +133,14 @@
   <!-- Pmfms columns -->
   <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-      <ion-label>
-        <span>{{getPmfmColumnHeader(pmfm)}}</span>
+      <ion-label>{{getPmfmColumnHeader(pmfm)}}
         <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
       </ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
-      <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
+      <mat-form-field-measurement
+        [readonly]="!row.editing"
+        [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
         [compact]="true" floatLabel="never"></mat-form-field-measurement>
     </mat-cell>
   </ng-container>
@@ -147,7 +150,7 @@
     <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
       <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
+    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
           [readonly]="!row.editing">

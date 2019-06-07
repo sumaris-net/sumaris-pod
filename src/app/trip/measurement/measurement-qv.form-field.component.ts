@@ -207,7 +207,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   }
 
   private startsWithUpperCase(input: string, search: string): boolean {
-    return input && input.toUpperCase().substr(0, search.length) === search;
+    return input && input.toUpperCase().startsWith(search);
   }
 
   private updateTabIndex() {

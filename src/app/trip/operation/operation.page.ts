@@ -25,6 +25,9 @@ import * as moment from "moment";
 import {Moment} from "moment";
 import {IndividualMonitoringTable} from "../sample/individualmonitoring/sample-individual-monitoring.table";
 import {ProgramProperties} from "../../referential/services/model";
+import {Samples2Table} from "../sample/samples2.table";
+import {SubSamples2Table} from "../sample/sub-samples2.table";
+import {SubBatches2Table} from "../batch/sub-batches2.table";
 
 @Component({
   selector: 'page-operation',
@@ -34,7 +37,7 @@ import {ProgramProperties} from "../../referential/services/model";
 })
 export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {
 
-  protected _enableListenChanges: boolean = false; // FIXME: in pod, add converter on Operation => OperationVO
+  protected _enableListenChanges = (environment.listenRemoteChanges === true);
 
   title = new Subject<string>();
   trip: Trip;
@@ -60,15 +63,15 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('catchBatchForm') catchBatchForm: CatchBatchForm;
 
-  @ViewChild('survivalTestsTable') survivalTestsTable: SamplesTable;
+  @ViewChild('survivalTestsTable') survivalTestsTable: Samples2Table;
 
   @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringTable;
 
-  @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
+  @ViewChild('individualReleaseTable') individualReleaseTable: SubSamples2Table;
 
   @ViewChild('batchGroupsTable') batchGroupsTable: BatchGroupsTable;
 
-  @ViewChild('subBatchesTable') subBatchesTable: SubBatchesTable;
+  @ViewChild('subBatchesTable') subBatchesTable: SubBatches2Table;
 
 
   constructor(
@@ -233,7 +236,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   }
 
   startListenChanges() {
-    if (this._enableListenChanges) {
+    if (isNotNil(this.data.id) && this._enableListenChanges) {
 
       const subscription = this.operationService.listenChanges(this.data.id)
         .subscribe((data: Operation | undefined) => {
@@ -578,7 +581,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         });
 
         // Subscription to changes
-        //this.startListenChanges();
+        this.startListenChanges();
       }
 
       this.submitted = false;

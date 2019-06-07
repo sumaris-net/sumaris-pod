@@ -42,7 +42,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
     // pmfm
     this.registerSubscription(
-      this.pmfms
+      this.$pmfms
         .pipe(filter(isNotNil))
         .subscribe(pmfms => {
         this.onDeckPmfms.next(pmfms.filter(p => p.label.indexOf('ON_DECK_') === 0));

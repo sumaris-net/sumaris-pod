@@ -4,12 +4,12 @@ import {filter} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource, Entity,
-  EntityUtils,
+  AppTableDataSource,
   environment,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, TableDataService
+  RESERVED_START_COLUMNS,
+  TableDataService
 } from "../../core/core.module";
 import {getPmfmName, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
@@ -21,7 +21,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {MeasurementsValidatorService} from "../services/trip.validators";
 import {isNotNil} from "../../shared/shared.module";
 import {IEntityWithMeasurement, PMFM_ID_REGEXP} from "../services/model/measurement.model";
-import {MeasurementsTableDataService} from "./measurements-table.service";
+import {MeasurementsDataService} from "./measurements.service";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
 
 
@@ -37,7 +37,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   private _acquisitionLevel: string;
   private _pmfms: PmfmStrategy[];
 
-  protected measurementDataService: MeasurementsTableDataService<T, F>;
+  protected measurementsDataService: MeasurementsDataService<T, F>;
   protected measurementsValidatorService: MeasurementsValidatorService;
 
   protected programService: ProgramService;
@@ -50,8 +50,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   @Input()
   set program(value: string) {
     this._program = value;
-    if (this.measurementDataService) {
-      this.measurementDataService.program = value;
+    if (this.measurementsDataService) {
+      this.measurementsDataService.program = value;
     }
   }
 
@@ -62,8 +62,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   @Input()
   set acquisitionLevel(value: string) {
     this._acquisitionLevel = value;
-    if (this.measurementDataService) {
-      this.measurementDataService.acquisitionLevel = value;
+    if (this.measurementsDataService) {
+      this.measurementsDataService.acquisitionLevel = value;
     }
   }
 
@@ -80,8 +80,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return this.getShowColumn('comments');
   }
 
-  get pmfms(): BehaviorSubject<PmfmStrategy[]>  {
-    return this.measurementDataService.pmfms;
+  get pmfms(): BehaviorSubject<PmfmStrategy[]> {
+    return this.measurementsDataService.$pmfms;
   }
 
   protected constructor(
@@ -113,12 +113,20 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.formBuilder = injector.get(FormBuilder);
     this.pageSize = 10000; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
-    this.autoLoad = false;
+    this.autoLoad = false; // must wait pmfms to be load
+    this.loading = false;
 
-    this.measurementDataService = new MeasurementsTableDataService<T, F>(this.injector, this.dataType, dataService);
-    this.measurementDataService.program = this._program;
-    this.measurementDataService.acquisitionLevel = this._acquisitionLevel;
-    this.setDatasource(new AppTableDataSource(dataType, this.measurementDataService, this, options));
+    this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService);
+    this.measurementsDataService.program = this._program;
+    this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
+
+    // Default options
+    options = options || {prependNewElements: false, suppressErrors: true};
+    if (!options.onRowCreated) {
+      options.onRowCreated = (row) => this.onRowCreated(row);
+    }
+
+    this.setDatasource(new AppTableDataSource(dataType, this.measurementsDataService, this, options));
 
     // For DEV only
     this.debug = !environment.production;
@@ -128,14 +136,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     super.ngOnInit();
 
     this.registerSubscription(
-      this.measurementDataService.pmfms
+      this.measurementsDataService.$pmfms
         .pipe(filter(isNotNil))
         .subscribe(pmfms => {
           this._pmfms = pmfms;
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
           this.updateColumns();
-          this.loading = false;
-          //if (this.data) this.onRefresh.emit();
+
+          // Load the table
+          this.onRefresh.emit();
         }));
   }
 
@@ -146,11 +155,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
         formGroup.removeControl('measurementValues');
       }
       formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
-    }
-    else {
+    } else {
       console.warn('NO measurementValuesFormGroupConfig !');
     }
     return formGroup;
+  }
+
+  setFilter(filter: F, opts?: { emitEvent: boolean }) {
+    opts = opts || {emitEvent: !this.loading};
+    super.setFilter(filter, opts);
   }
 
   // addRow(): boolean {
@@ -196,7 +209,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!this.loading) this.updateColumns();
   }
 
-  /* -- protected asbtract methods -- */
+  /* -- protected abstract methods -- */
 
   protected async onNewEntity(data: T): Promise<void> {
     // Can be override by subclass
@@ -217,8 +230,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     await this.onNewEntity(data);
 
-    // Set default values
-    (this.measurementDataService.pmfms.getValue() || [])
+    // Set measurement default values
+    (this.measurementsDataService.$pmfms.getValue() || [])
       .filter(pmfm => isNotNil(pmfm.defaultValue))
       .forEach(pmfm => {
         data.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
@@ -239,21 +252,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     return super.getI18nColumnName(columnName);
   }
-
-  protected sortData(data: T[], sortBy?: string, sortDirection?: string): T[] {
-    if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
-      sortBy = 'measurementValues.' + sortBy;
-    }
-    // Replace id with rankOrder
-    sortBy = this.hasRankOrder && (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy || 'id';
-    const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-    return data.sort((a, b) => {
-      const valueA = EntityUtils.getPropertyByPath(a, sortBy);
-      const valueB = EntityUtils.getPropertyByPath(b, sortBy);
-      return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-    });
-  }
-
 
   getPmfmColumnHeader = getPmfmName;
 

@@ -1,39 +1,24 @@
 import {BehaviorSubject, Observable} from "rxjs-compat";
 import {isNil, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
-import {filter, first, switchMap} from "rxjs/operators";
+import {filter, first, map, switchMap} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementUtils, PMFM_ID_REGEXP} from "../../trip/services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model";
 import {PmfmStrategy} from "../../referential/services/model";
 import {EventEmitter, Injector, Input} from "@angular/core";
 import {ProgramService} from "../../referential/referential.module";
 
-export class MeasurementsTableDataService<T extends IEntityWithMeasurement<T>, F> implements TableDataService<T, F> {
+export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> implements TableDataService<T, F> {
 
   private _program: string;
   private _acquisitionLevel: string;
-  private _dataSubject = new BehaviorSubject<LoadResult<T>>({data: [], total: 0});
   private _onRefreshPmfms = new EventEmitter<any>();
-  private _dirty = false;
 
   protected programService: ProgramService;
 
   loadingPmfms = false;
-  pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   hasRankOrder = false;
   debug = false;
-  data: T[];
-
-  set value(data: T[]) {
-    if (this.data !== data) {
-      this.data = data;
-      this._dirty = false;
-      this.dataSubject.next({data: data || [], total: data && data.length || 0});
-    }
-  }
-
-  get value(): T[] {
-    return this.data;
-  }
 
   @Input()
   set program(value: string) {
@@ -59,10 +44,6 @@ export class MeasurementsTableDataService<T extends IEntityWithMeasurement<T>, F
     return this._acquisitionLevel;
   }
 
-  get dataSubject(): BehaviorSubject<LoadResult<T>> {
-    return this._dataSubject;
-  }
-
   constructor(
     injector: Injector,
     protected dataType: new() => T,
@@ -86,58 +67,52 @@ export class MeasurementsTableDataService<T extends IEntityWithMeasurement<T>, F
     options?: any
   ): Observable<LoadResult<T>> {
 
-    // If dirty: save first
-    if (this._dirty) {
-      this.saveAll(this.value)
-        .then(saved => {
-          if (saved) {
-            this.watchAll(offset, size, sortBy, sortDirection, selectionFilter, options);
-            this._dirty = true; // restore previous state
-          }
-        });
-    } else {
-      this.pmfms
-        .pipe(
-          filter(isNotNil),
-          first(),
-          switchMap((pmfms) => {
-            let cleanSortBy = sortBy;
-            // Replace sort in Pmfm by a valid path
-            if (cleanSortBy && PMFM_ID_REGEXP.test(cleanSortBy)) {
-              sortBy = undefined;
-            }
+  return this.$pmfms
+    .pipe(
+      filter(isNotNil),
+      first(),
+      switchMap((pmfms) => {
+        let cleanSortBy = sortBy;
 
-            return this.delegate.watchAll(offset, size, cleanSortBy, sortDirection, selectionFilter, options);
-          })
-        )
-        .subscribe(async (res) => {
+        // Do not apply sortBy to delegated service, when sort on a pmfm
+        let sortPmfm: PmfmStrategy;
+        if (cleanSortBy && PMFM_ID_REGEXP.test(cleanSortBy)) {
+          sortPmfm = pmfms.find(pmfm => pmfm.pmfmId === parseInt(sortBy));
+          // A pmfm was found, do not apply the sort here
+          if (sortPmfm) cleanSortBy = undefined;
+        }
 
-          // Transform entities into object array
-          const data = (res.data || []).map(t => {
-            const json = t.asObject();
-            json.measurementValues = MeasurementUtils.normalizeFormValues(t.measurementValues, this.pmfms.getValue());
-            return json;
-          });
+        return this.delegate.watchAll(offset, size, cleanSortBy, sortDirection, selectionFilter, options)
+          .pipe(
+            map((res) => {
 
-          // Re sort by measurement values
-          if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
-            this.sort(data, 'measurementValues.' + sortBy, sortDirection);
-          }
+              // Prepare measurement values for reactive form
+              (res.data || []).forEach(entity => {
+                entity.measurementValues = MeasurementUtils.normalizeFormValues(entity.measurementValues, pmfms);
+              });
 
-          this._dataSubject.next({
-            data: data,
-            total: res && res.total || data.length
-          });
-        });
-    }
+              // Apply sort on pmfm
+              if (sortPmfm) {
+                // Compute attributes path
+                cleanSortBy = 'measurementValues.' + sortBy;
+                if (sortPmfm.type === 'qualitative_value') {
+                  cleanSortBy += '.label';
+                }
+                // Execute a simple sort
+                res.data = EntityUtils.sort(res.data, cleanSortBy, sortDirection);
+              }
 
-    return this._dataSubject;
+              return res;
+            })
+          );
+      })
+    );
   }
 
   async saveAll(data: T[], options?: any): Promise<T[]> {
 
     if (this.debug) console.debug("[meas-service] converting measurement values before saving...");
-    const pmfms = this.pmfms.getValue() || [];
+    const pmfms = this.$pmfms.getValue() || [];
     const dataToSaved = data.map(json => {
       const entity = new this.dataType();
       entity.fromObject(json);
@@ -172,23 +147,21 @@ export class MeasurementsTableDataService<T extends IEntityWithMeasurement<T>, F
 
     this.loadingPmfms = false;
 
-    this.pmfms.next(pmfms);
+    this.$pmfms.next(pmfms);
 
     return pmfms;
   }
 
-  protected sort(data: T[], sortBy?: string, sortDirection?: string): T[] {
-    if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
-      sortBy = 'measurementValues.' + sortBy;
-    }
-    // Replace id with rankOrder
-    sortBy = this.hasRankOrder && (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy || 'id';
-    const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-    return data.sort((a, b) => {
-      const valueA = EntityUtils.getPropertyByPath(a, sortBy);
-      const valueB = EntityUtils.getPropertyByPath(b, sortBy);
-      return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-    });
-  }
+  // public sort(data: T[], sortBy?: string, sortDirection?: string): T[] {
+  //   if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
+  //     sortBy = 'measurementValues.' + sortBy;
+  //   }
+  //
+  //   // Replace id with rankOrder
+  //   sortBy = this.hasRankOrder && (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy || 'id';
+  //
+  //   // Execute the sort
+  //   return EntityUtils.sort(data, sortBy, sortDirection);
+  // }
 }
 

@@ -98,7 +98,7 @@
             <ion-text translate>REFERENTIAL.NAME</ion-text>
           </ion-col>
         </ion-row>
-        <mat-option *ngFor="let item of taxonGroups | async" [value]="item" no-padding>
+        <mat-option *ngFor="let item of $taxonGroups | async" [value]="item" no-padding>
           <ion-row>
             <ion-col size="3" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
             <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
@@ -130,7 +130,7 @@
             <ion-text translate>REFERENTIAL.NAME</ion-text>
           </ion-col>
         </ion-row>
-        <mat-option *ngFor="let item of taxonNames | async" [value]="item" no-padding>
+        <mat-option *ngFor="let item of $taxonNames | async" [value]="item" no-padding>
           <ion-row>
             <ion-col size="3" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
             <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
@@ -150,7 +150,9 @@
       </ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
-      <mat-form-field-measurement [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
+      <mat-form-field-measurement
+        [readonly]="!row.editing"
+        [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
         [compact]="true" floatLabel="never"></mat-form-field-measurement>
     </mat-cell>
   </ng-container>

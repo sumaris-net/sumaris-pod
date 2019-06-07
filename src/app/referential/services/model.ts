@@ -80,7 +80,7 @@ export const ProgramProperties = {
   OBSERVED_LOCATION_LOCATION_LEVEL_IDS: 'sumaris.observedLocation.location.level.ids',
 
   // Landing
-  LANDING_DETAILS_ENABLE: 'sumaris.landing.details.enable',
+  //LANDING_DETAILS_ENABLE: 'sumaris.landing.details.enable',
 }
 
 export const QualityFlagIds = {

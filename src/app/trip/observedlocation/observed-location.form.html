@@ -229,7 +229,7 @@
         <ion-spinner *ngIf="loading"></ion-spinner>
 
         <!-- pmfms -->
-        <mat-form-field-measurement *ngFor="let pmfm of pmfms | async; index as i;"
+        <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
                                     [pmfm]="pmfm"
                                     [formControl]="form.get('measurementValues').controls[pmfm.pmfmId]"
                                     [compact]="compact"

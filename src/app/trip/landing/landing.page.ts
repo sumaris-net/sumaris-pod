@@ -16,6 +16,7 @@ import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
 import {isEmptyArray, isNotEmptyArray} from "../../shared/functions";
 import {TableElement} from "angular4-material-table";
+import {filter, throttleTime} from "rxjs/operators";
 
 @Component({
   selector: 'app-landing-page',
@@ -56,20 +57,23 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
   ngOnInit() {
     super.ngOnInit();
 
-    //this.selectedTabIndex = 1;
-    //this.showGeneralTab = false;
-
     // Watch program, to configure tables from program properties
+    this.registerSubscription(
     this.onProgramChanged
       .subscribe(program => {
         if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-        //this.showGeneralTab = program.getPropertyAsBoolean(ProgramProperties.LANDING_DETAILS_ENABLE, false);
-        //if (!this.showGeneralTab && this.selectedTabIndex === 0) {
-        //  this.selectedTabIndex = 1;
-        //}
         this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS) || [LocationLevelIds.PORT];
-        this.markForCheck();
-      });
+        //this.markForCheck();
+      }));
+
+    // Use landing date as default dateTime for samples
+    this.registerSubscription(
+      this.landingForm.form.controls['dateTime'].valueChanges
+        .pipe(throttleTime(200), filter(isNotNil))
+        .subscribe((dateTime) => {
+          this.samplesTable.defaultSampleDate = dateTime;
+        })
+    );
   }
 
   protected registerFormsAndTables() {
@@ -85,14 +89,14 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
     data.observedLocationId = options && options.observedLocationId && parseInt(options.observedLocationId);
     data.tripId = options && options.tripId && parseInt(options.tripId);
 
-    await this.loadParent(data, options);
+    await this.loadParent(data);
   }
 
   protected async onEntityLoaded(data: Landing, options?: LoadEditorDataOptions): Promise<void> {
-    await this.loadParent(data, options);
+    await this.loadParent(data);
   }
 
-  protected async loadParent(data: Landing, options?: LoadEditorDataOptions) {
+  protected async loadParent(data: Landing) {
     console.debug('[landing-page] Loading parent entity');
 
     // Load parent observed location

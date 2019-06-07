@@ -67,8 +67,8 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number; landi
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   measurementValuesFormGroupConfig: { [key: string]: any };
   data: Sample[];
-  taxonGroups: Observable<ReferentialRef[]>;
-  taxonNames: Observable<ReferentialRef[]>;
+  $taxonGroups: Observable<ReferentialRef[]>;
+  $taxonNames: Observable<ReferentialRef[]>;
   excludesColumns = new Array<String>();
 
   set value(data: Sample[]) {
@@ -123,6 +123,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number; landi
 
   @Input() defaultSampleDate: Moment;
   @Input() usageMode: UsageMode;
+  @Input() defaultTaxonGroup: ReferentialRef;
 
   constructor(
     protected route: ActivatedRoute,
@@ -191,7 +192,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number; landi
         }));
 
     // Taxon group combo
-    this.taxonGroups = this.registerCellValueChanges('taxonGroup')
+    this.$taxonGroups = this.registerCellValueChanges('taxonGroup')
       .pipe(
         debounceTime(250),
         switchMap((value) => this.referentialRefService.suggest(value, {
@@ -204,7 +205,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number; landi
       );
 
     // Taxon name combo
-    this.taxonNames = this.registerCellValueChanges('taxonName')
+    this.$taxonNames = this.registerCellValueChanges('taxonName')
       .pipe(
         debounceTime(250),
         switchMap((value) => this.referentialRefService.suggest(value, {
@@ -356,6 +357,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number; landi
 
   protected async onNewSample(sample: Sample, rankOrder?: number): Promise<void> {
     console.debug("[sample-table] Initializing new row data...");
+    const isOnFieldMode = this.isOnFieldMode;
 
     // Set computed values
     sample.rankOrder = isNotNil(rankOrder) ? rankOrder : ((await this.getMaxRankOrder()) + 1);
@@ -365,19 +367,21 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number; landi
       sample.label = this._acquisitionLevel + "#" + sample.rankOrder;
     }
 
+    // Default date
     if (isNotNil(this.defaultSampleDate)) {
       sample.sampleDate = this.defaultSampleDate;
     }
-    else if (this.isOnFieldMode) {
+    else if (isOnFieldMode) {
       sample.sampleDate = moment();
     }
 
+    // Default taxon group
+    if (isNotNil(this.defaultTaxonGroup)) {
+      sample.taxonGroup = this.defaultTaxonGroup;
+    }
+
     // Set default values
-    (this.pmfms.getValue() || [])
-      .filter(pmfm => isNotNil(pmfm.defaultValue))
-      .forEach(pmfm => {
-        sample.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
-      });
+    sample.measurementValues = MeasurementUtils.normalizeFormValues( sample.measurementValues, this.pmfms.getValue());
     this.markForCheck();
   }
 

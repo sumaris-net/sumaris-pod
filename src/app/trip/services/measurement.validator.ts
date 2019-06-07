@@ -33,7 +33,7 @@ export class MeasurementsValidatorService implements ValidatorService {
 
   public getRowValidator(options?: any): FormGroup {
     options = options || {};
-    return this.getFormGroup(options && options.pmfms || []);
+    return this.getFormGroup(options && options.$pmfms || []);
   }
 
   public getFormGroup(pmfms: PmfmStrategy[]): FormGroup {

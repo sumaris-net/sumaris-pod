@@ -66,8 +66,8 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
   measurementValuesFormGroupConfig: { [key: string]: any };
   data: Batch[];
-  taxonGroups: Observable<ReferentialRef[]>;
-  taxonNames: Observable<ReferentialRef[]>;
+  $taxonGroups: Observable<ReferentialRef[]>;
+  $taxonNames: Observable<ReferentialRef[]>;
   excludesColumns = new Array<String>();
 
   set value(data: Batch[]) {
@@ -181,7 +181,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
         }));
 
     // Taxon group combo
-    this.taxonGroups = this.registerCellValueChanges('taxonGroup')
+    this.$taxonGroups = this.registerCellValueChanges('taxonGroup')
       .pipe(
         debounceTime(250),
         switchMap((value) => this.referentialRefService.suggest(value, {
@@ -193,7 +193,7 @@ export class BatchesTable extends AppTable<Batch, { operationId?: number }>
         tap(items => this.updateImplicitValue('taxonGroup', items)));
 
     // Taxon name combo
-    this.taxonNames = this.registerCellValueChanges('taxonName')
+    this.$taxonNames = this.registerCellValueChanges('taxonName')
       .pipe(
         debounceTime(250),
         switchMap((value) => this.referentialRefService.suggest(value, {
