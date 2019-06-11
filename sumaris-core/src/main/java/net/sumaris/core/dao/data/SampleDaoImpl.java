@@ -414,9 +414,7 @@ public class SampleDaoImpl extends BaseDataDaoImpl implements SampleDao {
             }
         }
 
-        Preconditions.checkArgument(source.getParentId() == null || source.getParent() == null || Objects.equals(source.getParentId(), source.getParent().getId()),
-                String.format("Incorrect sample: parentId=%s and parent.id=%s mismatch", source.getParentId(), source.getParent() != null ? source.getParent().getId() : "null"));
-        Integer parentId = source.getParentId() != null ? source.getParentId() : (source.getParent() != null ? source.getParent().getId() : null);
+        Integer parentId = source.getParent() != null ? source.getParent().getId() : source.getParentId();
         Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
         Integer landingId = source.getLandingId() != null ? source.getLandingId() : (source.getLanding() != null ? source.getLanding().getId() : null);
 
