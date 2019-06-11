@@ -561,8 +561,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           }
         });
       });
-      console.log("Saving batches", batchGroups);
-
       this.data.catchBatch.children = batchGroups;
     } else {
       this.data.catchBatch.children = undefined;
