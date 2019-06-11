@@ -1,13 +1,13 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {EntityUtils, isNotNil, referentialToString} from "../../../core/core.module";
+import {isNotNil, referentialToString} from "../../../core/core.module";
 import {Sample} from "../../services/trip.model";
 import {SubSampleValidatorService} from "../../services/sub-sample.validator";
 import {FormGroup, Validators} from "@angular/forms";
 import {AcquisitionLevelCodes} from "../../../core/services/model";
 import {PmfmIds} from "../../../referential/services/model";
 import {filter} from "rxjs/operators";
-import {SubSamples2Table} from "../sub-samples2.table";
+import {SubSamplesTable} from "../sub-samples.table";
 
 
 @Component({
@@ -19,7 +19,7 @@ import {SubSamples2Table} from "../sub-samples2.table";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class IndividualMonitoringTable extends SubSamples2Table implements OnInit {
+export class IndividualMonitoringTable extends SubSamplesTable implements OnInit {
 
   protected hasIsDeadPmfm = false;
 
@@ -33,7 +33,7 @@ export class IndividualMonitoringTable extends SubSamples2Table implements OnIni
   ngOnInit() {
     super.ngOnInit();
 
-    this.measurementsDataService.$pmfms
+    this.pmfms
       .pipe(filter(isNotNil))
       .subscribe(pmfms => {
 

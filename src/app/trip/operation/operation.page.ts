@@ -1,14 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
 import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AccountService, AppFormUtils, AppTabPage, environment, LocalSettingsService} from '../../core/core.module';
+import {AppFormUtils, AppTabPage, environment, LocalSettingsService} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
-import {SamplesTable} from '../sample/samples.table';
-import {SubSamplesTable} from '../sample/sub-samples.table';
 import {AlertController} from "@ionic/angular";
 import {TranslateService} from '@ngx-translate/core';
 import {AcquisitionLevelCodes, UsageMode} from '../../core/services/model';
@@ -17,17 +15,17 @@ import {PmfmIds, ProgramService, QualitativeLabels} from '../../referential/refe
 import {Subject} from 'rxjs';
 import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
 import {BatchGroupsTable} from "../batch/batch-groups.table";
-import {SubBatchesTable} from "../batch/sub-batches.table";
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
-import {debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, switchMap} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap} from "rxjs/operators";
 import {Validators} from "@angular/forms";
 import * as moment from "moment";
 import {Moment} from "moment";
 import {IndividualMonitoringTable} from "../sample/individualmonitoring/sample-individual-monitoring.table";
 import {ProgramProperties} from "../../referential/services/model";
-import {Samples2Table} from "../sample/samples2.table";
-import {SubSamples2Table} from "../sample/sub-samples2.table";
-import {SubBatches2Table} from "../batch/sub-batches2.table";
+import {SubBatchesTable} from "../batch/sub-batches.table";
+import {SubSamplesTable} from "../sample/sub-samples.table";
+import {SamplesTable} from "../sample/samples.table";
+import {BatchesTable} from "../batch/batches.table";
 
 @Component({
   selector: 'page-operation',
@@ -63,15 +61,15 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   @ViewChild('catchBatchForm') catchBatchForm: CatchBatchForm;
 
-  @ViewChild('survivalTestsTable') survivalTestsTable: Samples2Table;
+  @ViewChild('survivalTestsTable') survivalTestsTable: SamplesTable;
 
   @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringTable;
 
-  @ViewChild('individualReleaseTable') individualReleaseTable: SubSamples2Table;
+  @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
 
   @ViewChild('batchGroupsTable') batchGroupsTable: BatchGroupsTable;
 
-  @ViewChild('subBatchesTable') subBatchesTable: SubBatches2Table;
+  @ViewChild('subBatchesTable') subBatchesTable: SubBatchesTable;
 
 
   constructor(

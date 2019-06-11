@@ -2,11 +2,12 @@ import {Observable, Subject} from "rxjs-compat";
 import {LoadResult, TableDataService} from "../../core/core.module";
 import {IEntityWithMeasurement} from "../../trip/services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model";
-import {map} from "rxjs/operators";
+import {map, mergeMap} from "rxjs/operators";
 
 export interface InMemoryTableDataServiceOptions<T> {
   onSort?: (data: T[], sortBy?: string, sortDirection?: string) => T[];
-  onLoaded?: (data: T[]) => void;
+  onLoad?: (data: T[]) => T[] | Promise<T[]>;
+  onSave?: (data: T[]) => T[] | Promise<T[]>;
 }
 
 export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> implements TableDataService<T, F> {
@@ -14,7 +15,8 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> im
   private _dataSubject = new Subject<LoadResult<T>>();
 
   private readonly _sortFn: (data: T[], sortBy?: string, sortDirection?: string) => T[];
-  private readonly _onLoadedFn: (data: T[]) => void;
+  private readonly _onLoad: (data: T[]) => T[] | Promise<T[]>;
+  private readonly _onSaveFn: (data: T[]) => T[] | Promise<T[]>;
 
   hasRankOrder = false;
   debug = false;
@@ -37,7 +39,8 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> im
   ) {
 
     this._sortFn = options && options.onSort || this.sort;
-    this._onLoadedFn = options && options.onLoaded || null;
+    this._onLoad = options && options.onLoad || null;
+    this._onSaveFn = options && options.onSave || null;
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
@@ -69,11 +72,14 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> im
 
     return this._dataSubject
       .pipe(
-        map(({data, total}) => {
+        mergeMap(async ({data, total}) => {
           // Apply sort
           data = this._sortFn(data, sortBy, sortDirection);
 
-          if (this._onLoadedFn) this._onLoadedFn(data);
+          if (this._onLoad) {
+            const res = this._onLoad(data);
+            data = ((res instanceof Promise)) ? await res : res;
+          }
 
           return {
             data,
@@ -85,6 +91,12 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> im
 
   async saveAll(data: T[], options?: any): Promise<T[]> {
     if (!this.data) throw new Error("[memory-service] Could not save, because value not set");
+
+    if (this._onSaveFn) {
+      const res = this._onSaveFn(data);
+      data = ((res instanceof Promise)) ? await res : res;
+    }
+
     this.data = data;
     return this.data;
   }

@@ -12,6 +12,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
   private _program: string;
   private _acquisitionLevel: string;
   private _onRefreshPmfms = new EventEmitter<any>();
+  private _mapPmfmsFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
 
   protected programService: ProgramService;
 
@@ -47,10 +48,13 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
   constructor(
     injector: Injector,
     protected dataType: new() => T,
-    protected delegate: TableDataService<T, F>
-  ) {
+    protected delegate: TableDataService<T, F>,
+    protected options?: {
+      mapPmfms: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
+    }) {
 
     this.programService = injector.get(ProgramService);
+    this._mapPmfmsFn = options && options.mapPmfms;
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
@@ -67,46 +71,46 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     options?: any
   ): Observable<LoadResult<T>> {
 
-  return this.$pmfms
-    .pipe(
-      filter(isNotNil),
-      first(),
-      switchMap((pmfms) => {
-        let cleanSortBy = sortBy;
+    return this.$pmfms
+      .pipe(
+        filter(isNotNil),
+        first(),
+        switchMap((pmfms) => {
+          let cleanSortBy = sortBy;
 
-        // Do not apply sortBy to delegated service, when sort on a pmfm
-        let sortPmfm: PmfmStrategy;
-        if (cleanSortBy && PMFM_ID_REGEXP.test(cleanSortBy)) {
-          sortPmfm = pmfms.find(pmfm => pmfm.pmfmId === parseInt(sortBy));
-          // A pmfm was found, do not apply the sort here
-          if (sortPmfm) cleanSortBy = undefined;
-        }
+          // Do not apply sortBy to delegated service, when sort on a pmfm
+          let sortPmfm: PmfmStrategy;
+          if (cleanSortBy && PMFM_ID_REGEXP.test(cleanSortBy)) {
+            sortPmfm = pmfms.find(pmfm => pmfm.pmfmId === parseInt(sortBy));
+            // A pmfm was found, do not apply the sort here
+            if (sortPmfm) cleanSortBy = undefined;
+          }
 
-        return this.delegate.watchAll(offset, size, cleanSortBy, sortDirection, selectionFilter, options)
-          .pipe(
-            map((res) => {
+          return this.delegate.watchAll(offset, size, cleanSortBy, sortDirection, selectionFilter, options)
+            .pipe(
+              map((res) => {
 
-              // Prepare measurement values for reactive form
-              (res.data || []).forEach(entity => {
-                entity.measurementValues = MeasurementUtils.normalizeFormValues(entity.measurementValues, pmfms);
-              });
+                // Prepare measurement values for reactive form
+                (res.data || []).forEach(entity => {
+                  entity.measurementValues = MeasurementUtils.normalizeFormValues(entity.measurementValues, pmfms);
+                });
 
-              // Apply sort on pmfm
-              if (sortPmfm) {
-                // Compute attributes path
-                cleanSortBy = 'measurementValues.' + sortBy;
-                if (sortPmfm.type === 'qualitative_value') {
-                  cleanSortBy += '.label';
+                // Apply sort on pmfm
+                if (sortPmfm) {
+                  // Compute attributes path
+                  cleanSortBy = 'measurementValues.' + sortBy;
+                  if (sortPmfm.type === 'qualitative_value') {
+                    cleanSortBy += '.label';
+                  }
+                  // Execute a simple sort
+                  res.data = EntityUtils.sort(res.data, cleanSortBy, sortDirection);
                 }
-                // Execute a simple sort
-                res.data = EntityUtils.sort(res.data, cleanSortBy, sortDirection);
-              }
 
-              return res;
-            })
-          );
-      })
-    );
+                return res;
+              })
+            );
+        })
+      );
   }
 
   async saveAll(data: T[], options?: any): Promise<T[]> {
@@ -135,7 +139,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     this.loadingPmfms = true;
 
     // Load pmfms
-    const pmfms = (await this.programService.loadProgramPmfms(
+    let pmfms = (await this.programService.loadProgramPmfms(
       this._program,
       {
         acquisitionLevel: this._acquisitionLevel
@@ -143,6 +147,13 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
 
     if (!pmfms.length && this.debug) {
       console.debug(`[meas-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+    }
+
+    // Call pmfm map function
+    if (this._mapPmfmsFn) {
+      if (this.debug) console.debug(`[meas-table] Remapping pmfms...`);
+      const res = this._mapPmfmsFn(pmfms);
+      pmfms = (res instanceof Promise) ? await res : res;
     }
 
     this.loadingPmfms = false;

@@ -75,6 +75,23 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
+  <!-- label Column -->
+  <ng-container matColumnDef="label">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>TRIP.BATCH.TABLE.LABEL</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-form-field floatLabel="never">
+        <input matInput autocomplete="off"
+               [formControl]="row.validator.controls['label']"
+               [placeholder]="'TRIP.BATCH.TABLE.LABEL_PLACEHOLDER'|translate"
+               (click)="$event.target.select()"
+               required>
+        <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
+
   <!-- taxon group (commercial species) -->
   <ng-container matColumnDef="taxonGroup">
     <mat-header-cell *matHeaderCellDef mat-sort-header>

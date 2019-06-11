@@ -343,6 +343,8 @@
     },
     "BATCH": {
       "TABLE": {
+        "LABEL": "Libellé",
+        "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Code espèce",
         "TAXON_NAME": "Espèce scientifique (FAO)",

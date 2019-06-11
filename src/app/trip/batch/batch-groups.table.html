@@ -33,7 +33,7 @@
 
 
 <!-- First header row -->
-<mat-table>
+<mat-table *ngIf="qvPmfm">
   <ng-container matColumnDef="select">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
@@ -43,7 +43,12 @@
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
 
-  <!-- taxon group (comemrcial species) -->
+  <!-- rankOrder Column = id -->
+  <ng-container matColumnDef="label">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+  </ng-container>
+
+  <!-- taxon group (commercial species) -->
   <ng-container matColumnDef="taxonGroup">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
@@ -58,9 +63,11 @@
     <mat-header-cell *matHeaderCellDef class="qv" [class.even]="pmfm.id % 2 === 0"
                      [class.odd]="pmfm.id % 2 !== 0"
                      [class.show]="pmfm.pmfmId % 5 === 0">
-      <mat-label float-center *ngIf="pmfm.pmfmId % 5 === 0" >
+      <mat-label float-center *ngIf="pmfm.pmfmId % 5 === 0">
         <span>{{qvPmfm.qualitativeValues[pmfm.id].name}}</span><br/>
-        <mat-checkbox [formControl]="weightMethodForm.controls[pmfm.id]" labelPosition="before">
+        <mat-checkbox *ngIf="weightMethodForm"
+                      [formControl]="weightMethodForm.controls[pmfm.id]"
+                      labelPosition="before">
           {{'TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION'|translate}}
         </mat-checkbox>
       </mat-label>
@@ -102,6 +109,23 @@
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
+  </ng-container>
+
+  <!-- label Column -->
+  <ng-container matColumnDef="label">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>TRIP.BATCH.TABLE.LABEL</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-form-field floatLabel="never">
+        <input matInput autocomplete="off"
+               [formControl]="row.validator.controls['label']"
+               [placeholder]="'TRIP.BATCH.TABLE.LABEL_PLACEHOLDER'|translate"
+               (click)="$event.target.select()"
+               required>
+        <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+      </mat-form-field>
+    </mat-cell>
   </ng-container>
 
   <!-- taxon group (commercial species) -->

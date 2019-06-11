@@ -1,35 +1,43 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { CoreModule } from '../core/core.module';
-import { TripsPage } from './trip/trips.page';
-import { TripPage } from './trip/trip.page';
-import { TripForm } from './trip/trip.form';
-import { SaleForm } from './sale/sale.form';
-import { OperationForm } from './operation/operation.form';
-import { OperationPage } from './operation/operation.page';
-import { MeasurementsForm } from './measurement/measurements.form.component';
-import { MeasurementQVFormField } from './measurement/measurement-qv.form-field.component';
-import { MeasurementFormField } from './measurement/measurement.form-field.component';
-import { CatchBatchForm } from './catch/catch.form';
-import { PhysicalGearForm } from './physicalgear/physicalgear.form';
-import { PhysicalGearTable } from './physicalgear/physicalgears.table';
-import { OperationTable } from './operation/operations.table';
-import { TripModal } from './trip/trip.modal';
-import { SamplesTable } from './sample/samples.table';
-import { SubSamplesTable } from './sample/sub-samples.table';
-import { BatchGroupsTable } from './batch/batch-groups.table';
-import { BatchesTable } from './batch/batches.table';
-import { SubBatchesTable } from './batch/sub-batches.table';
-import { IndividualMonitoringTable } from './sample/individualmonitoring/sample-individual-monitoring.table';
-import { MeasurementValuesForm } from './measurement/measurement-values.form.class';
-import { EntityQualityFormComponent} from "./quality/entity-quality-form.component";
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {CoreModule} from '../core/core.module';
+import {TripsPage} from './trip/trips.page';
+import {TripPage} from './trip/trip.page';
+import {TripForm} from './trip/trip.form';
+import {SaleForm} from './sale/sale.form';
+import {OperationForm} from './operation/operation.form';
+import {OperationPage} from './operation/operation.page';
+import {MeasurementsForm} from './measurement/measurements.form.component';
+import {MeasurementQVFormField} from './measurement/measurement-qv.form-field.component';
+import {MeasurementFormField} from './measurement/measurement.form-field.component';
+import {CatchBatchForm} from './catch/catch.form';
+import {PhysicalGearForm} from './physicalgear/physicalgear.form';
+import {PhysicalGearTable} from './physicalgear/physicalgears.table';
+import {OperationTable} from './operation/operations.table';
+import {TripModal} from './trip/trip.modal';
+import {SamplesTable} from './sample/samples.table';
+import {SubSamplesTable} from './sample/sub-samples.table';
+import {BatchGroupsTable} from './batch/batch-groups.table';
+import {BatchesTable} from './batch/batches.table';
+import {SubBatchesTable} from './batch/sub-batches.table';
+import {IndividualMonitoringTable} from './sample/individualmonitoring/sample-individual-monitoring.table';
+import {MeasurementValuesForm} from './measurement/measurement-values.form.class';
+import {EntityQualityFormComponent} from "./quality/entity-quality-form.component";
 
-import {TripService, OperationService, ExtractionService, LandingService} from './services/trip.services';
+import {ExtractionService, LandingService, OperationService, TripService} from './services/trip.services';
 
 import {
-    TripValidatorService, SaleValidatorService, PhysicalGearValidatorService, OperationValidatorService, PositionValidatorService,
-    MeasurementsValidatorService, BatchValidatorService, BatchGroupsValidatorService, SampleValidatorService,
-    SubSampleValidatorService, SubBatchValidatorService
+  BatchGroupsValidatorService,
+  BatchValidatorService,
+  MeasurementsValidatorService,
+  OperationValidatorService,
+  PhysicalGearValidatorService,
+  PositionValidatorService,
+  SaleValidatorService,
+  SampleValidatorService,
+  SubBatchValidatorService,
+  SubSampleValidatorService,
+  TripValidatorService
 } from './services/trip.validators';
 import {ExtractionTablePage} from "./extraction/extraction-table-page.component";
 import {ObservedLocationForm} from "./observedlocation/observed-location.form";
@@ -45,10 +53,6 @@ import {LandingValidatorService} from "./services/landing.validator";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {LandingsTablesModal} from "./landing/landings-table.modal";
-import {Samples2Table} from "./sample/samples2.table";
-import {SubSamples2Table} from "./sample/sub-samples2.table";
-import {Batches2Table} from "./batch/batches2.table";
-import {SubBatches2Table} from "./batch/sub-batches2.table";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -81,14 +85,10 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LandingForm,
       LandingsTablesModal,
       SamplesTable,
-      Samples2Table,
       SubSamplesTable,
-      SubSamples2Table,
       BatchGroupsTable,
       BatchesTable,
-      Batches2Table,
       SubBatchesTable,
-      SubBatches2Table,
       IndividualMonitoringTable,
       EntityQualityFormComponent,
       ExtractionTablePage,

@@ -28,6 +28,7 @@ import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
+  mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
 }
 
 export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, F> extends AppTable<T, F>
@@ -35,7 +36,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   private _program: string;
   private _acquisitionLevel: string;
-  private _pmfms: PmfmStrategy[];
 
   protected measurementsDataService: MeasurementsDataService<T, F>;
   protected measurementsValidatorService: MeasurementsValidatorService;
@@ -116,7 +116,9 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.autoLoad = false; // must wait pmfms to be load
     this.loading = false;
 
-    this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService);
+    this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, options && {
+      mapPmfms: options.mapPmfms
+    });
     this.measurementsDataService.program = this._program;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
@@ -136,12 +138,11 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     super.ngOnInit();
 
     this.registerSubscription(
-      this.measurementsDataService.$pmfms
+      this.pmfms
         .pipe(filter(isNotNil))
         .subscribe(pmfms => {
-          this._pmfms = pmfms;
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
-          this.updateColumns();
+          this.updateColumns(pmfms);
 
           // Load the table
           this.onRefresh.emit();
@@ -187,14 +188,14 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   public updateColumns(pmfms?: PmfmStrategy[]) {
 
-    pmfms = pmfms || this._pmfms;
+    pmfms = pmfms || this.pmfms.getValue();
     if (!pmfms) return;
 
-    let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
+    const pmfmColumnNames = pmfms.map(p => p.pmfmId.toString());
 
     this.displayedColumns = RESERVED_START_COLUMNS
       .concat(this.options && this.options.reservedStartColumns || [])
-      .concat(pmfmColumns)
+      .concat(pmfmColumnNames)
       .concat(this.options && this.options.reservedEndColumns || [])
       .concat(RESERVED_END_COLUMNS)
       // Remove columns to hide
@@ -211,8 +212,11 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   /* -- protected abstract methods -- */
 
+  // Can be override by subclass
   protected async onNewEntity(data: T): Promise<void> {
-    // Can be override by subclass
+    if (this.hasRankOrder) {
+      data.rankOrder = (await this.getMaxRankOrder()) + 1;
+    }
   }
 
   /* -- protected methods -- */
@@ -224,9 +228,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   protected async onRowCreated(row: TableElement<T>): Promise<void> {
     const data = row.currentData;
-    if (this.hasRankOrder) {
-      data.rankOrder = (await this.getMaxRankOrder()) + 1;
-    }
 
     await this.onNewEntity(data);
 
@@ -246,7 +247,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Try to resolve PMFM column, using the cached pmfm list
     if (PMFM_ID_REGEXP.test(columnName)) {
       const pmfmId = parseInt(columnName);
-      const pmfm = (this._pmfms || []).find(p => p.pmfmId === pmfmId);
+      const pmfm = (this.pmfms.getValue() || []).find(p => p.pmfmId === pmfmId);
       if (pmfm) return pmfm.name;
     }
 

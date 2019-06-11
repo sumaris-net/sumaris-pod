@@ -14,8 +14,7 @@ import {FormGroup} from "@angular/forms";
 import {LoadEditorDataOptions} from "../../shared/services/data-service.class";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
-import {isEmptyArray, isNotEmptyArray} from "../../shared/functions";
-import {TableElement} from "angular4-material-table";
+import {isEmptyArray} from "../../shared/functions";
 import {filter, throttleTime} from "rxjs/operators";
 
 @Component({
@@ -177,20 +176,6 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
 
   protected getFirstInvalidTabIndex(): number {
     return this.landingForm.invalid ? 0 : (this.samplesTable.invalid ? 1 : -1);
-  }
-
-  async onOpenSample(event: CustomEvent<{id: number; row: TableElement<Landing>}>) {
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      await this.router.navigateByUrl(`/observations/${this.data.id}/landing/${event.detail.id}`);
-    }
-  }
-
-  async onNewSample(event?: any) {
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      await this.router.navigateByUrl(`/observations/${this.data.id}/landing/new`);
-    }
   }
 
   protected computeUsageMode(landing: Landing): UsageMode {

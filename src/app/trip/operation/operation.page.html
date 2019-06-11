@@ -87,6 +87,10 @@
           <table-batch-groups #batchGroupsTable [debug]="debug"
                               acquisitionLevel="SORTING_BATCH"
                               [program]="programSubject | async"
+                              [usageMode]="usageMode"
+                              [showLabelColumn]="false"
+                              [showTaxonGroupColumn]="true"
+                              [showTaxonNameColumn]="true"
                               [showCommentsColumn]="false">
           </table-batch-groups>
         </mat-tab>
