@@ -144,11 +144,11 @@ public class OperationServiceImpl implements OperationService {
 			// Prepare saved samples (e.g. to be used as graphQL query response)
 			samples.forEach(sample -> {
 				// Set parentId (instead of parent object)
-				if (sample.getParent() != null) {
+				if (sample.getParentId() == null && sample.getParent() != null) {
 					sample.setParentId(sample.getParent().getId());
-					sample.setParent(null);
 				}
-				// Remove link to children
+				// Remove link parent/children
+				sample.setParent(null);
 				sample.setChildren(null);
 			});
 			
@@ -165,11 +165,11 @@ public class OperationServiceImpl implements OperationService {
 			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
 			batches.forEach(batch -> {
 				// Set parentId (instead of parent object)
-				if (batch.getParent() != null) {
+				if (batch.getParentId() == null && batch.getParent() != null) {
 					batch.setParentId(batch.getParent().getId());
-					batch.setParent(null);
 				}
-				// Remove link to children
+				// Remove link parent/children
+				batch.setParent(null);
 				batch.setChildren(null);
 			});
 

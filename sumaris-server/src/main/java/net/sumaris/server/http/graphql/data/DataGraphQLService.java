@@ -503,7 +503,7 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "batches", description = "Get operation's batches")
     public List<BatchVO> getBatchesByOperation(@GraphQLContext OperationVO operation) {
         // Avoid a reloading (e.g. when saving): reuse existing VO
-        if (CollectionUtils.isNotEmpty(operation.getBatches())) {
+        if (operation.getBatches() != null) {
             return operation.getBatches();
         }
 

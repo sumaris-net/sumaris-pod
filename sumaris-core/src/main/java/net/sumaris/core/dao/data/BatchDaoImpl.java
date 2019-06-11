@@ -282,6 +282,8 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
             }
         }
 
+        Preconditions.checkArgument(source.getParentId() == null || source.getParent() == null || Objects.equals(source.getParentId(), source.getParent().getId()),
+                String.format("Incorrect batch: parentId=%s and parent.id=%s mismatch", source.getParentId(), source.getParent() != null ? source.getParent().getId() : "null"));
         Integer parentId = source.getParentId() != null ? source.getParentId() : (source.getParent() != null ? source.getParent().getId() : null);
         Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
 
