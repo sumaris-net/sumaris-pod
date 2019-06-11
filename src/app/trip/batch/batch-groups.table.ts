@@ -8,6 +8,8 @@ import {BatchesTable, BatchFilter} from "./batches.table";
 import {isNil, isNotNil, toFloat, toInt} from "../../shared/shared.module";
 import {MethodIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
+import {environment} from "../../../environments/environment";
+import {PMFM_ID_REGEXP} from "../services/model/measurement.model";
 
 
 @Component({
@@ -20,9 +22,6 @@ import {InMemoryTableDataService} from "../../shared/services/memory-data-servic
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchGroupsTable extends BatchesTable {
-
-  static RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
-  static RESERVED_END_COLUMNS: string[] = ['comments'];
 
   private _initialPmfms: PmfmStrategy[];
 
@@ -42,22 +41,20 @@ export class BatchGroupsTable extends BatchesTable {
     );
 
     // Set default values
-    this.showLabelColumn = false;
     this.showCommentsColumn = false;
 
   }
 
   async ngOnInit(): Promise<void> {
     // -- For DEV only
-    //this.debug = !environment.production;
-    this.debug = true;
+    this.debug = !environment.production;
 
     await super.ngOnInit();
 
   }
 
   onLoad(data: Batch[]): Batch[] {
-    if (isNil(this.qvPmfm) || !this.qvPmfm.qualitativeValues) return data; // Skip
+    if (isNil(this.qvPmfm) || !this.qvPmfm.qualitativeValues) return data; // Skip (pmfms not loaded)
 
     if (this.debug) console.debug("[batch-group-table] Preparing data to be loaded as table rows...");
 
@@ -120,7 +117,7 @@ export class BatchGroupsTable extends BatchesTable {
 
 
   async onSave(data: Batch[]): Promise<Batch[]> {
-    if (isNil(this.qvPmfm) || !this.qvPmfm.qualitativeValues) return data; // Skip
+    if (isNil(this.qvPmfm) || !this.qvPmfm.qualitativeValues) return data; // Skip (pmfms not loaded)
 
     if (this.debug) console.debug("[batch-group-table] Preparing data to be saved...");
     const estimatedWeightPmfm = this.weightPmfmsByMethod && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
@@ -181,7 +178,7 @@ export class BatchGroupsTable extends BatchesTable {
   /* -- protected methods -- */
 
   protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
-    if (!pmfms || !pmfms.length) return pmfms; // skip
+    if (!pmfms || !pmfms.length) return pmfms; // Skip (no pmfms)
 
     if (this.debug) console.debug('[batch-group-table] Grouping PMFMs...');
     this._initialPmfms = pmfms;
@@ -359,6 +356,21 @@ export class BatchGroupsTable extends BatchesTable {
   markAsUntouched() {
     super.markAsUntouched();
     if (this.weightMethodForm) this.weightMethodForm.markAsUntouched({onlySelf: true});
+  }
+
+  protected getI18nColumnName(columnName: string): string {
+    if (!this.qvPmfm) return super.getI18nColumnName(columnName); // Skip
+
+    // Try to resolve PMFM column
+    if (PMFM_ID_REGEXP.test(columnName)) {
+      const pmfmIndex = parseInt(columnName);
+      const pmfm = (this.pmfms.getValue() || []).find(p => p.pmfmId === pmfmIndex);
+      const qvIndex = pmfm.id;
+      return `${this.translate.instant(this.qvPmfm.qualitativeValues[qvIndex].name)} > ${this.translate.instant(pmfm.name)}`;
+
+    }
+
+    return super.getI18nColumnName(columnName);
   }
 }
 

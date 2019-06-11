@@ -204,20 +204,6 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       });
   }
 
-  addRow(): boolean {
-    if (this.debug) console.debug("[sub-batch-table] Calling addRow()");
-
-    // Create new row
-    const result = super.addRow();
-    if (!result) return result;
-
-    const row = this.dataSource.getRow(-1);
-
-
-
-    return true;
-  }
-
   /* -- protected methods -- */
 
   protected async onNewEntity(data: Batch): Promise<void> {

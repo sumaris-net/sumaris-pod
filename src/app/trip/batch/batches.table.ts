@@ -57,7 +57,7 @@ export function createBatchInMemoryService(): InMemoryTableDataService<Batch, Ba
 export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   implements OnInit, OnDestroy {
 
-  static RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName'];
+  static RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
   static RESERVED_END_COLUMNS: string[] = ['comments'];
 
   protected cd: ChangeDetectorRef;
@@ -80,15 +80,6 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   }
 
   @Input() usageMode: UsageMode;
-
-  @Input()
-  set showLabelColumn(value: boolean) {
-    this.setShowColumn('label', value);
-  }
-
-  get showLabelColumn(): boolean {
-    return this.getShowColumn('label');
-  }
 
   @Input()
   set showTaxonGroupColumn(value: boolean) {
@@ -134,12 +125,11 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
     //this.debug = false;
     this.debug = !environment.production;
-  };
+  }
 
   async ngOnInit() {
     super.ngOnInit();
 
-    this.setShowColumn('label', this.showLabelColumn);
     this.setShowColumn('comments', this.showCommentsColumn);
 
     // Taxon group combo
@@ -191,19 +181,13 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
     await super.onNewEntity(data);
 
-    const isOnFieldMode = this.isOnFieldMode;
-
     // generate label
-    if (!this.showLabelColumn) {
-      data.label = this.acquisitionLevel + "#" + data.rankOrder;
-    }
+    data.label = this.acquisitionLevel + "#" + data.rankOrder;
 
-    // Taxon group
+    // Default values
     if (isNotNil(this.defaultTaxonName)) {
       data.taxonName = this.defaultTaxonName;
     }
-
-    // Default taxon group
     if (isNotNil(this.defaultTaxonGroup)) {
       data.taxonGroup = this.defaultTaxonGroup;
     }

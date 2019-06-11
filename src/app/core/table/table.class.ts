@@ -510,12 +510,13 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
       .filter(name => this.displayedColumns.indexOf(name) == -1);
     const columns = this.displayedColumns.slice(fixedColumns.length)
       .concat(hiddenColumns)
-      .filter(name => name != "actions")
+      .filter(name => name !== "actions")
+      .filter(name => !this.excludesColumns.includes(name))
       .map((name, index) => {
         return {
           name,
           label: this.getI18nColumnName(name),
-          visible: this.displayedColumns.indexOf(name) != -1
+          visible: this.displayedColumns.indexOf(name) !== -1
         };
       });
 
@@ -554,7 +555,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
 
   protected getI18nColumnName(columnName: string) {
-    return this.i18nColumnPrefix + columnName.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase()
+    return this.i18nColumnPrefix + columnName.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase();
   }
 
   protected generateTableId() {

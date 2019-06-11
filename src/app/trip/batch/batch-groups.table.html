@@ -18,11 +18,11 @@
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <span class="toolbar-spacer"></span>
+<!--  <span class="toolbar-spacer"></span>-->
 
-  <!--<button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">-->
-    <!--<mat-icon>more_vert</mat-icon>-->
-  <!--</button>-->
+<!--  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">-->
+<!--    <mat-icon>more_vert</mat-icon>-->
+<!--  </button>-->
 </mat-toolbar>
 
 <!-- error -->
@@ -40,11 +40,6 @@
 
   <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-
-  <!-- rankOrder Column = id -->
-  <ng-container matColumnDef="label">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
 
@@ -109,23 +104,6 @@
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
-  </ng-container>
-
-  <!-- label Column -->
-  <ng-container matColumnDef="label">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.BATCH.TABLE.LABEL</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <mat-form-field floatLabel="never">
-        <input matInput autocomplete="off"
-               [formControl]="row.validator.controls['label']"
-               [placeholder]="'TRIP.BATCH.TABLE.LABEL_PLACEHOLDER'|translate"
-               (click)="$event.target.select()"
-               required>
-        <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-    </mat-cell>
   </ng-container>
 
   <!-- taxon group (commercial species) -->
