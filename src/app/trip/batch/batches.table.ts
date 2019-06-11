@@ -35,12 +35,6 @@ export interface BatchFilter {
   landingId?: number;
 }
 
-export declare const BATCH_TABLE_OPTIONS: InjectionToken<AppMeasurementsTableOptions<Batch>>;
-
-export function createBatchInMemoryService(): InMemoryTableDataService<Batch, BatchFilter> {
-  return new InMemoryTableDataService<Batch, BatchFilter>(Batch, {});
-}
-
 @Component({
   selector: 'app-batches-table',
   templateUrl: 'batches.table.html',
@@ -49,7 +43,7 @@ export function createBatchInMemoryService(): InMemoryTableDataService<Batch, Ba
     {provide: ValidatorService, useClass: BatchValidatorService},
     {
       provide: InMemoryTableDataService,
-      useFactory: createBatchInMemoryService
+      useFactory: () => new InMemoryTableDataService<Batch, BatchFilter>(Batch, {})
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush

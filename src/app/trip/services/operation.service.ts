@@ -15,7 +15,7 @@ import {
 } from "./trip.model";
 import {map} from "rxjs/operators";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
-import {AccountService, BaseDataService} from "../../core/core.module";
+import {AccountService, BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy} from "apollo-client";
@@ -155,7 +155,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     super(graphql);
 
     // -- For DEV only
-    //this._debug = !environment.production;
+    this._debug = !environment.production;
   }
 
   /**

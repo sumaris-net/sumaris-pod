@@ -25,16 +25,17 @@ export class BatchGroupsValidatorService implements ValidatorService {
 
 
     return this.formBuilder.group({
-      'id': [''],
-      'rankOrder': ['1', Validators.required],
-      'label': [''],
-      'individualCount': ['', Validators.compose([Validators.min(0), Validators.pattern('^[0-9]+$')])],
-      'samplingRatio': [''],
-      'samplingRatioText': [''],
-      'taxonGroup': ['', SharedValidators.entity],
-      'taxonName': ['', SharedValidators.entity],
-      'comments': [''],
-      'parent': ['', SharedValidators.entity]
+      id: [''],
+      updateDate: [''],
+      rankOrder: ['1', Validators.required],
+      label: [''],
+      individualCount: ['', Validators.compose([Validators.min(0), SharedValidators.integer])],
+      samplingRatio: [''],
+      samplingRatioText: [''],
+      taxonGroup: ['', SharedValidators.entity],
+      taxonName: ['', SharedValidators.entity],
+      comments: [''],
+      parent: ['', SharedValidators.entity]
     });
   }
 

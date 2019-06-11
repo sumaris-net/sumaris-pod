@@ -301,8 +301,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Set sampling batch tables (if exists)
-    const batchGroups = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
-
+    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
     this.batchGroupsTable.pmfms
       .pipe(
         filter(isNotNil),
@@ -310,6 +309,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       )
       .subscribe(() => {
         const qvPmfm = this.batchGroupsTable.qvPmfm;
+        const batchGroups = this.batchGroupsTable.value;
         this.subBatchesTable.availableParents = batchGroups;
         this.subBatchesTable.value = batchGroups.reduce((res, group) => {
           if (qvPmfm) {
@@ -335,8 +335,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           }
         }, []);
       });
-
-    this.batchGroupsTable.value = batchGroups;
 
     // Update title
     await this.updateTitle();
@@ -550,10 +548,21 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
             (!qvPmfm || (childBatch.measurementValues[qvPmfm.pmfmId] == b.measurementValues[qvPmfm.pmfmId]))
           );
           // If has sampling batch, use it a parent
-          if (b.children && b.children.length == 1) b.children[0].children = children;
-          else b.children = children;
+          if (b.children && b.children.length === 1) {
+            b.children[0].children = children;
+            children.forEach(c => c.parentId = b.children[0].id);
+          }
+          else {
+            b.children = children;
+            children.forEach(c => {
+              c.parentId = b.id;
+
+            });
+          }
         });
       });
+      console.log("Saving batches", batchGroups);
+
       this.data.catchBatch.children = batchGroups;
     } else {
       this.data.catchBatch.children = undefined;

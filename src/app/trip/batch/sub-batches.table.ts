@@ -85,11 +85,25 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     return this.usageMode ? this.usageMode === 'FIELD' : this.settingsService.isUsageMode('FIELD');
   }
 
-  @Input() showLabelColumn = false;
-  @Input() showTaxonGroupColumn = true;
-  @Input() showTaxonNameColumn = true;
-  @Input() showCommentsColumn = true;
+  @Input()
+  set showTaxonGroupColumn(value: boolean) {
+    this.setShowColumn('taxonGroup', value);
+  }
 
+  get showTaxonGroupColumn(): boolean {
+    return this.getShowColumn('taxonGroup');
+  }
+
+  @Input()
+  set showTaxonNameColumn(value: boolean) {
+    this.setShowColumn('taxonName', value);
+  }
+
+  get showTaxonNameColumn(): boolean {
+    return this.getShowColumn('taxonName');
+  }
+
+  @Input() showCommentsColumn = true;
   @Input() usageMode: UsageMode;
 
   constructor(
@@ -125,9 +139,6 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   ngOnInit() {
     super.ngOnInit();
 
-    this.setShowColumn('label', this.showLabelColumn);
-    this.setShowColumn('taxonGroup', this.showTaxonGroupColumn);
-    this.setShowColumn('taxonName', this.showTaxonNameColumn);
     this.setShowColumn('comments', this.showCommentsColumn);
 
     // Taxon group combo
@@ -172,8 +183,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
           const ucValueParts = value.trim().toUpperCase().split(" ", 1);
           // Search on labels (taxonGroup or taxonName)
           return this._availableSortedParents.filter(p =>
-            (p.taxonGroup && p.taxonGroup.label && p.taxonGroup.label.toUpperCase().indexOf(ucValueParts[0]) === 0) ||
-            (p.taxonName && p.taxonName.label && p.taxonName.label.toUpperCase().indexOf(ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]) === 0)
+            (p.taxonGroup && this.startsWithUpperCase(p.taxonGroup.label, ucValueParts[0])) ||
+            (p.taxonName && this.startsWithUpperCase(p.taxonName.label, ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]))
           );
         }),
         // Save implicit value
@@ -211,14 +222,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     await super.onNewEntity(data);
 
-    // label
-    if (!this.showLabelColumn) {
-      // Generate label
-      data.label = this.acquisitionLevel + "#" + data.rankOrder;
-    } else if (this.isOnFieldMode) {
-      // Copy previous label ?
-      //this.memoryDataService
-    }
+    // Generate label
+    data.label = this.acquisitionLevel + "#" + data.rankOrder;
   }
 
   protected getI18nColumnName(columnName: string): string {

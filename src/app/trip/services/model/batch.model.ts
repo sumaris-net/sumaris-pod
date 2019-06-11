@@ -57,14 +57,15 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false /*fix #32*/ ) || undefined;
     target.taxonName = this.taxonName && this.taxonName.asObject(false /*fix #32*/) || undefined;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
-
-    target.parentId = this.parentId || this.parent && this.parent.id || undefined;
-    delete target.parent;
-
     target.children = this.children && this.children.map(c => c.asObject(minify)) || undefined;
+    target.parentId = this.parentId || this.parent && this.parent.id || undefined;
 
-    // Measurement: keep only the map
     if (minify) {
+      // Parent Id not need, as the tree batch will be used by pod
+      delete target.parent;
+      delete target.parentId;
+
+      // Measurement: keep only the map
       target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
         .reduce((map, pmfmId) => {
           const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];

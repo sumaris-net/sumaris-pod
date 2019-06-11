@@ -53,9 +53,15 @@ export class Sample extends DataRootEntity<Sample> implements IEntityWithMeasure
     target.taxonName = this.taxonName && this.taxonName.asObject(false/*fix #32*/) || undefined;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
-    delete target.parent; // Do not keep parent object
     target.children = this.children && this.children.map(c => c.asObject(minify)) || undefined;
     target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, minify);
+
+    if (minify) {
+      // Parent not need, as the tree will be used by pod
+      delete target.parent;
+      delete target.parentId;
+    }
+
     return target;
   }
 
