@@ -53,13 +53,13 @@ export const LandingFragments = {
       ...RecorderPersonFragment
     }
     observers {
-      ...PersonFragment
+      ...LightPersonFragment
     }
   }
   ${Fragments.location}
   ${Fragments.recorderDepartment}
   ${Fragments.recorderPerson}
-  ${Fragments.person}
+  ${Fragments.lightPerson}
   ${DataFragments.vesselFeatures}
   `,
   landing: gql`fragment LandingFragment on LandingVO {
@@ -90,7 +90,7 @@ export const LandingFragments = {
       ...RecorderPersonFragment
     }
     observers {
-      ...PersonFragment
+      ...LightPersonFragment
     }    
     measurementValues
     samples {
@@ -100,7 +100,7 @@ export const LandingFragments = {
   ${Fragments.location}
   ${Fragments.recorderDepartment}
   ${Fragments.recorderPerson}
-  ${Fragments.person}
+  ${Fragments.lightPerson}
   ${DataFragments.vesselFeatures}
   ${DataFragments.sample}
   `

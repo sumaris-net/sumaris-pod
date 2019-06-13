@@ -1,16 +1,17 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
-import {BaseDataService, environment, isNil, isNotNil} from "../../core/core.module";
+import {BaseDataService, environment, isNil, isNotNil, StatusIds} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {AggregationStrata, AggregationType, ExtractionResult, ExtractionType} from "./extraction.model";
 import {FetchPolicy} from "apollo-client";
-import {trimEmptyToNull} from "../../shared/functions";
+import {isNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {FeatureCollection} from "geojson";
+import {TripFragments} from "./trip.service";
 
 
 export declare class ExtractionFilter {
@@ -60,9 +61,40 @@ const GetFileQuery: any = gql`
 `;
 
 
-const LoadGeoTypes: any = gql`
-  query GeoTypes {
-    aggregationTypes {
+const LoadAggregationTypes = gql`
+  query AggregationTypes($filter: AggregationTypeFilterVOInput) {
+    aggregationTypes(filter: $filter) {
+      id
+      label
+      name
+      description
+      category
+      sheetNames
+      strata {
+        space
+        time
+        tech
+      }
+      statusId
+    }
+  }`;
+
+const LoadAggregationGeoJsonQuery = gql`
+  query AggregationGeoJson(
+    $type: AggregationTypeVOInput,
+    $filter: ExtractionFilterVOInput,
+    $strata: AggregationStrataVOInput,
+    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      aggregationGeoJson(
+        type: $type, filter: $filter, strata: $strata, 
+        offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection
+      )
+  }`;
+
+const SaveAggregation: any = gql`
+  mutation SaveAggregation($type: AggregationTypeVOInput, $filter: ExtractionFilterVOInput){
+    saveAggregation(type: $type, filter: $filter){
+      id
       label
       category
       sheetNames
@@ -70,18 +102,10 @@ const LoadGeoTypes: any = gql`
   }
 `;
 
-const LoadGeoDataQuery = gql`
-  query geoJsonAggregation(
-    $type: AggregationTypeVOInput,
-    $filter: ExtractionFilterVOInput,
-    $strata: AggregationStrataVOInput,
-    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
-      geoJsonAggregation(
-        type: $type, filter: $filter, strata: $strata, 
-        offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection
-      )
-  }`;
-
+export interface AggregationTypeFilter {
+  statusIds?: number[];
+  isSpatial?: boolean;
+}
 
 @Injectable()
 export class ExtractionService extends BaseDataService {
@@ -107,9 +131,7 @@ export class ExtractionService extends BaseDataService {
       error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"}
     })
       .pipe(
-        map((data) => {
-          return (data && data.extractionTypes || []);
-        })
+        map((data) => (data && data.extractionTypes || []).map(ExtractionType.fromObject))
       );
   }
 
@@ -139,7 +161,7 @@ export class ExtractionService extends BaseDataService {
       },
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || 'id',
+      sortBy: sortBy || undefined,
       sortDirection: sortDirection || 'asc',
       filter: filter
     };
@@ -206,31 +228,39 @@ export class ExtractionService extends BaseDataService {
   /**
    * Load aggregation types
    */
-  loadGeoTypes(): Observable<AggregationType[]> {
+  loadAggregationTypes(filter?: AggregationTypeFilter): Observable<AggregationType[]> {
     if (this._debug) console.debug("[extraction-service] Loading geo types...");
+
+    const variables = {
+      filter: filter
+    };
+
+    // Remember variables, to be able to update the cache in saveAggregation()
+    this._lastVariables.loadAggregationTypes = variables;
+
     return this.graphql.watchQuery<{ aggregationTypes: AggregationType[] }>({
-      query: LoadGeoTypes,
-      variables: null,
+      query: LoadAggregationTypes,
+      variables: variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"}
     })
       .pipe(
-        map((data) => (data && data.aggregationTypes || []))
+        map((data) => (data && data.aggregationTypes || []).map(AggregationType.fromObject))
       );
   }
 
   /**
    * Load aggregation as GeoJson
    */
-  async loadGeoData(type: AggregationType,
-                    strata: AggregationStrata,
-                    offset: number,
-                    size: number,
-                    sortBy?: string,
-                    sortDirection?: string,
-                    filter?: ExtractionFilter,
-                    options?: {
-                      fetchPolicy?: FetchPolicy
-                    }): Promise<FeatureCollection> {
+  async loadAggregationGeoJson(type: AggregationType,
+                               strata: AggregationStrata,
+                               offset: number,
+                               size: number,
+                               sortBy?: string,
+                               sortDirection?: string,
+                               filter?: ExtractionFilter,
+                               options?: {
+                                 fetchPolicy?: FetchPolicy
+                               }): Promise<FeatureCollection> {
     options = options || {};
 
     const variables: any = {
@@ -244,14 +274,14 @@ export class ExtractionService extends BaseDataService {
       size: size || 1000
     };
 
-    const res = await this.graphql.query<{ geoJsonAggregation: any }>({
-      query: LoadGeoDataQuery,
+    const res = await this.graphql.query<{ aggregationGeoJson: any }>({
+      query: LoadAggregationGeoJsonQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_DATA_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_DATA_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
-    return (res && res.geoJsonAggregation as FeatureCollection) || null;
+    return (res && res.aggregationGeoJson as FeatureCollection) || null;
   }
 
   prepareFilter(source?: ExtractionFilter | any): ExtractionFilter {
@@ -307,4 +337,72 @@ export class ExtractionService extends BaseDataService {
     return target;
   }
 
+
+  async save(type: ExtractionType | AggregationType,
+             filter?: ExtractionFilter,
+             options?: {
+               aggregate: boolean;
+             }): Promise<ExtractionType | AggregationType> {
+
+    // Transform into json
+    options = options || {aggregate: true};
+    if (options.aggregate) {
+      const entity = AggregationType.fromObject(type);
+
+      this.fillDefaultProperties(entity);
+
+      const json = entity.asObject(true/*minify*/);
+
+      const isNew = isNil(type.id);
+
+      const now = Date.now();
+      if (this._debug) console.debug("[extraction-service] Saving aggregation...");
+
+      const res = await this.graphql.mutate<{ saveAggregation: any }>({
+        mutation: SaveAggregation,
+        variables: {
+          type: json,
+          filter: filter
+        },
+        error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"}
+      });
+
+      const savedEntity = res && res.saveAggregation && res.saveAggregation[0];
+      if (savedEntity) {
+        this.copyIdAndUpdateDate(savedEntity, entity);
+
+        // Add to cache
+        const addToCache = isNew && this._lastVariables.loadAggregationTypes &&
+          // Check if cache on the same statusId
+          (this._lastVariables.loadAggregationTypes.statusIds || []).findIndex(s => s === entity.statusId) !== -1;
+        if (addToCache) {
+          this.addToQueryCache({
+            query: LoadAggregationTypes,
+            variables: this._lastVariables.loadAggregationTypes
+          }, 'aggregationTypes', savedEntity);
+        }
+      }
+
+      if (this._debug) console.debug(`[trip-service] Trip saved in ${Date.now() - now}ms`, entity);
+
+      return entity;
+    }
+
+    throw new Error("Not aggregated extraction could not be saved yet");
+  }
+
+  /* -- protected methods  -- */
+
+  protected fillDefaultProperties(source: AggregationType) {
+
+    source.name = source.name || 'Aggregation for ' + source.label;
+
+    source.statusId = isNotNil(source.statusId) ? source.statusId : StatusIds.TEMPORARY;
+  }
+
+  protected copyIdAndUpdateDate(source: AggregationType, target: AggregationType) {
+
+    target.id = isNotNil(source.id) ? source.id : target.id;
+    target.updateDate = isNotNil(source.updateDate) ? source.updateDate : target.updateDate;
+  }
 }

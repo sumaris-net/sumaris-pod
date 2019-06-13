@@ -9,10 +9,10 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 export class FormButtonsBarComponent {
 
     @Input()
-    disabled: boolean = false;
+    disabled = false;
 
     @Input()
-    disabledCancel: boolean = false;
+    disabledCancel = false;
 
     @Output()
     onCancel: EventEmitter<Event> = new EventEmitter<Event>();

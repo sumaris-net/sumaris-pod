@@ -29,7 +29,7 @@ export const Fragments = {
     }
     __typename
   }`,
-  person: gql`fragment PersonFragment on PersonVO {
+  lightPerson: gql`fragment LightPersonFragment on PersonVO {
     id
     firstName
     lastName

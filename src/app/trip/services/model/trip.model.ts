@@ -273,7 +273,7 @@ export class Operation extends DataEntity<Operation> {
         // Link to children
         batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
         if (this.catchBatch.children && this.catchBatch.children.length) {
-          console.log("TODO: not need to reset children of catch batch ?", this.catchBatch);
+          //console.log("TODO: not need to reset children of catch batch ?", this.catchBatch);
         }
         else {
           this.catchBatch.children = batches.filter(b => b.parent === this.catchBatch);

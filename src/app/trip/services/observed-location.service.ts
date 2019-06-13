@@ -79,13 +79,13 @@ export const ObservedLocationFragments = {
       ...RecorderPersonFragment
     }
     observers {
-      ...PersonFragment
+      ...LightPersonFragment
     }
     measurementValues
   }
   ${Fragments.recorderDepartment}
   ${Fragments.recorderPerson}
-  ${Fragments.person}
+  ${Fragments.lightPerson}
   ${Fragments.location}
   `
 };

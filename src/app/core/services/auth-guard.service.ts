@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot} from '@angular/router';
+import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {Observable} from 'rxjs/Observable';
 import {ModalController} from "@ionic/angular";
 import {AuthModal} from "../auth/modal/modal-auth";
@@ -21,13 +21,13 @@ export class AuthGuardService implements CanActivate {
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Observable<boolean> | Promise<boolean> | boolean {
+  ): Observable<boolean> | Promise<boolean | UrlTree> | boolean | UrlTree {
 
     // If account not started: loop after started
     if (!this.accountService.isStarted()) {
       return this.accountService.ready()
         // Iterate
-        .then(() => this.canActivate(next, state) as Promise<boolean>);
+        .then(() => this.canActivate(next, state) as Promise<boolean | UrlTree>);
     }
 
     // Force login
@@ -37,11 +37,10 @@ export class AuthGuardService implements CanActivate {
         .then(res => {
           if (!res) {
             if (this._debug) console.debug("[auth-gard] Authentication cancelled. Could not access to /" + next.url.join('/'));
-            this.redirectToHome();
-            return false;
+            return this.router.parseUrl('/home');
           }
           // Iterate
-          return this.canActivate(next, state) as Promise<boolean>;
+          return this.canActivate(next, state) as Promise<boolean | UrlTree>;
         });
     }
 
@@ -55,7 +54,7 @@ export class AuthGuardService implements CanActivate {
 
   login(next?: ActivatedRouteSnapshot): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
-      let modal = await this.modalCtrl.create({ component: AuthModal, componentProps: { next: next } });
+      const modal = await this.modalCtrl.create({ component: AuthModal, componentProps: { next: next } });
       modal.onDidDismiss()
         .then(() => {
           if (this.accountService.isLogin()) {
@@ -66,9 +65,5 @@ export class AuthGuardService implements CanActivate {
         });
       return modal.present();
     });
-  }
-
-  async redirectToHome() {
-    await this.router.navigate(['/home']);
   }
 }

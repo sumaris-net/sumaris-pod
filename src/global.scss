@@ -254,6 +254,28 @@ mat-expansion-panel {
 }
 
 // --------------------------------------------------
+// Ion-select
+// --------------------------------------------------
+
+ion-popover.select-popover {
+  .popover-content {
+    min-width: calc(min(80%, 200px));
+  }
+}
+
+@media screen and (min-width: $screen-sm) {
+  ion-popover.select-popover {
+    .popover-content {
+      min-width: 300px;
+    }
+
+    ion-radio .radio-icon {
+      border: 0 !important;
+    }
+  }
+}
+
+// --------------------------------------------------
 // Material Table
 // --------------------------------------------------
 mat-table {

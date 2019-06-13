@@ -5,15 +5,17 @@
 
   <mat-toolbar>
     <mat-toolbar-row>
-      <form [formGroup]="form" novalidate>
-        <mat-form-field floatLabel="never">
-          <mat-select formControlName="type" (ngModelChange)="onTypeChange($event)">
-            <mat-option *ngFor="let item of $types | async" [value]="item">
-             <ion-text [innerHTML]="getI18nTypeName(item)"></ion-text>
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </form>
+      <ion-select class="large"
+                  [placeholder]="'EXTRACTION.TYPE_PLACEHOLDER'|translate"
+                  interface="popover"
+                  [interfaceOptions]="typesPopoverOptions"
+                  [selectedText]="getI18nTypeName(type)"
+                  [compareWith]="isTypeEquals"
+                  (ionChange)="onSelectTypeChange($event)">
+        <ion-select-option *ngFor="let item of $types | async" [value]="item">
+          {{getI18nTypeName(item)}}
+        </ion-select-option>
+      </ion-select>
 
       <button mat-icon-button small color="light" [title]="'COMMON.BTN_REFRESH'|translate"
               (click)="onRefresh.emit()">
@@ -25,8 +27,13 @@
       <button mat-icon-button [title]="'EXTRACTION.BTN_DOWNLOAD_FILE'|translate" (click)="downloadAsFile()">
         <mat-icon>get_app</mat-icon>
       </button>
+      <button mat-icon-button [title]="'EXTRACTION.BTN_CREATE_MAP'|translate" (click)="openMap()">
+        <mat-icon>
+          <ion-icon name="globe"></ion-icon>
+        </mat-icon>
+      </button>
       <!--<button mat-icon-button color="secondary" [title]="'COMMON.BTN_SHOW_HELP'|translate" (click)="showHelpModal()">-->
-        <!--<mat-icon>help_outline</mat-icon>-->
+      <!--<mat-icon>help_outline</mat-icon>-->
       <!--</button>-->
 
       <!-- error -->
@@ -43,7 +50,7 @@
     </mat-toolbar-row>
   </mat-toolbar>
 
-  <nav mat-tab-nav-bar >
+  <nav mat-tab-nav-bar>
     <a mat-tab-link *ngFor="let item of $sheetNames | async"
        (click)="onSheetChange(item)"
        [active]="item === sheetName">
@@ -54,18 +61,20 @@
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel color="primary" no-padding>
-    <mat-expansion-panel-header >
+    <mat-expansion-panel-header>
       <mat-panel-title hidden-xs hidden-sm>
         <ion-label>
           <!-- Loading spinner -->
           <ion-spinner [ngClass]="{'center':true}" *ngIf="loading && !filterExpansionPanel.expanded"></ion-spinner>
           <ng-container *ngIf="!loading && !filterExpansionPanel.expanded">
-            <ion-text [color]="data?.total === 0 && 'danger'" *ngIf="data?.total === 0"><b>{{ 'COMMON.NO_RESULT' | translate }}</b></ion-text>
+            <ion-text [color]="data?.total === 0 && 'danger'" *ngIf="data?.total === 0"><b>{{ 'COMMON.NO_RESULT' |
+              translate }}</b></ion-text>
             <span *ngIf="data?.total > 0">
               {{ 'COMMON.RESULT_COUNT' | translate: {count: (data?.total | numberFormat)} }}
             </span>
             <small>
-              {{(hasFilterCriteria(sheetName) ? 'EXTRACTION.FILTER.WITH_FILTER_PARENTHESIS' : 'EXTRACTION.FILTER.NO_FILTER_PARENTHESIS' ) | translate}}
+              {{(hasFilterCriteria(sheetName) ? 'EXTRACTION.FILTER.WITH_FILTER_PARENTHESIS' :
+              'EXTRACTION.FILTER.NO_FILTER_PARENTHESIS' ) | translate}}
             </small>
           </ng-container>
           <span *ngIf="filterExpansionPanel.expanded">
@@ -75,41 +84,51 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
 
-    <form [formGroup]="form.get('sheets')" (ngSubmit)="onRefresh.emit()" *ngIf="form.get('sheets').get(sheetName) && true">
+    <form [formGroup]="form.get('sheets')" (ngSubmit)="onRefresh.emit()"
+          *ngIf="form.get('sheets').get(sheetName) && true">
       <div [formArrayName]="sheetName">
         <ng-container *ngFor="let criterionForm of criteriaForm?.controls; let i=index">
           <ion-row no-padding [formGroupName]="i">
             <!-- column name -->
             <mat-form-field>
               <mat-select formControlName="name" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_NAME'|translate">
-                <mat-option *ngFor="let column of $columns | async" [value]="column.name">{{ getI18nColumnName(column.name) }}</mat-option>
+                <mat-option *ngFor="let column of $columns | async" [value]="column.name">{{
+                  getI18nColumnName(column.name) }}
+                </mat-option>
               </mat-select>
             </mat-form-field>
 
             <!-- operator -->
             <mat-form-field class="operator">
               <mat-select formControlName="operator">
-                <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name || operator.symbol) | translate }}</mat-option>
+                <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name ||
+                  operator.symbol) | translate }}
+                </mat-option>
               </mat-select>
             </mat-form-field>
 
             <!-- value -->
             <mat-form-field>
-              <input matInput autocomplete="off" [placeholder]="(criterionForm.controls['operator'].value == 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate" formControlName="value">
+              <input matInput autocomplete="off"
+                     [placeholder]="(criterionForm.controls['operator'].value == 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate"
+                     formControlName="value">
             </mat-form-field>
 
             <!-- second value (for between operator) -->
             <mat-form-field *ngIf="criterionForm.controls['operator'].value === 'BETWEEN'">
-              <input matInput autocomplete="off" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate" formControlName="endValue">
+              <input matInput autocomplete="off" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate"
+                     formControlName="endValue">
             </mat-form-field>
 
-            <button type="button" mat-icon-button color="light" [disabled]="loading" [title]="'COMMON.BTN_DELETE'|translate"
-            (click)="removeFilterCriterion($event, i)">
+            <button type="button" mat-icon-button color="light" [disabled]="loading"
+                    [title]="'COMMON.BTN_DELETE'|translate"
+                    (click)="removeFilterCriterion($event, i)">
               <mat-icon>close</mat-icon>
             </button>
 
-            <button type="button" mat-icon-button color="light" [disabled]="loading" *ngIf="i == criteriaForm?.length-1" [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
-            (click)="addFilterCriterion()">
+            <button type="button" mat-icon-button color="light" [disabled]="loading" *ngIf="i == criteriaForm?.length-1"
+                    [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
+                    (click)="addFilterCriterion()">
               <mat-icon>add</mat-icon>
             </button>
           </ion-row>
@@ -124,14 +143,16 @@
             <!-- Loading spinner -->
             <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
             <ion-text [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
-              {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total | numberFormat)} }}
+              {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total |
+              numberFormat)} }}
             </ion-text>
           </ion-col>
           <ion-col no-padding size="auto">
             <!-- Search button -->
             <button mat-button [color]="dirty ? 'primary' : undefined" padding
                     (click)="onRefresh.emit(true)"
-                    [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}</button>
+                    [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}
+            </button>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -152,7 +173,8 @@
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="column.type=='date'">
         <ion-label>{{ getI18nColumnName(column.name) }}</ion-label>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="column.type=='date'" [class.mat-cell-numeric]="column.type=='integer'">
+      <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="column.type=='date'"
+                [class.mat-cell-numeric]="column.type=='integer'">
         <a ion-text (click)="onCellValueClick($event, column, row.currentData[column.index])"
            color="dark"
            [title]="row.currentData[column.index]">
@@ -170,7 +192,8 @@
   <ion-row no-padding [hidden]="!data?.total">
     <ion-col></ion-col>
     <ion-col no-padding size="auto">
-      <mat-paginator [length]="data?.total" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200, 500]" showFirstLastButtons >
+      <mat-paginator [length]="data?.total" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200, 500]"
+                     showFirstLastButtons>
       </mat-paginator>
     </ion-col>
   </ion-row>
@@ -178,3 +201,17 @@
 
 </ion-content>
 
+<!--<ion-footer hidden-xs hidden-sm>-->
+<!--  <form-buttons-bar (onSave)="save($event)"-->
+<!--                    [disabled]="!dirty || loading"-->
+<!--                    (onCancel="cancel($event)"-->
+<!--                    [disabledCancel]="!dirty || loading">-->
+
+<!--    &lt;!&ndash; error &ndash;&gt;-->
+<!--    <ion-item *ngIf="error">-->
+<!--      <ion-icon color="danger" slot="start" name="alert"></ion-icon>-->
+<!--      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>-->
+<!--    </ion-item>-->
+
+<!--  </form-buttons-bar>-->
+<!--</ion-footer>-->

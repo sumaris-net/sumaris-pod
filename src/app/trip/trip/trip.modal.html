@@ -1,9 +1,9 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <button ion-button class="visible-xs visible-sm" (click)="cancel()">
+      <ion-button class="visible-xs visible-sm" (click)="cancel()">
         {{'COMMON.BTN_CANCEL'|translate}}
-      </button>
+      </ion-button>
     </ion-buttons>
 
     <ion-title>
@@ -13,13 +13,13 @@
     <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <button ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading && stepper.selectedIndex === 0" (click)="tripForm.doSubmit($event, tripForm.value)">
+      <ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading && stepper.selectedIndex === 0" (click)="tripForm.doSubmit($event, tripForm.value)">
         <ion-icon name="arrow-forward"></ion-icon>
-      </button>
+      </ion-button>
 
-      <button ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading && stepper.selectedIndex === 1" (click)="save($event)">
+      <ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading && stepper.selectedIndex === 1" (click)="save($event)">
         <ion-icon name="checkmark"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

@@ -1,9 +1,9 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <button ion-button class="visible-xs visible-sm" (click)="cancel()">
+      <ion-button class="visible-xs visible-sm" (click)="cancel()">
         {{'COMMON.BTN_CANCEL'|translate}}
-      </button>
+      </ion-button>
     </ion-buttons>
 
     <ion-title>
@@ -11,9 +11,9 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <button ion-button icon-only class="visible-xs visible-sm" *ngIf="!table.loading" (click)="close($event)">
+      <ion-button icon-only class="visible-xs visible-sm" *ngIf="!table.loading" (click)="close($event)">
         <ion-icon name="checkmark"></ion-icon>
-      </button>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

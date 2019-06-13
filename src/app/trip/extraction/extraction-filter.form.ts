@@ -1,13 +1,13 @@
 import {EventEmitter, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute, ParamMap, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
-import {Observable} from 'rxjs';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {ExtractionType} from "../services/extraction.model";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {trimEmptyToNull} from "../../shared/functions";
-import {distinct, first, map} from "rxjs/operators";
+import {distinct, filter, first, map, switchMap, zip} from "rxjs/operators";
 import {AppForm} from "../../core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
@@ -22,6 +22,10 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
   loading = true;
   type: T;
 
+  typesPopoverOptions: any = {
+    showBackdrop: true
+  };
+
   operators: { symbol: String; name?: String; }[] = [
     {symbol: '='},
     {symbol: '!='},
@@ -34,7 +38,7 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
   onRefresh = new EventEmitter<any>();
 
   $types: Observable<T[]>;
-  $sheetNames: Observable<string[] | undefined>;
+  $sheetNames: Observable<string[]>;
 
   get sheetName(): string {
     return this.form.get('sheetName').value;
@@ -55,57 +59,55 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
   ) {
     super(dateAdapter, form);
 
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+
+    this.registerSubscription(
+      this.translate.get('EXTRACTION.TYPE').subscribe(msg => {
+        this.typesPopoverOptions.header = msg;
+      }));
+
     // Load types
     this.$types = this.loadTypes();
 
     // Listen route parameters
-    this.route.params.subscribe(({category, label}) => {
-      const pathType = {
-        category,
-        label
-      };
+    this.registerSubscription(
+      this.route.queryParams
+        .subscribe(async ({category, label, sheet}) => {
+          const paramType = this.fromObject({category, label});
 
-      // If not type found in params, redirect to first one
-      if (isNil(pathType.category) || isNil(pathType.label)) {
-        return this.$types.first().subscribe(types => {
-          // no types
-          if (!types || !types.length) {
-            console.warn("[extraction-form] No extraction types loaded !");
-            return;
+          const types = await this.$types.toPromise();
+          let selectedType;
+
+          // If not type found in params, redirect to first one
+          if (isNil(paramType.category) || isNil(paramType.label)) {
+            selectedType = types && types[0];
           }
-          const selectedType = types[0];
-          return this.router.navigate([this.routePath, selectedType.category, selectedType.label], {
-            skipLocationChange: false
-          });
-        });
-      }
 
-      this.$types.first().subscribe(types => {
-        // Select the exact type object in the filter form
-        const selectedType = types.find(t => t.label === pathType.label && t.category === pathType.category);
+          // Select the exact type object in the filter form
+          else {
+            selectedType = types.find(t => ExtractionType.equals(t, paramType)) || paramType;
+          }
 
-        this.route.queryParams.first().subscribe(({sheet, q}) => {
-          this.form.get('type').setValue(selectedType);
+          const selectedSheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
+          if (!selectedType.sheetNames && selectedSheetName) {
+            selectedType.sheetNames = [selectedSheetName];
+          }
 
-          const sheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
-          this.form.get('sheetName').setValue(sheetName);
+          await this.setType(selectedType, {emitEvent: false, skipLocationChange: true});
+          this.form.get('sheetName').patchValue(selectedSheetName, {emitEvent: false});
+          this.markForCheck();
 
           // Reset criteria
-          this.$sheetNames = this.$sheetNames && selectedType && Observable.of(selectedType.sheetNames) || Observable.empty();
           this.resetFilterCriteria();
 
           // TODO: parse queryParams: convert into criterion?
 
           // Load from extraction type
           return this.load(selectedType);
-        });
-      });
-    });
-
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
+        }));
 
     this.$sheetNames = this.form.get('type').valueChanges
       .pipe(
@@ -117,11 +119,11 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
         })
       );
 
-    this.form.get('type').valueChanges
-      .pipe(
-        distinct()
-      )
-      .subscribe(() => this.onTypeChange());
+    // this.form.get('type').valueChanges
+    //   .pipe(
+    //     distinct()
+    //   )
+    //   .subscribe(() => this.onTypeChange());
 
   }
 
@@ -129,22 +131,59 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
 
   protected abstract loadTypes(): Observable<T[]>;
 
-  async onTypeChange(type?: T): Promise<any> {
-    if (this.loading) return; // skip
+  protected abstract fromObject(type?: any): T;
 
-    const json = this.form.value;
+  compareWith = ExtractionType.equals;
 
-    type = type || (json.type as T);
+  onSelectTypeChange(event: CustomEvent<{ value: T }>) {
+    const type = event.detail.value;
+    if (!type) return; // skip
+
+    this.setType(type);
+
+    // Reset criteria
+    this.resetFilterCriteria();
+  }
+
+  async setType(type: T, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
+    opts = opts || {emitEvent: true, skipLocationChange: false};
 
     // If empty or same: skip
-    if (!type || (this.type
-      && type.category === this.type.category
-      && type.label === this.type.label)) return;
+    if (!type || ExtractionType.equals(type, this.type)) return;
 
-    // Update the URL
-    return this.router.navigate([this.routePath, type.category, type.label], {
-      skipLocationChange: false,
-      queryParams: {}
+    const types = await this.$types.pipe(first()).toPromise();
+    const selectType = types.find(t => ExtractionType.equals(t, type));
+
+    if (!selectType) {
+      console.warn("[extraction-form] Type not found:", type);
+      return;
+    }
+
+    console.debug(`[extraction-form] Set type to {${selectType.label}}`, selectType);
+    this.type = selectType;
+    this.form.get('type').patchValue(type, opts);
+
+    // Refresh data (default: true)
+    if (opts.emitEvent !== false) {
+      this.onRefresh.emit();
+    }
+
+    // Update the window location (default: true)
+    if (opts.skipLocationChange !== true) {
+      this.updateLocationParams(type);
+    }
+  }
+
+  /**
+   * Update the URL
+   */
+  updateLocationParams(type: T) {
+    console.debug('[extraction-form] Updating query params', type);
+    this.router.navigate([this.routePath], {
+      queryParams: {
+        category: type.category,
+        label: type.label
+      }
     });
   }
 
@@ -180,7 +219,7 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
     const type = this.form.get('type').value;
 
     this.error = null;
-    console.debug(`[extraction-form] Downloading ${this.type.category} ${this.type.label}...`);
+    console.debug(`[extraction-form] Downloading ${type.category} ${type.label}...`);
 
     const filter = this.getFilterValue();
     delete filter.sheetName; // Force to download all sheets
@@ -331,7 +370,7 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
     Object.getOwnPropertyNames(control.controls).forEach(sheetName => control.removeControl(sheetName));
 
     // Add the default (empty)
-    this.$sheetNames && this.$sheetNames.pipe(first()).subscribe(sheetNames => {
+    this.$sheetNames.pipe(first()).subscribe(sheetNames => {
       (sheetNames || []).forEach(sheetName => this.addFilterCriterion({
         name: null,
         operator: '=',
@@ -344,18 +383,17 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
   public getI18nTypeName(type?: T, self?: ExtractionForm<T>): string {
     self = self || this;
     if (isNil(type)) return undefined;
-    let key = `EXTRACTION.${type.category.toUpperCase()}.${type.label.toUpperCase()}.TITLE`;
+    const key = `EXTRACTION.${type.category}.${type.format}.TITLE`.toUpperCase();
     let message = self.translate.instant(key);
 
-    // No I18n translation
-    if (message === key) {
+    if (message !== key) return message;
+    // No I18n translation: continue
 
-      // Replace underscore with space
-      message = type.label.replace(/[_-]+/g, " ").toUpperCase();
-      if (message.length > 1) {
-        // First letter as upper case
-        message = message.substring(0, 1) + message.substring(1).toLowerCase();
-      }
+    // Replace underscore with space
+    message = type.label.replace(/[_-]+/g, " ").toUpperCase();
+    if (message.length > 1) {
+      // First letter as upper case
+      return message.substring(0, 1) + message.substring(1).toLowerCase();
     }
     return message;
   }

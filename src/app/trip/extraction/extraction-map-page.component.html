@@ -99,7 +99,7 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- bottom right -->
+  <!-- Bottom right cards -->
   <ion-grid class="bottom-right">
 
     <ion-row>
@@ -107,17 +107,17 @@
 
       <ion-col align-self-end>
 
-        <!-- feature details -->
-        <ion-card color="light" class="details" *ngIf="$detailsTitle | async" @fadeInAnimation>
+        <!-- Details card -->
+        <ion-card color="light" class="details ng-hide" *ngIf="$details | async as details" [@fadeInOutAnimation]>
 
           <ion-card-header>
-            <ion-card-subtitle [innerHTML]="$detailsTitle|async"></ion-card-subtitle>
+            <ion-card-subtitle [innerHTML]="details.title"></ion-card-subtitle>
           </ion-card-header>
 
           <ion-card-content>
             <p>
-              <ng-container *ngFor="let item of $details | async">
-                <ion-text color="primary100">{{getI18nColumnName(item.name)}}</ion-text>
+              <ng-container *ngFor="let item of details.properties">
+                <ion-text color="primary100">{{item.name}}</ion-text>
                 <ion-text>:&nbsp;</ion-text>
                 <ion-text color="dark"><b>{{item.value}}</b></ion-text>
                 <br/>
@@ -146,7 +146,8 @@
       </ion-col>
 
       <ion-col size="auto" no-padding align-self-end>
-        <!-- legend -->
+
+        <!-- Legend card -->
         <ion-card color="light" class="legend" *ngIf="data.total && ($legendItems | async)" @fadeInAnimation>
           <ion-card-header>
             <ion-card-subtitle>
@@ -168,10 +169,11 @@
             </ion-row>
           </ion-card-content>
         </ion-card>
+
       </ion-col>
     </ion-row>
 
-    <!-- legend form  -->
+    <!-- Legend edition form -->
     <ion-row>
       <ion-col>
         <ion-card color="light" *ngIf="showLegendForm" @fadeInAnimation class="legend-form">
@@ -279,11 +281,12 @@
   </ion-grid>
 
 
-  <!-- map -->
+  <!-- Leaflet map -->
   <div *ngIf="ready"
        leaflet
        (leafletMapReady)="onMapReady($event)"
-       [leafletOptions]="options">
+       [leafletOptions]="options"
+       [leafletLayersControl]="layersControl">
 
     <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
   </div>

@@ -598,6 +598,8 @@
   },
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Télécharger le fichier CSV",
+    "BTN_CREATE_MAP": "Ouvrir la carte",
+    "TYPE": "Type d'extraction",
     "COMMON": {
       "VESSEL_FLAG_COUNTRY": "Pavillon",
       "HARBOUR": "Port",
@@ -627,6 +629,10 @@
         "OPACITY_PLACEHOLDER": "Opacité (%)",
         "MIN": "Min :",
         "MAX": "Max :"
+      },
+      "SELECT_MODAL": {
+        "TITLE": "Liste des cartes",
+        "HELP": "Voici la liste des cartes disponibles :"
       }
     },
     "CATEGORY": {
@@ -739,7 +745,8 @@
     "FORBIDDEN": "Accès non autorisé",
     "AUTH_SERVER_ERROR": "Erreur lors de l'authentification sur le serveur",
     "AUTH_CHALLENGE_ERROR": "Erreur lors de l'authentification sur le serveur (récupration du challenge)",
-    "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur"
+    "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur",
+    "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

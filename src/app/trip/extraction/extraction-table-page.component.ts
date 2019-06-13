@@ -85,12 +85,19 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
       .subscribe(() => {
         if (this.loading || isNil(this.type)) return; // avoid multiple load
         console.debug('[extraction-table] Refreshing...');
+
         return this.load(this.type);
       });
+
+
   }
 
   protected loadTypes(): Observable<ExtractionType[]> {
     return this.service.loadTypes().first();
+  }
+
+  protected fromObject(json: any): ExtractionType {
+    return ExtractionType.fromObject(json);
   }
 
   protected async load(type?: ExtractionType) {
@@ -223,6 +230,33 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
 
     if (!$event.ctrlKey) {
       this.onRefresh.emit();
+    }
+  }
+
+  async openMap() {
+    this.loading = true;
+    this.markForCheck();
+    const type = this.form.get('type').value;
+
+    console.debug('[extraction-table] Creating extraction map...');
+
+    const filter = this.getFilterValue();
+    this.disable();
+
+    try {
+      // Save as spatial aggregation
+      const data = await this.service.save(type, filter, {aggregate: true});
+
+      // TODO: open the map modal
+
+    } catch (err) {
+      console.error(err);
+      this.error = err && err.message || err;
+      this.markAsDirty();
+    }
+    finally {
+      this.loading = false;
+      this.enable();
     }
   }
 

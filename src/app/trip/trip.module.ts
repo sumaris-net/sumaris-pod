@@ -53,6 +53,7 @@ import {LandingValidatorService} from "./services/landing.validator";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {LandingsTablesModal} from "./landing/landings-table.modal";
+import {ExtractionSelectTypeModal} from "./extraction/extraction-list-modal.component";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -92,7 +93,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       IndividualMonitoringTable,
       EntityQualityFormComponent,
       ExtractionTablePage,
-      ExtractionMapPage
+      ExtractionMapPage,
+      ExtractionSelectTypeModal
     ],
     exports: [
       TripsPage,
@@ -122,12 +124,13 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       PhysicalGearTable,
       OperationTable,
       OperationPage,
-      ExtractionTablePage,
-      ExtractionMapPage,
       ObservedLocationPage,
       ObservedLocationsPage,
       LandingPage,
-      LandingsTablesModal
+      LandingsTablesModal,
+      ExtractionTablePage,
+      ExtractionMapPage,
+      ExtractionSelectTypeModal
     ],
     providers: [
       TripService,

@@ -2,14 +2,13 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Vi
 import {LandingsTable} from "./landings.table";
 import {ModalController} from "@ionic/angular";
 import {LandingFilter} from "../services/landing.service";
-import {AcquisitionLevelType, isNotNil} from "../../referential/services/model";
-import {TableElement} from "angular4-material-table";
+import {AcquisitionLevelType} from "../../referential/services/model";
 import {Landing} from "../services/trip.model";
 
 @Component({
   selector: 'app-landings-table-modal',
   templateUrl: './landings-table.modal.html',
-  styleUrls: ['./landings-table.modal.scss'],
+  //styleUrls: ['./landings-table.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LandingsTablesModal implements OnInit {

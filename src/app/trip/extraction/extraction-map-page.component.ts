@@ -1,45 +1,66 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild} from "@angular/core";
 import {PlatformService} from "../../core/services/platform.service";
-import {ExtractionFilter, ExtractionService} from "../services/extraction.service";
+import {AggregationTypeFilter, ExtractionFilter, ExtractionService} from "../services/extraction.service";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {isNil, isNotNil} from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {AggregationStrata, AggregationType} from "../services/extraction.model";
+import {AggregationStrata, AggregationType, ExtractionType} from "../services/extraction.model";
 import {TranslateService} from "@ngx-translate/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
 import {DateAdapter, MatExpansionPanel} from "@angular/material";
 import {ExtractionForm} from "./extraction-filter.form";
 import {Moment} from "moment";
-import {Color, ColorScale, fadeInAnimation} from "../../shared/shared.module";
+import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
 import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
 import * as L from 'leaflet';
 import {Feature} from "geojson";
 import {throttleTime} from "rxjs/operators";
+import {ModalController} from "@ionic/angular";
+import {ExtractionSelectTypeModal} from "./extraction-list-modal.component";
+import {AccountService} from "../../core/services/account.service";
+import {CRS} from "leaflet";
 
 @Component({
   selector: 'app-extraction-map-page',
   templateUrl: './extraction-map-page.component.html',
   styleUrls: ['./extraction-map-page.component.scss'],
-  animations: [fadeInAnimation],
+  animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExtractionMapPage extends ExtractionForm<AggregationType> implements OnInit {
 
+
+  // -- Map Layers --
+  osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: '<a href=\'https://www.openstreetmap.org\'>OSM</a>'});
+  sextantBaseLayer = L.tileLayer(
+    'https://sextant.ifremer.fr/geowebcache/service/wmts?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
+    {maxZoom: 18, attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"});
+  sextantGraticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
+    maxZoom: 18,
+    version: '1.3.0',
+    crs: CRS.EPSG4326,
+    format: "image/png",
+    transparent: true
+  }).setParams({
+    layers: "graticule_4326",
+    service: 'WMS'
+  });
+
   ready = false;
-  osmLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: '...'});
   options = {
-    layers: [
-      this.osmLayer
-    ],
+    layers: [this.sextantBaseLayer],
     zoom: 5,
     center: L.latLng(46.879966, -10)
   };
   layersControl = {
     baseLayers: {
-      'Street Maps': this.osmLayer
+      'Sextant (Ifremer)': this.sextantBaseLayer,
+      'Open Street Map': this.osmBaseLayer
     },
-    overlays: {}
+    overlays: {
+      'Graticule': this.sextantGraticuleLayer
+    }
   };
   data = {
     total: 0,
@@ -51,17 +72,16 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   detailsLabels = {};
   showDetails = false;
   map: L.Map;
+  typesFilter: AggregationTypeFilter;
 
   $title = new Subject<string>();
   $layers = new BehaviorSubject<L.GeoJSON<L.Polygon>[]>(null);
   $legendItems = new BehaviorSubject<ColorScaleLegendItem[] | undefined>([]);
-  $details = new Subject<{ name: string; value: string }[]>();
-  $detailsTitle = new Subject<string | undefined>();
   $onOverFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
 
-  $stats = new Subject<{ name: string; value: string }[]>();
-  $statsTitle = new Subject<string>();
+  $details = new Subject<{ title: string; properties: { name: string; value: string }[]; }>();
+  $stats = new Subject<{ title: string; properties: { name: string; value: string }[] }>();
 
   @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
 
@@ -101,6 +121,8 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     protected service: ExtractionService,
     protected platform: PlatformService,
     protected location: Location,
+    protected accountService: AccountService,
+    protected modalCtrl: ModalController,
     protected zone: NgZone,
     protected cd: ChangeDetectorRef
   ) {
@@ -127,6 +149,13 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     this.routePath = 'map';
     this._enable = true; // enable the form
 
+    // If supervisor, allow to see all aggregations types
+    this.typesFilter = {
+      statusIds: this.accountService.hasMinProfile("SUPERVISOR") ? [0, 1, 2] : [1],
+      isSpatial: true
+    };
+
+    // TODO: get Settings preference ?
     const legendStartColor = new Color([255, 255, 190], 1);
     const legendEndColor = new Color([150, 30, 30], 1);
     this.legendForm = formBuilder.group({
@@ -175,16 +204,35 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   }
 
   protected loadTypes(): Observable<AggregationType[]> {
-    return this.service.loadGeoTypes().first();
+    return this.service.loadAggregationTypes(this.typesFilter);
+  }
+
+  protected fromObject(json: any): AggregationType {
+    return AggregationType.fromObject(json);
   }
 
   protected async start() {
     if (!this.ready || this.loading) return; // skip
 
-    this.loading = false;
+    const hasData = await this.tryLoadByYearIterations();
 
-    let tryCount = 0;
-    let year = new Date().getFullYear();
+    // No data found: open the select modal
+    if (!hasData) {
+      this.openSelectTypeModal();
+    }
+  }
+
+  protected async tryLoadByYearIterations(
+    type?: AggregationType,
+    startYear?: number,
+    endYear?: number
+  ) {
+
+    startYear = isNotNil(startYear) ? startYear : new Date().getFullYear();
+    endYear = isNotNil(endYear) && endYear < startYear ? endYear : startYear - 3;
+
+    let year = startYear;
+    let hasData = false;
     do {
       this.loading = true;
 
@@ -194,9 +242,13 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
         year: year--
       });
 
-      await this.load();
+      await this.load(type);
+
+      hasData = this.hasData;
     }
-    while (!this.hasData && tryCount++ < 3);
+    while (!hasData && year > endYear);
+
+    return hasData;
   }
 
   protected async load(type?: AggregationType) {
@@ -208,7 +260,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
     this.type = type || this.form.get('type').value;
     this.loading = true;
-    this.$detailsTitle.next(); // hide
+    this.$details.next(); // hide details
     this.error = null;
 
     const strata = this.form.get('strata').value;
@@ -232,8 +284,8 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
       while (hasMore) {
 
-        // Get data slice
-        const geoJson = await this.service.loadGeoData(this.type,
+        // Get geo json using slice
+        const geoJson = await this.service.loadAggregationGeoJson(this.type,
           strata,
           offset, size,
           null, null,
@@ -255,7 +307,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
             this.detailsLabels = {};
             Object.getOwnPropertyNames(geoJson.features[0].properties)
               .forEach(columnName => {
-                this.detailsLabels[columnName] = super.getI18nColumnName(columnName);
+                this.detailsLabels[columnName] = this.getI18nColumnName(columnName);
               });
           }
 
@@ -282,7 +334,11 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
       // Add to layers control
       const typeName = this.getI18nTypeName(this.type);
-      this.layersControl.overlays = {};
+      // Update layer control layers (Remove old data layer)
+      Object.getOwnPropertyNames(this.layersControl.overlays).forEach((layerName, index) => {
+        if (index === 0) return; // Keep graticule layer
+        delete this.layersControl.overlays[layerName];
+      });
       this.layersControl.overlays[typeName] = layer;
 
       // Emit event
@@ -321,15 +377,14 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       .filter(key => key !== strata.tech)
       .map(key => {
         return {
-          name: key,
+          name: this.detailsLabels[key],
           value: feature.properties[key]
         };
       });
-    const detailTitle = this.detailsLabels[strata.tech] + ': <b>' + feature.properties[strata.tech] + '</b>';
+    const title = this.detailsLabels[strata.tech] + ': <b>' + feature.properties[strata.tech] + '</b>';
 
     // Emit events
-    this.$details.next(properties);
-    this.$detailsTitle.next(detailTitle);
+    this.$details.next({title, properties});
     this.$selectedFeature.next(feature);
   }
 
@@ -339,7 +394,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     // Close now, of forced (already wait 5s)
     if (force) {
       this.$selectedFeature.next(undefined);
-      this.$detailsTitle.next();
+      this.$details.next(); // Hide details
       return;
     }
 
@@ -363,6 +418,39 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   applyLegendForm(event: UIEvent) {
     this.showLegendForm = false;
     this.onRefresh.emit();
+  }
+
+  async openSelectTypeModal() {
+    // If supervisor, allow to see all aggregations types
+    const filter: AggregationTypeFilter = {
+      statusIds: this.accountService.hasMinProfile("SUPERVISOR") ? [0, 1, 2] : [1],
+      isSpatial: true
+    };
+    const modal = await this.modalCtrl.create({
+      component: ExtractionSelectTypeModal,
+      componentProps: {
+        filter: filter
+      }, keyboardClose: true
+    });
+
+    // Open the modal
+    modal.present();
+
+    // Wait until closed
+    const res = await modal.onDidDismiss();
+
+    // If new vessel added, use it
+    if (res && res.data instanceof AggregationType) {
+      const type = res.data as AggregationType;
+      await this.setType(type);
+
+      const hasData = await this.tryLoadByYearIterations(type);
+
+      // If no data: loop
+      if (!hasData) {
+        this.openSelectTypeModal();
+      }
+    }
   }
 
   /* -- protected methods -- */
@@ -389,7 +477,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
   protected createLegendScale(): ColorScale {
     const json = this.legendForm.value;
-    const min = json.min||0;
+    const min = json.min || 0;
     const max = json.max;
     const startColor = Color.parseRgba(json.startColor);
     const endColor = Color.parseRgba(json.endColor);

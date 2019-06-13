@@ -19,6 +19,11 @@ $screen-xl: 1200px;
   @-ms-viewport {
     width: 320px;
   }
+  [hidden-xxs],
+  .hidden-xxs {
+    display: none !important;
+    visibility: hidden !important;
+  }
 }
 
 // Extra small device

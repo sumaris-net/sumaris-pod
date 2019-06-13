@@ -198,30 +198,11 @@ const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: '/extraction/product/p01_rdb',
+        component: ExtractionTablePage,
+        runGuardsAndResolvers: 'pathParamsChange',
         data: {
           profile: 'SUPERVISOR'
         }
-      },
-      {
-        path: ':category',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            redirectTo: '/extraction/product/p01_rdb',
-            data: {
-              profile: 'SUPERVISOR'
-            }
-          },
-          {
-            path: ':label',
-            component: ExtractionTablePage,
-            data: {
-              profile: 'SUPERVISOR'
-            }
-          }
-        ]
       }
     ]
   },
@@ -233,30 +214,11 @@ const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: '/map/product/p01_rdb',
+        component: ExtractionMapPage,
+        runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          profile: 'SUPERVISOR'
+          profile: 'USER'
         }
-      },
-      {
-        path: ':category',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            redirectTo: '/map/product/p01_rdb',
-            data: {
-              profile: 'SUPERVISOR'
-            }
-          },
-          {
-            path: ':label',
-            component: ExtractionMapPage,
-            data: {
-              profile: 'SUPERVISOR'
-            }
-          }
-        ]
       }
     ]
   },
