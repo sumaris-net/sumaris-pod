@@ -1,5 +1,6 @@
 package net.sumaris.core.dao.technical.extraction;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
@@ -36,17 +37,29 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
             LoggerFactory.getLogger(ExtractionProductDaoImpl.class);
 
     @Override
+    public List<ExtractionProductVO> findAllByStatus(List<Integer> statusIds) {
+        Preconditions.checkNotNull(statusIds);
+        Preconditions.checkArgument(statusIds.size() > 0);
+        return getEntityManager().createQuery("from ExtractionProduct p where p.status.id IN (:statusIds)", ExtractionProduct.class)
+                .setParameter("statusIds", statusIds)
+                .getResultStream()
+                .map(this::toProductVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<ExtractionProductVO> getAll() {
         return getEntityManager().createQuery("from ExtractionProduct p where p.status.id!=0", ExtractionProduct.class)
-                .getResultList().stream()
+                .getResultStream()
                 .map(this::toProductVO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public ExtractionProductVO getByLabel(String label) {
+        Preconditions.checkNotNull(label);
         return toProductVO(getEntityManager().createQuery("from ExtractionProduct p where p.label=:label", ExtractionProduct.class)
-                .setParameter("label", label)
+                .setParameter("label", label.toUpperCase())
                 .getSingleResult()
         );
     }
@@ -72,7 +85,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         }
 
         // VO -> Entity
-        productVOToEntity(source, entity, false);
+        productVOToEntity(source, entity, true);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -89,6 +102,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         }
 
         source.setUpdateDate(newUpdateDate);
+        source.setLabel(entity.getLabel());
 
         // Save tables
         saveProductTables(source.getTables(), entity, newUpdateDate);
@@ -111,6 +125,12 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
 
         Beans.copyProperties(source, target);
 
+        // Make sure label is uppercase
+        if (source.getLabel() != null) {
+            String label = source.getLabel().toUpperCase();
+            target.setLabel(label);
+        }
+
         // status
         if (copyIfNull || source.getStatusId() != null) {
             if (source.getStatusId() == null) {
@@ -120,6 +140,17 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                 target.setStatus(load(Status.class, source.getStatusId()));
             }
         }
+
+        // Parent
+        if (copyIfNull || source.getParentId() != null) {
+            if (source.getParentId() == null) {
+                target.setParent(null);
+            }
+            else {
+                target.setParent(load(ExtractionProduct.class, source.getParentId()));
+            }
+        }
+
     }
 
     protected void saveProductTables(List<ExtractionProductTableVO> sources, ExtractionProduct parent, Timestamp updateDate) {
@@ -135,7 +166,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
             Map<String, ExtractionProductTable> existingItems = Beans.splitByProperty(
                     Beans.getList(parent.getTables()),
                     ExtractionProductTable.PROPERTY_LABEL);
-            final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
+            final Status enableStatus = load(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getTables() == null) {
                 parent.setTables(Lists.newArrayList());
             }

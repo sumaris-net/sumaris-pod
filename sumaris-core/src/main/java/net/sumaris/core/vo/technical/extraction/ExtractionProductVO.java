@@ -20,8 +20,10 @@ public class ExtractionProductVO implements IReferentialVO {
     private String comments;
     private Date updateDate;
     private Date creationDate;
+    private Boolean isSpatial;
 
     private Integer statusId;
+    private Integer parentId;
 
     private List<ExtractionProductTableVO> tables;
 
@@ -54,6 +56,12 @@ public class ExtractionProductVO implements IReferentialVO {
                 .filter(t -> tableName.equalsIgnoreCase(t.getTableName()))
                 .map(t -> t.getLabel())
                 .findFirst();
+    }
+
+    public boolean hasSpatialSheet() {
+        return ListUtils.emptyIfNull(tables).stream()
+                .anyMatch(t -> t.getIsSpatial() != null && t.getIsSpatial().booleanValue());
+
     }
 
 }

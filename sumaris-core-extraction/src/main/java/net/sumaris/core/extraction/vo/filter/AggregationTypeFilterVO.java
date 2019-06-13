@@ -1,4 +1,4 @@
-package net.sumaris.core.extraction.vo;
+package net.sumaris.core.extraction.vo.filter;
 
 /*-
  * #%L
@@ -24,17 +24,14 @@ package net.sumaris.core.extraction.vo;
 
 import lombok.Data;
 
-@Data
-public class ExtractionTypeVO {
+import java.util.List;
 
-    private Integer id;
-    private String category;
-    private String label;
-    private String version;
-    private String[] sheetNames;
+@Data
+public class AggregationTypeFilterVO {
+    
+    private List<Integer> statusIds;
+
     private Integer statusId;
 
-    public String getFormat() {
-        return getLabel() != null ? getLabel().split("-")[0] : null;
-    }
+    private Boolean isSpatial;
 }

@@ -22,18 +22,17 @@ import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
-import net.sumaris.core.util.Dates;
-import net.sumaris.core.util.Files;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.util.ZipUtils;
+import net.sumaris.core.util.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,7 +122,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (category) {
             case PRODUCT:
-                ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel().toUpperCase());
+                ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel());
                 return readProductRows(product, filter, offset, size, sort, direction);
             case LIVE:
                 String formatName = checkedType.getLabel();
@@ -245,7 +244,13 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         ExtractionProductVO target = new ExtractionProductVO();
 
-        target.setLabel(source.getLabel().toUpperCase());
+        String format = source.getFormatName();
+        if (StringUtils.isNotBlank(format)) {
+            target.setLabel(StringUtils.changeCaseToUnderscore(format).toUpperCase());
+        }
+        else {
+            target.setLabel(source.getLabel());
+        }
         target.setName(String.format("Extraction #%s", source.getId()));
 
         target.setTables(SetUtils.emptyIfNull(source.getTableNames())
@@ -260,6 +265,44 @@ public class ExtractionServiceImpl implements ExtractionService {
                 .collect(Collectors.toList()));
 
         return target;
+    }
+
+    @Override
+    public ExtractionTypeVO save(ExtractionTypeVO type, ExtractionFilterVO filter) {
+        Preconditions.checkNotNull(type);
+
+        // Load the product
+        ExtractionProductVO target = null;
+        try {
+            target = extractionProductDao.getByLabel(type.getLabel());
+        }
+        catch(Throwable t) {
+            // Not found
+        }
+
+        if (target == null) {
+            target = new ExtractionProductVO();
+            target.setLabel(type.getLabel());
+        }
+
+        // Execute the aggregation
+        ExtractionContextVO context;
+        {
+            ExtractionTypeVO cleanType = new ExtractionTypeVO();
+            cleanType.setLabel(type.getFormat());
+            cleanType.setCategory(type.getCategory());
+            context = execute(cleanType, filter);
+        }
+        toProductVO(context, target);
+
+        // Set the status
+        target.setStatusId(type.getStatusId());
+
+        // Save the product
+        target = extractionProductDao.save(target);
+
+        // Transform back to type
+        return toExtractionTypeVO(target);
     }
 
     /* -- protected -- */
@@ -566,4 +609,37 @@ public class ExtractionServiceImpl implements ExtractionService {
         return result;
     }
 
+
+    protected ExtractionTypeVO toExtractionTypeVO(ExtractionProductVO product) {
+        ExtractionTypeVO type = new ExtractionTypeVO();
+        type.setId(product.getId());
+        type.setLabel(product.getLabel().toLowerCase());
+        type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
+
+        Collection<String> sheetNames = product.getSheetNames();
+        type.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
+        return type;
+    }
+
+    protected void toProductVO(ExtractionContextVO source, ExtractionProductVO target) {
+
+        target.setLabel(source.getLabel().toUpperCase() + "-" + source.getId());
+        target.setName(String.format("Extraction #%s", source.getId()));
+
+        target.setTables(SetUtils.emptyIfNull(source.getTableNames())
+                .stream()
+                .map(t -> {
+                    String sheetName = source.getSheetName(t);
+                    ExtractionProductTableVO table = new ExtractionProductTableVO();
+                    table.setLabel(sheetName);
+                    table.setName(getNameBySheet(source.getFormatName(), sheetName));
+                    table.setTableName(t);
+                    return table;
+                })
+                .collect(Collectors.toList()));
+    }
+
+    protected String getNameBySheet(String format, String sheetname) {
+        return I18n.t(String.format("sumaris.extraction.%s.%s", format.toUpperCase(), sheetname.toUpperCase()));
+    }
 }

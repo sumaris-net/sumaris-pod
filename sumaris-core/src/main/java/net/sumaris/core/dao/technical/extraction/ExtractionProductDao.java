@@ -14,6 +14,10 @@ import java.util.List;
  */
 public interface ExtractionProductDao {
 
+
+    @Cacheable(cacheNames = CacheNames.PRODUCTS_BY_STATUS)
+    List<ExtractionProductVO> findAllByStatus(List<Integer> statusId);
+
     @Cacheable(cacheNames = CacheNames.PRODUCTS)
     List<ExtractionProductVO> getAll();
 
@@ -23,7 +27,8 @@ public interface ExtractionProductDao {
     @Caching(
         evict = {
             @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#source.label", condition = "#source != null && #source.id != null"),
-            @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true)
+            @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_STATUS, allEntries = true),
         },
         put = {
             @CachePut(cacheNames= CacheNames.PRODUCT_BY_LABEL, key="#source.label", condition = "#source != null && #source.label != null")
@@ -33,24 +38,9 @@ public interface ExtractionProductDao {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#id"),
-            @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true)
+            @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_STATUS, allEntries = true)
     })
 
     void delete(int id);
 }
-
-/*
-@Cacheable(cacheNames = CacheNames.PERSON_BY_PUBKEY, key = "#pubkey", unless="#result==null")
-    PersonVO getByPubkeyOrNull(String pubkey);
-
-    List<String> getEmailsByProfiles(List<Integer> userProfiles, List<Integer> statusIds);
-
-    ImageAttachmentVO getAvatarByPubkey(String pubkey);
-
-    boolean isExistsByEmailHash(String hash);
-
-    @Caching(evict = {
-            @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#id"),
-            @CacheEvict(cacheNames = CacheNames.PERSON_BY_PUBKEY, allEntries = true)
-    })
- */

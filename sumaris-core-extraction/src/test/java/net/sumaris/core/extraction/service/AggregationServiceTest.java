@@ -1,9 +1,13 @@
 package net.sumaris.core.extraction.service;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.extraction.dao.DatabaseResource;
 import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
+import org.hibernate.envers.query.criteria.ExtendableCriterion;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -74,8 +78,8 @@ public class AggregationServiceTest extends AbstractServiceTest {
     public void aggregate_SurvivalTest() {
 
         AggregationTypeVO type = new AggregationTypeVO();
-        type.setCategory(ExtractionCategoryEnum.LIVE.name());
-        type.setLabel(ExtractionRawFormatEnum.SURVIVAL_TEST.name());
+        type.setCategory(ExtractionCategoryEnum.LIVE.name().toLowerCase());
+        type.setLabel(ExtractionRawFormatEnum.SURVIVAL_TEST.name().toLowerCase());
 
         ExtractionResultVO result = service.executeAndRead(type, null, null, 0, 100, null, null);
         Preconditions.checkNotNull(result);
@@ -86,4 +90,51 @@ public class AggregationServiceTest extends AbstractServiceTest {
         //Preconditions.checkNotNull(result.getTotal() > 0);
     }
 
+
+    @Test
+    public void save() {
+
+        AggregationTypeVO savedType = doSave(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.RDB);
+        Assert.assertNotNull(savedType);
+        Assert.assertNotNull(savedType.getId());
+    }
+
+    @Test
+    public void saveThenRead() {
+
+
+        AggregationTypeVO type = doSave(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.SURVIVAL_TEST);
+
+        ExtractionFilterVO filter = new ExtractionFilterVO();
+        filter.setSheetName("HH");
+
+        ExtractionFilterCriterionVO criterion = new ExtractionFilterCriterionVO() ;
+        criterion.setSheetName("HH");
+        criterion.setName("year");
+        criterion.setOperator("=");
+        criterion.setValue("2018");
+        filter.setCriteria(ImmutableList.of(criterion));
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpace("area");
+        AggregationResultVO result = service.read(type, filter, strata, 0,100, null, null);
+
+        Assert.assertNotNull(result);
+        Assert.assertNotNull(result.getRows());
+        Assert.assertTrue(result.getRows().size() > 0);
+    }
+
+
+    //
+
+    protected AggregationTypeVO doSave(ExtractionCategoryEnum category, ExtractionRawFormatEnum format) {
+
+        AggregationTypeVO type = new AggregationTypeVO();
+        type.setCategory(category.name().toLowerCase());
+        type.setLabel(format.name().toLowerCase() + "-" + System.currentTimeMillis());
+        type.setName(String.format("Aggregation on %s (%s) data", format.name(), category.name()));
+        type.setStatusId(StatusEnum.TEMPORARY.getId());
+
+        return service.save(type, null);
+    }
 }

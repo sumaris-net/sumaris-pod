@@ -71,6 +71,9 @@ public class ExtractionProductTable implements IItemReferentialEntity {
     @Column(name="table_name", nullable = false, length = 30)
     private String tableName;
 
+    @Column(name = "is_spatial")
+    private Boolean isSpatial;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_fk", nullable = false)
     private ExtractionProduct product;

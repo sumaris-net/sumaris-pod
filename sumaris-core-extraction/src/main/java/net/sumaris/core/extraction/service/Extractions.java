@@ -28,18 +28,18 @@ public class Extractions {
         Preconditions.checkNotNull(type.getLabel(), "Missing argument 'type.label'");
 
         // Retrieve the extraction type, from list
-        final String extractionLabel = type.getLabel();
+        final String label = type.getLabel();
         if (type.getCategory() == null) {
             type = availableTypes.stream()
-                    .filter(aType -> aType.getLabel().equalsIgnoreCase(extractionLabel))
+                    .filter(aType -> label.equalsIgnoreCase(aType.getLabel()))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type label {%s}", extractionLabel)));
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type label {%s}", label)));
         } else {
             final String extractionCategory = type.getCategory();
             type = availableTypes.stream()
-                    .filter(aType -> aType.getLabel().equalsIgnoreCase(extractionLabel) && aType.getCategory().equalsIgnoreCase(extractionCategory))
+                    .filter(aType -> label.equalsIgnoreCase(aType.getLabel()) && aType.getCategory().equalsIgnoreCase(extractionCategory))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type category/label {%s/%s}", extractionCategory, extractionLabel)));
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown extraction type category/label {%s/%s}", extractionCategory, label)));
         }
         return type;
     }

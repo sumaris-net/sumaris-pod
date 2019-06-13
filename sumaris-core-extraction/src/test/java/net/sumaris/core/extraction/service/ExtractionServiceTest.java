@@ -5,10 +5,15 @@ import net.sumaris.core.extraction.dao.DatabaseResource;
 import java.io.File;
 import java.io.IOException;
 
+import net.sumaris.core.extraction.vo.AggregationTypeVO;
+import net.sumaris.core.extraction.vo.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionRawFormatEnum;
+import net.sumaris.core.extraction.vo.ExtractionTypeVO;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ZipUtils;
 import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -52,4 +57,17 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
+
+    @Test
+    public void save() {
+
+        ExtractionTypeVO type = new ExtractionTypeVO();
+        type.setCategory(ExtractionCategoryEnum.LIVE.name());
+        type.setLabel(ExtractionRawFormatEnum.RDB.name() + "-ext");
+        type.setStatusId(StatusEnum.TEMPORARY.getId());
+
+        ExtractionTypeVO savedType = service.save(type, null);
+
+        Assert.assertNotNull(savedType);
+    }
 }

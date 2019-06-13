@@ -2,6 +2,7 @@ package net.sumaris.core.extraction.service;
 
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -16,6 +17,10 @@ import java.util.List;
 public interface AggregationService {
 
     @Transactional(readOnly = true)
+    List<AggregationTypeVO> findAllTypes(AggregationTypeFilterVO filter);
+
+
+    @Transactional(readOnly = true)
     List<AggregationTypeVO> getAllAggregationTypes();
 
     /**
@@ -26,6 +31,12 @@ public interface AggregationService {
     @Transactional
     AggregationContextVO execute(AggregationTypeVO type,
                                  @Nullable ExtractionFilterVO filter);
+
+    @Transactional(readOnly = true)
+    AggregationResultVO read(AggregationTypeVO type,
+                             @Nullable  ExtractionFilterVO filter,
+                             @Nullable AggregationStrataVO strata,
+                             int offset, int size, String sort, SortDirection direction);
 
     @Transactional(readOnly = true)
     AggregationResultVO read(AggregationContextVO context,
@@ -40,4 +51,7 @@ public interface AggregationService {
                                        int offset, int size,
                                        @Nullable String sort,
                                        @Nullable SortDirection direction);
+
+    @Transactional
+    AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
 }

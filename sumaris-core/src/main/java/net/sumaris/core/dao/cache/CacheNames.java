@@ -10,12 +10,12 @@ package net.sumaris.core.dao.cache;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -27,19 +27,20 @@ public interface CacheNames {
     String DEPARTMENT_BY_ID = "net.sumaris.core.dao.administration.user.departmentByIdCache";
     String DEPARTMENT_BY_LABEL = "net.sumaris.core.dao.administration.user.departmentByLabelCache";
     String PERSON_BY_ID = "net.sumaris.core.dao.administration.user.personByIdCache";
-    String PERSON_BY_PUBKEY= "net.sumaris.core.dao.administration.user.personByPubkeyCache";
+    String PERSON_BY_PUBKEY = "net.sumaris.core.dao.administration.user.personByPubkeyCache";
     String REFERENTIAL_TYPES = "net.sumaris.core.dao.referential.allTypesCache";
     String REFERENTIAL_LEVEL_BY_UNIQUE_LABEL = "net.sumaris.core.dao.referential.findByUniqueLabelCache";
 
-    String PROGRAM_BY_LABEL= "net.sumaris.core.dao.administration.programStrategy.programBylabelCache";
+    String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programBylabelCache";
 
-    String PMFM_BY_ID= "net.sumaris.core.dao.referential.pmfmByIdCache";
-    String PMFM_BY_PROGRAM_ID= "net.sumaris.core.dao.administration.programStrategy.pmfmByProgramIdCache";
+    String PMFM_BY_ID = "net.sumaris.core.dao.referential.pmfmByIdCache";
+    String PMFM_BY_PROGRAM_ID = "net.sumaris.core.dao.administration.programStrategy.pmfmByProgramIdCache";
 
     String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";
 
     String PRODUCTS = "net.sumaris.core.dao.technical.product.productsCache";
     String PRODUCT_BY_LABEL = "net.sumaris.core.dao.technical.product.productByLabelCache";
+    String PRODUCTS_BY_STATUS = "net.sumaris.core.dao.technical.product.productsByStatusCache";
 
     // Technical caches
     String TABLE_META_BY_NAME = "net.sumaris.core.dao.technical.schema.tableMetaByName";

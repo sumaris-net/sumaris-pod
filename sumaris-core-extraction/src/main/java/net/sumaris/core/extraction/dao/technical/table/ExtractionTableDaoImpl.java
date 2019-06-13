@@ -26,7 +26,6 @@ package net.sumaris.core.extraction.dao.technical.table;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.*;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -43,7 +42,6 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
-import javax.persistence.Query;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -147,34 +145,42 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         String whereClause = null;
 
         // Set columns metadata
-        {
-            SumarisTableMetadata table = databaseMetadata.getTable(tableName);
-            if (table != null && table.getColumnsCount() > 0) {
-                List<ExtractionColumnMetadataVO> columns = toExtractionColumnVOs(table, columnNames);
-                result.setColumns(columns);
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+        if (table != null && table.getColumnsCount() > 0) {
+            List<ExtractionColumnMetadataVO> columns = toExtractionColumnVOs(table, columnNames);
+            result.setColumns(columns);
 
-                whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
-            } else {
-                // TODO
+            whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
+        } else {
+            // TODO
 //                List<ExtractionColumnMetadataVO> columns = toExtractionColumnVOs(columnNames);
 //                result.setColumns(columns);
-            }
         }
+
+        String tableAlias = table != null ? table.getAlias() : null;
 
         List<String> columnNamesWithFunction = columnNames.stream()
                 .map(c -> {
                     SQLAggregatedFunction sqlAggregatedFunction = otherColumnNames.get(c);
-                    if (sqlAggregatedFunction == null) return c;
-                    return String.format("%s(%s)", sqlAggregatedFunction.name().toLowerCase(), c);
+                    if (sqlAggregatedFunction == null) {
+                        return SumarisTableMetadatas.getAliasedColumnName(tableAlias, c);
+                    }
+                    else {
+                        return String.format("%s(%s)",
+                                sqlAggregatedFunction.name().toLowerCase(),
+                                SumarisTableMetadatas.getAliasedColumnName(tableAlias, c));
+                    }
                 })
                 .collect(Collectors.toList());
 
         String sql = SumarisTableMetadatas.getSelectGroupByQuery(
-                tableName,
+                SumarisTableMetadatas.getAliasedTableName(tableAlias, tableName),
                 columnNamesWithFunction,
                 whereClause,
-                groupByColumnNames,
-                groupByColumnNames, // Sort by same columns, because of pageable
+                // Group by
+                SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumnNames),
+                // Sort by same columns, because of pageable
+                SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumnNames),
                 direction);
 
         // Execute the query

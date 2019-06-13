@@ -5,27 +5,31 @@ import com.google.common.collect.ImmutableList;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDao;
-import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
 import net.sumaris.core.extraction.vo.*;
-import net.sumaris.core.extraction.vo.AggregationContextVO;
-import net.sumaris.core.extraction.vo.AggregationStrataVO;
+import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
+import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
+import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +60,19 @@ public class AggregationServiceImpl implements AggregationService {
     protected ExtractionTableDao extractionTableDao;
 
     @Override
+    public List<AggregationTypeVO> findAllTypes(AggregationTypeFilterVO filter) {
+        List<Integer> statusIds = filter.getStatusIds();
+        if (CollectionUtils.isEmpty(statusIds)) {
+            statusIds = ImmutableList.of(filter.getStatusId());
+        }
+        return ListUtils.emptyIfNull(extractionProductDao.findAllByStatus(statusIds))
+                .stream()
+                .filter(t -> filter.getIsSpatial() == null || Objects.equals(filter.getIsSpatial(), t.getIsSpatial()))
+                .map(this::toAggregationType)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<AggregationTypeVO> getAllAggregationTypes() {
         return ImmutableList.<AggregationTypeVO>builder()
                 .addAll(getProductAggregationTypes())
@@ -72,13 +89,13 @@ public class AggregationServiceImpl implements AggregationService {
         switch (category) {
             case PRODUCT:
                 // Get the product VO
-                source = extractionProductDao.getByLabel(checkedType.getLabel().toUpperCase());
+                source = extractionProductDao.getByLabel(checkedType.getFormat());
                 // Execute, from product
                 return executeProduct(source, filter);
 
             case LIVE:
                 // First execute the raw extraction
-                ExtractionContextVO rawExtractionContext = extractionService.execute(type, filter);
+                ExtractionContextVO rawExtractionContext = extractionService.execute(checkedType, filter);
 
                 try {
                     source = extractionService.toProductVO(rawExtractionContext);
@@ -90,8 +107,7 @@ public class AggregationServiceImpl implements AggregationService {
 
                     // Execute, from product
                     return executeProduct(source, aggregationFilter);
-                }
-                finally {
+                } finally {
                     // Clean intermediate tables
                     asyncClean(rawExtractionContext);
                 }
@@ -101,16 +117,25 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
+    public AggregationResultVO read(AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata, int offset, int size, String sort, SortDirection direction) {
+        Preconditions.checkNotNull(type);
+
+        ExtractionProductVO product = extractionProductDao.getByLabel(type.getLabel().toUpperCase());
+        AggregationContextVO context = toContextVO(product);
+
+        return read(context, filter, strata, offset, size, sort, direction);
+    }
+
+    @Override
     public AggregationResultVO read(AggregationContextVO context, ExtractionFilterVO filter, AggregationStrataVO strata,
-                                   int offset, int size, String sort, SortDirection direction) {
+                                    int offset, int size, String sort, SortDirection direction) {
         filter = filter != null ? filter : new ExtractionFilterVO();
         strata = strata != null ? strata : new AggregationStrataVO();
 
         String tableName;
         if (StringUtils.isNotBlank(filter.getSheetName())) {
             tableName = context.getTableNameBySheetName(filter.getSheetName());
-        }
-        else {
+        } else {
             tableName = context.getTableNames().iterator().next();
         }
 
@@ -141,29 +166,60 @@ public class AggregationServiceImpl implements AggregationService {
         try {
             // Read data
             return read(context, readFilter, strata, offset, size, sort, direction);
-        }
-        finally {
+        } finally {
             // Clean created tables
             asyncClean(context);
         }
     }
 
+    @Override
+    public AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
+        Preconditions.checkNotNull(type);
+        Preconditions.checkNotNull(type.getLabel());
+        Preconditions.checkNotNull(type.getName());
+
+        // Load the product
+        ExtractionProductVO target = null;
+        try {
+            target = extractionProductDao.getByLabel(type.getLabel());
+        } catch (Throwable t) {
+            // Not found
+        }
+
+        if (target == null) {
+            target = new ExtractionProductVO();
+            target.setLabel(type.getLabel());
+        }
+
+        // Prepare a executable type (with label=format)
+        AggregationTypeVO executableType = new AggregationTypeVO();
+        executableType.setLabel(type.getFormat());
+        executableType.setCategory(type.getCategory());
+
+        // Execute the aggregation
+        AggregationContextVO context = execute(executableType, filter);
+
+        // Update product tables, using the aggregation result
+        toProductVO(context, target);
+
+        // Copy some properties from given type
+        target.setName(type.getName());
+        target.setStatusId(type.getStatusId());
+
+        // Save the product
+        target = extractionProductDao.save(target);
+
+        // Transform back to type
+        return toAggregationType(target);
+    }
 
     /* -- protected -- */
 
     protected List<AggregationTypeVO> getProductAggregationTypes() {
         return ListUtils.emptyIfNull(extractionProductDao.getAll())
                 .stream()
-                .map(product -> {
-                    AggregationTypeVO type = new AggregationTypeVO();
-                    type.setLabel(product.getLabel().toLowerCase());
-                    type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
-
-                    Collection<String> sheetNames = product.getSheetNames();
-                    type.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
-
-                    return type;
-                }).collect(Collectors.toList());
+                .map(this::toAggregationType)
+                .collect(Collectors.toList());
     }
 
     protected List<AggregationTypeVO> getLiveAggregationTypes() {
@@ -190,17 +246,83 @@ public class AggregationServiceImpl implements AggregationService {
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getLabel());
 
-        switch (source.getLabel().toUpperCase()) {
-            case "P01_RDB":
-            case "RDB":
+        final String formatStr = StringUtils.changeCaseToUnderscore(source.getLabel().split("-")[0]).toUpperCase();
+
+        ExtractionRawFormatEnum format = ExtractionRawFormatEnum.fromString(formatStr)
+                .orElseGet(() -> {
+                    if (formatStr.contains(ExtractionRawFormatEnum.RDB.name())) {
+                        return ExtractionRawFormatEnum.RDB;
+                    }
+                    throw new SumarisTechnicalException(String.format("Data aggregation on type '%s' is not implemented !", formatStr));
+                });
+
+        switch (format) {
+            case RDB:
+            case COST:
+            case SURVIVAL_TEST:
                 return aggregationRdbDao.aggregate(source, filter);
             default:
-                throw new SumarisTechnicalException(String.format("Unable to aggregate data on type '%s': not implemented", source.getLabel()));
+                throw new SumarisTechnicalException(String.format("Data aggregation on type '%s' is not implemented !", format.name()));
         }
     }
 
     protected void asyncClean(ExtractionContextVO context) {
         if (context == null) return;
         extractionService.asyncClean(context);
+    }
+
+    protected AggregationTypeVO toAggregationType(ExtractionProductVO product) {
+        AggregationTypeVO type = new AggregationTypeVO();
+
+        type.setId(product.getId());
+        type.setLabel(product.getLabel().toLowerCase());
+        type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
+        type.setName(product.getName());
+        type.setDescription(product.getDescription());
+
+        Collection<String> sheetNames = product.getSheetNames();
+        type.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
+        return type;
+    }
+
+
+    protected void toProductVO(AggregationContextVO source, ExtractionProductVO target) {
+
+        target.setLabel(source.getLabel().toUpperCase() + "-" + source.getId());
+        target.setName(String.format("Aggregation #%s", source.getId()));
+
+        target.setTables(SetUtils.emptyIfNull(source.getTableNames())
+                .stream()
+                .map(t -> {
+                    String sheetName = source.getSheetName(t);
+                    ExtractionProductTableVO table = new ExtractionProductTableVO();
+                    table.setLabel(sheetName);
+                    table.setName(getNameBySheet(source.getFormatName(), sheetName));
+                    table.setTableName(t);
+                    table.setIsSpatial(source.hasSpatialColumn(t));
+                    if (table.getIsSpatial()) {
+                        target.setIsSpatial(true);
+                    }
+                    return table;
+                })
+                .collect(Collectors.toList()));
+    }
+
+    protected AggregationContextVO toContextVO(ExtractionProductVO source) {
+
+        AggregationContextVO target = new AggregationRdbTripContextVO();
+
+        target.setId(source.getId());
+        target.setLabel(source.getLabel());
+
+        ListUtils.emptyIfNull(source.getTables())
+                .forEach(t -> {
+                    target.addTableName(t.getTableName(), t.getLabel());
+                });
+        return target;
+    }
+
+    protected String getNameBySheet(String format, String sheetname) {
+        return I18n.t(String.format("sumaris.aggregation.%s.%s", format.toUpperCase(), sheetname.toUpperCase()));
     }
 }

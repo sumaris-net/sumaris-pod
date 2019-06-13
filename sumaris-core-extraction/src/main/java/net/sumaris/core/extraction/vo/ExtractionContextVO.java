@@ -31,6 +31,7 @@ public class ExtractionContextVO {
     @FieldNameConstants.Exclude
     Map<String, Set<String>> hiddenColumnNames = new LinkedHashMap<>();
 
+
     @FieldNameConstants.Exclude
     Set<String> tableNameWithDistinct = new HashSet<>();
 
@@ -107,11 +108,11 @@ public class ExtractionContextVO {
     /**
      * Return the hidden columns of the given table
      * @param tableName
-     * @param hiddenColumns
      */
     public Set<String> getHiddenColumns(String tableName) {
         return hiddenColumnNames.get(tableName);
     }
+
 
     /**
      * Return is distinct is enable on the table

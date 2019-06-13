@@ -1,5 +1,7 @@
 package net.sumaris.core.extraction.vo;
 
+import java.util.Optional;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
@@ -21,5 +23,14 @@ public enum ExtractionRawFormatEnum {
 
     public String[] getSheetNames() {
         return sheetNames;
+    }
+
+    public static Optional<ExtractionRawFormatEnum> fromString(String value) {
+        try {
+            return Optional.of(valueOf(value.toUpperCase()));
+        }
+        catch(IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 }

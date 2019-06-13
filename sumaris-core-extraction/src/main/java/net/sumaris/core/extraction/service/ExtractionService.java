@@ -59,4 +59,6 @@ public interface ExtractionService {
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     ExtractionProductVO toProductVO(ExtractionContextVO context);
 
+    @Transactional
+    ExtractionTypeVO save(ExtractionTypeVO type, ExtractionFilterVO filter);
 }

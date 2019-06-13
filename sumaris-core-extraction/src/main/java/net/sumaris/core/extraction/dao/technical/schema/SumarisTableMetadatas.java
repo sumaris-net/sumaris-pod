@@ -13,11 +13,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import java.sql.Types;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * Helper class for extraction
+ *
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 public class SumarisTableMetadatas {
@@ -52,75 +55,73 @@ public class SumarisTableMetadatas {
                 .filter(criterion -> sheetName == null || sheetName.equals(criterion.getSheetName()))
                 .forEach(criterion -> {
 
-            // Get the column to tripFilter
-            Preconditions.checkNotNull(criterion.getName());
-            SumarisColumnMetadata column = table != null ? table.getColumnMetadata(criterion.getName().toLowerCase()) : null;
-            if (column == null) {
-                if (sheetName != null) {
-                    throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found", criterion.getName()));
-                }
-                else {
-                    // Continue (=skip)
-                }
-            }
-            else {
-                sql.append(logicalOperator.toString())
-                        .append(aliasWithPoint)
-                        .append(column.getName());
-
-                // Affect logical operator, for the next criterion
-                if (logicalOperator.length() == 0) {
-                    if ("OR".equalsIgnoreCase(StringUtils.trim(filter.getOperator()))) {
-                        logicalOperator.append(" OR ");
+                    // Get the column to tripFilter
+                    Preconditions.checkNotNull(criterion.getName());
+                    SumarisColumnMetadata column = table != null ? table.getColumnMetadata(criterion.getName().toLowerCase()) : null;
+                    if (column == null) {
+                        if (sheetName != null) {
+                            throw new SumarisTechnicalException(String.format("Invalid criterion: column '%s' not found", criterion.getName()));
+                        } else {
+                            // Continue (=skip)
+                        }
                     } else {
-                        logicalOperator.append(" AND ");
-                    }
-                }
+                        sql.append(logicalOperator.toString())
+                                .append(aliasWithPoint)
+                                .append(column.getName());
 
-                ExtractionFilterOperatorEnum operator = criterion.getOperator() == null ? ExtractionFilterOperatorEnum.EQUALS : ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
+                        // Affect logical operator, for the next criterion
+                        if (logicalOperator.length() == 0) {
+                            if ("OR".equalsIgnoreCase(StringUtils.trim(filter.getOperator()))) {
+                                logicalOperator.append(" OR ");
+                            } else {
+                                logicalOperator.append(" AND ");
+                            }
+                        }
 
-                if (criterion.getValue() == null && ArrayUtils.isEmpty(criterion.getValues())) {
-                    switch (operator) {
-                        case NOT_IN:
-                        case NOT_EQUALS:
-                            sql.append(" IS NOT NULL");
-                            break;
-                        default:
-                            sql.append(" IS NULL");
+                        ExtractionFilterOperatorEnum operator = criterion.getOperator() == null ? ExtractionFilterOperatorEnum.EQUALS : ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
+
+                        if (criterion.getValue() == null && ArrayUtils.isEmpty(criterion.getValues())) {
+                            switch (operator) {
+                                case NOT_IN:
+                                case NOT_EQUALS:
+                                    sql.append(" IS NOT NULL");
+                                    break;
+                                default:
+                                    sql.append(" IS NULL");
+                            }
+                        } else {
+                            switch (operator) {
+                                case IN:
+                                    sql.append(String.format(" IN (%s)", getInValues(column, criterion)));
+                                    break;
+                                case NOT_IN:
+                                    sql.append(String.format(" NOT IN (%s)", getInValues(column, criterion)));
+                                    break;
+                                case EQUALS:
+                                    sql.append(String.format(" = %s", getSingleValue(column, criterion)));
+                                    break;
+                                case NOT_EQUALS:
+                                    sql.append(String.format(" <> %s", getSingleValue(column, criterion)));
+                                    break;
+                                case LESS_THAN:
+                                    sql.append(String.format(" < %s", getSingleValue(column, criterion)));
+                                    break;
+                                case LESS_THAN_OR_EQUALS:
+                                    sql.append(String.format(" <= %s", getSingleValue(column, criterion)));
+                                    break;
+                                case GREATER_THAN:
+                                    sql.append(String.format(" > %s", getSingleValue(column, criterion)));
+                                    break;
+                                case GREATER_THAN_OR_EQUALS:
+                                    sql.append(String.format(" >= %s", getSingleValue(column, criterion)));
+                                    break;
+                                case BETWEEN:
+                                    sql.append(String.format(" BETWEEN %s AND %s", getBetweenValueByIndex(column, criterion, 0), getBetweenValueByIndex(column, criterion, 1)));
+                                    break;
+                            }
+                        }
                     }
-                } else {
-                    switch (operator) {
-                        case IN:
-                            sql.append(String.format(" IN (%s)", getInValues(column, criterion)));
-                            break;
-                        case NOT_IN:
-                            sql.append(String.format(" NOT IN (%s)", getInValues(column, criterion)));
-                            break;
-                        case EQUALS:
-                            sql.append(String.format(" = %s", getSingleValue(column, criterion)));
-                            break;
-                        case NOT_EQUALS:
-                            sql.append(String.format(" <> %s", getSingleValue(column, criterion)));
-                            break;
-                        case LESS_THAN:
-                            sql.append(String.format(" < %s", getSingleValue(column, criterion)));
-                            break;
-                        case LESS_THAN_OR_EQUALS:
-                            sql.append(String.format(" <= %s", getSingleValue(column, criterion)));
-                            break;
-                        case GREATER_THAN:
-                            sql.append(String.format(" > %s", getSingleValue(column, criterion)));
-                            break;
-                        case GREATER_THAN_OR_EQUALS:
-                            sql.append(String.format(" >= %s", getSingleValue(column, criterion)));
-                            break;
-                        case BETWEEN:
-                            sql.append(String.format(" BETWEEN %s AND %s", getBetweenValueByIndex(column, criterion, 0), getBetweenValueByIndex(column, criterion, 1)));
-                            break;
-                    }
-                }
-            }
-        });
+                });
 
         return sql.toString();
     }
@@ -163,12 +164,20 @@ public class SumarisTableMetadatas {
         return !isNumericColumn(column);
     }
 
+    public static String getAliasedColumnName(@Nullable String alias, String columnName) {
+        return StringUtils.isNotBlank(alias) ? alias + "." + columnName : columnName;
+    }
+
+    public static String getAliasedTableName(@Nullable String alias, String tableName) {
+        return StringUtils.isNotBlank(alias) ? tableName + " AS " + alias : tableName;
+    }
+
     public static String getSelectGroupByQuery(String tableName,
-                                        Collection<String> columnNames,
-                                        String whereClause,
-                                        Collection<String> groupByColumnNames,
-                                        Collection<String> sortColumnNames,
-                                        SortDirection direction) {
+                                               Collection<String> columnNames,
+                                               String whereClause,
+                                               Collection<String> groupByColumnNames,
+                                               Collection<String> sortColumnNames,
+                                               SortDirection direction) {
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT ")
                 .append(Joiner.on(',').join(columnNames))
@@ -188,10 +197,16 @@ public class SumarisTableMetadatas {
         if (org.apache.commons.collections.CollectionUtils.isNotEmpty(sortColumnNames)) {
             String directionStr = direction != null ? (" " + direction.name()) : "";
             sb.append(" ORDER BY ")
-                    .append(Joiner.on( directionStr + ",").join(sortColumnNames))
+                    .append(Joiner.on(directionStr + ",").join(sortColumnNames))
                     .append(directionStr);
         }
 
         return sb.toString();
+    }
+
+    public static Collection<String> getAliasedColumns(String tableAlias,
+                                           Collection<String> columnNames) {
+        if (StringUtils.isBlank(tableAlias)) return columnNames;
+        return columnNames.stream().map(c -> tableAlias + "." + c).collect(Collectors.toList());
     }
 }

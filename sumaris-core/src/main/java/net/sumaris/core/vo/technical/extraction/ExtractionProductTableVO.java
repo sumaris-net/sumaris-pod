@@ -21,6 +21,7 @@ public class ExtractionProductTableVO implements IReferentialVO {
     private Date updateDate;
     private Date creationDate;
     private Integer statusId;
+    private Boolean isSpatial;
 
     private ExtractionProductVO product;
     private Integer productId;

@@ -66,6 +66,13 @@ public class ExtractionProduct implements IItemReferentialEntity {
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
+    @Column(name = "is_spatial")
+    private Boolean isSpatial;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_extraction_product_fk")
+    private ExtractionProduct parent;
+
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductTable.class, mappedBy = ExtractionProductTable.PROPERTY_PRODUCT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ExtractionProductTable> tables = new ArrayList<>();

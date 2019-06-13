@@ -66,6 +66,7 @@ public class AggregationRdbTripDaoImpl<
             .put(HH_SHEET_NAME, ImmutableList.of("trip_count"))
             .build();
 
+
     @Autowired
     protected StrategyService strategyService;
 
@@ -230,7 +231,9 @@ public class AggregationRdbTripDaoImpl<
         }
 
         // Add result table to context
-        context.addTableName(tableName, HH_SHEET_NAME, columnValues);
+        context.addTableName(tableName, HH_SHEET_NAME,
+                getSpatialColumnNames(xmlQuery),
+                columnValues);
         log.debug(String.format("Station table: %s rows inserted", count));
 
         return count;
@@ -391,4 +394,11 @@ public class AggregationRdbTripDaoImpl<
                 );
     }
 
+    protected Set<String> getSpatialColumnNames(final XMLQuery xmlQuery) {
+        return xmlQuery.getVisibleColumnNames()
+                .stream()
+                .map(c ->  c.toLowerCase())
+                .filter(SPACE_STRATA::contains)
+                .collect(Collectors.toSet());
+    }
 }

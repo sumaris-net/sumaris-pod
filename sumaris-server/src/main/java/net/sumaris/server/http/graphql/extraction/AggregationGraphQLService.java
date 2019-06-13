@@ -23,11 +23,17 @@ package net.sumaris.server.http.graphql.extraction;
  */
 
 import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.service.AggregationService;
-import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.extraction.vo.AggregationResultVO;
+import net.sumaris.core.extraction.vo.AggregationStrataVO;
+import net.sumaris.core.extraction.vo.AggregationTypeVO;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
+import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
+import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,32 +49,36 @@ public class AggregationGraphQLService {
     /* -- aggregation service -- */
 
     @GraphQLQuery(name = "aggregationTypes", description = "Get all available aggregation types")
-    public List<AggregationTypeVO> getAllAggregationTypes() {
+    public List<AggregationTypeVO> getAllAggregationTypes(@GraphQLArgument(name = "filter") AggregationTypeFilterVO filter) {
+        if (filter != null) {
+            return aggregationService.findAllTypes(filter);
+        }
         return aggregationService.getAllAggregationTypes();
     }
 
-    @GraphQLQuery(name = "aggregation", description = "Execute a aggregation")
+    @GraphQLQuery(name = "aggregationRows", description = "Read an aggregation")
     @IsUser
-    public AggregationResultVO aggregate(@GraphQLArgument(name = "type") AggregationTypeVO type,
-                                                            @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
-                                                            @GraphQLArgument(name = "strata") AggregationStrataVO strata,
-                                                            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                            @GraphQLArgument(name = "sortBy") String sort,
-                                                            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+    public AggregationResultVO getAggregationRows(@GraphQLArgument(name = "type") AggregationTypeVO type,
+                                                  @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                                  @GraphQLArgument(name = "strata") AggregationStrataVO strata,
+                                                  @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                  @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                  @GraphQLArgument(name = "sortBy") String sort,
+                                                  @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
-        return aggregationService.executeAndRead(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
+        return aggregationService.read(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
     }
 
-    @GraphQLQuery(name = "geoJsonAggregation", description = "Execute an aggregation and return as GeoJson")
+
+    @GraphQLQuery(name = "aggregationGeoJson", description = "Execute an aggregation and return as GeoJson")
     @IsUser
     public Object getGeoJsonAggregation(@GraphQLArgument(name = "type") AggregationTypeVO type,
-                                    @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
-                                    @GraphQLArgument(name = "strata") AggregationStrataVO strata,
-                                    @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                    @GraphQLArgument(name = "sortBy") String sort,
-                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+                                        @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                        @GraphQLArgument(name = "strata") AggregationStrataVO strata,
+                                        @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                        @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                        @GraphQLArgument(name = "sortBy") String sort,
+                                        @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         if (strata == null) {
             strata = new AggregationStrataVO();
             strata.setSpace("square");
@@ -78,8 +88,28 @@ public class AggregationGraphQLService {
             filter = new ExtractionFilterVO();
         }
         return GeoJsonExtractions.toFeatureCollection(
-                aggregate(type, filter, strata, offset, size, sort, direction)
+                getAggregationRows(type, filter, strata, offset, size, sort, direction)
         );
     }
 
+    @GraphQLMutation(name = "saveAggregation", description = "Create or update an data aggregation")
+    @IsSupervisor
+    public AggregationTypeVO saveAggregation(@GraphQLArgument(name = "type") AggregationTypeVO type,
+                                             @GraphQLArgument(name = "filter") ExtractionFilterVO filter
+    ) {
+        return aggregationService.save(type, filter);
+    }
+
+//    @GraphQLQuery(name = "aggregation", description = "Execute and read an aggregation")
+//    @IsSupervisor
+//    public AggregationResultVO getAggregation(@GraphQLArgument(name = "type") AggregationTypeVO type,
+//                                              @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+//                                              @GraphQLArgument(name = "strata") AggregationStrataVO strata,
+//                                              @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+//                                              @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+//                                              @GraphQLArgument(name = "sortBy") String sort,
+//                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+//
+//        return aggregationService.executeAndRead(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
+//    }
 }
