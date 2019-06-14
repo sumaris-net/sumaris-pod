@@ -36,7 +36,7 @@
             <ion-label>
               <ion-card-title>
 
-                <ion-label [hidden]="filterExpansionPanel.expanded">
+                <ion-label [hidden]="!hasData || filterExpansionPanel.expanded">
                   <ion-text color="medium" translate>EXTRACTION.MAP.YEAR</ion-text>&nbsp;
 
                   <button mat-stroked-button
@@ -174,7 +174,8 @@
         </div>
 
         <mat-action-row no-padding>
-          <button mat-button (click)="onRefresh.emit($event)"><span translate>COMMON.BTN_APPLY</span></button>
+          <button mat-button
+                  (click)="onRefresh.emit($event)"><span translate>COMMON.BTN_APPLY</span></button>
         </mat-action-row>
       </mat-expansion-panel>
 
@@ -230,7 +231,7 @@
       <ion-col size="auto" no-padding align-self-end>
 
         <!-- Legend card -->
-        <ion-card color="light" class="legend" *ngIf="data.total && ($legendItems | async)" @fadeInAnimation>
+        <ion-card color="light" class="legend" *ngIf="data.total && techStrata && ($legendItems | async as legendItems)" @fadeInAnimation>
           <ion-card-header>
             <ion-card-subtitle>
               <ion-label>
@@ -243,7 +244,7 @@
           </ion-card-header>
           <ion-card-content>
 
-            <ion-row *ngFor="let item of $legendItems | async">
+            <ion-row *ngFor="let item of legendItems">
               <ion-col size="2" [ngStyle]="{'background-color': item.color}"></ion-col>
               <ion-col>
                 <ion-label nowrap>{{item.label}}</ion-label>

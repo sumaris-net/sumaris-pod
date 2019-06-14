@@ -435,9 +435,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
 
     this.form.get('year').setValue(value);
 
-    setTimeout(() => {
-      this.updateQuickYears();
-    }, 500);
+    this.updateQuickYears();
 
     this.onRefresh.emit();
   }
@@ -447,7 +445,8 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     const year = this.year || years && years[years.length - 1];
 
     if (!year) return;
-    this.$quickYears.next((years || [year]).reduce((res, item) => {
+    this.$quickYears.next((years || [year]).reduce((res, item, index) => {
+      // TODO: review this
       return (+item < year - 3 || +item > year + 3) ? res : res.concat(+item);
     }, []));
   }
