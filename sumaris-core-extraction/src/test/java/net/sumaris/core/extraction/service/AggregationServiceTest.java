@@ -4,8 +4,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.extraction.dao.DatabaseResource;
 import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
 import org.hibernate.envers.query.criteria.ExtendableCriterion;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -134,6 +136,10 @@ public class AggregationServiceTest extends AbstractServiceTest {
         type.setLabel(format.name().toLowerCase() + "-" + System.currentTimeMillis());
         type.setName(String.format("Aggregation on %s (%s) data", format.name(), category.name()));
         type.setStatusId(StatusEnum.TEMPORARY.getId());
+
+        DepartmentVO recDep = new DepartmentVO();
+        recDep.setId(dbResource.getFixtures().getDepartmentId(0));
+        type.setRecorderDepartment(recDep);
 
         return service.save(type, null);
     }

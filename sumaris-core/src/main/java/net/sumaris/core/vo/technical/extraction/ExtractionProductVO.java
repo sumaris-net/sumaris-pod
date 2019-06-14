@@ -1,6 +1,10 @@
 package net.sumaris.core.vo.technical.extraction;
 
 import com.google.common.base.Preconditions;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import org.apache.commons.collections4.ListUtils;
 
@@ -11,7 +15,9 @@ import java.util.stream.Collectors;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @lombok.Data
-public class ExtractionProductVO implements IReferentialVO {
+public class ExtractionProductVO implements IReferentialVO,
+        IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
+        IWithRecorderPersonEntity<Integer, PersonVO> {
 
     private Integer id;
     private String label;
@@ -21,6 +27,9 @@ public class ExtractionProductVO implements IReferentialVO {
     private Date updateDate;
     private Date creationDate;
     private Boolean isSpatial;
+
+    private DepartmentVO recorderDepartment;
+    private PersonVO recorderPerson;
 
     private Integer statusId;
     private Integer parentId;

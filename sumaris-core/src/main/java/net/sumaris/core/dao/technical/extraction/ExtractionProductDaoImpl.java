@@ -3,6 +3,9 @@ package net.sumaris.core.dao.technical.extraction;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import net.sumaris.core.dao.administration.user.DepartmentDao;
+import net.sumaris.core.dao.administration.user.PersonDao;
+import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -17,6 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -24,6 +28,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +40,12 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
     /** Logger. */
     private static final Logger log =
             LoggerFactory.getLogger(ExtractionProductDaoImpl.class);
+
+    @Autowired
+    private DepartmentDao departmentDao;
+
+    @Autowired
+    private PersonDao personDao;
 
     @Override
     public List<ExtractionProductVO> findAllByStatus(List<Integer> statusIds) {
@@ -62,6 +73,16 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                 .setParameter("label", label.toUpperCase())
                 .getSingleResult()
         );
+    }
+
+    @Override
+    public Optional<ExtractionProductVO> get(Integer id) {
+        try {
+            return Optional.ofNullable(toProductVO(get(ExtractionProduct.class, id)));
+        }
+        catch(Exception e){
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -150,6 +171,11 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                 target.setParent(load(ExtractionProduct.class, source.getParentId()));
             }
         }
+
+        // Recorder department
+        DataDaos.copyRecorderDepartment(getEntityManager(), source, target, copyIfNull);
+        // Recorder person
+        DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
 
     }
 
@@ -315,6 +341,10 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         if (source.getStatus() != null) {
             target.setStatusId(source.getId());
         }
+
+        // Recorder department and person
+        target.setRecorderDepartment(departmentDao.toDepartmentVO(source.getRecorderDepartment()));
+        target.setRecorderPerson(personDao.toPersonVO(source.getRecorderPerson()));
 
         return target;
 

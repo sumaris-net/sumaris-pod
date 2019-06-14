@@ -23,16 +23,19 @@ package net.sumaris.core.extraction.vo;
  */
 
 import lombok.Data;
+import net.sumaris.core.vo.IValueObject;
 
 @Data
-public class ExtractionTypeVO {
+public class ExtractionTypeVO implements IValueObject<Integer> {
 
     private Integer id;
     private String category;
     private String label;
+    private String name;
     private String version;
     private String[] sheetNames;
     private Integer statusId;
+    private Boolean isSpatial;
 
     public String getFormat() {
         return getLabel() != null ? getLabel().split("-")[0] : null;

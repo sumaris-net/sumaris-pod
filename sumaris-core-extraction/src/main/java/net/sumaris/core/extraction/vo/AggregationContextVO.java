@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.SetUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,8 +19,6 @@ import java.util.Set;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public abstract class AggregationContextVO extends ExtractionContextVO {
-
-    Boolean isGeo;
 
     @FieldNameConstants.Exclude
     Map<String, Map<String, List<Object>>> columnValues = new LinkedHashMap<>();
@@ -47,5 +46,11 @@ public abstract class AggregationContextVO extends ExtractionContextVO {
      */
     public boolean hasSpatialColumn(String tableName) {
         return CollectionUtils.isNotEmpty(spatialColumnNames.get(tableName));
+    }
+
+    public boolean isSpatial() {
+        return SetUtils.emptyIfNull(getTableNames())
+                .stream()
+                .anyMatch(this::hasSpatialColumn);
     }
 }

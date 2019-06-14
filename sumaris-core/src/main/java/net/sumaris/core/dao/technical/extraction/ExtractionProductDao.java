@@ -8,6 +8,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -23,6 +24,9 @@ public interface ExtractionProductDao {
 
     @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
     ExtractionProductVO getByLabel(String label);
+
+    //@Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
+    Optional<ExtractionProductVO> get(Integer id);
 
     @Caching(
         evict = {

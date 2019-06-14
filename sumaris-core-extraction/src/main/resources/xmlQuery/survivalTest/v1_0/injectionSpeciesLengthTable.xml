@@ -30,4 +30,6 @@
   </select>
   <select alias="TAG_ID" type="text">(SELECT SM.ALPHANUMERICAL_VALUE FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;tagIdPmfmId)</select>
   <select alias="COMMENTS" type="text">B.COMMENTS</select>
+
+  <groupby>IS_DEAD, DISCARD_REASON, TAG_ID, COMMENTS</groupby>
 </query>

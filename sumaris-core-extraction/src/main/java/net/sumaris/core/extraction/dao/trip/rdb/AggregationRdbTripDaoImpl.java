@@ -16,6 +16,7 @@ import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripVersion;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.StringUtils;
@@ -241,12 +242,18 @@ public class AggregationRdbTripDaoImpl<
 
     protected XMLQuery createStationQuery(ExtractionProductVO source, AggregationRdbTripContextVO context) {
 
+        String rawStationTableName = source.getTableNameBySheetName(ExtractionRdbTripDao.HH_SHEET_NAME)
+                .orElseThrow(() -> new SumarisTechnicalException("Missing HH table"));
+        SumarisTableMetadata rawStationTable = databaseMetadata.getTable(rawStationTableName);
+
+
         XMLQuery xmlQuery = createXMLQuery(context, "createStationTable");
         xmlQuery.bind("rawTripTableName", source.getTableNameBySheetName(ExtractionRdbTripDao.TR_SHEET_NAME)
                 .orElseThrow(() -> new SumarisTechnicalException("Missing TR table")));
-        xmlQuery.bind("rawStationTableName", source.getTableNameBySheetName(ExtractionRdbTripDao.HH_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException("Missing HH table")));
+        xmlQuery.bind("rawStationTableName", rawStationTableName);
         xmlQuery.bind("stationTableName", context.getStationTableName());
+
+        xmlQuery.setGroup("gearType", rawStationTable.getColumnMetadata(ProductRdbStation.COLUMN_GEAR_TYPE) != null);
 
         return xmlQuery;
     }

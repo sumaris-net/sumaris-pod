@@ -23,6 +23,10 @@ package net.sumaris.core.model.technical.extraction;
  */
 
 import lombok.Data;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Cascade;
@@ -36,7 +40,9 @@ import java.util.List;
 @Entity
 @Cacheable
 @Table(name = "extraction_product")
-public class ExtractionProduct implements IItemReferentialEntity {
+public class ExtractionProduct implements IItemReferentialEntity,
+        IWithRecorderPersonEntity<Integer, Person>,
+        IWithRecorderDepartmentEntity<Integer, Department> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_SEQ")
@@ -68,6 +74,14 @@ public class ExtractionProduct implements IItemReferentialEntity {
 
     @Column(name = "is_spatial")
     private Boolean isSpatial;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recorder_person_fk")
+    private Person recorderPerson;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recorder_department_fk", nullable = false)
+    private Department recorderDepartment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_extraction_product_fk")

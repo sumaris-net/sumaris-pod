@@ -310,16 +310,8 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected List<ExtractionTypeVO> getProductExtractionTypes() {
         return ListUtils.emptyIfNull(extractionProductDao.getAll())
                 .stream()
-                .map(product -> {
-                    ExtractionTypeVO type = new ExtractionTypeVO();
-                    type.setLabel(product.getLabel().toLowerCase());
-                    type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
-
-                    Collection<String> sheetNames = product.getSheetNames();
-                    type.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
-
-                    return type;
-                }).collect(Collectors.toList());
+                .map(this::toExtractionTypeVO)
+                .collect(Collectors.toList());
     }
 
     protected List<ExtractionTypeVO> getLiveExtractionTypes() {
@@ -612,13 +604,23 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     protected ExtractionTypeVO toExtractionTypeVO(ExtractionProductVO product) {
         ExtractionTypeVO type = new ExtractionTypeVO();
-        type.setId(product.getId());
-        type.setLabel(product.getLabel().toLowerCase());
-        type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
-
-        Collection<String> sheetNames = product.getSheetNames();
-        type.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
+        toExtractionTypeVO(product, type);
         return type;
+    }
+
+    protected void toExtractionTypeVO(ExtractionProductVO source, ExtractionTypeVO target) {
+
+        Beans.copyProperties(source, target);
+
+        // Force lower case label (better in UI)
+        target.setLabel(source.getLabel().toLowerCase());
+
+        // Force category to product
+        target.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
+
+        // Sheetnames, from product tables
+        Collection<String> sheetNames = source.getSheetNames();
+        target.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
     }
 
     protected void toProductVO(ExtractionContextVO source, ExtractionProductVO target) {

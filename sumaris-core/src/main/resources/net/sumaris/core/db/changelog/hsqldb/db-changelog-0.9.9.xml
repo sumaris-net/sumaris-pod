@@ -19,8 +19,8 @@
             <column name="update_date" type="TIMESTAMP"/>
         </createTable>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-2">
-        <addForeignKeyConstraint baseColumnNames="id" baseTableName="location_area" constraintName="FK_location_area_id" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-2" failOnError="false">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="location_area" constraintName="FK_LOCATION_AREA_ID" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
     </changeSet>
 
     <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-3">

@@ -13,7 +13,7 @@
         <or>
             <!-- Test if database is empty -->
             <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
-            <!-- OR if departments comes from an Ifremer database -->
+            <!-- OR if expected production database -->
             <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
         </or>
     </preConditions>

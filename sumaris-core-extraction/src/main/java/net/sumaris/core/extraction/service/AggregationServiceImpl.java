@@ -12,6 +12,7 @@ import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestD
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -178,12 +179,12 @@ public class AggregationServiceImpl implements AggregationService {
         Preconditions.checkNotNull(type.getLabel());
         Preconditions.checkNotNull(type.getName());
 
+        Preconditions.checkArgument(!Objects.equals(type.getLabel(), type.getFormat()), "Invalid label. Should be <format>-NNN");
+
         // Load the product
         ExtractionProductVO target = null;
-        try {
-            target = extractionProductDao.getByLabel(type.getLabel());
-        } catch (Throwable t) {
-            // Not found
+        if (type.getId() != null) {
+            target = extractionProductDao.get(type.getId()).orElse(null);
         }
 
         if (target == null) {
@@ -202,9 +203,14 @@ public class AggregationServiceImpl implements AggregationService {
         // Update product tables, using the aggregation result
         toProductVO(context, target);
 
-        // Copy some properties from given type
+        // Copy some properties from the given type
         target.setName(type.getName());
+        target.setUpdateDate(type.getUpdateDate());
+        target.setDescription(type.getDescription());
         target.setStatusId(type.getStatusId());
+        target.setRecorderDepartment(type.getRecorderDepartment());
+        target.setRecorderPerson(type.getRecorderPerson());
+        target.setTables(toProductTableVO(context));
 
         // Save the product
         target = extractionProductDao.save(target);
@@ -271,16 +277,16 @@ public class AggregationServiceImpl implements AggregationService {
         extractionService.asyncClean(context);
     }
 
-    protected AggregationTypeVO toAggregationType(ExtractionProductVO product) {
+    protected AggregationTypeVO toAggregationType(ExtractionProductVO source) {
         AggregationTypeVO type = new AggregationTypeVO();
 
-        type.setId(product.getId());
-        type.setLabel(product.getLabel().toLowerCase());
-        type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
-        type.setName(product.getName());
-        type.setDescription(product.getDescription());
+        Beans.copyProperties(source, type);
 
-        Collection<String> sheetNames = product.getSheetNames();
+        // Change label and category (better for URL params in client)
+        type.setCategory(ExtractionCategoryEnum.PRODUCT.name().toLowerCase());
+        type.setLabel(source.getLabel().toLowerCase());
+
+        Collection<String> sheetNames = source.getSheetNames();
         type.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
         return type;
     }
@@ -291,7 +297,13 @@ public class AggregationServiceImpl implements AggregationService {
         target.setLabel(source.getLabel().toUpperCase() + "-" + source.getId());
         target.setName(String.format("Aggregation #%s", source.getId()));
 
-        target.setTables(SetUtils.emptyIfNull(source.getTableNames())
+        target.setTables(toProductTableVO(source));
+        target.setIsSpatial(source.isSpatial());
+    }
+
+    protected List<ExtractionProductTableVO> toProductTableVO(AggregationContextVO source) {
+
+        return SetUtils.emptyIfNull(source.getTableNames())
                 .stream()
                 .map(t -> {
                     String sheetName = source.getSheetName(t);
@@ -300,12 +312,9 @@ public class AggregationServiceImpl implements AggregationService {
                     table.setName(getNameBySheet(source.getFormatName(), sheetName));
                     table.setTableName(t);
                     table.setIsSpatial(source.hasSpatialColumn(t));
-                    if (table.getIsSpatial()) {
-                        target.setIsSpatial(true);
-                    }
                     return table;
                 })
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
     }
 
     protected AggregationContextVO toContextVO(ExtractionProductVO source) {
