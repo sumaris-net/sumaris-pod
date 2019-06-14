@@ -213,7 +213,7 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        pathMatch: 'full',
+        //pathMatch: 'full',
         component: ExtractionMapPage,
         runGuardsAndResolvers: 'pathParamsChange',
         data: {

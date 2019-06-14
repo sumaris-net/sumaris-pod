@@ -14,6 +14,8 @@
           <ion-icon slot="icon-only" name="menu"></ion-icon>
         </ion-button>
       </ion-menu-toggle>
+
+      <ng-content select="[slot=start]"></ng-content>
     </ion-buttons>
 
     <ion-title [innerHTML]="title"></ion-title>

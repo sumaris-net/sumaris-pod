@@ -1,21 +1,33 @@
 <app-toolbar [title]="$title | async" color="primary">
 </app-toolbar>
 
+<!-- change type menu -->
+<mat-menu #selecttypemenu="matMenu">
+  <button mat-menu-item
+          *ngFor="let item of $types | async"
+          (click)="setType(item)">
+    <ion-label>
+      {{item.name}}
+<!--      <ion-icon><mat-icon *ngIf="item.isSpatial">archive</mat-icon></ion-icon>-->
+      <ion-icon name="globe" *ngIf="item.isSpatial" ></ion-icon>
+      <ion-icon name="eye-off" *ngIf="item.statusId==2"></ion-icon>&nbsp;
+    </ion-label>
+  </button>
+</mat-menu>
+
+
 <ion-content no-padding>
 
   <mat-toolbar>
     <mat-toolbar-row>
-      <ion-select class="large"
-                  [placeholder]="'EXTRACTION.TYPE_PLACEHOLDER'|translate"
-                  interface="popover"
-                  [interfaceOptions]="typesPopoverOptions"
-                  [selectedText]="getI18nTypeName(type)"
-                  [compareWith]="isTypeEquals"
-                  (ionChange)="onSelectTypeChange($event)">
-        <ion-select-option *ngFor="let item of $types | async" [value]="item">
-          {{getI18nTypeName(item)}}
-        </ion-select-option>
-      </ion-select>
+      <ion-button color="secondary" *ngIf="type" [matMenuTriggerFor]="selecttypemenu">
+        <div slot="start">
+          <ion-icon name="globe" *ngIf="type.isSpatial" ></ion-icon>
+          <ion-icon name="eye-off" *ngIf="type.statusId==2"></ion-icon>&nbsp;
+        </div>
+        <ion-label>{{getI18nTypeName(type)}}</ion-label>
+        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+      </ion-button>
 
       <button mat-icon-button small color="light" [title]="'COMMON.BTN_REFRESH'|translate"
               (click)="onRefresh.emit()">
@@ -27,10 +39,35 @@
       <button mat-icon-button [title]="'EXTRACTION.BTN_DOWNLOAD_FILE'|translate" (click)="downloadAsFile()">
         <mat-icon>get_app</mat-icon>
       </button>
-      <button mat-icon-button [title]="'EXTRACTION.BTN_CREATE_MAP'|translate" (click)="openMap()">
+      <button mat-icon-button
+              *ngIf="type?.isSpatial"
+              [title]="'EXTRACTION.BTN_OPEN_MAP'|translate" (click)="openMap()">
         <mat-icon>
           <ion-icon name="globe"></ion-icon>
         </mat-icon>
+      </button>
+      <button mat-icon-button
+              *ngIf="!type?.isSpatial"
+              [title]="'EXTRACTION.BTN_CREATE_AGGREGATION'|translate" (click)="aggregate()">
+        <mat-icon>archive</mat-icon>
+      </button>
+      <button mat-icon-button
+              *ngIf="type?.statusId===2 && type?.category==='product' && type?.isSpatial"
+              [title]="'EXTRACTION.BTN_PUBLISH'|translate" (click)="publish()">
+        <mat-icon>
+          <ion-icon name="eye"></ion-icon>
+        </mat-icon>
+      </button>
+      <button mat-icon-button
+              *ngIf="type?.statusId===1 && type?.category==='product'"
+              [title]="'EXTRACTION.BTN_UNPUBLISH'|translate" (click)="unpublish()">
+        <mat-icon>
+          <ion-icon name="eye-off"></ion-icon>
+        </mat-icon>
+      </button>
+      <button mat-icon-button small color="light" *ngIf="canEdit" [title]="'COMMON.BTN_DELETE'|translate"
+              (click)="deleteAggregation()">
+        <mat-icon>delete</mat-icon>
       </button>
       <!--<button mat-icon-button color="secondary" [title]="'COMMON.BTN_SHOW_HELP'|translate" (click)="showHelpModal()">-->
       <!--<mat-icon>help_outline</mat-icon>-->
@@ -50,153 +87,158 @@
     </mat-toolbar-row>
   </mat-toolbar>
 
-  <nav mat-tab-nav-bar>
-    <a mat-tab-link *ngFor="let item of $sheetNames | async"
-       (click)="onSheetChange(item)"
-       [active]="item === sheetName">
-      <ion-text>{{getI18nSheetName(item)}}</ion-text>
-      <mat-icon *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
-    </a>
-  </nav>
+  <div *ngIf="$sheetNames | async as sheetNames">
 
-  <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel color="primary" no-padding>
-    <mat-expansion-panel-header>
-      <mat-panel-title hidden-xs hidden-sm>
-        <ion-label>
-          <!-- Loading spinner -->
-          <ion-spinner [ngClass]="{'center':true}" *ngIf="loading && !filterExpansionPanel.expanded"></ion-spinner>
-          <ng-container *ngIf="!loading && !filterExpansionPanel.expanded">
-            <ion-text [color]="data?.total === 0 && 'danger'" *ngIf="data?.total === 0"><b>{{ 'COMMON.NO_RESULT' |
-              translate }}</b></ion-text>
-            <span *ngIf="data?.total > 0">
-              {{ 'COMMON.RESULT_COUNT' | translate: {count: (data?.total | numberFormat)} }}
-            </span>
-            <small>
-              {{(hasFilterCriteria(sheetName) ? 'EXTRACTION.FILTER.WITH_FILTER_PARENTHESIS' :
-              'EXTRACTION.FILTER.NO_FILTER_PARENTHESIS' ) | translate}}
-            </small>
-          </ng-container>
-          <span *ngIf="filterExpansionPanel.expanded">
-            {{ 'EXTRACTION.FILTER.TITLE' | translate}}
-          </span>
-        </ion-label>
-      </mat-panel-title>
-    </mat-expansion-panel-header>
+    <nav mat-tab-nav-bar *ngIf="sheetNames.length > 1">
+      <a mat-tab-link *ngFor="let item of sheetNames"
+         (click)="onSheetChange(item)"
+         [active]="item === sheetName">
+        <ion-text>{{getI18nSheetName(item)}}</ion-text>
+        <mat-icon *ngIf="hasFilterCriteria(item)">filter_list</mat-icon>
+      </a>
+    </nav>
 
-    <form [formGroup]="form.get('sheets')" (ngSubmit)="onRefresh.emit()"
-          *ngIf="form.get('sheets').get(sheetName) && true">
-      <div [formArrayName]="sheetName">
-        <ng-container *ngFor="let criterionForm of criteriaForm?.controls; let i=index">
-          <ion-row no-padding [formGroupName]="i">
-            <!-- column name -->
-            <mat-form-field>
-              <mat-select formControlName="name" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_NAME'|translate">
-                <mat-option *ngFor="let column of $columns | async" [value]="column.name">{{
-                  getI18nColumnName(column.name) }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <!-- operator -->
-            <mat-form-field class="operator">
-              <mat-select formControlName="operator">
-                <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name ||
-                  operator.symbol) | translate }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <!-- value -->
-            <mat-form-field>
-              <input matInput autocomplete="off"
-                     [placeholder]="(criterionForm.controls['operator'].value == 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate"
-                     formControlName="value">
-            </mat-form-field>
-
-            <!-- second value (for between operator) -->
-            <mat-form-field *ngIf="criterionForm.controls['operator'].value === 'BETWEEN'">
-              <input matInput autocomplete="off" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate"
-                     formControlName="endValue">
-            </mat-form-field>
-
-            <button type="button" mat-icon-button color="light" [disabled]="loading"
-                    [title]="'COMMON.BTN_DELETE'|translate"
-                    (click)="removeFilterCriterion($event, i)">
-              <mat-icon>close</mat-icon>
-            </button>
-
-            <button type="button" mat-icon-button color="light" [disabled]="loading" *ngIf="i == criteriaForm?.length-1"
-                    [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
-                    (click)="addFilterCriterion()">
-              <mat-icon>add</mat-icon>
-            </button>
-          </ion-row>
-        </ng-container>
-      </div>
-    </form>
-
-    <mat-action-row no-padding>
-      <ion-grid>
-        <ion-row no-padding style="width: 100%">
-          <ion-col>
+    <!-- search -->
+    <mat-expansion-panel #filterExpansionPanel color="primary" no-padding>
+      <mat-expansion-panel-header>
+        <mat-panel-title hidden-xs hidden-sm>
+          <ion-label>
             <!-- Loading spinner -->
-            <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
-            <ion-text [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
-              {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total |
-              numberFormat)} }}
-            </ion-text>
-          </ion-col>
-          <ion-col no-padding size="auto">
-            <!-- Search button -->
-            <button mat-button [color]="dirty ? 'primary' : undefined" padding
-                    (click)="onRefresh.emit(true)"
-                    [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}
-            </button>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </mat-action-row>
-  </mat-expansion-panel>
+            <ion-spinner [ngClass]="{'center':true}" *ngIf="loading && !filterExpansionPanel.expanded"></ion-spinner>
+            <ng-container *ngIf="!loading && !filterExpansionPanel.expanded">
+              <ion-text [color]="data?.total === 0 && 'danger'" *ngIf="data?.total === 0"><b>{{ 'COMMON.NO_RESULT' |
+                translate }}</b></ion-text>
+              <span *ngIf="data?.total > 0">
+                {{ 'COMMON.RESULT_COUNT' | translate: {count: (data?.total | numberFormat)} }}
+              </span>
+              <small>
+                {{(hasFilterCriteria(sheetName) ? 'EXTRACTION.FILTER.WITH_FILTER_PARENTHESIS' :
+                'EXTRACTION.FILTER.NO_FILTER_PARENTHESIS' ) | translate}}
+              </small>
+            </ng-container>
+            <span *ngIf="filterExpansionPanel.expanded">
+              {{ 'EXTRACTION.FILTER.TITLE' | translate}}
+            </span>
+          </ion-label>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
 
-  <!-- error -->
-  <ion-item *ngIf="error" visible-xs visible-sm>
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-  </ion-item>
+      <form [formGroup]="form.get('sheets')" (ngSubmit)="onRefresh.emit()"
+            *ngIf="form.get('sheets').get(sheetName) && true">
+        <div [formArrayName]="sheetName">
+          <ng-container *ngFor="let criterionForm of criteriaForm?.controls; let i=index">
+            <ion-row no-padding [formGroupName]="i">
+              <!-- column name -->
+              <mat-form-field>
+                <mat-select formControlName="name" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_NAME'|translate">
+                  <mat-option *ngFor="let column of $columns | async" [value]="column.name">{{
+                    getI18nColumnName(column.name) }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- operator -->
+              <mat-form-field class="operator">
+                <mat-select formControlName="operator">
+                  <mat-option *ngFor="let operator of operators" [value]="operator.symbol">{{ (operator.name ||
+                    operator.symbol) | translate }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- value -->
+              <mat-form-field>
+                <input matInput autocomplete="off"
+                       [placeholder]="(criterionForm.controls['operator'].value == 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') |translate"
+                       formControlName="value">
+              </mat-form-field>
+
+              <!-- second value (for between operator) -->
+              <mat-form-field *ngIf="criterionForm.controls['operator'].value === 'BETWEEN'">
+                <input matInput autocomplete="off" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate"
+                       formControlName="endValue">
+              </mat-form-field>
+
+              <button type="button" mat-icon-button color="light" [disabled]="loading"
+                      [title]="'COMMON.BTN_DELETE'|translate"
+                      (click)="removeFilterCriterion($event, i)">
+                <mat-icon>close</mat-icon>
+              </button>
+
+              <button type="button" mat-icon-button color="light" [disabled]="loading" *ngIf="i == criteriaForm?.length-1"
+                      [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
+                      (click)="addFilterCriterion()">
+                <mat-icon>add</mat-icon>
+              </button>
+            </ion-row>
+          </ng-container>
+        </div>
+      </form>
+
+      <mat-action-row no-padding>
+        <ion-grid>
+          <ion-row no-padding style="width: 100%">
+            <ion-col>
+              <!-- Loading spinner -->
+              <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+              <ion-text [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
+                {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total |
+                numberFormat)} }}
+              </ion-text>
+            </ion-col>
+            <ion-col no-padding size="auto">
+              <!-- Search button -->
+              <button mat-button [color]="dirty ? 'primary' : undefined" padding
+                      (click)="onRefresh.emit(true)"
+                      [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}
+              </button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </mat-action-row>
+    </mat-expansion-panel>
+
+    <!-- error -->
+    <ion-item *ngIf="error" visible-xs visible-sm>
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
 
 
-  <mat-table [dataSource]="dataSource" matSort [hidden]="!data?.total">
+    <mat-table [dataSource]="dataSource" matSort [hidden]="!data?.total">
 
-    <!-- iterate on columns -->
-    <ng-container *ngFor="let column of $columns | async" matColumnDef="{{column.name}}">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="column.type=='date'">
-        <ion-label>{{ getI18nColumnName(column.name) }}</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="column.type=='date'"
-                [class.mat-cell-numeric]="column.type=='integer'">
-        <a ion-text (click)="onCellValueClick($event, column, row.currentData[column.index])"
-           color="dark"
-           [title]="row.currentData[column.index]">
-          {{row.currentData[column.index]}}
-        </a>
-      </mat-cell>
-    </ng-container>
+      <!-- iterate on columns -->
+      <ng-container *ngFor="let column of $columns | async" matColumnDef="{{column.name}}">
+        <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="column.type=='date'">
+          <ion-label>{{ getI18nColumnName(column.name) }}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="column.type=='date'"
+                  [class.mat-cell-numeric]="column.type=='integer'">
+          <a ion-text (click)="onCellValueClick($event, column, row.currentData[column.index])"
+             color="dark"
+             [title]="row.currentData[column.index]">
+            {{row.currentData[column.index]}}
+          </a>
+        </mat-cell>
+      </ng-container>
 
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-  </mat-table>
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
 
-  <!-- Paginator  -->
-  <ion-row no-padding [hidden]="!data?.total">
-    <ion-col></ion-col>
-    <ion-col no-padding size="auto">
-      <mat-paginator [length]="data?.total" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200, 500]"
-                     showFirstLastButtons>
-      </mat-paginator>
-    </ion-col>
-  </ion-row>
+    <!-- Paginator  -->
+    <ion-row no-padding [hidden]="!data?.total">
+      <ion-col></ion-col>
+      <ion-col no-padding size="auto">
+        <mat-paginator [length]="data?.total" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200, 500]"
+                       showFirstLastButtons>
+        </mat-paginator>
+      </ion-col>
+    </ion-row>
+
+  </div>
+
 
 
 </ion-content>

@@ -32,7 +32,7 @@ export class ExtractionSelectTypeModal implements OnInit {
   ngOnInit() {
 
     // Load items
-    this.$types = this.service.loadAggregationTypes(this.filter);
+    this.$types = this.service.loadAggregationTypes(this.filter, {});
 
     // Update loading indicator
     this.$types.pipe(first()).subscribe((_) => this.loading = false);
@@ -57,6 +57,7 @@ export class ExtractionSelectTypeModal implements OnInit {
   }
 
   protected getI18nTypeName(type: AggregationType) {
+    if (type.name) return type.name;
     const format = type.label && type.label.split('-')[0].toUpperCase();
     const key = `EXTRACTION.PRODUCT.${format}.TITLE`;
     let message = this.translate.instant(key);

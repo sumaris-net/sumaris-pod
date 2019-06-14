@@ -363,7 +363,7 @@ export class OperationService extends BaseDataService implements TableDataServic
       .map(t => t.id)
       .filter(id => (id > 0));
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[operation-service] Deleting operations... ids:", ids);
 
     await this.graphql.mutate<any>({
@@ -381,7 +381,7 @@ export class OperationService extends BaseDataService implements TableDataServic
       }, 'operations', ids);
     }
 
-    if (this._debug) console.debug("[operation-service] Operation deleted in " + (new Date().getTime() - now.getTime()) + "ms");
+    if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
   }
 
   /* -- protected methods -- */

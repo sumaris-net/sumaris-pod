@@ -598,8 +598,14 @@
   },
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Télécharger le fichier CSV",
-    "BTN_CREATE_MAP": "Ouvrir la carte",
+    "BTN_OPEN_MAP": "Ouvrir la carte",
+    "BTN_CREATE_AGGREGATION": "Aggréger les données",
+    "BTN_PUBLISH": "Rendre public",
+    "BTN_UNPUBLISH": "Rendre privé",
     "TYPE": "Type d'extraction",
+    "AGGREGATION": {
+      "NEW_NAME": "Nouvelle aggregation / {{name}}"
+    },
     "COMMON": {
       "VESSEL_FLAG_COUNTRY": "Pavillon",
       "HARBOUR": "Port",
@@ -609,7 +615,7 @@
       "STATISTICAL_RECTANGLE": "Rectangle statistique"
     },
     "FILTER": {
-      "TITLE": "Critères de recherche :",
+      "TITLE": "Critères de filtrage :",
       "CRITERION_NAME": "Colonne",
       "CRITERION_VALUE": "Valeur",
       "CRITERION_START_VALUE": "Début",
@@ -621,6 +627,13 @@
       "WITH_FILTER_PARENTHESIS": "(filtrés)"
     },
     "MAP": {
+      "BTN_SELECT_TYPE": "Liste des cartes",
+      "BTN_EDIT": "Editer",
+      "FILTER": "Filtrage",
+      "YEAR": "Année",
+      "SPACE": "Géométrie",
+      "AGG_VALUE": "Valeur représentée",
+      "QUARTER": "Trimestre",
       "DETAILS": "Détails",
       "STATS": "Statistiques",
       "LEGEND": "Légende",
@@ -634,6 +647,11 @@
         "TITLE": "Liste des cartes",
         "HELP": "Voici la liste des cartes disponibles :"
       }
+    },
+    "SHEET": {
+      "TR": "Marées",
+      "HH": "Opérations",
+      "SL": "Captures"
     },
     "CATEGORY": {
       "PRODUCT": "Data call",

@@ -1,19 +1,52 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
-import {BaseDataService, environment, isNil, isNotNil, StatusIds} from "../../core/core.module";
+import {BaseDataService, EntityUtils, environment, isNil, isNotNil, Person, StatusIds} from "../../core/core.module";
 import {map} from "rxjs/operators";
 
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
-import {AggregationStrata, AggregationType, ExtractionResult, ExtractionType} from "./extraction.model";
+import {
+  AggregationStrata,
+  AggregationType,
+  ExtractionColumn,
+  ExtractionResult,
+  ExtractionType
+} from "./extraction.model";
 import {FetchPolicy} from "apollo-client";
-import {isNilOrBlank, trimEmptyToNull} from "../../shared/functions";
+import {trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {FeatureCollection} from "geojson";
-import {TripFragments} from "./trip.service";
+import {Fragments} from "./trip.queries";
 
 
+export const ExtractionFragments = {
+  aggregationType: gql`fragment AggregationTypeFragment on AggregationTypeVO {
+    id
+    label
+    name
+    description
+    category
+    sheetNames
+    updateDate
+    isSpatial
+    statusId
+    strata {
+      space
+      time
+      tech
+    }
+    recorderDepartment {
+      ...RecorderDepartmentFragment
+    }
+    recorderPerson {
+      ...RecorderPersonFragment
+    }
+  }
+  ${Fragments.recorderDepartment}
+  ${Fragments.recorderPerson}
+  `
+}
 export declare class ExtractionFilter {
   searchText?: string;
   criteria?: ExtractionFilterCriterion[];
@@ -32,9 +65,16 @@ export declare class ExtractionFilterCriterion {
 const LoadTypes: any = gql`
   query ExtractionTypes{
     extractionTypes {
-      label
+      id
       category
+      label
+      name
       sheetNames
+      isSpatial
+      statusId
+      recorderDepartment {
+        id
+      }
     }
   }
 `;
@@ -54,6 +94,21 @@ const LoadRowsQuery: any = gql`
   }
 `;
 
+const LoadAggregationColumnsQuery: any = gql`
+  query AggregationColumns($type: AggregationTypeVOInput, $sheet: String){
+    aggregationColumns(type: $type, sheet: $sheet){
+      label
+      name
+      columnName
+      type
+      description
+      rankOrder
+      values
+    }    
+  }
+`;
+
+
 const GetFileQuery: any = gql`
   query ExtractionFile($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput){
     extractionFile(type: $type, filter: $filter)
@@ -64,20 +119,11 @@ const GetFileQuery: any = gql`
 const LoadAggregationTypes = gql`
   query AggregationTypes($filter: AggregationTypeFilterVOInput) {
     aggregationTypes(filter: $filter) {
-      id
-      label
-      name
-      description
-      category
-      sheetNames
-      strata {
-        space
-        time
-        tech
-      }
-      statusId
+      ...AggregationTypeFragment
     }
-  }`;
+  }
+  ${ExtractionFragments.aggregationType}
+  `;
 
 const LoadAggregationGeoJsonQuery = gql`
   query AggregationGeoJson(
@@ -94,11 +140,15 @@ const LoadAggregationGeoJsonQuery = gql`
 const SaveAggregation: any = gql`
   mutation SaveAggregation($type: AggregationTypeVOInput, $filter: ExtractionFilterVOInput){
     saveAggregation(type: $type, filter: $filter){
-      id
-      label
-      category
-      sheetNames
+      ...AggregationTypeFragment
     }
+  }
+  ${ExtractionFragments.aggregationType}
+`;
+
+const DeleteAggregations: any = gql`
+  mutation DeleteAggregations($ids:[Int]){
+    deleteAggregations(ids: $ids)
   }
 `;
 
@@ -125,9 +175,14 @@ export class ExtractionService extends BaseDataService {
    */
   loadTypes(): Observable<ExtractionType[]> {
     if (this._debug) console.debug("[extraction-service] Loading extraction types...");
+
+    const variables = {};
+
+    this._lastVariables.loadTypes = variables;
+
     return this.graphql.watchQuery<{ extractionTypes: ExtractionType[] }>({
       query: LoadTypes,
-      variables: null,
+      variables: variables,
       error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"}
     })
       .pipe(
@@ -181,8 +236,49 @@ export class ExtractionService extends BaseDataService {
 
     // Compute column index
     (data.columns || []).forEach((c, index) => c.index = index);
-    if (this._debug) console.debug(`[extraction-service] Rows ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, res);
 
+    if (this._debug) console.debug(`[extraction-service] Rows ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, data);
+    return data;
+  }
+
+  /**
+   * Load columns metadata
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
+   */
+  async loadColumns(
+    type: ExtractionType,
+    sheetName?: string,
+    options?: {
+      fetchPolicy?: FetchPolicy
+    }): Promise<ExtractionColumn[]> {
+
+    const variables: any = {
+      type: {
+        category: type.category,
+        label: type.label
+      },
+      sheet: sheetName
+    };
+
+    const now = Date.now();
+    if (this._debug) console.debug("[extraction-service] Loading columns... using options:", variables);
+    const res = await this.graphql.query<{ aggregationColumns: ExtractionColumn[] }>({
+      query: LoadAggregationColumnsQuery,
+      variables: variables,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || 'network-only'
+    });
+    const data = res && res.aggregationColumns;
+    if (!data) return null;
+
+    // Compute column index
+    (data || []).forEach((c, index) => c.index = index);
+
+    if (this._debug) console.debug(`[extraction-service] Columns ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, data);
     return data;
   }
 
@@ -226,9 +322,11 @@ export class ExtractionService extends BaseDataService {
   }
 
   /**
-   * Load aggregation types
+   * Load spatial types
    */
-  loadAggregationTypes(filter?: AggregationTypeFilter): Observable<AggregationType[]> {
+  loadAggregationTypes(filter?: AggregationTypeFilter,
+                       options?: {fetchPolicy?: FetchPolicy}
+                       ): Observable<AggregationType[]> {
     if (this._debug) console.debug("[extraction-service] Loading geo types...");
 
     const variables = {
@@ -241,7 +339,8 @@ export class ExtractionService extends BaseDataService {
     return this.graphql.watchQuery<{ aggregationTypes: AggregationType[] }>({
       query: LoadAggregationTypes,
       variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"}
+      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || 'network-only'
     })
       .pipe(
         map((data) => (data && data.aggregationTypes || []).map(AggregationType.fromObject))
@@ -338,41 +437,48 @@ export class ExtractionService extends BaseDataService {
   }
 
 
-  async save(type: ExtractionType | AggregationType,
-             filter?: ExtractionFilter,
-             options?: {
-               aggregate: boolean;
-             }): Promise<ExtractionType | AggregationType> {
+  async saveAggregation(type: AggregationType,
+             filter?: ExtractionFilter): Promise<AggregationType> {
 
-    // Transform into json
-    options = options || {aggregate: true};
-    if (options.aggregate) {
-      const entity = AggregationType.fromObject(type);
+    // Transform into entity
+    const entity = AggregationType.fromObject(type);
 
-      this.fillDefaultProperties(entity);
+    this.fillDefaultProperties(entity);
 
-      const json = entity.asObject(true/*minify*/);
+    const json = entity.asObject(true/*minify*/);
 
-      const isNew = isNil(type.id);
+    const isNew = isNil(type.id);
 
-      const now = Date.now();
-      if (this._debug) console.debug("[extraction-service] Saving aggregation...");
+    const now = Date.now();
+    if (this._debug) console.debug("[extraction-service] Saving aggregation...", json);
 
-      const res = await this.graphql.mutate<{ saveAggregation: any }>({
-        mutation: SaveAggregation,
-        variables: {
-          type: json,
-          filter: filter
-        },
-        error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"}
-      });
+    const res = await this.graphql.mutate<{ saveAggregation: any }>({
+      mutation: SaveAggregation,
+      variables: {
+        type: json,
+        filter: filter
+      },
+      error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"}
+    });
 
-      const savedEntity = res && res.saveAggregation && res.saveAggregation[0];
-      if (savedEntity) {
-        this.copyIdAndUpdateDate(savedEntity, entity);
+    const savedEntity = res && res.saveAggregation;
+    if (savedEntity) {
+      this.copyIdAndUpdateDate(savedEntity, entity);
 
-        // Add to cache
-        const addToCache = isNew && this._lastVariables.loadAggregationTypes &&
+      if (isNew) {
+        // Add to cache (extraction types)
+        let addToCache = this._lastVariables.loadTypes &&
+          // Check if cache on the same statusId
+          (isNil(this._lastVariables.loadTypes.statusIds) || this._lastVariables.loadTypes.statusIds.findIndex(s => s === entity.statusId) !== -1);
+        if (addToCache) {
+          this.addToQueryCache({
+            query: LoadTypes,
+            variables: this._lastVariables.loadTypes
+          }, 'extractionTypes', savedEntity);
+        }
+
+        // Add to cache (aggregation types)
+        addToCache = this._lastVariables.loadAggregationTypes &&
           // Check if cache on the same statusId
           (this._lastVariables.loadAggregationTypes.statusIds || []).findIndex(s => s === entity.statusId) !== -1;
         if (addToCache) {
@@ -382,27 +488,82 @@ export class ExtractionService extends BaseDataService {
           }, 'aggregationTypes', savedEntity);
         }
       }
-
-      if (this._debug) console.debug(`[trip-service] Trip saved in ${Date.now() - now}ms`, entity);
-
-      return entity;
     }
 
-    throw new Error("Not aggregated extraction could not be saved yet");
+    if (this._debug) console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, entity);
+
+    return entity;
+  }
+
+  async deleteAggregations(entities: AggregationType[]): Promise<any> {
+    const ids = entities && entities
+      .map(t => t.id)
+      .filter(isNotNil);
+
+    const now = Date.now();
+    if (this._debug) console.debug("[extraction-service] Deleting aggregations... ids:", ids);
+
+    await this.graphql.mutate<any>({
+      mutation: DeleteAggregations,
+      variables: {
+        ids: ids
+      }
+    });
+
+    // Remove from cache (extraction types)
+    if (this._lastVariables.loadTypes) {
+      this.removeToQueryCacheByIds({
+        query: LoadTypes,
+        variables: this._lastVariables.loadTypes
+      }, 'extractionTypes', ids);
+    }
+
+    // Remove from cache (aggregation types)
+    if (this._lastVariables.loadAggregationTypes) {
+      this.removeToQueryCacheByIds({
+        query: LoadAggregationTypes,
+        variables: this._lastVariables.loadAggregationTypes
+      }, 'aggregationTypes', ids);
+    }
+
+    if (this._debug) console.debug(`[extraction-service] Aggregations deleted in ${Date.now() - now}ms`);
   }
 
   /* -- protected methods  -- */
 
-  protected fillDefaultProperties(source: AggregationType) {
+  protected fillDefaultProperties(entity: AggregationType) {
 
-    source.name = source.name || 'Aggregation for ' + source.label;
+    // If new trip
+    if (isNil(entity.id)) {
 
-    source.statusId = isNotNil(source.statusId) ? source.statusId : StatusIds.TEMPORARY;
+      // Compute label
+      entity.label = `${entity.label}-${Date.now()}`;
+
+      const person: Person = this.accountService.account;
+
+      // Recorder department
+      if (person && person.department) {
+        entity.recorderDepartment.id = person.department.id;
+      }
+
+      // Recorder person
+      if (person && person.id) {
+        entity.recorderPerson.id = person.id;
+      }
+    }
+
+    entity.name = entity.name || `Aggregation on ${entity.label}`;
+    entity.statusId = isNotNil(entity.statusId) ? entity.statusId : StatusIds.TEMPORARY;
+
+    // Description
+    if (!entity.description) {
+      const account = this.accountService.account;
+      entity.description = `Created by ${account.firstName} ${account.lastName}`;
+    }
   }
 
   protected copyIdAndUpdateDate(source: AggregationType, target: AggregationType) {
 
-    target.id = isNotNil(source.id) ? source.id : target.id;
-    target.updateDate = isNotNil(source.updateDate) ? source.updateDate : target.updateDate;
+    EntityUtils.copyIdAndUpdateDate(source, target);
   }
 }

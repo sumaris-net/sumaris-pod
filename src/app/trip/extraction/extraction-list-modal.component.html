@@ -34,14 +34,25 @@
               (click)="selectType(item)"
               detail>
 
-<!--      <ion-icon slot="start" name="globe"></ion-icon>-->
-
       <ion-grid>
         <ion-row no-padding>
           <ion-col no-padding>
             <ion-label text-wrap>
               <ion-text color="dark">
-                <h4>{{getI18nTypeName(item)}}</h4>
+                <h3>
+                  <span *ngIf="item.statusId==2">
+                    <ion-icon name="eye-off"></ion-icon>&nbsp;
+                  </span>
+                  {{getI18nTypeName(item)}}
+                </h3>
+              </ion-text>
+              <ion-text color="medium">
+                <h4>
+                  <small>
+                    <ion-icon name="time"></ion-icon>&nbsp;
+                    {{ item.updateDate|dateFormat:{time: true} }}
+                  </small>
+                </h4>
               </ion-text>
             </ion-label>
           </ion-col>

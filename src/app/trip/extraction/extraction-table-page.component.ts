@@ -1,21 +1,32 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from "@angular/router";
-import {TranslateService} from '@ngx-translate/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Injector,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {isNil} from '../../shared/shared.module';
 import {TableDataSource} from "angular4-material-table";
-import {ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/extraction.model";
-import {ExtractionService} from "../services/extraction.service";
+import {
+  AggregationType,
+  ExtractionColumn,
+  ExtractionResult,
+  ExtractionRow,
+  ExtractionType
+} from "../services/extraction.model";
 import {FormBuilder, Validators} from "@angular/forms";
-import {DateAdapter, MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
+import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
 import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {ExtractionForm} from "./extraction-filter.form";
-import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/core.module";
+import {map, tap} from "rxjs/operators";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -36,6 +47,7 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
   dataSource: TableDataSource<ExtractionRow>;
   settingsId: string;
   showHelp = true;
+  canAggregate = false;
 
   @ViewChild(MatTable) table: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -43,23 +55,14 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
   @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected formBuilder: FormBuilder,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected translate: TranslateService,
-    protected service: ExtractionService,
     protected location: Location,
     protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter,
-      formBuilder,
-      route,
-      router,
-      translate,
-      service,
+    super(injector,
       formBuilder.group({
         'type': [null, Validators.required],
         'sheetName': [null],
@@ -84,16 +87,18 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
     )
       .subscribe(() => {
         if (this.loading || isNil(this.type)) return; // avoid multiple load
-        console.debug('[extraction-table] Refreshing...');
-
         return this.load(this.type);
       });
-
-
   }
 
   protected loadTypes(): Observable<ExtractionType[]> {
-    return this.service.loadTypes().first();
+    return this.service.loadTypes()
+      .pipe(
+        // Compute name, if need
+        tap(types => types.forEach(t => t.name = t.name || this.getI18nTypeName(t))),
+        // Sort by name
+        map(types => types.sort((t1, t2) => t1.name > t2.name ? 1 : (t1.name < t2.name ? -1 : 0) ))
+      );
   }
 
   protected fromObject(json: any): ExtractionType {
@@ -144,7 +149,7 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
       .sort((col1, col2) => col1.rankOrder - col2.rankOrder)
       .map(col => col.name);
     this.displayedColumns = this.columns
-      .filter(columnName => columnName != "id"); // Remove id
+      .filter(columnName => columnName !== "id"); // Remove id
     this.$columns.next(data.columns);
 
     // Update rows
@@ -160,6 +165,12 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
       this.markAsPristine();
       this.markForCheck();
     });
+  }
+
+  async setType(type: ExtractionType<ExtractionType<any>>, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<void> {
+    await super.setType(type, opts);
+
+    this.canAggregate = !this.type.isSpatial && this.accountService.isSupervisor();
   }
 
   onSheetChange(sheetName: string) {
@@ -202,7 +213,6 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
   }
 
 
-
   public resetFilterCriteria() {
 
     // Close the filter panel
@@ -233,31 +243,79 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
     }
   }
 
-  async openMap() {
+
+  async aggregate() {
+    if (!this.type || !this.canAggregate) return; // Skip
+
     this.loading = true;
     this.markForCheck();
-    const type = this.form.get('type').value;
-
-    console.debug('[extraction-table] Creating extraction map...');
+    let type = Object.assign({}, this.form.get('type').value);
 
     const filter = this.getFilterValue();
     this.disable();
 
     try {
-      // Save as spatial aggregation
-      const data = await this.service.save(type, filter, {aggregate: true});
 
-      // TODO: open the map modal
+      const name = await this.translate.get('EXTRACTION.AGGREGATION.NEW_NAME', {name: type.name}).toPromise();
+      // Compute a new name
+      const aggType = AggregationType.fromObject({
+        label: `${this.type.label}-${this.accountService.account.id}-${Date.now()}`,
+        category: this.type.category,
+        name: name
+      });
+
+      // Save aggregation
+      const savedType = await this.service.saveAggregation(aggType, filter);
+      this.loading = false;
+
+      // Wait for types cache updates
+      await setTimeout(() => {}, 1000);
+
+      // Open the new aggregation
+      await this.setType(savedType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
 
     } catch (err) {
+      console.error(err);
+      this.error = err && err.message || err;
+      this.markAsDirty();
+    } finally {
+      this.loading = false;
+      this.enable();
+    }
+
+  }
+
+  async deleteAggregation() {
+    if (!this.type || isNil(this.type.id)) return;
+
+    if (!this.type.isSpatial) {
+      console.warn("[extraction-table] Only spatial extraction can be deleted !");
+      return;
+    }
+
+    this.loading = true;
+
+    try {
+      await this.service.deleteAggregations([this.type as AggregationType]);
+    }
+    catch(err) {
       console.error(err);
       this.error = err && err.message || err;
       this.markAsDirty();
     }
     finally {
       this.loading = false;
-      this.enable();
     }
+
+  }
+
+  async openMap() {
+    if (!this.type || !this.type.isSpatial) return; // Skip
+
+    // open the map
+    await this.router.navigateByUrl('/map', {
+      queryParams:  this.getFilterAsQueryParams()
+    });
   }
 
   /* -- private method -- */

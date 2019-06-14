@@ -4,6 +4,7 @@ import {Moment} from 'moment/moment';
 import {DATE_ISO_PATTERN} from '../constants';
 import {DateAdapter} from "@angular/material";
 import {Subscription} from 'rxjs';
+import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
@@ -81,7 +82,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   onSubmit: EventEmitter<any> = new EventEmitter<any>();
 
   protected constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    protected dateAdapter: DateAdapter<Moment> | DateFormatPipe,
     public form?: FormGroup
   ) {
   }

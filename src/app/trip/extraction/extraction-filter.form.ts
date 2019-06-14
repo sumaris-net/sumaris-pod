@@ -1,24 +1,33 @@
-import {EventEmitter, OnInit} from '@angular/core';
-import {ActivatedRoute, ParamMap, Router} from "@angular/router";
+import {EventEmitter, Injector, OnInit} from '@angular/core';
+import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {isNil, isNotNil} from '../../shared/shared.module';
-import {ExtractionType} from "../services/extraction.model";
+import {Observable} from 'rxjs';
+import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
+import {AggregationType, ExtractionType} from "../services/extraction.model";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {trimEmptyToNull} from "../../shared/functions";
-import {distinct, filter, first, map, switchMap, zip} from "rxjs/operators";
-import {AppForm} from "../../core/core.module";
+import {first, map} from "rxjs/operators";
+import {AccountService, AppForm} from "../../core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
-export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<any> implements OnInit {
+export abstract class ExtractionForm<T extends ExtractionType | AggregationType> extends AppForm<any> implements OnInit {
 
   protected routePath = 'extraction';
 
+  protected dateAdapter: DateAdapter<Moment>;
+  protected formBuilder: FormBuilder;
+  protected route: ActivatedRoute;
+  protected router: Router;
+  protected translate: TranslateService;
+  protected service: ExtractionService;
+  protected accountService: AccountService;
+
+  canEdit = false;
   loading = true;
   type: T;
 
@@ -49,16 +58,16 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
   }
 
   protected constructor(
-    protected dateAdapter: DateAdapter<Moment>,
-    protected formBuilder: FormBuilder,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected translate: TranslateService,
-    protected service: ExtractionService,
+    protected injector: Injector,
     public form?: FormGroup
   ) {
-    super(dateAdapter, form);
-
+    super(injector.get(DateFormatPipe), form);
+    this.formBuilder = injector.get(FormBuilder);
+    this.route = injector.get(ActivatedRoute);
+    this.router = injector.get(Router);
+    this.translate = injector.get(TranslateService);
+    this.service = injector.get(ExtractionService);
+    this.accountService = injector.get(AccountService);
   }
 
   ngOnInit() {
@@ -75,10 +84,12 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
     // Listen route parameters
     this.registerSubscription(
       this.route.queryParams
+        .pipe(first()) // Do not refresh after the first page load (e.g. when location query path changed)
         .subscribe(async ({category, label, sheet}) => {
+          console.log("TODO analyzing path query params");
           const paramType = this.fromObject({category, label});
 
-          const types = await this.$types.toPromise();
+          const types = await this.$types.pipe(first()).toPromise();
           let selectedType;
 
           // If not type found in params, redirect to first one
@@ -96,17 +107,15 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
             selectedType.sheetNames = [selectedSheetName];
           }
 
-          await this.setType(selectedType, {emitEvent: false, skipLocationChange: true});
-          this.form.get('sheetName').patchValue(selectedSheetName, {emitEvent: false});
-          this.markForCheck();
+          // Set the type
+          await this.setType(selectedType, {
+            sheetName: selectedSheetName,
+            emitEvent: false,
+            skipLocationChange: true // Here, we not need an update of the location
+          });
 
-          // Reset criteria
-          this.resetFilterCriteria();
-
-          // TODO: parse queryParams: convert into criterion?
-
-          // Load from extraction type
-          return this.load(selectedType);
+          // Execute the first load
+          await this.load(this.type);
         }));
 
     this.$sheetNames = this.form.get('type').valueChanges
@@ -138,15 +147,13 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
   onSelectTypeChange(event: CustomEvent<{ value: T }>) {
     const type = event.detail.value;
     if (!type) return; // skip
-
     this.setType(type);
-
-    // Reset criteria
-    this.resetFilterCriteria();
   }
 
-  async setType(type: T, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
-    opts = opts || {emitEvent: true, skipLocationChange: false};
+  async setType(type: T, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string; }) {
+    opts = opts || {};
+    opts.emitEvent = isNotNil(opts.emitEvent) ? opts.emitEvent : true;
+    opts.skipLocationChange = isNotNil(opts.skipLocationChange) ? opts.skipLocationChange : false;
 
     // If empty or same: skip
     if (!type || ExtractionType.equals(type, this.type)) return;
@@ -163,14 +170,29 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
     this.type = selectType;
     this.form.get('type').patchValue(type, opts);
 
-    // Refresh data (default: true)
-    if (opts.emitEvent !== false) {
-      this.onRefresh.emit();
+    // Check if user can edit (admin or supervisor in the rec department)
+    this.canEdit = selectType.isSpatial && (this.accountService.isAdmin()
+      || this.accountService.canUserWriteDataForDepartment(selectType.recorderDepartment));
+
+    // Select the given sheet, or the first one
+    const sheetName = opts.sheetName || (selectType.sheetNames && selectType.sheetNames[0]);
+    this.onSheetChange(sheetName || null,
+      {
+        emitEvent: false,
+        skipLocationChange: true
+      });
+
+    // Reset criteria
+    this.resetFilterCriteria();
+
+    // Update the window location
+    if (opts.skipLocationChange === false) {
+      setTimeout(() => this.updateLocationParams(type), 500);
     }
 
-    // Update the window location (default: true)
-    if (opts.skipLocationChange !== true) {
-      this.updateLocationParams(type);
+    // Refresh data
+    if (opts.emitEvent === true) {
+      this.onRefresh.emit();
     }
   }
 
@@ -179,17 +201,18 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
    */
   updateLocationParams(type: T) {
     console.debug('[extraction-form] Updating query params', type);
-    this.router.navigate([this.routePath], {
-      queryParams: {
-        category: type.category,
-        label: type.label
-      }
+
+    this.router.navigate(['.'], {
+      relativeTo: this.route,
+      skipLocationChange: false,
+      queryParams: this.getFilterAsQueryParams()
     });
   }
 
-  onSheetChange(sheetName: string) {
+  onSheetChange(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
+    opts = opts || {emitEvent: !this.loading};
     // Skip if same, or loading
-    if (this.loading || isNil(sheetName) || this.sheetName === sheetName) return;
+    if (isNil(sheetName) || this.sheetName === sheetName) return;
 
     const sheetsForm = this.form.get('sheets') as FormGroup;
     let criteriaForm = sheetsForm.get(sheetName);
@@ -199,17 +222,15 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
     }
 
     // Set sheet name
-    this.form.get('sheetName').setValue(sheetName);
+    this.form.get('sheetName').patchValue(sheetName, opts);
 
-    setTimeout(() => {
-      this.router.navigate(['.'], {
-        relativeTo: this.route,
-        skipLocationChange: false,
-        queryParams: this.getFilterAsQueryParams()
-      });
-    }, 500);
+    if (opts.skipLocationChange !== true) {
+      setTimeout(() => this.updateLocationParams(this.type), 500);
+    }
 
-    this.onRefresh.emit();
+    if (opts.emitEvent !== false) {
+      this.onRefresh.emit();
+    }
   }
 
   public async downloadAsFile() {
@@ -389,10 +410,10 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
     if (message !== key) return message;
     // No I18n translation: continue
 
-    // Replace underscore with space
-    message = type.label.replace(/[_-]+/g, " ").toUpperCase();
+    // Use name, or label (but replace underscore with space)
+    message = type.name || type.label.replace(/[_-]+/g, " ").toUpperCase();
+    // First letter as upper case
     if (message.length > 1) {
-      // First letter as upper case
       return message.substring(0, 1) + message.substring(1).toLowerCase();
     }
     return message;
@@ -400,18 +421,22 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
 
   public getI18nSheetName(sheetName?: string, self?: ExtractionForm<T>): string {
     self = self || this;
-    if (isNil(sheetName) || isNil(self.type)) return undefined;
-    const type = self.form.controls['type'].value;
-    const key = `EXTRACTION.${type.category.toUpperCase()}.${type.label.toUpperCase()}.SHEET.${sheetName}`;
+    const type = self.type;
+    sheetName = sheetName || this.sheetName;
+    if (isNil(sheetName) || isNil(type)) return undefined;
+
+    // Try from specific translation
+    let key = `EXTRACTION.${type.category.toUpperCase()}.${type.label.toUpperCase()}.SHEET.${sheetName}`;
     let message = self.translate.instant(key);
+    if (message !== key) return message;
 
-    // No I18n translation
-    if (message === key) {
+    // Try from generic translation
+    key = `EXTRACTION.SHEET.${sheetName}`;
+    message = self.translate.instant(key);
+    if (message !== key) return message;
 
-      // Replace underscore with space
-      message = sheetName.replace(/[_-]+/g, " ").toUpperCase();
-    }
-    return message;
+    // No translation found: replace underscore with space
+    return sheetName.replace(/[_-]+/g, " ").toUpperCase();
   }
 
   public getI18nColumnName(columnName: string, self?: ExtractionForm<T>): string {
@@ -466,8 +491,11 @@ export abstract class ExtractionForm<T extends ExtractionType> extends AppForm<a
   }
 
   protected getFilterAsQueryParams(): any {
+    const params: any = {
+      category: this.type && this.type.category,
+      label: this.type && this.type.label
+    };
     const filter = this.getFilterValue();
-    const params: any = {};
     if (filter.sheetName) {
       params.sheet = filter.sheetName;
     }

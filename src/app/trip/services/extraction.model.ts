@@ -1,8 +1,9 @@
 /* -- Extraction -- */
 
-import {Entity} from "../../core/services/model";
+import {Department, Entity, Person} from "../../core/services/model";
+import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity, toDateISOString} from "./model/base.model";
 
-export class ExtractionType extends Entity<ExtractionType> {
+export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>> extends Entity<T> {
 
 
   static equals(o1: ExtractionType, o2: ExtractionType): boolean {
@@ -15,33 +16,44 @@ export class ExtractionType extends Entity<ExtractionType> {
     return res;
   }
 
-  label: string;
   category: string;
+  label: string;
   name?: string;
   sheetNames?: string[];
   statusId: number;
+  isSpatial: boolean;
 
-  clone() {
-    return this.copy(new ExtractionType());
+  recorderDepartment: Department;
+
+  constructor() {
+    super();
+    this.recorderDepartment = new Department();
   }
 
-  copy(target: ExtractionType): ExtractionType {
+  clone(): T {
+    return this.copy(new ExtractionType() as T);
+  }
+
+  copy(target: T): T {
     target.fromObject(this);
     return target;
   }
 
-  fromObject(source: any): ExtractionType {
+  fromObject(source: any): ExtractionType<T> {
     super.fromObject(source);
     this.label = source.label;
     this.category = source.category;
     this.name = source.name;
     this.sheetNames = source.sheetNames;
     this.statusId = source.statusId;
+    this.isSpatial = source.isSpatial;
+    source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
     return this;
   }
 
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(minify) || undefined;
     return target;
   }
 
@@ -60,9 +72,11 @@ export class ExtractionResult {
 export class ExtractionColumn {
   index?: number;
   name: string;
+  columnName: string;
   type: string;
   description?: String;
   rankOrder: number;
+  values?: string[];
 }
 
 export class ExtractionRow extends Array<any> {
@@ -74,7 +88,9 @@ export class ExtractionRow extends Array<any> {
 export type StrataAreaType = 'area' | 'rect' | 'square';
 export type StrataTimeType = 'year' | 'quarter' | 'month';
 
-export class AggregationType extends ExtractionType {
+export class AggregationType extends ExtractionType<AggregationType>
+  implements IWithRecorderDepartmentEntity<AggregationType>,
+             IWithRecorderPersonEntity<AggregationType> {
 
   static fromObject(source: any): AggregationType {
     const res = new AggregationType();
@@ -82,6 +98,8 @@ export class AggregationType extends ExtractionType {
     return res;
   }
 
+  description: string;
+  recorderPerson: Person;
   strata: {
     space: StrataAreaType[];
     time: StrataTimeType[];
@@ -90,10 +108,23 @@ export class AggregationType extends ExtractionType {
 
   constructor() {
     super();
+    this.recorderPerson = new Person();
+  }
+
+  clone(): AggregationType {
+    return this.copy(new AggregationType());
   }
 
   fromObject(source: any): AggregationType {
     super.fromObject(source);
+
+    this.label = source.label;
+    this.category = source.category;
+    this.name = source.name;
+    this.sheetNames = source.sheetNames;
+    this.statusId = source.statusId;
+    this.description = source.description;
+    source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
 
     if (source.strata) {
       this.strata = this.strata || {
@@ -102,11 +133,14 @@ export class AggregationType extends ExtractionType {
         tech: source.tech || [],
       };
     }
+
     return this;
   }
 
   asObject(minify?: boolean): any {
     const target = super.asObject(minify);
+
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(minify) || undefined;
     return target;
   }
 }

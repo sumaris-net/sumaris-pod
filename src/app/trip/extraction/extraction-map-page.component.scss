@@ -4,16 +4,27 @@ div[leaflet] {
   padding: 0;
 }
 
-ion-card.filter mat-expansion-panel {
-  --expansion-panel-padding: 0;
-  --expansion-panel-header-padding: 0 16px;
-
-  background: var(--background);
-  min-width: 150px;
-
+ion-card.filter {
   ion-item {
     background: var(--background);
   }
+
+
+  .mat-form-field.operator {
+    min-width: 40px;
+    max-width: 50px;
+    text-align: center;
+  }
+
+  mat-expansion-panel {
+    --expansion-panel-padding: 0;
+    --expansion-panel-header-padding: 0 16px;
+
+    background: var(--background);
+    min-width: 150px;
+
+  }
+
 }
 
 ion-card.legend {
@@ -27,6 +38,7 @@ ion-card.legend {
       content: ' ';
     }
   }
+
   ion-card-subtitle:hover ion-icon {
     visibility: visible;
   }
