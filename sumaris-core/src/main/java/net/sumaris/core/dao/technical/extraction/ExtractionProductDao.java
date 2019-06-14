@@ -1,6 +1,9 @@
 package net.sumaris.core.dao.technical.extraction;
 
 import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
+import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -17,16 +20,34 @@ public interface ExtractionProductDao {
 
 
     @Cacheable(cacheNames = CacheNames.PRODUCTS_BY_STATUS)
-    List<ExtractionProductVO> findAllByStatus(List<Integer> statusId);
+    List<ExtractionProductVO> findAllByStatus(List<Integer> statusId, ProductFetchOptions fetchOptions);
+
+    default List<ExtractionProductVO> findAllByStatus(List<Integer> statusId) {
+        return findAllByStatus(statusId, null);
+    }
 
     @Cacheable(cacheNames = CacheNames.PRODUCTS)
-    List<ExtractionProductVO> getAll();
+    List<ExtractionProductVO> getAll(ProductFetchOptions fetchOptions);
+
+    default List<ExtractionProductVO> getAll() {
+        return getAll(null);
+    }
 
     @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
-    ExtractionProductVO getByLabel(String label);
+    ExtractionProductVO getByLabel(String label, ProductFetchOptions fetchOptions);
+
+    default ExtractionProductVO getByLabel(String label) {
+        return getByLabel(label, null);
+    }
 
     //@Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
-    Optional<ExtractionProductVO> get(Integer id);
+    Optional<ExtractionProductVO> get(int id, ProductFetchOptions fetchOptions);
+
+    default Optional<ExtractionProductVO> get(int id) {
+        return get(id, null);
+    }
+
+    List<ExtractionProductColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel);
 
     @Caching(
         evict = {
@@ -45,6 +66,6 @@ public interface ExtractionProductDao {
             @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_STATUS, allEntries = true)
     })
-
     void delete(int id);
+
 }

@@ -527,6 +527,16 @@
                              referencedColumnNames="id" referencedTableName="Department"/>
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-68">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="extraction_product_column" columnName="rank_order"/></not>
+    </preConditions>
+    <addColumn tableName="extraction_product_column">
+      <column name="rank_order" type="integer">
+      </column>
+    </addColumn>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-200">
     <delete tableName="SYSTEM_VERSION">

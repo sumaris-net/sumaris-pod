@@ -5,8 +5,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductDao;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -18,16 +18,18 @@ import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.cost.ExtractionCostTripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
+import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -104,15 +106,15 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Override
     public List<ExtractionTypeVO> getAllExtractionTypes() {
         return ImmutableList.<ExtractionTypeVO>builder()
-                        .addAll(getProductExtractionTypes())
-                        .addAll(getLiveExtractionTypes())
-                        .build();
+                .addAll(getProductExtractionTypes())
+                .addAll(getLiveExtractionTypes())
+                .build();
     }
 
     @Override
     public ExtractionResultVO executeAndRead(ExtractionTypeVO type, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
         // Make sure type has category AND label filled
-        ExtractionTypeVO checkedType = Extractions.checkAndFindType(this.getAllExtractionTypes(), type);
+        ExtractionTypeVO checkedType = ExtractionBeans.checkAndFindType(this.getAllExtractionTypes(), type);
         ExtractionCategoryEnum category = ExtractionCategoryEnum.valueOf(checkedType.getCategory().toUpperCase());
 
         // Force preview
@@ -122,7 +124,8 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (category) {
             case PRODUCT:
-                ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel());
+                ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel(),
+                        ProductFetchOptions.MINIMAL_WITH_TABLES);
                 return readProductRows(product, filter, offset, size, sort, direction);
             case LIVE:
                 String formatName = checkedType.getLabel();
@@ -142,8 +145,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         String tableName;
         if (StringUtils.isNotBlank(filter.getSheetName())) {
             tableName = context.getTableNameBySheetName(filter.getSheetName());
-        }
-        else {
+        } else {
             tableName = context.getTableNames().iterator().next();
         }
 
@@ -172,7 +174,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Override
     public File executeAndDump(ExtractionTypeVO type, ExtractionFilterVO filter) throws IOException {
         // Make sure type has category AND label filled
-        ExtractionTypeVO checkedType = Extractions.checkAndFindType(getAllExtractionTypes(), type);
+        ExtractionTypeVO checkedType = ExtractionBeans.checkAndFindType(getAllExtractionTypes(), type);
         ExtractionCategoryEnum category = ExtractionCategoryEnum.valueOf(checkedType.getCategory().toUpperCase());
 
         filter = filter != null ? filter : new ExtractionFilterVO();
@@ -182,7 +184,12 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (category) {
             case PRODUCT:
-                ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel().toUpperCase());
+                ExtractionProductVO product = extractionProductDao.getByLabel(checkedType.getLabel(),
+                        ProductFetchOptions.builder()
+                                .withRecorderDepartment(false)
+                                .withRecorderPerson(false)
+                                .withColumns(false)
+                                .build());
                 return dumpProductToFile(product, filter);
             case LIVE:
                 ExtractionRawFormatEnum format = ExtractionRawFormatEnum.valueOf(checkedType.getLabel().toUpperCase());
@@ -196,7 +203,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Override
     public ExtractionContextVO execute(ExtractionTypeVO type, ExtractionFilterVO filter) {
         // Make sure type has category AND label filled
-        ExtractionTypeVO checkedType = Extractions.checkAndFindType(getAllExtractionTypes(), type);
+        ExtractionTypeVO checkedType = ExtractionBeans.checkAndFindType(getAllExtractionTypes(), type);
         ExtractionCategoryEnum category = ExtractionCategoryEnum.valueOf(checkedType.getCategory().toUpperCase());
 
         filter = filter != null ? filter : new ExtractionFilterVO();
@@ -247,8 +254,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         String format = source.getFormatName();
         if (StringUtils.isNotBlank(format)) {
             target.setLabel(StringUtils.changeCaseToUnderscore(format).toUpperCase());
-        }
-        else {
+        } else {
             target.setLabel(source.getLabel());
         }
         target.setName(String.format("Extraction #%s", source.getId()));
@@ -274,9 +280,10 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Load the product
         ExtractionProductVO target = null;
         try {
-            target = extractionProductDao.getByLabel(type.getLabel());
-        }
-        catch(Throwable t) {
+            target = extractionProductDao.getByLabel(type.getLabel(), ProductFetchOptions.builder()
+                    .withTables(false)
+                    .build());
+        } catch (Throwable t) {
             // Not found
         }
 
@@ -308,7 +315,11 @@ public class ExtractionServiceImpl implements ExtractionService {
     /* -- protected -- */
 
     protected List<ExtractionTypeVO> getProductExtractionTypes() {
-        return ListUtils.emptyIfNull(extractionProductDao.getAll())
+        return ListUtils.emptyIfNull(
+                extractionProductDao.getAll(ProductFetchOptions.builder()
+                        .withRecorderDepartment(true)
+                        .withTables(true)
+                        .build()))
                 .stream()
                 .map(this::toExtractionTypeVO)
                 .collect(Collectors.toList());
@@ -344,8 +355,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         ExtractionContextVO context;
         try {
             context = extractRawData(format, filter);
-        }
-        catch(DataNotFoundException e) {
+        } catch (DataNotFoundException e) {
             return createEmptyResult();
         }
 
@@ -376,7 +386,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         Preconditions.checkArgument(size >= 0, "'size' must be greater or equals to 0");
 
         // Get table name
-        String tableName = Extractions.getTableName(product, filter.getSheetName());
+        String tableName = ExtractionBeans.getTableName(product, filter.getSheetName());
 
         // Get table rows
         return extractionTableDao.getTableRows(tableName, filter, offset, size, sort, direction);
@@ -620,7 +630,12 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Sheetnames, from product tables
         Collection<String> sheetNames = source.getSheetNames();
-        target.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
+        if (CollectionUtils.isNotEmpty(sheetNames)) {
+            target.setSheetNames(sheetNames.toArray(new String[sheetNames.size()]));
+        }
+
+        // Recorder department
+        target.setRecorderDepartment(source.getRecorderDepartment());
     }
 
     protected void toProductVO(ExtractionContextVO source, ExtractionProductVO target) {

@@ -1,8 +1,10 @@
-package net.sumaris.core.extraction.service;
+package net.sumaris.core.extraction.utils;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.vo.AggregationContextVO;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
+import net.sumaris.core.extraction.vo.ExtractionRawFormatEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -17,9 +19,9 @@ import java.util.Optional;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public class Extractions {
+public class ExtractionBeans extends net.sumaris.core.util.ExtractionBeans {
 
-    protected Extractions()  {
+    protected ExtractionBeans()  {
 
     }
 
@@ -90,5 +92,27 @@ public class Extractions {
 
         // Table name not found: compute it (from the context label)
         return "p_" + product.getLabel().toLowerCase();
+    }
+
+    public static ExtractionRawFormatEnum getFormat(ExtractionProductVO source) {
+        return getFormatFromLabel(source.getLabel());
+    }
+
+    public static ExtractionRawFormatEnum getFormat(AggregationContextVO source) {
+        return getFormatFromLabel(source.getLabel());
+    }
+
+    public static ExtractionRawFormatEnum getFormatFromLabel(String label) {
+
+        final String formatStr = label == null ? null :
+                StringUtils.changeCaseToUnderscore(label.split("-")[0]).toUpperCase();
+
+        return ExtractionRawFormatEnum.fromString(formatStr)
+                .orElseGet(() -> {
+                    if (formatStr != null && formatStr.contains(ExtractionRawFormatEnum.RDB.name())) {
+                        return ExtractionRawFormatEnum.RDB;
+                    }
+                    throw new SumarisTechnicalException(String.format("Data aggregation on format '%s' not implemented !", formatStr));
+                });
     }
 }

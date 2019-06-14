@@ -38,9 +38,11 @@ public class ExtractionProductColumn implements IEntity<Integer> {
 
     public static final String PROPERTY_TABLE = "table";
     public static final String PROPERTY_NAME = "name";
+    public static final String PROPERTY_COLUMN_NAME = "columnName";
+    public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_COLUMN_SEQ")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "EXTRACTION_PRODUCT_COLUMN_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_COLUMN_SEQ", sequenceName="EXTRACTION_PRODUCT_COLUMN_SEQ")
     private Integer id;
 
@@ -52,6 +54,9 @@ public class ExtractionProductColumn implements IEntity<Integer> {
 
     @Column(name="column_name", nullable = false, length = 30)
     private String columnName;
+
+    @Column(name="rank_order", length = 10)
+    private Integer rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_table_fk", nullable = false)

@@ -40,7 +40,7 @@ public class ExtractionProductTable implements IItemReferentialEntity {
     public static final String PROPERTY_PRODUCT = "product";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_TABLE_SEQ")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "EXTRACTION_PRODUCT_TABLE_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_TABLE_SEQ", sequenceName="EXTRACTION_PRODUCT_TABLE_SEQ")
     private Integer id;
 

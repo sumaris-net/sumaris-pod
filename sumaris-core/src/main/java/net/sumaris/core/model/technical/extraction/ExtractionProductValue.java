@@ -43,8 +43,8 @@ public class ExtractionProductValue implements IEntity<Integer> {
     public static final String PROPERTY_LABEL = "label";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_VALUE_SEQ")
-    @SequenceGenerator(name = "EXTRACTION_PRODUCT_VALUE_SEQ", sequenceName="EXTRACTION_PRODUCT_VALUE_SEQ")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "EXTRACTION_PRODUCT_VALUE_SEQ")
+    @SequenceGenerator(name = "EXTRACTION_PRODUCT_VALUE_SEQ", sequenceName="EXTRACTION_PRODUCT_VALUE_SEQ", allocationSize = 1)
     private Integer id;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)

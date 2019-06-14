@@ -321,7 +321,7 @@ public class SumarisDatabaseMetadata {
 		return getTable(getQualifiedTableName(catalog, schema, name), jdbcMeta, persistentClass);
 	}
 
-	protected SumarisTableMetadata getTable(String name,
+	public SumarisTableMetadata getTable(String name,
 											String schema,
 											String catalog) throws HibernateException {
 		QualifiedTableName qualifiedTableName = getQualifiedTableName(catalog, schema, name);

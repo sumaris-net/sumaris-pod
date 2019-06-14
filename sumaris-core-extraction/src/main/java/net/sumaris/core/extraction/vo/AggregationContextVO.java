@@ -20,16 +20,19 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public abstract class AggregationContextVO extends ExtractionContextVO {
 
+    boolean enableAnalyze = true;
+
     @FieldNameConstants.Exclude
-    Map<String, Map<String, List<Object>>> columnValues = new LinkedHashMap<>();
+    Map<String, Map<String, List<String>>> columnValues = new LinkedHashMap<>();
 
     @FieldNameConstants.Exclude
     Map<String, Set<String>> spatialColumnNames = new LinkedHashMap<>();
 
     public void addTableName(String tableName, String sheetName,
+                             Set<String> hiddenColumnNames,
                              Set<String> spatialColumnNames,
-                             Map<String,List<Object>> availableValuesByColumn) {
-        super.addTableName(tableName, sheetName);
+                             Map<String,List<String>> availableValuesByColumn) {
+        super.addTableName(tableName, sheetName, hiddenColumnNames, false);
 
         if (CollectionUtils.isNotEmpty(spatialColumnNames)) {
             this.spatialColumnNames.put(tableName, spatialColumnNames);
@@ -52,5 +55,9 @@ public abstract class AggregationContextVO extends ExtractionContextVO {
         return SetUtils.emptyIfNull(getTableNames())
                 .stream()
                 .anyMatch(this::hasSpatialColumn);
+    }
+
+    public Map<String, List<String>> getColumnValues(String tableName) {
+        return columnValues.get(tableName);
     }
 }

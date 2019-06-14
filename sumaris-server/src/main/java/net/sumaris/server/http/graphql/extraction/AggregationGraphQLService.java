@@ -23,19 +23,32 @@ package net.sumaris.server.http.graphql.extraction;
  */
 
 import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLEnvironment;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.service.AggregationService;
-import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.extraction.vo.AggregationResultVO;
+import net.sumaris.core.extraction.vo.AggregationStrataVO;
+import net.sumaris.core.extraction.vo.AggregationTypeVO;
+import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
+import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.data.IWithObserversEntity;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
+import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class AggregationGraphQLService {
@@ -43,14 +56,16 @@ public class AggregationGraphQLService {
     @Autowired
     private AggregationService aggregationService;
 
+
     /* -- aggregation service -- */
 
     @GraphQLQuery(name = "aggregationTypes", description = "Get all available aggregation types")
-    public List<AggregationTypeVO> getAllAggregationTypes(@GraphQLArgument(name = "filter") AggregationTypeFilterVO filter) {
+    public List<AggregationTypeVO> getAllAggregationTypes(@GraphQLArgument(name = "filter") AggregationTypeFilterVO filter,
+                                                          @GraphQLEnvironment() Set<String> fields) {
         if (filter != null) {
-            return aggregationService.findAllTypes(filter);
+            return aggregationService.findAllTypes(filter, getFetchOptions(fields));
         }
-        return aggregationService.getAllAggregationTypes();
+        return aggregationService.getAllAggregationTypes(getFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "aggregationRows", description = "Read an aggregation")
@@ -67,11 +82,11 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLQuery(name = "aggregationColumns", description = "Read columns from aggregation")
-    @IsUser
-    public List<ExtractionColumnMetadataVO> getAggregationColumns(@GraphQLArgument(name = "type") AggregationTypeVO type) {
+    //@IsUser
+    public List<ExtractionProductColumnVO> getAggregationColumns(@GraphQLArgument(name = "type") AggregationTypeVO type,
+                                                                 @GraphQLArgument(name = "sheet") String sheet) {
 
-        AggregationResultVO res = aggregationService.read(type, new ExtractionFilterVO(), null, 0, 1, null, null);
-        return res.getColumns();
+        return aggregationService.getColumnsBySheetName(type, sheet);
     }
 
 
@@ -97,7 +112,8 @@ public class AggregationGraphQLService {
         }
 
         return GeoJsonExtractions.toFeatureCollection(
-                getAggregationRows(type, filter, strata, offset, size, sort, direction)
+                getAggregationRows(type, filter, strata, offset, size, sort, direction),
+                strata.getSpace()
         );
     }
 
@@ -107,6 +123,12 @@ public class AggregationGraphQLService {
                                              @GraphQLArgument(name = "filter") ExtractionFilterVO filter
     ) {
         return aggregationService.save(type, filter);
+    }
+
+    @GraphQLMutation(name = "deleteAggregations", description = "Delete some aggregations")
+    @IsSupervisor
+    public void deleteAggregations(@GraphQLArgument(name = "ids") int[] id) {
+        Arrays.stream(id).forEach(aggregationService::delete);
     }
 
 //    @GraphQLQuery(name = "aggregation", description = "Execute and read an aggregation")
@@ -121,4 +143,16 @@ public class AggregationGraphQLService {
 //
 //        return aggregationService.executeAndRead(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
 //    }
+
+    protected ProductFetchOptions getFetchOptions(Set<String> fields) {
+        return ProductFetchOptions.builder()
+                .withRecorderDepartment(fields.contains(IWithRecorderDepartmentEntity.PROPERTY_RECORDER_DEPARTMENT + "/" + IDataEntity.PROPERTY_ID))
+                .withRecorderPerson(fields.contains(IWithRecorderPersonEntity.PROPERTY_RECORDER_PERSON + "/" + IDataEntity.PROPERTY_ID))
+                // Tables (=sheets)
+                .withTables(fields.contains(AggregationTypeVO.PROPERTY_SHEET_NAMES))
+                // Columns not need
+                .withColumns(false)
+                .build();
+    }
+
 }

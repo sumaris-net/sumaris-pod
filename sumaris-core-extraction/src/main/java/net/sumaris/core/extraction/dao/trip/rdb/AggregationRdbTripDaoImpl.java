@@ -220,19 +220,20 @@ public class AggregationRdbTripDaoImpl<
         execute(xmlQuery);
         long count = countFrom(tableName);
 
-        // Clean row using generic tripFilter
         if (count == 0) return 0;
 
+        // Clean row using generic tripFilter
         count -= cleanRow(tableName, context.getFilter(), HH_SHEET_NAME);
 
         // Analyze row
-        Map<String, List<Object>> columnValues = null;
+        Map<String, List<String>> columnValues = null;
         if (context.isEnableAnalyze()) {
             columnValues = analyzeRow(tableName, xmlQuery, COLUMN_YEAR);
         }
 
         // Add result table to context
         context.addTableName(tableName, HH_SHEET_NAME,
+                xmlQuery.getHiddenColumnNames(),
                 getSpatialColumnNames(xmlQuery),
                 columnValues);
         log.debug(String.format("Station table: %s rows inserted", count));
@@ -390,21 +391,23 @@ public class AggregationRdbTripDaoImpl<
     }
 
 
-    protected Map<String, List<Object>> analyzeRow(final String tableName, XMLQuery xmlQuery, String... numericColumnToAnalyse) {
+    protected Map<String, List<String>> analyzeRow(final String tableName, XMLQuery xmlQuery, String... includedNumericColumnNames) {
         Preconditions.checkNotNull(tableName);
         Preconditions.checkNotNull(xmlQuery);
 
-        return Stream.concat(xmlQuery.getNotNumericColumnNames().stream(), Stream.of(numericColumnToAnalyse))
+        return Stream.concat(xmlQuery.getNotNumericColumnNames().stream(), Stream.of(includedNumericColumnNames))
                 .collect(Collectors.toMap(
                         c -> c,
-                        c -> query(String.format("SELECT DISTINCT %s FROM %s", c, tableName), Object.class))
+                        c -> query(String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c), Object.class)
+                                .stream().map(String::valueOf).collect(Collectors.toList())
+                        )
                 );
     }
 
     protected Set<String> getSpatialColumnNames(final XMLQuery xmlQuery) {
         return xmlQuery.getVisibleColumnNames()
                 .stream()
-                .map(c ->  c.toLowerCase())
+                .map(c -> c.toLowerCase())
                 .filter(SPACE_STRATA::contains)
                 .collect(Collectors.toSet());
     }

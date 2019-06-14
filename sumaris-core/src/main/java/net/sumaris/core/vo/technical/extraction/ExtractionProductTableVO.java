@@ -28,6 +28,7 @@ public class ExtractionProductTableVO implements IReferentialVO {
 
     private String tableName;
 
+    private List<ExtractionProductColumnVO> columns;
     private Map<String, List<Object>> columnValues;
 
 }

@@ -1,5 +1,6 @@
 package net.sumaris.core.extraction.vo;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -25,7 +26,8 @@ public enum ExtractionRawFormatEnum {
         return sheetNames;
     }
 
-    public static Optional<ExtractionRawFormatEnum> fromString(String value) {
+    public static Optional<ExtractionRawFormatEnum> fromString(@Nullable String value) {
+        if (value == null) return Optional.empty();
         try {
             return Optional.of(valueOf(value.toUpperCase()));
         }

@@ -1,16 +1,17 @@
 package net.sumaris.server.http.geojson.extraction;
 
 import net.sumaris.core.dao.referential.location.Locations;
-import net.sumaris.core.extraction.vo.ExtractionColumnMetadataVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
-import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import net.sumaris.server.http.geojson.GeoJsonGeometries;
 import org.geojson.Feature;
 import org.geojson.FeatureCollection;
+import org.geojson.Geometry;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -22,12 +23,29 @@ public class GeoJsonExtractions {
         // Helper class
     }
 
-    public static FeatureCollection toFeatureCollection(ExtractionResultVO result) {
+    public static FeatureCollection toFeatureCollection(ExtractionResultVO result, String spaceColumnName) {
+
+        Function<String, Geometry> mapper = null;
+        if ("square".equalsIgnoreCase(spaceColumnName)) {
+            mapper = (value) -> {
+                if (value == null) return null;
+                com.vividsolutions.jts.geom.Geometry geom = Locations.getGeometryFromMinuteSquareLabel(value, 10, false);
+                return GeoJsonGeometries.jtsGeometry(geom);
+            };
+        }
+        else if ("statistical_rectangle".equals(spaceColumnName) || "rect".equalsIgnoreCase(spaceColumnName)){
+            mapper = (value) -> {
+                if (value == null) return null;
+                com.vividsolutions.jts.geom.Geometry geom = Locations.getGeometryFromRectangleLabel(value, false);
+                return GeoJsonGeometries.jtsGeometry(geom);
+            };
+        }
 
         FeatureCollection features = new FeatureCollection();
 
+        final Function<String, Geometry> finalMapper = mapper;
         List<String> propertyNames = result.getColumns().stream()
-                .map(ExtractionColumnMetadataVO::getName)
+                .map(ExtractionProductColumnVO::getColumnName)
                 //.map(StringUtils::underscoreToChangeCase)
                 .map(String::toLowerCase)
                 .collect(Collectors.toList());
@@ -44,18 +62,9 @@ public class GeoJsonExtractions {
             feature.setProperties(properties);
 
             // Geometry
-            com.vividsolutions.jts.geom.Geometry geom = null;
-            String square = (String)properties.get("square");
-            if (square != null) {
-                geom = Locations.getGeometryFromMinuteSquareLabel(square, 10, false);
-                feature.setGeometry(GeoJsonGeometries.jtsGeometry(geom));
-            }
-            else {
-                String rectangle = (String)properties.get("statisticalRectangle");
-                if (rectangle != null) {
-                    geom = Locations.getGeometryFromRectangleLabel(rectangle, false);
-                    feature.setGeometry(GeoJsonGeometries.jtsGeometry(geom));
-                }
+            if (finalMapper != null) {
+                String spaceValue = (String) properties.get(spaceColumnName);
+                feature.setGeometry(finalMapper.apply(spaceValue));
             }
 
             return feature;

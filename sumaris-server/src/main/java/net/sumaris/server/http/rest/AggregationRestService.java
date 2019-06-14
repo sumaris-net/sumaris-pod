@@ -30,9 +30,9 @@ import net.sumaris.core.dao.referential.location.Locations;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.vo.*;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.http.geojson.GeoJsonGeometries;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
+import org.apache.commons.lang3.StringUtils;
 import org.geojson.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -54,20 +54,25 @@ public class AggregationRestService {
     private AggregationService aggregationService;
 
     @ResponseBody
-    @RequestMapping(value = "aggregation/{type}/geojson", method = RequestMethod.GET,
+    @RequestMapping(value = "aggregation/{type}/{space}/geojson", method = RequestMethod.GET,
             produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     public FeatureCollection getGeoAggregation(@PathVariable(name = "type") String typeLabel,
+                                               @PathVariable(name = "space") String spaceStrata,
                                                @PathParam(value = "offset") Integer offsetParam,
-                                               @PathParam(value = "size") Integer sizeParam) {
+                                               @PathParam(value = "size") Integer sizeParam,
+                                               @PathParam(value = "value") String valueParam) {
 
         AggregationTypeVO type = new AggregationTypeVO();
         type.setLabel(typeLabel);
 
         ExtractionFilterVO filter = null;
-        AggregationStrataVO strata = null;
 
         int offset = offsetParam != null ? offsetParam.intValue() : 0;
         int size = sizeParam != null ? sizeParam.intValue() : 100;
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpace(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : "square");
+        strata.setTech(StringUtils.isNotBlank(valueParam) ? valueParam : "station_count");
 
         // Limit to 1000 rows
         if (size > 1000) size = 1000;
@@ -77,7 +82,8 @@ public class AggregationRestService {
                 filter,
                 strata,
                 offset, size,
-                null, null));
+                null, null),
+                strata.getSpace());
     }
 
 

@@ -17,5 +17,4 @@ public class AggregationRdbTripContextVO extends AggregationTripContextVO {
     String speciesLengthTableName; // HL table
     String sampleTableName; // CA table
 
-    boolean enableAnalyze = true;
 }

@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.data;
+package net.sumaris.core.vo.technical.extraction;
 
 /*-
  * #%L
@@ -25,16 +25,30 @@ package net.sumaris.core.vo.data;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.Date;
-
 @Data
 @Builder
-public class DataFetchOptions {
+public class ProductFetchOptions {
+
+    public static ProductFetchOptions MINIMAL = builder()
+            .withRecorderDepartment(false)
+            .withRecorderPerson(false)
+            .withTables(true)
+            .withColumns(false)
+            .withColumnValues(false)
+            .build();
+    public static ProductFetchOptions MINIMAL_WITH_TABLES = builder()
+            .withRecorderDepartment(false)
+            .withRecorderPerson(false)
+            .withTables(true)
+            .withColumns(false)
+            .withColumnValues(false)
+            .build();
+    public static ProductFetchOptions NO_COLUMNS = builder().withColumns(false).withColumnValues(false).build();
 
     private boolean withRecorderDepartment = true;
     private boolean withRecorderPerson = true;
-    private boolean withObservers = true;
-
-    private boolean withChildrenEntities = false;
+    private boolean withTables = true;
+    private boolean withColumns = false;
+    private boolean withColumnValues = false;
 
 }

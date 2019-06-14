@@ -17,7 +17,6 @@ import java.util.List;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AggregationTypeVO extends ExtractionTypeVO implements
-        IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
     @Data
@@ -31,7 +30,6 @@ public class AggregationTypeVO extends ExtractionTypeVO implements
     String description;
     Date updateDate;
 
-    DepartmentVO recorderDepartment;
     PersonVO recorderPerson;
 
     Strata strata;

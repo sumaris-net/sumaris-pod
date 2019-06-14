@@ -17,9 +17,13 @@ public class ExtractionProductColumnVO implements IEntity<Integer> {
     private String name;
     private String columnName;
 
-    private ExtractionProductTableVO table;
+    private String type;
+    private String description;
+    private Integer rankOrder;
+
+    //private ExtractionProductTableVO table;
     private Integer tableId;
 
-    private List<Object> values;
+    private List<String> values;
 
 }

@@ -8,12 +8,15 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import org.hibernate.envers.query.criteria.ExtendableCriterion;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -99,6 +102,16 @@ public class AggregationServiceTest extends AbstractServiceTest {
         AggregationTypeVO savedType = doSave(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.RDB);
         Assert.assertNotNull(savedType);
         Assert.assertNotNull(savedType.getId());
+
+        Assert.assertNotNull(savedType.getSheetNames());
+        Assert.assertTrue(savedType.getSheetNames().length > 0);
+        String sheetName = savedType.getSheetNames()[0];
+
+        // Check columns
+        List<ExtractionProductColumnVO> columns = service.getColumnsBySheetName(savedType, sheetName);
+        Assert.assertNotNull(columns);
+        Assert.assertTrue(columns.size() > 0);
+
     }
 
     @Test
@@ -126,8 +139,13 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Assert.assertTrue(result.getRows().size() > 0);
     }
 
+    @Test
+    public void saveThenDelete() {
+        AggregationTypeVO type = doSave(ExtractionCategoryEnum.LIVE, ExtractionRawFormatEnum.SURVIVAL_TEST);
+        service.delete(type.getId());
+    }
 
-    //
+    /* -- protected methods --*/
 
     protected AggregationTypeVO doSave(ExtractionCategoryEnum category, ExtractionRawFormatEnum format) {
 
