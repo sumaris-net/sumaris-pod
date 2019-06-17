@@ -22,7 +22,10 @@ export class RegisterForm implements OnInit {
   forms: FormGroup[];
   subscriptions: Subscription[] = [];
   error: string;
-  sending: boolean = false;
+  sending = false;
+
+  showPwd = false;
+  showConfirmPwd = false;
 
   @ViewChild('stepper') private stepper: MatHorizontalStepper;
 

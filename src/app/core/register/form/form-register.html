@@ -40,8 +40,13 @@
 
       <!-- Password -->
       <mat-form-field>
-        <input matInput [placeholder]="'USER.PASSWORD'|translate" formControlName="password" autocomplete="section-red new-password"
-          type="password" required>
+        <input matInput [placeholder]="'USER.PASSWORD'|translate" formControlName="password"
+               autocomplete="section-red new-password"
+               [type]="showPwd ? 'text' : 'password'"
+               required>
+        <button mat-icon-button matSuffix (click)="showPwd = !showPwd" [attr.aria-pressed]="showPwd">
+          <mat-icon>{{showPwd ? 'visibility' : 'visibility_off'}}</mat-icon>
+        </button>
         <mat-error *ngIf="controls.password.hasError('required') && controls.password.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.password.hasError('minlength') && controls.password.touched">
           <span>{{'ERROR.FIELD_TOO_SHORT_WITH_LENGTH' | translate: {minLength: 8} }}</span>
@@ -50,8 +55,14 @@
 
       <!-- Confirm password -->
       <mat-form-field>
-        <input matInput [placeholder]="'REGISTER.CONFIRM_PASSWORD'|translate" formControlName="confirmPassword"
-          autocomplete="section-red new-password" type="password">
+        <input matInput [placeholder]="'REGISTER.CONFIRM_PASSWORD'|translate"
+               formControlName="confirmPassword"
+               autocomplete="section-red new-password"
+               [type]="showConfirmPwd ? 'text' : 'password'"
+               required>
+        <button mat-icon-button matSuffix (click)="showConfirmPwd = !showConfirmPwd" [attr.aria-pressed]="showConfirmPwd">
+          <mat-icon>{{showConfirmPwd ? 'visibility' : 'visibility_off'}}</mat-icon>
+        </button>
         <mat-error *ngIf="controls.confirmPassword.hasError('required') && controls.confirmPassword.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.confirmPassword.hasError('equals') && controls.confirmPassword.touched">
           <span>{{'REGISTER.ERROR.NOT_SAME_PASSWORD' | translate }}</span>
