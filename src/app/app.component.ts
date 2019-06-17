@@ -48,7 +48,7 @@ export class AppComponent {
     {title: '' /*empty divider*/},
     {title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings'},
     {title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', cssClass: 'visible xs visible-sm'},
-    {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'USER', cssClass: 'ion-color-danger'}
+    {title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', cssClass: 'ion-color-danger'}
 
   ];
 
