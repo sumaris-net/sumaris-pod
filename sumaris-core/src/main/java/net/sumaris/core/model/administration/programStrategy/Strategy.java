@@ -45,6 +45,7 @@ public class Strategy implements IItemReferentialEntity {
 
     public static final String PROPERTY_PROGRAM = "program";
     public static final String PROPERTY_GEARS = "gears";
+    public static final String PROPERTY_TAXON_GROUPS = "taxonGroups";
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -91,4 +92,8 @@ public class Strategy implements IItemReferentialEntity {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.PROPERTY_STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ReferenceTaxonStrategy> referenceTaxons = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.PROPERTY_STRATEGY)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
 }

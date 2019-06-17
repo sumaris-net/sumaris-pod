@@ -52,4 +52,14 @@ public class StrategyServiceTest extends AbstractServiceTest{
         Assert.assertTrue(results.size() > 10);
         Assert.assertTrue(results.size() < 30);
     }
+
+    @Test
+    public void getTaxonGroups() {
+
+        ProgramVO program =  dbResource.getFixtures().getAuctionProgram();
+
+        List<ReferentialVO> results = service.getTaxonGroups(program.getId());
+        Assert.assertNotNull(results);
+        Assert.assertTrue(results.size() > 0);
+    }
 }

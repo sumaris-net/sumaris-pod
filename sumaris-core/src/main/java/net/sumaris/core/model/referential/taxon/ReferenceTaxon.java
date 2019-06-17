@@ -24,11 +24,15 @@ package net.sumaris.core.model.referential.taxon;
 
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
+import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Un référence stable (un identifiant unique) de taxon réel.
@@ -46,5 +50,9 @@ public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.PROPERTY_REFERENCE_TAXON)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    private List<ReferenceTaxonStrategy> strategies;
 
 }

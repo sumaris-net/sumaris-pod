@@ -26,13 +26,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
@@ -144,11 +141,43 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                                 // program
                                 builder.equal(gearInnerJoin.get(Strategy.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam),
                                 // Status (temporary or valid)
-                                builder.in(gearInnerJoin.get(Gear.PROPERTY_STATUS).get(Status.PROPERTY_ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                                builder.in(root.get(Gear.PROPERTY_STATUS).get(Status.PROPERTY_ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
                         ));
 
         // Sort by rank order
         query.orderBy(builder.asc(root.get(Gear.PROPERTY_LABEL)));
+
+        return getEntityManager()
+                .createQuery(query)
+                .setParameter(programIdParam, programId)
+                .getResultStream()
+                .map(referentialDao::toReferentialVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ReferentialVO> getTaxonGroups(int programId) {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<TaxonGroup> query = builder.createQuery(TaxonGroup.class);
+        Root<TaxonGroup> root = query.from(TaxonGroup.class);
+
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+
+        Join<TaxonGroup, TaxonGroupStrategy> innerJoinTGS = root.joinList(TaxonGroup.PROPERTY_STRATEGIES, JoinType.INNER);
+        Join<TaxonGroupStrategy, Strategy> innerJoinS = innerJoinTGS.join(TaxonGroupStrategy.PROPERTY_STRATEGY, JoinType.INNER);
+
+
+        query.select(root)
+                .where(
+                        builder.and(
+                                // program
+                                builder.equal(innerJoinS.get(Strategy.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam),
+                                // Status (temporary or valid)
+                                builder.in(root.get(TaxonGroup.PROPERTY_STATUS).get(Status.PROPERTY_ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                        ));
+
+        // Sort by rank order
+        query.orderBy(builder.asc(root.get(TaxonGroup.PROPERTY_LABEL)));
 
         return getEntityManager()
                 .createQuery(query)

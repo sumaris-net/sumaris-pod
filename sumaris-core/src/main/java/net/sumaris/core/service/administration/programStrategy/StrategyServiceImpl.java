@@ -56,4 +56,9 @@ public class StrategyServiceImpl implements StrategyService {
 	public List<ReferentialVO> getGears(int programId) {
 		return strategyDao.getGears(programId);
 	}
+
+	@Override
+	public List<ReferentialVO> getTaxonGroups(int programId) {
+		return strategyDao.getTaxonGroups(programId);
+	}
 }

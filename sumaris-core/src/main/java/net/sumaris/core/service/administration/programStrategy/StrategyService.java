@@ -51,4 +51,7 @@ public interface StrategyService {
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getGears(int programId);
 
+	@Transactional(readOnly = true)
+	List<ReferentialVO> getTaxonGroups(int programId);
+
 }

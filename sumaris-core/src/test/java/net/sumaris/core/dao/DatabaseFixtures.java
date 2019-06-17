@@ -204,6 +204,13 @@ public class DatabaseFixtures {
 		return program;
 	}
 
+	public ProgramVO getAuctionProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(11);
+		program.setLabel("ADAP-CONTROLE");
+		return program;
+	}
+
 	/* -- PMFM -- */
 
 	public Integer getPmfmBatchWeight() {

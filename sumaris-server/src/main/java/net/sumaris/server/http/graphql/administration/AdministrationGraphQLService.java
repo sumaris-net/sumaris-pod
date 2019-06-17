@@ -353,6 +353,19 @@ public class AdministrationGraphQLService {
 
     }
 
+    @GraphQLQuery(name = "programTaxonGroups", description = "Get program's taxon groups")
+    @Transactional(readOnly = true)
+    public List<ReferentialVO> getProgramTaxonGroups(
+            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel) {
+        Preconditions.checkNotNull(programLabel, "Missing program");
+        ProgramVO program = programService.getByLabel(programLabel);
+
+        if (program == null) throw new SumarisTechnicalException(String.format("Program {%s} not found", programLabel));
+
+        return strategyService.getTaxonGroups(program.getId());
+
+    }
+
     public DepartmentVO fillLogo(DepartmentVO department) {
         if (department != null && department.isHasLogo() && StringUtils.isBlank(department.getLogo()) && StringUtils.isNotBlank(department.getLabel())) {
             department.setLogo(departmentLogoUrl.replace("{label}", department.getLabel()));
