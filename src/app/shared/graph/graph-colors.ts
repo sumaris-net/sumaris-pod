@@ -180,13 +180,13 @@ export class ColorScale {
     return this.colorArray[index];
   }
 
-  protected computeLegend(): { color: string; label: string }[] {
+  protected computeLegend(): ColorScaleLegendItem[] {
     return this.colorArray.map((color, index) => {
       const start = index * this._rangeSize;
-      const label = (start <= this._max) ? `${start} - ${start + this._rangeSize}` : ` >= ${start}`;
+      const end = start + this._rangeSize;
       return {
         color: color,
-        label: label
+        label: (end < this._max) ? `${start.toLocaleString()} - ${end.toLocaleString()}` : ` >= ${start}`
       };
     });
   }

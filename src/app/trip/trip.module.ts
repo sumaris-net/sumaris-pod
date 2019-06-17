@@ -20,7 +20,7 @@ import {SubSamplesTable} from './sample/sub-samples.table';
 import {BatchGroupsTable} from './batch/batch-groups.table';
 import {BatchesTable} from './batch/batches.table';
 import {SubBatchesTable} from './batch/sub-batches.table';
-import {IndividualMonitoringTable} from './sample/individualmonitoring/sample-individual-monitoring.table';
+import {IndividualMonitoringSubSamplesTable} from './sample/individualmonitoring/individual-monitoring-samples.table';
 import {MeasurementValuesForm} from './measurement/measurement-values.form.class';
 import {EntityQualityFormComponent} from "./quality/entity-quality-form.component";
 
@@ -54,6 +54,8 @@ import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {LandingsTablesModal} from "./landing/landings-table.modal";
 import {ExtractionSelectTypeModal} from "./extraction/extraction-list-modal.component";
+import {AuctionControlSamplesTable} from "./sample/auctioncontrol/auction-control-samples.table";
+import {AuctionControlLandingPage} from "./landing/auctioncontrol/auction-control-landing.page";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -90,7 +92,9 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       BatchGroupsTable,
       BatchesTable,
       SubBatchesTable,
-      IndividualMonitoringTable,
+      IndividualMonitoringSubSamplesTable,
+      AuctionControlLandingPage,
+      AuctionControlSamplesTable,
       EntityQualityFormComponent,
       ExtractionTablePage,
       ExtractionMapPage,
@@ -115,7 +119,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LandingsTable,
       LandingForm,
       LandingPage,
-      LandingsTablesModal
+      LandingsTablesModal,
+      AuctionControlLandingPage
     ],
     entryComponents: [
       TripsPage,
@@ -128,6 +133,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       ObservedLocationsPage,
       LandingPage,
       LandingsTablesModal,
+      AuctionControlLandingPage,
       ExtractionTablePage,
       ExtractionMapPage,
       ExtractionSelectTypeModal

@@ -1,15 +1,18 @@
 <mat-toolbar>
-  <button mat-icon-button *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+  <button mat-icon-button *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate"
+          (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
-    (click)="deleteSelection()">
+  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled"
+          [title]="'COMMON.BTN_DELETE'|translate"
+          (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-    (click)="onRefresh.emit()">
+  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()"
+          [title]="'COMMON.BTN_REFRESH'|translate"
+          (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
 
@@ -32,16 +35,17 @@
 </ion-item>
 
 <mat-table [dataSource]="dataSource" class="table-samples" matSort matSortActive="rankOrder" matSortDirection="asc"
-  matSortDisableClear [trackBy]="trackByFn">
+           matSortDisableClear [trackBy]="trackByFn">
 
   <ng-container matColumnDef="select">
     <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-        [indeterminate]="selection.hasValue() && !isAllSelected()">
+                    [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
     </mat-header-cell>
     <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
+                    [checked]="selection.isSelected(row)">
       </mat-checkbox>
     </mat-cell>
   </ng-container>
@@ -65,9 +69,9 @@
         <input matInput autocomplete="off"
                [formControl]="row.validator.controls['label']"
                [placeholder]="'TRIP.SAMPLE.TABLE.LABEL_PLACEHOLDER'|translate"
-               (click)="$event.target.select()"
-               required>
-        <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+               (click)="$event.target.select()">
+        <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED
+        </mat-error>
       </mat-form-field>
     </mat-cell>
   </ng-container>
@@ -82,9 +86,11 @@
         <input matInput autocomplete="off"
                [formControl]="row.validator.controls['taxonGroup']" [matAutocomplete]="autoTaxonGroup"
                [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
-               (focus)="onCellFocus($event, row, 'taxonGroup')" (blur)="onCellBlur($event, row, 'taxonGroup')" (click)="$event.target.select()"
+               (focus)="onCellFocus($event, row, 'taxonGroup')" (blur)="onCellBlur($event, row, 'taxonGroup')"
+               (click)="$event.target.select()"
                required>
-        <mat-error *ngIf="row.validator.controls['taxonGroup'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        <mat-error *ngIf="row.validator.controls['taxonGroup'].hasError('required')" translate>ERROR.FIELD_REQUIRED
+        </mat-error>
       </mat-form-field>
 
       <mat-autocomplete autoActiveFirstOption #autoTaxonGroup="matAutocomplete" [displayWith]="referentialToString">
@@ -98,8 +104,10 @@
         </ion-row>
         <mat-option *ngFor="let item of $taxonGroups | async" [value]="item" no-padding>
           <ion-row>
-            <ion-col size="3" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
+            <ion-col size="3"
+                     [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
+            <ion-col
+              [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
           </ion-row>
         </mat-option>
       </mat-autocomplete>
@@ -114,10 +122,12 @@
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
         <input matInput [formControl]="row.validator.controls['taxonName']" [matAutocomplete]="autoTaxonName"
-          [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
-          (focus)="onCellFocus($event, row, 'taxonName')" (blur)="onCellBlur($event, row, 'taxonName')" (click)="$event.target.select()"
-          required>
-        <mat-error *ngIf="row.validator.controls['taxonName'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+               [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
+               (focus)="onCellFocus($event, row, 'taxonName')" (blur)="onCellBlur($event, row, 'taxonName')"
+               (click)="$event.target.select()"
+               required>
+        <mat-error *ngIf="row.validator.controls['taxonName'].hasError('required')" translate>ERROR.FIELD_REQUIRED
+        </mat-error>
       </mat-form-field>
 
       <mat-autocomplete autoActiveFirstOption #autoTaxonName="matAutocomplete" [displayWith]="referentialToString">
@@ -131,8 +141,10 @@
         </ion-row>
         <mat-option *ngFor="let item of $taxonNames | async" [value]="item" no-padding>
           <ion-row>
-            <ion-col size="3" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
+            <ion-col size="3"
+                     [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
+            <ion-col
+              [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
           </ion-row>
         </mat-option>
       </mat-autocomplete>
@@ -145,19 +157,21 @@
       <ion-label translate>TRIP.SAMPLE.TABLE.SAMPLE_DATE</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="mat-cell-date-time">
-        <mat-date-time  floatLabel="never" [formControl]="row.validator.controls['sampleDate']" [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
-          [compact]="true" [readonly]="!row.editing" [required]="true"></mat-date-time>
+      <mat-date-time floatLabel="never" [formControl]="row.validator.controls['sampleDate']"
+                     [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
+                     [compact]="true" [readonly]="!row.editing" [required]="true"></mat-date-time>
     </mat-cell>
   </ng-container>
 
   <!-- Pmfms columns -->
-  <ng-container *ngFor="let pmfm of pmfms | async"[matColumnDef]="pmfm.pmfmId.toString()">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.type==='date'">
-        <ion-label>{{getPmfmColumnHeader(pmfm)}}
-        <small *ngIf="pmfm.unit && (pmfm.type === 'integer' || pmfm.type === 'double')"><br />({{pmfm.unit}})</small>
+  <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
+      <ion-label>{{getPmfmColumnHeader(pmfm)}}
+        <small *ngIf="pmfm.unit && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unit}})</small>
       </ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
+    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate"
+              [class.mat-cell-computed]="pmfm.isComputed">
       <mat-form-field-measurement
         [readonly]="!row.editing"
         [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
@@ -172,8 +186,9 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
       <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
-          [readonly]="!row.editing">
+        <input matInput [formControl]="row.validator.controls['comments']"
+               [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+               [readonly]="!row.editing">
       </mat-form-field>
     </mat-cell>
   </ng-container>
@@ -184,19 +199,22 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
       <!-- undo or delete  -->
-      <button mat-icon-button small color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-        (click)="cancelOrDelete($event, row)">
+      <button mat-icon-button small color="light" *ngIf="row.validator.invalid"
+              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+              (click)="cancelOrDelete($event, row)">
         <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
         <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
       </button>
       <!-- validate -->
-      <button mat-icon-button small color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
-        (click)="confirmEditCreate($event, row)">
+      <button mat-icon-button small color="light" *ngIf="row.validator.valid && row.id !== -1"
+              [title]="'COMMON.BTN_VALIDATE'|translate"
+              (click)="confirmEditCreate($event, row)">
         <mat-icon>check</mat-icon>
       </button>
       <!-- add -->
-      <button mat-icon-button small color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
-        (click)="confirmAndAddRow($event, row)">
+      <button mat-icon-button small color="light" *ngIf="row.validator.valid && row.id === -1"
+              [title]="'COMMON.BTN_ADD'|translate"
+              (click)="confirmAndAddRow($event, row)">
         <mat-icon>add</mat-icon>
       </button>
     </mat-cell>
@@ -204,12 +222,9 @@
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-    [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing" (click)="clickRow($event, row)"></mat-row>
+           [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing"
+           (click)="clickRow($event, row)"></mat-row>
 </mat-table>
-
-
-
-
 
 
 <ion-fab right bottom visible-xs visible-sm>

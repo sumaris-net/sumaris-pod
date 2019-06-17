@@ -19,6 +19,8 @@ import {LandingsTablesModal} from "../landing/landings-table.modal";
 })
 export class ObservedLocationPage extends AppEditorPage<ObservedLocation> implements OnInit {
 
+  landingEditor = 'landing';
+
   @ViewChild('observedLocationForm') observedLocationForm: ObservedLocationForm;
 
   @ViewChild('landingsTable') landingsTable: LandingsTable;
@@ -47,6 +49,9 @@ export class ObservedLocationPage extends AppEditorPage<ObservedLocation> implem
         if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE, false);
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS) || [LocationLevelIds.PORT];
+
+        const landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR) || 'landing';
+        this.landingEditor = (landingEditor === 'landing' || landingEditor === 'control') ? landingEditor : 'landing';
       });
   }
 
@@ -104,7 +109,7 @@ export class ObservedLocationPage extends AppEditorPage<ObservedLocation> implem
   async onOpenLanding({id}) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
-      await this.router.navigateByUrl(`/observations/${this.data.id}/landings/${id}`);
+      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${id}`);
     }
   }
 
@@ -115,7 +120,7 @@ export class ObservedLocationPage extends AppEditorPage<ObservedLocation> implem
     if (landing && landing.vesselFeatures) {
       const savedOrContinue = await this.saveIfDirtyAndConfirm();
       if (savedOrContinue) {
-        await this.router.navigateByUrl(`/observations/${this.data.id}/landings/new?vessel=${landing.vesselFeatures.vesselId}`);
+        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselFeatures.vesselId}`);
       }
     }
 

@@ -15,7 +15,7 @@ import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
-import {isNotNil, toBoolean} from "../../shared/shared.module";
+import {isNotNil} from "../../shared/shared.module";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 

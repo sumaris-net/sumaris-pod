@@ -74,6 +74,9 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     this.observedLocationId = source.observedLocationId;
     this.tripId = source.tripId;
     this.measurementValues = source.measurementValues;
+    if (this.measurementValues === undefined) {
+      console.warn("Source as no measurementValues. Should never occur ! ", source);
+    }
 
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;

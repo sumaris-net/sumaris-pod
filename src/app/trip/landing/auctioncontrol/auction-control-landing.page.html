@@ -63,18 +63,16 @@
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-samples-table #samplesTable
-                           [program]="programSubject|async"
-                           [showLabelColumn]="true"
-                           [showDateTimeColumn]="false"
-                           [showTaxonNameColumn]="false"
-                           [showTaxonGroupColumn]="true"
-                           [defaultSampleDate]="data?.dateTime"
-                           [usageMode]="usageMode"
-                           [debug]="debug"></app-samples-table>
-
-        <!--        (onOpenRow)="onOpenSample($event)"-->
-        <!--        (onNewRow)="onNewSample($event)"-->
+        <app-sample-auction-control-table #samplesTable
+                                          [program]="programSubject|async"
+                                          [showLabelColumn]="true"
+                                          [showDateTimeColumn]="false"
+                                          [showTaxonNameColumn]="false"
+                                          [showTaxonGroupColumn]="!!($defaultTaxonGroup|async)"
+                                          [defaultSampleDate]="data?.dateTime"
+                                          [defaultTaxonGroup]="$defaultTaxonGroup|async"
+                                          [usageMode]="usageMode"
+                                          [debug]="debug"></app-sample-auction-control-table>
 
       </div>
     </mat-tab>

@@ -4,7 +4,7 @@ import {EntityUtils, environment} from '../../core/core.module';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {LandingForm} from "./landing.form";
-import {Landing, ObservedLocation, Trip, vesselFeaturesToString} from "../services/trip.model";
+import {Landing, ObservedLocation, PmfmStrategy, Trip, vesselFeaturesToString} from "../services/trip.model";
 import {LocationLevelIds, ProgramProperties} from "../../referential/services/model";
 import {SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model";
@@ -16,6 +16,8 @@ import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
 import {isEmptyArray} from "../../shared/functions";
 import {filter, throttleTime} from "rxjs/operators";
+import {Observable} from "rxjs";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 
 @Component({
   selector: 'app-landing-page',
@@ -25,9 +27,12 @@ import {filter, throttleTime} from "rxjs/operators";
 export class LandingPage extends AppEditorPage<Landing, LandingFilter> implements OnInit {
 
   protected parent: Trip | ObservedLocation;
+  protected dataService: LandingService;
+  protected observedLocationService: ObservedLocationService;
+  protected tripService: TripService;
+  protected referentialRefService: ReferentialRefService;
 
   @ViewChild('landingForm') landingForm: LandingForm;
-
   @ViewChild('samplesTable') samplesTable: SamplesTable;
 
   protected async getValue(): Promise<Landing> {
@@ -41,13 +46,17 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
     return data;
   }
 
+  get pmfms(): Observable<PmfmStrategy[]> {
+    return this.landingForm.$pmfms.pipe(filter(isNotNil));
+  }
+
   constructor(
-    injector: Injector,
-    protected dataService: LandingService,
-    protected observedLocationService: ObservedLocationService,
-    protected tripService: TripService
+    injector: Injector
   ) {
-    super(injector, Landing, dataService);
+    super(injector, Landing, injector.get(LandingService));
+    this.observedLocationService = injector.get(ObservedLocationService);
+    this.tripService = injector.get(TripService);
+    this.referentialRefService = injector.get(ReferentialRefService);
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -58,12 +67,12 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-    this.onProgramChanged
-      .subscribe(program => {
-        if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-        this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS) || [LocationLevelIds.PORT];
-        //this.markForCheck();
-      }));
+      this.onProgramChanged
+        .subscribe(program => {
+          if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
+          this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS) || [LocationLevelIds.PORT];
+          //this.markForCheck();
+        }));
 
     // Use landing date as default dateTime for samples
     this.registerSubscription(
@@ -183,7 +192,6 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
     && isNotNil(landing && landing.dateTime)
     && landing.dateTime.diff(moment(), "day") <= 1 ? 'FIELD' : 'DESK';
   }
-
 
   /* -- protected methods -- */
 

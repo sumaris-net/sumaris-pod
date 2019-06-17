@@ -1,7 +1,4 @@
-import { Pipe, Injectable, PipeTransform } from '@angular/core';
-import { Moment } from "moment/moment";
-import { DateAdapter } from "@angular/material";
-import { DATE_ISO_PATTERN } from '../constants';
+import {Injectable, Pipe, PipeTransform} from '@angular/core';
 
 @Pipe({
     name: 'numberFormat'

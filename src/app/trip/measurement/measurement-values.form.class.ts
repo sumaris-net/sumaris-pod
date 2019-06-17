@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, EventEmitter, Input, Output} from '@angular/core';
+import {ChangeDetectorRef, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Entity, isNil, isNotNil, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
@@ -10,7 +10,7 @@ import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {filter, first, startWith, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement} from "../services/model/measurement.model";
 
-export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> {
+export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> implements OnInit {
 
   protected _onValueChanged = new EventEmitter<T>();
   protected _onRefreshPmfms = new EventEmitter<any>();
@@ -19,8 +19,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected _acquisitionLevel: string;
   protected data: T;
 
-  loading = false;
-  loadingPmfms = true;
+  loading = false; // Important, must be false
+  loadingPmfms = true; // Important, must be true
 
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
@@ -129,7 +129,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.registerSubscription(
       this.form.valueChanges
         .subscribe((_) => {
-          if (!this.loading && this.valueChanges.observers.length) {
+          if (!this.loading && !this.loadingPmfms && this.valueChanges.observers.length) {
             this.valueChanges.emit(this.value);
           }
         })
@@ -238,7 +238,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       this.measurementValidatorService.updateFormGroup(formGroup as FormGroup, pmfms);
     }
 
-    let measurementValues = AppFormUtils.getFormValueFromEntity(this.data.measurementValues, formGroup as FormGroup);
+    let measurementValues = AppFormUtils.getFormValueFromEntity(this.data.measurementValues || {}, formGroup as FormGroup);
     measurementValues = MeasurementUtils.normalizeFormValues(measurementValues, pmfms);
     formGroup.patchValue(measurementValues, {
       onlySelf: true,
@@ -267,6 +267,26 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   /** -- protected methods  -- */
+
+  public setValue(data: T) {
+    if (!data) return;
+
+    // Wait pmfms load
+    const pmfms = this.$pmfms.getValue();
+    if (!pmfms || this.loadingPmfms || this.loading) {
+      if (this.debug) console.debug(`${this.logPrefix} setValue(): waiting pmfms or form...`);
+      this.$pmfms
+        .pipe(
+          filter(isNotNil),
+          throttleTime(100), // groups pmfms updates event, if many updates in few duration
+          first()
+        )
+        .subscribe((pmfms) => this.setValue(data));
+      return;
+    }
+
+    super.setValue(data);
+  }
 
   protected get logPrefix(): string {
     const acquisitionLevel = this._acquisitionLevel && this._acquisitionLevel.toLowerCase().replace(/[_]/g, '-') || '?';

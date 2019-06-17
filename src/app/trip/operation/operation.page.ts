@@ -20,12 +20,11 @@ import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switc
 import {Validators} from "@angular/forms";
 import * as moment from "moment";
 import {Moment} from "moment";
-import {IndividualMonitoringTable} from "../sample/individualmonitoring/sample-individual-monitoring.table";
+import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
 import {ProgramProperties} from "../../referential/services/model";
 import {SubBatchesTable} from "../batch/sub-batches.table";
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
-import {BatchesTable} from "../batch/batches.table";
 
 @Component({
   selector: 'page-operation',
@@ -54,19 +53,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   @ViewChild('matTabGroup') matTabGroup: MatTabGroup;
   @ViewChild('batchSamplingTabGroup') batchSamplingTabGroup: MatTabGroup;
   @ViewChild('survivalTestTabGroup') survivalTestTabGroup: MatTabGroup;
-
   @ViewChild('opeForm') opeForm: OperationForm;
-
   @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
-
   @ViewChild('catchBatchForm') catchBatchForm: CatchBatchForm;
-
   @ViewChild('survivalTestsTable') survivalTestsTable: SamplesTable;
-
-  @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringTable;
-
+  @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringSubSamplesTable;
   @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
-
   @ViewChild('batchGroupsTable') batchGroupsTable: BatchGroupsTable;
 
   @ViewChild('subBatchesTable') subBatchesTable: SubBatchesTable;

@@ -84,8 +84,8 @@ export class MeasurementsValidatorService implements ValidatorService {
       .forEach(controlName => form.removeControl(controlName));
   }
 
-  public getValidator(pmfm: PmfmStrategy): ValidatorFn {
-    const validatorFns: ValidatorFn[] = [];
+  public getValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[]): ValidatorFn {
+    validatorFns = validatorFns || [];
     if (pmfm.isMandatory) {
       validatorFns.push(Validators.required);
     }

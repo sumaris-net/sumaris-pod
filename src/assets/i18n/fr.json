@@ -552,6 +552,7 @@
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
       "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme",
       "LOAD_PROGRAM_GEARS_ERROR": "Erreur lors de chargement des engins du programme",
+      "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Erreur lors de chargement des espèces commerciales du programme",
       "SAVE_PERSONS_ERROR": "Erreur de sauvegarde des utilisateurs",
       "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs"
     },

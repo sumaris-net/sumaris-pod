@@ -341,6 +341,11 @@ mat-table {
         overflow: visible !important;
       }
     }
+
+    .mat-cell-computed {
+      color: var(--ion-color-primary-tint);
+      font-style: italic;
+    }
   }
 
   .mat-row {

@@ -17,6 +17,7 @@ import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.
 import {SettingsPage} from "./core/settings/settings.page";
 import {ExtractionMapPage} from "./trip/extraction/extraction-map-page.component";
 import {LandingPage} from "./trip/landing/landing.page";
+import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-control-landing.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -181,8 +182,16 @@ const routes: Routes = [
         }
       },
       {
-        path: ':observedLocationId/landings/:id',
+        path: ':observedLocationId/landing/:id',
         component: LandingPage,
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'USER'
+        }
+      },
+      {
+        path: ':observedLocationId/control/:id',
+        component: AuctionControlLandingPage,
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
           profile: 'USER'

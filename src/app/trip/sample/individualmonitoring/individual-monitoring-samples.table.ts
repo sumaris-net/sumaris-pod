@@ -19,7 +19,7 @@ import {SubSamplesTable} from "../sub-samples.table";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class IndividualMonitoringTable extends SubSamplesTable implements OnInit {
+export class IndividualMonitoringSubSamplesTable extends SubSamplesTable implements OnInit {
 
   protected hasIsDeadPmfm = false;
 
@@ -90,8 +90,6 @@ export class IndividualMonitoringTable extends SubSamplesTable implements OnInit
     if (!parent) return null;
     return parent.measurementValues && parent.measurementValues[PmfmIds.TAG_ID] || `#${parent.rankOrder}`;
   }
-
-  referentialToString = referentialToString;
 
 }
 

@@ -12,7 +12,7 @@ import gql from "graphql-tag";
 import {DataFragments, Fragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {map, throttleTime} from "rxjs/operators";
-import {isNil, isNotNil} from "../../shared/functions";
+import {isNil, isNilOrBlank, isNotNil} from "../../shared/functions";
 import {RootDataService} from "./root-data-service.class";
 import {TripFilter} from "./trip.service";
 import {Sample} from "./model/sample.model";
@@ -91,7 +91,7 @@ export const LandingFragments = {
     }
     observers {
       ...LightPersonFragment
-    }    
+    }
     measurementValues
     samples {
       ...SampleFragment
@@ -367,6 +367,14 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       entity.observedLocationId = options.observedLocationId;
       entity.tripId = options.tripId;
     }
+
+    // Make sure to set all samples attributes
+    (entity.samples || []).forEach(s => {
+      // Always fill label
+      if (isNilOrBlank(s.label)) {
+        s.label = `#${s.rankOrder}`;
+      }
+    });
   }
 
   protected copyIdAndUpdateDate(source: Landing | undefined, target: Landing) {

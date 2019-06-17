@@ -91,6 +91,16 @@ const LoadProgramGears: any = gql`
   ${ReferentialFragments.referential}
 `;
 
+
+const LoadProgramTaxonGroups: any = gql`
+  query LoadProgramTaxonGroups($program: String) {
+    programTaxonGroups(program: $program){
+      ...ReferentialFragment
+    }
+  }
+  ${ReferentialFragments.referential}
+`;
+
 @Injectable()
 export class ProgramService extends BaseDataService implements TableDataService<Program, ProgramFilter> {
 
@@ -251,6 +261,23 @@ export class ProgramService extends BaseDataService implements TableDataService<
     });
     return (data && data.programGears || []).map(ReferentialRef.fromObject);
   }
+
+  /**
+   * Load program taxon groups
+   */
+  async loadTaxonGroups(program: string): Promise<ReferentialRef[]> {
+    if (this._debug) console.debug(`[referential-service] Getting taxon groups for program ${program}`);
+    const data = await this.graphql.query<{ programTaxonGroups: ReferentialRef[] }>({
+      query: LoadProgramTaxonGroups,
+      variables: {
+        program: program
+      },
+      error: {code: ErrorCodes.LOAD_PROGRAM_TAXON_GROUPS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_TAXON_GROUPS_ERROR"}
+    });
+    return (data && data.programTaxonGroups || []).map(ReferentialRef.fromObject);
+  }
+
+
 
   canUserWrite(data: IWithProgramEntity<any>): boolean {
     if (!data) return false;

@@ -1,8 +1,7 @@
 import {AbstractControl, FormArray, FormGroup} from "@angular/forms";
 import {nullIfUndefined} from "../../shared/shared.module";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
-import {isMoment, Moment} from "moment";
-import {Entity} from "../services/model";
+import {isMoment} from "moment";
 
 export class AppFormUtils {
     static copyForm2Entity = copyForm2Entity;
@@ -11,6 +10,7 @@ export class AppFormUtils {
     static logFormErrors = logFormErrors;
     static getControlFromPath = getControlFromPath;
     static filterNumberInput = filterNumberInput;
+    static disableControls = disableControls;
 }
 
 /**
@@ -138,4 +138,13 @@ export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) 
       event.preventDefault();
     }
   }
+}
+
+export function disableControls(form: FormGroup, paths: string[]) {
+  (paths || []).forEach(path => {
+    const control = AppFormUtils.getControlFromPath(form, path);
+    if (control) {
+      control.disable();
+    }
+  });
 }

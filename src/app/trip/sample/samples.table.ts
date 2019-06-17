@@ -104,9 +104,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     //this.debug = false;
     this.debug = !environment.production;
-  };
+  }
 
-  async ngOnInit() {
+  ngOnInit() {
     super.ngOnInit();
 
     this.setShowColumn('label', this.showLabelColumn);
@@ -162,7 +162,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     // generate label
     if (!this.showLabelColumn) {
-      data.label = this.acquisitionLevel + "#" + data.rankOrder;
+      data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
     }
 
     // Default date

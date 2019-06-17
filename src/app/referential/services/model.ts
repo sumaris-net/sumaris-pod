@@ -8,7 +8,8 @@ import {Moment} from "moment/moment";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
-  PORT: 2
+  PORT: 2,
+  AUCTION: 3
 }
 
 export const GearLevelIds = {
@@ -27,7 +28,7 @@ export const TaxonomicLevelIds = {
   SUBGENUS: 27,
   SPECIES: 28,
   SUBSPECIES: 29
-}
+};
 
 export const PmfmIds = {
   TRIP_PROGRESS: 34,
@@ -38,8 +39,15 @@ export const PmfmIds = {
   DISCARD_REASON: 95,
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102,
-  IS_SAMPLING: 121
-}
+  IS_SAMPLING: 121,
+
+  /* ADAP pmfms */
+  CONTROLLED_SPECIES: 134,
+  SAMPLE_MEASURED_WEIGHT: 140,
+  OUT_OF_SIZE: 142,
+  OUT_OF_SIZE_PCT: 143,
+  VIVACITY: 144
+};
 
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -50,6 +58,9 @@ export const QualitativeLabels = {
     SURVIVAL: 'S',
     CATCH_HAUL: 'C',
     UNSAMPLED: 'N'
+  },
+  VIVACITY: {
+    DEAD: 'MOR'
   }
 }
 
@@ -78,6 +89,9 @@ export const ProgramProperties = {
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: 'sumaris.observedLocation.endDateTime.enable',
   OBSERVED_LOCATION_LOCATION_LEVEL_IDS: 'sumaris.observedLocation.location.level.ids',
+
+  // Landing
+  LANDING_EDITOR: 'sumaris.landing.editor'
 
   // Landing
   //LANDING_DETAILS_ENABLE: 'sumaris.landing.details.enable',
@@ -294,6 +308,10 @@ export class Program extends Entity<Program> {
   getPropertyAsNumbers(key: string): number[] {
     return this.properties[key] && this.properties[key].split(',').map(parseInt) || undefined;
   }
+
+  getProperty(key: string): string {
+    return this.properties[key];
+  }
 }
 
 export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING';
@@ -378,6 +396,10 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   get isDate(): boolean {
     return isNotNil(this.type) && (this.type === 'date');
+  }
+
+  get isComputed(): boolean {
+    return isNotNil(this.type) && (this.methodId === MethodIds.CALCULATED);
   }
 
   get hasUnit(): boolean {
