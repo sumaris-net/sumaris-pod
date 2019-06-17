@@ -86,7 +86,6 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
       this.route.queryParams
         .pipe(first()) // Do not refresh after the first page load (e.g. when location query path changed)
         .subscribe(async ({category, label, sheet}) => {
-          console.log("TODO analyzing path query params");
           const paramType = this.fromObject({category, label});
 
           const types = await this.$types.pipe(first()).toPromise();
