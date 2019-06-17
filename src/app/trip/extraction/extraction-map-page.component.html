@@ -193,7 +193,7 @@
         <!-- Details card -->
         <ion-card color="light" class="details ng-hide" *ngIf="$details | async as details" [@fadeInOutAnimation]>
 
-          <ion-card-header>
+          <ion-card-header *ngIf="details.title">
             <ion-card-subtitle [innerHTML]="details.title"></ion-card-subtitle>
           </ion-card-header>
 
@@ -210,13 +210,13 @@
         </ion-card>
 
         <!-- global stats -->
-        <ion-card color="light" *ngIf="$statsTitle | async" @fadeInAnimation>
+        <ion-card color="light" *ngIf="$stats | async as stats" @fadeInAnimation>
           <ion-card-header>
             <ion-card-subtitle><span translate>EXTRACTION.MAP.STATS</span></ion-card-subtitle>
           </ion-card-header>
           <ion-card-content no-padding>
             <p>
-              <ng-container *ngFor="let item of $stats | async">
+              <ng-container *ngFor="let item of stats.properties">
                 <ion-text color="primary100">{{getI18nColumnName(item.name)}}</ion-text>
                 <ion-text>:&nbsp;</ion-text>
                 <ion-text>{{item.value}}</ion-text>
