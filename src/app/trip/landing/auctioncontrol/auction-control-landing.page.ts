@@ -63,7 +63,7 @@ export class AuctionControlLandingPage extends LandingPage implements OnInit {
                   const actualTaxonGroup = EntityUtils.isNotEmpty(actualQv)
                     && taxonGroups.find(tg => tg.label === actualQv.label) || undefined;
                   this.samplesTable.defaultTaxonGroup = actualTaxonGroup;
-                  this.samplesTable.showTaxonGroupColumn = !!actualTaxonGroup;
+                  this.samplesTable.showTaxonGroupColumn = EntityUtils.isEmpty(actualTaxonGroup);
 
                   // Listen every form value changes, to update default value
                   return control.valueChanges
@@ -77,9 +77,9 @@ export class AuctionControlLandingPage extends LandingPage implements OnInit {
               );
           })
         )
-        .subscribe(res => {
-          this.samplesTable.defaultTaxonGroup = res;
-          this.samplesTable.showTaxonGroupColumn = !!res;
+        .subscribe(actualTaxonGroup => {
+          this.samplesTable.defaultTaxonGroup = actualTaxonGroup;
+          this.samplesTable.showTaxonGroupColumn = EntityUtils.isEmpty(actualTaxonGroup);
         })
     );
   }
