@@ -21,6 +21,7 @@ import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestD
 import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.service.referential.LocationService;
@@ -335,6 +336,7 @@ public class ExtractionServiceImpl implements ExtractionService {
                     type.setLabel(format.name().toLowerCase());
                     type.setCategory(ExtractionCategoryEnum.LIVE.name().toLowerCase());
                     type.setSheetNames(format.getSheetNames());
+                    type.setStatusId(StatusEnum.TEMPORARY.getId()); // = not public
                     id.decrement();
                     return type;
                 })

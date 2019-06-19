@@ -33,6 +33,7 @@ import java.util.List;
 
 @Data
 @Entity
+@Cacheable
 @Table(name = "extraction_product_column")
 public class ExtractionProductColumn implements IEntity<Integer> {
 

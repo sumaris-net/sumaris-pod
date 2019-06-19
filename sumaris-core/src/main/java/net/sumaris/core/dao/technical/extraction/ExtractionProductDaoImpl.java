@@ -405,7 +405,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
 
         // Status
         if (source.getStatus() != null) {
-            target.setStatusId(source.getId());
+            target.setStatusId(source.getStatus().getId());
         }
 
         // Tables
@@ -442,7 +442,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
 
         // Status
         if (source.getStatus() != null) {
-            target.setStatusId(source.getId());
+            target.setStatusId(source.getStatus().getId());
         }
 
         // Columns
