@@ -30,7 +30,7 @@
           <ion-icon name="globe" *ngIf="type.isSpatial" ></ion-icon>
           <ion-icon name="eye-off" *ngIf="type.statusId==2"></ion-icon>&nbsp;
         </div>
-        <ion-label>{{getI18nTypeName(type)}}</ion-label>
+        <ion-label>{{type.name}}</ion-label>
         <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
       </ion-button>
 
