@@ -34,6 +34,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -326,12 +327,15 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected List<ExtractionTypeVO> getLiveExtractionTypes() {
+        MutableInt id = new MutableInt(-1);
         return Arrays.stream(ExtractionRawFormatEnum.values())
                 .map(format -> {
                     ExtractionTypeVO type = new ExtractionTypeVO();
+                    type.setId(id.getValue());
                     type.setLabel(format.name().toLowerCase());
                     type.setCategory(ExtractionCategoryEnum.LIVE.name().toLowerCase());
                     type.setSheetNames(format.getSheetNames());
+                    id.decrement();
                     return type;
                 })
                 .collect(Collectors.toList());
