@@ -102,13 +102,6 @@ const routes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: '/referential/list/Location',
-            data: {
-              profile: 'ADMIN'
-            }
-          },
-          {
-            path: ':entityName',
             component: ReferentialsPage,
             data: {
               profile: 'ADMIN'

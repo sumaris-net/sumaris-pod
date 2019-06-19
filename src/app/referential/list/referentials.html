@@ -6,7 +6,7 @@
   <button mat-menu-item
           *ngFor="let item of $entities | async"
           (click)="setEntityName(item.id)">
-    <ion-label>{{getI18nEntityName(item)}}</ion-label>
+    <ion-label>{{item.label}}</ion-label>
   </button>
 </mat-menu>
 
@@ -15,19 +15,10 @@
   <mat-toolbar>
     <mat-toolbar-row>
 
-      <form [formGroup]="filterForm" novalidate (ngSubmit)="onEntityNameChange(filterForm.value.entityName)">
-        <mat-form-field floatLabel="never">
-          <mat-select formControlName="entityName" (ngModelChange)="onEntityNameChange($event)">
-            <mat-option *ngFor="let item of $entities | async" [value]="item.id">{{ item.label | translate }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </form>
-
-<!--      <ion-button *ngIf="$entity | async as entity" color="secondary" [matMenuTriggerFor]="selectEntityMenu">-->
-<!--        <ion-label>{{getI18nEntityName(entity)}}</ion-label>-->
-<!--        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>-->
-<!--      </ion-button>-->
-
+      <ion-button *ngIf="$entity | async as entity" color="secondary" [matMenuTriggerFor]="selectEntityMenu">
+        <ion-label>{{entity.label}}</ion-label>
+        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+      </ion-button>
 
       <button mat-icon-button *ngIf="inlineEdition && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate"
         (click)="addRow()" class="hidden-xs hidden-sm">
@@ -232,9 +223,11 @@
     </ng-container>
 
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-      [class.mat-row-disabled]="!row.editing" (click)="onRowClick($event, row)"></mat-row>
-    <!-- (dblclick)="onEditRow(row)"-->
+    <mat-row *matRowDef="let row; columns: displayedColumns;"
+             [class.mat-row-error]="row.validator.invalid"
+             [class.mat-row-disabled]="!row.editing"
+             [class.mat-row-dirty]="row.validator.dirty"
+             (click)="clickRow($event, row)"></mat-row>
   </mat-table>
 
   <!-- Paginator  -->
