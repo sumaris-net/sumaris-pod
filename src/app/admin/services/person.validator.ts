@@ -28,8 +28,7 @@ export class PersonValidatorService implements ValidatorService {
     // This is need to be able to store person that are not using SUMARiS tools (e.g. onboard obsevers)
     formDef.pubkey = [data && data.pubkey || null, SharedValidators.pubkey];
 
-    // add dirty
-    formDef.dirty = [''];
+    formDef.avatar = [''];
 
     return this.formBuilder.group(formDef);
   }
