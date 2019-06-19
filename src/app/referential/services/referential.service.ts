@@ -327,7 +327,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
   async loadLevels(entityName: string, options?: {
     fetchPolicy?: FetchPolicy
   }): Promise<Referential[]> {
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Loading levels for ${entityName}...`);
 
     const data = await this.graphql.query<{ referentialLevels: Referential[] }>({
@@ -341,7 +341,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
 
     const res = (data && data.referentialLevels || []).map(Referential.fromObject);
 
-    if (this._debug) console.debug(`[referential-service] Levels for ${entityName} loading in ${new Date().getTime() - now.getTime()}`, res);
+    if (this._debug) console.debug(`[referential-service] Levels for ${entityName} loading in ${Date.now() - now}`, res);
 
     return res;
   }

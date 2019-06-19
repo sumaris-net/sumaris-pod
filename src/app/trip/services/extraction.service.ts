@@ -21,13 +21,27 @@ import {Fragments} from "./trip.queries";
 
 
 export const ExtractionFragments = {
-  aggregationType: gql`fragment AggregationTypeFragment on AggregationTypeVO {
+  extractionType: gql`fragment ExtractionTypeFragment on ExtractionTypeVO {
     id
+    category
     label
     name
-    description
-    category
     sheetNames
+    isSpatial
+    statusId
+    recorderDepartment {
+      ...RecorderDepartmentFragment
+    }
+  }
+  ${Fragments.recorderDepartment}
+  `,
+  aggregationType: gql`fragment AggregationTypeFragment on AggregationTypeVO {
+    id
+    category
+    label
+    name
+    sheetNames
+    description
     updateDate
     isSpatial
     statusId
@@ -47,6 +61,7 @@ export const ExtractionFragments = {
   ${Fragments.recorderPerson}
   `
 }
+
 export declare class ExtractionFilter {
   searchText?: string;
   criteria?: ExtractionFilterCriterion[];
@@ -65,18 +80,10 @@ export declare class ExtractionFilterCriterion {
 const LoadTypes: any = gql`
   query ExtractionTypes{
     extractionTypes {
-      id
-      category
-      label
-      name
-      sheetNames
-      isSpatial
-      statusId
-      recorderDepartment {
-        id
-      }
+      ...ExtractionTypeFragment
     }
   }
+  ${ExtractionFragments.extractionType}
 `;
 
 const LoadRowsQuery: any = gql`
@@ -173,7 +180,27 @@ export class ExtractionService extends BaseDataService {
   /**
    * Load extraction types
    */
-  loadTypes(): Observable<ExtractionType[]> {
+  async loadTypes(): Promise<ExtractionType[]> {
+    if (this._debug) console.debug("[extraction-service] Loading extraction types...");
+
+    const variables = {};
+
+    this._lastVariables.loadTypes = variables;
+
+    const data = await this.graphql.query<{ extractionTypes: ExtractionType[] }>({
+      query: LoadTypes,
+      variables: variables,
+      error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"}
+    });
+
+    return (data && data.extractionTypes || []).map(ExtractionType.fromObject);
+  }
+
+  /**
+   * Load extraction types
+   */
+  watchTypes(): Observable<ExtractionType[]> {
+    let now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading extraction types...");
 
     const variables = {};
@@ -186,7 +213,14 @@ export class ExtractionService extends BaseDataService {
       error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"}
     })
       .pipe(
-        map((data) => (data && data.extractionTypes || []).map(ExtractionType.fromObject))
+        map((data) => {
+          const res = (data && data.extractionTypes || []).map(ExtractionType.fromObject);
+          if (this._debug && now) {
+            console.debug(`[extraction-service] Extraction types loaded in ${Date.now() - now}ms`, res);
+            now = undefined;
+          }
+          return res;
+        })
       );
   }
 
@@ -325,8 +359,8 @@ export class ExtractionService extends BaseDataService {
    * Load spatial types
    */
   loadAggregationTypes(filter?: AggregationTypeFilter,
-                       options?: {fetchPolicy?: FetchPolicy}
-                       ): Observable<AggregationType[]> {
+                       options?: { fetchPolicy?: FetchPolicy }
+  ): Observable<AggregationType[]> {
     if (this._debug) console.debug("[extraction-service] Loading geo types...");
 
     const variables = {
@@ -437,17 +471,17 @@ export class ExtractionService extends BaseDataService {
   }
 
 
-  async saveAggregation(type: AggregationType,
-             filter?: ExtractionFilter): Promise<AggregationType> {
+  async saveAggregation(sourceType: AggregationType,
+                        filter?: ExtractionFilter): Promise<AggregationType> {
 
     // Transform into entity
-    const entity = AggregationType.fromObject(type);
+    const entity = AggregationType.fromObject(sourceType);
 
     this.fillDefaultProperties(entity);
 
     const json = entity.asObject(true/*minify*/);
 
-    const isNew = isNil(type.id);
+    const isNew = isNil(sourceType.id);
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Saving aggregation...", json);
@@ -461,9 +495,10 @@ export class ExtractionService extends BaseDataService {
       error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"}
     });
 
-    const savedEntity = res && res.saveAggregation;
+    const savedEntity = res && AggregationType.fromObject(res.saveAggregation);
     if (savedEntity) {
-      this.copyIdAndUpdateDate(savedEntity, entity);
+      // Always force category, as sourceType could be a live extraction
+      savedEntity.category = 'product';
 
       if (isNew) {
         // Add to cache (extraction types)
@@ -490,9 +525,9 @@ export class ExtractionService extends BaseDataService {
       }
     }
 
-    if (this._debug) console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, entity);
+    if (this._debug) console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
 
-    return entity;
+    return savedEntity;
   }
 
   async deleteAggregations(entities: AggregationType[]): Promise<any> {

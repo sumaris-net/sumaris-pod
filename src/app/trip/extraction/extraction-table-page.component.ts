@@ -92,12 +92,16 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
   }
 
   protected loadTypes(): Observable<ExtractionType[]> {
-    return this.service.loadTypes()
+    return this.service.watchTypes()
       .pipe(
-        // Compute name, if need
-        tap(types => types.forEach(t => t.name = t.name || this.getI18nTypeName(t))),
-        // Sort by name
-        map(types => types.sort((t1, t2) => t1.name > t2.name ? 1 : (t1.name < t2.name ? -1 : 0) ))
+        map(types => {
+          // Compute name, if need
+          types.forEach(t => t.name = t.name || this.getI18nTypeName(t));
+          // Sort by name
+          types.sort((t1, t2) => t1.name > t2.name ? 1 : (t1.name < t2.name ? -1 : 0) );
+
+          return types;
+        })
       );
   }
 
@@ -110,6 +114,7 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
     this.loading = true;
     this.markForCheck();
     this.type = type || this.form.get('type').value;
+    if (!this.type.category || !this.type.label) return; // skip
 
     this.settingsId = this.generateTableId();
     this.error = null;
@@ -170,7 +175,7 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
   async setType(type: ExtractionType<ExtractionType<any>>, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<void> {
     await super.setType(type, opts);
 
-    this.canAggregate = !this.type.isSpatial && this.accountService.isSupervisor();
+    this.canAggregate = this.type && !this.type.isSpatial && this.accountService.isSupervisor();
   }
 
   onSheetChange(sheetName: string) {
@@ -248,15 +253,15 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
     if (!this.type || !this.canAggregate) return; // Skip
 
     this.loading = true;
+    this.error = null;
     this.markForCheck();
-    let type = Object.assign({}, this.form.get('type').value);
 
     const filter = this.getFilterValue();
     this.disable();
 
     try {
 
-      const name = await this.translate.get('EXTRACTION.AGGREGATION.NEW_NAME', {name: type.name}).toPromise();
+      const name = await this.translate.get('EXTRACTION.AGGREGATION.NEW_NAME', {name: this.type.name}).toPromise();
       // Compute a new name
       const aggType = AggregationType.fromObject({
         label: `${this.type.label}-${this.accountService.account.id}-${Date.now()}`,
@@ -265,21 +270,25 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
       });
 
       // Save aggregation
-      const savedType = await this.service.saveAggregation(aggType, filter);
-      this.loading = false;
+      const savedAggType = await this.service.saveAggregation(aggType, filter);
 
       // Wait for types cache updates
-      await setTimeout(() => {}, 1000);
+      await setTimeout(() => {
 
-      // Open the new aggregation
-      await this.setType(savedType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
+        this.loading = false;
+
+        // Open the new aggregation
+        return this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
+
+      }, 500);
+
 
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
+      this.loading = false;
       this.markAsDirty();
     } finally {
-      this.loading = false;
       this.enable();
     }
 

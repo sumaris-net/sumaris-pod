@@ -10,9 +10,9 @@ import {
 import {PlatformService} from "../../core/services/platform.service";
 import {AggregationTypeFilter, ExtractionFilter} from "../services/extraction.service";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNil, isNotNil} from "../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank} from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {AggregationStrata, AggregationType, ExtractionColumn} from "../services/extraction.model";
+import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionType} from "../services/extraction.model";
 import {Location} from "@angular/common";
 import {MatExpansionPanel} from "@angular/material";
 import {ExtractionForm} from "./extraction-filter.form";
@@ -221,14 +221,15 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   protected loadTypes(): Observable<AggregationType[]> {
     return this.service.loadAggregationTypes(this.typesFilter)
       .pipe(
-        map(
-          types => types.map(t => {
-            // Compute name, if need
-            t.name = t.name || this.getI18nTypeName(t);
-            return t;
-          })
-        )
-      )
+        map(types => {
+          // Compute name, if need
+          types.forEach(t => t.name = t.name || this.getI18nTypeName(t));
+          // Sort by name
+          types.sort((t1, t2) => t1.name > t2.name ? 1 : (t1.name < t2.name ? -1 : 0) );
+
+          return types;
+        })
+      );
   }
 
   protected fromObject(json: any): AggregationType {
@@ -460,14 +461,14 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     if (this.$selectedFeature.getValue() === feature) return; // skip if already selected
     const strata = this.form.get('strata').value as AggregationStrata;
     const properties = Object.getOwnPropertyNames(feature.properties)
-      .filter(key => key !== strata.tech)
+      .filter(key => !strata.tech || key !== strata.tech)
       .map(key => {
         return {
           name: this.columnNames[key],
           value: feature.properties[key]
         };
       });
-    const title = this.columnNames[strata.tech] + ': <b>' + feature.properties[strata.tech] + '</b>';
+    const title = isNotNilOrBlank(strata.tech) ? `${this.columnNames[strata.tech]}: <b>${feature.properties[strata.tech]}</b>` : undefined;
 
     // Emit events
     this.$details.next({title, properties});
@@ -570,15 +571,18 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     const min = json.min || 0;
     const max = json.max;
     const startColor = Color.parseRgba(json.startColor);
-    const endColor = Color.parseRgba(json.endColor);
+    const mainColor = Color.parseRgba(json.endColor);
+    const endColor = Color.parseRgba('rgb(0,0,0)');
 
     // Create scale color (max 10 grades
     const scaleCount = Math.max(2, Math.min(max, 10));
     const scale = ColorScale.custom(scaleCount, {
       min: min,
       max: max,
-      opacity: endColor.opacity,
+      opacity: mainColor.opacity,
       startColor: startColor.rgb,
+      mainColor: mainColor.rgb,
+      mainColorIndex: Math.trunc(scaleCount * 0.9),
       endColor: endColor.rgb
     });
 

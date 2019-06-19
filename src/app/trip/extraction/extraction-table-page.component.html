@@ -2,25 +2,30 @@
 </app-toolbar>
 
 <!-- change type menu -->
-<mat-menu #selecttypemenu="matMenu">
+<mat-menu #selectTypeMenu="matMenu" xPosition="after">
   <button mat-menu-item
           *ngFor="let item of $types | async"
           (click)="setType(item)">
     <ion-label>
-      {{item.name}}
-<!--      <ion-icon><mat-icon *ngIf="item.isSpatial">archive</mat-icon></ion-icon>-->
       <ion-icon name="globe" *ngIf="item.isSpatial" ></ion-icon>
-      <ion-icon name="eye-off" *ngIf="item.statusId==2"></ion-icon>&nbsp;
+      <ion-icon name="eye-off" *ngIf="item.statusId===2"></ion-icon>&nbsp;
+      <span>{{item.name}}</span>
     </ion-label>
   </button>
 </mat-menu>
 
+<!-- aggregate menu -->
+<mat-menu #aggregateMenu="matMenu" xPosition="before">
+  <button mat-menu-item *ngIf="!type?.isSpatial" (click)="aggregate()">
+    <ion-label translate>EXTRACTION.SPATIAL_AGGREGATION</ion-label>
+  </button>
+</mat-menu>
 
 <ion-content no-padding>
 
   <mat-toolbar>
     <mat-toolbar-row>
-      <ion-button color="secondary" *ngIf="type" [matMenuTriggerFor]="selecttypemenu">
+      <ion-button color="secondary" *ngIf="type" [matMenuTriggerFor]="selectTypeMenu" class="select-type-button">
         <div slot="start">
           <ion-icon name="globe" *ngIf="type.isSpatial" ></ion-icon>
           <ion-icon name="eye-off" *ngIf="type.statusId==2"></ion-icon>&nbsp;
@@ -46,11 +51,6 @@
 <!--          <ion-icon name="globe"></ion-icon>-->
 <!--        </mat-icon>-->
 <!--      </button>-->
-      <button mat-icon-button
-              *ngIf="!type?.isSpatial"
-              [title]="'EXTRACTION.BTN_CREATE_AGGREGATION'|translate" (click)="aggregate()">
-        <mat-icon>archive</mat-icon>
-      </button>
       <button mat-icon-button
               *ngIf="type?.statusId===2 && type?.category==='product' && type?.isSpatial"
               [title]="'EXTRACTION.BTN_PUBLISH'|translate" (click)="publish()">
@@ -80,6 +80,14 @@
       </ion-item>
 
       <span class="toolbar-spacer"></span>
+
+      <ion-button mat-button [matMenuTriggerFor]="aggregateMenu"
+                  color="medium"
+                  *ngIf="!type?.isSpatial"
+                  [title]="'EXTRACTION.BTN_AGGREGATE_HELP'|translate">
+        <ion-label>{{'EXTRACTION.BTN_AGGREGATE'|translate}}</ion-label>
+        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+      </ion-button>
 
       <button mat-icon-button [title]=" 'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
         <mat-icon>more_vert</mat-icon>

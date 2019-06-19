@@ -28,7 +28,8 @@ ion-card.filter {
 }
 
 ion-card.legend {
-  max-width: 200px;
+  min-width: 150px;
+  max-width: 250px;
 
   ion-card-subtitle {
     ion-icon {

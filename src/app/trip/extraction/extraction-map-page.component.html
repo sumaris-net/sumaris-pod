@@ -245,8 +245,10 @@
           <ion-card-content>
 
             <ion-row *ngFor="let item of $legendItems | async">
-              <ion-col size="2" [ngStyle]="{'background-color': item.color}"></ion-col>
-              <ion-col>
+              <ion-col no-padding style="max-width: 10px !important;"
+                       [ngStyle]="{'background-color': item.color}">
+              </ion-col>
+              <ion-col size="auto">
                 <ion-label nowrap>{{item.label}}</ion-label>
               </ion-col>
             </ion-row>
