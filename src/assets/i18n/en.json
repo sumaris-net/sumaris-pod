@@ -20,7 +20,7 @@
     "BTN_NEXT": "Next",
     "BTN_BACK": "Back",
     "BTN_SEND": "Send",
-    "BTN_UNDO": "Unod changes",
+    "BTN_UNDO": "Undo changes",
     "BTN_TABLE_EDIT": "Edit in the table",
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",
@@ -109,6 +109,7 @@
     "VESSELS": "Vessels",
     "REFERENTIAL": "Referential",
     "EXTRACTIONS": "Extractions",
+    "MAP": "Maps",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "LOCAL_SETTINGS": "Settings",
     "SERVER_SETTINGS": "Server settings",
@@ -342,6 +343,8 @@
     },
     "BATCH": {
       "TABLE": {
+        "LABEL": "Label",
+        "LABEL_PLACEHOLDER": "Label",
         "TAXON_GROUP": "Declarative species (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Species code",
         "TAXON_NAME": "Scientific species (FAO)",
@@ -358,6 +361,8 @@
     },
     "SAMPLE": {
       "TABLE": {
+        "LABEL": "Batch",
+        "LABEL_PLACEHOLDER": "Batch",
         "TAXON_GROUP": "Scientific species (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Species code",
         "TAXON_NAME": "Scientific species (FAO)",
@@ -413,7 +418,7 @@
     "LOCATION": "Auction",
     "TAB_GENERAL": "Details",
     "TAB_VESSELS": "Observed vessels",
-    "OBSERVER": "Observer #1",
+    "OBSERVER_PLACEHOLDER": "Observer #",
     "OBSERVERS": "Observers:",
     "NEW": {
       "TITLE": "New control"
@@ -523,6 +528,7 @@
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Error while loading level for referential data.",
       "LOAD_PROGRAM_PMFMS_ERROR": "Error while loading parameters collected by the program",
       "LOAD_PROGRAM_GEARS_ERROR": "Error while loading gears of the program",
+      "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Error while loading taxon groups of the program",
       "SAVE_PERSONS_ERROR": "Error while saving users",
       "DELETE_PERSONS_ERROR": "Error while  deleting some users"
     },
@@ -569,10 +575,22 @@
   },
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Download as CSV",
+    "BTN_AGGREGATE": "Aggregate",
+    "BTN_AGGREGATE_HELP": "Allow to create a new aggregated output",
+    "SPATIAL_AGGREGATION": "Create a spatial aggregation",
+    "BTN_PUBLISH": "Publish",
+    "BTN_UNPUBLISH": "Make private",
+    "TYPE": "Extraction type",
+    "AGGREGATION": {
+      "NEW_NAME": "New aggregation / {{name}}"
+    },
     "COMMON": {
+      "VESSEL_FLAG_COUNTRY": "Vessel country flag",
+      "HARBOUR": "Harbour",
       "YEAR": "Year",
       "PROJECT": "Project",
-      "AREA": "Area"
+      "AREA": "Area",
+      "STATISTICAL_RECTANGLE": "Statistical rectangle"
     },
     "FILTER": {
       "TITLE": "Filter criteria:",
@@ -586,13 +604,40 @@
       "NO_FILTER_PARENTHESIS": "(no filter)",
       "WITH_FILTER_PARENTHESIS": "(filtered)"
     },
+    "MAP": {
+      "BTN_SELECT_TYPE": "Map list",
+      "BTN_EDIT": "Edit",
+      "FILTER": "Filter",
+      "YEAR": "Year",
+      "SPACE": "Geomtry",
+      "AGG_VALUE": "Plotted value",
+      "QUARTER": "Quarter",
+      "DETAILS": "Détails",
+      "STATS": "Statistics",
+      "LEGEND": "Legend",
+      "LEGEND_FORM": {
+        "TITLE": "Parameter",
+        "OPACITY_PLACEHOLDER": "Opacity (%)",
+        "MIN": "Min :",
+        "MAX": "Max :"
+      },
+      "SELECT_MODAL": {
+        "TITLE": "Liste des cartes",
+        "HELP": "Voici la liste des cartes disponibles :"
+      }
+    },
+    "SHEET": {
+      "TR": "Marées",
+      "HH": "Opérations",
+      "SL": "Captures"
+    },
     "CATEGORY": {
-      "PRODUCT": "Data call",
-      "LIVE": "Live data"
+      "PRODUCT": "Fixed product",
+      "LIVE": "Raw data collected"
     },
     "PRODUCT": {
-      "ICES": {
-        "TITLE": "Data call (ICES RDB v1.3)",
+      "P01_RDB": {
+        "TITLE": "ICES Data call (RDB v1.3)",
         "SHEET": {
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",
@@ -636,9 +681,11 @@
       }
     },
     "ERROR": {
-      "LOAD_EXTRACTION_TYPES_ERROR": "Error while load extraction types",
-      "LOAD_EXTRACTION_ROWS_ERROR": "Error while loading data rows.",
-      "DOWNLOAD_EXTRACTION_FILE_ERROR": "Error while dowbnloading extraction file."
+      "LOAD_TYPES_ERROR": "Error while load extraction types",
+      "LOAD_ROWS_ERROR": "Error while loading data rows.",
+      "DOWNLOAD_FILE_ERROR": "Error while downloading extraction file.",
+      "LOAD_GEO_TYPES_ERROR": "Error while load spatial aggregation types",
+      "LOAD_GEO_DATA_ERROR": "Error while loading spatial data"
     }
   },
   "NETWORK": {
@@ -659,6 +706,7 @@
     "FIELD_MIN": "Minimal value: {{min}}",
     "FIELD_MIN_COMPACT": "Min value={{min}}",
     "FIELD_MAX": "Maximum value: {{max}}",
+    "FIELD_MAX_LENGTH": "Longueur maximale: {{requiredLength}}",
     "FIELD_MAX_COMPACT": "Max value={{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Invalid number of decimals ({{max}} max)",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb decimals max={{max}}",
@@ -693,7 +741,8 @@
     "FORBIDDEN": "Forbidden access",
     "AUTH_SERVER_ERROR": "Error during authentication on the server",
     "AUTH_CHALLENGE_ERROR": "Error during authentication on the server (loading challenge failed)",
-    "TABLE_INVALID_ROW_ERROR": "A row is invalid"
+    "TABLE_INVALID_ROW_ERROR": "A row is invalid",
+    "SAVE_DATA_ERROR": "Error while savin.<small><br/>If the problem persists, please contact your administrator.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

@@ -599,7 +599,6 @@
   },
   "EXTRACTION": {
     "BTN_DOWNLOAD_FILE": "Télécharger le fichier CSV",
-    "BTN_OPEN_MAP": "Ouvrir la carte",
     "BTN_AGGREGATE": "Aggréger",
     "BTN_AGGREGATE_HELP": "Permet de créer un produit aggrégé",
     "SPATIAL_AGGREGATION": "Créer une aggrégation spatiale",
@@ -657,12 +656,12 @@
       "SL": "Captures"
     },
     "CATEGORY": {
-      "PRODUCT": "Data call",
-      "LIVE": "Temp réel"
+      "PRODUCT": "Produit figé",
+      "LIVE": "Données brutes collectées"
     },
     "PRODUCT": {
       "P01_RDB": {
-        "TITLE": "Declarative data (RDB v1.3)",
+        "TITLE": "Appel à données CIEM (RDB v1.3)",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",
@@ -676,7 +675,7 @@
     },
     "LIVE": {
       "COST": {
-        "TITLE": "Collected data (COST v1.4)",
+        "TITLE": "Données brutes (COST v1.4)",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",
@@ -685,7 +684,7 @@
         }
       },
       "RDB": {
-        "TITLE": "Collected data (RDB v1.3)",
+        "TITLE": "Données brutes (RDB v1.3)",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",
@@ -694,7 +693,7 @@
         }
       },
       "SURVIVAL_TEST": {
-        "TITLE": "Collected data (SUMARiS v1.0)",
+        "TITLE": "Données brutes (SUMARiS v1.0)",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",

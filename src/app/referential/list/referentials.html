@@ -1,17 +1,33 @@
 <app-toolbar [title]="'REFERENTIAL.LIST.TITLE'|translate" color="primary">
 </app-toolbar>
 
+<!-- change entity menu  -->
+<mat-menu #selectEntityMenu="matMenu" xPosition="after">
+  <button mat-menu-item
+          *ngFor="let item of $entities | async"
+          (click)="setEntityName(item.id)">
+    <ion-label>{{getI18nEntityName(item)}}</ion-label>
+  </button>
+</mat-menu>
+
 <ion-content no-padding>
 
   <mat-toolbar>
     <mat-toolbar-row>
+
       <form [formGroup]="filterForm" novalidate (ngSubmit)="onEntityNameChange(filterForm.value.entityName)">
         <mat-form-field floatLabel="never">
           <mat-select formControlName="entityName" (ngModelChange)="onEntityNameChange($event)">
-            <mat-option *ngFor="let item of entities | async" [value]="item.id">{{ item.label | translate }}</mat-option>
+            <mat-option *ngFor="let item of $entities | async" [value]="item.id">{{ item.label | translate }}</mat-option>
           </mat-select>
         </mat-form-field>
       </form>
+
+<!--      <ion-button *ngIf="$entity | async as entity" color="secondary" [matMenuTriggerFor]="selectEntityMenu">-->
+<!--        <ion-label>{{getI18nEntityName(entity)}}</ion-label>-->
+<!--        <ion-icon slot="end" name="arrow-dropdown"></ion-icon>-->
+<!--      </ion-button>-->
+
 
       <button mat-icon-button *ngIf="inlineEdition && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate"
         (click)="addRow()" class="hidden-xs hidden-sm">
@@ -55,7 +71,9 @@
 
       <!-- search text -->
       <mat-form-field>
-        <input matInput [placeholder]=" 'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate" formControlName="searchText">
+        <input matInput
+               autocomplete="off"
+               [placeholder]=" 'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate" formControlName="searchText">
       </mat-form-field>
 
       <!-- level -->
