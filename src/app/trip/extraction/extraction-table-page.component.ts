@@ -8,7 +8,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {isNil} from '../../shared/shared.module';
+import {isNil, isNotNil} from '../../shared/shared.module';
 import {TableDataSource} from "angular4-material-table";
 import {
   AggregationType,
@@ -178,14 +178,16 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
     this.canAggregate = this.type && !this.type.isSpatial && this.accountService.isSupervisor();
   }
 
-  onSheetChange(sheetName: string) {
-    // Skip if same, or loading
-    if (this.loading || isNil(sheetName) || this.sheetName === sheetName) return;
+  onSheetChange(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
+    opts = opts || {emitEvent: !this.loading};
 
-    // Reset sort
-    this.sort.active = undefined;
+    // Reset sort and paginator
+    if (opts.emitEvent !== false && isNotNil(sheetName) && this.sheetName !== sheetName) {
+      this.sort.active = undefined;
+      this.paginator.pageIndex = 0;
+    }
 
-    super.onSheetChange(sheetName);
+    super.onSheetChange(sheetName, opts);
   }
 
   public async openSelectColumnsModal(event: any): Promise<any> {
