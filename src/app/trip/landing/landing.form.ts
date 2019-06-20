@@ -75,7 +75,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected vesselService: VesselService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
-    this._enable = false;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;

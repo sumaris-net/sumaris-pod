@@ -342,6 +342,10 @@
       }
     },
     "BATCH": {
+      "EDIT": {
+        "TAXON_GROUP": "Espèce commerciale :",
+        "TAXON_NAME": "Espèce scientifique :"
+      },
       "TABLE": {
         "LABEL": "Libellé",
         "LABEL_PLACEHOLDER": "Libellé",

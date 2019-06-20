@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {Batch, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
+import {Batch, EntityUtils, Landing, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {PmfmLabelPatterns,} from "../../referential/referential.module";
 import {BatchGroupsValidatorService} from "../services/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
@@ -10,6 +10,10 @@ import {MethodIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
 import {PMFM_ID_REGEXP} from "../services/model/measurement.model";
+import {ModalController} from "@ionic/angular";
+import {LandingsTablesModal} from "../landing/landings-table.modal";
+import * as moment from "../observedlocation/observed-location.page";
+import {SubBatchesPage} from "./sub-batches.page";
 
 
 @Component({
@@ -25,6 +29,8 @@ export class BatchGroupsTable extends BatchesTable {
 
   private _initialPmfms: PmfmStrategy[];
 
+  protected modalCtrl: ModalController;
+
   qvPmfm: PmfmStrategy;
   defaultWeightPmfm: PmfmStrategy;
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
@@ -39,6 +45,7 @@ export class BatchGroupsTable extends BatchesTable {
         onSave: (data) => this.onSave(data),
       })
     );
+    this.modalCtrl = injector.get(ModalController);
 
     // Set default values
     this.showCommentsColumn = false;
@@ -173,6 +180,26 @@ export class BatchGroupsTable extends BatchesTable {
     });
 
     return data;
+  }
+
+  async openSubBatchesModal(item: any) {
+    console.log("Click on batch group:", item);
+
+    const modal = await this.modalCtrl.create({
+      component: SubBatchesPage,
+      componentProps: {
+        program: this.program,
+        acquisitionLevel: this.acquisitionLevel,
+        value: new Batch()
+      }, keyboardClose: true
+    });
+
+    // Open the modal
+    modal.present();
+
+    // Wait until closed
+    const res = await modal.onDidDismiss();
+    console.log("Return the result: ", res);
   }
 
   /* -- protected methods -- */

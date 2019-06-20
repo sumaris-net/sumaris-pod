@@ -38,6 +38,7 @@ ion-menu {
 
     .user-logo {
       text-align: right;
+
       img {
         max-width: 120px;
         max-height: var(--avatar-size, 60px);
@@ -137,13 +138,24 @@ ion-menu {
   }
 }
 
+// Small screen: hide the footer
+@media screen and (max-width: $screen-sm-max) {
+  ion-menu {
+    ion-footer {
+      display: none !important;
+      visibility: hidden !important;
+    }
+  }
+}
 
-@media screen and (min-width: $screen-sm) {
+// Larger screen: larger avatar size
+@media screen and (min-width: $screen-md) {
 
   ion-menu {
     ion-scroll {
       overflow-y: auto !important;
     }
+
     //
     .user-avatar {
       font-size: var(--avatar-size, 80px) !important;
@@ -151,6 +163,7 @@ ion-menu {
       height: var(--avatar-size, 80px) !important;
       width: var(--avatar-size, 80px) !important;
     }
+
     .user-logo {
       img {
         max-height: var(--avatar-size, 80px);
@@ -158,3 +171,5 @@ ion-menu {
     }
   }
 }
+
+

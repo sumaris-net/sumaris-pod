@@ -187,7 +187,16 @@
       <mat-form-field-measurement
         [readonly]="!row.editing"
         [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
-        [compact]="true" floatLabel="never"></mat-form-field-measurement>
+        [compact]="true" floatLabel="never">
+
+        <mat-icon matSuffix
+                  *ngIf="pmfm.pmfmId % 5 === 3"
+                  matBadge="22"
+                  matBadgePosition="above after"
+                  [title]="'TRIP.BATCH.TABLE.BTN_MEASURE'|translate"
+                  (click)="openSubBatchesModal(row)"
+          >list</mat-icon>
+      </mat-form-field-measurement>
     </mat-cell>
   </ng-container>
 

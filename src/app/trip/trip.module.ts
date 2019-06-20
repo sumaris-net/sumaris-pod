@@ -56,6 +56,8 @@ import {LandingsTablesModal} from "./landing/landings-table.modal";
 import {ExtractionSelectTypeModal} from "./extraction/extraction-list-modal.component";
 import {AuctionControlSamplesTable} from "./sample/auctioncontrol/auction-control-samples.table";
 import {AuctionControlLandingPage} from "./landing/auctioncontrol/auction-control-landing.page";
+import {SubBatchesPage} from "./batch/sub-batches.page";
+import {SubBatchForm} from "./batch/sub-batch.form";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -92,6 +94,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       BatchGroupsTable,
       BatchesTable,
       SubBatchesTable,
+      SubBatchForm,
+      SubBatchesPage,
       IndividualMonitoringSubSamplesTable,
       AuctionControlLandingPage,
       AuctionControlSamplesTable,
@@ -120,7 +124,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LandingForm,
       LandingPage,
       LandingsTablesModal,
-      AuctionControlLandingPage
+      AuctionControlLandingPage,
+      SubBatchForm
     ],
     entryComponents: [
       TripsPage,
@@ -136,7 +141,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       AuctionControlLandingPage,
       ExtractionTablePage,
       ExtractionMapPage,
-      ExtractionSelectTypeModal
+      ExtractionSelectTypeModal,
+      SubBatchesPage
     ],
     providers: [
       TripService,

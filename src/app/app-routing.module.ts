@@ -18,6 +18,7 @@ import {SettingsPage} from "./core/settings/settings.page";
 import {ExtractionMapPage} from "./trip/extraction/extraction-map-page.component";
 import {LandingPage} from "./trip/landing/landing.page";
 import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-control-landing.page";
+import {SubBatchesPage} from "./trip/batch/sub-batches.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -116,32 +117,41 @@ const routes: Routes = [
   {
     path: 'trips',
     canActivate: [AuthGuardService],
+    runGuardsAndResolvers: 'pathParamsChange',
+    data: {
+      profile: 'USER'
+    },
     children: [
       {
         path: '',
         pathMatch: 'full',
-        component: TripsPage,
-        data: {
-          profile: 'USER'
-        }
+        component: TripsPage
       },
       {
         path: ':tripId',
-        pathMatch: 'full',
-        component: TripPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'USER'
-        }
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: TripPage
+          },
+          {
+            path: 'operations/:id',
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: OperationPage
+              },
+              {
+                path: 'batches',
+                component: SubBatchesPage
+              }
+            ]
+          }
+        ]
       },
-      {
-        path: ':tripId/operations/:id',
-        component: OperationPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'USER'
-        }
-      },
+
       {
         path: ':tripId/landing/:id',
         component: LandingPage,
@@ -230,6 +240,7 @@ const routes: Routes = [
     redirectTo: '/'
   },
 ];
+
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, routeOptions)
@@ -238,4 +249,5 @@ const routes: Routes = [
     RouterModule
   ]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {
+}

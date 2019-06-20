@@ -1,0 +1,103 @@
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+
+  <!-- error -->
+  <ion-item *ngIf="error && showError" visible-xs visible-sm>
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <ion-grid>
+
+    <!-- Espèce commerciale -->
+    <ion-row no-padding *ngIf="showTaxonGroup">
+      <ion-col size="12" size-md="2" size-lg="3">
+        <ion-label float-end translate>TRIP.BATCH.EDIT.TAXON_GROUP</ion-label>
+      </ion-col>
+      <ion-col>
+        <mat-form-field floatLabel="never">
+          <input matInput formControlName="taxonGroup"
+                 [matAutocomplete]="autoTaxonGroup"
+                 [appAutofocus]="showTaxonGroup"
+                 [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
+                 (blur)="applyImplicitValue('taxonGroup')"
+                 required>
+          <mat-error *ngIf="form.controls.taxonGroup.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+
+        <mat-autocomplete autoActiveFirstOption #autoTaxonGroup="matAutocomplete" [displayWith]="referentialToString">
+          <ion-row class="mat-autocomplete-header">
+            <ion-col size="3">
+              <ion-text translate>REFERENTIAL.LABEL</ion-text>
+            </ion-col>
+            <ion-col>
+              <ion-text translate>REFERENTIAL.NAME</ion-text>
+            </ion-col>
+          </ion-row>
+          <mat-option *ngFor="let item of $taxonGroups | async" [value]="item" no-padding>
+            <ion-row>
+              <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls.taxonGroup.value }"></ion-col>
+              <ion-col [innerHTML]="item.name | highlight: {search: form.controls.taxonGroup.value }"></ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+    </ion-row>
+
+    <!-- Espèce scientifique -->
+    <ion-row no-padding *ngIf="showTaxonName">
+      <ion-col size="12" size-md="2" size-lg="3">
+        <ion-label float-end translate>TRIP.BATCH.EDIT.TAXON_NAME</ion-label>
+      </ion-col>
+      <ion-col>
+        <mat-form-field floatLabel="never">
+          <input matInput formControlName="taxonName"
+                 [matAutocomplete]="autoTaxonName"
+                 [appAutofocus]="!showTaxonGroup && showTaxonName"
+                 [placeholder]="'TRIP.BATCH.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
+                 (blur)="applyImplicitValue('taxonName')"
+                 required>
+          <mat-error *ngIf="form.controls.taxonName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+
+        <mat-autocomplete autoActiveFirstOption #autoTaxonName="matAutocomplete" [displayWith]="referentialToString">
+          <ion-row class="mat-autocomplete-header">
+            <ion-col size="3">
+              <ion-text translate>REFERENTIAL.LABEL</ion-text>
+            </ion-col>
+            <ion-col>
+              <ion-text translate>REFERENTIAL.NAME</ion-text>
+            </ion-col>
+          </ion-row>
+          <mat-option *ngFor="let item of $taxonNames| async" [value]="item" no-padding>
+            <ion-row>
+              <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls.taxonName.value }"></ion-col>
+              <ion-col [innerHTML]="item.name | highlight: {search: form.controls.taxonName.value }"></ion-col>
+            </ion-row>
+          </mat-option>
+        </mat-autocomplete>
+      </ion-col>
+    </ion-row>
+
+    <!-- Measurements -->
+    <ion-row>
+      <ion-col size="12" size-md="2" size-lg="3" align-self-end>
+        <ion-label float-end translate>LANDING.EDIT.OTHER_FEATURES</ion-label>
+      </ion-col>
+      <ion-col>
+
+        <ion-spinner *ngIf="loading"></ion-spinner>
+
+        <!-- pmfms -->
+        <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"
+                                    [pmfm]="pmfm"
+                                    [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                    [compact]="compact"
+                                    [tabindex]="50 + i*2"
+                                    [floatLabel]="floatLabel">
+        </mat-form-field-measurement>
+      </ion-col>
+    </ion-row>
+
+  </ion-grid>
+
+</form>
