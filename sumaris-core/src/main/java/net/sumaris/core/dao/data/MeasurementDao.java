@@ -95,5 +95,8 @@ public interface MeasurementDao {
 
     // Vessel
     List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId);
-    Map<Integer, String> getVesselFeaturesMeasurementsMap(int observedLocationId);
+    Map<Integer, String> getVesselFeaturesMeasurementsMap(int vesselFeaturesId);
+    List<MeasurementVO> saveVesselPhysicalMeasurements(int vesselFeaturesId, List<MeasurementVO> sources);
+    Map<Integer, String> saveVesselPhysicalMeasurementsMap(final int vesselFeaturesId, Map<Integer, String> sources);
+
 }

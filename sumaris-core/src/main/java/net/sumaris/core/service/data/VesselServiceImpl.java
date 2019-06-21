@@ -83,12 +83,12 @@ public class VesselServiceImpl implements VesselService {
 
 		// Save measurements
 		if (savedVesselFeatures.getMeasurementValues() != null) {
-			measurementDao.saveObservedLocationMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getMeasurementValues());
+			measurementDao.saveVesselPhysicalMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getMeasurementValues());
 		}
 		else {
 			List<MeasurementVO> measurements = Beans.getList(savedVesselFeatures.getMeasurements());
 			measurements.forEach(m -> fillDefaultProperties(savedVesselFeatures, m));
-			measurements = measurementDao.saveObservedLocationMeasurements(savedVesselFeatures.getId(), measurements);
+			measurements = measurementDao.saveVesselPhysicalMeasurements(savedVesselFeatures.getId(), measurements);
 			savedVesselFeatures.setMeasurements(measurements);
 		}
 

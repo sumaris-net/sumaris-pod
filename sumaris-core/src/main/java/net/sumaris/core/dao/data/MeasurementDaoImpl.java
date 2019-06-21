@@ -430,6 +430,18 @@ public class MeasurementDaoImpl extends BaseDataDaoImpl implements MeasurementDa
     }
 
     @Override
+    public List<MeasurementVO> saveVesselPhysicalMeasurements(int vesselFeaturesId, List<MeasurementVO> sources) {
+        VesselFeatures parent = get(VesselFeatures.class, vesselFeaturesId);
+        return saveMeasurements(VesselPhysicalMeasurement.class, sources, parent.getMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveVesselPhysicalMeasurementsMap(int vesselFeaturesId, Map<Integer, String> sources) {
+        VesselFeatures parent = get(VesselFeatures.class, vesselFeaturesId);
+        return saveMeasurementsMap(VesselPhysicalMeasurement.class, sources, parent.getMeasurements(), parent);
+    }
+
+    @Override
     public List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId) {
         return getMeasurementsByParentId(VesselPhysicalMeasurement.class,
                 VesselPhysicalMeasurement.PROPERTY_VESSEL_FEATURES,
