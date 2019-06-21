@@ -47,7 +47,7 @@ export {
     TextMaskModule,
     IonicModule,
     TranslateModule.forChild(),
-    NgxMaterialTimepickerModule,
+    NgxMaterialTimepickerModule.forRoot(),
     ColorPickerModule
   ],
   declarations: [

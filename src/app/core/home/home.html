@@ -22,6 +22,7 @@
 
 <ion-content [ngStyle]="contentStyle"
              class="no-padding-xs"
+             align-self-center
              >
     <!-- loading spinner -->
     <div class="loading-page" [class.hidden]="!loading">
@@ -45,12 +46,6 @@
         </ion-buttons>
       </ion-toolbar>
     </div>
-
-    <p class="hidden-xxs" padding>&nbsp;
-      <br/>
-      <br/>
-    </p>
-    <p class="hidden-xs">&nbsp;</p>
 
     <ion-card @fadeInAnimation *ngIf="!loading">
       <ion-card-content>

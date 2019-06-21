@@ -10,7 +10,7 @@ import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {Fragments} from "./trip.queries";
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 
 export const TripFragments = {
@@ -230,7 +230,10 @@ export class TripService extends BaseDataService implements TableDataService<Tri
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: TripFilter): Observable<LoadResult<Trip>> {
+           filter?: TripFilter,
+           options?: {
+             fetchPolicy?: WatchQueryFetchPolicy
+           }): Observable<LoadResult<Trip>> {
     const variables: any = {
       offset: offset || 0,
       size: size || 20,
@@ -246,7 +249,8 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     return this.graphql.watchQuery<{ trips: Trip[]; tripsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
-      error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" }
+      error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
+      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
         throttleTime(200),

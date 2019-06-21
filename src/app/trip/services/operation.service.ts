@@ -18,7 +18,7 @@ import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
-import {FetchPolicy} from "apollo-client";
+import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 
 export const OperationFragments = {
@@ -170,7 +170,11 @@ export class OperationService extends BaseDataService implements TableDataServic
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: OperationFilter): Observable<LoadResult<Operation>> {
+           filter?: OperationFilter,
+           options?: {
+            fetchPolicy?: WatchQueryFetchPolicy
+           }
+  ): Observable<LoadResult<Operation>> {
     const variables: any = {
       offset: offset || 0,
       size: size || 1000,
@@ -185,7 +189,7 @@ export class OperationService extends BaseDataService implements TableDataServic
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
-      fetchPolicy: 'cache-and-network'
+      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
         map((res) => {

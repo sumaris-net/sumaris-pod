@@ -119,6 +119,7 @@
           <mat-icon>keyboard_arrow_down</mat-icon>
         </button>
 
+        <! TODO: Add [disableAnimation]="true" -->
         <ngx-material-timepicker #timePicker
                                  [@fadeInAnimation]
                                  [ngxMaterialTimepickerTheme]="darkTheme"
@@ -129,7 +130,6 @@
                                  [confirmBtnTmpl]="timePickerOkButton"
                                  [preventOverlayClick]="false"
                                  [enableKeyboardInput]="false"
-                                 [disableAnimation]="true"
                                  (keyup.escape)="onTimePickerKeyup($event)"
                                  (keyup.enter)="onTimePickerKeyup($event)"
                                  (timeSet)="timePickerOkButton.disabled=false">

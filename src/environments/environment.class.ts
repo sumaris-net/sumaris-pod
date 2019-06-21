@@ -1,3 +1,4 @@
+import {FetchPolicy} from "apollo-client";
 export class Environment {
   name: string;
   version: string;
@@ -6,7 +7,7 @@ export class Environment {
   defaultLocale: string;
   defaultLatLongFormat?: 'DD' | 'DDMM' | 'DDMMSS';
   defaultDepartmentId?: number;
-  apolloFetchPolicy?: 'cache-first' | 'cache-and-network' | 'network-only' | 'cache-only' | 'no-cache' | 'standby';
+  apolloFetchPolicy?:  FetchPolicy;
   mock?: boolean;
   listenRemoteChanges?: boolean;
 

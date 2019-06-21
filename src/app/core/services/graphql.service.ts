@@ -1,6 +1,6 @@
 import {Observable, Subject} from "rxjs";
 import {Apollo} from "apollo-angular";
-import {ApolloClient, ApolloQueryResult, FetchPolicy} from "apollo-client";
+import {ApolloClient, ApolloQueryResult, FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
 import {map} from "rxjs/operators";
@@ -89,7 +89,7 @@ export class GraphqlService {
     query: any,
     variables: V,
     error?: ServiceError,
-    fetchPolicy?: FetchPolicy
+    fetchPolicy?: WatchQueryFetchPolicy
   }): Observable<T> {
     return this.apollo.watchQuery<T, V>({
       query: opts.query,

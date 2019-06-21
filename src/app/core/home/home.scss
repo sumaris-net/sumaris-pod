@@ -128,11 +128,14 @@ ion-text {
   ion-content {
     // Avoid boittom-banner to override main-content
     min-height: 606px;
+
+    ion-card {
+      margin-top: auto ;
+      margin-left: auto ;
+      margin-right: auto ;
+    }
   }
 
-  .main-content {
-    padding-bottom: 0px;
-  }
 
   .bottom-banner {
     position: absolute;

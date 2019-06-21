@@ -9,6 +9,8 @@ import {AccountService, BaseDataService, environment} from "../../core/core.modu
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
+import {WatchQueryFetchPolicy} from "apollo-client";
+import {OperationFilter} from "./operation.service";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment on SaleVO {
@@ -147,7 +149,10 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
            size: number,
            sortBy?: string,
            sortDirection?: string,
-           filter?: SaleFilter): Observable<LoadResult<Sale>> {
+           filter?: SaleFilter,
+           options?: {
+             fetchPolicy?: WatchQueryFetchPolicy
+           }): Observable<LoadResult<Sale>> {
 
     const variables: any = {
       offset: offset || 0,
@@ -163,7 +168,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_SALES_ERROR, message: "TRIP.SALE.ERROR.LOAD_SALES_ERROR" },
-      fetchPolicy: 'cache-and-network'
+      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
         map((res) => {

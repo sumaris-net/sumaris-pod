@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {AlertController, MenuController, ModalController} from "@ionic/angular";
+import {AlertController, IonSplitPane, MenuController, ModalController} from "@ionic/angular";
 
 import {Router} from "@angular/router";
 import {Account, UserProfileLabel} from "../services/model";
@@ -9,9 +9,7 @@ import {AboutModal} from '../about/modal-about';
 import {environment} from '../../../environments/environment';
 import {HomePage} from '../home/home';
 import {fadeInAnimation} from '../../shared/material/material.animations';
-import {Components} from "@ionic/core";
 import {TranslateService} from "@ngx-translate/core";
-import IonSplitPane = Components.IonSplitPane;
 
 export interface MenuItem {
   title: string;
