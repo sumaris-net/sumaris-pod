@@ -102,7 +102,7 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
           }
 
           const selectedSheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
-          if (!selectedType.sheetNames && selectedSheetName) {
+          if (selectedSheetName && selectedType  && !selectedType.sheetNames) {
             selectedType.sheetNames = [selectedSheetName];
           }
 

@@ -57,3 +57,7 @@ export const fromDateISOString = function (value): Moment | undefined {
   return value && moment(value, DATE_ISO_PATTERN) || undefined;
 
 }
+
+export function startsWithUpperCase(input: string, search: string): boolean {
+  return input && input.toUpperCase().startsWith(search);
+}

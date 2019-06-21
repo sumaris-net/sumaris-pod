@@ -21,7 +21,7 @@ export class BatchValidatorService implements ValidatorService {
       rankOrder: ['1', Validators.required],
       label: [data && data.label || ''],
       individualCount: ['', Validators.compose([Validators.min(0), SharedValidators.integer])],
-      samplingRatio: [''],
+      samplingRatio: ['', SharedValidators.double()],
       samplingRatioText: [''],
       taxonGroup: ['', SharedValidators.entity],
       taxonName: ['', SharedValidators.entity],

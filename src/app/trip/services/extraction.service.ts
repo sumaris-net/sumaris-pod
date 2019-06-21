@@ -164,7 +164,7 @@ export interface AggregationTypeFilter {
   isSpatial?: boolean;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ExtractionService extends BaseDataService {
 
   constructor(

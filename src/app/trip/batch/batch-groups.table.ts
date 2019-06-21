@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "angular4-material-table";
 import {Batch, EntityUtils, Landing, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {PmfmLabelPatterns,} from "../../referential/referential.module";
 import {BatchGroupsValidatorService} from "../services/trip.validators";
@@ -182,15 +182,20 @@ export class BatchGroupsTable extends BatchesTable {
     return data;
   }
 
-  async openSubBatchesModal(item: any) {
-    console.log("Click on batch group:", item);
+  async openSubBatchesModal(row: TableElement<Batch>) {
+    console.log("Click on batch group:", row);
+
+    const batch = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
 
     const modal = await this.modalCtrl.create({
       component: SubBatchesPage,
       componentProps: {
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
-        value: new Batch()
+        usageMode: this.usageMode,
+        parent: batch,
+        showTaxonNameColumn: false,
+        availableParents: this.memoryDataService.value
       }, keyboardClose: true
     });
 

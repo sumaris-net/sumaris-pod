@@ -150,7 +150,7 @@ const UpdateSubscription = gql`
   ${LandingFragments.landing}
 `;
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class LandingService extends RootDataService<Landing, LandingFilter>
   implements TableDataService<Landing, LandingFilter>, EditorDataService<Landing, LandingFilter> {
 

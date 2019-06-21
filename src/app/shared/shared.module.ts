@@ -23,7 +23,7 @@ import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {DataService, LoadResult, TableDataService} from "./services/data-service.class";
-import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toBoolean, toFloat, toInt, toDateISOString} from "./functions";
+import {fromDateISOString, isNil, isNotNil, nullIfUndefined, toBoolean, toFloat, toInt, toDateISOString, startsWithUpperCase} from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 import {Color, ColorScale} from "./graph/graph-colors";
@@ -33,6 +33,7 @@ export {
   isNil, isNotNil, nullIfUndefined,
   toBoolean, toFloat, toInt,
   toDateISOString, fromDateISOString,
+  startsWithUpperCase,
   fadeInAnimation, fadeInOutAnimation,
   DateFormatPipe, ToolbarComponent,
   Color, ColorScale

@@ -4,7 +4,7 @@ import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
   AppTable,
-  AppTableDataSource,
+  AppTableDataSource, LocalSettingsService,
   personsToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
@@ -30,7 +30,10 @@ import {TranslateService} from "@ngx-translate/core";
   selector: 'page-trips',
   templateUrl: 'trips.page.html',
   providers: [
-    { provide: ValidatorService, useClass: TripValidatorService }
+    { provide: ValidatorService, useClass: TripValidatorService },
+    AccountService,
+    TripService,
+    ReferentialRefService
   ],
   styleUrls: ['./trips.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -51,6 +54,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected platform: Platform,
     protected location: Location,
     protected modalCtrl: ModalController,
+    protected settings: LocalSettingsService,
     protected accountService: AccountService,
     protected validatorService: ValidatorService,
     protected dataService: TripService,
@@ -61,7 +65,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected cd: ChangeDetectorRef
   ) {
 
-    super(route, router, platform, location, modalCtrl, accountService,
+    super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat([
           'quality',

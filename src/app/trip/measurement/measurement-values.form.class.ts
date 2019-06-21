@@ -1,13 +1,13 @@
 import {ChangeDetectorRef, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Entity, isNil, isNotNil, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
+import {isNil, isNotNil, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
-import {BehaviorSubject, merge} from 'rxjs';
+import {BehaviorSubject, merge, timer} from 'rxjs';
 import {AppForm, AppFormUtils} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {filter, first, startWith, throttleTime} from "rxjs/operators";
+import {debounce, debounceTime, filter, first, startWith, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement} from "../services/model/measurement.model";
 
 export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> implements OnInit {
@@ -21,6 +21,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   loading = false; // Important, must be false
   loadingPmfms = true; // Important, must be true
+  loadingControls = true; // Important, must be true
 
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
 
@@ -71,11 +72,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   public set value(value: T) {
-    if (this.data !== value) {
-      this.data = value;
-      this.setValue(value);
-      this._onValueChanged.emit(value);
-    }
+    this.setValue(value);
   }
 
   public get value(): T {
@@ -107,33 +104,39 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     // TODO: DEV only
     //this.debug = true;
+
+    this.registerSubscription(
+      this._onRefreshPmfms
+        .subscribe(() => this.refreshPmfms('ngOnInit'))
+    );
   }
 
   ngOnInit() {
     super.ngOnInit();
 
-    this.registerSubscription(
-      this._onRefreshPmfms.asObservable()
-        .subscribe(() => this.refreshPmfms('ngOnInit'))
-    );
-
     // Update the form group
     this.registerSubscription(
       merge(
-        this._onValueChanged.pipe(startWith('ngOnInit')),
+        this._onValueChanged,
         this.$pmfms.pipe(filter(isNotNil)),
       )
+        //.pipe(throttleTime(100)) // Avoid redundant call
         .subscribe((_) => this.updateControls('merge', this.$pmfms.getValue())));
 
     // Listen form changes
     this.registerSubscription(
       this.form.valueChanges
+        .takeWhile(() => !this.loading)
         .subscribe((_) => {
           if (!this.loading && !this.loadingPmfms && this.valueChanges.observers.length) {
             this.valueChanges.emit(this.value);
           }
         })
     );
+
+    if (this.data) {
+      this._onValueChanged.emit(this.data);
+    }
   }
 
   public markAsTouched() {
@@ -208,6 +211,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       return;
     }
 
+    this.loadingControls = true;
     this.loading = true;
 
     if (event) if (this.debug) console.debug(`${this.logPrefix} updateControls(${event})...`);
@@ -223,7 +227,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       return true;
     }
 
-    const now = Date.now();
     if (this.debug) console.debug(`${this.logPrefix} Updating form, using pmfms:`, pmfms);
 
     // Create measurementValues form group
@@ -260,6 +263,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     // if (this.enabled)
     this.loading = false;
+    this.loadingControls = false;
 
     this.markForCheck();
 
@@ -269,11 +273,13 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   /** -- protected methods  -- */
 
   public setValue(data: T) {
-    if (!data) return;
+    if (this.data === data) return; // skip
+    this.data = data;
+    this._onValueChanged.emit(data);
 
     // Wait pmfms load
     const pmfms = this.$pmfms.getValue();
-    if (!pmfms || this.loadingPmfms || this.loading) {
+    if (!pmfms || this.loadingPmfms || this.loadingControls) {
       if (this.debug) console.debug(`${this.logPrefix} setValue(): waiting pmfms or form...`);
       this.$pmfms
         .pipe(
@@ -285,7 +291,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       return;
     }
 
+    // Apply to the form
     super.setValue(data);
+
   }
 
   protected get logPrefix(): string {

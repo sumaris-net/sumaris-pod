@@ -5,7 +5,7 @@ import {ModalController} from "@ionic/angular";
 import {AuthModal} from "../auth/modal/modal-auth";
 import {AccountService} from "./account.service";
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class AuthGuardService implements CanActivate {
 
   private _debug = false;

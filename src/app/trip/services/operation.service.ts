@@ -145,7 +145,7 @@ const sortByEndDateOrStartDateFn = (n1: Operation, n2: Operation) => {
   return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
 };
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class OperationService extends BaseDataService implements TableDataService<Operation, OperationFilter> {
 
   constructor(

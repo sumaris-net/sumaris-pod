@@ -1,4 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject, Injectable,
+  InjectionToken,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit
+} from "@angular/core";
 import {Observable} from 'rxjs';
 import {debounceTime, map, switchMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
@@ -12,22 +22,34 @@ import {
 } from "../../referential/referential.module";
 import {BatchValidatorService} from "../services/batch.validator";
 import {FormGroup, Validators} from "@angular/forms";
-import {isNil, isNotNil} from "../../shared/shared.module";
+import {isNil, isNotNil, startsWithUpperCase} from "../../shared/shared.module";
 import {UsageMode} from "../../core/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
+import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
+
+export const SubBatchesTableOptions = new InjectionToken<AppMeasurementsTableOptions<Batch>>('options');
 
 export interface SubBatchFilter {
   parentId?: number;
   operationId?: number;
   landingId?: number;
 }
+
 @Component({
   selector: 'app-sub-batches-table',
   templateUrl: 'sub-batches.table.html',
   styleUrls: ['sub-batches.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: BatchValidatorService}
+    {provide: ValidatorService, useClass: BatchValidatorService},
+    {
+      provide: SubBatchesTableOptions,
+      useValue: {
+        prependNewElements: false,
+        suppressErrors: false,
+        reservedStartColumns: SubBatchesTable.RESERVED_START_COLUMNS,
+        reservedEndColumns: SubBatchesTable.RESERVED_END_COLUMNS
+      }
+    }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -59,8 +81,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       // Sort parents by by Tag-ID
       if (this.displayParentPmfm) {
         this._availableSortedParents = this.sortData(parents.slice(), this.displayParentPmfm.pmfmId.toString());
-      }
-      else {
+      } else {
         this._availableSortedParents = this.sortData(parents.slice(), 'taxonGroup');
       }
 
@@ -86,12 +107,12 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   @Input()
-  set showTaxonGroupColumn(value: boolean) {
-    this.setShowColumn('taxonGroup', value);
+  set showParentColumn(value: boolean) {
+    this.setShowColumn('parent', value);
   }
 
-  get showTaxonGroupColumn(): boolean {
-    return this.getShowColumn('taxonGroup');
+  get showParentColumn(): boolean {
+    return this.getShowColumn('parent');
   }
 
   @Input()
@@ -107,7 +128,9 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   @Input() usageMode: UsageMode;
 
   constructor(
-    protected injector: Injector
+    protected injector: Injector,
+    protected validatorService: ValidatorService,
+    @Inject(SubBatchesTableOptions) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector,
       Batch,
@@ -118,13 +141,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
           return data;
         }
       }),
-      injector.get(ValidatorService),
-      {
-        prependNewElements: false,
-        suppressErrors: false,
-        reservedStartColumns: SubBatchesTable.RESERVED_START_COLUMNS,
-        reservedEndColumns: SubBatchesTable.RESERVED_END_COLUMNS
-      }
+      validatorService,
+      options
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -141,78 +159,81 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     this.setShowColumn('comments', this.showCommentsColumn);
 
-    // Taxon group combo
-    this.$taxonGroups = this.registerCellValueChanges('taxonGroup')
-      .pipe(
-        debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value,
-          {
-            entityName: 'TaxonGroup',
-            levelId: TaxonGroupIds.FAO,
-            searchAttribute: 'label'
-          })
-        ),
-        // Save implicit value
-        tap(items => this.updateImplicitValue('taxonGroup', items))
-      );
+    if (this.inlineEdition) { // can be override bu subclasses
 
-    // Taxon name combo
-    this.$taxonNames = this.registerCellValueChanges('taxonName')
-      .pipe(
-        debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value,
-          {
-            entityName: 'TaxonName',
-            levelId: TaxonomicLevelIds.SPECIES,
-            searchAttribute: 'label'
-          })
-        ),
-        // Save implicit value
-        tap(items => this.updateImplicitValue('taxonName', items))
-      );
+      // Taxon group combo
+      this.$taxonGroups = this.registerCellValueChanges('taxonGroup')
+        .pipe(
+          debounceTime(250),
+          switchMap((value) => this.referentialRefService.suggest(value,
+            {
+              entityName: 'TaxonGroup',
+              levelId: TaxonGroupIds.FAO,
+              searchAttribute: 'label'
+            })
+          ),
+          // Save implicit value
+          tap(items => this.updateImplicitValue('taxonGroup', items))
+        );
 
-    // Parent combo
-    this.$filteredParents = this.registerCellValueChanges('parent')
-      .pipe(
-        debounceTime(250),
-        map((value) => {
-          if (EntityUtils.isNotEmpty(value)) return [value];
-          value = (typeof value === "string" && value !== "*") && value || undefined;
-          if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
-          if (isNil(value)) return this._availableSortedParents; // All
-          const ucValueParts = value.trim().toUpperCase().split(" ", 1);
-          // Search on labels (taxonGroup or taxonName)
-          return this._availableSortedParents.filter(p =>
-            (p.taxonGroup && this.startsWithUpperCase(p.taxonGroup.label, ucValueParts[0])) ||
-            (p.taxonName && this.startsWithUpperCase(p.taxonName.label, ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]))
-          );
-        }),
-        // Save implicit value
-        tap(res => this.updateImplicitValue('parent', res))
-      );
+      // Taxon name combo
+      this.$taxonNames = this.registerCellValueChanges('taxonName')
+        .pipe(
+          debounceTime(250),
+          switchMap((value) => this.referentialRefService.suggest(value,
+            {
+              entityName: 'TaxonName',
+              levelId: TaxonomicLevelIds.SPECIES,
+              searchAttribute: 'label'
+            })
+          ),
+          // Save implicit value
+          tap(items => this.updateImplicitValue('taxonName', items))
+        );
 
-    // Listening on column 'IS_DEAD' value changes
-    this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
-      .subscribe((value) => {
-        if (!this.editedRow) return; // Should never occur
-        const row = this.editedRow;
-        const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
-        if (EntityUtils.isNotEmpty(value) && value.label == QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
-          if (controls[PmfmIds.DISCARD_REASON]) {
-            if (row.validator.enabled) {
-              controls[PmfmIds.DISCARD_REASON].enable();
+      // Parent combo
+      this.$filteredParents = this.registerCellValueChanges('parent')
+        .pipe(
+          debounceTime(250),
+          map((value) => {
+            if (EntityUtils.isNotEmpty(value)) return [value];
+            value = (typeof value === "string" && value !== "*") && value || undefined;
+            if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
+            if (isNil(value)) return this._availableSortedParents; // All
+            const ucValueParts = value.trim().toUpperCase().split(" ", 1);
+            // Search on labels (taxonGroup or taxonName)
+            return this._availableSortedParents.filter(p =>
+              (p.taxonGroup && startsWithUpperCase(p.taxonGroup.label, ucValueParts[0])) ||
+              (p.taxonName && startsWithUpperCase(p.taxonName.label, ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]))
+            );
+          }),
+          // Save implicit value
+          tap(res => this.updateImplicitValue('parent', res))
+        );
+
+      // Listening on column 'IS_DEAD' value changes
+      this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
+        .subscribe((value) => {
+          if (!this.editedRow) return; // Should never occur
+          const row = this.editedRow;
+          const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+          if (EntityUtils.isNotEmpty(value) && value.label == QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+            if (controls[PmfmIds.DISCARD_REASON]) {
+              if (row.validator.enabled) {
+                controls[PmfmIds.DISCARD_REASON].enable();
+              }
+              controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
+              controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
             }
-            controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
-            controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
+          } else {
+            if (controls[PmfmIds.DISCARD_REASON]) {
+              controls[PmfmIds.DISCARD_REASON].disable();
+              controls[PmfmIds.DISCARD_REASON].setValue(null);
+              controls[PmfmIds.DISCARD_REASON].setValidators([]);
+            }
           }
-        } else {
-          if (controls[PmfmIds.DISCARD_REASON]) {
-            controls[PmfmIds.DISCARD_REASON].disable();
-            controls[PmfmIds.DISCARD_REASON].setValue(null);
-            controls[PmfmIds.DISCARD_REASON].setValidators([]);
-          }
-        }
-      });
+        });
+    }
   }
 
   /* -- protected methods -- */
@@ -308,7 +329,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
   parentToString(batch: Batch) {
     if (!batch) return null;
-    const hasTaxonGroup = EntityUtils.isNotEmpty(batch.taxonGroup) ;
+    const hasTaxonGroup = EntityUtils.isNotEmpty(batch.taxonGroup);
     const hasTaxonName = EntityUtils.isNotEmpty(batch.taxonName);
     if (hasTaxonName && (!hasTaxonGroup || batch.taxonGroup.label === batch.taxonName.label)) {
       return `${batch.taxonName.label} - ${batch.taxonName.name}`;

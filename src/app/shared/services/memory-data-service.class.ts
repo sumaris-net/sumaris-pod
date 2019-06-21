@@ -10,7 +10,7 @@ export interface InMemoryTableDataServiceOptions<T> {
   onSave?: (data: T[]) => T[] | Promise<T[]>;
 }
 
-export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> implements TableDataService<T, F> {
+export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = any> implements TableDataService<T, F> {
 
   private _dataSubject = new Subject<LoadResult<T>>();
 
@@ -18,9 +18,10 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F> im
   private readonly _onLoad: (data: T[]) => T[] | Promise<T[]>;
   private readonly _onSaveFn: (data: T[]) => T[] | Promise<T[]>;
 
+  protected data: T[];
+
   hasRankOrder = false;
   debug = false;
-  data: T[];
 
   set value(data: T[]) {
     if (this.data !== data) {

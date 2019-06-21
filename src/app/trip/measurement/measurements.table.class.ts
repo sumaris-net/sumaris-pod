@@ -128,7 +128,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       options.onRowCreated = (row) => this.onRowCreated(row);
     }
 
-    this.setDatasource(new AppTableDataSource(dataType, this.measurementsDataService, this, options));
+    const encapsulatedValidator = this.validatorService ? this : null;
+    this.setDatasource(new AppTableDataSource(dataType, this.measurementsDataService, encapsulatedValidator, options));
 
     // For DEV only
     this.debug = !environment.production;

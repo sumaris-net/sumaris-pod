@@ -27,6 +27,11 @@ import {UsageMode} from "../../core/services/model";
   selector: 'page-trip',
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
+  providers: [
+    TripService,
+    LocalSettingsService,
+    ProgramService
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripPage extends AppTabPage<Trip> implements OnInit {

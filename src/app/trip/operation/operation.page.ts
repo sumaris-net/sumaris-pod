@@ -30,6 +30,12 @@ import {SamplesTable} from "../sample/samples.table";
   selector: 'page-operation',
   templateUrl: './operation.page.html',
   styleUrls: ['./operation.page.scss'],
+  providers: [
+    OperationService,
+    TripService,
+    ProgramService,
+    LocalSettingsService
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {

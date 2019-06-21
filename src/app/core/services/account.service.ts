@@ -178,7 +178,7 @@ const UpdateSubscription: any = gql`
   }
 `;
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class AccountService extends BaseDataService {
 
   private data: AccountHolder = {

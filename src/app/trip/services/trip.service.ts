@@ -203,7 +203,7 @@ const UpdateSubscription = gql`
   ${TripFragments.trip}
 `;
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class TripService extends BaseDataService implements TableDataService<Trip, TripFilter>{
 
   protected loading = false;
@@ -250,7 +250,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
-      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
+      fetchPolicy: options && options.fetchPolicy || undefined /*default*/
     })
       .pipe(
         throttleTime(200),

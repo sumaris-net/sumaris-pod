@@ -186,13 +186,15 @@
     <mat-cell *matCellDef="let row" [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)" [class.even]="isEven(pmfm)">
       <mat-form-field-measurement
         [readonly]="!row.editing"
-        [pmfm]="pmfm" [formControl]="row.validator.controls['measurementValues'].controls[pmfm.pmfmId]"
+        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
         [compact]="true" floatLabel="never">
 
+        <!--
+        [matBadge]="row.validator.controls.measurementValues.controls[pmfm.pmfmId].value"
+                  matBadgePosition="above after"-->
         <mat-icon matSuffix
                   *ngIf="pmfm.pmfmId % 5 === 3"
-                  matBadge="22"
-                  matBadgePosition="above after"
+
                   [title]="'TRIP.BATCH.TABLE.BTN_MEASURE'|translate"
                   (click)="openSubBatchesModal(row)"
           >list</mat-icon>

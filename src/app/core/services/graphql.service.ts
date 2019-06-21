@@ -16,7 +16,7 @@ import {InMemoryCache} from "apollo-cache-inmemory";
 import {AppWebSocket, dataIdFromObject} from "../graphql/graphql.utils";
 import {getMainDefinition} from 'apollo-utilities';
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class GraphqlService {
 
   private _started = false;

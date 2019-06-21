@@ -3,6 +3,7 @@ import {AcquisitionLevelCodes, Person, ReferentialRef} from "../../../referentia
 import {Moment} from "moment/moment";
 import {DataEntity, DataRootEntity, DataRootVesselEntity} from "./base.model";
 import {IEntityWithMeasurement, Measurement, MeasurementUtils} from "./measurement.model";
+import {isNotNilOrBlank} from "../../../shared/functions";
 
 
 export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<Batch> {
@@ -56,22 +57,16 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject(false /*fix #32*/ ) || undefined;
     target.taxonName = this.taxonName && this.taxonName.asObject(false /*fix #32*/) || undefined;
+    target.samplingRatio = isNotNil(this.samplingRatio) ? this.samplingRatio : null;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.children = this.children && this.children.map(c => c.asObject(minify)) || undefined;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, minify);
 
     if (minify) {
       // Parent Id not need, as the tree batch will be used by pod
       delete target.parent;
       delete target.parentId;
-
-      // Measurement: keep only the map
-      target.measurementValues = this.measurementValues && Object.getOwnPropertyNames(this.measurementValues)
-        .reduce((map, pmfmId) => {
-          const value = this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id || this.measurementValues[pmfmId];
-          if (isNotNil(value)) map[pmfmId] = '' + value;
-          return map;
-        }, {}) || undefined;
     }
 
     return target;
@@ -82,9 +77,9 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     this.label = source.label;
     this.rankOrder = source.rankOrder;
     this.exhaustiveInventory = source.exhaustiveInventory;
-    this.samplingRatio = source.samplingRatio;
+    this.samplingRatio = isNotNilOrBlank(source.samplingRatio) ? parseFloat(source.samplingRatio) : null;
     this.samplingRatioText = source.samplingRatioText;
-    this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
+    this.individualCount = isNotNilOrBlank(source.individualCount) ? parseInt(source.individualCount) : null;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
     this.comments = source.comments;

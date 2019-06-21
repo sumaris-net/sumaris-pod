@@ -63,7 +63,7 @@ const SaveMutation: any = gql`
 `;
 
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ConfigService extends BaseDataService {
 
   private _started = false;

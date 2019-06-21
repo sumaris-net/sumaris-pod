@@ -9,35 +9,52 @@ import {FormBuilder} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {AcquisitionLevelCodes, ReferentialRef, referentialToString, UsageMode} from "../../core/services/model";
-import {debounceTime, switchMap, tap} from "rxjs/operators";
-import {TaxonGroupIds, TaxonomicLevelIds} from "../../referential/services/model";
-import {Observable} from "rxjs";
+import {
+  AcquisitionLevelCodes,
+  EntityUtils,
+  ReferentialRef,
+  referentialToString,
+  UsageMode
+} from "../../core/services/model";
+import {debounceTime, map, switchMap, tap} from "rxjs/operators";
+import {isNil, isNotNil, PmfmStrategy, TaxonGroupIds, TaxonomicLevelIds} from "../../referential/services/model";
+import {Observable, Subject, merge} from "rxjs";
+import {startsWithUpperCase} from "../../shared/functions";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-sub-batch-form',
   templateUrl: 'sub-batch.form.html',
-  //styleUrls: ['sub-batch.form.scss'],
   providers: [
-    {provide: ValidatorService, useClass: SubBatchValidatorService}
-    // {
-    //   provide: InMemoryTableDataService,
-    //   useFactory: () => new InMemoryTableDataService<Batch, BatchFilter>(Batch, {})
-    // }
+    {provide: ValidatorService, useClass: SubBatchValidatorService},
+    LocalSettingsService,
+    MeasurementsValidatorService,
+    ProgramService,
+    ReferentialRefService
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SubBatchForm extends MeasurementValuesForm<Batch>
   implements OnInit, OnDestroy {
 
-  $taxonGroups: Observable<ReferentialRef[]>;
   $taxonNames: Observable<ReferentialRef[]>;
+  $filteredParents: Observable<Batch[]>;
+
+  onShowParentDropdown = new Subject<any>();
 
   @Input() usageMode: UsageMode;
 
-  @Input() showTaxonGroup = true;
+  @Input() showParent = true;
 
   @Input() showTaxonName = true;
+
+  @Input() displayParentPmfm = PmfmStrategy;
+
+  @Input() availableParents: Batch[] = [];
+
+  get isOnFieldMode(): boolean {
+    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -46,29 +63,43 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     protected programService: ProgramService,
     protected cd: ChangeDetectorRef,
     protected validatorService: ValidatorService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    protected settings: LocalSettingsService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getRowValidator());
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
+    //this.program = 'ADAP-MER';
 
+    //
+    this.debug = true;
   }
 
   ngOnInit() {
     super.ngOnInit();
 
-    // Taxon group combo
-    this.$taxonGroups = this.form.get('taxonGroup').valueChanges
+    // Parent combo
+    this.$filteredParents = merge(
+      this.onShowParentDropdown,
+      this.form.get('parent').valueChanges
+    )
       .pipe(
         debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value, {
-          entityName: 'TaxonGroup',
-          levelId: TaxonGroupIds.FAO,
-          searchAttribute: 'label'
-        })),
-        // Remember implicit value
-        tap(res => this.updateImplicitValue('taxonGroup', res))
+        map((value) => {
+          if (EntityUtils.isNotEmpty(value)) return [value];
+          value = (typeof value === "string" && value !== "*") && value || undefined;
+          if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
+          if (isNil(value)) return this.availableParents; // All
+          const ucValueParts = value.trim().toUpperCase().split(" ", 1);
+          // Search on labels (taxonGroup or taxonName)
+          return this.availableParents.filter(p =>
+            (p.taxonGroup && startsWithUpperCase(p.taxonGroup.label, ucValueParts[0])) ||
+            (p.taxonName && startsWithUpperCase(p.taxonName.label, ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]))
+          );
+        }),
+        // Save implicit value
+        tap(res => this.updateImplicitValue('parent', res))
       );
 
     // Taxon name combo
@@ -83,17 +114,28 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         // Remember implicit value
         tap(res => this.updateImplicitValue('taxonName', res))
       );
+
+    //if (isNotNil(this._program) && isNotNil(this._acquisitionLevel)) {
+    //  this.refreshPmfms();
+    //}
   }
 
-  public setValue(value: Batch) {
-
-    console.log("TODO: form->setValue()", value);
-
-    // Send value for form
-    super.setValue(value);
-
-    this.enable();
+  parentToString(batch: Batch) {
+    if (!batch) return null;
+    const hasTaxonGroup = EntityUtils.isNotEmpty(batch.taxonGroup);
+    const hasTaxonName = EntityUtils.isNotEmpty(batch.taxonName);
+    if (hasTaxonName && (!hasTaxonGroup || batch.taxonGroup.label === batch.taxonName.label)) {
+      return `${batch.taxonName.label} - ${batch.taxonName.name}`;
+    }
+    if (hasTaxonName && hasTaxonGroup) {
+      return `${batch.taxonGroup.label} / ${batch.taxonName.label} - ${batch.taxonName.name}`;
+    }
+    if (hasTaxonGroup) {
+      return `${batch.taxonGroup.label} - ${batch.taxonGroup.name}`;
+    }
+    return `#${batch.rankOrder}`;
   }
 
   referentialToString = referentialToString;
+
 }

@@ -124,7 +124,7 @@ const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
   return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
 };
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class SaleService extends BaseDataService implements TableDataService<Sale, SaleFilter>{
 
   constructor(

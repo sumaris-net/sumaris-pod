@@ -57,7 +57,7 @@ export interface KeyPair {
   secretKey: Uint8Array
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class CryptoService {
 
   /**
