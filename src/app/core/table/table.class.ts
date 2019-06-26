@@ -93,11 +93,11 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   }
 
   get valid(): boolean {
-    return this.editedRow && this.editedRow.editing ? this.editedRow.validator.valid : true;
+    return this.editedRow && this.editedRow.editing ? (!this.editedRow.validator || this.editedRow.validator.valid) : true;
   }
 
   get invalid(): boolean {
-    return this.editedRow && this.editedRow.editing ? this.editedRow.validator.invalid : false;
+    return this.editedRow && this.editedRow.editing ? (this.editedRow.validator && this.editedRow.validator.invalid) : false;
   }
 
   disable() {
@@ -445,8 +445,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     if (row.id === -1 || row.editing) return true;
     if (event.defaultPrevented || this.loading) return false;
 
-    // Open the detail page (if not editing)
-    if (!this._dirty && !this.inlineEdition) {
+    // Open the detail page (if not inline editing)
+    if (!this.inlineEdition) {
+      if (this._dirty && this.debug) {
+        console.warn("[table] Opening row details, but table has unsaved changes!");
+      }
+
       event.stopPropagation();
 
       this.loading = true;
@@ -458,6 +462,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
 
       return true;
     }
+
 
     return this.onEditRow(event, row);
   }

@@ -188,7 +188,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     control = control || this.form.get(name);
     const value = control && this._implicitValues[name];
     if (control && value !== undefined && value !== null) {
-      control.patchValue(value, {emitEvent: false});
+      control.patchValue(value, {emitEvent: true});
       control.markAsDirty();
       this._implicitValues[name] = null;
     }
