@@ -81,7 +81,9 @@
           <ion-label color="danger" class="error" [innerHTML]="physicalGearTable.error|translate"></ion-label>
         </ion-item>
 
-        <table-physical-gears #physicalGearTable [debug]="debug" [program]="programSubject|async">
+        <table-physical-gears #physicalGearTable
+                              [debug]="debug"
+                              [program]="programSubject|async">
         </table-physical-gears>
 
       </div>

@@ -8,7 +8,7 @@ import {
   Person,
   ReferentialRef
 } from "./base.model";
-import {Measurement, MeasurementUtils} from "./measurement.model";
+import {IEntityWithMeasurement, Measurement, MeasurementUtils} from "./measurement.model";
 import {Sale} from "./sale.model";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
@@ -93,7 +93,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   }
 }
 
-export class PhysicalGear extends DataRootEntity<PhysicalGear> {
+export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntityWithMeasurement<PhysicalGear> {
 
   static fromObject(source: any): PhysicalGear {
     const res = new PhysicalGear();
@@ -104,12 +104,14 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
   rankOrder: number;
   gear: ReferentialRef;
   measurements: Measurement[];
+  measurementValues: { [key: string]: string };
 
   constructor() {
     super();
     this.gear = new ReferentialRef();
-    this.measurements = [];
     this.rankOrder = null;
+    this.measurements = [];
+    this.measurementValues = {};
   }
 
   clone(): PhysicalGear {
@@ -128,6 +130,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
+    target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, minify);
 
     return target;
   }
@@ -137,6 +140,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> {
     this.rankOrder = source.rankOrder;
     source.gear && this.gear.fromObject(source.gear);
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
+    this.measurementValues = source.measurementValues || MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
     return this;
   }
 

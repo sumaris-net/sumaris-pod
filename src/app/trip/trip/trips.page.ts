@@ -30,10 +30,7 @@ import {TranslateService} from "@ngx-translate/core";
   selector: 'page-trips',
   templateUrl: 'trips.page.html',
   providers: [
-    { provide: ValidatorService, useClass: TripValidatorService },
-    AccountService,
-    TripService,
-    ReferentialRefService
+    {provide: ValidatorService, useClass: TripValidatorService}
   ],
   styleUrls: ['./trips.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -92,9 +89,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       'endDate': [null],
       'location': [null]
     });
-    this.isAdmin = accountService.isAdmin();
-    this.canEdit = this.isAdmin || accountService.isUser();
-    this.canDelete = this.isAdmin;
     this.inlineEdition = false;
 
     // FOR DEV ONLY ----
@@ -104,13 +98,18 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   ngOnInit() {
     super.ngOnInit();
 
+    this.isAdmin = this.accountService.isAdmin();
+    this.canEdit = this.isAdmin || this.accountService.isUser();
+    this.canDelete = this.isAdmin;
+    console.log("Can edit: " + this.canEdit);
+
     // Programs combo (filter)
     this.programs = this.filterForm.controls['program']
       .valueChanges
       .pipe(
         startWith('*'),
         debounceTime(250),
-        switchMap(value => this.referentialRefService.suggest(value,{entityName: 'Program'}))
+        switchMap(value => this.referentialRefService.suggest(value, {entityName: 'Program'}))
       );
 
     // Locations combo (filter)
@@ -118,7 +117,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       .valueChanges
       .pipe(
         debounceTime(250),
-        switchMap(value => this.referentialRefService.suggest(value,{
+        switchMap(value => this.referentialRefService.suggest(value, {
           entityName: 'Location',
           levelId: LocationLevelIds.PORT
         }))
@@ -146,7 +145,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   async onAddRowDetailUsingModal(): Promise<any> {
     if (this.loading) return Promise.resolve();
 
-    const modal = await this.modalCtrl.create({ component: TripModal });
+    const modal = await this.modalCtrl.create({component: TripModal});
     // if new trip added, refresh the table
     modal.onDidDismiss().then(res => res && this.onRefresh.emit());
     return modal.present();
@@ -165,7 +164,8 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
             text: translations['COMMON.NO'],
             role: 'cancel',
             cssClass: 'secondary',
-            handler: () => { }
+            handler: () => {
+            }
           },
           {
             text: translations['COMMON.YES'],

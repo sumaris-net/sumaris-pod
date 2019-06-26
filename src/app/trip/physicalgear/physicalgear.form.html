@@ -14,10 +14,17 @@
         <mat-form-field>
           <input matInput [appAutofocus]="enabled && untouched" autofocusDelay="400" [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate" [matAutocomplete]="autoGear"
                  formControlName="gear"
-                 required
-                 [tabindex]="tabindex">
+                 (click)="onShowGearDropdown.next('*')"
+                 (blur)="applyImplicitValue('gear')"
+                 (keyup.arrowdown)="onShowGearDropdown.next('*')"
+                 [tabindex]="tabindex"
+                 required>
           <mat-error *ngIf="form.controls['gear'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['gear'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+
+          <button type="button" matSuffix (click)="onShowGearDropdown.next('*')" mat-icon-button tabindex="-1">
+            <mat-icon>keyboard_arrow_down</mat-icon>
+          </button>
         </mat-form-field>
 
         <!-- Gear combo -->
@@ -31,7 +38,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let gear of filteredGears | async" [value]="gear" no-padding>
+          <mat-option *ngFor="let gear of $gears | async" [value]="gear" no-padding>
             <ion-row>
               <ion-col size="3" [innerHTML]="gear.label | highlight: {search: form.controls['gear'].value }"></ion-col>
               <ion-col [innerHTML]="gear.name | highlight: {search: form.controls['gear'].value }"></ion-col>
@@ -43,22 +50,38 @@
 
     <ng-content></ng-content>
 
+    <!-- loading -->
+    <ng-container *ngIf="loadingControls">
+      <ion-row>
+        <ion-col size="12" no-padding>
+          <mat-form-field class="mat-form-field-disabled">
+            <input matInput type="text" disabled="true"
+              [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.FEATURE_PLACEHOLDER'|translate:{rankOrder: 1}">
+          </mat-form-field>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col size="12" no-padding>
+          <mat-form-field class="mat-form-field-disabled">
+            <input matInput type="text" disabled="true"
+                   [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.FEATURE_PLACEHOLDER'|translate:{rankOrder: 2}">
+          </mat-form-field>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+
     <!-- Measurements -->
-    <ion-row>
+    <ion-row *ngFor="let pmfm of $pmfms | async; index as i;">
       <ion-col size="12" no-padding>
-        <ion-label translate>TRIP.PHYSICAL_GEAR.EDIT.FEATURES</ion-label>
+        <mat-form-field-measurement
+                                    [pmfm]="pmfm"
+                                    [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                    [compact]="compact"
+                                    [tabindex]="tabindex+10 + i*2"
+                                    [floatLabel]="floatLabel">
+        </mat-form-field-measurement>
       </ion-col>
     </ion-row>
-    <ion-row>
-      <form-measurements #measurementsForm
-                         acquisitionLevel="PHYSICAL_GEAR"
-                         [debug]="debug"
-                         [requiredGear]="true"
-                         [program]="programSubject|async"
-                         [tabindex]="tabindex+10">
-      </form-measurements>
-    </ion-row>
-
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">

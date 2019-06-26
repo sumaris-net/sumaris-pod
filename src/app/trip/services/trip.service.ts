@@ -111,9 +111,7 @@ export const TripFragments = {
       recorderDepartment {
         ...RecorderDepartmentFragment
       }
-      measurements {
-        ...MeasurementFragment
-      }
+      measurementValues
     }
     measurements {
       ...MeasurementFragment
@@ -250,10 +248,10 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
-      fetchPolicy: options && options.fetchPolicy || undefined /*default*/
+      fetchPolicy: options && options.fetchPolicy || 'cache-and-network' /*default*/
     })
       .pipe(
-        throttleTime(200),
+        //throttleTime(200),
         map(res => {
           const data = (res && res.trips || []).map(Trip.fromObject);
           const total = res && res.tripsCount || 0;

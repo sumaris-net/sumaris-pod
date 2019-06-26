@@ -1,0 +1,64 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button class="visible-xs visible-sm" (click)="cancel()">
+        {{'COMMON.BTN_CANCEL'|translate}}
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>
+      {{$title | async}}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-spinner *ngIf="loading"></ion-spinner>
+
+      <ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading && form.dirty && form.valid" (click)="doSubmit()">
+        <ion-icon name="checkmark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+
+  <!-- error -->
+  <ion-item *ngIf="form.error" visible-xs visible-sm>
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="form.error|translate"></ion-label>
+  </ion-item>
+
+  <app-physical-gear-form #form
+                          [program]="program"
+                          [acquisitionLevel]="acquisitionLevel"
+  ></app-physical-gear-form>
+
+</ion-content>
+
+
+<ion-footer hidden-xs hidden-sm>
+
+  <ion-toolbar>
+
+    <ion-row no-padding nowrap>
+      <ion-col></ion-col>
+
+      <!-- buttons -->
+      <ion-col size="auto">
+        <ion-button fill="clear" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button [fill]="(form.invalid || !form.dirty) ? 'clear' : 'solid'"
+                    [disabled]="loading || form.invalid || !form.dirty"
+                    (keypress.enter)="doSubmit()"
+                    (click)="doSubmit()" color="tertiary">
+          <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
+          <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+
+  </ion-toolbar>
+</ion-footer>

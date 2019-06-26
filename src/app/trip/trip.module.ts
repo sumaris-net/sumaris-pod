@@ -58,6 +58,7 @@ import {AuctionControlSamplesTable} from "./sample/auctioncontrol/auction-contro
 import {AuctionControlLandingPage} from "./landing/auctioncontrol/auction-control-landing.page";
 import {SubBatchesPage} from "./batch/sub-batches.page";
 import {SubBatchForm} from "./batch/sub-batch.form";
+import {PhysicalGearModal} from "./physicalgear/physicalgear.modal";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -72,6 +73,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       TripPage,
       TripForm,
       TripModal,
+      PhysicalGearModal,
       SaleForm,
       PhysicalGearForm,
       PhysicalGearTable,
@@ -109,6 +111,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       TripPage,
       TripForm,
       TripModal,
+      PhysicalGearModal,
       SaleForm,
       PhysicalGearForm,
       PhysicalGearTable,
@@ -131,6 +134,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       TripsPage,
       TripPage,
       TripModal,
+      PhysicalGearModal,
       PhysicalGearTable,
       OperationTable,
       OperationPage,

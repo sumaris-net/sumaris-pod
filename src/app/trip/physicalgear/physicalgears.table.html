@@ -18,6 +18,12 @@
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
+  <span class="toolbar-spacer"></span>
+
+  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+
 </mat-toolbar>
 
 <!-- error -->
@@ -26,121 +32,106 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<ion-grid no-padding>
-  <ion-row no-padding>
-    <ion-col no-padding size="12" size-md="6">
+<mat-table [dataSource]="dataSource" class="table-physical-gears" matSort
+  matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
 
-      <mat-table [dataSource]="dataSource" class="table-physical-gears" matSort
-        matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
+  <ng-container matColumnDef="select">
+    <mat-header-cell *matHeaderCellDef>
+      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+        [indeterminate]="selection.hasValue() && !isAllSelected()">
+      </mat-checkbox>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+      </mat-checkbox>
+    </mat-cell>
+  </ng-container>
 
-        <ng-container matColumnDef="select">
-          <mat-header-cell *matHeaderCellDef>
-            <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-              [indeterminate]="selection.hasValue() && !isAllSelected()">
-            </mat-checkbox>
-          </mat-header-cell>
-          <mat-cell *matCellDef="let row">
-            <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-            </mat-checkbox>
-          </mat-cell>
-        </ng-container>
+  <!-- id (=rankOrder) Column -->
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label *ngIf="!loading">#</ion-label>
+      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
+  </ng-container>
 
-        <!-- id (=rankOrder) Column -->
-        <ng-container matColumnDef="id">
-          <mat-header-cell *matHeaderCellDef mat-sort-header>
-            <ion-label *ngIf="!loading">#</ion-label>
-            <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
-          </mat-header-cell>
-          <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
-        </ng-container>
+  <!-- gear -->
+  <ng-container matColumnDef="gear">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>TRIP.PHYSICAL_GEAR.LIST.GEAR</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ng-container *ngIf="row.currentData.gear">
+        <span class="visible-sm visible-xs" [title]="row.currentData.gear.label + ' - ' + row.currentData.gear.name">
+          {{row.currentData.gear.label}}
+        </span>
+        <span class="hidden-sm hidden-xs" [title]="row.currentData.gear.label + ' - ' + row.currentData.gear.name">
+          {{row.currentData.gear.label}} - {{row.currentData.gear.name}}
+        </span>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
 
-        <!-- gear -->
-        <ng-container matColumnDef="gear">
-          <mat-header-cell *matHeaderCellDef mat-sort-header>
-            <ion-label translate>TRIP.PHYSICAL_GEAR.LIST.GEAR</ion-label>
-          </mat-header-cell>
-          <mat-cell *matCellDef="let row">
-            <ng-container *ngIf="row.currentData.gear">
-              <span class="visible-sm visible-xs" [title]="row.currentData.gear.label + ' - ' + row.currentData.gear.name">
-                {{row.currentData.gear.label}}
-              </span>
-              <span class="hidden-sm hidden-xs" [title]="row.currentData.gear.label + ' - ' + row.currentData.gear.name">
-                {{row.currentData.gear.label}} - {{row.currentData.gear.name}}
-              </span>
-            </ng-container>
-          </mat-cell>
-        </ng-container>
+  <!-- Pmfms columns -->
+  <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
+      <ion-label>{{getPmfmColumnHeader(pmfm)}}
+        <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
+      </ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
+      {{measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm) }}
+    </mat-cell>
+  </ng-container>
 
-        <!-- Comments column -->
-        <ng-container matColumnDef="comments">
-          <mat-header-cell *matHeaderCellDef>
-          </mat-header-cell>
-          <mat-cell *matCellDef="let row">
-            <ion-icon color="medium" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
-          </mat-cell>
-        </ng-container>
+  <!-- Comments column -->
+  <ng-container matColumnDef="comments">
+    <mat-header-cell *matHeaderCellDef>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-icon color="medium" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
+    </mat-cell>
+  </ng-container>
 
-        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-selected]="isDetailRow(row)"
-          [class.mat-row-error]="isDetailRow(row) && gearForm.invalid" [class.mat-row-disabled]="!isDetailRow(row)"
-          (click)="clickRow($event, row)"></mat-row>
-      </mat-table>
+  <!-- Actions buttons column -->
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+      <!-- undo or delete  -->
+      <button mat-icon-button small color="light" *ngIf="row.validator?.invalid"
+              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+              (click)="cancelOrDelete($event, row)">
+        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+      </button>
+      <!-- validate -->
+      <button mat-icon-button small color="light" *ngIf="row.validator?.valid && row.id !== -1"
+              [title]="'COMMON.BTN_VALIDATE'|translate"
+              (click)="confirmEditCreate($event, row)">
+        <mat-icon>check</mat-icon>
+      </button>
+      <!-- add -->
+      <button mat-icon-button small color="light" *ngIf="row.validator?.valid && row.id === -1"
+              [title]="'COMMON.BTN_ADD'|translate"
+              (click)="confirmAndAddRow($event, row)">
+        <mat-icon>add</mat-icon>
+      </button>
+    </mat-cell>
+  </ng-container>
 
-      <!--<span *ngIf="debug">-->
-        <!--<br />dirty (all:table+form): {{dirty}}-->
-        <!--<br />dirty (form): {{gearForm.dirty}}-->
-      <!--</span>-->
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)"></mat-row>
+</mat-table>
 
-      <!--<ion-text *ngIf="editedRow && debug">-->
-        <!--<p *ngFor="let meas of detailMeasurements | async">-->
-          <!--{{meas}}-->
-        <!--</p>-->
-      <!--</ion-text>-->
-    </ion-col>
 
-    <!-- detail form  -->
-    <ion-col no-padding size="12" size-md="6">
-
-      <ion-card>
-
-        <!-- Help -->
-        <ion-item [hidden]="!resultsLength || editedRow">
-          <ion-icon slot="start" name="ios-help-circle-outline" color="primary"></ion-icon>
-          <ion-label>
-            <ion-text>
-              <p>
-                <span translate>TRIP.PHYSICAL_GEAR.LIST.SELECT_ROW_HELP</span>
-              </p>
-            </ion-text>
-          </ion-label>
-        </ion-item>
-        <!-- card title -->
-        <ion-item [hidden]="!editedRow">
-          <ion-label>
-            <ion-text color="primary">
-              <h2>
-                <span translate>TRIP.PHYSICAL_GEAR.EDIT.TITLE</span>
-                {{editedRow?.currentData.rankOrder}}
-              </h2>
-            </ion-text>
-          </ion-label>
-        </ion-item>
-
-        <!-- Form -->
-        <ion-card-content [hidden]="!editedRow">
-          <form-physical-gear [debug]="debug" #gearForm [program]="programSubject|async"
-            [tabindex]="10">
-          </form-physical-gear>
-        </ion-card-content>
-      </ion-card>
-
-    </ion-col>
-  </ion-row>
-
-</ion-grid>
-
-<ion-fab right bottom visible-xs visible-sm>
-  <button ion-fab color="light" (click)="addRow()">
-    <ion-icon name="md-add"></ion-icon>
-  </button>
+<!-- Add Button  -->
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="enabled"
+         class="visible-xs visible-sm">
+  <ion-fab-button color="tertiary" (click)="addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
 </ion-fab>
+

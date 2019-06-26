@@ -133,7 +133,7 @@ const UpdateSubscription = gql`
   ${ObservedLocationFragments.observedLocation}
 `;
 
-@Injectable()
+@Injectable({providedIn: "root"})
 export class ObservedLocationService extends RootDataService<ObservedLocation, ObservedLocationFilter>
   implements TableDataService<ObservedLocation, ObservedLocationFilter>,
     EditorDataService<ObservedLocation, ObservedLocationFilter> {
@@ -169,7 +169,8 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
     return this.graphql.watchQuery<{ observedLocations: ObservedLocation[]; observedLocationsCount: number }>({
       query: LoadAllQuery,
       variables: variables,
-      error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"}
+      error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "OBSERVED_LOCATION.ERROR.LOAD_ALL_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
         //throttleTime(200),

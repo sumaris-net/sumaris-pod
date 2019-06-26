@@ -1,7 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {
   entityToString,
-  EntityUtils, isNil,
+  EntityUtils,
+  isNil,
   isNotNil,
   LocationLevelIds,
   ObservedLocation,
@@ -14,14 +15,14 @@ import {
 import {Moment} from 'moment/moment';
 import {AcquisitionLevelCodes} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {debounceTime, filter, map, startWith, switchMap, tap} from 'rxjs/operators';
 import {ProgramService, ReferentialRefService} from '../../referential/referential.module';
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {FormArray, FormBuilder, FormControl} from "@angular/forms";
+import {FormArray, FormBuilder} from "@angular/forms";
 
 @Component({
   selector: 'form-observed-location',

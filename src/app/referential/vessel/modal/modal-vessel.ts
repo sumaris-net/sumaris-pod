@@ -22,6 +22,10 @@ export class VesselModal implements OnInit {
     return this.formVessel.enabled;
   }
 
+  get valid() {
+    return this.formVessel.valid;
+  }
+
   @ViewChild('formVessel') formVessel: VesselForm;
 
   constructor(

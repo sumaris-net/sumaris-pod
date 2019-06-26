@@ -306,17 +306,21 @@ $screen-xl: 1200px;
 // --------------------------------------------------
 // Forms
 // --------------------------------------------------
+// On small screen, align label on left
 @media screen and (max-width: $screen-sm-max) {
   form ion-col>ion-label[float-center],
   form ion-col>ion-label[float-end] {
-    text-align: start;
+    text-align: start !important;
     line-height: 37px;
   }
 }
 
-form ion-col>ion-label[float-center],
-form ion-col>ion-label[float-end] {
-  text-align: end !important;
+// On large screen, align label on right
+@media screen and (min-width: $screen-md) {
+  form ion-col > ion-label[float-center],
+  form ion-col > ion-label[float-end] {
+    text-align: end !important;
+  }
 }
 
 // --------------------------------------------------

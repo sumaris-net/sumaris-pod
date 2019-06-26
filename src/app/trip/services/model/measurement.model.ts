@@ -186,11 +186,11 @@ export class MeasurementUtils {
     if (isNil(value) && pmfm.defaultValue) value = pmfm.defaultValue;
     switch (pmfm.type) {
       case "qualitative_value":
-        if (isNotNil(value) && typeof value !== "object") {
-          const qvId = parseInt(value);
+        if (isNotNil(value)) {
+          const qvId = (typeof value === "object") ? value.id : parseInt(value);
           return pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
         }
-        return value || null;
+        return null;
       case "integer":
         return isNotNil(value) ? parseInt(value) : null;
       case "double":

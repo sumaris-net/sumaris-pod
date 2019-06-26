@@ -1,11 +1,20 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
 import {isNotNil, Measurement, PhysicalGear} from "../services/trip.model";
 import {Moment} from 'moment/moment'
 import {DateAdapter} from "@angular/material";
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {debounceTime, distinct, filter, map, startWith} from 'rxjs/operators';
-import {AppForm} from '../../core/core.module';
+import {BehaviorSubject, merge, Observable, Subject} from 'rxjs';
+import {debounceTime, distinct, filter, map, startWith, tap} from 'rxjs/operators';
+import {AcquisitionLevelCodes, AppForm} from '../../core/core.module';
 import {
   EntityUtils,
   ProgramService,
@@ -14,60 +23,50 @@ import {
   referentialToString
 } from "../../referential/referential.module";
 import {MeasurementsForm} from '../measurement/measurements.form.component';
+import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
+import {MeasurementsValidatorService} from "../services/measurement.validator";
+import {FormBuilder} from "@angular/forms";
+import {measurementValueToString} from "../services/model/measurement.model";
 
 @Component({
-  selector: 'form-physical-gear',
+  selector: 'app-physical-gear-form',
   templateUrl: './physicalgear.form.html',
   styleUrls: ['./physicalgear.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
+export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit {
 
   private _gears: ReferentialRef[] = [];
 
-  loading = false;
-  filteredGears: Observable<ReferentialRef[]>;
-  measurements: Measurement[];
-  gear: Subject<string> = new BehaviorSubject<string>(null);
+  $gears: Observable<ReferentialRef[]>;
   programSubject = new Subject<string>();
-
-  @Input() set program(program: string) {
-    this.programSubject.next(program);
-  }
+  onShowGearDropdown = new Subject<any>();
 
   @Input() showComment = true;
 
   @Input() tabindex: number;
 
-  @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
-
-  @Output()
-  valueChanges: EventEmitter<any> = new EventEmitter<any>();
-
-
-  get dirty(): boolean {
-    return this.form.dirty || this.measurementsForm.dirty;
-  }
-
-  get invalid(): boolean {
-    return this.form.invalid || this.measurementsForm.invalid;
-  }
-
-  get valid(): boolean {
-    return this.form.valid && this.measurementsForm.valid;
+  @Input()
+  set program(value: string) {
+    this.programSubject.next(value);
   }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected physicalGearValidatorService: PhysicalGearValidatorService,
+    protected measurementValidatorService: MeasurementsValidatorService,
+    protected formBuilder: FormBuilder,
     protected programService: ProgramService,
+    protected cd: ChangeDetectorRef,
+    protected validatorService: PhysicalGearValidatorService,
     protected referentialRefService: ReferentialRefService
   ) {
+    super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
+    this._enable = true;
 
-    super(dateAdapter, physicalGearValidatorService.getFormGroup());
-  }
+    // Set default acquisition level
+    this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
 
-  async ngOnInit() {
+    this.requiredGear = true;
 
     this.registerSubscription(
       this.programSubject
@@ -75,21 +74,27 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
           filter(isNotNil),
           distinct()
         )
-        .subscribe(async (program) => {
-          this._gears = await this.programService.loadGears(program);
+        .subscribe(async (value) => {
+          if (this._program !== value && isNotNil(value)) {
+            this._gears = await this.programService.loadGears(value);
+            this._program = value;
+            if (!this.loading) this._onRefreshPmfms.emit();
+          }
         })
     );
+  }
+
+  async ngOnInit() {
 
     // Combo: gears
-    this.filteredGears = this.form.controls['gear'].valueChanges
+    this.$gears = merge(
+      this.onShowGearDropdown,
+      this.form.controls['gear'].valueChanges
+        .pipe(debounceTime(250))
+    )
       .pipe(
-        //distinctUntilChanged(),
-        debounceTime(250),
-        startWith(''),
         map((value: any) => {
           if (EntityUtils.isNotEmpty(value)) {
-            // apply value for measurements sub-form
-            //this.gear.next(value.label);
             return [value];
           }
           value = (typeof value === "string" && value !== '*') && value || undefined;
@@ -98,121 +103,27 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
           const ucValue = value.toUpperCase();
           return this._gears.filter(g =>
             (g.label && g.label.toUpperCase().indexOf(ucValue) === 0)
-            || (g.name && g.name.toUpperCase().indexOf(ucValue) != -1)
+            || (g.name && g.name.toUpperCase().indexOf(ucValue) !== -1)
           );
-        })
+        }),
+        // Save implicit value
+        tap(res => this.updateImplicitValue('gear', res))
       );
 
     this.form.controls['gear'].valueChanges
       .filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
       .subscribe(value => {
-        this.measurementsForm.gear = value.label;
-        this.measurementsForm.updateControls('[physical-gear-form] gear changed');
+        this.data.gear = value;
+        this.gear = value.label;
       });
+  }
 
-    this.measurementsForm.valueChanges
-    /*.pipe(
-        debounceTime(300)
-    )*/
-      .subscribe(measurements => {
-        // Skip if noloading or no observers
-        if (this.loading || !this.valueChanges.observers.length) return;
-
-        if (this.debug) console.debug("[physical-gear-form] measurementsForm.valueChanges => propagate event");
-        this.valueChanges.emit(this.value);
-      });
-
-    this.form.valueChanges
-    /*.pipe(
-        debounceTime(300)
-    )*/
-      .subscribe(json => {
-        // Skip if not loading or no observers
-        if (this.loading || !this.valueChanges.observers.length) return;
-
-        if (this.debug) console.debug("[physical-gear-form] form(=gear).valueChanges => propagate event");
-        this.valueChanges.emit(this.value);
-      });
+  setValue(data: PhysicalGear) {
+    if (data && EntityUtils.isNotEmpty(data.gear)) {
+      this.gear = data.gear.label;
+    }
+    super.setValue(data);
   }
 
   referentialToString = referentialToString;
-
-  set value(data: PhysicalGear) {
-    if (this.loading) {
-      // Avoid to reload when previous not finish
-      throw new Error("Previous value load not finish! Please check 'loading === false' before setting a value to this form!")
-    }
-
-    this.loading = true;
-
-    super.setValue(data);
-
-    const measurements = data && data.measurements || [];
-
-    this.measurementsForm.gear = data && data.gear && data.gear.label;
-    this.measurementsForm.value = measurements;
-    this.measurementsForm.updateControls('[physical-gear-form] set value');
-
-    if (!this.measurementsForm.gear) {
-      // No gear yet
-      this.loading = false;
-    } else {
-      // Wait the end of pmfms loading
-      this.measurementsForm.onLoading
-        .filter(loading => !loading)
-        .first()
-        .subscribe(() => this.loading = false);
-    }
-
-    // Restore enable state (because form.setValue() can change it !)
-    if (this._enable) {
-      this.enable({onlySelf: true, emitEvent: false});
-    } else {
-      this.disable({onlySelf: true, emitEvent: false});
-    }
-  }
-
-  get value(): PhysicalGear {
-    if (this.loading) {
-      // Avoid to send not loading data
-      console.error("Component not loading !");
-      return undefined;
-    }
-
-    const json = this.form.value;
-    json.measurements = this.measurementsForm.value;
-
-    return json;
-  }
-
-  public disable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }): void {
-    super.disable(opts);
-    this.measurementsForm.disable(opts);
-  }
-
-  public enable(opts?: {
-    onlySelf?: boolean;
-    emitEvent?: boolean;
-  }): void {
-    super.enable(opts);
-    this.measurementsForm.enable(opts);
-  }
-
-  public markAsPristine() {
-    super.markAsPristine();
-    this.measurementsForm.markAsPristine();
-  }
-
-  public markAsUntouched() {
-    super.markAsUntouched();
-    this.measurementsForm.markAsUntouched();
-  }
-
-  public markAsTouched() {
-    super.markAsTouched();
-    this.measurementsForm.markAsTouched();
-  }
 }

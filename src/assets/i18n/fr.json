@@ -282,10 +282,14 @@
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
       "RANK_ORDER": "#",
+      "NEW": {
+        "TITLE": "Nouvel engin"
+      },
       "EDIT": {
-        "TITLE": "Engin #",
+        "TITLE": "Engin #{{rankOrder}}",
         "GEAR": "Code de l'engin",
-        "FEATURES": "Caractéristiques physiques :"
+        "FEATURES": "Caractéristiques physiques :",
+        "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}"
       },
       "LIST": {
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",

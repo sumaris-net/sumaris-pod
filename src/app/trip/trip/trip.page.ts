@@ -417,10 +417,6 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     if (!this.saleForm.empty && this.saleForm.invalid) {
       AppFormUtils.logFormErrors(this.saleForm.form, "[page-trip] [sale-form] ");
     }
-    if (this.physicalGearTable.invalid) {
-      AppFormUtils.logFormErrors(this.physicalGearTable.gearForm.form, "[page-trip] [gear-form] ");
-      AppFormUtils.logFormErrors(this.physicalGearTable.gearForm.measurementsForm.form, "[page-trip] [gear-measurements-form] ");
-    }
     if (this.measurementsForm.invalid) {
       AppFormUtils.logFormErrors(this.measurementsForm.form, "[page-trip] [measurementsForm-form] ");
     }

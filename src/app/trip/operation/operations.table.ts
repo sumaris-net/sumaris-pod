@@ -1,16 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {
-  AccountService,
   AppTable,
   AppTableDataSource,
   isNotNil,
@@ -24,7 +14,6 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {ReferentialRefService} from "../../referential/referential.module";
 import {OperationFilter, OperationService} from "../services/operation.service";
-import {PositionValidatorService} from "../services/position.validator";
 import {TranslateService} from "@ngx-translate/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 
@@ -34,8 +23,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
   templateUrl: 'operations.table.html',
   styleUrls: ['operations.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: OperationValidatorService},
-    {provide: ValidatorService, useClass: PositionValidatorService}
+    {provide: ValidatorService, useClass: OperationValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -52,7 +40,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected location: Location,
     protected modalCtrl: ModalController,
     protected settingsService: LocalSettingsService,
-    protected validatorService: OperationValidatorService,
+    protected validatorService: ValidatorService,
     protected dataService: OperationService,
     protected referentialRefService: ReferentialRefService,
     protected alertCtrl: AlertController,
