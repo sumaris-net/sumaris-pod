@@ -2,10 +2,14 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
+  EventEmitter,
   forwardRef,
   Input,
   OnInit,
-  Optional
+  Optional,
+  Output,
+  ViewChild
 } from '@angular/core';
 import {getPmfmName, PmfmStrategy} from "../services/trip.model";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
@@ -13,6 +17,7 @@ import {FloatLabelType} from "@angular/material";
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {AppFormUtils} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {toBoolean} from "../../shared/functions";
 
 const noop = () => {
 };
@@ -40,6 +45,8 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
   @Input() pmfm: PmfmStrategy;
 
+  @Input() required: boolean;
+
   @Input() readonly = false;
 
   @Input() disabled = false;
@@ -56,6 +63,9 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
   @Input() tabindex: number;
 
+  @Output('keypress.enter')
+  onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
+
   get value(): any {
     return this.formControl.value;
   }
@@ -64,17 +74,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     return this.settingsService.settings.latLongFormat || 'DDMM';
   }
 
-  writeValue(obj: any): void {
-    if (this.pmfm.isNumeric && Number.isNaN(obj)) {
-      //console.log("WARN: trying to set NaN value, in a measurement field ! " + this.constructor.name);
-      obj = null;
-    }
-    if (obj !== this.formControl.value) {
-      //console.debug("Settings meas value ", this.formControl.value, obj);
-      this.formControl.patchValue(obj, {emitEvent: false});
-      this._onChangeCallback(obj);
-    }
-  }
+  @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
     protected settingsService: LocalSettingsService,
@@ -95,15 +95,32 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
     this.formControl.setValidators(this.measurementValidatorService.getValidator(this.pmfm));
     this.placeholder = this.placeholder || getPmfmName(this.pmfm, {withUnit: !this.compact});
+    this.required = toBoolean(this.required, this.pmfm.isMandatory);
+
+    this.updateTabIndex();
 
     // Compute the field type (use special case for Latitude/Longitude)
     let type = this.pmfm.type;
-    if (type === "double" && this.pmfm.label === "LATITUDE") {
-      type = "latitude";
-    } else if (type === "double" && this.pmfm.label === "LONGITUDE") {
-      type = "longitude";
+    if (type === "double") {
+      if (this.pmfm.label === "LATITUDE") {
+        type = "latitude";
+      } else if (this.pmfm.label === "LONGITUDE") {
+        type = "longitude";
+      }
     }
     this.type = type;
+  }
+
+  writeValue(obj: any): void {
+    if (this.pmfm.isNumeric && Number.isNaN(obj)) {
+      //console.log("WARN: trying to set NaN value, in a measurement field ! " + this.constructor.name);
+      obj = null;
+    }
+    if (obj !== this.formControl.value) {
+      //console.debug("Settings meas value ", this.formControl.value, obj);
+      this.formControl.patchValue(obj, {emitEvent: false});
+      this._onChangeCallback(obj);
+    }
   }
 
   registerOnChange(fn: any): void {
@@ -136,7 +153,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     }
   }
 
-  public computeNumberInputStep(pmfm: PmfmStrategy): string {
+  computeNumberInputStep(pmfm: PmfmStrategy): string {
 
     if (pmfm.maximumNumberDecimals > 0) {
       let step = "0.";
@@ -152,6 +169,28 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     }
   }
 
-  filterNumberInput = AppFormUtils.filterNumberInput;
+  filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
+    if (event.keyCode == 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
+      this.onKeypressEnter.emit(event);
+      return;
+    }
+    AppFormUtils.filterNumberInput(event, allowDecimals);
+  }
 
+  focus() {
+    if (this.matInput) this.matInput.nativeElement.focus();
+  }
+
+  selectInputContent = AppFormUtils.selectInputContent;
+
+  protected updateTabIndex() {
+    if (this.tabindex && this.tabindex !== -1) {
+      setTimeout(() => {
+        if (this.matInput) {
+          this.matInput.nativeElement.tabIndex = this.tabindex;
+        }
+        this.cd.markForCheck();
+      });
+    }
+  }
 }

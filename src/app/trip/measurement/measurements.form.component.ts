@@ -19,6 +19,7 @@ import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {TranslateService} from '@ngx-translate/core';
 import {isNil, isNotNil} from '../../shared/shared.module';
+import {MeasurementValuesUtils} from "../services/model/measurement.model";
 
 @Component({
   selector: 'form-measurements',
@@ -110,7 +111,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
       // Update measurements value
       //if (this.debug) console.debug(`${this.logPrefix} Updating form measurements...`);
       const json = this.form.value;
-      MeasurementUtils.updateMeasurementValues(json, this.data, dirtyPmfms);
+      MeasurementValuesUtils.updateMeasurementValues(json, this.data, dirtyPmfms);
       //if (this.debug) console.debug(`${this.logPrefix} Updating form measurements [OK]`, this.data);
     }
 
@@ -246,7 +247,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     if (this.debug) console.debug(`${this.logPrefix} Updating form, using pmfms:`, pmfms);
 
     this.measurementValidatorService.updateFormGroup(this.form, pmfms);
-    const json = MeasurementUtils.toFormValues(this.data, pmfms);
+    const json = MeasurementValuesUtils.toFormValues(this.data, pmfms);
     this.data = MeasurementUtils.initAllMeasurements(this.data, pmfms);
     this.form.patchValue(json, {
       onlySelf: true,

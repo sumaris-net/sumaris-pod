@@ -1,10 +1,10 @@
 import {EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {AbstractControl, FormGroup} from "@angular/forms";
 import {Moment} from 'moment/moment';
-import {DATE_ISO_PATTERN} from '../constants';
 import {DateAdapter} from "@angular/material";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
+import {AppFormUtils} from "./form.utils";
 
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
@@ -123,35 +123,12 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     if (!data) return;
 
     // Convert object to json
-    let json = this.toJsonFormValue(this.form, data);
-    if (this.debug) console.debug("[form] Updating form... ", json);
+    if (this.debug) console.debug("[form] Updating form (using entity)", data);
 
     // Apply to form
-    this.form.setValue(json, {emitEvent: false});
+    AppFormUtils.copyEntity2Form(data, this.form, {emitEvent: false});
 
     this.markForCheck();
-  }
-
-  /**
-   * Transform an object (e.g. an entity) into a json compatible with the given form
-   * @param form
-   * @param data
-   */
-  protected toJsonFormValue(form: FormGroup, data: any): Object {
-    let value = {};
-    form = form || this.form;
-    for (let key in form.controls) {
-      if (form.controls[key] instanceof FormGroup) {
-        value[key] = this.toJsonFormValue(form.controls[key] as FormGroup, data[key]);
-      } else {
-        if (data[key] && typeof data[key] == "object" && data[key]._isAMomentObject) {
-          value[key] = this.dateAdapter.format(data[key], DATE_ISO_PATTERN);
-        } else {
-          value[key] = data[key] || (data[key] === 0 ? 0 : null); // Do NOT replace 0 by null
-        }
-      }
-    }
-    return value;
   }
 
   protected registerSubscription(sub: Subscription) {
@@ -166,6 +143,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
   public markAsUntouched() {
+    console.log("TODO: check markAsUntouched")
     this.form.markAsUntouched();
     this.markForCheck();
   }

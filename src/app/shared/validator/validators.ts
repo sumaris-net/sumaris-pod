@@ -1,7 +1,7 @@
 import {AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn} from "@angular/forms";
 import * as moment from 'moment/moment';
 import { DATE_ISO_PATTERN, PUBKEY_REGEXP } from "../constants";
-import {fromDateISOString, isNil, isNotNil} from "../functions";
+import {fromDateISOString, isNil, isNotNil, isNotNilOrBlank} from "../functions";
 
 export class SharedValidators {
 
@@ -35,6 +35,11 @@ export class SharedValidators {
     const value = control.value;
     if (value && typeof value !== 'object' && (value.id === undefined || value.id === null))
       return { entity: true };
+  }
+
+  static empty(control: FormControl): ValidationErrors | null {
+    if (isNotNilOrBlank(control.value))
+      return { empty: true };
   }
 
   static pubkey(control: FormControl): ValidationErrors | null {

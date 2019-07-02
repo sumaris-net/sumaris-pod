@@ -4,7 +4,7 @@ import {isNotNil, LoadResult, TableDataService, toBoolean} from '../../shared/sh
 import {EventEmitter} from '@angular/core';
 import {Entity} from "../services/model";
 import {ErrorCodes} from '../services/errors';
-import {first, map, takeUntil} from "rxjs/operators";
+import {catchError, first, map, takeUntil} from "rxjs/operators";
 
 export interface AppTableDataSourceOptions<T extends Entity<T>> {
   prependNewElements: boolean;
@@ -71,10 +71,11 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     this._onWatchAll.next();
     this.onLoading.emit(true);
     return this._dataService.watchAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
-      .catch(err => this.handleError(err, 'Unable to load rows'))
+      //.catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
         // Stop this pipe, on the next call of watchAll()
         takeUntil(this._onWatchAll),
+        catchError(err => this.handleError(err, 'ERROR.LOAD_DATA_ERROR')),
         map(res => {
           if (this._saving) {
             console.error(`[table-datasource] Service ${this._dataService.constructor.name} sent data, while will saving... should skip ?`);
@@ -158,28 +159,9 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     }
   }
 
+  // Overwrite default signature
   createNew(): void {
-    this._creating = true;
-    super.createNew();
-    const row = this.getRow(-1);
-
-    if (row && this._config && this._config.onRowCreated) {
-      const res = this._config.onRowCreated(row);
-      // If async function, wait the end before ending
-      if (res instanceof Promise) {
-        res
-          .then(() => {
-            this._creating = false;
-          })
-          .catch((err) => {
-            console.error(err);
-            this._creating = false;
-          });
-        return;
-      }
-    }
-
-    this._creating = false;
+    this.asyncCreateNew();
   }
 
   confirmCreate(row: TableElement<T>) {
@@ -207,15 +189,17 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   }
 
   public handleError(error: any, message: string): Observable<LoadResult<T>> {
-    console.error(error && error.message || error);
+    const errorMsg = error && error.message || error;
+    console.error(`${errorMsg} (dataService: ${this._dataService.constructor.name})`, error);
     this.onLoading.emit(false);
-    return Observable.throw(error && error.message && error || message || error);
+    throw new Error(message || errorMsg);
   }
 
   public handleErrorPromise(error: any, message: string) {
-    console.error(error && error.message || error);
+    const errorMsg = error && error.message || error;
+    console.error(`${errorMsg} (dataService: ${this._dataService.constructor.name})`, error);
     this.onLoading.emit(false);
-    throw (error && error.message && error || message || error);
+    throw new Error(message || errorMsg);
   }
 
   public delete(id: number): void {
@@ -263,12 +247,33 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     return this.connect().pipe(first()).toPromise();
   }
 
-  /* -- private method -- */
+  public async asyncCreateNew(): Promise<void> {
+    if (this._creating) return; // Avoid multiple call
+    this._creating = true;
+    super.createNew();
+    const row = this.getRow(-1);
 
+    if (row && this._config && this._config.onRowCreated) {
+      const res = this._config.onRowCreated(row);
+      // If async function, wait the end before ending
+      if (res instanceof Promise) {
+        try {
+          await res;
+        }
+        catch(err)  {
+          console.error(err);
+        }
+      }
+    }
 
-  private logRowErrors(row: TableElement<T>): void {
+    this._creating = false;
+  }
 
-    if (!row.validator.hasError) return;
+  /* -- protected method -- */
+
+  protected logRowErrors(row: TableElement<T>): void {
+
+    if (!row.validator || !row.validator.hasError) return;
 
     let errorsMessage = "";
     Object.getOwnPropertyNames(row.validator.controls)

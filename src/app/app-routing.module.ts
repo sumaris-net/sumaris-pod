@@ -18,7 +18,7 @@ import {SettingsPage} from "./core/settings/settings.page";
 import {ExtractionMapPage} from "./trip/extraction/extraction-map-page.component";
 import {LandingPage} from "./trip/landing/landing.page";
 import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-control-landing.page";
-import {SubBatchesPage} from "./trip/batch/sub-batches.page";
+import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -145,7 +145,7 @@ const routes: Routes = [
               },
               {
                 path: 'batches',
-                component: SubBatchesPage
+                component: SubBatchesModal
               }
             ]
           }

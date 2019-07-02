@@ -1,20 +1,11 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  ViewChild
-} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
-import {isNotNil, Measurement, PhysicalGear} from "../services/trip.model";
+import {isNotNil, PhysicalGear} from "../services/trip.model";
 import {Moment} from 'moment/moment'
 import {DateAdapter} from "@angular/material";
-import {BehaviorSubject, merge, Observable, Subject} from 'rxjs';
-import {debounceTime, distinct, filter, map, startWith, tap} from 'rxjs/operators';
-import {AcquisitionLevelCodes, AppForm} from '../../core/core.module';
+import {merge, Observable, Subject} from 'rxjs';
+import {debounceTime, distinct, filter, map, tap} from 'rxjs/operators';
+import {AcquisitionLevelCodes} from '../../core/core.module';
 import {
   EntityUtils,
   ProgramService,
@@ -22,11 +13,9 @@ import {
   ReferentialRefService,
   referentialToString
 } from "../../referential/referential.module";
-import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormBuilder} from "@angular/forms";
-import {measurementValueToString} from "../services/model/measurement.model";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -88,7 +77,8 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
     // Combo: gears
     this.$gears = merge(
-      this.onShowGearDropdown,
+      this.onShowGearDropdown
+        .pipe(map((_) => "*")),
       this.form.controls['gear'].valueChanges
         .pipe(debounceTime(250))
     )
@@ -118,11 +108,20 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       });
   }
 
-  setValue(data: PhysicalGear) {
+  public setValue(data: PhysicalGear) {
     if (data && EntityUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }
     super.setValue(data);
+  }
+
+  /* -- protected methods -- */
+
+  protected async safeSetValue(data: PhysicalGear): Promise<void> {
+    if (data && EntityUtils.isNotEmpty(data.gear)) {
+      this.gear = data.gear.label;
+    }
+    await super.safeSetValue(data);
   }
 
   referentialToString = referentialToString;

@@ -380,7 +380,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
     this.maximumNumberDecimals = source.maximumNumberDecimals;
-    this.defaultValue = source.defaultValue;
+    this.defaultValue = source.default;
     this.acquisitionNumber = source.acquisitionNumber;
     this.isMandatory = source.isMandatory;
     this.rankOrder = source.rankOrder;
@@ -402,7 +402,15 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     return isNotNil(this.type) && (this.methodId === MethodIds.CALCULATED);
   }
 
+  get isQualitative(): boolean {
+    return isNotNil(this.type) && (this.type === 'qualitative_value');
+  }
+
   get hasUnit(): boolean {
     return isNotNil(this.unit) && this.isNumeric;
+  }
+
+  get isWeight(): boolean {
+    return isNotNil(this.label) && this.label.endsWith("WEIGHT");
   }
 }

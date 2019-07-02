@@ -1,40 +1,20 @@
 import {
+  AppFormUtils,
   Entity,
+  EntityUtils,
   fromDateISOString,
   isNil,
   isNotNil,
-  joinProperties,
-  referentialToString,
   toDateISOString
 } from "../../../core/core.module";
-import {PmfmStrategy, ReferentialRef, VesselFeatures} from "../../../referential/referential.module";
+import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity} from "./base.model";
+import {TableElement} from "angular4-material-table";
+import {AbstractControl, FormGroup} from "@angular/forms";
 
 export const PMFM_ID_REGEXP = /\d+/;
 
 
-export function measurementValueToString(value: any, pmfm: PmfmStrategy, propertyName?: string): string | undefined {
-  if (isNil(value) || !pmfm) return null;
-  switch (pmfm.type) {
-    case "qualitative_value":
-      if (value && typeof value !== "object") {
-        const qvId = parseInt(value);
-        value = pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
-      }
-      return value && (value[propertyName] || value.name || value.label) || null;
-    case "integer":
-    case "double":
-      return isNotNil(value) ? value : null;
-    case "string":
-    case "date":
-      return value || null;
-    case "boolean":
-      return (value === "true" || value === true || value === 1) ? 'COMMON.YES' :
-        ((value === "false" || value === false || value === 0) ? 'COMMON.NO' : null);
-    default:
-      throw new Error("Unknown pmfm.type: " + pmfm.type);
-  }
-}
 
 
 export declare interface IEntityWithMeasurement<T> extends Entity<T> {
@@ -102,18 +82,7 @@ export class Measurement extends DataEntity<Measurement> {
 
 export class MeasurementUtils {
 
-  static toFormValues(source: Measurement[], pmfms: PmfmStrategy[]): any {
-    const res: any = {};
-    pmfms.forEach(p => {
-      const m = source && source.find(m => m.pmfmId === p.pmfmId);
-      if (m) {
-        res[p.pmfmId] = MeasurementUtils.normalizeFormValue(MeasurementUtils.getMeasurementEntityValue(m, p), p);
-      } else {
-        res[p.pmfmId] = null;
-      }
-    });
-    return res;
-  }
+
 
   static initAllMeasurements(source: Measurement[], pmfms: PmfmStrategy[]): Measurement[] {
     // Work on a copy, to be able to reduce the array
@@ -126,13 +95,7 @@ export class MeasurementUtils {
     });
   }
 
-  // Update measurement values
-  static updateMeasurementValues(valuesMap: { [key: number]: any }, measurements: Measurement[], pmfms: PmfmStrategy[]) {
-    (measurements || []).forEach(m => {
-      const pmfm = pmfms && pmfms.find(pmfm => pmfm.pmfmId === m.pmfmId);
-      if (pmfm) MeasurementUtils.setMeasurementValue(valuesMap[pmfm.pmfmId], m, pmfm);
-    });
-  }
+
 
   static getMeasurementEntityValue(source: Measurement, pmfm: PmfmStrategy): any {
     switch (pmfm.type) {
@@ -178,40 +141,6 @@ export class MeasurementUtils {
       default:
         throw new Error("Unknown pmfm.type: " + pmfm.type);
     }
-  }
-
-  static normalizeFormValue(value: any, pmfm: PmfmStrategy): any {
-    if (!pmfm) return value;
-    // If empty, apply the pmfm default value
-    if (isNil(value) && pmfm.defaultValue) value = pmfm.defaultValue;
-    switch (pmfm.type) {
-      case "qualitative_value":
-        if (isNotNil(value)) {
-          const qvId = (typeof value === "object") ? value.id : parseInt(value);
-          return pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
-        }
-        return null;
-      case "integer":
-        return isNotNil(value) ? parseInt(value) : null;
-      case "double":
-        return isNotNil(value) ? parseFloat(value) : null;
-      case "string":
-        return value || null;
-      case "boolean":
-        return (value === "true" || value === true || value === 1) ? true : ((value === "false" || value === false || value === 0) ? false : null);
-      case "date":
-        return fromDateISOString(value) || null;
-      default:
-        throw new Error("Unknown pmfm.type: " + pmfm.type);
-    }
-  }
-
-  static normalizeFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[]): any {
-    const target = {};
-    (pmfms || []).forEach(pmfm => {
-      target[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(source[pmfm.pmfmId], pmfm);
-    });
-    return target;
   }
 
   static toEntityValue(value: any, pmfm: PmfmStrategy): string {
@@ -268,5 +197,129 @@ export class MeasurementUtils {
 
   static isNotEmpty(source: Measurement | any): boolean {
     return !MeasurementUtils.isEmpty(source);
+  }
+
+}
+
+export class MeasurementValuesUtils {
+
+  static equals(m1: { [key: number]: any }, m2: { [key: number]: any }): boolean {
+    return (isNil(m1) && isNil(m2))
+      || !(Object.getOwnPropertyNames(m1).find(key => m1[key] !== m2[key]));
+  }
+
+  static equalsPmfms(m1: { [key: number]: any },
+                     m2: { [key: number]: any },
+                     pmfms: PmfmStrategy[]): boolean {
+    return (isNil(m1) && isNil(m2))
+      || !(pmfms.find(pmfm => m1[pmfm.pmfmId] !== m2[pmfm.pmfmId]));
+  }
+
+  static valueToString = measurementValueToString;
+
+  static toFormValues(source: Measurement[], pmfms: PmfmStrategy[]): any {
+    const res: any = {};
+    pmfms.forEach(p => {
+      const m = source && source.find(m => m.pmfmId === p.pmfmId);
+      if (m) {
+        res[p.pmfmId] = MeasurementValuesUtils.normalizeFormValue(MeasurementUtils.getMeasurementEntityValue(m, p), p);
+      } else {
+        res[p.pmfmId] = null;
+      }
+    });
+    return res;
+  }
+
+  // Update measurement values
+  static updateMeasurementValues(valuesMap: { [key: number]: any }, measurements: Measurement[], pmfms: PmfmStrategy[]) {
+    (measurements || []).forEach(m => {
+      const pmfm = pmfms && pmfms.find(pmfm => pmfm.pmfmId === m.pmfmId);
+      if (pmfm) MeasurementUtils.setMeasurementValue(valuesMap[pmfm.pmfmId], m, pmfm);
+    });
+  }
+
+  static normalizeFormValue(value: any, pmfm: PmfmStrategy): any {
+    if (!pmfm) return value;
+    // If empty, apply the pmfm default value
+    if (isNil(value) && pmfm.defaultValue) value = pmfm.defaultValue;
+    switch (pmfm.type) {
+      case "qualitative_value":
+        if (isNotNil(value)) {
+          const qvId = (typeof value === "object") ? value.id : parseInt(value);
+          return pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
+        }
+        return null;
+      case "integer":
+        return isNotNil(value) ? parseInt(value) : null;
+      case "double":
+        return isNotNil(value) ? parseFloat(value) : null;
+      case "string":
+        return value || null;
+      case "boolean":
+        return (value === "true" || value === true || value === 1) ? true : ((value === "false" || value === false || value === 0) ? false : null);
+      case "date":
+        return fromDateISOString(value) || null;
+      default:
+        throw new Error("Unknown pmfm.type: " + pmfm.type);
+    }
+  }
+
+  static normalizeFormValues(source: { [key: number]: any }, pmfms: PmfmStrategy[], opts?: {
+    keepSourceObject?: boolean
+  }): any {
+
+    const target = opts && opts.keepSourceObject ? source : {};
+    (pmfms || []).forEach(pmfm => {
+      target[pmfm.pmfmId] = MeasurementValuesUtils.normalizeFormValue(source[pmfm.pmfmId], pmfm);
+    });
+    return target;
+  }
+
+  static normalizeFormEntity(data: IEntityWithMeasurement<any>, pmfms: PmfmStrategy[], form?: FormGroup) {
+    if (!data) return; // skip
+
+    // A validator exists, so remove extra PMFMS values, then normalize it
+    if (form) {
+      const measFormGroup = form.get('measurementValues');
+
+      if (measFormGroup instanceof FormGroup) {
+        const measurementValues = AppFormUtils.getFormValueFromEntity(data.measurementValues || {}, measFormGroup);
+        data.measurementValues = MeasurementValuesUtils.normalizeFormValues(measurementValues, pmfms);
+      } else {
+        throw Error("No measurementValues found in form ! Make sure you use the right validator");
+      }
+    }
+    // No validator: just normalize values
+    else {
+      data.measurementValues = data.measurementValues || {};
+      MeasurementValuesUtils.normalizeFormValues(data.measurementValues, pmfms, {
+        keepSourceObject: true // Keep additional pmfm values (not need to remove, when no validator used)
+      });
+    }
+
+  }
+}
+
+
+export function measurementValueToString(value: any, pmfm: PmfmStrategy, propertyName?: string): string | undefined {
+  if (isNil(value) || !pmfm) return null;
+  switch (pmfm.type) {
+    case "qualitative_value":
+      if (value && typeof value !== "object") {
+        const qvId = parseInt(value);
+        value = pmfm.qualitativeValues && pmfm.qualitativeValues.find(qv => qv.id === qvId) || null;
+      }
+      return value && (value[propertyName] || value.name || value.label) || null;
+    case "integer":
+    case "double":
+      return isNotNil(value) ? value : null;
+    case "string":
+    case "date":
+      return value || null;
+    case "boolean":
+      return (value === "true" || value === true || value === 1) ? 'COMMON.YES' :
+        ((value === "false" || value === false || value === 0) ? 'COMMON.NO' : null);
+    default:
+      throw new Error("Unknown pmfm.type: " + pmfm.type);
   }
 }

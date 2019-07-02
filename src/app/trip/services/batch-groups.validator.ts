@@ -1,8 +1,7 @@
-import { Injectable } from "@angular/core";
-import { ValidatorService } from "angular4-material-table";
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { SharedValidators } from "../../shared/validator/validators";
-import { PmfmStrategy } from "../services/trip.model";
+import {Injectable} from "@angular/core";
+import {ValidatorService} from "angular4-material-table";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Injectable()
 export class BatchGroupsValidatorService implements ValidatorService {
@@ -11,24 +10,16 @@ export class BatchGroupsValidatorService implements ValidatorService {
     private formBuilder: FormBuilder) {
   }
 
-  getRowValidator(options?: {
-    pmfms: PmfmStrategy[]
-  }): FormGroup {
-    return this.getFormGroup(null, options);
+  getRowValidator(): FormGroup {
+    return this.getFormGroup();
   }
 
-  getFormGroup(
-    data?: any,
-    options?: {
-      pmfms: PmfmStrategy[]
-    }): FormGroup {
-
-
+  getFormGroup(data?: any): FormGroup {
     return this.formBuilder.group({
       id: [''],
       updateDate: [''],
       rankOrder: ['1', Validators.required],
-      label: [''],
+      label: [data && data.label || ''],
       individualCount: ['', Validators.compose([Validators.min(0), SharedValidators.integer])],
       samplingRatio: [''],
       samplingRatioText: [''],
@@ -38,5 +29,4 @@ export class BatchGroupsValidatorService implements ValidatorService {
       parent: ['', SharedValidators.entity]
     });
   }
-
 }

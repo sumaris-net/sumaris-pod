@@ -4,89 +4,120 @@
   <ion-label>{{ displayWith(value) }}</ion-label>
 </mat-form-field>
 
-<!-- not touch UI-->
-<mat-form-field *ngIf="!readonly && !touchUi" [floatLabel]="floatLabel">
+<ng-container [ngSwitch]="style" *ngIf="!readonly">
 
-  <input matInput #matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl"
-         [matAutocomplete]="autoQualitativeValue"
-         (click)="onShowDropdown.next()"
-         (keyup.arrowdown)="onShowDropdown.next()"
-         (blur)="_onBlur($event)"
-         [required]="required"
-         [tabindex]="tabindex">
+  <!-- Autocomplete combo -->
+  <mat-form-field *ngSwitchCase="'autocomplete'"
+                  [floatLabel]="floatLabel">
 
-  <button mat-button *ngIf="clearable && formControl.value" matSuffix mat-icon-button (click)="clear()">
-    <mat-icon>close</mat-icon>
-  </button>
-  <button type="button" matSuffix (click)="onShowDropdown.next()" mat-icon-button tabindex="-1" [hidden]="formControl.disabled">
-    <mat-icon>keyboard_arrow_down</mat-icon>
-  </button>
+    <input matInput #matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl"
+           [matAutocomplete]="autoQualitativeValue"
+           (click)="selectInputContent($event) && onShowDropdown.emit($event)"
+           (keyup.arrowdown)="onShowDropdown.next($event)"
+           (blur)="_onBlur($event)"
+           [required]="required"
+           [tabindex]="tabindex"
+           (keypress.enter)="onKeypressEnter.emit($event)">
 
-  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-  <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-  <!-- combo -->
-  <mat-autocomplete #autoQualitativeValue="matAutocomplete"
-                    autoActiveFirstOption
-                    [displayWith]="displayWith">
-    <ion-row class="mat-autocomplete-header" no-padding>
-      <ion-col size="3">
-        <ion-label translate>REFERENTIAL.LABEL</ion-label>
-      </ion-col>
-      <ion-col>
-        <ion-label translate>REFERENTIAL.NAME</ion-label>
-      </ion-col>
-    </ion-row>
+    <button mat-button *ngIf="clearable && formControl.value" matSuffix mat-icon-button (click)="clear()">
+      <mat-icon>close</mat-icon>
+    </button>
+    <button type="button" matSuffix (click)="onShowDropdown.emit($event)" mat-icon-button tabindex="-1"
+            [hidden]="formControl.disabled">
+      <mat-icon>arrow_drop_down</mat-icon>
+    </button>
 
-    <mat-option *ngFor="let item of items | async" [value]="item" no-padding>
-      <ion-row>
-        <ion-col size="3" [innerHTML]="item.label | highlight: {search: formControl.value }"></ion-col>
-        <ion-col *ngIf="!compact" [innerHTML]="item.name | highlight: {search: formControl.value }"></ion-col>
-        <ion-col *ngIf="compact">{{item.name}}</ion-col>
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+    <!-- combo -->
+    <mat-autocomplete #autoQualitativeValue="matAutocomplete"
+                      autoActiveFirstOption
+                      [displayWith]="displayWith">
+      <ion-row class="mat-autocomplete-header" no-padding>
+        <ion-col size="3">
+          <ion-label translate>REFERENTIAL.LABEL</ion-label>
+        </ion-col>
+        <ion-col>
+          <ion-label translate>REFERENTIAL.NAME</ion-label>
+        </ion-col>
       </ion-row>
-    </mat-option>
-  </mat-autocomplete>
-</mat-form-field>
 
-<!-- touch UI-->
-<mat-form-field *ngIf="!readonly && touchUi" [floatLabel]="floatLabel">
+      <mat-option *ngFor="let item of items | async" [value]="item" no-padding>
+        <ion-row>
+          <ion-col size="3" [innerHTML]="item.label | highlight: {search: formControl.value }"></ion-col>
+          <ion-col *ngIf="!compact" [innerHTML]="item.name | highlight: {search: formControl.value }"></ion-col>
+          <ion-col *ngIf="compact">{{item.name}}</ion-col>
+        </ion-row>
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
 
-  <mat-select #matSelect [required]="required"
-              [placeholder]="pmfm.name"
-              [formControl]="formControl"
-              (blur)="_onBlur($event)"
-              [tabindex]="tabindex">
-    <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
+  <!-- Basic select -->
+  <mat-form-field *ngSwitchCase="'select'" [floatLabel]="floatLabel">
 
-    <!-- header -->
-    <ion-row class="mat-select-header" no-padding>
-      <ion-col size="3">
-        <ion-label translate>REFERENTIAL.LABEL</ion-label>
-      </ion-col>
-      <ion-col>
-        <ion-label translate>REFERENTIAL.NAME</ion-label>
-      </ion-col>
-    </ion-row>
+    <mat-select #matSelect [required]="required"
+                [placeholder]="pmfm.name"
+                [formControl]="formControl"
+                (blur)="_onBlur($event)"
+                [tabindex]="tabindex">
+      <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
-    <!-- None option -->
-    <mat-option *ngIf="!required" no-padding>
+      <!-- header -->
+      <ion-row class="mat-select-header" no-padding>
+        <ion-col size="3">
+          <ion-label translate>REFERENTIAL.LABEL</ion-label>
+        </ion-col>
+        <ion-col>
+          <ion-label translate>REFERENTIAL.NAME</ion-label>
+        </ion-col>
+      </ion-row>
+
+      <!-- None option -->
+      <mat-option *ngIf="!required" no-padding>
+        <ion-row no-padding>
+          <ion-col *ngIf="compact" size="3"></ion-col>
+          <ion-col *ngIf="!compact" size="3" size-lg="2"></ion-col>
+          <ion-col no-padding>
+            <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
+          </ion-col>
+        </ion-row>
+      </mat-option>
+
+      <!-- options -->
+      <mat-option *ngFor="let item of pmfm.qualitativeValues" [value]="item" no-padding>
+        <ion-row no-padding>
+          <ion-col *ngIf="compact" size="3">{{item.label}}</ion-col>
+          <ion-col *ngIf="!compact" size="3" size-lg="2">{{item.label}}</ion-col>
+          <ion-col>
+            <ion-label>{{item.name}}</ion-label>
+          </ion-col>
+        </ion-row>
+      </mat-option>
+    </mat-select>
+
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+  </mat-form-field>
+
+  <!-- Buttons -->
+  <mat-form-field *ngSwitchCase="'button'"
+                  [floatLabel]="floatLabel === 'never' ? 'never' : 'always'">
+    <input matInput type="text" hidden
+           [formControl]="formControl"
+           [placeholder]="pmfm.name">
+    <ion-grid no-padding>
       <ion-row no-padding>
-        <ion-col *ngIf="compact" size="3"></ion-col>
-        <ion-col *ngIf="!compact" size="3" size-lg="2"></ion-col>
-        <ion-col no-padding><ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label></ion-col>
+        <ion-col no-padding *ngFor="let item of pmfm.qualitativeValues; index as i">
+          <ion-button (click)="formControl.setValue(item)"
+                      [tabIndex]="tabindex && (tabindex + i)"
+                      expand="block"
+                      [color]="!formControl.value ? 'medium' : (formControl.value?.id === item.id ? 'accent' : 'light')">
+            <ion-text *ngIf="compact">{{item.label}}</ion-text>
+            <ion-text *ngIf="!compact">{{item.name}}</ion-text>
+          </ion-button>
+        </ion-col>
       </ion-row>
-    </mat-option>
-
-    <!-- options -->
-    <mat-option *ngFor="let item of pmfm.qualitativeValues" [value]="item" no-padding>
-      <ion-row no-padding>
-        <ion-col *ngIf="compact" size="3">{{item.label}}</ion-col>
-        <ion-col *ngIf="!compact" size="3" size-lg="2">{{item.label}}</ion-col>
-        <ion-col><ion-label>{{item.name}}</ion-label></ion-col>
-      </ion-row>
-    </mat-option>
-  </mat-select>
-
-  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-  <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-</mat-form-field>
-
+    </ion-grid>
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  </mat-form-field>
+</ng-container>

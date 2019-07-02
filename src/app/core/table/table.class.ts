@@ -2,7 +2,7 @@ import {EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} fro
 import {MatColumnDef, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
 import {Observable, Subject} from 'rxjs';
-import {startWith, switchMap, takeUntil} from "rxjs/operators";
+import {filter, mergeMap, startWith, switchMap, takeUntil} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
@@ -18,6 +18,7 @@ import {AppFormUtils} from "../form/form.utils";
 import {isNotNil} from "../../shared/shared.module";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
+import {PlatformService} from "../services/platform.service";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -44,7 +45,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   protected _onDestroy = new Subject();
 
   excludesColumns = new Array<String>();
-  inlineEdition = false;
+  inlineEdition: boolean;
   displayedColumns: string[];
   resultsLength = 0;
   loading = true;
@@ -88,14 +89,17 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   @Output()
   onNewRow: EventEmitter<void> = new EventEmitter<void>(true);
 
+  @Output()
   get dirty(): boolean {
     return this._dirty;
   }
 
+  @Output()
   get valid(): boolean {
     return this.editedRow && this.editedRow.editing ? (!this.editedRow.validator || this.editedRow.validator.valid) : true;
   }
 
+  @Output()
   get invalid(): boolean {
     return this.editedRow && this.editedRow.editing ? (this.editedRow.validator && this.editedRow.validator.invalid) : false;
   }
@@ -120,6 +124,11 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     return !this._enable;
   }
 
+  markAsDirty() {
+    this._dirty = true;
+    this.markForCheck();
+  }
+
   markAsPristine() {
     this._dirty = false;
     this.markForCheck();
@@ -141,7 +150,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   protected constructor(
     protected route: ActivatedRoute,
     protected router: Router,
-    protected platform: Platform,
+    protected platform: Platform | PlatformService,
     protected location: Location,
     protected modalCtrl: ModalController,
     protected settingsService: AccountService | LocalSettingsService,
@@ -151,6 +160,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     injector?: Injector
   ) {
     this.mobile = this.platform.is('mobile');
+    this.inlineEdition = false;
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
   }
@@ -170,7 +180,19 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
     merge(
-      this.sort && this.sort.sortChange || EventEmitter.empty(),
+      this.sort && this.sort.sortChange
+        .pipe(
+          mergeMap(async () => {
+            if (this._dirty && this.inlineEdition) {
+              const saved = await this.save();
+              this.markAsDirty(); // restore dirty flag
+              return saved;
+            }
+            return true;
+          }),
+          filter(res => res === true)
+        )
+      || EventEmitter.empty(),
       this.paginator && this.paginator.page || EventEmitter.empty(),
       this.onRefresh
     )
@@ -300,6 +322,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
       // If edit finished, forget edited row
       if (row === this.editedRow) {
         this.editedRow = undefined;
+        this.markAsDirty();
       }
     }
     return true;
@@ -570,15 +593,16 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   }
 
 
-  protected addRowToTable() {
+  protected async addRowToTable(): Promise<TableElement<T>> {
     this.focusFirstColumn = true;
-    this.dataSource.createNew();
+    await this.dataSource.asyncCreateNew();
     this.editedRow = this.dataSource.getRow(-1);
     // Listen row value changes
     this.startListenRow(this.editedRow);
     this._dirty = true;
     this.resultsLength++;
     this.markForCheck();
+    return this.editedRow;
   }
 
 

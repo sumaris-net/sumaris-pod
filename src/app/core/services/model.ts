@@ -1,7 +1,6 @@
 import {Moment} from "moment/moment";
 import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../shared/shared.module";
 import {isNilOrBlank} from "../../shared/functions";
-import {ObservedLocation} from "../../trip/services/model/observed-location.model";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -174,7 +173,7 @@ export class EntityUtils {
     return (this.isEmpty(o1) && this.isEmpty(o2)) || (o1.id === o2.id);
   }
 
-  static copyIdAndUpdateDate(source: Entity<any> | undefined, target: Entity<any>) {
+  static copyIdAndUpdateDate(source: Entity<any> | undefined, target: Entity<any>, opts?: {creationDate?: boolean;}) {
     if (!source) return;
 
     // Update (id and updateDate)
@@ -657,4 +656,6 @@ export declare interface LocalSettings {
   locale?: string;
   usageMode?: UsageMode;
   defaultPrograms?: string[];
+  mobile?: boolean;
+  touchUi?: boolean;
 }

@@ -1,4 +1,4 @@
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <ion-item *ngIf="error">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
@@ -8,11 +8,11 @@
   <ion-grid no-padding>
 
     <!-- GEAR -->
-    <ion-row>
+    <ion-row no-padding>
 
-      <ion-col size="12" no-padding>
+      <ion-col no-padding>
         <mat-form-field>
-          <input matInput [appAutofocus]="enabled && untouched" autofocusDelay="400" [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate" [matAutocomplete]="autoGear"
+          <input matInput [appAutofocus]="enabled && untouched && !mobile" autofocusDelay="400" [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate" [matAutocomplete]="autoGear"
                  formControlName="gear"
                  (click)="onShowGearDropdown.next('*')"
                  (blur)="applyImplicitValue('gear')"
@@ -22,8 +22,11 @@
           <mat-error *ngIf="form.controls['gear'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['gear'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
 
-          <button type="button" matSuffix (click)="onShowGearDropdown.next('*')" mat-icon-button tabindex="-1">
-            <mat-icon>keyboard_arrow_down</mat-icon>
+          <button mat-button matSuffix mat-icon-button tabindex="-1"
+                  type="button"
+                  (click)="onShowGearDropdown.next()"
+                  [hidden]="form.disabled">
+            <mat-icon>arrow_drop_down</mat-icon>
           </button>
         </mat-form-field>
 
@@ -52,7 +55,7 @@
 
     <!-- loading -->
     <ng-container *ngIf="loadingControls">
-      <ion-row>
+      <ion-row no-padding>
         <ion-col size="12" no-padding>
           <mat-form-field class="mat-form-field-disabled">
             <input matInput type="text" disabled="true"
@@ -71,7 +74,7 @@
     </ng-container>
 
     <!-- Measurements -->
-    <ion-row *ngFor="let pmfm of $pmfms | async; index as i;">
+    <ion-row *ngFor="let pmfm of $pmfms | async; index as i;" no-padding>
       <ion-col size="12" no-padding>
         <mat-form-field-measurement
                                     [pmfm]="pmfm"
@@ -84,8 +87,8 @@
     </ion-row>
 
     <!-- Comments -->
-    <ion-row *ngIf="showComment">
-      <ion-col>
+    <ion-row *ngIf="showComment" no-padding>
+      <ion-col no-padding>
         <mat-form-field appearance="outline">
           <textarea matInput #comments
                     matTextareaAutosize="true"

@@ -53,6 +53,11 @@ export class PlatformService {
 
           this.touchUi = this.platform.is('mobile') || this.platform.is('tablet') || this.platform.is('phablet');
           this.mobile = this.platform.is('mobile');
+
+          // Force mobile in settings
+          if (this.mobile) {
+            this.settingsService.mobile = this.mobile;
+          }
         }),
       this.settingsService.ready(),
       this.networkService.ready()

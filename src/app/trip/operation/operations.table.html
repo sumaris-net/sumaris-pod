@@ -14,7 +14,7 @@
     <mat-icon>delete</mat-icon>
   </button>
 
-  <ion-item *ngIf="error" hidden-xs hidden-sm>
+  <ion-item *ngIf="error" hidden-xs hidden-sm lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>

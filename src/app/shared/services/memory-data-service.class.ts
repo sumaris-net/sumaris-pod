@@ -1,8 +1,8 @@
-import {Observable, Subject} from "rxjs-compat";
+import {BehaviorSubject, Observable} from "rxjs-compat";
 import {LoadResult, TableDataService} from "../../core/core.module";
 import {IEntityWithMeasurement} from "../../trip/services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model";
-import {map, mergeMap} from "rxjs/operators";
+import {mergeMap} from "rxjs/operators";
 
 export interface InMemoryTableDataServiceOptions<T> {
   onSort?: (data: T[], sortBy?: string, sortDirection?: string) => T[];
@@ -12,7 +12,7 @@ export interface InMemoryTableDataServiceOptions<T> {
 
 export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = any> implements TableDataService<T, F> {
 
-  private _dataSubject = new Subject<LoadResult<T>>();
+  private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
 
   private readonly _sortFn: (data: T[], sortBy?: string, sortDirection?: string) => T[];
   private readonly _onLoad: (data: T[]) => T[] | Promise<T[]>;
@@ -73,18 +73,19 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = a
 
     return this._dataSubject
       .pipe(
-        mergeMap(async ({data, total}) => {
+        mergeMap(async (res) => {
+          if (!res) console.log(res);
           // Apply sort
-          data = this._sortFn(data, sortBy, sortDirection);
+          let data = this._sortFn(res && res.data || [], sortBy, sortDirection) ;
 
           if (this._onLoad) {
-            const res = this._onLoad(data);
-            data = ((res instanceof Promise)) ? await res : res;
+            const promiseOrData = this._onLoad(data);
+            data = ((promiseOrData instanceof Promise)) ? await promiseOrData : promiseOrData;
           }
 
           return {
             data,
-            total
+            total: res && res.total || data.length
           };
         })
       );
@@ -118,6 +119,19 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = a
 
     // Execute the sort
     return EntityUtils.sort(data, sortBy, sortDirection);
+  }
+
+  connect(): Observable<LoadResult<T>> {
+    return this._dataSubject.asObservable();
+    // return this._dataSubject.asObservable()
+    //   .pipe(
+    //     startWith(() => {
+    //       data: this.data,
+    //         total
+    //     :
+    //       thid.data.length
+    //     })
+    //   );
   }
 }
 

@@ -4,7 +4,7 @@ import {Observable} from "rxjs-compat";
 import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
-import {map, throttleTime} from "rxjs/operators";
+import {map} from "rxjs/operators";
 import {Moment} from "moment";
 
 import {ErrorCodes} from "./trip.errors";
@@ -13,7 +13,24 @@ import {Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 
+const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
+    id
+    rankOrder
+    updateDate
+    creationDate
+    comments
+    gear {
+      ...ReferentialFragment
+    }
+    recorderDepartment {
+      ...RecorderDepartmentFragment
+    }
+    measurementValues
+  }
+`;
+
 export const TripFragments = {
+  physicalGear: physicalGearFragment,
   lightTrip: gql`fragment LightTripFragment on TripVO {
     id
     program {
@@ -100,18 +117,7 @@ export const TripFragments = {
       }
     }
     gears {
-      id
-      rankOrder
-      updateDate
-      creationDate
-      comments
-      gear {
-        ...ReferentialFragment
-      }
-      recorderDepartment {
-        ...RecorderDepartmentFragment
-      }
-      measurementValues
+      ...PhysicalGearFragment
     }
     measurements {
       ...MeasurementFragment
@@ -125,6 +131,7 @@ export const TripFragments = {
   ${Fragments.measurement}
   ${Fragments.referential}
   ${Fragments.location}
+  ${physicalGearFragment}
   `
 };
 

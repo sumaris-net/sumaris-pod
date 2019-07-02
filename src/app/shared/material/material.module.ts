@@ -1,7 +1,7 @@
 import {NgModule} from "@angular/core";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {
-  MatAutocompleteModule,
+  MatAutocompleteModule, MatBadgeModule,
   MatButtonModule,
   MatButtonToggleModule,
   MatCardModule,
@@ -58,7 +58,8 @@ const modules: any[] = [
   MatButtonToggleModule,
   MatProgressSpinnerModule,
   MatProgressBarModule,
-  MatRadioModule
+  MatRadioModule,
+  MatBadgeModule
 ];
 
 @NgModule({

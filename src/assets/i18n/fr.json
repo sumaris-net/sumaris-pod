@@ -63,8 +63,12 @@
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
 
-    "DISPLAYED_COLUMNS": "Colonnes visibles",
+    "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
+    "DISPLAYED_COLUMNS_DOTS": "Colonnes...",
 
+    "FORM": {
+      "HAS_ERROR": "Veuillez corriger des erreurs dans le formulaire"
+    },
     "PAGINATOR": {
       "ITEMS_PER_PAGE":"Nombre de lignes",
       "NEXT_PAGE":"Page suivante",
@@ -346,11 +350,30 @@
       }
     },
     "BATCH": {
+      "NEW": {
+        "TITLE": "Nouveau lot espèce"
+      },
       "EDIT": {
-        "TAXON_GROUP": "Espèce commerciale :",
-        "TAXON_NAME": "Espèce scientifique :"
+        "TITLE": "Lot {{label}}",
+        "TAXON_GROUP": "Espèce commerciale",
+        "TAXON_NAME": "Espèce scientifique",
+        "BTN_AUTO_INCREMENT": "Auto-incrément",
+        "ESTIMATED_WEIGHT": "Poids estimé",
+        "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
+        "TOTAL_WEIGHT": "Poids total (kg)",
+        "IS_SAMPLING": "Echantillonnage ?",
+        "SAMPLING_RATIO": "Taux échant. (%)",
+        "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
+        "SAMPLING_WEIGHT": "Poids échant. (kg)",
+        "INDIVIDUAL": {
+          "TITLE": "Mesures individuelles",
+          "INDIVIDUAL_COUNT": "Nb indiv.",
+          "BURST_FORM_TITLE": "Saisie rafale :"
+        }
       },
       "TABLE": {
+        "BTN_INDIVIDUAL_MEASURE": "Mesures",
+        "BTN_BURST_INPUT": "Saisir en mode rafale",
         "LABEL": "Libellé",
         "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
@@ -359,10 +382,11 @@
         "TAXON_NAME_PLACEHOLDER": "Code espèce",
         "TOTAL_INDIVIDUAL_COUNT": "Nb indiv. total",
         "TOTAL_WEIGHT": "Poids total",
-        "SAMPLING_RATIO": "Fraction échant.",
+        "SAMPLING_RATIO": "Taux échant.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant.",
         "PARENT": "Lot espèce",
+        "INDIVIDUAL_COUNT": "Nb indiv.",
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?"
       }
@@ -774,7 +798,8 @@
     "AUTH_SERVER_ERROR": "Erreur lors de l'authentification sur le serveur",
     "AUTH_CHALLENGE_ERROR": "Erreur lors de l'authentification sur le serveur (récupration du challenge)",
     "TABLE_INVALID_ROW_ERROR": "Il existe une ligne en erreur",
-    "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+    "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "LOAD_DATA_ERROR": "Erreur de chargement des données.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

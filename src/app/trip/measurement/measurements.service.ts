@@ -1,7 +1,12 @@
 import {BehaviorSubject, Observable} from "rxjs-compat";
 import {isNil, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
 import {filter, first, map, switchMap} from "rxjs/operators";
-import {IEntityWithMeasurement, MeasurementUtils, PMFM_ID_REGEXP} from "../../trip/services/model/measurement.model";
+import {
+  IEntityWithMeasurement,
+  MeasurementUtils,
+  MeasurementValuesUtils,
+  PMFM_ID_REGEXP
+} from "../../trip/services/model/measurement.model";
 import {EntityUtils} from "../../core/services/model";
 import {PmfmStrategy} from "../../referential/services/model";
 import {EventEmitter, Injector, Input} from "@angular/core";
@@ -12,7 +17,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
   private _program: string;
   private _acquisitionLevel: string;
   private _onRefreshPmfms = new EventEmitter<any>();
-  private _mapPmfmsFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
 
   protected programService: ProgramService;
 
@@ -54,7 +58,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     }) {
 
     this.programService = injector.get(ProgramService);
-    this._mapPmfmsFn = options && options.mapPmfms;
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
@@ -91,9 +94,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
               map((res) => {
 
                 // Prepare measurement values for reactive form
-                (res.data || []).forEach(entity => {
-                  entity.measurementValues = MeasurementUtils.normalizeFormValues(entity.measurementValues, pmfms);
-                });
+                (res && res.data || []).forEach(entity => MeasurementValuesUtils.normalizeFormEntity(entity, pmfms));
 
                 // Apply sort on pmfm
                 if (sortPmfm) {
@@ -146,13 +147,13 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
       })) || [];
 
     if (!pmfms.length && this.debug) {
-      console.debug(`[meas-table] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
+      console.debug(`[meas-service] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
     }
 
     // Call pmfm map function
-    if (this._mapPmfmsFn) {
-      if (this.debug) console.debug(`[meas-table] Remapping pmfms...`);
-      const res = this._mapPmfmsFn(pmfms);
+    if (this.options && this.options.mapPmfms) {
+      if (this.debug) console.debug(`[meas-service] Remapping pmfms...`);
+      const res = this.options.mapPmfms(pmfms);
       pmfms = (res instanceof Promise) ? await res : res;
     }
 

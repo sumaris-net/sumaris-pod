@@ -338,7 +338,7 @@
       "FORM": {
         "ON_DECK": "On deck:",
         "SORTING": "Start/end sorting:",
-        "TOTAL_CATCH": "Total cacth:"
+        "TOTAL_CATCH": "Total catch:"
       }
     },
     "BATCH": {
@@ -609,10 +609,10 @@
       "BTN_EDIT": "Edit",
       "FILTER": "Filter",
       "YEAR": "Year",
-      "SPACE": "Geomtry",
+      "SPACE": "Geomtery",
       "AGG_VALUE": "Plotted value",
       "QUARTER": "Quarter",
-      "DETAILS": "Détails",
+      "DETAILS": "Details",
       "STATS": "Statistics",
       "LEGEND": "Legend",
       "LEGEND_FORM": {
@@ -627,9 +627,9 @@
       }
     },
     "SHEET": {
-      "TR": "Marées",
-      "HH": "Opérations",
-      "SL": "Captures"
+      "TR": "Trips",
+      "HH": "Stations",
+      "SL": "Catch"
     },
     "CATEGORY": {
       "PRODUCT": "Fixed product",

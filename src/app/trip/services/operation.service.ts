@@ -301,12 +301,14 @@ export class OperationService extends BaseDataService implements TableDataServic
       error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATIONS_ERROR"}
     });
 
-    // Copy id and update date
-    (res && res.saveOperations && entities || [])
-      .forEach(entity => {
-        const savedOperation = res.saveOperations.find(res => entity.equals(res));
-        this.copyIdAndUpdateDate(savedOperation, entity);
-      });
+    const saveOperations = (res && res.saveOperations);
+    if (saveOperations && saveOperations.length) {
+      // Copy id and update date
+      entities.forEach(entity => {
+          const savedOperation = saveOperations.find(json => entity.equals(json));
+          this.copyIdAndUpdateDate(savedOperation, entity);
+        });
+    }
 
     if (this._debug) console.debug("[operation-service] Operations saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entities);
 

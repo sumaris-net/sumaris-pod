@@ -1,12 +1,13 @@
 import {Injectable} from "@angular/core";
-import {Account, LocalSettings, Peer, UsageMode} from "./model";
+import {LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
-import {isNotNil} from "../../shared/shared.module";
+import {isNotNil, toBoolean} from "../../shared/shared.module";
 import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
 import {isNotNilOrBlank} from "../../shared/functions";
+import {Platform} from "@ionic/angular";
 
 export const SETTINGS_STORAGE_KEY = "settings";
 
@@ -32,7 +33,23 @@ export class LocalSettingsService {
   }
 
   get usageMode(): UsageMode {
-    return (this.data && this.data.usageMode || 'DESK');
+    return (this.data && this.data.usageMode || (this.mobile ? "FIELD" : "DESK"));
+  }
+
+  get mobile(): boolean {
+    return this.data && toBoolean(this.data.mobile, this.platform.is('mobile'));
+  }
+
+  set mobile(value: boolean) {
+    this.data.mobile = value;
+  }
+
+  get touchUi(): boolean {
+    return this.data.touchUi;
+  }
+
+  set touchUi(value: boolean) {
+    this.data.mobile = value;
   }
 
   get defaultPrograms(): string[] {
@@ -41,6 +58,7 @@ export class LocalSettingsService {
 
   constructor(
     private translate: TranslateService,
+    private platform: Platform,
     private storage: Storage
   ) {
 
@@ -54,8 +72,12 @@ export class LocalSettingsService {
 
     this.data.locale = this.translate.currentLang || this.translate.defaultLang;
     this.data.latLongFormat = environment.defaultLatLongFormat || 'DDMM';
-    this.data.usageMode = 'DESK';
     this.data.accountInheritance = true;
+
+    this.data.mobile = this.platform.is('mobile');
+    this.data.mobile = this.data.mobile || this.platform.is('phablet') || this.platform.is('tablet');
+
+    this.data.usageMode = this.data.mobile ? "FIELD" : "DESK"; // FIELD by default, if mobile detected
 
     const defaultPeer = environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
     this.data.peerUrl = defaultPeer && defaultPeer.url || undefined;

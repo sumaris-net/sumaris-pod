@@ -265,30 +265,8 @@ export class Operation extends DataEntity<Operation> {
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
 
     // Batches list to tree
-    if (source.batches) {
-      const batches = (source.batches || []).map(Batch.fromObject);
-      this.catchBatch = batches.find(b => isNil(b.parentId) && (isNil(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
-      if (this.catchBatch) {
-        batches.forEach(s => {
-          // Link to parent
-          s.parent = isNotNil(s.parentId) && batches.find(p => p.id === s.parentId) || undefined;
-          s.parentId = undefined; // Avoid redundant info on parent
-        });
-        // Link to children
-        batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
-        if (this.catchBatch.children && this.catchBatch.children.length) {
-          //console.log("TODO: not need to reset children of catch batch ?", this.catchBatch);
-        }
-        else {
-          this.catchBatch.children = batches.filter(b => b.parent === this.catchBatch);
-        }
+    this.catchBatch = Batch.fromObjectArrayAsTree(source.batches);
 
-        //console.debug("[trip-model] Operation.catchBatch as tree:", this.catchBatch);
-      }
-    }
-    else {
-      this.catchBatch = null;
-    }
     return this;
   }
 

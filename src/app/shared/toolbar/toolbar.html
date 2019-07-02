@@ -27,7 +27,7 @@
       <ion-button (click)="enableSearchBar()" *ngIf="hasSearch">
         <ion-icon slot="icon-only" name="search"></ion-icon>
       </ion-button>
-      <ion-button (click)="onValidate.emit($event)" class="visible-xs visible-sm" *ngIf="hasValidate">
+      <ion-button (click)="onValidate.emit($event)" *ngIf="mobile && hasValidate">
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>

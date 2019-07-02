@@ -15,7 +15,7 @@ import {Keyboard} from "@ionic-native/keyboard/ngx";
 const BASE_TIMER_DELAY = 100;
 
 @Directive({
-  selector: "[autofocus], [appAutofocus]",
+  selector: "[autofocus], input[appAutofocus]",
   inputs: [
     "shouldFocusElement: appAutofocus",
     "timerDelay: autofocusDelay"
@@ -123,6 +123,7 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
     this.timer = setTimeout(
       () => {
         this.timer = null;
+        console.log("appAutofocus to : ", this.elementRef.nativeElement);
         this.elementRef.nativeElement.focus();
       },
       this.timerDelay

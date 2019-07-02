@@ -1,11 +1,22 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  ViewChildren
+} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {Batch} from "../services/model/batch.model";
+import {Batch, BatchUtils} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {FormBuilder} from "@angular/forms";
+import {AbstractControl, FormBuilder, Validators} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
@@ -16,21 +27,23 @@ import {
   referentialToString,
   UsageMode
 } from "../../core/services/model";
-import {debounceTime, map, switchMap, tap} from "rxjs/operators";
-import {isNil, isNotNil, PmfmStrategy, TaxonGroupIds, TaxonomicLevelIds} from "../../referential/services/model";
-import {Observable, Subject, merge} from "rxjs";
-import {startsWithUpperCase} from "../../shared/functions";
+import {debounceTime, filter, map, startWith, switchMap, tap} from "rxjs/operators";
+import {isNil, isNotNil, PmfmStrategy, TaxonomicLevelIds} from "../../referential/services/model";
+import {merge, Observable} from "rxjs";
+import {isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {environment} from "../../../environments/environment";
+import {BatchesContext} from "./batches-context.class";
+import {MeasurementUtils} from "../services/model/measurement.model";
+import {PlatformService} from "../../core/services/platform.service";
+import {AppFormUtils} from "../../core/core.module";
+import {MeasurementFormField} from "../measurement/measurement.form-field.component";
 
 @Component({
   selector: 'app-sub-batch-form',
   templateUrl: 'sub-batch.form.html',
   providers: [
-    {provide: ValidatorService, useClass: SubBatchValidatorService},
-    LocalSettingsService,
-    MeasurementsValidatorService,
-    ProgramService,
-    ReferentialRefService
+    {provide: ValidatorService, useClass: SubBatchValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -40,7 +53,15 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   $taxonNames: Observable<ReferentialRef[]>;
   $filteredParents: Observable<Batch[]>;
 
-  onShowParentDropdown = new Subject<any>();
+  _availableParents: Batch[] = [];
+  onShowParentDropdown = new EventEmitter<UIEvent>(true);
+  mobile: boolean;
+  enableIndividualCountControl: AbstractControl;
+  maxQvButtons = 5;
+
+  @Input() context: BatchesContext;
+
+  @Input() tabindex: number;
 
   @Input() usageMode: UsageMode;
 
@@ -50,11 +71,29 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @Input() displayParentPmfm = PmfmStrategy;
 
-  @Input() availableParents: Batch[] = [];
+  @Input() onNewParentClick: () => Promise<Batch | undefined>;
+
+  @Input() showError = true;
+
+  @Input() set availableParents(parents: Batch[]) {
+    if (this._availableParents === parents) return; // skip
+    this._availableParents = parents;
+  }
+
+  get availableParents(): Batch[] {
+    return this._availableParents;
+  }
 
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
+
+  get enableIndividualCount(): boolean {
+    return this.enableIndividualCountControl.value;
+  }
+
+  @ViewChildren(MeasurementFormField) measurementFormFields: QueryList<MeasurementFormField>;
+  @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -64,28 +103,41 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     protected cd: ChangeDetectorRef,
     protected validatorService: ValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService
+    protected settings: LocalSettingsService,
+    protected platform: PlatformService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getRowValidator());
 
-    // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
-    //this.program = 'ADAP-MER';
+    this.mobile = platform.mobile;
+    //this.tabindex = 1;
 
-    //
-    this.debug = true;
+    // Set default values
+    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
+
+    // Control for indiv. count enable
+    this.enableIndividualCountControl = this.formBuilder.control(this.mobile, Validators.required);
+    this.enableIndividualCountControl.setValue(false, {emitEvet: false});
+
+    // For DEV only
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
 
+    this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
+
     // Parent combo
     this.$filteredParents = merge(
-      this.onShowParentDropdown,
+      this.onShowParentDropdown
+        .pipe(
+          filter(event => !event.defaultPrevented),
+          map((_) => this.form.get('parent').value)
+        ),
       this.form.get('parent').valueChanges
+        .pipe(debounceTime(250))
     )
       .pipe(
-        debounceTime(250),
         map((value) => {
           if (EntityUtils.isNotEmpty(value)) return [value];
           value = (typeof value === "string" && value !== "*") && value || undefined;
@@ -115,27 +167,142 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         tap(res => this.updateImplicitValue('taxonName', res))
       );
 
-    //if (isNotNil(this._program) && isNotNil(this._acquisitionLevel)) {
-    //  this.refreshPmfms();
-    //}
+    this.enableIndividualCountControl.valueChanges
+      .pipe(startWith(() => this.enableIndividualCountControl.value))
+      .subscribe((enable) => {
+        if (enable) {
+          this.form.get('individualCount').enable();
+          this.form.get('individualCount').setValidators(Validators.compose([Validators.required, Validators.min(0)]));
+        } else {
+          this.form.get('individualCount').disable();
+          this.form.get('individualCount').setValue(null);
+        }
+      });
+
+    this.updateTabIndex();
+  }
+
+  async doNewParentClick(event: UIEvent) {
+    if (!this.onNewParentClick) return;
+    const res = await this.onNewParentClick();
+
+    if (res && res instanceof Batch) {
+      this.form.get('parent').setValue(res);
+    }
+  }
+
+  doSubmitIfEnter(event: KeyboardEvent): boolean{
+    if (event.keyCode == 13) {
+      this.doSubmit(event);
+      return false;
+    }
+    return true;
+  }
+
+  focusFirstEmpty() {
+    const firstEmptyField = this.measurementFormFields.find(field => isNilOrBlank(field.value));
+    if (firstEmptyField) {
+      firstEmptyField.focus();
+    }
+  }
+
+  doSubmitLastMeasurementField(event: KeyboardEvent) {
+    if (!this.enableIndividualCount) {
+      this.doSubmit(event);
+    }
+    else {
+      // Focus to last (=individual count input)
+      this.matInputs.last.nativeElement.focus();
+    }
+  }
+
+  /* -- protected methods -- */
+
+
+  setValue(data: Batch) {
+    // Replace parent with value of availableParents
+    this.linkToParent(data);
+
+    // Inherited method
+    super.setValue(data);
+  }
+
+  protected getValue(): Batch {
+
+    const json = this.form.value;
+    const pmfmForm = this.form.get('measurementValues');
+
+    // Adapt measurement values for entity
+    if (pmfmForm) {
+      json.measurementValues = Object.assign({},
+        this.data.measurementValues || {}, // Keep additionnal PMFM values
+        MeasurementUtils.toEntityValues(pmfmForm.value, this.$pmfms.getValue() || []));
+    } else {
+      json.measurementValues = {};
+    }
+
+    // Replace by the right parent
+    const parent = this.form.get('parent').value;
+    if (parent) {
+      console.log("TODO Update parent to the right QV children");
+    }
+
+    this.data.fromObject(json);
+
+    return this.data;
+  }
+
+
+  protected linkToParent(value: Batch) {
+    // Find the parent
+    const entityParent = value.parent || (value.parentId && {id: value.parentId});
+    if (!entityParent) return; // no parent = nothing to link
+
+    let formParent = this._availableParents.find(p => (p.label === value.parent.label) || (p.id === value.parentId));
+
+    if (!formParent.hasTaxonNameOrGroup && formParent.parent && formParent.parent.hasTaxonNameOrGroup) {
+      formParent = formParent.parent;
+    }
+
+    if (formParent !== entityParent) {
+      console.log("[sub-batch-form] Replacing the parent by a available parent");
+      this.form.get('parent').patchValue(formParent, {emitEvent: !this.loading});
+      if (!this.loading) this.markForCheck();
+    }
   }
 
   parentToString(batch: Batch) {
-    if (!batch) return null;
-    const hasTaxonGroup = EntityUtils.isNotEmpty(batch.taxonGroup);
-    const hasTaxonName = EntityUtils.isNotEmpty(batch.taxonName);
-    if (hasTaxonName && (!hasTaxonGroup || batch.taxonGroup.label === batch.taxonName.label)) {
-      return `${batch.taxonName.label} - ${batch.taxonName.name}`;
-    }
-    if (hasTaxonName && hasTaxonGroup) {
-      return `${batch.taxonGroup.label} / ${batch.taxonName.label} - ${batch.taxonName.name}`;
-    }
-    if (hasTaxonGroup) {
-      return `${batch.taxonGroup.label} - ${batch.taxonGroup.name}`;
-    }
-    return `#${batch.rankOrder}`;
+    // TODO: use options, to enable/disable code
+    return BatchUtils.parentToString(batch);
   }
 
+
   referentialToString = referentialToString;
+  selectInputContent = AppFormUtils.selectInputContent;
+  filterNumberInput = AppFormUtils.filterNumberInput;
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
+    super.enable(opts);
+
+    if (!this.enableIndividualCount) {
+      this.form.get('individualCount').disable(opts);
+    }
+  }
+
+  /* -- protected method -- */
+
+
+  protected updateTabIndex() {
+    if (this.tabindex && this.tabindex !== -1) {
+      setTimeout(async () => {
+        console.log("TODO: check tabIndex");
+        const pmfms = await this.asyncPmfms();
+        let tabindex = this.tabindex;
+        this.matInputs.toArray().forEach(matInput => matInput.nativeElement.tabIndex = tabindex++);
+        this.matInputs.last.nativeElement.tabIndex = tabindex + pmfms.length * this.maxQvButtons;
+        this.markForCheck();
+      });
+    }
+  }
 
 }

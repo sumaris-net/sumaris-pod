@@ -38,11 +38,11 @@
     <ion-row>
       <ion-col></ion-col>
       <ion-col size="auto">
-        <ion-button *ngIf="form.isBeginning()" fill="clear" (click)="cancel()">
+        <ion-button *ngIf="form.isBeginning()" fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button *ngIf="!form.isBeginning()" fill="clear" (click)="form.slidePrev()" [disabled]="sending">
+        <ion-button *ngIf="!form.isBeginning()" fill="clear" color="dark" (click)="form.slidePrev()" [disabled]="sending">
           <ion-icon slot="start" name="arrow-back"></ion-icon>
           <ion-label translate>COMMON.BTN_BACK</ion-label>
         </ion-button>

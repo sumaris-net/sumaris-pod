@@ -30,7 +30,7 @@ import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {SampleFilter} from "../sample/samples.table";
 import {measurementValueToString} from "../services/model/measurement.model";
-import {SubBatchesPage} from "../batch/sub-batches.page";
+import {SubBatchesModal} from "../batch/sub-batches.modal";
 import {PhysicalGearModal} from "./physicalgear.modal";
 import {undefinedVarMessage} from "graphql/validation/rules/NoUndefinedVariables";
 
@@ -66,7 +66,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
   ) {
     super(injector, PhysicalGear,
       new InMemoryTableDataService<PhysicalGear, any>(PhysicalGear),
-      null,
+      null, // No validator = no inline edition
       {
         prependNewElements: false,
         suppressErrors: true,
@@ -78,7 +78,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
     this.memoryDataService = (this.dataService as InMemoryTableDataService<PhysicalGear, any>);
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = false;
-    this.inlineEdition = false;
 
     // Default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
@@ -93,7 +92,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
 
   protected async openNewRowDetail(): Promise<boolean> {
 
-    const newGear = await this.openPhysicalGearModal();
+    const newGear = await this.openDetailModal();
     if (newGear) {
       console.debug("[physical-gear-table] Adding new physical gear", newGear);
       this.addRowToTable();
@@ -111,7 +110,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
   protected async openRow(id: number, row: TableElement<PhysicalGear>): Promise<boolean> {
     const gear = row.validator ? PhysicalGear.fromObject(row.currentData) : row.currentData;
 
-    const updatedGear = await this.openPhysicalGearModal(gear);
+    const updatedGear = await this.openDetailModal(gear);
     if (updatedGear) {
       row.currentData = updatedGear;
       this._dirty = true;
@@ -121,9 +120,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
     return true;
   }
 
-  async openPhysicalGearModal(gear?: PhysicalGear): Promise<PhysicalGear | undefined> {
+  async openDetailModal(gear?: PhysicalGear): Promise<PhysicalGear | undefined> {
 
-    let isNew = !gear;
+    const isNew = !gear;
     if (isNew) {
       gear = new PhysicalGear();
       await this.onNewEntity(gear);
@@ -145,6 +144,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
+
+    if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
 
     return (data instanceof PhysicalGear) ? data : undefined;
   }

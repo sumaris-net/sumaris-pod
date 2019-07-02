@@ -1,17 +1,18 @@
 import {Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject} from 'rxjs';
-import {filter} from "rxjs/operators";
+import {filter, first} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
   AppTableDataSource,
   environment,
+  isNil,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   TableDataService
 } from "../../core/core.module";
-import {getPmfmName, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
+import {getPmfmName, PmfmStrategy} from "../services/trip.model";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -20,7 +21,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from '@ngx-translate/core';
 import {MeasurementsValidatorService} from "../services/trip.validators";
 import {isNotNil} from "../../shared/shared.module";
-import {IEntityWithMeasurement, PMFM_ID_REGEXP} from "../services/model/measurement.model";
+import {IEntityWithMeasurement, MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurement.model";
 import {MeasurementsDataService} from "./measurements.service";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
 
@@ -28,7 +29,7 @@ import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
-  mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
+  mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
 }
 
 export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, F> extends AppTable<T, F>
@@ -148,6 +149,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
           // Load the table
           this.onRefresh.emit();
         }));
+
   }
 
   getRowValidator(): FormGroup {
@@ -211,6 +213,17 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!this.loading) this.updateColumns();
   }
 
+  public async onPmfmsLoaded() {
+    // Wait pmfms load, and controls load
+    if (isNil(this.pmfms.getValue())) {
+      await this.pmfms
+        .pipe(
+          filter(isNotNil),
+          first()
+        ).toPromise();
+    }
+  }
+
   /* -- protected abstract methods -- */
 
   // Can be override by subclass
@@ -228,17 +241,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   protected async onRowCreated(row: TableElement<T>): Promise<void> {
-    const data = row.currentData;
+    const data = row.currentData; // if validator enable, this will call a getter function
 
     await this.onNewEntity(data);
 
-    // Set measurement default values
-    (this.measurementsDataService.$pmfms.getValue() || [])
-      .filter(pmfm => isNotNil(pmfm.defaultValue))
-      .forEach(pmfm => {
-        data.measurementValues[pmfm.pmfmId] = MeasurementUtils.normalizeFormValue(pmfm.defaultValue, pmfm);
-      });
-    row.currentData = data;
+    // Normalize measurement values
+    this.normalizeRowMeasurementValues(data, row);
+
+    // Set row data
+    row.currentData = data; // if validator enable, this will call a setter function
 
     this.markForCheck();
   }
@@ -253,6 +264,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     }
 
     return super.getI18nColumnName(columnName);
+  }
+
+  protected normalizeRowMeasurementValues(data: T, row: TableElement<T>) {
+    if (!data) return; // skip
+
+    const pmfms = this.measurementsDataService.$pmfms.getValue() || [];
+
+    // Adapt entity measurement values to reactive form
+    MeasurementValuesUtils.normalizeFormEntity(data, pmfms, row.validator);
   }
 
   getPmfmColumnHeader = getPmfmName;

@@ -1,5 +1,9 @@
-<app-toolbar [title]="title | async" color="primary" [hasValidate]="dirty && !loading" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+<app-toolbar [title]="title | async" color="primary"
+             [hasValidate]="dirty && !loading"
+             (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref"
+             [canGoBack]="true"
+             [mobile]="mobile">
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
@@ -61,19 +65,34 @@
       </ng-template>
 
       <!-- catch batch form -->
-      <form-catch-batch #catchBatchForm
-                        (onSubmit)="save($event)" [showError]="false" [debug]="debug"
-                        acquisitionLevel="CATCH_BATCH"
-                        [program]="programSubject|async"
-                        [tabindex]="200">
-      </form-catch-batch>
+      <div padding>
+        <form-catch-batch #catchBatchForm
+                          (onSubmit)="save($event)" [showError]="false" [debug]="debug"
+                          acquisitionLevel="CATCH_BATCH"
+                          [program]="programSubject|async"
+                          [tabindex]="200">
+        </form-catch-batch>
+      </div>
+
+      <!-- Batches (mobile table) -->
+      <app-batches-table #simpleBatchesTable
+                         [hidden]="!mobile"
+                         [debug]="debug"
+                         acquisitionLevel="SORTING_BATCH"
+                         [program]="programSubject | async"
+                         [usageMode]="usageMode"
+                         [showTaxonGroupColumn]="true"
+                         [showTaxonNameColumn]="true"
+                         [showCommentsColumn]="false"
+                         [context]="batchesContext">
+      </app-batches-table>
 
       <!-- tab group for batches -->
-      <mat-tab-group #batchSamplingTabGroup
-                     [hidden]="!showBatchSamplingTables"
+      <mat-tab-group #batchTabGroup
+                     [hidden]="!showBatchTables || mobile"
                      animationDuration="0s"
-                     [(selectedIndex)]="selectedBatchSamplingTabIndex"
-                     (selectedTabChange)="onBatchSamplingTabChange($event)">
+                     [(selectedIndex)]="selectedBatchTabIndex"
+                     (selectedTabChange)="onBatchTabChange($event)">
 
         <!-- TAB: species list -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
@@ -84,19 +103,21 @@
                       *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
           </ng-template>
 
-          <table-batch-groups #batchGroupsTable [debug]="debug"
+          <table-batch-groups #batchGroupsTable
                               acquisitionLevel="SORTING_BATCH"
                               [program]="programSubject | async"
                               [usageMode]="usageMode"
+                              [debug]="debug"
                               [showTaxonGroupColumn]="true"
                               [showTaxonNameColumn]="true"
-                              [showCommentsColumn]="false">
+                              [showCommentsColumn]="false"
+                              [context]="batchesContext">
           </table-batch-groups>
         </mat-tab>
 
-        <!-- TAB: individual measurements -->
+        <!-- TAB: individual measure -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-                 [disabled]="!enableSubBatchSamplingTable">
+                 [disabled]="!enableSubBatchesTable">
           <ng-template mat-tab-label>
             <mat-icon>list</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
@@ -104,11 +125,14 @@
                       *ngIf="submitted && (subBatchesTable.invalid || false)"></ion-icon>
           </ng-template>
 
-          <app-sub-batches-table #subBatchesTable [debug]="debug"
+          <app-sub-batches-table #subBatchesTable
                                  acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
                                  [program]="programSubject | async"
                                  [usageMode]="usageMode"
-                                 [showTaxonNameColumn]="false">
+                                 [debug]="debug"
+                                 [showTaxonNameColumn]="false"
+                                 [context]="batchesContext"
+                                 [tabindex]="10">
           </app-sub-batches-table>
         </mat-tab>
 
@@ -125,21 +149,21 @@
       </mat-tab-group>
 
       <!-- tab group for survival test -->
-      <mat-tab-group #survivalTestTabGroup
+      <mat-tab-group #sampleTabGroup
                      animationDuration="0s"
-                     [hidden]="!showSurvivalTestTables"
-                     [(selectedIndex)]="selectedSurvivalTestTabIndex"
-                     (selectedTabChange)="onSurvivalTestTabChange($event)">
+                     [hidden]="!showSampleTables"
+                     [(selectedIndex)]="selectedSampleTabIndex"
+                     (selectedTabChange)="onSampleTabChange($event)">
 
         <!-- TAB: Survival tests -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST'|translate}}">
           <ng-template mat-tab-label>
             <mat-icon>timer</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_SURVIVAL_TEST</ion-label>
-            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && survivalTestsTable.invalid"></ion-icon>
+            <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
           </ng-template>
 
-          <app-samples-table #survivalTestsTable [debug]="debug"
+          <app-samples-table #samplesTable [debug]="debug"
                              acquisitionLevel="SURVIVAL_TEST"
                              [program]="programSubject|async"
                              [usageMode]="usageMode"
@@ -160,8 +184,8 @@
           </ng-template>
 
           <app-individual-monitoring-table #individualMonitoringTable [debug]="true"
-                                       [program]="programSubject | async"
-                                       [usageMode]="usageMode"
+                                           [program]="programSubject | async"
+                                           [usageMode]="usageMode"
           ></app-individual-monitoring-table>
         </mat-tab>
 
@@ -188,7 +212,7 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm>
+<ion-footer *ngIf="!mobile">
   <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">
 

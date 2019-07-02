@@ -5,6 +5,7 @@ import {PhysicalGear} from "../services/trip.model";
 import {PhysicalGearForm} from "./physicalgear.form";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-physical-gear-modal',
@@ -29,16 +30,20 @@ export class PhysicalGearModal implements OnInit {
     this.originalData = value;
   }
 
+  @Input() mobile: boolean;
+
   @ViewChild('form') form: PhysicalGearForm;
 
   constructor(
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
+    protected platform: PlatformService,
     protected cd: ChangeDetectorRef
   ) {
 
-    // Default value
+    // Default values
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
+    this.mobile = platform.mobile;
   }
 
   ngOnInit() {

@@ -121,12 +121,19 @@ $screen-xl: 1200px;
 }
 
 // Small devices:
-@media screen and (max-width: $screen-sm-max) and (min-width: $screen-sm) {
+@media screen and (min-width: $screen-sm) and (max-width: $screen-sm-max) {
 
   [hidden-sm],
   .hidden-sm {
     display: none !important;
     visibility: hidden !important;
+  }
+
+  [no-padding-sm].scroll-content,
+  [no-padding-sm],
+  .no-padding-sm .scroll-content,
+  .no-padding-sm {
+    padding: 0px !important;
   }
 }
 

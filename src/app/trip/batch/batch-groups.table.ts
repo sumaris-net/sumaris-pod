@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
-import {TableElement, ValidatorService} from "angular4-material-table";
-import {Batch, EntityUtils, Landing, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
-import {PmfmLabelPatterns,} from "../../referential/referential.module";
+import {ValidatorService} from "angular4-material-table";
+import {Batch, PmfmStrategy, ReferentialRef, TaxonGroupIds} from "../services/trip.model";
+import {TaxonomicLevelIds,} from "../../referential/referential.module";
 import {BatchGroupsValidatorService} from "../services/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BatchesTable, BatchFilter} from "./batches.table";
@@ -9,11 +9,10 @@ import {isNil, isNotNil, toFloat, toInt} from "../../shared/shared.module";
 import {MethodIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
-import {PMFM_ID_REGEXP} from "../services/model/measurement.model";
+import {MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurement.model";
 import {ModalController} from "@ionic/angular";
-import {LandingsTablesModal} from "../landing/landings-table.modal";
-import * as moment from "../observedlocation/observed-location.page";
-import {SubBatchesPage} from "./sub-batches.page";
+import {debounceTime, switchMap, tap} from "rxjs/operators";
+import {Observable} from "rxjs";
 
 
 @Component({
@@ -27,19 +26,19 @@ import {SubBatchesPage} from "./sub-batches.page";
 })
 export class BatchGroupsTable extends BatchesTable {
 
-  private _initialPmfms: PmfmStrategy[];
 
   protected modalCtrl: ModalController;
 
-  qvPmfm: PmfmStrategy;
-  defaultWeightPmfm: PmfmStrategy;
-  weightPmfmsByMethod: { [key: string]: PmfmStrategy };
   weightMethodForm: FormGroup;
+
+  $taxonGroups: Observable<ReferentialRef[]>;
+  $taxonNames: Observable<ReferentialRef[]>;
 
   constructor(
     injector: Injector
   ) {
     super(injector,
+      injector.get(ValidatorService),
       new InMemoryTableDataService<Batch, BatchFilter>(Batch, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
@@ -58,6 +57,31 @@ export class BatchGroupsTable extends BatchesTable {
 
     await super.ngOnInit();
 
+    // Taxon group combo
+    this.$taxonGroups = this.registerCellValueChanges('taxonGroup')
+      .pipe(
+        debounceTime(250),
+        switchMap((value) => this.referentialRefService.suggest(value, {
+          entityName: 'TaxonGroup',
+          levelId: TaxonGroupIds.FAO,
+          searchAttribute: 'label'
+        })),
+        // Remember implicit value
+        tap(res => this.updateImplicitValue('taxonGroup', res))
+      );
+
+    // Taxon name combo
+    this.$taxonNames = this.registerCellValueChanges('taxonName')
+      .pipe(
+        debounceTime(250),
+        switchMap((value) => this.referentialRefService.suggest(value, {
+          entityName: 'TaxonName',
+          levelId: TaxonomicLevelIds.SPECIES,
+          searchAttribute: 'label'
+        })),
+        // Remember implicit value
+        tap(res => this.updateImplicitValue('taxonName', res))
+      );
   }
 
   onLoad(data: Batch[]): Batch[] {
@@ -65,7 +89,7 @@ export class BatchGroupsTable extends BatchesTable {
 
     if (this.debug) console.debug("[batch-group-table] Preparing data to be loaded as table rows...");
 
-    const pmfms = this.pmfms.getValue();
+    const pmfms = this._initialPmfms;
 
     let weightMethodValues = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex) => {
       res[qvIndex] = false;
@@ -109,7 +133,10 @@ export class BatchGroupsTable extends BatchesTable {
           }
         }
       });
-      batch.measurementValues = MeasurementUtils.normalizeFormValues(measurementValues, pmfms);
+
+      // Make entity compatible with reactive form
+      batch.measurementValues = measurementValues;
+      MeasurementValuesUtils.normalizeFormEntity(batch, pmfms);
 
       return batch;
     });
@@ -157,7 +184,7 @@ export class BatchGroupsTable extends BatchesTable {
 
         // If sampling
         if (isNotNil(samplingRatio) || isNotNil(samplingIndividualCount) || isNotNil(samplingWeight)) {
-          const samplingLabel = `${childLabel}.%`;
+          const samplingLabel = childLabel + Batch.SAMPLE_BATCH_SUFFIX;
           const samplingChild: Batch = child.id && (child.children || []).find(b => b.label === samplingLabel) || new Batch();
           samplingChild.rankOrder = 1;
           samplingChild.label = samplingLabel;
@@ -182,62 +209,24 @@ export class BatchGroupsTable extends BatchesTable {
     return data;
   }
 
-  async openSubBatchesModal(row: TableElement<Batch>) {
-    console.log("Click on batch group:", row);
 
-    const batch = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
-
-    const modal = await this.modalCtrl.create({
-      component: SubBatchesPage,
-      componentProps: {
-        program: this.program,
-        acquisitionLevel: this.acquisitionLevel,
-        usageMode: this.usageMode,
-        parent: batch,
-        showTaxonNameColumn: false,
-        availableParents: this.memoryDataService.value
-      }, keyboardClose: true
-    });
-
-    // Open the modal
-    modal.present();
-
-    // Wait until closed
-    const res = await modal.onDidDismiss();
-    console.log("Return the result: ", res);
-  }
 
   /* -- protected methods -- */
 
+  // Override parent function
   protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
     if (!pmfms || !pmfms.length) return pmfms; // Skip (no pmfms)
 
-    if (this.debug) console.debug('[batch-group-table] Grouping PMFMs...');
-    this._initialPmfms = pmfms;
+    super.mapPmfms(pmfms);
 
-    let weightMinRankOrder: number = undefined;
-    let defaultWeightPmfm: PmfmStrategy = undefined;
-    this.weightPmfmsByMethod = pmfms.reduce((res, p) => {
-      const matches = PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label);
-      if (matches) {
-        const methodId = p.methodId;
-        res[methodId] = p;
-        if (isNil(weightMinRankOrder)) weightMinRankOrder = p.rankOrder;
-        if (isNil(defaultWeightPmfm)) defaultWeightPmfm = p;
-      }
-      return res;
-    }, {});
-    this.defaultWeightPmfm = defaultWeightPmfm;
-
-    // Find the first qualitative PMFM
-    this.qvPmfm = pmfms.find(p => p.type === 'qualitative_value');
+    // Check PMFM
     if (isNil(this.qvPmfm)) {
       throw new Error(`[batch-group-table] table not ready without a root qualitative PMFM`);
     }
     if (this.debug) console.debug('[batch-group-table] First qualitative PMFM found: ' + this.qvPmfm.label);
 
-    if (isNil(weightMinRankOrder) || weightMinRankOrder < this.qvPmfm.rankOrder) {
-      throw new Error(`[batch-group-table] Unable to construct the table. No qualitative value found (before weight) in program PMFMs on acquisition level ${this.acquisitionLevel}`);
+    if (isNil(this.defaultWeightPmfm) || this.defaultWeightPmfm.rankOrder < this.qvPmfm.rankOrder) {
+      throw new Error(`[batch-group-table] Unable to construct the table. First qualitative value PMFM must be define BEFORE any weight PMFM (by rankOrder in PMFM strategy - acquisition level ${this.acquisitionLevel})`);
     }
 
     // If estimated weight is allow, init a form for weight methods

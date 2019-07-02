@@ -1,13 +1,13 @@
-import { Injectable } from "@angular/core";
-import { ValidatorService } from "angular4-material-table";
-import { FormGroup, Validators, FormBuilder } from "@angular/forms";
-import { SharedValidators } from "../../shared/validator/validators";
+import {Injectable} from "@angular/core";
+import {ValidatorService} from "angular4-material-table";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Injectable()
 export class BatchValidatorService implements ValidatorService {
 
   constructor(
-    private formBuilder: FormBuilder) {
+    protected formBuilder: FormBuilder) {
   }
 
   getRowValidator(): FormGroup {
@@ -15,7 +15,11 @@ export class BatchValidatorService implements ValidatorService {
   }
 
   getFormGroup(data?: any): FormGroup {
-    return this.formBuilder.group({
+    return this.formBuilder.group(this.getFormGroupConfig(data));
+  }
+
+  protected getFormGroupConfig(data?: any): { [key: string]: any } {
+    return {
       id: [''],
       updateDate: [''],
       rankOrder: ['1', Validators.required],
@@ -28,6 +32,6 @@ export class BatchValidatorService implements ValidatorService {
       comments: [''],
       parent: ['', SharedValidators.entity],
       measurementValues: this.formBuilder.group({})
-    });
+    };
   }
 }

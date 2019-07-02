@@ -2,15 +2,18 @@
 
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
-    <input matInput autocomplete="off" type="number"
+    <input matInput #matInput
+           autocomplete="off" type="number"
            [min]="pmfm.minValue"
            [max]="pmfm.maxValue"
            pattern="[0-9]*"
+           step="1"
            [placeholder]="placeholder"
            (keypress)="filterNumberInput($event, false)"
            [formControl]="formControl"
-           [required]="pmfm.isMandatory"
-           [tabindex]="tabindex">
+           [required]="required"
+           [tabIndex]="tabindex"
+           (click)="selectInputContent($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.hasError('min')">
       {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate:formControl.errors['min'] }}</mat-error>
@@ -29,14 +32,17 @@
   <!-- double -->
   <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
 
-    <input matInput type="text"
+    <input matInput #matInput
+           type="number"
            autocomplete="off" [min]="pmfm.minValue" [max]="pmfm.maxValue"
            decimal="true"
            [placeholder]="placeholder"
            [step]="computeNumberInputStep(pmfm)"
+           (keypress)="filterNumberInput($event, true)"
            [formControl]="formControl"
-           [required]="pmfm.isMandatory"
-           [tabindex]="tabindex">
+           [required]="required"
+           [tabIndex]="tabindex"
+           (click)="selectInputContent($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.hasError('min')">
       {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:formControl.errors['min'] }}</mat-error>
@@ -55,7 +61,7 @@
                      [formControl]="formControl"
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
-                     [required]="pmfm.isMandatory"
+                     [required]="required"
                      [compact]="compact"
                      [tabindex]="tabindex">
     <div matSuffix>
@@ -68,7 +74,7 @@
                  [formControl]="formControl"
                  [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                  [floatLabel]="floatLabel"
-                 [required]="pmfm.isMandatory"
+                 [required]="required"
                  [readonly]="readonly"
                  [displayTime]="pmfm.unit==='Date & Time'"
                  [compact]="compact"
@@ -80,11 +86,15 @@
 
   <!-- qualitative value -->
   <mat-form-field-measurement-qv *ngSwitchCase="'qualitative_value'"
-                                 [formControl]="formControl"
                                  [pmfm]="pmfm"
+                                 [formControl]="formControl"
                                  [floatLabel]="floatLabel"
+                                 [placeholder]="placeholder"
+                                 [required]="required"
+                                 [readonly]="readonly"
                                  [compact]="compact"
-                                 [tabindex]="tabindex">
+                                 [tabindex]="tabindex"
+                                 (keypress.enter)="onKeypressEnter.emit($event)">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -92,11 +102,14 @@
 
   <!-- string -->
   <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
-    <input matInput autocomplete="off"
+    <input matInput #matInput
+           autocomplete="off"
            [formControl]="formControl"
            [placeholder]="placeholder"
-           [required]="pmfm.isMandatory"
-           [tabindex]="tabindex">
+           [required]="required"
+           [tabIndex]="tabindex"
+           (click)="selectInputContent($event)"
+           (keypress.enter)="onKeypressEnter.emit($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
@@ -109,7 +122,7 @@
                [formControl]="formControl"
                type="latitude"
                [placeholder]="placeholder"
-               [required]="pmfm.isMandatory"
+               [required]="required"
                [tabindex]="tabindex"
                [latLongPattern]="latLongFormat">
     <div matSuffix>
@@ -123,7 +136,7 @@
                [formControl]="formControl"
                type="longitude"
                [placeholder]="placeholder"
-               [required]="pmfm.isMandatory"
+               [required]="required"
                [tabindex]="tabindex"
                [latLongPattern]="latLongFormat">
     <div matSuffix>
@@ -133,11 +146,11 @@
 
   <!-- other -->
   <div *ngSwitchDefault>
-<!--    <input matInput autocomplete="off"-->
+<!--    <input matInput #matInput autocomplete="off"-->
 <!--           type="text"-->
 <!--           [placeholder]="placeholder"-->
 <!--           [formControl]="formControl"-->
-<!--           [required]="pmfm.isMandatory"-->
+<!--           [required]="required"-->
 <!--           [tabindex]="tabindex">-->
     <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>
     <mat-error *ngIf="!type">Error on field for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>

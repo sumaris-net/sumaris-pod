@@ -13,7 +13,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {PmfmStrategy, Referential} from "../services/trip.model";
-import {merge, Observable, Subject} from 'rxjs';
+import {merge, Observable} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
 import {EntityUtils, ReferentialRef, referentialToString} from '../../referential/referential.module';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
@@ -22,6 +22,8 @@ import {FloatLabelType, MatSelect} from "@angular/material";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
+import {toBoolean} from "../../shared/functions";
+import {AppFormUtils} from "../../core/core.module";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',
@@ -42,11 +44,11 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   private _onTouchedCallback = () => {
   };
   private _implicitValue: ReferentialRef | any;
-  private _onDestroy = new Subject<any>();
+  private _onDestroy = new EventEmitter(true);
 
   items: Observable<ReferentialRef[]>;
-  onShowDropdown = new Subject<any>();
-  touchUi = false;
+  onShowDropdown = new EventEmitter<UIEvent>(true);
+  mobile = false;
 
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
@@ -61,7 +63,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   @Input() floatLabel: FloatLabelType = "auto";
 
-  @Input() required = false;
+  @Input() required: boolean;
 
   @Input() readonly = false;
 
@@ -70,6 +72,11 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   @Input() clearable = false;
 
   @Input() tabindex: number;
+
+  @Input() style: 'autocomplete' | 'select' | 'button';
+
+  @Output('keypress.enter')
+  onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
 
   @Output()
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
@@ -82,7 +89,10 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
-    this.touchUi = platform.touchUi;
+    this.mobile = platform.mobile;
+
+    // Set default style
+    this.style = this.mobile ? 'select' : 'autocomplete';
   }
 
   ngOnInit() {
@@ -92,7 +102,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
     this.pmfm.qualitativeValues = this.pmfm.qualitativeValues || [];
-    this.required = this.required || this.pmfm.isMandatory;
+    this.required = toBoolean(this.required, this.pmfm.isMandatory);
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
@@ -102,7 +112,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
     this.clearable = this.compact ? false : this.clearable;
 
-    if (!this.touchUi) {
+    if (!this.mobile) {
       if (!this.pmfm.qualitativeValues.length) {
         this.items = Observable.of([]);
       } else {
@@ -110,6 +120,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
           this.onShowDropdown
             .pipe(
               takeUntil(this._onDestroy),
+              filter(event => !event.defaultPrevented),
               map((_) => this.pmfm.qualitativeValues)
             ),
           this.formControl.valueChanges
@@ -137,11 +148,12 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
       }
     }
 
-    setTimeout(() => this.updateTabIndex());
+    this.updateTabIndex();
   }
 
+
   ngOnDestroy(): void {
-    this._onDestroy.next();
+    this._onDestroy.emit();
   }
 
   get value(): any {
@@ -190,15 +202,17 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     this.onBlur.emit(event);
   }
 
+  clear() {
+    this.formControl.setValue(null);
+    this.markForCheck();
+  }
+
 
   referentialToLabel(obj: Referential | ReferentialRef | any): string {
     return obj && obj.label || '';
   }
 
-  clear() {
-    this.formControl.setValue(null);
-    this.markForCheck();
-  }
+  selectInputContent = AppFormUtils.selectInputContent;
 
   /* -- protected methods -- */
 
@@ -210,15 +224,16 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     return input && input.toUpperCase().startsWith(search);
   }
 
-  private updateTabIndex() {
+  protected updateTabIndex() {
     if (this.tabindex && this.tabindex !== -1) {
-      if (this.matInput) {
-        this.matInput.nativeElement.tabIndex = this.tabindex;
-      }
-      else if (this.matSelect) {
-        this.matSelect.tabIndex = this.tabindex;
-      }
-      this.markForCheck();
+      setTimeout(() => {
+        if (this.matInput) {
+          this.matInput.nativeElement.tabIndex = this.tabindex;
+        } else if (this.matSelect) {
+          this.matSelect.tabIndex = this.tabindex;
+        }
+        this.markForCheck();
+      });
     }
   }
 }
