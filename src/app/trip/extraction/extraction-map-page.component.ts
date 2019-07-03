@@ -632,12 +632,6 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     super.resetFilterCriteria();
   }
 
-
-  // public getCriteriaName(form): string {
-  //   console.log("form", form);
-  //   return "TOTO";
-  // }
-
   protected markForCheck() {
     this.cd.markForCheck();
   }

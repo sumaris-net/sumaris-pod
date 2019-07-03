@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {Observable, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {environment, isNil, ReferentialRef} from "../../core/core.module";
+import {AcquisitionLevelCodes, environment, isNil, ReferentialRef} from "../../core/core.module";
 import {Batch, getPmfmName, Landing, Operation, PmfmStrategy, referentialToString} from "../services/trip.model";
 import {PmfmLabelPatterns, ReferentialRefService} from "../../referential/referential.module";
 import {isNotNil} from "../../shared/shared.module";
@@ -107,6 +107,9 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.inlineEdition = !this.mobile;
+
+    // Set default value
+    this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
     //this.debug = false;
     this.debug = !environment.production;
@@ -264,9 +267,6 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   async getIndividualMeasureParent(): Promise<Batch[]> {
     if (this._dirty) await this.save();
     const batches = this.memoryDataService.value;
-
-    console.log("getParentBatchForInidivualMeasure ", batches);
-
     return batches;
   }
 

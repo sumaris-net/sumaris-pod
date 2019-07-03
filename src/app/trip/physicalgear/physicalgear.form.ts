@@ -5,7 +5,7 @@ import {Moment} from 'moment/moment'
 import {DateAdapter} from "@angular/material";
 import {merge, Observable, Subject} from 'rxjs';
 import {debounceTime, distinct, filter, map, tap} from 'rxjs/operators';
-import {AcquisitionLevelCodes} from '../../core/core.module';
+import {AcquisitionLevelCodes, PlatformService} from '../../core/core.module';
 import {
   EntityUtils,
   ProgramService,
@@ -31,6 +31,8 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   programSubject = new Subject<string>();
   onShowGearDropdown = new Subject<any>();
 
+  mobile: boolean;
+
   @Input() showComment = true;
 
   @Input() tabindex: number;
@@ -45,17 +47,18 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
+    protected platform: PlatformService,
     protected cd: ChangeDetectorRef,
     protected validatorService: PhysicalGearValidatorService,
     protected referentialRefService: ReferentialRefService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
     this._enable = true;
+    this.mobile = platform.mobile;
+    this.requiredGear = true;
 
     // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
-
-    this.requiredGear = true;
+    this._acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
 
     this.registerSubscription(
       this.programSubject

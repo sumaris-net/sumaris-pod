@@ -12,7 +12,7 @@
            formControlName="parent"
            [matAutocomplete]="autoParentBatch"
            (keyup.arrowdown)="onShowParentDropdown.emit($event)"
-           [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT' | translate)"
+           [placeholder]="displayParentPmfm && getPmfmName(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT' | translate)"
            [required]="showParent"
            (click)="selectInputContent($event) && onShowParentDropdown.emit($event)">
     <mat-error *ngIf="form.controls.parent.hasError('required')" translate>ERROR.FIELD_REQUIRED

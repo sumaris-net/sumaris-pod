@@ -36,7 +36,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   implements OnInit, OnDestroy, ValidatorService {
 
   private _program: string;
-  private _acquisitionLevel: string;
+
+  protected _acquisitionLevel: string;
 
   protected measurementsDataService: MeasurementsDataService<T, F>;
   protected measurementsValidatorService: MeasurementsValidatorService;

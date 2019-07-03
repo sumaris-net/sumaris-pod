@@ -31,9 +31,6 @@ export class BatchesContext {
   async getIndividualMeasureParent(): Promise<Batch[]> {
     //if (this._dirty) await this.save();
     const batches = this.batchesDataService.value;
-
-    console.log("getParentBatchForInidivualMeasure ", batches);
-
     return batches;
   }
 

@@ -71,10 +71,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     @Inject(SubBatchesTableOptions) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector, null, options);
-
-    // Default value
-    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
-
     this.inlineEdition = false; // Disable row edition (readonly)
     this.allowRowDetail = false; // Disable click on a row
     this.showCommentsColumn = false;

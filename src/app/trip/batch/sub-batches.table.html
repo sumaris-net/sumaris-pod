@@ -275,25 +275,26 @@
                           [displayParentPmfm]="displayParentPmfm"
                           (onSubmit)="addBatch($event)"
                           [tabindex]="tabindex"
-                          [context]="context"
-      >
+                          [context]="context">
 
+        <!-- buttons -->
         <ion-row no-padding padding-top>
-          <!-- buttons -->
-          <ion-col no-padding align-self-end>
+          <ion-col no-padding></ion-col>
+          <ion-col no-padding size="auto">
+
             <!-- Close form button -->
             <ion-button fill="clear" color="dark"
                         (click)="toggleForm()"
                         tabindex="-1">{{'COMMON.BTN_CLOSE'|translate}}
             </ion-button>
 
-            <!-- Add batch button -->
+            <!-- Validate form button -->
             <ion-button color="tertiary"
                         [disabled]="loading || !form.dirty || form.invalid"
                         (click)="addBatch($event)"
                         (keypress.enter)="addBatch($event)"
-                        [tabindex]="tabindex && (tabindex + 51)">{{'COMMON.BTN_VALIDATE'|translate}}
-            </ion-button>
+                        [tabindex]="tabindex && (tabindex + 51)"
+            >{{'COMMON.BTN_VALIDATE'|translate}}</ion-button>
           </ion-col>
         </ion-row>
 

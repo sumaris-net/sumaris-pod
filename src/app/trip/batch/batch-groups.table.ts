@@ -384,6 +384,7 @@ export class BatchGroupsTable extends BatchesTable {
 
     // Try to resolve PMFM column
     if (PMFM_ID_REGEXP.test(columnName)) {
+      console.log("TODO: Check this unsafe code !! => should use initialPmfms ?");
       const pmfmIndex = parseInt(columnName);
       const pmfm = (this.pmfms.getValue() || []).find(p => p.pmfmId === pmfmIndex);
       const qvIndex = pmfm.id;

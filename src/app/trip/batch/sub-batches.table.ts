@@ -13,7 +13,7 @@ import {
 import {Observable, Subscription} from 'rxjs';
 import {debounceTime, map, switchMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AppFormUtils, EntityUtils, environment, ReferentialRef} from "../../core/core.module";
+import {AcquisitionLevelCodes, AppFormUtils, EntityUtils, environment, ReferentialRef} from "../../core/core.module";
 import {Batch, PmfmStrategy, referentialToString} from "../services/trip.model";
 import {
   PmfmIds,
@@ -87,7 +87,6 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
   @Input()
   set availableParents(parents: Observable<Batch[]> | Batch[]) {
-    console.log("availableParents -> ", parents);
     if (parents instanceof Observable) {
       if (this._parentSubscription) this._parentSubscription.unsubscribe();
       this._parentSubscription = parents.subscribe((values) => this.setAvailableParents(values));
@@ -169,6 +168,9 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.inlineEdition = true;
     this.tabindex = 1;
+
+    // Default value
+    this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
 
     //this.debug = false;
     this.debug = !environment.production;

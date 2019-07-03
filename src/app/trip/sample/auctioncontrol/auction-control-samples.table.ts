@@ -97,7 +97,7 @@ export class AuctionControlSamplesTable extends SamplesTable implements OnInit {
             .pipe(debounceTime(250))
             .subscribe((vivacity) => {
               if (vivacity && vivacity.label === QualitativeLabels.VIVACITY.DEAD) {
-                console.log('MORTE !!');
+                console.log('TODO: MORTE -> change other PMFM !!');
               }
             });
         }

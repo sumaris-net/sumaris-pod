@@ -17,7 +17,7 @@ import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@a
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {AcquisitionLevelCodes, ReferentialRef, referentialToString, UsageMode} from "../../core/services/model";
-import {debounceTime, filter, map, switchMap, takeUntil, tap, throttleTime} from "rxjs/operators";
+import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {
   isNil,
   MethodIds,
@@ -26,11 +26,11 @@ import {
   TaxonGroupIds,
   TaxonomicLevelIds
 } from "../../referential/services/model";
-import {merge, Observable, Subject} from "rxjs";
+import {merge, Observable} from "rxjs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {SpeciesBatchValidatorService} from "../services/validator/species-batch.validator";
-import {AppFormUtils} from "../../core/core.module";
+import {AppFormUtils, PlatformService} from "../../core/core.module";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 
 @Component({
@@ -48,6 +48,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
   estimatedWeightControl: AbstractControl;
   isSampling: boolean;
+  mobile: boolean;
 
   samplingBatchPmfms: PmfmStrategy[];
 
@@ -69,6 +70,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   @Input() showSampleBatch: boolean;
 
+  @Input() showError = true;
 
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
@@ -79,6 +81,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
+    protected platform: PlatformService,
     protected cd: ChangeDetectorRef,
     protected validatorService: ValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -90,9 +93,10 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateControls: (form) => this.onUpdateControls(form)
       });
+    this.mobile = platform.mobile;
 
-    // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+      // Set default acquisition level
+    this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this._enable = true;
 
     // for DEV only
@@ -200,8 +204,6 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       }
       return res;
     }, {});
-
-    console.log("defaultWeightPmfm=", this.defaultWeightPmfm);
 
     // If estimated weight is allow, init a form with a check box
     if (this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER]) {

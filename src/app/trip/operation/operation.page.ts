@@ -341,6 +341,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           map(() => this.measurementsForm.form)
         )
         .subscribe((formGroup) => {
+          console.log("[operation] TODO check SUMARIS samplingTypeControl");
 
           // If PMFM "Sampling type" exists (e.g. SUMARiS), then use to enable/disable some tables
           const samplingTypeControl = formGroup && formGroup.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
@@ -410,7 +411,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                 })
             );
           }
-          console.log("[operation] Enable default tables");
 
           // Default
           if (isNil(samplingTypeControl) && isNil(isSamplingControl)) {
@@ -521,7 +521,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       // get batches
       const batches = BatchUtils.prepareRootBatchesForSaving(this.batchesTable.value, this.subBatchesTable.value, this.batchesTable.qvPmfm);
       this.data.catchBatch.children = batches;
-      console.log("TODO: check batches to save: ", batches);
     } else {
       this.data.catchBatch.children = undefined;
     }

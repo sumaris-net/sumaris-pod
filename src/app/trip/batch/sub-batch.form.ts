@@ -28,7 +28,7 @@ import {
   UsageMode
 } from "../../core/services/model";
 import {debounceTime, filter, map, startWith, switchMap, tap} from "rxjs/operators";
-import {isNil, isNotNil, PmfmStrategy, TaxonomicLevelIds} from "../../referential/services/model";
+import {getPmfmName, isNil, isNotNil, PmfmStrategy, TaxonomicLevelIds} from "../../referential/services/model";
 import {merge, Observable} from "rxjs";
 import {isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -109,10 +109,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getRowValidator());
 
     this.mobile = platform.mobile;
-    //this.tabindex = 1;
 
     // Set default values
-    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
+    this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
 
     // Control for indiv. count enable
     this.enableIndividualCountControl = this.formBuilder.control(this.mobile, Validators.required);
@@ -280,21 +279,11 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
 
     if (formParent !== entityParent) {
-      console.log("[sub-batch-form] Replacing the parent by a available parent");
       this.form.get('parent').patchValue(formParent, {emitEvent: !this.loading});
       if (!this.loading) this.markForCheck();
     }
   }
 
-  parentToString(batch: Batch) {
-    // TODO: use options, to enable/disable code
-    return BatchUtils.parentToString(batch);
-  }
-
-
-  referentialToString = referentialToString;
-  selectInputContent = AppFormUtils.selectInputContent;
-  filterNumberInput = AppFormUtils.filterNumberInput;
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
@@ -304,8 +293,18 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  /* -- protected method -- */
+  parentToString(batch: Batch) {
+    // TODO: use options, to enable/disable code
+    return BatchUtils.parentToString(batch);
+  }
 
+  referentialToString = referentialToString;
+  getPmfmName = getPmfmName;
+  selectInputContent = AppFormUtils.selectInputContent;
+  filterNumberInput = AppFormUtils.filterNumberInput;
+
+
+  /* -- protected method -- */
 
   protected updateTabIndex() {
     if (this.tabindex && this.tabindex !== -1) {

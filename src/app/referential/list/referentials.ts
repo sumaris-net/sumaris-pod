@@ -177,7 +177,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       return this.$entities.pipe(filter(isNotNil), first())
         // Loop
         .subscribe((entities) => {
-          console.log(entities);
           this.setEntityName(entityName);
         });
     }

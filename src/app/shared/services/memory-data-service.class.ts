@@ -74,7 +74,6 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = a
     return this._dataSubject
       .pipe(
         mergeMap(async (res) => {
-          if (!res) console.log(res);
           // Apply sort
           let data = this._sortFn(res && res.data || [], sortBy, sortDirection) ;
 
