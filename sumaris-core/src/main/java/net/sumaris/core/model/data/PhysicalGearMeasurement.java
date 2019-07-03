@@ -34,7 +34,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name="physical_gear_measurement")
-public class PhysicalGearMeasurement implements IMeasurementEntity {
+public class PhysicalGearMeasurement implements ISortedMeasurementEntity {
 
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
     public static final String PROPERTY_PHYSICAL_GEAR = "physicalGear";

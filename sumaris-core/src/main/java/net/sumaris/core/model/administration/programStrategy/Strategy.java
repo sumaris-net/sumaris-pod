@@ -82,7 +82,7 @@ public class Strategy implements IItemReferentialEntity {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PmfmStrategy> pmfmStrategies = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "strategy2gear", joinColumns = {
             @JoinColumn(name = "strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {

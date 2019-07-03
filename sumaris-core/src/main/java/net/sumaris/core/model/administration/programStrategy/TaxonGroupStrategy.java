@@ -25,6 +25,7 @@ package net.sumaris.core.model.administration.programStrategy;
 import lombok.Data;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.io.Serializable;

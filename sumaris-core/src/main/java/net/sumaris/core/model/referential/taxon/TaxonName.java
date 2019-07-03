@@ -91,6 +91,9 @@ public class TaxonName implements IItemReferentialEntity {
     @Column(nullable = false, name = "is_virtual")
     private Boolean isVirtual;
 
+    @Column(name = "upper_rank")
+    private Integer upperRank;
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ReferenceTaxon.class)
     @JoinColumn(name = "reference_taxon_fk", nullable = false)
     private ReferenceTaxon referenceTaxon;
