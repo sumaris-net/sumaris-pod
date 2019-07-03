@@ -10,7 +10,6 @@ import {AppMeasurementsTableOptions} from "../measurement/measurements.table.cla
 import {measurementValueToString} from "../services/model/measurement.model";
 import {AppFormUtils} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {BehaviorSubject} from "rxjs";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
