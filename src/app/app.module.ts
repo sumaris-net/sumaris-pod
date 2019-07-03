@@ -70,8 +70,7 @@ import {RouteReuseStrategy} from "@angular/router";
       useValue: {
         //animationDuration: '0ms'
       }
-    },
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
+    }
   ]
 })
 export class AppModule {

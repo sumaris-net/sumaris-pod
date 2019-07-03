@@ -38,6 +38,7 @@ import {MeasurementUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
+import {MeasurementQVFormField} from "../measurement/measurement-qv.form-field.component";
 
 @Component({
   selector: 'app-sub-batch-form',
@@ -57,7 +58,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   onShowParentDropdown = new EventEmitter<UIEvent>(true);
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
-  maxQvButtons = 5;
 
   @Input() context: BatchesContext;
 
@@ -199,11 +199,26 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     return true;
   }
 
-  focusFirstEmpty() {
-    const firstEmptyField = this.measurementFormFields.find(field => isNilOrBlank(field.value));
-    if (firstEmptyField) {
-      firstEmptyField.focus();
-    }
+  focusFirstEmpty(event?: UIEvent) {
+    // Focus to first input
+    this.matInputs
+      .map((input) => {
+        if (input instanceof MeasurementFormField) {
+          return input as MeasurementFormField;
+        } else if (input.nativeElement as HTMLInputElement) {
+          return input.nativeElement;
+        }
+        return undefined;
+      })
+      .filter(isNotNil)
+      .find(input => {
+        if (isNilOrBlank(input.value)) {
+          if (event) event.preventDefault();
+          input.focus();
+          return true;
+        }
+        return false;
+      });
   }
 
   doSubmitLastMeasurementField(event: KeyboardEvent) {
@@ -295,11 +310,23 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   protected updateTabIndex() {
     if (this.tabindex && this.tabindex !== -1) {
       setTimeout(async () => {
-        console.log("TODO: check tabIndex");
-        const pmfms = await this.asyncPmfms();
-        let tabindex = this.tabindex;
-        this.matInputs.toArray().forEach(matInput => matInput.nativeElement.tabIndex = tabindex++);
-        this.matInputs.last.nativeElement.tabIndex = tabindex + pmfms.length * this.maxQvButtons;
+        // Make sure form is ready
+        await this.onReady();
+
+
+        let tabindex = this.tabindex+1;
+        this.matInputs.forEach(input => {
+          if (input instanceof MeasurementFormField || input instanceof MeasurementQVFormField) {
+            input.tabindex = tabindex;
+          }
+          else if (input.nativeElement instanceof HTMLInputElement){
+            input.nativeElement.setAttribute('tabindex', tabindex.toString());
+          }
+          else {
+            console.warn("Could not set tabindex on element: ", input);
+          }
+          tabindex++;
+        });
         this.markForCheck();
       });
     }

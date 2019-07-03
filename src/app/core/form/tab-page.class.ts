@@ -1,5 +1,5 @@
 import {OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Params, Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {MatTabChangeEvent} from "@angular/material";
 import {Entity} from '../services/model';
 import {AlertController} from '@ionic/angular';
@@ -24,6 +24,11 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   submitted = false;
   error: string;
   loading = true;
+  queryParams: {
+    tab?: number;
+    subtab?: number;
+    [key: string]: any
+  };
 
   @ViewChild(ToolbarComponent) appToolbar: ToolbarComponent;
   @ViewChild(FormButtonsBarComponent) formButtonsBar: FormButtonsBarComponent;
@@ -55,14 +60,17 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     protected translate: TranslateService
   ) {
     // Listen route parameters
-    this.route.queryParams
-      .pipe(
-        first()
-      )
-      .subscribe(res => {
-        const tabIndex = res["tab"];
-        if (isNotNil(tabIndex)) {
-          this.selectedTabIndex = parseInt(tabIndex) || 0;
+    this.route.queryParams.pipe(first())
+      .subscribe(queryParams => {
+        // Copy original queryParams, for reuse in onTabChange()
+        this.queryParams = Object.assign({}, queryParams);
+
+        // Parse tab
+        const tabIndex = queryParams["tab"];
+        this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
+
+        if (isNotNil(this.queryParams.tab)) {
+          this.selectedTabIndex = this.queryParams.tab;
         }
       });
   }
@@ -148,12 +156,33 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   }
 
   public onTabChange(event: MatTabChangeEvent) {
-    const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
-    queryParams['tab'] = event.index;
-    this.router.navigate(['.'], {
-      relativeTo: this.route,
-      queryParams: queryParams
-    });
+    if (!this.queryParams || +this.queryParams.tab !== event.index) {
+
+      this.queryParams = this.queryParams || {};
+      Object.assign(this.queryParams, {tab: event.index});
+
+      if (isNotNil(this.queryParams.subtab)) {
+        delete this.queryParams.subtab; // clean subtab
+      }
+      this.router.navigate(['.'], {
+        relativeTo: this.route,
+        queryParams: this.queryParams,
+        replaceUrl: true
+      });
+    }
+  }
+
+  public onSubTabChange(event: MatTabChangeEvent) {
+    if (!this.queryParams || +this.queryParams.subtab !== event.index) {
+      this.queryParams = this.queryParams || {};
+      Object.assign(this.queryParams, {subtab: event.index});
+
+      this.router.navigate(['.'], {
+        relativeTo: this.route,
+        queryParams: this.queryParams,
+        replaceUrl: true
+      });
+    }
   }
 
   public async cancel() {

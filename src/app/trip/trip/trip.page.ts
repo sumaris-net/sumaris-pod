@@ -17,10 +17,10 @@ import {EntityQualityFormComponent} from "../quality/entity-quality-form.compone
 import * as moment from "moment";
 import {Moment} from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {filter, switchMap} from "rxjs/operators";
+import {filter, first, switchMap} from "rxjs/operators";
 import {ProgramProperties} from "../../referential/services/model";
 import {ProgramService} from "../../referential/services/program.service";
-import {isNotNilOrBlank} from "../../shared/functions";
+import {isNilOrBlank, isNotNilOrBlank} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model";
 
 @Component({
@@ -94,14 +94,15 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.disable();
 
     // Listen route path
-    this.route.params.first().subscribe(async ({tripId}) => {
-      if (!tripId || tripId === "new") {
-        await this.load();
-      }
-      else {
-        await this.load(parseInt(tripId));
-      }
-    });
+    this.route.params.pipe(first())
+      .subscribe(async ({tripId}) => {
+        if (isNilOrBlank(tripId) || tripId === "new") {
+          await this.load();
+        }
+        else {
+          await this.load(parseInt(tripId));
+        }
+      });
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
@@ -288,14 +289,20 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
         // Open the gear tab
         this.selectedTabIndex = 1;
-        const queryParams = Object.assign({}, this.route.snapshot.queryParams, {tab: this.selectedTabIndex});
+        this.queryParams = Object.assign(this.queryParams || {}, {tab: this.selectedTabIndex});
 
         // Update route location
-        this.router.navigate(['../' + updatedData.id], {
+        await this.router.navigate(['.'], {
           relativeTo: this.route,
-          queryParams: queryParams,
-          replaceUrl: true // replace the current state in history
+          queryParams: Object.assign(this.queryParams, {tripId: updatedData.id})
         });
+
+        setTimeout(async () => {
+          await this.router.navigateByUrl(`/trips/${updatedData.id}`, {
+            replaceUrl: true,
+            queryParams: this.queryParams,
+          });
+        }, 100);
 
         // Subscription to remote changes
         this.startListenRemoteChanges();

@@ -1,9 +1,9 @@
 import {NgModule} from '@angular/core';
-import {ExtraOptions, RouterModule, Routes} from '@angular/router';
+import {ActivatedRouteSnapshot, ExtraOptions, RouteReuseStrategy, RouterModule, Routes} from '@angular/router';
 import {HomePage} from './core/home/home';
 import {RegisterConfirmPage} from './core/register/confirm/confirm';
 import {AccountPage} from './core/account/account';
-import {AuthGuardService} from './core/core.module';
+import {AuthGuardService, environment} from './core/core.module';
 import {UsersPage} from './admin/users/list/users';
 import {VesselsPage} from './referential/vessel/list/vessels';
 import {VesselPage} from './referential/vessel/page/page-vessel';
@@ -19,6 +19,7 @@ import {ExtractionMapPage} from "./trip/extraction/extraction-map-page.component
 import {LandingPage} from "./trip/landing/landing.page";
 import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-control-landing.page";
 import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
+import {IonicRouteStrategy} from "@ionic/angular";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -117,7 +118,6 @@ const routes: Routes = [
   {
     path: 'trips',
     canActivate: [AuthGuardService],
-    runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'USER'
     },
@@ -129,23 +129,34 @@ const routes: Routes = [
       },
       {
         path: ':tripId',
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          pathIdParam: 'tripId'
+        },
         children: [
           {
             path: '',
             pathMatch: 'full',
-            component: TripPage
+            component: TripPage,
+            runGuardsAndResolvers: 'pathParamsChange'
           },
           {
             path: 'operations/:id',
+            runGuardsAndResolvers: 'pathParamsChange',
+            data: {
+              pathIdParam: 'id'
+            },
             children: [
               {
                 path: '',
                 pathMatch: 'full',
-                component: OperationPage
+                component: OperationPage,
+                runGuardsAndResolvers: 'pathParamsChange'
               },
               {
                 path: 'batches',
-                component: SubBatchesModal
+                component: SubBatchesModal,
+                runGuardsAndResolvers: 'pathParamsChange'
               }
             ]
           }
@@ -181,7 +192,8 @@ const routes: Routes = [
         component: ObservedLocationPage,
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          profile: 'USER'
+          profile: 'USER',
+          pathIdParam: 'id'
         }
       },
       {
@@ -189,7 +201,8 @@ const routes: Routes = [
         component: LandingPage,
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          profile: 'USER'
+          profile: 'USER',
+          pathIdParam: 'id'
         }
       },
       {
@@ -241,12 +254,34 @@ const routes: Routes = [
   },
 ];
 
+export class CustomReuseStrategy extends IonicRouteStrategy {
+
+  shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
+    const res = super.shouldReuseRoute(future, curr);
+
+    // Reuse the route if path change from [/new] -> [/:id]
+    if (!res && future.routeConfig && future.routeConfig === curr.routeConfig) {
+      const pathIdParam = future.routeConfig.data && future.routeConfig.data.pathIdParam || 'id';
+      const futureId = future.params[pathIdParam] === 'new' ?
+        (future.queryParams[pathIdParam] || future.queryParams['id']) : future.params[pathIdParam];
+      const currId = curr.params[pathIdParam] === 'new' ?
+        (curr.queryParams[pathIdParam] || curr.queryParams['id']) : curr.params[pathIdParam];
+      //if (futureId !== currId) console.log("TODO: shouldReuseRoute -> NOT same page. Will not reused");
+      return futureId === currId;
+    }
+    return res;
+  }
+}
+
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, routeOptions)
   ],
   exports: [
     RouterModule
+  ],
+  providers: [
+    { provide: RouteReuseStrategy, useClass: CustomReuseStrategy }
   ]
 })
 export class AppRoutingModule {

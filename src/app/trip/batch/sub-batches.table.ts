@@ -283,6 +283,14 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     const newBatch = new Batch();
     await this.onNewEntity(newBatch);
 
+    // Reset individual count, if manual mode
+    if (this.form.enableIndividualCount) {
+      newBatch.individualCount = null;
+    }
+    else if (isNil(newBatch.individualCount)){
+      newBatch.individualCount = 1;
+    }
+
     // Copy QV value from previous
     if (previousBatch) {
       // Copy parent
@@ -342,7 +350,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     console.debug("[batches-table] Adding batch to table:", newBatch);
 
     // Make sure individual count if init
-    newBatch.individualCount = newBatch.individualCount || 1;
+    newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
 
     const pmfms = this.pmfms.getValue() || [];
     MeasurementValuesUtils.normalizeFormEntity(newBatch, pmfms);
@@ -417,6 +425,11 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     // Generate label
     data.label = this.acquisitionLevel + "#" + data.rankOrder;
+
+    // Set individual count to 1, if column not shown
+    if (!this.showIndividualCount) {
+      data.individualCount = isNotNil(data.individualCount) ? data.individualCount : 1;
+    }
   }
 
   protected getI18nColumnName(columnName: string): string {

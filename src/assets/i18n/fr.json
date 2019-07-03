@@ -367,7 +367,7 @@
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
         "INDIVIDUAL": {
           "TITLE": "Mesures individuelles",
-          "INDIVIDUAL_COUNT": "Nb indiv.",
+          "INDIVIDUAL_COUNT": "Nb individus",
           "BURST_FORM_TITLE": "Saisie rafale :"
         }
       },

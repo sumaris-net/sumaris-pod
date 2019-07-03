@@ -255,7 +255,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
-      fetchPolicy: options && options.fetchPolicy || 'cache-and-network' /*default*/
+      fetchPolicy: options && options.fetchPolicy || 'network-only' /*default*/
     })
       .pipe(
         //throttleTime(200),

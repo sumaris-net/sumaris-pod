@@ -278,11 +278,9 @@
                           [context]="context"
       >
 
-        <ion-row no-padding nowrap>
-          <ion-col no-padding></ion-col>
-
+        <ion-row no-padding padding-top>
           <!-- buttons -->
-          <ion-col size="auto" no-padding>
+          <ion-col no-padding align-self-end>
             <!-- Close form button -->
             <ion-button fill="clear" color="dark"
                         (click)="toggleForm()"
@@ -294,7 +292,7 @@
                         [disabled]="loading || !form.dirty || form.invalid"
                         (click)="addBatch($event)"
                         (keypress.enter)="addBatch($event)"
-                        [tabindex]="tabindex + 51">{{'COMMON.BTN_VALIDATE'|translate}}
+                        [tabindex]="tabindex && (tabindex + 51)">{{'COMMON.BTN_VALIDATE'|translate}}
             </ion-button>
           </ion-col>
         </ion-row>

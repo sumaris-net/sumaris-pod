@@ -94,8 +94,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Listen route parameters
     this.route.queryParams.pipe(first())
-      .subscribe(res => {
-        const subTabIndex = +res["sub-tab"];
+      .subscribe(queryParams => {
+        const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]);
         if (isNotNil(subTabIndex)) {
           this.selectedBatchTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
           this.selectedSampleTabIndex = subTabIndex;
@@ -539,11 +539,19 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
       // Update route location
       if (isNew) {
-        this.router.navigate(['../' + updatedData.id], {
+        // Update route location (add 'id' on query params, to force page resuse, in router strategy)
+        await this.router.navigate(['.'], {
           relativeTo: this.route,
-          queryParams: this.route.snapshot.queryParams,
-          replaceUrl: true // replace the current state in history
+          queryParams: Object.assign(this.queryParams, {id: updatedData.id})
         });
+
+        setTimeout(async () => {
+          // Change the location (replace /new by /:id)
+          await this.router.navigateByUrl(`/trips/${this.data.tripId}/operations/${updatedData.id}`, {
+            replaceUrl: true,
+            queryParams: this.queryParams,
+          });
+        }, 100);
 
         // Subscription to changes
         this.startListenChanges();
@@ -604,12 +612,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   }
 
   public onBatchTabChange(event: MatTabChangeEvent) {
-    const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
-    queryParams['sub-tab'] = event.index;
-    this.router.navigate(['.'], {
-      relativeTo: this.route,
-      queryParams: queryParams
-    });
+    super.onSubTabChange(event);
     if (!this.loading) {
       // On each tables, confirm editing row
       this.batchesTable.confirmEditCreate();
@@ -618,12 +621,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   }
 
   public onSampleTabChange(event: MatTabChangeEvent) {
-    const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
-    queryParams['sub-tab'] = event.index;
-    this.router.navigate(['.'], {
-      relativeTo: this.route,
-      queryParams: queryParams
-    });
+    super.onSubTabChange(event);
     if (!this.loading) {
       // On each tables, confirm editing row
       this.samplesTable.confirmEditCreate();
@@ -729,10 +727,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     return this.settings.isUsageMode('FIELD')
     && isNotNil(trip && trip.departureDateTime)
     && trip.departureDateTime.diff(moment(), "day") < 15 ? 'FIELD' : 'DESK';
-  }
-
-  protected getRootBatchs(): Batch[] {
-    return []
   }
 
   protected markForCheck() {
