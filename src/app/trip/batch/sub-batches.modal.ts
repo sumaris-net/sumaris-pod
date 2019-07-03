@@ -5,17 +5,16 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {SubBatchForm} from "./sub-batch.form";
 import {environment} from "../../../environments/environment";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {
-  SUB_BATCH_RESERVED_END_COLUMNS,
-  SUB_BATCH_RESERVED_START_COLUMNS,
-  SubBatchesTable,
-  SubBatchesTableOptions
-} from "./sub-batches.table";
+import {SubBatchesTable, SubBatchesTableOptions} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {AppFormUtils} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject} from "rxjs";
+
+
+export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
+export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // do NOT use individual count
 
 @Component({
   selector: 'app-sub-batches-modal',
@@ -28,8 +27,8 @@ import {BehaviorSubject} from "rxjs";
         return {
           prependNewElements: true,
           suppressErrors: false,
-          reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
-          reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
+          reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
+          reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS
         };
       }
     }
@@ -38,11 +37,7 @@ import {BehaviorSubject} from "rxjs";
 })
 export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
-
   private _parent: Batch;
-
-  debug = false;
-  $availableParents = new BehaviorSubject<Batch[]>([]);
 
   @Input()
   set parent(parent: Batch) {

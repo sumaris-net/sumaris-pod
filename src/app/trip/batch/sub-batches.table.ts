@@ -33,7 +33,7 @@ import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
-export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
+export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
 
 
 export const SubBatchesTableOptions = new InjectionToken<AppMeasurementsTableOptions<Batch>>('options');
