@@ -69,7 +69,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @Input() showTaxonName = true;
 
-  @Input() displayParentPmfm = PmfmStrategy;
+  @Input() displayParentPmfm: PmfmStrategy;
 
   @Input() onNewParentClick: () => Promise<Batch | undefined>;
 
