@@ -4,7 +4,8 @@ import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
   AppTable,
-  AppTableDataSource, LocalSettingsService,
+  AppTableDataSource,
+  LocalSettingsService,
   personsToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
@@ -12,7 +13,7 @@ import {
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
 import {TripModal} from "./trip.modal";
-import {LocationLevelIds, QualityFlagIds, ReferentialRef, Trip, VesselFeatures} from "../services/trip.model";
+import {LocationLevelIds, ReferentialRef, Trip, VesselFeatures} from "../services/trip.model";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';

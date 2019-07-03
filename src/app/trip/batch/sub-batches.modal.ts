@@ -1,12 +1,16 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {Batch} from "../services/model/batch.model";
-import {AcquisitionLevelCodes} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {SubBatchForm} from "./sub-batch.form";
 import {environment} from "../../../environments/environment";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {SubBatchesTable, SubBatchesTableOptions} from "./sub-batches.table";
+import {
+  SUB_BATCH_RESERVED_END_COLUMNS,
+  SUB_BATCH_RESERVED_START_COLUMNS,
+  SubBatchesTable,
+  SubBatchesTableOptions
+} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {AppFormUtils} from "../../core/core.module";
@@ -24,8 +28,8 @@ import {BehaviorSubject} from "rxjs";
         return {
           prependNewElements: true,
           suppressErrors: false,
-          reservedStartColumns: SubBatchesModal.RESERVED_START_COLUMNS,
-          reservedEndColumns: SubBatchesModal.RESERVED_END_COLUMNS
+          reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
+          reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
         };
       }
     }
@@ -34,8 +38,6 @@ import {BehaviorSubject} from "rxjs";
 })
 export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
-  static RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
-  static RESERVED_END_COLUMNS: string[] = ['comments'];
 
   private _parent: Batch;
 

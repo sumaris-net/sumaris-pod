@@ -1,15 +1,16 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {
   LocationLevelIds,
+  ObservedLocation,
   personsToString,
   ReferentialRef,
   referentialToString,
   vesselFeaturesToString
 } from "../services/trip.model";
 import {ActivatedRoute, Router} from "@angular/router";
-import {AlertController, ModalController, Platform} from "@ionic/angular";
+import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
@@ -19,7 +20,6 @@ import {AppTableDataSource} from "../../core/table/table-datasource.class";
 import {debounceTime, startWith, switchMap} from "rxjs/operators";
 import {Observable} from "rxjs";
 import {ObservedLocationFilter, ObservedLocationService} from "../services/observed-location.service";
-import {ObservedLocation} from "../services/trip.model";
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {qualityFlagToColor} from "../../referential/services/model";
 

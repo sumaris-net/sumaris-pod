@@ -21,6 +21,9 @@ export interface BatchFilter {
   landingId?: number;
 }
 
+export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
+export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
+
 @Component({
   selector: 'app-batches-table',
   templateUrl: 'batches.table.html',
@@ -36,9 +39,6 @@ export interface BatchFilter {
 })
 export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   implements OnInit, OnDestroy {
-
-  static RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
-  static RESERVED_END_COLUMNS: string[] = ['comments'];
 
   protected _initialPmfms: PmfmStrategy[];
   protected cd: ChangeDetectorRef;
@@ -98,8 +98,8 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       {
         prependNewElements: false,
         suppressErrors: true,
-        reservedStartColumns: BatchesTable.RESERVED_START_COLUMNS,
-        reservedEndColumns: BatchesTable.RESERVED_END_COLUMNS,
+        reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
+        reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );

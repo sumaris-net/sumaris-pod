@@ -1,39 +1,15 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
-
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {
-  AccountService, AcquisitionLevelCodes,
-  AppTable,
-  AppTableDataSource,
-  environment,
-  RESERVED_START_COLUMNS
-} from "../../core/core.module";
+import {AcquisitionLevelCodes, environment} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
-import {Batch, EntityUtils, PhysicalGear, referentialToString, Sample} from "../services/trip.model";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {Location} from '@angular/common';
-import {PhysicalGearForm} from "./physicalgear.form";
-import {LoadResult, TableDataService} from "../../shared/shared.module";
+import {PhysicalGear, referentialToString} from "../services/trip.model";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {SampleFilter} from "../sample/samples.table";
 import {measurementValueToString} from "../services/model/measurement.model";
-import {SubBatchesModal} from "../batch/sub-batches.modal";
 import {PhysicalGearModal} from "./physicalgear.modal";
-import {undefinedVarMessage} from "graphql/validation/rules/NoUndefinedVariables";
 
+export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
+export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
   selector: 'table-physical-gears',
@@ -45,9 +21,6 @@ import {undefinedVarMessage} from "graphql/validation/rules/NoUndefinedVariables
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> implements OnInit, OnDestroy {
-
-  static RESERVED_START_COLUMNS: string[] = ['gear'];
-  static RESERVED_END_COLUMNS: string[] = ['comments'];
 
   protected cd: ChangeDetectorRef;
   protected memoryDataService: InMemoryTableDataService<PhysicalGear, any>;
@@ -70,8 +43,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
       {
         prependNewElements: false,
         suppressErrors: true,
-        reservedStartColumns: PhysicalGearTable.RESERVED_START_COLUMNS,
-        reservedEndColumns: PhysicalGearTable.RESERVED_END_COLUMNS,
+        reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
+        reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.isMandatory)
       });
     this.cd = injector.get(ChangeDetectorRef);

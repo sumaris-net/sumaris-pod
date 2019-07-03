@@ -32,6 +32,10 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 
+export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
+export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
+
+
 export const SubBatchesTableOptions = new InjectionToken<AppMeasurementsTableOptions<Batch>>('options');
 
 export interface SubBatchFilter {
@@ -51,8 +55,8 @@ export interface SubBatchFilter {
       useValue: {
         prependNewElements: false,
         suppressErrors: false,
-        reservedStartColumns: SubBatchesTable.RESERVED_START_COLUMNS,
-        reservedEndColumns: SubBatchesTable.RESERVED_END_COLUMNS
+        reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
+        reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
       }
     }
   ],
@@ -61,8 +65,6 @@ export interface SubBatchFilter {
 export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   implements OnInit, OnDestroy {
 
-  static RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
-  static RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
 
   private _parentSubscription: Subscription;
   private _availableParents: Batch[] = [];
@@ -73,9 +75,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryTableDataService<Batch, SubBatchFilter>;
 
-  displayParentPmfm: PmfmStrategy;
+  @Input() displayParentPmfm: PmfmStrategy;
 
-  $taxonGroups: Observable<ReferentialRef[]>;
   $taxonNames: Observable<ReferentialRef[]>;
   $filteredParents: Observable<Batch[]>;
 

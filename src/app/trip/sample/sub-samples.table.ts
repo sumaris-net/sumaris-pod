@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {Observable} from 'rxjs';
-import {debounceTime, filter, map, tap, throttleTime} from "rxjs/operators";
+import {filter, map, tap} from "rxjs/operators";
 import {ValidatorService} from "angular4-material-table";
 import {EntityUtils, environment, referentialToString} from "../../core/core.module";
 import {PmfmStrategy, Sample} from "../services/trip.model";
@@ -10,6 +10,10 @@ import {isNil, isNotNil} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
+
+export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
+export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
+
 
 export interface SubSampleFilter {
   parentId?: number;
@@ -28,9 +32,6 @@ export interface SubSampleFilter {
 })
 export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilter>
   implements OnInit, OnDestroy {
-
-  static RESERVED_START_COLUMNS: string[] = ['parent'];
-  static RESERVED_END_COLUMNS: string[] = ['comments'];
 
   private _availableSortedParents: Sample[] = [];
   private _availableParents: Sample[] = [];
@@ -97,8 +98,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
       {
         prependNewElements: false,
         suppressErrors: false,
-        reservedStartColumns: SubSamplesTable.RESERVED_START_COLUMNS,
-        reservedEndColumns: SubSamplesTable.RESERVED_END_COLUMNS
+        reservedStartColumns: SUB_SAMPLE_RESERVED_START_COLUMNS,
+        reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS
       }
     );
     this.memoryDataService = (this.dataService as InMemoryTableDataService<Sample, SubSampleFilter>);

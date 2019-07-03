@@ -13,6 +13,8 @@ import {Moment} from "moment";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 
+export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
+export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 export interface SampleFilter {
   operationId?: number;
@@ -30,9 +32,6 @@ export interface SampleFilter {
 })
 export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   implements OnInit, OnDestroy {
-
-  static RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
-  static RESERVED_END_COLUMNS: string[] = ['comments'];
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
@@ -92,8 +91,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       {
         prependNewElements: false,
         suppressErrors: true,
-        reservedStartColumns: SamplesTable.RESERVED_START_COLUMNS,
-        reservedEndColumns: SamplesTable.RESERVED_END_COLUMNS
+        reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
+        reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
