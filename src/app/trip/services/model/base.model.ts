@@ -117,7 +117,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     this.validationDate = null;
     this.comments = null;
     this.recorderPerson = new Person();
-    this.program = new ReferentialRef();
+    this.program = null;
   }
 
   asObject(minify?: boolean): any {
@@ -135,7 +135,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     this.creationDate = fromDateISOString(source.creationDate);
     this.validationDate = fromDateISOString(source.validationDate);
     source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
-    source.program && this.program.fromObject(source.program);
+    this.program = source.program && ReferentialRef.fromObject(source.program);
     return this;
   }
 }
@@ -146,7 +146,7 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implemen
 
   protected constructor() {
     super();
-    this.vesselFeatures = new VesselFeatures();
+    this.vesselFeatures = null;
   }
 
   asObject(minify?: boolean): any {
@@ -157,7 +157,7 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implemen
 
   fromObject(source: any): DataRootVesselEntity<T> {
     super.fromObject(source);
-    source.vesselFeatures && this.vesselFeatures.fromObject(source.vesselFeatures);
+    this.vesselFeatures = source.vesselFeatures && VesselFeatures.fromObject(source.vesselFeatures);
     return this;
   }
 }

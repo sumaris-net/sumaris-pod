@@ -40,7 +40,7 @@ export class SharedValidators {
 
   static entity(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && typeof value !== 'object' && (value.id === undefined || value.id === null)) {
+    if (value && (typeof value !== 'object' || value.id === undefined || value.id === null)) {
       return { entity: true };
     }
     return null;

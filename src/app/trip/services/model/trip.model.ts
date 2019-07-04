@@ -39,7 +39,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
   constructor() {
     super();
-    this.departureLocation = new ReferentialRef();
+    this.departureLocation = null;
     this.returnLocation = null;
     this.measurements = [];
     this.observers = [];
@@ -72,7 +72,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     super.fromObject(source);
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);
-    source.departureLocation && this.departureLocation.fromObject(source.departureLocation);
+    this.departureLocation = source.departureLocation && ReferentialRef.fromObject(source.departureLocation);
     this.returnLocation = source.returnLocation && ReferentialRef.fromObject(source.returnLocation);
     this.sale = source.sale && Sale.fromObject(source.sale) || undefined;
     this.gears = source.gears && source.gears.filter(g => !!g).map(PhysicalGear.fromObject) || undefined;
