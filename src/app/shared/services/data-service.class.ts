@@ -24,12 +24,12 @@ export declare interface DataService<T, F> {
   deleteAll(data: T[], options?: any): Promise<any>;
 }
 
-export interface LoadEditorDataOptions {
+export interface EditorDataServiceLoadOptions {
   fetchPolicy?: FetchPolicy;
   [key: string]: any;
 }
 
-export declare interface EditorDataService<T, F, O = LoadEditorDataOptions> {
+export declare interface EditorDataService<T, F, O = EditorDataServiceLoadOptions> {
 
   load(
     id: number,

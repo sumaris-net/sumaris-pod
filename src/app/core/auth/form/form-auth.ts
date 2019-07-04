@@ -59,10 +59,11 @@ export class AuthForm implements OnInit {
     this.onCancel.emit();
   }
 
-  doSubmit(event: any, data: any) {
+  doSubmit(event: any) {
     if (this.form.invalid || this.loading) return;
 
     this.loading = true;
+    const data = this.form.value;
     this.error = null;
     this.onSubmit
       .subscribe(res => {

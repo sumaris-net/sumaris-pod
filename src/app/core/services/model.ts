@@ -1,6 +1,7 @@
 import {Moment} from "moment/moment";
 import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../shared/shared.module";
 import {isNilOrBlank} from "../../shared/functions";
+import {SelectCompareFn} from "@ionic/core";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -67,6 +68,22 @@ export function joinProperties(obj: any, properties: String[], separator?: strin
   return properties.reduce((result: string, key: string, index: number) => {
     return index ? (result + separator + obj[key]) : obj[key];
   }, "");
+}
+
+export function attributeComparator<T>(attribute: string): (a: T, b: T) => number {
+  return (a: T, b: T) => {
+    const valueA = a[attribute];
+    const valueB = b[attribute];
+    return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
+  };
+}
+
+export function sort<T>(array: T[], attribute: string): T[] {
+  return array.sort((a, b) => {
+    const valueA = a[attribute];
+    const valueB = b[attribute];
+    return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
+  });
 }
 
 export function entityToString(obj: Entity<any> | any, properties?: String[]): string | undefined {
@@ -186,7 +203,7 @@ export class EntityUtils {
     }
   }
 
-  static sort<T extends Entity<T>>(data: T[], sortBy?: string, sortDirection?: string): T[] {
+  static sort<T extends Entity<T>|any>(data: T[], sortBy?: string, sortDirection?: string): T[] {
     const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
     return data.sort((a, b) => {
       const valueA = EntityUtils.getPropertyByPath(a, sortBy);

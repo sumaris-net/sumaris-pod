@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
 import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService} from "../../core/core.module";
+import {BaseDataService, environment} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
 
@@ -220,7 +220,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     super(graphql);
 
     // FOR DEV ONLY
-    //this._debug = !environment.production;
+    this._debug = !environment.production;
   }
 
   /**

@@ -3,20 +3,27 @@ import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {IWithProgramEntity, PmfmStrategy, Program} from "./model";
-import {AccountService, BaseDataService, LoadResult, ReferentialRef, TableDataService} from "../../core/core.module";
+import {
+  AccountService,
+  BaseDataService,
+  environment,
+  LoadResult,
+  ReferentialRef,
+  TableDataService
+} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "../services/referential.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
+import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 
 export declare class ProgramFilter {
   searchText?: string;
   withProperty?: string;
   //acquisitionLevel?: string;
 }
-
-const LoadQuery: any = gql`
-query Program($id: Int, $label: String){
-    program(id: $id, label: $label){
+const ProgramFragments = {
+  lightProgram: gql`
+    fragment LightProgramFragment on ProgramVO {
       id
       label
       name
@@ -27,12 +34,9 @@ query Program($id: Int, $label: String){
       statusId
       properties
     }
-}
-`;
-
-const LoadAllQuery: any = gql`
-  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
-    programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+    `,
+  program: gql`
+    fragment ProgramFragment on ProgramVO {
       id
       label
       name
@@ -41,15 +45,41 @@ const LoadAllQuery: any = gql`
       updateDate
       creationDate
       statusId
-      properties
+      properties      
+      strategies {        
+        ...StrategyFragment
+      }
+    }`,
+  strategy: gql`
+    fragment StrategyFragment on StrategyVO {
+      id
+      label
+      name
+      description
+      comments
+      updateDate
+      creationDate
+      statusId
+      gears { 
+        ...ReferentialFragment
+      }
+      taxonGroups { 
+        ...ReferentialFragment
+      }
+      taxonNames { 
+        id
+        label
+        name
+        referenceTaxonId
+        __typename
+      }
+      pmfmStrategies {
+        ...PmfmStrategyFragment
+      }
     }
-    referentialsCount(entityName: "Program")
-}
-`;
-
-const LoadProgramPmfms: any = gql`
-  query LoadProgramPmfms($program: String) {
-    programPmfms(program: $program){
+  `,
+  lightPmfmStrategy: gql`
+    fragment LightPmfmStrategyFragment on PmfmStrategyVO {
       id
       pmfmId
       methodId
@@ -78,8 +108,70 @@ const LoadProgramPmfms: any = gql`
         __typename
       }
       __typename
+  }`,
+  pmfmStrategy: gql`
+    fragment PmfmStrategyFragment on PmfmStrategyVO {
+      acquisitionLevel
+      rankOrder
+      isMandatory
+      acquisitionNumber
+      defaultValue
+      pmfmId
+      pmfm {
+        id
+        label   
+        name
+        minValue 
+        maxValue
+        unit
+        defaultValue
+        maximumNumberDecimals
+        __typename
+      }
+      gears
+      taxonGroupIds
+      referenceTaxonIds
+      __typename
+  }`
+};
+const LoadLightQuery: any = gql`
+  query LightProgram($id: Int, $label: String){
+      program(id: $id, label: $label){
+        ...LightProgramFragment
+      }
+  }
+  ${ProgramFragments.lightProgram}
+`;
+
+const LoadQuery: any = gql`
+  query Program($id: Int, $label: String){
+      program(id: $id, label: $label){
+        ...ProgramFragment
+      }
+  }
+  ${ProgramFragments.pmfmStrategy}  
+  ${ProgramFragments.strategy}
+  ${ProgramFragments.program}
+  ${ReferentialFragments.referential}
+`;
+
+const LoadAllQuery: any = gql`
+  query Programs($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ProgramFilterVOInput){
+    programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...LightProgramFragment
+    }
+    referentialsCount(entityName: "Program")
+  }
+  ${ProgramFragments.lightProgram}
+`;
+
+const LoadProgramPmfms: any = gql`
+  query LoadProgramPmfms($program: String) {
+    programPmfms(program: $program){
+      ...LightPmfmStrategyFragment
     }
   }
+  ${ProgramFragments.lightPmfmStrategy}
 `;
 
 const LoadProgramGears: any = gql`
@@ -102,7 +194,9 @@ const LoadProgramTaxonGroups: any = gql`
 `;
 
 @Injectable()
-export class ProgramService extends BaseDataService implements TableDataService<Program, ProgramFilter> {
+export class ProgramService extends BaseDataService
+  implements TableDataService<Program, ProgramFilter>,
+    EditorDataService<Program, ProgramFilter> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -111,7 +205,7 @@ export class ProgramService extends BaseDataService implements TableDataService<
     super(graphql);
 
     // -- For DEV only
-    //this._debug = !environment.production;
+    this._debug = !environment.production;
   }
 
   /**
@@ -167,7 +261,7 @@ export class ProgramService extends BaseDataService implements TableDataService<
 
   watchByLabel(label: string): Observable<Program> {
     return this.graphql.watchQuery<{ program: any }>({
-      query: LoadQuery,
+      query: LoadLightQuery,
       variables: {
         label: label
       },
@@ -180,7 +274,7 @@ export class ProgramService extends BaseDataService implements TableDataService<
 
   async loadByLabel(label: string): Promise<Program> {
     const res = await this.graphql.query<{ program: any }>({
-      query: LoadQuery,
+      query: LoadLightQuery,
       variables: {
         label: label
       },
@@ -272,12 +366,44 @@ export class ProgramService extends BaseDataService implements TableDataService<
       variables: {
         program: program
       },
-      error: {code: ErrorCodes.LOAD_PROGRAM_TAXON_GROUPS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_TAXON_GROUPS_ERROR"}
+      error: {
+        code: ErrorCodes.LOAD_PROGRAM_TAXON_GROUPS_ERROR,
+        message: "REFERENTIAL.ERROR.LOAD_PROGRAM_TAXON_GROUPS_ERROR"
+      }
     });
     return (data && data.programTaxonGroups || []).map(ReferentialRef.fromObject);
   }
 
 
+  async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Program> {
+
+    if (this._debug) console.debug(`[program-service] Loading program {${id}}`);
+
+    const res = await this.graphql.query<{ program: any }>({
+      query: LoadQuery,
+      variables: {
+        id: id
+      },
+      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
+    });
+    return res && res.program && Program.fromObject(res.program);
+  }
+
+  async delete(data: Program, options?: any): Promise<any> {
+    // TODO
+    throw new Error("TODO: implement programService.delete()");
+  }
+
+  async save(data: Program, options?: any): Promise<Program> {
+    // TODO
+    throw new Error("TODO: implement programService.save()");
+  }
+
+  listenChanges(id: number, options?: any): Observable<Program | undefined> {
+    // TODO
+    console.warn("TODO: implement listen changes on program");
+    return Observable.of();
+  }
 
   canUserWrite(data: IWithProgramEntity<any>): boolean {
     if (!data) return false;

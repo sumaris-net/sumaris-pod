@@ -109,7 +109,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     this.inlineEdition = !this.mobile;
 
     // Set default value
-    this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
     //this.debug = false;
     this.debug = !environment.production;

@@ -34,7 +34,7 @@ import {isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {BatchesContext} from "./batches-context.class";
-import {MeasurementUtils} from "../services/model/measurement.model";
+import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
@@ -250,7 +250,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     if (pmfmForm) {
       json.measurementValues = Object.assign({},
         this.data.measurementValues || {}, // Keep additionnal PMFM values
-        MeasurementUtils.toEntityValues(pmfmForm.value, this.$pmfms.getValue() || []));
+        MeasurementValuesUtils.toEntityValues(pmfmForm.value, this.$pmfms.getValue() || []));
     } else {
       json.measurementValues = {};
     }

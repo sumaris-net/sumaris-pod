@@ -12,7 +12,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {PmfmStrategy, Referential} from "../services/trip.model";
+import {isNotNil, PmfmStrategy, Referential} from "../services/trip.model";
 import {merge, Observable} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
 import {EntityUtils, ReferentialRef, referentialToString} from '../../referential/referential.module';
@@ -24,6 +24,7 @@ import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
 import {toBoolean} from "../../shared/functions";
 import {AppFormUtils} from "../../core/core.module";
+import {sort} from "../../core/services/model";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',
@@ -45,6 +46,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   };
   private _implicitValue: ReferentialRef | any;
   private _onDestroy = new EventEmitter(true);
+  private _sortedQualitativeValues: ReferentialRef[];
 
   items: Observable<ReferentialRef[]>;
   onShowDropdown = new EventEmitter<UIEvent>(true);
@@ -74,6 +76,10 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   @Input() tabindex: number;
 
   @Input() style: 'autocomplete' | 'select' | 'button';
+
+  @Input() searchAttributes: ('label' | 'name')[];
+
+  @Input() sortAttribute: 'label' | 'name';
 
   @Output('keypress.enter')
   onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
@@ -106,14 +112,18 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
-    this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm);
+    this.searchAttributes = isNotNil(this.searchAttributes) && this.searchAttributes.length ?
+      this.searchAttributes :
+      (this.compact ? ['label'] : ['label', 'name']);
+    this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : this.searchAttributes[0];
+    this._sortedQualitativeValues = sort(this.pmfm.qualitativeValues, this.sortAttribute);
 
+    this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
     this.displayWith = this.displayWith || (this.compact ? this.referentialToLabel : referentialToString);
-
     this.clearable = this.compact ? false : this.clearable;
 
     if (!this.mobile) {
-      if (!this.pmfm.qualitativeValues.length) {
+      if (!this._sortedQualitativeValues.length) {
         this.items = Observable.of([]);
       } else {
         this.items = merge(
@@ -121,7 +131,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
             .pipe(
               takeUntil(this._onDestroy),
               filter(event => !event.defaultPrevented),
-              map((_) => this.pmfm.qualitativeValues)
+              map((_) => this._sortedQualitativeValues)
             ),
           this.formControl.valueChanges
             .pipe(
@@ -129,10 +139,11 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
               filter(EntityUtils.isEmpty),
               map(value => {
                 value = (typeof value === "string") && (value as string).toUpperCase() || undefined;
-                if (!value || value === '*') return this.pmfm.qualitativeValues;
+                if (!value || value === '*') return this._sortedQualitativeValues;
 
                 // Filter by label and name
-                return this.pmfm.qualitativeValues.filter((qv) => ((this.startsWithUpperCase(qv.label, value)) || (!this.compact && this.startsWithUpperCase(qv.name, value))));
+                return this._sortedQualitativeValues
+                  .filter((qv) => this.match(qv, value));
               }),
               // Store implicit value (will use it onBlur if not other value selected)
               tap(res => {
@@ -186,11 +197,9 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     }
   }
 
-  computePlaceholder(pmfm: PmfmStrategy): string {
-    if (!pmfm) return undefined;
-    if (!pmfm.qualitativeValues) return pmfm.name;
-    return pmfm.qualitativeValues
-      .reduce((res, qv) => (res + "/" + (qv.label || qv.name)), "").substr(1);
+  computePlaceholder(pmfm: PmfmStrategy, sortedQualitativeValues: ReferentialRef[]): string {
+    if (!sortedQualitativeValues || !sortedQualitativeValues.length) return pmfm && pmfm.name;
+    return sortedQualitativeValues.reduce((res, qv) => (res + "/" + (qv.label || qv.name)), "").substr(1);
   }
 
   _onBlur(event: FocusEvent) {
@@ -218,6 +227,10 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  private match(qv: ReferentialRef, search: string): boolean {
+    return this.searchAttributes.findIndex(attr => this.startsWithUpperCase(qv[attr], search)) !== -1;
   }
 
   private startsWithUpperCase(input: string, search: string): boolean {

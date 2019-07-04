@@ -69,7 +69,7 @@
 
       <!-- level -->
       <mat-form-field>
-        <mat-select formControlName="levelId" [placeholder]=" 'REFERENTIAL.LEVEL'|translate" >
+        <mat-select formControlName="levelId" [placeholder]=" 'REFERENTIAL.LIST.LEVEL'|translate" >
           <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
           <mat-option *ngFor="let level of levels | async" [value]="level.id">{{level.label}} - {{level.name}}</mat-option>
         </mat-select>
@@ -175,19 +175,19 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <ion-icon matPrefix *ngIf="row.validator.controls['statusId'].value &gt;=0" [name]="statusById[row.validator.controls['statusId'].value]?.icon"></ion-icon>
+          <ion-icon matPrefix *ngIf="row.validator.controls.statusId.value &gt;=0" [name]="statusById[row.validator.controls.statusId.value]?.icon"></ion-icon>
 
-          <mat-select [formControl]="row.validator.controls['statusId']" [placeholder]="'REFERENTIAL.STATUS'|translate">
+          <mat-select [formControl]="row.validator.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
             <mat-select-trigger>
-              <span *ngIf="row.validator.controls['statusId'].value &gt;=0">
-                {{ statusById[row.validator.controls['statusId'].value]?.label | translate}}</span>
+              <span *ngIf="row.validator.controls.statusId.value &gt;=0">
+                {{ statusById[row.validator.controls.statusId.value]?.label | translate}}</span>
             </mat-select-trigger>
             <mat-option *ngFor="let item of statusList" [value]="item.id">
               <ion-icon [name]="item.icon"></ion-icon>
               {{ item.label |translate }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="row.validator.controls['statusId'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="row.validator.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </mat-cell>
     </ng-container>

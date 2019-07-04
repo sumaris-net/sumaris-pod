@@ -1,4 +1,4 @@
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
   <ion-item *ngIf="error">
@@ -50,7 +50,7 @@
             <ion-col translate>REFERENTIAL.NAME</ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let location of locations | async" [value]="location">
+          <mat-option *ngFor="let location of $locations | async" [value]="location">
             <ion-row>
               <ion-col size="2" [innerHTML]="location.label | highlight: {search: form.controls['basePortLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['basePortLocation'].value }"></ion-col>

@@ -81,7 +81,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.usageMode = this.settings.usageMode;
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

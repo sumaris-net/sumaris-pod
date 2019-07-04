@@ -6,9 +6,9 @@ import {EntityUtils, Landing, ObservedLocation} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
 import {LocationLevelIds, ProgramProperties} from "../../referential/services/model";
-import {AppEditorPage} from "../form/editor-page.class";
+import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
-import {LoadEditorDataOptions} from "../../shared/services/data-service.class";
+import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ModalController} from "@ionic/angular";
 import {LandingsTablesModal} from "../landing/landings-table.modal";
 
@@ -17,7 +17,7 @@ import {LandingsTablesModal} from "../landing/landings-table.modal";
   templateUrl: './observed-location.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationPage extends AppEditorPage<ObservedLocation> implements OnInit {
+export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> implements OnInit {
 
   landingEditor = 'landing';
 
@@ -65,14 +65,14 @@ export class ObservedLocationPage extends AppEditorPage<ObservedLocation> implem
       .registerTables([this.landingsTable]);
   }
 
-  protected async onNewEntity(data: ObservedLocation, options?: LoadEditorDataOptions): Promise<void> {
+  protected async onNewEntity(data: ObservedLocation, options?: EditorDataServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
       data.startDateTime = moment();
     }
   }
 
-  protected async onEntityLoaded(data: ObservedLocation, options?: LoadEditorDataOptions): Promise<void> {
+  protected async onEntityLoaded(data: ObservedLocation, options?: EditorDataServiceLoadOptions): Promise<void> {
     // nothing to do
   }
 

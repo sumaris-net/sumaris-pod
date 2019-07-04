@@ -121,7 +121,10 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     const dataToSaved = data.map(json => {
       const entity = new this.dataType();
       entity.fromObject(json);
-      entity.measurementValues = MeasurementUtils.toEntityValues(json.measurementValues, pmfms);
+      // Adapt measurementValues to entity, but :
+      // - keep the original JSON object measurementValues, because may be still used (e.g. in table without validator, in row.currentData)
+      // - keep extra pmfm's values, because table can have filtered pmfms, to display only mandatory PMFM (e.g. physical gear table)
+      entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.toEntityValues(json.measurementValues, pmfms));
       return entity;
     });
 

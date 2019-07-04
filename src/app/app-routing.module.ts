@@ -20,6 +20,7 @@ import {LandingPage} from "./trip/landing/landing.page";
 import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-control-landing.page";
 import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
 import {IonicRouteStrategy} from "@ionic/angular";
+import {ProgramPage} from "./referential/program/list/program.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -80,6 +81,19 @@ const routes: Routes = [
     canActivate: [AuthGuardService],
     children: [
       {
+        path: 'list',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: ReferentialsPage,
+            data: {
+              profile: 'ADMIN'
+            }
+          }
+        ]
+      },
+      {
         path: 'vessels',
         children: [
           {
@@ -99,12 +113,12 @@ const routes: Routes = [
         ]
       },
       {
-        path: 'list',
+        path: 'program/:id',
         children: [
           {
             path: '',
             pathMatch: 'full',
-            component: ReferentialsPage,
+            component: ProgramPage,
             data: {
               profile: 'ADMIN'
             }

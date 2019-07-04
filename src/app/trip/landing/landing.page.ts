@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
-import {EntityUtils, environment} from '../../core/core.module';
-import {isNil, isNotNil} from '../../shared/shared.module';
+import {EntityUtils, environment, isNil, isNotNil} from '../../core/core.module';
 import * as moment from "moment";
 import {LandingForm} from "./landing.form";
 import {Landing, ObservedLocation, PmfmStrategy, Trip, vesselFeaturesToString} from "../services/trip.model";
@@ -9,9 +8,9 @@ import {LocationLevelIds, ProgramProperties} from "../../referential/services/mo
 import {SamplesTable} from "../sample/samples.table";
 import {UsageMode} from "../../core/services/model";
 import {LandingFilter, LandingService} from "../services/landing.service";
-import {AppEditorPage} from "../form/editor-page.class";
+import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
-import {LoadEditorDataOptions} from "../../shared/services/data-service.class";
+import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
 import {isEmptyArray} from "../../shared/functions";
@@ -24,7 +23,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
   templateUrl: './landing.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingPage extends AppEditorPage<Landing, LandingFilter> implements OnInit {
+export class LandingPage extends AppDataEditorPage<Landing, LandingFilter> implements OnInit {
 
   protected parent: Trip | ObservedLocation;
   protected dataService: LandingService;
@@ -89,7 +88,7 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
       .registerTables([this.samplesTable]);
   }
 
-  protected async onNewEntity(data: Landing, options?: LoadEditorDataOptions): Promise<void> {
+  protected async onNewEntity(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
     if (this.isOnFieldMode) {
       data.dateTime = moment();
     }
@@ -100,7 +99,7 @@ export class LandingPage extends AppEditorPage<Landing, LandingFilter> implement
     await this.loadParent(data);
   }
 
-  protected async onEntityLoaded(data: Landing, options?: LoadEditorDataOptions): Promise<void> {
+  protected async onEntityLoaded(data: Landing, options?: EditorDataServiceLoadOptions): Promise<void> {
     await this.loadParent(data);
   }
 

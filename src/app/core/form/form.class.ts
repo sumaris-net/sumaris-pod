@@ -110,7 +110,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     this.onCancel.emit();
   }
 
-  public doSubmit(event: any, data?: any) {
+  public doSubmit(event: any) {
     if (!this.form && this.form.invalid) return;
     this.onSubmit.emit(event);
   }

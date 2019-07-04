@@ -37,44 +37,52 @@ import {
 } from './services/model';
 
 import {ReferentialFragments} from './services/referential.queries';
+import {ReferentialForm} from "./form/referential.form";
+import {ProgramPage} from "./program/list/program.page";
 
-export { VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
+export {
+  VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
   Referential, ReferentialRef, EntityUtils, Department, Person,
   VesselFeatures, PmfmStrategy, QualityFlagIds,
   GearLevelIds, TaxonGroupIds, AcquisitionLevelCodes, StatusIds, PmfmIds, QualitativeLabels, TaxonomicLevelIds,
   ReferentialFragments, PmfmLabelPatterns,
   entityToString, referentialToString, qualityFlagToColor,
-  vesselFeaturesToString, getPmfmName };
+  vesselFeaturesToString, getPmfmName
+};
 
 @NgModule({
-    imports: [
-        CommonModule,
-        CoreModule
-    ],
-    declarations: [
-        VesselPage,
-        VesselsPage,
-        ReferentialsPage,
-        VesselForm,
-        VesselModal
-    ],
-    exports: [
-        VesselPage,
-        VesselsPage,
-        ReferentialsPage,
-        VesselForm
-    ],
-    entryComponents: [
-        VesselModal
-    ],
-    providers: [
-        ReferentialRefService,
-        ReferentialService,
-        ReferentialValidatorService,
-        ProgramService,
-        VesselService,
-        VesselValidatorService
-    ]
+  imports: [
+    CommonModule,
+    CoreModule
+  ],
+  declarations: [
+    ReferentialsPage,
+    ReferentialForm,
+    VesselsPage,
+    VesselPage,
+    VesselForm,
+    VesselModal,
+    ProgramPage
+  ],
+  exports: [
+    ReferentialsPage,
+    ReferentialForm,
+    VesselsPage,
+    VesselPage,
+    VesselForm,
+    ProgramPage
+  ],
+  entryComponents: [
+    VesselModal
+  ],
+  providers: [
+    ReferentialRefService,
+    ReferentialService,
+    ReferentialValidatorService,
+    ProgramService,
+    VesselService,
+    VesselValidatorService
+  ]
 })
 export class ReferentialModule {
 }

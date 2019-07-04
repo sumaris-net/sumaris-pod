@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {ValidatorService} from "angular4-material-table";
-import {AppTable, AppTableDataSource, isNil, isNotNil} from "../../core/core.module";
+import {AppTable, AppTableDataSource, EntityUtils, isNil, isNotNil} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
 import {Referential, ReferentialRef, StatusIds} from "../services/model";
@@ -13,6 +13,7 @@ import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
+import {sort} from "../../core/services/model";
 
 
 const DEFAULT_ENTITY_NAME = "Location";
@@ -38,17 +39,17 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     {
       id: StatusIds.ENABLE,
       icon: 'checkmark',
-      label: 'REFERENTIAL.STATUS_ENABLE'
+      label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
     },
     {
       id: StatusIds.DISABLE,
       icon: 'close',
-      label: 'REFERENTIAL.STATUS_DISABLE'
+      label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
     },
     {
       id: StatusIds.TEMPORARY,
       icon: 'warning',
-      label: 'REFERENTIAL.STATUS_TEMPORARY'
+      label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
     }
   ];
   statusById: any;
@@ -133,14 +134,15 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.registerSubscription(
       this.referentialService.loadTypes()
         .pipe(
-          map((types) => types.map(type => {
+          map(types => types.map(type => {
             return {
               id: type.id,
               label: this.getI18nEntityName(type.id),
               level: type.level,
               levelLabel: this.getI18nEntityName(type.level)
             };
-          }))
+          })),
+          map(types => sort(types, 'label'))
         )
         .subscribe(types => this.$entities.next(types))
     );
@@ -165,7 +167,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     // }
   }
 
-  async setEntityName(entityName: string, opts?: {emitEvent?: boolean; skipLocationChange?: boolean }) {
+  async setEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
     opts = opts || {emitEvent: true, skipLocationChange: false};
     // No change: skip
     if (this.entityName === entityName) return;
@@ -175,7 +177,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     if (isNil(entities) || !entities.length) {
       console.debug("[referential] Waiting entities to be loaded...");
       return this.$entities.pipe(filter(isNotNil), first())
-        // Loop
+      // Loop
         .subscribe((entities) => {
           this.setEntityName(entityName);
         });

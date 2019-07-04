@@ -230,6 +230,16 @@ export class MeasurementValuesUtils {
     return res;
   }
 
+  static toEntityValues(source: { [key: number]: any }, pmfms: PmfmStrategy[], opts?: {
+    keepSourceObject?: boolean
+  }): { [key: string]: any } {
+    const target = opts && opts.keepSourceObject ? source : {};
+    pmfms.forEach(pmfm => {
+      target[pmfm.pmfmId] = MeasurementUtils.toEntityValue(source[pmfm.pmfmId], pmfm);
+    });
+    return target;
+  }
+
   // Update measurement values
   static updateMeasurementValues(valuesMap: { [key: number]: any }, measurements: Measurement[], pmfms: PmfmStrategy[]) {
     (measurements || []).forEach(m => {
@@ -278,12 +288,14 @@ export class MeasurementValuesUtils {
   static normalizeFormEntity(data: IEntityWithMeasurement<any>, pmfms: PmfmStrategy[], form?: FormGroup) {
     if (!data) return; // skip
 
-    // A validator exists, so remove extra PMFMS values, then normalize it
+    // If a form exists, remove extra PMFMS values (before adapt to form)
     if (form) {
       const measFormGroup = form.get('measurementValues');
 
       if (measFormGroup instanceof FormGroup) {
+        // This will remove extra PMFM, according to the form group
         const measurementValues = AppFormUtils.getFormValueFromEntity(data.measurementValues || {}, measFormGroup);
+        // This will adapt to form (e.g. transform a QV_ID into a an object)
         data.measurementValues = MeasurementValuesUtils.normalizeFormValues(measurementValues, pmfms);
       } else {
         throw Error("No measurementValues found in form ! Make sure you use the right validator");
@@ -293,7 +305,8 @@ export class MeasurementValuesUtils {
     else {
       data.measurementValues = data.measurementValues || {};
       MeasurementValuesUtils.normalizeFormValues(data.measurementValues, pmfms, {
-        keepSourceObject: true // Keep additional pmfm values (not need to remove, when no validator used)
+        // Keep extra pmfm values (not need to remove, when no validator used)
+        keepSourceObject: true
       });
     }
 

@@ -241,7 +241,6 @@
     "RETURN": "Retour :",
     "RETURN_DATE_TIME": "Date de retour",
     "RETURN_LOCATION": "Port de retour",
-    "ACTIONS": "Actions sur la ligne",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",
@@ -538,7 +537,6 @@
     "BASE_PORT_LOCATION": "Port d'attache",
     "COUNTRY": "Pavillon",
     "COMMENTS": "Commentaires",
-    "ACTIONS": "Actions sur la ligne",
     "START_DATE": "Début validité",
     "TAB_GENERAL": "Détails",
     "GROSS_TONNAGE_GT": "Tonnage (GT)",
@@ -565,35 +563,24 @@
     }
   },
   "REFERENTIAL": {
-    "STATUS": "Etat",
-    "STATUS_ENABLE": "Actif",
-    "STATUS_DISABLE": "Inactif",
-    "STATUS_TEMPORARY": "Temporaire",
-    "STATUS_DELETED": "Supression en cours",
-    "LABEL": "Code",
+    "LABEL": "Code :",
     "NAME": "Libellé",
     "LEVEL": "Niveau",
+    "DESCRIPTION": "Description",
     "COMMENTS": "Commentaires",
-    "ACTIONS": "Actions sur la ligne",
-    "ERROR": {
-      "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde du référentiel.",
-      "SAVE_REFERENTIALS_ERROR": "Erreur de sauvegarde des référentiels.",
-      "LOAD_REFERENTIAL_ERROR": "Erreur de chargement des référentiels.",
-      "LOAD_REFERENTIAL_ENTITIES_ERROR": "Erreur de chargement des types de référentiel.",
-      "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression de référentiels",
-      "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
-      "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme",
-      "LOAD_PROGRAM_GEARS_ERROR": "Erreur lors de chargement des engins du programme",
-      "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Erreur lors de chargement des espèces commerciales du programme",
-      "SAVE_PERSONS_ERROR": "Erreur de sauvegarde des utilisateurs",
-      "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs"
-    },
+    "STATUS": "Etat",
     "LIST": {
       "TITLE": "Listes",
       "FILTER": {
         "ENTITY": "Type de liste",
         "SEARCH_TEXT": "Recherche : code, libellé"
       }
+    },
+    "STATUS_ENUM": {
+      "ENABLE": "Actif",
+      "DISABLE": "Inactif",
+      "TEMPORARY": "Temporaire",
+      "DELETED": "En cours de suppression"
     },
     "ENTITY": {
       "DEPARTMENT": "Organismes",
@@ -619,9 +606,30 @@
       "ACQUISITION_LEVEL": "Niveau d'acquisition",
       "TRANSCRIBING_ITEM": "Transcodage",
       "METIER": "Métier"
+    },
+    "ERROR": {
+      "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde du référentiel.",
+      "SAVE_REFERENTIALS_ERROR": "Erreur de sauvegarde des référentiels.",
+      "LOAD_REFERENTIAL_ERROR": "Erreur de chargement des référentiels.",
+      "LOAD_REFERENTIAL_ENTITIES_ERROR": "Erreur de chargement des types de référentiel.",
+      "DELETE_REFERENTIALS_ERROR": "Erreur lors de la suppression de référentiels",
+      "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
+      "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme",
+      "LOAD_PROGRAM_GEARS_ERROR": "Erreur lors de chargement des engins du programme",
+      "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Erreur lors de chargement des espèces commerciales du programme",
+      "SAVE_PERSONS_ERROR": "Erreur de sauvegarde des utilisateurs",
+      "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs"
     }
   },
   "PROGRAM": {
+    "TAB_GENERAL": "Détails",
+    "TAB_ACCESS_RIGHTS": "Droits d'accès",
+    "NEW": {
+      "TITLE": "Nouveau programme"
+    },
+    "EDIT": {
+      "TITLE": "Programme {{label}} - {{name}}"
+    },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",
       "LOAD_PROGRAMS_ERROR": "Erreur lors de chargement des programmes",
@@ -778,6 +786,7 @@
     "FIELD_NOT_VALID_LATITUDE": "Latitude invalide",
     "FIELD_NOT_VALID_LONGITUDE": "Longitude invalide",
     "FIELD_NOT_VALID_PUBKEY": "Clé publique invalide",
+    "FIELD_NOT_UNIQUE": "Valeur déjà utilisée",
     "SPACE_NOT_ALLOW": "Espaces ou caractères spéciaux non autorisés",
     "SCRYPT_ERROR": "Erreur de generation des clefs d'ouverture du compte",
     "UNKNOWN_ACCOUNT_EMAIL": "Aucun compte ne correspond à cet email.",

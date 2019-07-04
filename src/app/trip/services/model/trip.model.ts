@@ -129,7 +129,6 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
     target.gear = this.gear && this.gear.asObject(minify) || undefined;
 
     // Measurements
-    target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(minify)) || undefined;
     target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap( this.measurementValues, minify);
 
     return target;
@@ -139,7 +138,6 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
     super.fromObject(source);
     this.rankOrder = source.rankOrder;
     source.gear && this.gear.fromObject(source.gear);
-    this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.measurementValues = source.measurementValues || MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
     return this;
   }

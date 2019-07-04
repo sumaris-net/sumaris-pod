@@ -1,0 +1,58 @@
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+
+  <!-- error -->
+  <ion-item *ngIf="error">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <!-- Label -->
+  <mat-form-field>
+    <input matInput [placeholder]="'REFERENTIAL.LABEL'|translate" formControlName="label"
+           autocomplete="off" required>
+    <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="form.controls.label.hasError('unique')" translate>ERROR.FIELD_NOT_UNIQUE</mat-error>
+  </mat-form-field>
+
+  <!-- Name -->
+  <mat-form-field>
+    <input matInput [placeholder]="'REFERENTIAL.NAME'|translate" formControlName="name"
+           autocomplete="off" required>
+    <mat-error *ngIf="form.controls.name.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  </mat-form-field>
+
+  <!-- Status-->
+  <mat-form-field>
+
+    <mat-select [formControl]="form.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
+      <mat-select-trigger>
+          <span *ngIf="form.controls.statusId.value &gt;=0">
+            {{ statusById[form.controls.statusId.value]?.label | translate}}</span>
+      </mat-select-trigger>
+      <mat-option *ngFor="let item of statusList" [value]="item.id">
+        <ion-icon [name]="item.icon"></ion-icon>
+        {{ item.label |translate }}
+      </mat-option>
+    </mat-select>
+    <mat-error *ngIf="form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  </mat-form-field>
+
+  <!-- Description -->
+  <mat-form-field>
+    <textarea matInput #description matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="255" [placeholder]="'REFERENTIAL.DESCRIPTION'|translate"
+              formControlName="description">
+    </textarea>
+    <mat-hint align="end">{{description.value.length}} / 255</mat-hint>
+    <mat-error *ngIf="form.controls.description.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  </mat-form-field>
+
+  <!-- Comments -->
+  <mat-form-field appearance="outline">
+    <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+      formControlName="comments">
+    </textarea>
+    <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+    <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  </mat-form-field>
+
+</form>

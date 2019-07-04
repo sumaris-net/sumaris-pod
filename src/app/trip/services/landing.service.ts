@@ -1,7 +1,7 @@
 import {Injectable, Injector} from "@angular/core";
 import {
   EditorDataService,
-  LoadEditorDataOptions,
+  EditorDataServiceLoadOptions,
   LoadResult,
   TableDataService
 } from "../../shared/services/data-service.class";
@@ -207,7 +207,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
         }));
   }
 
-  async load(id: number, options?: LoadEditorDataOptions): Promise<Landing> {
+  async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Landing> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();

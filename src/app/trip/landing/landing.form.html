@@ -1,4 +1,4 @@
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event, form.value)">
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm>

@@ -1,0 +1,73 @@
+<app-toolbar [title]="title | async" color="primary" [hasValidate]="!loading && dirty" (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+  <ion-spinner *ngIf="loading"></ion-spinner>
+</app-toolbar>
+
+<ion-content>
+
+  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+
+    <!-- TAB: general -->
+    <mat-tab label="{{'PROGRAM.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="information-circle"></ion-icon>
+        </mat-icon>
+        <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && referentialForm.invalid"></ion-icon>
+      </ng-template>
+
+      <div padding>
+        <!-- error -->
+        <ion-item *ngIf="referentialForm.error" visible-xs visible-sm>
+          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+        </ion-item>
+
+        <!-- base form-->
+        <app-referential-form #referentialForm
+                              [showError]="false"
+                              [debug]="debug"
+                              (onSubmit)="save($event)">
+        </app-referential-form>
+      </div>
+    </mat-tab>
+
+    <!-- TAB: access rights -->
+    <mat-tab label="{{'PROGRAM.TAB_ACCESS_RIGHTS'|translate}}" [disabled]="isNewData">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="people"></ion-icon>
+        </mat-icon>
+        <ion-label translate>PROGRAM.TAB_ACCESS_RIGHTS</ion-label>
+<!--        <ion-icon slot="end" name="alert" color="danger" *ngIf="samplesTable.invalid"></ion-icon>-->
+      </ng-template>
+
+      <div padding>
+
+        <!-- error
+        <ion-item *ngIf="samplesTable.error" visible-xs visible-sm>
+          <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
+        </ion-item>-->
+
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm>
+
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
+                    [disabledCancel]="!dirty || loading">
+
+    <!-- error -->
+    <ion-item *ngIf="error">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </form-buttons-bar>
+</ion-footer>

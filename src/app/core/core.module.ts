@@ -75,6 +75,7 @@ import {SettingsPage} from "./settings/settings.page";
 import {LocalSettingsValidatorService} from "./services/local-settings.validator";
 import {GraphqlService} from "./services/graphql.service";
 import {LocalSettingsService} from "./services/local-settings.service";
+import {AppEditorPage} from "./form/editor-page.class";
 
 export {
   environment,
@@ -83,6 +84,7 @@ export {
   AppTable,
   AppTabPage,
   AppTableDataSource,
+  AppEditorPage,
   TableSelectColumnsComponent,
   PlatformService,
   AccountService,

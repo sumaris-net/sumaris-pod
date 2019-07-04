@@ -1,9 +1,9 @@
 import {ChangeDetectorRef, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Batch, isNil, isNotNil, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
+import {isNil, isNotNil, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {AppForm, AppFormUtils} from '../../core/core.module';
+import {AppForm} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
@@ -360,7 +360,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       // Find dirty pmfms, to avoid full update
       const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => pmfmForm.controls[pmfm.pmfmId].dirty);
       if (dirtyPmfms.length) {
-        json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementUtils.toEntityValues(pmfmForm.value, dirtyPmfms));
+        json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.toEntityValues(pmfmForm.value, dirtyPmfms));
       }
     }
 

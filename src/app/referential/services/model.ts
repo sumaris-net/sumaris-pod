@@ -10,16 +10,16 @@ export const LocationLevelIds = {
   COUNTRY: 1,
   PORT: 2,
   AUCTION: 3
-}
+};
 
 export const GearLevelIds = {
   FAO: 1
-}
+};
 
 export const TaxonGroupIds = {
   FAO: 2,
   METIER: 3
-}
+};
 
 export const TaxonomicLevelIds = {
   ORDO: 13,
@@ -62,18 +62,18 @@ export const QualitativeLabels = {
   VIVACITY: {
     DEAD: 'MOR'
   }
-}
+};
 
 export const MethodIds = {
   MEASURED_BY_OBSERVER: 1,
   OBSERVED_BY_OBSERVER: 2,
   ESTIMATED_BY_OBSERVER: 3,
   CALCULATED: 4
-}
+};
 
 export const PmfmLabelPatterns = {
   BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/
-}
+};
 
 export const ProgramProperties = {
 
@@ -95,7 +95,7 @@ export const ProgramProperties = {
 
   // Landing
   //LANDING_DETAILS_ENABLE: 'sumaris.landing.details.enable',
-}
+};
 
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
@@ -152,9 +152,9 @@ export function qualityFlagToColor(qualityFlagId: number) {
 }
 
 export interface IWithProgramEntity<T> extends Entity<T> {
-  program: Referential|ReferentialRef;
+  program: Referential | ReferentialRef;
   recorderPerson?: Person;
-  recorderDepartment: Referential|ReferentialRef;
+  recorderDepartment: Referential | ReferentialRef;
 }
 
 export class VesselFeatures extends Entity<VesselFeatures> {
@@ -252,6 +252,7 @@ export class Program extends Entity<Program> {
   creationDate: Date | Moment;
   statusId: number;
   properties: { [key: string]: string };
+  strategies: Strategy[];
 
   constructor(data?: {
     id?: number,
@@ -294,6 +295,7 @@ export class Program extends Entity<Program> {
     } else {
       this.properties = source.properties;
     }
+    this.strategies = (source.strategies || []).map(Strategy.fromObject);
     return this;
   }
 
@@ -362,7 +364,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     return target;
   }
 
-  asObject(): any {
+  asObject(minify?: boolean): any {
     const target: any = super.asObject();
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject()) || undefined;
     return target;
@@ -412,5 +414,84 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   get isWeight(): boolean {
     return isNotNil(this.label) && this.label.endsWith("WEIGHT");
+  }
+}
+
+
+export class Strategy extends Entity<Strategy> {
+
+  static fromObject(source: any): Strategy {
+    const res = new Strategy();
+    res.fromObject(source);
+    return res;
+  }
+
+  label: string;
+  name: string;
+  description: string;
+  comments: string;
+  creationDate: Date | Moment;
+  statusId: number;
+  pmfmStrategies: PmfmStrategy[];
+
+  gears: ReferentialRef[];
+  taxonGroups: ReferentialRef[];
+  taxonNames: ReferentialRef[];
+
+  programId: number;
+
+  constructor(data?: {
+    id?: number,
+    label?: string,
+    name?: string
+  }) {
+    super();
+    this.id = data && data.id;
+    this.label = data && data.label;
+    this.name = data && data.name;
+    this.pmfmStrategies = [];
+    this.gears = [];
+    this.taxonGroups = [];
+    this.taxonNames = [];
+  }
+
+  clone(): Strategy {
+    return this.copy(new Strategy());
+  }
+
+  copy(target: Strategy): Strategy {
+    target.fromObject(this);
+    return target;
+  }
+
+  asObject(minify?: boolean): any {
+    if (minify) return {id: this.id}; // minify=keep id only
+    const target: any = super.asObject(minify);
+    target.programId = this.programId;
+    target.creationDate = toDateISOString(this.creationDate);
+    target.pmfmStrategies = this.pmfmStrategies && this.pmfmStrategies.map(s => s.asObject(false/*minify*/));
+    target.gears = this.gears && this.gears.map(s => s.asObject(minify));
+    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject(minify));
+    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject(minify));
+    return target;
+  }
+
+  fromObject(source: any): Strategy {
+    super.fromObject(source);
+    this.label = source.label;
+    this.name = source.name;
+    this.description = source.description;
+    this.comments = source.comments;
+    this.statusId = source.statusId;
+    this.creationDate = fromDateISOString(source.creationDate);
+    this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
+    this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
+    this.taxonGroups = source.taxonGroups && source.taxonGroups.map(ReferentialRef.fromObject) || [];
+    this.taxonNames = source.taxonNames && source.taxonNames.map(ReferentialRef.fromObject) || [];
+    return this;
+  }
+
+  equals(other: Strategy): boolean {
+    return super.equals(other) && this.label === other.label;
   }
 }

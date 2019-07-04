@@ -22,6 +22,7 @@ export class ReferentialValidatorService implements ValidatorService {
       levelId: [''],
       label: ['', Validators.required],
       name: ['', Validators.required],
+      description: ['', Validators.maxLength(255)],
       comments: ['', Validators.maxLength(2000)],
       entityName: ['', Validators.required],
       dirty: ['']

@@ -1,26 +1,27 @@
-import {ChangeDetectorRef, EventEmitter, Injector, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, EventEmitter, Injector, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertController} from "@ionic/angular";
 
-import {AppTabPage, EntityUtils} from '../../core/core.module';
 import {TranslateService} from '@ngx-translate/core';
 import {environment} from '../../../environments/environment';
 import {Subject} from 'rxjs';
-import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
+import {
+  DateFormatPipe,
+  EditorDataService,
+  EditorDataServiceLoadOptions,
+  isNil,
+  isNotNil
+} from '../../shared/shared.module';
 import {Moment} from "moment";
-import {DataRootEntity} from "../services/trip.model";
-import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {filter, mergeMap} from "rxjs/operators";
-import {Program} from "../../referential/services/model";
+import {LocalSettingsService} from "../services/local-settings.service";
+import {filter, first} from "rxjs/operators";
 import {ProgramService} from "../../referential/services/program.service";
-import {isNotNilOrBlank} from "../../shared/functions";
-import {UsageMode} from "../../core/services/model";
+import {Entity, UsageMode} from "../services/model";
 import {FormGroup} from "@angular/forms";
-import {EditorDataService, LoadEditorDataOptions} from "../../shared/services/data-service.class";
+import {AppTabPage} from "./tab-page.class";
 
 
-export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
+export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 
   protected _enableListenChanges = (environment.listenRemoteChanges === true);
   protected dateFormat: DateFormatPipe;
@@ -28,8 +29,6 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
   protected settings: LocalSettingsService;
   protected programService: ProgramService;
 
-  programSubject = new Subject<string>();
-  onProgramChanged = new Subject<Program>();
   title = new Subject<string>();
   saving = false;
   defaultBackHref: string;
@@ -39,8 +38,6 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
-
-  @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
 
   protected constructor(
     injector: Injector,
@@ -55,7 +52,6 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
     this.settings = injector.get(LocalSettingsService);
     this.cd = injector.get(ChangeDetectorRef);
     this.dateFormat = injector.get(DateFormatPipe);
-    this.programService = injector.get(ProgramService);
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -69,27 +65,18 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
 
     this.disable();
 
-    this.route.params.first().subscribe(async (params) => {
-      const id = params["id"];
-      if (!id || id === "new") {
-        await this.load(undefined, params);
-      } else {
-        await this.load(+id, params);
-      }
-    });
-
-    // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.programSubject.asObservable()
-        .pipe(
-          filter(isNotNilOrBlank),
-          mergeMap(label => this.programService.loadByLabel(label))
-        )
-        .subscribe(program => this.onProgramChanged.next(program))
-    );
+    this.route.params.pipe(first())
+      .subscribe(async (params) => {
+        const id = params["id"];
+        if (!id || id === "new") {
+          await this.load(undefined, params);
+        } else {
+          await this.load(+id, params);
+        }
+      });
   }
 
-  async load(id?: number, options?: LoadEditorDataOptions) {
+  async load(id?: number, options?: EditorDataServiceLoadOptions) {
     this.error = null;
 
     // New data
@@ -101,7 +88,6 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
       await this.onNewEntity(data, options);
       this.updateView(data);
       this.loading = false;
-      this.startListenProgramChanges();
     }
 
     // Load existing data
@@ -112,23 +98,6 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
       this.updateView(data);
       this.loading = false;
       this.startListenRemoteChanges();
-    }
-  }
-
-  startListenProgramChanges() {
-
-    // If new entity
-    if (this.isNewData) {
-
-      // Listen program changes (only if new data)
-      this.registerSubscription(this.form.controls['program'].valueChanges
-        .subscribe(program => {
-          if (EntityUtils.isNotEmpty(program)) {
-            console.debug("[root-data-editor] Propagate program change: " + program.label);
-            this.programSubject.next(program.label);
-          }
-        })
-      );
     }
   }
 
@@ -143,8 +112,7 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
               if (!this.dirty) {
                 if (this.debug) console.debug(`[root-data-editor] Changes detected on server, at {${data.updateDate}} : reloading page...`);
                 this.updateView(data);
-              }
-              else {
+              } else {
                 if (this.debug) console.debug(`[root-data-editor] Changes detected on server, at {${data.updateDate}}, but page is dirty: skip reloading.`);
               }
             }
@@ -156,28 +124,51 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
   updateView(data: T | null) {
     this.data = data;
     this.setValue(data);
-    if (!this.isNewData) {
-      this.form.controls['program'].disable();
-      this.programSubject.next(data.program.label);
-    }
-
-    // Quality metadata
-    if (this.qualityForm) {
-      this.qualityForm.value = data;
-    }
 
     this.updateTitle(data);
 
     this.markAsPristine();
     this.markAsUntouched();
 
-    if (isNotNil(this.data.validationDate)) {
-      this.disable();
-    } else {
-      this.enable();
-    }
+    this.updateViewState(data);
 
     this.onRefresh.emit();
+  }
+
+  /**
+   * Enable or disable state
+   */
+  updateViewState(data: T) {
+    this.enable();
+  }
+
+  /**
+   * After first save, update the route location
+   */
+  async updateRouteAfterFirstSave(data: T) {
+
+    this.queryParams = this.queryParams || {};
+
+    // Open the next tab
+    if (this.selectedTabIndex === 0) {
+      this.selectedTabIndex = 1;
+      Object.assign(this.queryParams, {tab: this.selectedTabIndex});
+    }
+
+    // Update route location
+    await this.router.navigate(['.'], {
+      relativeTo: this.route,
+      queryParams: Object.assign(this.queryParams, {id: data.id})
+    });
+
+    setTimeout(async () => {
+      await this.router.navigate(['../../' + data.id], {
+        replaceUrl: true,
+        relativeTo: this.route,
+        queryParams: this.queryParams,
+      });
+    }, 100);
+
   }
 
   async save(event): Promise<boolean> {
@@ -214,17 +205,8 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
 
       // Is first save
       if (isNew) {
-
-        // Open the gear tab
-        this.selectedTabIndex = 1;
-        const queryParams = Object.assign({}, this.route.snapshot.queryParams, {tab: this.selectedTabIndex});
-
         // Update route location
-        this.router.navigate(['../' + updatedData.id], {
-          relativeTo: this.route,
-          queryParams: queryParams,
-          replaceUrl: true // replace the current state in history
-        });
+        await this.updateRouteAfterFirstSave(updatedData);
 
         // Subscription to remote changes
         this.startListenRemoteChanges();
@@ -243,48 +225,9 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
     }
   }
 
-  enable() {
-    if (!this.data || isNotNil(this.data.validationDate)) return false;
-
-    // If not a new data, check user can write
-    if (isNotNil(this.data.id) && !this.programService.canUserWrite(this.data)) {
-      if (this.debug) console.warn("[root-data-editor] Leave form disable (User has NO write access)");
-      return;
-    }
-
-    if (this.debug) console.debug("[root-data-editor] Enabling form (User has write access)");
-    super.enable();
-  }
-
-  public async onControl(event: Event) {
-    // Stop if data is not valid
-    if (!this.valid) {
-      // Stop the control
-      event && event.preventDefault();
-
-      // Open the first tab in error
-      this.openFirstInvalidTab();
-    } else if (this.dirty) {
-
-      // Stop the control
-      event && event.preventDefault();
-
-      console.debug("[root-data-editor] Saving data, before control...");
-      const saved = await this.save(new Event('save'));
-      if (saved) {
-        // Loop
-        await this.qualityForm.control(new Event('control'));
-      }
-    }
-  }
-
   /* -- protected methods to override -- */
 
   protected abstract registerFormsAndTables();
-
-  protected abstract onNewEntity(data: T, options?: LoadEditorDataOptions): Promise<void>;
-
-  protected abstract onEntityLoaded(data: T, options?: LoadEditorDataOptions): Promise<void>;
 
   protected abstract computeTitle(data: T): Promise<string>;
 
@@ -297,6 +240,13 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
 
   /* -- protected methods -- */
 
+  protected async onNewEntity(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
+    // can be overwrite by subclasses
+  }
+
+  protected async onEntityLoaded(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
+    // can be overwrite by subclasses
+  }
 
   protected computeUsageMode(data: T): UsageMode {
     return this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK';
@@ -304,9 +254,6 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
 
   protected getValue(): Promise<T> {
     const json = this.form.value;
-
-    // Re add program, because program control can be disabled
-    json.program = this.form.controls['program'].value;
 
     const res = new this.dataType();
     res.fromObject(json);
@@ -333,9 +280,6 @@ export abstract class AppEditorPage<T extends DataRootEntity<T>, F = any> extend
     }
   }
 
-  /**
-   *
-   */
   protected markForCheck() {
     this.cd.markForCheck();
   }

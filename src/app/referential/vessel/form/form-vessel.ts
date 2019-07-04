@@ -18,9 +18,8 @@ import {ReferentialRefService} from '../../services/referential-ref.service';
 })
 export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
 
-  form: FormGroup;
   data: VesselFeatures;
-  locations: Observable<ReferentialRef[]>;
+  $locations: Observable<ReferentialRef[]>;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -35,7 +34,7 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-    this.locations = this.form.controls['basePortLocation']
+    this.$locations = this.form.controls['basePortLocation']
       .valueChanges
       .pipe(
         debounceTime(250),

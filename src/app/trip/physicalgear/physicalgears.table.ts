@@ -67,15 +67,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
 
     const newGear = await this.openDetailModal();
     if (newGear) {
-      console.debug("[physical-gear-table] Adding new physical gear", newGear);
-      this.addRowToTable();
-      setTimeout(() => {
-        const rankOrder = this.editedRow.currentData.rankOrder;
-        newGear.rankOrder = rankOrder;
-        this.editedRow.currentData = newGear;
-        this.confirmEditCreate(null, this.editedRow);
-        this.markForCheck();
-      }, 100);
+      await this.addGearToTable(newGear);
     }
     return true;
   }
@@ -85,10 +77,21 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
 
     const updatedGear = await this.openDetailModal(gear);
     if (updatedGear) {
-      row.currentData = updatedGear;
-      this._dirty = true;
-      this.markForCheck();
-      this.confirmEditCreate(null, row);
+
+      // Adapt measurement values to row
+      this.normalizeRowMeasurementValues(updatedGear, row);
+
+      // Affect new row
+      if (row.validator) {
+        row.validator.patchValue(updatedGear);
+        this.confirmEditCreate(null, row);
+        row.validator.markAsDirty();
+      }
+      else {
+        row.currentData = updatedGear;
+        this.markForCheck();
+      }
+      this.markAsDirty();
     }
     return true;
   }
@@ -117,10 +120,36 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-
     if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
 
     return (data instanceof PhysicalGear) ? data : undefined;
+  }
+
+  protected async addGearToTable(gear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
+    if (this.debug) console.debug("[physical-gear-table] Adding new gear", gear);
+
+    const row = await this.addRowToTable();
+    if (!row) throw new Error("Could not add row t table");
+
+    // Use the generated rankOrder
+    gear.rankOrder = row.currentData.rankOrder;
+
+    // Adapt measurement values to row
+    this.normalizeRowMeasurementValues(gear, row);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(gear);
+      this.confirmEditCreate(null, row);
+      row.validator.markAsDirty();
+    }
+    else {
+      row.currentData = gear;
+      this.markForCheck();
+    }
+    this.markAsDirty();
+
+    return row;
   }
 
   referentialToString = referentialToString;
