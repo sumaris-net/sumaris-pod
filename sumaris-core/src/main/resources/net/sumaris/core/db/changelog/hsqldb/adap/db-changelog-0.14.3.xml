@@ -72,7 +72,7 @@
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-                <not><sqlCheck expectedResult="5">SELECT count(*) FROM where PMFM_FK=50 AND STRATEGY_FK=10 AND ACQUISITION_LEVEL_FK=4</sqlCheck></not>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM PMFM_STRATEGY where PMFM_FK=50 AND STRATEGY_FK=10 AND ACQUISITION_LEVEL_FK=4</sqlCheck>
             </and>
         </preConditions>
         <sql><![CDATA[
