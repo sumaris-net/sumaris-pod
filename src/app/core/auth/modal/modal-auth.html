@@ -40,7 +40,11 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="form.invalid ? 'clear' : 'solid'" [disabled]="loading || form.invalid" (click)="doSubmit()" color="tertiary">
+        <ion-button [fill]="form.invalid ? 'clear' : 'solid'"
+                    [disabled]="loading || form.invalid"
+                    (click)="doSubmit()"
+                    (keypress.enter)="doSubmit()"
+                    color="tertiary">
           <ion-label translate>AUTH.BTN_LOGIN</ion-label>
         </ion-button>
       </ion-col>

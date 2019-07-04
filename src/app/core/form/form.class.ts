@@ -143,13 +143,18 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
   public markAsUntouched() {
-    console.log("TODO: check markAsUntouched")
     this.form.markAsUntouched();
     this.markForCheck();
   }
 
   public markAsTouched() {
     this.form.markAsTouched();
+    //this.form.updateValueAndValidity();
+    Object.getOwnPropertyNames(this.form.controls)
+      .forEach(key => {
+        this.form.get(key).markAsTouched({onlySelf: true});
+        this.form.get(key).updateValueAndValidity({onlySelf: true});
+      });
     this.markForCheck();
   }
 

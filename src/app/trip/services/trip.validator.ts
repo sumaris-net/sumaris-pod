@@ -1,16 +1,16 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {FormGroup, Validators, FormBuilder} from "@angular/forms";
+import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Trip} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
-import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Injectable()
 export class TripValidatorService implements ValidatorService {
 
   constructor(
     private formBuilder: FormBuilder,
-    private accountService: AccountService
+    private settings: LocalSettingsService
   ) {
 
   }
@@ -20,7 +20,7 @@ export class TripValidatorService implements ValidatorService {
   }
 
   getFormGroup(data?: Trip): FormGroup {
-    const isOnFieldMode = this.accountService.isUsageMode('FIELD');
+    const isOnFieldMode = this.settings.isUsageMode('FIELD');
 
     return this.formBuilder.group({
       id: [''],
@@ -30,7 +30,7 @@ export class TripValidatorService implements ValidatorService {
       vesselFeatures: ['', Validators.compose([Validators.required, SharedValidators.entity])],
       departureDateTime: ['', Validators.required],
       departureLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      returnDateTime: ['', isOnFieldMode ? undefined : Validators.required],
+      returnDateTime: ['', isOnFieldMode ? null : Validators.required],
       returnLocation: ['', isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
       comments: ['', Validators.maxLength(2000)]
     }, {

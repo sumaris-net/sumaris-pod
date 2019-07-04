@@ -11,47 +11,62 @@ export class SharedValidators {
     if (date && (!date.isValid() || date.year() < 1970)) {
       return { validDate: true };
     }
+    return null;
   }
 
   static latitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (isNotNil(value) && (value < -90 || value > 90))
-      return { validLatitude: true };
+    if (isNotNil(value) && (value < -90 || value > 90)) {
+      return {validLatitude: true};
+    }
+    return null;
   }
 
   static longitude(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (isNotNil(value) && (value < -180 || value > 180))
+    if (isNotNil(value) && (value < -180 || value > 180)) {
       return { validLongitude: true };
+    }
+    return null;
   }
 
   static object(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && typeof value !== 'object')
+    if (value && typeof value !== 'object') {
       return { object: true };
+    }
+    return null;
   }
 
   static entity(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && typeof value !== 'object' && (value.id === undefined || value.id === null))
+    if (value && typeof value !== 'object' && (value.id === undefined || value.id === null)) {
       return { entity: true };
+    }
+    return null;
   }
 
   static empty(control: FormControl): ValidationErrors | null {
-    if (isNotNilOrBlank(control.value))
+    if (isNotNilOrBlank(control.value)) {
       return { empty: true };
+    }
+    return null;
   }
 
   static pubkey(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (value && (typeof value !== 'string' || !PUBKEY_REGEXP.test(value)))
+    if (value && (typeof value !== 'string' || !PUBKEY_REGEXP.test(value))) {
       return { pubkey: true };
+    }
+    return null;
   }
 
   static integer(control: FormControl): ValidationErrors | null {
     const value = control.value;
-    if (isNotNil(value) && value !== "" && !Number.isInteger(value))
+    if (isNotNil(value) && value !== "" && !Number.isInteger(value)) {
       return { integer: true };
+    }
+    return null;
   }
 
   static double(options?: {maxDecimals?: number}): ValidatorFn {
@@ -75,6 +90,7 @@ export class SharedValidators {
       if (isNotNil(value) && value !== "" && !regexp.test(value as string)) {
         return { maxDecimals: true };
       }
+      return null;
     };
   }
 

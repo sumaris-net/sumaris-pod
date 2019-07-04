@@ -210,8 +210,8 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     }
 
     // Get the model value
-    console.debug("[mat-latlon] Setting value {" + this.value + "} parsed from {" + strValue + "}");
-    this.formControl.setValue(this.value);
+    //console.debug("[mat-latlon] Setting value {" + this.value + "} parsed from {" + strValue + "}");
+    this.formControl.patchValue(this.value, {emitEvent: false});
     this.writing = false;
     this.markForCheck();
 
@@ -235,6 +235,4 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
     this.cd.markForCheck();
   }
 }
-
-
 

@@ -9,7 +9,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
-import {DateAdapter, FloatLabelType, MatButton, MatDatepicker, MatDatepickerInputEvent} from '@angular/material';
+import {DateAdapter, FloatLabelType, MatDatepicker, MatDatepickerInputEvent} from '@angular/material';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -20,7 +20,6 @@ import {
   Validators
 } from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import * as moment from "moment/moment";
 import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR} from '../constants';
 import {SharedValidators} from '../validator/validators';
@@ -328,7 +327,6 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     // Get the model value
     const dateStr = date && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z');
     this.formControl.patchValue(dateStr, {emitEvent: false});
-    //this.formControl.updateValueAndValidity();
     this.writing = false;
     this.markForCheck();
 

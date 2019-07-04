@@ -12,7 +12,7 @@ import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
-  onUpdateControls: (formGroup: FormGroup) => void| Promise<void>;
+  onUpdateControls: (formGroup: FormGroup) => void | Promise<void>;
 }
 
 export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> implements OnInit {
@@ -90,13 +90,12 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (pmfms instanceof Observable) {
       pmfms.pipe(filter(isNotNil), first())
         .subscribe(pmfms => {
-        if (pmfms !== this.$pmfms.getValue()) {
-          this.loadingPmfms = false;
-          this.$pmfms.next(pmfms);
-        }
-      });
-    }
-    else if (pmfms instanceof Array && pmfms !== this.$pmfms.getValue()) {
+          if (pmfms !== this.$pmfms.getValue()) {
+            this.loadingPmfms = false;
+            this.$pmfms.next(pmfms);
+          }
+        });
+    } else if (pmfms instanceof Array && pmfms !== this.$pmfms.getValue()) {
       this.loadingPmfms = false;
       this.$pmfms.next(pmfms);
     }
@@ -148,15 +147,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   public markAsTouched() {
-    this.form.markAsTouched();
+    super.markAsTouched();
+
+    // Propage to pmfms control
     const pmfms = this.$pmfms.getValue();
     if (pmfms && this.form && this.form.controls['measurementValues']) {
       const pmfmForm = this.form.controls['measurementValues'] as FormGroup;
-      pmfms.forEach(pmfm => {
-        pmfmForm.controls[pmfm.pmfmId].markAsTouched({onlySelf: true});
-      });
+      pmfms.map(pmfm => pmfmForm.controls[pmfm.pmfmId])
+        .forEach(control => control.markAsTouched({onlySelf: true}));
     }
-    super.markForCheck();
   }
 
   /* -- protected methods -- */

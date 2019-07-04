@@ -18,11 +18,13 @@
       <ion-col size="12" size-md="4" size-lg="3">
         <mat-form-field>
           <input matInput [placeholder]="'TRIP.OPERATION.LIST.PHYSICAL_GEAR'|translate"
+                 formControlName="physicalGear"
                  [matAutocomplete]="autoPhysicalGear"
-                 (focus)="onFocusPhysicalGear.emit()" formControlName="physicalGear" required>
-          <mat-error *ngIf="form.controls['physicalGear']?.hasError('required')" translate>ERROR.FIELD_REQUIRED
+                 (focus)="onFocusPhysicalGear.emit()"
+                 required>
+          <mat-error *ngIf="form.controls.physicalGear.hasError('required')" translate>ERROR.FIELD_REQUIRED
           </mat-error>
-          <mat-error *ngIf="form.controls['physicalGear']?.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+          <mat-error *ngIf="form.controls.physicalGear.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Physical gear combo -->
@@ -58,10 +60,13 @@
       <!-- Metier -->
       <ion-col size="12" size-md="6">
         <mat-form-field>
-          <input matInput [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate" [matAutocomplete]="autoMetier"
-                 formControlName="metier" (focus)="onFocusMetier.emit()" required>
-          <mat-error *ngIf="form.controls['metier'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls['metier'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+          <input matInput [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate"
+                 [matAutocomplete]="autoMetier"
+                 formControlName="metier"
+                 (focus)="onFocusMetier.emit()"
+                 required>
+          <mat-error *ngIf="form.controls.metier.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.metier.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Metier combo -->
@@ -115,7 +120,7 @@
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
                 <button type="button" mat-icon-button matSuffix
-                        *ngIf="!enableGps"
+                        *ngIf="!enableGps && form.controls.startPosition.valid"
                         (click)="copyValue('startPosition', 'endPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
@@ -139,8 +144,8 @@
             <ion-col size="12" size-lg="4">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="endDateTime">
                 <mat-hint align="end" *ngIf="form.controls['endDateTime'].value">
-                  <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls['startDateTime'].value,
-                  endValue: form.controls['endDateTime'].value} | dateDiffDuration }}
+                  <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls.startDateTime.value,
+                  endValue: form.controls.endDateTime.value} | dateDiffDuration }}
                 </mat-hint>
               </mat-date-time>
             </ion-col>
@@ -180,7 +185,7 @@
                     tabindex="100">
           </textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
-          <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
