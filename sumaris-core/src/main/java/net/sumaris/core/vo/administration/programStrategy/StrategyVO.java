@@ -23,46 +23,32 @@ package net.sumaris.core.vo.administration.programStrategy;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.vo.IValueObject;
+import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.vo.referential.IReferentialVO;
-import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
-public class
-PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer>  {
+public class StrategyVO implements IReferentialVO {
 
     private Integer id;
-
-    private String acquisitionLevel;
-    private Integer rankOrder;
-    private Integer acquisitionNumber;
-    private Boolean isMandatory;
-    private Double minValue;
-    private Double maxValue;
-    private Double defaultValue;
-    private Date updateDate;
-
-    private List<String> gears;
-    private List<Integer> taxonGroupIds;
-    private List<Integer> referenceTaxonIds;
-
-    private Integer pmfmId;
-    private PmfmVO pmfm;
-
-    // Copy from PMFM or parameter
     private String label;
     private String name;
-    private String unit;
-    private String type;
-    private Integer methodId;
-    private Integer maximumNumberDecimals;
+    private String description;
+    private String comments;
+    private Date updateDate;
+    private Date creationDate;
 
-    List<ReferentialVO> qualitativeValues;
+    private Integer statusId;
+    private Integer programId;
+
+    private List<PmfmStrategyVO> pmfmStrategies;
+    private List<ReferentialVO> gears;
+    private List<ReferentialVO> taxonGroups;
+    private List<TaxonNameVO> taxonNames;
+
 }

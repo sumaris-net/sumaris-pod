@@ -24,12 +24,11 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -41,6 +40,8 @@ import java.util.List;
 @Transactional(propagation = Propagation.SUPPORTS)
 public interface StrategyService {
 
+	@Transactional(readOnly = true)
+	List<StrategyVO> findByProgram(int programId);
 
 	@Transactional(readOnly = true)
 	List<PmfmStrategyVO> getPmfmStrategies(int programId);

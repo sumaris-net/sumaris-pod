@@ -27,13 +27,17 @@ import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
 
 public interface StrategyDao {
+
+    List<StrategyVO> findByProgram(int programId);
 
     @Cacheable(cacheNames = CacheNames.PMFM_BY_PROGRAM_ID, key = "#programId", unless = "#result == null")
     List<PmfmStrategyVO> getPmfmStrategies(int programId);
@@ -44,6 +48,6 @@ public interface StrategyDao {
 
     List<ReferentialVO> getTaxonGroups(int programId);
 
-    PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source);
+    PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source, boolean copyPmfmValue);
 
 }

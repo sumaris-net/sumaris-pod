@@ -25,6 +25,7 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import net.sumaris.core.dao.administration.programStrategy.StrategyDao;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,11 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Autowired
 	protected StrategyDao strategyDao;
+
+	@Override
+	public List<StrategyVO> findByProgram(int programId) {
+		return strategyDao.findByProgram(programId);
+	}
 
 	@Override
 	public List<PmfmStrategyVO> getPmfmStrategies(int programId) {

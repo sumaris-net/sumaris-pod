@@ -84,15 +84,6 @@ public class AdministrationGraphQLService {
     private DepartmentService departmentService;
 
     @Autowired
-    private ProgramService programService;
-
-    @Autowired
-    private StrategyService strategyService;
-
-    @Autowired
-    private ReferentialService referentialService;
-
-    @Autowired
     private ChangesPublisherService changesPublisherService;
 
     @Autowired
@@ -126,33 +117,12 @@ public class AdministrationGraphQLService {
         return result;
     }
 
-    /*@GraphQLQuery(name = "person", description = "Get a person")
-    @Transactional(readOnly = true)
-    public PersonVO getPersonById(@GraphQLArgument(name = "id") int id,
-                                  @GraphQLEnvironment() Set<String> fields
-    ) {
-        PersonVO result = personService.get(id);
-
-        // Fill avatar Url
-        if (result != null && fields.contains(PersonVO.PROPERTY_AVATAR)) {
-            this.fillAvatar(result);
-        }
-
-        return result;
-    }*/
-
     @GraphQLMutation(name = "savePersons", description = "Create or update many persons")
     @IsAdmin
     public List<PersonVO> savePersons(
             @GraphQLArgument(name = "persons") List<PersonVO> persons) {
         return personService.save(persons);
     }
-
-    /*@GraphQLMutation(name = "deletePerson", description = "Delete a person (by id)")
-    public void deletePerson(
-            @GraphQLArgument(name = "id") int id) {
-        personService.delete(id);
-    }*/
 
     @GraphQLMutation(name = "deletePersons", description = "Delete many person (by ids)")
     @IsAdmin
@@ -289,83 +259,6 @@ public class AdministrationGraphQLService {
         return changesPublisherService.getPublisher(Person.class, AccountVO.class, person.getId(), minIntervalInSecond, true);
     }
 
-    /* -- Program / Strategy-- */
-
-    @GraphQLQuery(name = "program", description = "Get a program")
-    @Transactional(readOnly = true)
-    public ProgramVO getProgram(
-            @GraphQLArgument(name = "label") String label,
-            @GraphQLArgument(name = "id") Integer id
-    ) {
-        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
-        if (id != null) {
-            return programService.get(id);
-        }
-        return programService.getByLabel(label);
-    }
-
-    @GraphQLQuery(name = "programs", description = "Search in programs")
-    @Transactional(readOnly = true)
-    public List<ProgramVO> findProgramsByFilter(
-            @GraphQLArgument(name = "filter") ProgramFilterVO filter,
-            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-            @GraphQLArgument(name = "sortBy", defaultValue = ProgramVO.PROPERTY_LABEL) String sort,
-            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        if (filter == null) {
-            return programService.getAll();
-        }
-        return programService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
-    }
-
-    @GraphQLQuery(name = "programPmfms", description = "Get program's pmfm")
-    @Transactional(readOnly = true)
-    public List<PmfmStrategyVO> getProgramPmfms(
-            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel,
-            @GraphQLArgument(name = "acquisitionLevel", description = "A valid acquisition level (e.g. 'TRIP', 'OPERATION', 'PHYSICAL_GEAR')") String acquisitionLevel
-            ) {
-        Preconditions.checkNotNull(programLabel, "Missing program");
-        ProgramVO program = programService.getByLabel(programLabel);
-
-        if (program == null) throw new SumarisTechnicalException(String.format("Program {%s} not found", programLabel));
-
-        // ALl pmfm from the program
-        if (StringUtils.isBlank(acquisitionLevel)) {
-            List<PmfmStrategyVO> res = strategyService.getPmfmStrategies(program.getId());
-            return res;
-        }
-
-        ReferentialVO acquisitionLevelVO = referentialService.findByUniqueLabel(AcquisitionLevel.class.getSimpleName(), acquisitionLevel);
-        return strategyService.getPmfmStrategiesByAcquisitionLevel(program.getId(), acquisitionLevelVO.getId());
-
-    }
-
-    @GraphQLQuery(name = "programGears", description = "Get program's gears")
-    @Transactional(readOnly = true)
-    public List<ReferentialVO> getProgramGears(
-            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel) {
-        Preconditions.checkNotNull(programLabel, "Missing program");
-        ProgramVO program = programService.getByLabel(programLabel);
-
-        if (program == null) throw new SumarisTechnicalException(String.format("Program {%s} not found", programLabel));
-
-        return strategyService.getGears(program.getId());
-
-    }
-
-    @GraphQLQuery(name = "programTaxonGroups", description = "Get program's taxon groups")
-    @Transactional(readOnly = true)
-    public List<ReferentialVO> getProgramTaxonGroups(
-            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel) {
-        Preconditions.checkNotNull(programLabel, "Missing program");
-        ProgramVO program = programService.getByLabel(programLabel);
-
-        if (program == null) throw new SumarisTechnicalException(String.format("Program {%s} not found", programLabel));
-
-        return strategyService.getTaxonGroups(program.getId());
-
-    }
-
     public DepartmentVO fillLogo(DepartmentVO department) {
         if (department != null && department.isHasLogo() && StringUtils.isBlank(department.getLogo()) && StringUtils.isNotBlank(department.getLabel())) {
             department.setLogo(departmentLogoUrl.replace("{label}", department.getLabel()));
@@ -374,6 +267,8 @@ public class AdministrationGraphQLService {
     }
 
     /* -- Protected methods -- */
+
+
 
     protected void fillAvatar(PersonVO person) {
         if (person == null) return;

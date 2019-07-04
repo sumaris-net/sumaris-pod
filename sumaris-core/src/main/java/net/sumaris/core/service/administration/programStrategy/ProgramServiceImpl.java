@@ -62,5 +62,10 @@ public class ProgramServiceImpl implements ProgramService {
 	public ProgramVO getByLabel(String label) {
 		return programDao.getByLabel(label);
 	}
+
+	@Override
+	public ProgramVO save(ProgramVO program) {
+		return programDao.save(program);
+	}
 }
 

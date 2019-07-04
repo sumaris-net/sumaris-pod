@@ -29,11 +29,18 @@ import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.UserProfile;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +49,11 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -207,6 +216,84 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
         return target;
     }
 
+    @Override
+    public ProgramVO save(ProgramVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel(), "Missing 'label'");
+        Preconditions.checkNotNull(source.getName(), "Missing 'name'");
+        Preconditions.checkNotNull(source.getStatusId(), "Missing 'statusId'");
+
+        EntityManager entityManager = getEntityManager();
+        Program entity = null;
+        if (source.getId() != null) {
+            entity = get(Program.class, source.getId());
+        }
+        boolean isNew = (entity == null);
+        if (isNew) {
+            entity = new Program();
+        }
+
+        // If new
+        if (isNew) {
+            // Set default status to Temporary
+            if (source.getStatusId() == null) {
+                source.setStatusId(config.getStatusIdTemporary());
+            }
+        }
+        // If update
+        else {
+
+            // Check update date
+            checkUpdateDateForUpdate(source, entity);
+
+            // Lock entityName
+            lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
+        }
+
+        programVOToEntity(source, entity, true);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+        if (isNew) {
+            // Force creation date
+            entity.setCreationDate(newUpdateDate);
+            source.setCreationDate(newUpdateDate);
+
+            entityManager.persist(entity);
+            source.setId(entity.getId());
+        } else {
+            entityManager.merge(entity);
+        }
+
+        source.setUpdateDate(newUpdateDate);
+
+        getEntityManager().flush();
+        getEntityManager().clear();
+
+        // Emit event to listeners
+        //emitSaveEvent(source);
+
+        return source;
+    }
+
     /* -- protected methods -- */
 
+    protected void programVOToEntity(ProgramVO source, Program target, boolean copyIfNull) {
+
+        Beans.copyProperties(source, target);
+
+        // Status
+        if (copyIfNull || source.getStatusId() != null) {
+            if (source.getStatusId() == null) {
+                target.setStatus(null);
+            }
+            else {
+                target.setStatus(load(Status.class, source.getStatusId()));
+            }
+        }
+
+    }
 }

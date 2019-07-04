@@ -27,9 +27,9 @@ import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
-import io.leangen.graphql.metadata.strategy.type.DefaultTypeTransformer;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
+import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
 import net.sumaris.server.http.graphql.extraction.AggregationGraphQLService;
 import net.sumaris.server.http.graphql.extraction.ExtractionGraphQLService;
@@ -55,6 +55,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
     @Autowired
     private AdministrationGraphQLService administrationService;
+
+    @Autowired
+    private ProgramGraphQLService programService;
 
     @Autowired
     private ConfigurationGraphQLService podConfigurationService;
@@ -85,6 +88,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         return new GraphQLSchemaGenerator()
                 .withResolverBuilders(new AnnotatedResolverBuilder())
                 .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
+                .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
                 .withOperationsFromSingleton(dataService, DataGraphQLService.class)
                 .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
                 .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)

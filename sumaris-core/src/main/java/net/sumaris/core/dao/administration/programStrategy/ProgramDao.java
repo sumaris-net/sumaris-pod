@@ -47,4 +47,5 @@ public interface ProgramDao {
 
     ProgramVO toProgramVO(Program source);
 
+    ProgramVO save(ProgramVO program);
 }

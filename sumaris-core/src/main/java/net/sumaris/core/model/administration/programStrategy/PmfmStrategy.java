@@ -76,21 +76,21 @@ public class PmfmStrategy implements IEntity<Integer> {
     @JoinColumn(name = "acquisition_level_fk", nullable = false)
     private AcquisitionLevel acquisitionLevel;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "pmfm_strategy2gear", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {
                     @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
     private Set<Gear> gears = Sets.newHashSet();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "pmfm_strategy2taxon_group", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {
                     @JoinColumn(name = "taxon_group_fk", nullable = false, updatable = false) })
     private Set<TaxonGroup> taxonGroups = Sets.newHashSet();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "pmfm_strategy2reference_taxon", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {

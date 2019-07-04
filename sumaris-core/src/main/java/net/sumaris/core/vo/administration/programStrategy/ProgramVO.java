@@ -28,6 +28,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -46,5 +47,7 @@ public class ProgramVO implements IReferentialVO {
     private Integer statusId;
 
     private Map<String, String> properties;
+
+    private List<StrategyVO> strategies;
 
 }

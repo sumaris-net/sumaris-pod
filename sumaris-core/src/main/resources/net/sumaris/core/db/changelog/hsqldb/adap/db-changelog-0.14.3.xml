@@ -50,13 +50,12 @@
         </sql>
     </changeSet>
 
-
     <!-- Set FISHING_SPEED [min,max] to [2,5]-->
     <changeSet author="benoit.lavenier@e-is.pro" id="1562234974772-302" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-                <not><sqlCheck expectedResult="5">SELECT MAX_VALUE FROM PMFM_STRATEGY WHERE PMFM_FK=9 AND STRATEGY_FK=10 AND ACQUISITION_LEVEL_FK=3</sqlCheck></not>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM PMFM_STRATEGY WHERE PMFM_FK=9 AND STRATEGY_FK=10 AND ACQUISITION_LEVEL_FK=3 AND MAX_VALUE IS NULL</sqlCheck>
             </and>
         </preConditions>
         <sql><![CDATA[
@@ -64,6 +63,21 @@
             set min_value=2,
             max_value=5
             where PMFM_FK=9 AND STRATEGY_FK=10 AND ACQUISITION_LEVEL_FK=3
+            ]]>
+        </sql>
+    </changeSet>
+
+    <!-- Remove collect of LANDING_WEIGHT on catch batch -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562234974772-303" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not><sqlCheck expectedResult="5">SELECT count(*) FROM where PMFM_FK=50 AND STRATEGY_FK=10 AND ACQUISITION_LEVEL_FK=4</sqlCheck></not>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            delete PMFM_STRATEGY
+            where PMFM_FK=50 AND STRATEGY_FK=10 AND ACQUISITION_LEVEL_FK=4
             ]]>
         </sql>
     </changeSet>
