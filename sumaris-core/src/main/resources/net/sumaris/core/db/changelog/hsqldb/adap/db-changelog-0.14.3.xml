@@ -76,7 +76,7 @@
             </and>
         </preConditions>
         <sql><![CDATA[
-            delete PMFM_STRATEGY
+            delete from PMFM_STRATEGY
             where PMFM_FK=50 AND STRATEGY_FK=10 AND ACQUISITION_LEVEL_FK=4
             ]]>
         </sql>
