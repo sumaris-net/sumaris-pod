@@ -161,6 +161,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     };
   }
 
+  copyValue(source: string, target: string) {
+    const value = this.form.get(source).value;
+    this.form.get(target).setValue(value);
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }

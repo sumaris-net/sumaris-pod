@@ -306,6 +306,7 @@
         "TITLE": "Nouvelle opération"
       },
       "EDIT": {
+        "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
         "TITLE": "<small class='hidden-xs hidden-sm'>{{vessel}} - Marée {{departureDateTime}} - </small>Ope {{startDateTime}}",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
@@ -505,7 +506,7 @@
       "COMMENTS": "Commentaires"
     },
     "SELECT_MODAL": {
-      "TITLE": "Détail des navre contrôlés"
+      "TITLE": "Détail des navires contrôlés"
     },
     "ERROR": {
       "LOAD_ALL_ERROR": "Erreur de chargement des navires observés.",

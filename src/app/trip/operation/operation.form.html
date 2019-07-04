@@ -3,7 +3,8 @@
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm>
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    >
   </ion-item>
 
   <ion-grid no-padding>
@@ -16,15 +17,17 @@
       <!-- Physical gear -->
       <ion-col size="12" size-md="4" size-lg="3">
         <mat-form-field>
-          <input matInput [placeholder]="'TRIP.OPERATION.LIST.PHYSICAL_GEAR'|translate" [matAutocomplete]="autoPhysicalGear"
-            (focus)="onFocusPhysicalGear.emit()" formControlName="physicalGear" required>
-          <mat-error *ngIf="form.controls['physicalGear']?.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <input matInput [placeholder]="'TRIP.OPERATION.LIST.PHYSICAL_GEAR'|translate"
+                 [matAutocomplete]="autoPhysicalGear"
+                 (focus)="onFocusPhysicalGear.emit()" formControlName="physicalGear" required>
+          <mat-error *ngIf="form.controls['physicalGear']?.hasError('required')" translate>ERROR.FIELD_REQUIRED
+          </mat-error>
           <mat-error *ngIf="form.controls['physicalGear']?.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Physical gear combo -->
         <mat-autocomplete autoActiveFirstOption #autoPhysicalGear="matAutocomplete" [displayWith]="physicalGearToString"
-          class="mat-gear-autocomplete">
+                          class="mat-gear-autocomplete">
           <ion-row class="mat-autocomplete-header">
             <ion-col size="1">
               <ion-text translate>TRIP.PHYSICAL_GEAR.RANK_ORDER</ion-text>
@@ -42,8 +45,10 @@
               <ion-col size="1">
                 <ion-text>{{item.rankOrder}}</ion-text>
               </ion-col>
-              <ion-col size="2" [innerHTML]="item.gear.label | highlight: {search: form.controls['physicalGear'].value }"></ion-col>
-              <ion-col [innerHTML]="item.gear.name | highlight: {search: form.controls['physicalGear'].value }"></ion-col>
+              <ion-col size="2"
+                       [innerHTML]="item.gear.label | highlight: {search: form.controls['physicalGear'].value }"></ion-col>
+              <ion-col
+                [innerHTML]="item.gear.name | highlight: {search: form.controls['physicalGear'].value }"></ion-col>
             </ion-row>
           </mat-option>
         </mat-autocomplete>
@@ -54,7 +59,7 @@
       <ion-col size="12" size-md="6">
         <mat-form-field>
           <input matInput [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate" [matAutocomplete]="autoMetier"
-            formControlName="metier" (focus)="onFocusMetier.emit()" required>
+                 formControlName="metier" (focus)="onFocusMetier.emit()" required>
           <mat-error *ngIf="form.controls['metier'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls['metier'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
@@ -72,7 +77,8 @@
 
           <mat-option *ngFor="let item of metiers | async" [value]="item" no-padding>
             <ion-row>
-              <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls['metier'].value }"></ion-col>
+              <ion-col size="3"
+                       [innerHTML]="item.label | highlight: {search: form.controls['metier'].value }"></ion-col>
               <ion-col [innerHTML]="item.name | highlight: {search: form.controls['metier'].value }"></ion-col>
             </ion-row>
           </mat-option>
@@ -94,8 +100,9 @@
               </mat-date-time>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
-              <mat-latlong formControlName="latitude" type="latitude" [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
-                  [latLongPattern]="latLongFormat">
+              <mat-latlong formControlName="latitude" type="latitude"
+                           [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
+                           [latLongPattern]="latLongFormat">
               </mat-latlong>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
@@ -103,8 +110,15 @@
                            type="longitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat">
-                <button type="button" mat-icon-button matSuffix (click)="fillPosition('startPosition')" tabindex="-1" *ngIf="enableGps">
+                <button type="button" mat-icon-button matSuffix (click)="fillPosition('startPosition')" tabindex="-1"
+                        *ngIf="enableGps">
                   <mat-icon>gps_fixed</mat-icon>
+                </button>
+                <button type="button" mat-icon-button matSuffix
+                        *ngIf="!enableGps"
+                        (click)="copyValue('startPosition', 'endPosition')"
+                        [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
+                  <mat-icon>arrow_downward</mat-icon>
                 </button>
               </mat-latlong>
             </ion-col>
@@ -125,7 +139,8 @@
             <ion-col size="12" size-lg="4">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate" formControlName="endDateTime">
                 <mat-hint align="end" *ngIf="form.controls['endDateTime'].value">
-                  <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls['startDateTime'].value, endValue: form.controls['endDateTime'].value} | dateDiffDuration }}
+                  <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {startValue: form.controls['startDateTime'].value,
+                  endValue: form.controls['endDateTime'].value} | dateDiffDuration }}
                 </mat-hint>
               </mat-date-time>
             </ion-col>
@@ -141,7 +156,8 @@
                            type="longitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat">
-                <button type="button" mat-icon-button matSuffix (click)="fillPosition('endPosition')" tabindex="-1" *ngIf="enableGps">
+                <button type="button" mat-icon-button matSuffix (click)="fillPosition('endPosition')" tabindex="-1"
+                        *ngIf="enableGps">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
               </mat-latlong>
