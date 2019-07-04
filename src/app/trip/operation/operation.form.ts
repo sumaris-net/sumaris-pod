@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
 import {OperationValidatorService} from "../services/operation.validator";
-import {Operation, PhysicalGear, Trip} from "../services/trip.model";
-import {Platform} from "@ionic/angular";
+import {fromDateISOString, Operation, PhysicalGear, Trip} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
@@ -18,6 +17,7 @@ import {UsageMode} from "../../core/services/model";
 import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'form-operation',
@@ -49,13 +49,26 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   set trip(trip: Trip) {
     this._trip = trip;
 
-    // Use trip physical gear Object (if possible)
-    let physicalGear = this.form.get("physicalGear").value;
-    if (physicalGear && physicalGear.id) {
-      physicalGear = (this.trip.gears || [physicalGear]).find(g => g.id == physicalGear.id);
-      if (physicalGear) {
-        this.form.controls["physicalGear"].patchValue(physicalGear);
+    if (trip) {
+      // Use trip physical gear Object (if possible)
+      let physicalGear = this.form.get("physicalGear").value;
+      if (physicalGear && physicalGear.id) {
+        physicalGear = (trip.gears || []).find(g => g.id === physicalGear.id) || physicalGear;
+        if (physicalGear) {
+          this.form.controls["physicalGear"].patchValue(physicalGear);
+        }
       }
+
+      // Add validator on trip date
+      this.form.get('endDateTime').setAsyncValidators(async (control) => {
+        const endDateTime = fromDateISOString(control.value);
+        // Make sure: departureDateTime < endDateTime < returnDateTime
+        if (endDateTime && ((trip.departureDateTime && endDateTime.isBefore(trip.departureDateTime))
+          || (trip.returnDateTime && endDateTime.isAfter(trip.returnDateTime)))) {
+          return {msg: await this.translate.get('TRIP.OPERATION.ERROR.FIELD_DATE_OUTSIDE_TRIP').toPromise() };
+        }
+        return null;
+      });
     }
   }
 
@@ -65,6 +78,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected referentialRefService: ReferentialRefService,
     protected accountService: AccountService,
     protected settingsService: LocalSettingsService,
+    protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
 

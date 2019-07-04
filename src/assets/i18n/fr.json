@@ -335,6 +335,7 @@
         "COMMENTS": "Commentaires"
       },
       "ERROR": {
+        "FIELD_DATE_OUTSIDE_TRIP": "Date hors de la marée",
         "LOAD_OPERATION_ERROR": "Erreur de chargement de l'opération.",
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
