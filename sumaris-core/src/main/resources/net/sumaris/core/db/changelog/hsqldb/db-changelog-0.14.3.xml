@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.14.0.xml">
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562234974772-1">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="pmfm2qualitative_value"/></not>
+    </preConditions>
+    <createTable tableName="pmfm2qualitative_value">
+      <column name="pmfm_fk" type="INT">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="qualitative_value_fk" type="INT">
+        <constraints primaryKey="true"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562234974772-9" failOnError="false" >
+    <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="pmfm2qualitative_value" constraintName="FK5d3a2j8k54lbwimn10puic6o3" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Pmfm" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562234974772-10" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="pmfm2qualitative_value" constraintName="FKk19xef05k87g8lmnisy3ho7hi" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562234974772-200">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='0.14.3'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">0.14.3</column>
+      <column name="DESCRIPTION">
+        - Add table pmfm2qualitative_value
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>
