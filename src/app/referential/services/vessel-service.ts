@@ -1,6 +1,5 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
 import {EntityUtils, Person, VesselFeatures} from "./model";
 import {LoadResult, TableDataService} from "../../shared/shared.module";
@@ -12,6 +11,7 @@ import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
+import {ReferentialFragments} from "./referential.queries";
 
 export declare class VesselFilter {
   date?: Date | Moment;
@@ -19,116 +19,88 @@ export declare class VesselFilter {
   searchText?: string;
 }
 
+export const VesselFragments = {
+  lightVessel: gql`fragment LightVesselFragment on VesselFeaturesVO {
+    id
+    startDate
+    endDate
+    name
+    exteriorMarking
+    administrativePower
+    lengthOverAll
+    grossTonnageGt
+    grossTonnageGrt
+    creationDate
+    updateDate
+    comments
+    vesselId
+    vesselTypeId
+    basePortLocation {
+      ...ReferentialFragment
+    }
+    recorderDepartment {
+     ...RecorderDepartmentFragment
+    }
+  }`,
+  vessel: gql`fragment VesselFragment on VesselFeaturesVO {
+    id
+    startDate
+    endDate
+    name
+    exteriorMarking
+    administrativePower
+    lengthOverAll
+    grossTonnageGt
+    grossTonnageGrt
+    creationDate
+    updateDate
+    comments
+    vesselId
+    vesselTypeId
+    basePortLocation {
+      ...ReferentialFragment
+    }
+    recorderDepartment {
+      ...RecorderDepartmentFragment
+    }
+    recorderPerson {
+      ...RecorderPersonFragment
+    }
+  }`,
+};
+
 const LoadAllQuery: any = gql`
   query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
     vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      id
-      startDate
-      endDate
-      name
-      exteriorMarking
-      administrativePower
-      lengthOverAll
-      grossTonnageGt
-      grossTonnageGrt
-      creationDate
-      updateDate
-      comments
-      vesselId
-      vesselTypeId
-      basePortLocation {
-        id
-        label
-        name
-      }
-      recorderDepartment {
-        id
-        label
-        name
-      }
+      ...LightVesselFragment
     }
   }
+  ${VesselFragments.lightVessel}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.recorderDepartment}
 `;
 const LoadQuery: any = gql`
   query Vessel($vesselId: Int, $vesselFeaturesId: Int) {
     vessels(filter: {vesselId: $vesselId, vesselFeaturesId: $vesselFeaturesId}) {
-      id
-      startDate
-      endDate
-      name
-      exteriorMarking
-      administrativePower
-      lengthOverAll
-      grossTonnageGt
-      grossTonnageGrt
-      creationDate
-      updateDate
-      comments
-      vesselId
-      vesselTypeId
-      basePortLocation {
-        id
-        label
-        name
-      }
-      recorderDepartment {
-        id
-        label
-        name
-      }
-      recorderPerson {
-        id
-        firstName
-        lastName
-        department {
-          id
-          label
-          name
-        }
-      }
+      ...VesselFragment
     }
   }
+  ${VesselFragments.vessel}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.recorderDepartment}
+  ${ReferentialFragments.recorderPerson}
 `;
 
 const SaveVessels: any = gql`
   mutation saveVessels($vessels:[VesselFeaturesVOInput]){
     saveVessels(vessels: $vessels){
-      id
-      startDate
-      endDate
-      name
-      exteriorMarking
-      administrativePower
-      lengthOverAll
-      grossTonnageGt
-      grossTonnageGrt
-      creationDate
-      updateDate
-      comments
-      vesselId
-      vesselTypeId
-      basePortLocation {
-        id
-        label
-        name
-      }
-      recorderDepartment {
-        id
-        label
-        name
-      }
-      recorderPerson {
-        id
-        firstName
-        lastName
-        department {
-          id
-          label
-          name
-        }
-      }
+      ...VesselFragment
     }
   }
+  ${VesselFragments.vessel}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.recorderDepartment}
+  ${ReferentialFragments.recorderPerson}
 `;
 
 const DeleteVessels: any = gql`

@@ -546,7 +546,7 @@
     "ADMINISTRATIVE_POWER": "Puissance administrative (kW)",
     "LENGTH_OVER_ALL": "Longueur hors tout (m)",
     "EDIT": {
-      "TITLE": "Navire"
+      "TITLE": "Navire {{exteriorMarking}}"
     },
     "NEW": {
       "TITLE": "Nouveau navire"

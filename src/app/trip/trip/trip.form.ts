@@ -31,6 +31,19 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   @Input() showComment = true;
   @Input() showError = true;
 
+  get value(): any {
+    const json = this.form.value;
+
+    // Add program, because if control disabled the value is missing
+    json.program = this.form.get('program').value;
+
+    return json;
+  }
+
+  set value(json: any) {
+    super.setValue(json);
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: TripValidatorService,
@@ -101,6 +114,10 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
     return modal.present();
   }
+
+  /* -- protected methods-- */
+
+
 
   vesselFeaturesToString = vesselFeaturesToString;
   referentialToString = referentialToString;

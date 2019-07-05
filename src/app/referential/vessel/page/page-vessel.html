@@ -1,4 +1,6 @@
-<app-toolbar [title]="'VESSEL.EDIT.TITLE'|translate" color="primary" [hasValidate]="form.dirty && !loading" (onValidate)="save($event, form.value)">
+<app-toolbar [title]="$title|async" color="primary"
+             [hasValidate]="form.dirty && !loading" (onValidate)="save($event)"
+              canGoBack="true">
 </app-toolbar>
 
 <ion-content>
@@ -13,7 +15,7 @@
 
       <ion-row no-padding>
         <ion-col padding>
-          <form-vessel (onSubmit)="save($event, form.value)" #form>
+          <form-vessel (onSubmit)="save($event)" #form>
           </form-vessel>
         </ion-col>
         <ion-col size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3" no-padding>
@@ -27,5 +29,5 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm>
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event, form.value) " [disabled]="!form.dirty || loading "></form-buttons-bar>
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!form.dirty || loading "></form-buttons-bar>
 </ion-footer>

@@ -77,21 +77,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
 
     const updatedGear = await this.openDetailModal(gear);
     if (updatedGear) {
-
-      // Adapt measurement values to row
-      this.normalizeRowMeasurementValues(updatedGear, row);
-
-      // Affect new row
-      if (row.validator) {
-        row.validator.patchValue(updatedGear);
-        this.confirmEditCreate(null, row);
-        row.validator.markAsDirty();
-      }
-      else {
-        row.currentData = updatedGear;
-        this.markForCheck();
-      }
-      this.markAsDirty();
+      await this.addGearToTable(updatedGear, row);
     }
     return true;
   }
@@ -125,14 +111,18 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
     return (data instanceof PhysicalGear) ? data : undefined;
   }
 
-  protected async addGearToTable(gear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
+  protected async addGearToTable(gear: PhysicalGear, row?: TableElement<PhysicalGear>): Promise<TableElement<PhysicalGear>> {
     if (this.debug) console.debug("[physical-gear-table] Adding new gear", gear);
 
-    const row = await this.addRowToTable();
-    if (!row) throw new Error("Could not add row t table");
+    // Create a new row, if need
+    if (!row) {
+      row = await this.addRowToTable();
+      if (!row) throw new Error("Could not add row t table");
 
-    // Use the generated rankOrder
-    gear.rankOrder = row.currentData.rankOrder;
+      // Use the generated rankOrder
+      gear.rankOrder = row.currentData.rankOrder;
+
+    }
 
     // Adapt measurement values to row
     this.normalizeRowMeasurementValues(gear, row);
@@ -140,13 +130,13 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
     // Affect new row
     if (row.validator) {
       row.validator.patchValue(gear);
-      this.confirmEditCreate(null, row);
       row.validator.markAsDirty();
     }
     else {
       row.currentData = gear;
-      this.markForCheck();
     }
+
+    this.confirmEditCreate(null, row);
     this.markAsDirty();
 
     return row;

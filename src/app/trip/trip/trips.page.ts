@@ -102,7 +102,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = this.isAdmin || this.accountService.isUser();
     this.canDelete = this.isAdmin;
-    console.log("Can edit: " + this.canEdit);
+    if (this.debug) console.debug("[trips-page] Can user edit table ? " + this.canEdit);
 
     // Programs combo (filter)
     this.programs = this.filterForm.controls['program']

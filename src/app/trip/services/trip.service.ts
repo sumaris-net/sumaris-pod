@@ -9,7 +9,7 @@ import {Moment} from "moment";
 
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
-import {Fragments} from "./trip.queries";
+import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 
@@ -59,9 +59,7 @@ export const TripFragments = {
       ...RecorderPersonFragment
     }
     vesselFeatures {
-      vesselId,
-      name,
-      exteriorMarking
+     ...VesselFeaturesFragment
     }
     observers {
       ...RecorderPersonFragment
@@ -70,6 +68,7 @@ export const TripFragments = {
   ${Fragments.location}
   ${Fragments.recorderDepartment}
   ${Fragments.recorderPerson}
+  ${DataFragments.vesselFeatures}
   `,
   trip: gql`fragment TripFragment on TripVO {
     id
@@ -99,9 +98,7 @@ export const TripFragments = {
       ...RecorderPersonFragment
     }
     vesselFeatures {
-      vesselId
-      name
-      exteriorMarking
+      ...VesselFeaturesFragment
     }
     sale {
       id
@@ -131,6 +128,7 @@ export const TripFragments = {
   ${Fragments.measurement}
   ${Fragments.referential}
   ${Fragments.location}
+  ${DataFragments.vesselFeatures}
   ${physicalGearFragment}
   `
 };
@@ -255,7 +253,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       query: LoadAllQuery,
       variables: variables,
       error: { code: ErrorCodes.LOAD_TRIPS_ERROR, message: "TRIP.ERROR.LOAD_TRIPS_ERROR" },
-      fetchPolicy: options && options.fetchPolicy || 'network-only' /*default*/
+      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
         //throttleTime(200),

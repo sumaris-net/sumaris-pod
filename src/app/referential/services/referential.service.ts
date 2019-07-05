@@ -1,11 +1,10 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {first, map} from "rxjs/operators";
-import {EntityUtils, isNil, isNotNil, Referential, StatusIds} from "./model";
-import {TableDataService, LoadResult} from "../../shared/shared.module";
+import {map} from "rxjs/operators";
+import {EntityUtils, isNotNil, Referential, StatusIds} from "./model";
+import {LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
-import {Apollo} from "apollo-angular";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 

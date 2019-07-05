@@ -139,6 +139,7 @@ export const DataFragments = {
   }
   ${Fragments.referential}`,
   vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {
+    id
     vesselId
     name
     exteriorMarking

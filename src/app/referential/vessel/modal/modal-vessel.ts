@@ -45,6 +45,8 @@ export class VesselModal implements OnInit {
     if (this.disabled) return;
 
     if (this.formVessel.invalid) {
+      this.formVessel.markAsTouched();
+
       AppFormUtils.logFormErrors(this.formVessel.form);
       return;
     }

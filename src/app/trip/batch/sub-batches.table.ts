@@ -385,14 +385,13 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       // Affect new row
       if (row.validator) {
         row.validator.patchValue(newBatch);
-        this.confirmEditCreate(null, row);
         row.validator.markAsDirty();
       }
       else {
         row.currentData = newBatch;
-        this.markForCheck();
       }
     }
+    this.confirmEditCreate(null, row);
     this.markAsDirty();
     return row;
   }
