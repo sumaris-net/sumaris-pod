@@ -25,8 +25,9 @@ export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
         departureDateTime: ['', Validators.required],
         departureLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
         returnDateTime: ['', isOnFieldMode ? null : Validators.required],
-        returnLocation: ['', isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
-        observers: this.getObserversArray(data)
+        returnLocation: ['', isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])]
+        // TODO: enable observers
+        //,observers: this.getObserversArray(data)
       });
   }
 

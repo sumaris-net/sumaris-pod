@@ -162,11 +162,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     });
 
     setTimeout(async () => {
-      await this.router.navigate(['../../' + data.id], {
-        replaceUrl: true,
-        relativeTo: this.route,
-        queryParams: this.queryParams,
-      });
+      await this.updateRoute(data, this.queryParams);
     }, 100);
 
   }
@@ -246,6 +242,12 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   protected async onEntityLoaded(data: T, options?: EditorDataServiceLoadOptions): Promise<void> {
     // can be overwrite by subclasses
+  }
+
+  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
+    // can be overwrite by subclasses
+    console.warn(`${this.constructor.name} should implement fucntion updateRoute() to have correct URL, after saving entity`);
+    return false;
   }
 
   protected computeUsageMode(data: T): UsageMode {

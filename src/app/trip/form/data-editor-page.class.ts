@@ -103,7 +103,7 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, F = any> ex
     super.enable();
   }
 
-  public async onControl(event: Event) {
+  async onControl(event: Event) {
     // Stop if data is not valid
     if (!this.valid) {
       // Stop the control
@@ -126,6 +126,13 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, F = any> ex
   }
 
   /* -- protected methods -- */
+
+  protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
+    return await this.router.navigateByUrl(`${this.defaultBackHref}/${data.id}`, {
+      replaceUrl: true,
+      queryParams: this.queryParams
+    });
+  }
 
   protected async getValue(): Promise<T> {
 
