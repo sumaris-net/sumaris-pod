@@ -41,6 +41,7 @@ export class SharedValidators {
   static entity(control: FormControl): ValidationErrors | null {
     const value = control.value;
     if (value && (typeof value !== 'object' || value.id === undefined || value.id === null)) {
+      console.log("TODO: failed entity validator", value);
       return { entity: true };
     }
     return null;

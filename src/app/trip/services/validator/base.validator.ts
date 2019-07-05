@@ -63,7 +63,9 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>> implem
       controlDate: [''],
       qualificationDate: [''],
       qualificationComments: [''],
-      recorderDepartment: ['', Validators.compose([Validators.required, SharedValidators.entity])]
+      // TODO: FIXME if required, should be set when creating the new entity
+      recorderDepartment: ['', SharedValidators.entity]
+      //recorderDepartment: ['', Validators.compose([Validators.required, SharedValidators.entity])]
     };
   }
 
@@ -92,7 +94,7 @@ export abstract class DataRootEntityValidatorService<T extends DataRootEntity<T>
       {
         program: ['', Validators.compose([Validators.required, SharedValidators.entity])],
         creationDate: [''],
-        recorderPerson: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+        recorderPerson: ['', SharedValidators.entity],
         comments: ['', Validators.maxLength(2000)]
       });
   }

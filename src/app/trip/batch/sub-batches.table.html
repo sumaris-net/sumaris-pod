@@ -184,7 +184,7 @@
             <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
           </mat-header-cell>
           <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-            <mat-form-field>
+            <mat-form-field floatLabel="never">
               <input matInput
                      autocomplete="off"
                      [formControl]="row.validator.controls.individualCount"

@@ -108,7 +108,7 @@ export class ConfigService extends BaseDataService {
         this._startPromise = undefined;
       })
       .catch((err) => {
-        console.error(err && err.message || err);
+        console.error(err && err.message || err, err);
         this._startPromise = undefined;
       });
     return this._startPromise;
@@ -187,7 +187,7 @@ export class ConfigService extends BaseDataService {
         setTimeout(() => this.saveLocally(data), 500);
       }
     } catch (err) {
-      console.error(err && err.message || err);
+      console.error(err && err.message || err, err);
     }
 
     // If not loaded remotely: try to restore it
@@ -217,7 +217,7 @@ export class ConfigService extends BaseDataService {
         const json = JSON.parse(value);
         data = Configuration.fromObject(json as any);
       } catch (err) {
-        console.error(err && err.message || err);
+        console.error(err && err.message || err, err);
       }
     }
 

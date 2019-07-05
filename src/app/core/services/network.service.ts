@@ -89,7 +89,7 @@ export class NetworkService {
         this.onStart.next(peer);
       })
       .catch((err) => {
-        console.error(err && err.message || err);
+        console.error(err && err.message || err, err);
         this._started = false;
         this._startPromise = undefined;
       })

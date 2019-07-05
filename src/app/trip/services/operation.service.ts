@@ -4,7 +4,7 @@ import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
 import {
   Batch,
-  DataEntity,
+  DataEntity, Department,
   EntityUtils,
   isNil,
   Measurement,
@@ -15,11 +15,12 @@ import {
 } from "./trip.model";
 import {map} from "rxjs/operators";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
-import {AccountService, BaseDataService, environment} from "../../core/core.module";
+import {AccountService, AcquisitionLevelCodes, BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
+import {isNilOrBlank} from "../../shared/functions";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -408,6 +409,11 @@ export class OperationService extends BaseDataService implements TableDataServic
     if (!entity.tripId && options) {
       entity.tripId = options.tripId;
     }
+
+    // Fill catch batch label
+    if (entity.catchBatch && isNilOrBlank(entity.catchBatch.label)) {
+      entity.catchBatch.label = AcquisitionLevelCodes.CATCH_BATCH;
+    }
   }
 
   fillRecorderPartment(entity: DataEntity<Operation | VesselPosition | Measurement>) {
@@ -417,7 +423,7 @@ export class OperationService extends BaseDataService implements TableDataServic
 
       // Recorder department
       if (person && person.department) {
-        entity.recorderDepartment.id = person.department.id;
+        entity.recorderDepartment = Department.fromObject({id: person.department.id});
       }
     }
   }

@@ -1,25 +1,46 @@
 import {Injectable} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Trip} from "./trip.model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {DataRootEntityValidatorService} from "./validator/base.validator";
 
 @Injectable()
-export class TripValidatorService implements ValidatorService {
+export class TripValidatorService extends DataRootEntityValidatorService<Trip> {
 
   constructor(
-    private formBuilder: FormBuilder,
-    private settings: LocalSettingsService
+    protected formBuilder: FormBuilder,
+    protected settings: LocalSettingsService
   ) {
-
+    super(formBuilder);
   }
 
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
+  getFormConfig(data?: Trip): { [key: string]: any } {
+    const isOnFieldMode = this.settings.isUsageMode('FIELD');
+
+    return Object.assign(
+      super.getFormConfig(data),
+      {
+        vesselFeatures: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+        departureDateTime: ['', Validators.required],
+        departureLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+        returnDateTime: ['', isOnFieldMode ? null : Validators.required],
+        returnLocation: ['', isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
+        observers: this.getObserversArray(data)
+      });
   }
 
-  getFormGroup(data?: Trip): FormGroup {
+  getFormOptions(data?: any): { [key: string]: any } {
+    return {
+      validator: Validators.compose([
+        SharedValidators.dateIsAfter('departureDateTime', 'returnDateTime'),
+        SharedValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
+        SharedValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
+      ])
+    };
+  }
+
+  getFormGroupOld(data?: Trip): FormGroup {
     const isOnFieldMode = this.settings.isUsageMode('FIELD');
 
     return this.formBuilder.group({

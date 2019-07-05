@@ -79,7 +79,7 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
 
   protected constructor() {
     super();
-    this.recorderDepartment = new Department();
+    this.recorderDepartment = null;
   }
 
   asObject(minify?: boolean): any {
@@ -94,7 +94,7 @@ export abstract class DataEntity<T> extends Entity<T> implements IWithRecorderDe
 
   fromObject(source: any): DataEntity<T> {
     super.fromObject(source);
-    source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
+    this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     this.controlDate = fromDateISOString(source.controlDate);
     this.qualificationDate = fromDateISOString(source.qualificationDate);
     this.qualificationComments = source.qualificationComments;
@@ -116,7 +116,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     this.creationDate = null;
     this.validationDate = null;
     this.comments = null;
-    this.recorderPerson = new Person();
+    this.recorderPerson = null;
     this.program = null;
   }
 
@@ -134,7 +134,7 @@ export abstract class DataRootEntity<T> extends DataEntity<T> implements IWithRe
     this.comments = source.comments;
     this.creationDate = fromDateISOString(source.creationDate);
     this.validationDate = fromDateISOString(source.validationDate);
-    source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
+    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     this.program = source.program && ReferentialRef.fromObject(source.program);
     return this;
   }

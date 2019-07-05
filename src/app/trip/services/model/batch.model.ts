@@ -1,9 +1,8 @@
-import {EntityUtils, fromDateISOString, isNil, isNotNil, toDateISOString} from "../../../core/core.module";
-import {AcquisitionLevelCodes, Person, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
-import {Moment} from "moment/moment";
-import {DataEntity, DataRootEntity, DataRootVesselEntity} from "./base.model";
-import {IEntityWithMeasurement, Measurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
-import {isNotNilOrBlank} from "../../../shared/functions";
+import {EntityUtils, isNil, isNotNil} from "../../../core/core.module";
+import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
+import {DataEntity} from "./base.model";
+import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
+import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
 
 
 export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<Batch> {
@@ -19,7 +18,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
   static fromObjectArrayAsTree(source: any[]): Batch {
     if (!source) return null;
     const batches = (source || []).map(Batch.fromObject);
-    const catchBatch = batches.find(b => isNil(b.parentId) && (isNil(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
+    const catchBatch = batches.find(b => isNil(b.parentId) && (isNilOrBlank(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
     if (catchBatch) {
       batches.forEach(s => {
         // Link to parent
@@ -57,14 +56,21 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
 
   constructor() {
     super();
-    this.parent = null;
+    this.label = null;
+    this.rankOrder = null;
+    this.exhaustiveInventory = null;
+    this.samplingRatio = null;
+    this.samplingRatioText = null;
+    this.individualCount = null;
     this.taxonGroup = null;
     this.taxonName = null;
+    this.comments = null;
+
+    this.operationId = null;
+    this.parentId = null;
+    this.parent = null;
     this.measurementValues = {};
     this.children = [];
-    this.individualCount = null;
-    this.samplingRatio = null;
-    this.rankOrder = null;
   }
 
   clone(): Batch {

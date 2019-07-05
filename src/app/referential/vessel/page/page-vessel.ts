@@ -91,11 +91,11 @@ export class VesselPage implements OnInit {
       this.form.markAsPristine();
 
     } catch(err ) {
-      console.error(err && err.message || err);
+      console.error(err && err.message || err, err);
       this.form.error = err && err.message || err;
+      this.form.enable();
     }
     finally {
-      this.form.enable();
     }
   }
 

@@ -330,7 +330,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     this.qvPmfm = qvPmfm;
     const subBatches = BatchUtils.prepareSubBatchesForTable(parents, this.acquisitionLevel, qvPmfm);
-    console.debug("TODO: subbatches=", subBatches);
+    //console.debug("TODO: check subbatches: ", subBatches);
 
     await this.setAvailableParents(parents, {emitEvent: false, linkDataToParent: false});
 

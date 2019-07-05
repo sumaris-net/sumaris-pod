@@ -28,8 +28,8 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
 
   constructor() {
     super();
-    this.program = new ReferentialRef();
-    this.location = new ReferentialRef();
+    this.program = null;
+    this.location = null;
     this.measurementValues = {};
     this.observers = [];
     this.landings = [];
@@ -60,10 +60,10 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
 
   fromObject(source: any): ObservedLocation {
     super.fromObject(source);
-    source.program && this.program.fromObject(source.program);
+    this.program = source.program && ReferentialRef.fromObject(source.program);
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
-    source.location && this.location.fromObject(source.location);
+    this.location = source.location && ReferentialRef.fromObject(source.location);
 
     this.measurementValues = source.measurementValues || MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];

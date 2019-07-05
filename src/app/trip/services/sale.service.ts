@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
-import {EntityUtils, Person, Sale, Sample} from "./trip.model";
+import {Department, EntityUtils, Person, Sale, Sample} from "./trip.model";
 import {map} from "rxjs/operators";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
 import {AccountService, BaseDataService, environment} from "../../core/core.module";
@@ -391,16 +391,14 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
   fillRecorderPersonAndDepartment(entity: Sale) {
     const person: Person = this.accountService.account;
 
-    if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
-      // Recorder department
-      if (person && person.department) {
-        entity.recorderDepartment.id = person.department.id;
-      }
+    // Recorder department
+    if (person && person.department && !entity.recorderDepartment) {
+      entity.recorderDepartment = Department.fromObject({id: person.department.id});
     }
 
     // Recorder person
-    if (!entity.recorderPerson || !entity.recorderPerson.id) {
-      entity.recorderPerson.id = person.id;
+    if (person && person.id && !entity.recorderPerson) {
+      entity.recorderPerson = Person.fromObject({id: person.id});
     }
   }
 

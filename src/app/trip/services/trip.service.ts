@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
-import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
+import {Department, EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService, environment} from "../../core/core.module";
 import {map} from "rxjs/operators";
@@ -596,13 +596,13 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       const person: Person = this.accountService.account;
 
       // Recorder department
-      if (person && person.department) {
-        entity.recorderDepartment.id = person.department.id;
+      if (person && person.department && !entity.recorderDepartment) {
+        entity.recorderDepartment = Department.fromObject({id: person.department.id});
       }
 
       // Recorder person
-      if (person && person.id) {
-        entity.recorderPerson.id = person.id;
+      if (person && person.id && !entity.recorderPerson) {
+        entity.recorderPerson = Person.fromObject({id: person.id});
       }
     }
 

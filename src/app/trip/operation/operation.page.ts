@@ -560,7 +560,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
       return updatedData;
     } catch (err) {
-      console.error(err && err.message || err);
+      console.error(err && err.message || err, err);
       this.error = err && err.message || err;
       this.submitted = true;
       this.enable();
