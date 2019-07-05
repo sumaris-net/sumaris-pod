@@ -163,7 +163,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     setTimeout(async () => {
       await this.updateRoute(data, this.queryParams);
-    }, 100);
+    }, 400);
 
   }
 
