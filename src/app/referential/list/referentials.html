@@ -20,7 +20,7 @@
         <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
       </ion-button>
 
-      <button mat-icon-button *ngIf="inlineEdition && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate"
+      <button mat-icon-button *ngIf="canEdit && !selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate"
         (click)="addRow()" class="hidden-xs hidden-sm">
         <mat-icon>add</mat-icon>
       </button>
@@ -31,7 +31,7 @@
       <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
         <mat-icon>search</mat-icon>
       </button>
-      <button mat-icon-button small color="light" *ngIf="inlineEdition && selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
+      <button mat-icon-button small color="light" *ngIf="canEdit && selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate"
         (click)="deleteSelection()" class="hidden-xs hidden-sm">
         <mat-icon>delete</mat-icon>
       </button>
@@ -101,12 +101,12 @@
     matSortDisableClear [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
-      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef [class.hidden]="!inlineEdition">
+      <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef [class.hidden]="!canEdit">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
           [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
-      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.hidden]="!inlineEdition">
+      <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row" [class.hidden]="!canEdit">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </mat-cell>
@@ -241,12 +241,12 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm *ngIf="inlineEdition">
+<ion-footer hidden-xs hidden-sm *ngIf="canEdit">
   <form-buttons-bar (onCancel)="onRefresh.emit()" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
 </ion-footer>
 
 
-<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm>
+<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm *ngIf="canEdit">
   <ion-fab-button color="secondary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

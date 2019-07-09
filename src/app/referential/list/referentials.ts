@@ -1,8 +1,8 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
-import {ValidatorService} from "angular4-material-table";
-import {AppTable, AppTableDataSource, EntityUtils, isNil, isNotNil} from "../../core/core.module";
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {AppTable, AppTableDataSource, isNil, isNotNil} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
 import {Referential, ReferentialRef, StatusIds} from "../services/model";
@@ -30,6 +30,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   protected entityName: string;
 
+  canEdit = false;
   showLevelColumn = true;
   filterForm: FormGroup;
   $entity = new BehaviorSubject<{ id: string, label: string, level?: string, levelLabel?: string }>(undefined);
@@ -53,6 +54,11 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }
   ];
   statusById: any;
+
+  canOpenDetail = false;
+  detailsPath = {
+    'Program': '/referential/program/:id'
+  };
 
   constructor(
     protected route: ActivatedRoute,
@@ -89,6 +95,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // Allow inline edition only if admin
     this.inlineEdition = accountService.isAdmin();
+    this.canEdit = accountService.isAdmin();
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
 
@@ -172,6 +179,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     // No change: skip
     if (this.entityName === entityName) return;
 
+    this.canOpenDetail = false;
+
     // Wait end of entity loading
     const entities = this.$entities.getValue();
     if (isNil(entities) || !entities.length) {
@@ -195,6 +204,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // Load levels
     await this.loadLevels(entityName);
+
+    this.canOpenDetail = !!this.detailsPath[entityName];
+    this.inlineEdition = !this.canOpenDetail;
 
     if (opts.emitEvent !== false) {
       console.info(`[referential] Loading ${entityName}...`);
@@ -258,6 +270,28 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       return message.substring(0, 1) + message.substring(1).toLowerCase();
     }
     return message;
+  }
+
+  async openRow(id: number, row: TableElement<Referential>): Promise<boolean> {
+    const path = this.detailsPath[this.entityName];
+
+    if (path && isNotNil(row.currentData.id)) {
+      await this.router.navigateByUrl(path.replace(':id', row.currentData.id.toString()));
+      return true;
+    }
+
+    return super.openRow(id, row);
+  }
+
+  protected async openNewRowDetail(): Promise<boolean> {
+    const path = this.detailsPath[this.entityName];
+
+    if (path) {
+      await this.router.navigateByUrl(path.replace(':id', "new"));
+      return true;
+    }
+
+    return super.openNewRowDetail();
   }
 }
 
