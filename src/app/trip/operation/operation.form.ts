@@ -4,7 +4,7 @@ import {fromDateISOString, Operation, PhysicalGear, Trip} from "../services/trip
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
-import {debounceTime, map, switchMap} from 'rxjs/operators';
+import {debounceTime, map, mergeMap, tap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
 import {AccountService, AppForm} from '../../core/core.module';
 import {
@@ -95,13 +95,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.physicalGears =
       merge(
         this.form.get('physicalGear').valueChanges.pipe(debounceTime(300)),
-        this.onFocusPhysicalGear.pipe(map(any => this.form.get('physicalGear').value))
+        this.onFocusPhysicalGear.pipe(map((_) => this.form.get('physicalGear').value))
       )
         .pipe(
           map(value => {
             // Display the selected object
             if (EntityUtils.isNotEmpty(value)) {
-              if (this.form.enabled) this.form.controls["metier"].enable()
+              if (this.form.enabled) this.form.controls["metier"].enable();
               else this.form.controls["metier"].disable();
               return [value];
             }
@@ -119,22 +119,25 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
               (g.gear.label && g.gear.label.toUpperCase().indexOf(ucValue) != -1)
               || (g.gear.name && g.gear.name.toUpperCase().indexOf(ucValue) != -1)
             );
-          }));
+          }),
+          tap(res => this.updateImplicitValue('physicalGear', res))
+        );
 
     // Combo: metiers
     this.metiers = merge(
       this.form.get('metier').valueChanges.pipe(debounceTime(300)),
-      this.onFocusMetier.pipe(map(any => this.form.get('metier').value))
+      this.onFocusMetier.pipe(map((_) => this.form.get('metier').value))
     )
       .pipe(
-        switchMap(value => {
+        mergeMap(async (value) => {
           const physicalGear = this.form.get('physicalGear').value;
           if (!physicalGear || !physicalGear.gear) return [];
           return this.referentialRefService.suggest(value, {
               entityName: 'Metier',
               levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null
             });
-        })
+        }),
+        tap(res => this.updateImplicitValue('metier', res))
       );
   }
 
