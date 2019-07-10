@@ -45,8 +45,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     this.form.get('label')
       .setAsyncValidators(async (control: AbstractControl) => {
         const label = control.enabled && control.value;
-        const existingProgram = isNotNilOrBlank(label) && (await this.programService.loadByLabel(label));
-        return existingProgram ? {unique: true} : null;
+        return (await this.programService.existsByLabel(label)) ? {unique: true} : null;
       });
   }
 

@@ -78,14 +78,17 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   ngOnInit() {
     super.ngOnInit();
 
-    this.tripId && this.setTripId(this.tripId);
-
     this.registerSubscription(
       this.settingsService.onChange.subscribe((settings) => {
         if (this.loading) return; // skip
         this.latLongPattern = settings.latLongFormat;
         this.markForCheck();
       }));
+
+    // Apply trip id, if already set
+    if (isNotNil(this.tripId)) {
+      this.setTripId(this.tripId);
+    }
   }
 
   setTrip(data: Trip) {

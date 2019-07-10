@@ -1,8 +1,20 @@
 import {
-  Cloneable, Entity, EntityUtils,
-  Referential, ReferentialRef, Department, Person,
-  StatusIds, AcquisitionLevelCodes,
-  toDateISOString, fromDateISOString, joinProperties, entityToString, referentialToString, isNotNil, isNil
+  AcquisitionLevelCodes,
+  Cloneable,
+  Department,
+  Entity,
+  entityToString,
+  EntityUtils,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  joinProperties,
+  Person,
+  Referential,
+  ReferentialRef,
+  referentialToString,
+  StatusIds,
+  toDateISOString
 } from "../../core/core.module";
 import {Moment} from "moment/moment";
 
@@ -124,7 +136,7 @@ export function vesselFeaturesToString(obj: VesselFeatures | any): string | unde
 export function getPmfmName(pmfm: PmfmStrategy, opts?: {
   withUnit: boolean
 }): string {
-  var matches = PMFM_NAME_REGEXP.exec(pmfm.name);
+  const matches = PMFM_NAME_REGEXP.exec(pmfm.name);
   const name = matches && matches[1] || pmfm.name;
   if (opts && opts.withUnit && pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')) {
     return `${name} (${pmfm.unit})`;
@@ -160,6 +172,7 @@ export interface IWithProgramEntity<T> extends Entity<T> {
 export class VesselFeatures extends Entity<VesselFeatures> {
 
   static fromObject(source: any): VesselFeatures {
+    if (!source || source instanceof VesselFeatures) return source;
     const res = new VesselFeatures();
     res.fromObject(source);
     return res;
@@ -240,6 +253,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 export class Program extends Entity<Program> {
 
   static fromObject(source: any): Program {
+    if (!source || source instanceof Program) return source;
     const res = new Program();
     res.fromObject(source);
     return res;
@@ -323,6 +337,7 @@ export declare type PmfmType = 'integer' | 'double' | 'string' | 'qualitative_va
 export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   static fromObject(source: any): PmfmStrategy {
+    //if (!source || source instanceof PmfmStrategy) return source;
     const res = new PmfmStrategy();
     res.fromObject(source);
     return res;
@@ -421,6 +436,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 export class Strategy extends Entity<Strategy> {
 
   static fromObject(source: any): Strategy {
+    if (!source || source instanceof Strategy) return source;
     const res = new Strategy();
     res.fromObject(source);
     return res;

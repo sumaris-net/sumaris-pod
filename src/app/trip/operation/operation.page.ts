@@ -20,7 +20,7 @@ import {Validators} from "@angular/forms";
 import * as moment from "moment";
 import {Moment} from "moment";
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
-import {ProgramProperties} from "../../referential/services/model";
+import {Program, ProgramProperties} from "../../referential/services/model";
 import {SubBatchesTable} from "../batch/sub-batches.table";
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
@@ -28,6 +28,7 @@ import {BatchesTable} from "../batch/batches.table";
 import {BatchesContext} from "../batch/batches-context.class";
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {BatchUtils} from "../services/model/batch.model";
+import {isNotNilOrBlank} from "../../shared/functions";
 
 @Component({
   selector: 'page-operation',
@@ -449,7 +450,10 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Watch program, to configure tables from program properties
     this.registerSubscription(
       this.programSubject.asObservable()
-        .pipe(switchMap(label => this.programService.watchByLabel(label)))
+        .pipe(
+          filter(isNotNilOrBlank),
+          switchMap(label => this.programService.watchByLabel(label, true))
+        )
         .subscribe(program => {
           if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
           if (this.batchesTable) {

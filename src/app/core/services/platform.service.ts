@@ -1,6 +1,5 @@
-import {Injectable} from '@angular/core';
+import {EventEmitter, Injectable} from '@angular/core';
 import {Platform} from "@ionic/angular";
-import {ConfigService} from './config.service';
 import {NetworkService} from "./network.service";
 import {Platforms} from "@ionic/core";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
@@ -17,6 +16,7 @@ export class PlatformService {
 
   public mobile: boolean;
   public touchUi: boolean;
+
 
   get started(): boolean {
     return this._started;

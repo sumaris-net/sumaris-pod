@@ -28,4 +28,22 @@ export const ReferentialFragments = {
     }
     __typename
   }`,
+  taxonName: gql`fragment TaxonNameFragment on TaxonNameVO {
+    id
+    label
+    name
+    entityName
+    referenceTaxonId
+    __typename
+  }`,
+  taxonGroup: gql`fragment TaxonGroupFragment on TaxonGroupVO {
+    id
+    label
+    name
+    entityName
+    taxonNames {
+      ...TaxonNameFragment
+    }
+    __typename
+  }`
 };

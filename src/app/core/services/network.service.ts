@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {EventEmitter, Injectable} from "@angular/core";
 import {CryptoService} from "./crypto.service";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
@@ -6,11 +6,12 @@ import {environment} from "../../../environments/environment";
 import {Peer} from "./model";
 import {ModalController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
-import {Subject} from "rxjs";
+import {Subject, Subscription} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
 import {toBoolean} from "../../shared/shared.module";
+import { Network } from '@ionic-native/network/ngx';
 
 export interface NodeInfo {
   softwareName: string;
@@ -26,8 +27,11 @@ export class NetworkService {
   private _peer: Peer;
   private _startPromise: Promise<any>;
   private _started = false;
+  private _subscriptions: Subscription[] = [];
 
   public onStart = new Subject<Peer>();
+
+  public onStateChanged = new EventEmitter<any>();
 
   get peer(): Peer {
     return this._peer && this._peer.clone();
@@ -53,7 +57,8 @@ export class NetworkService {
     private storage: Storage,
     private http: HttpClient,
     private splashScreen: SplashScreen,
-    private settingsService: LocalSettingsService
+    private settingsService: LocalSettingsService,
+    private network: Network
   ) {
     this.resetData();
 
@@ -69,6 +74,16 @@ export class NetworkService {
     if (this._started) return;
 
     console.info("[network] Starting network...");
+
+    this._subscriptions.push(this.network.onDisconnect().subscribe(() => {
+      console.info("[network] Disconnected");
+      this.onStateChanged.emit(false);
+    }));
+
+    this._subscriptions.push(this.network.onConnect().subscribe(() => {
+      console.info(`[network] Connection {${this.network.type}}`);
+      this.onStateChanged.emit(this.network.type);
+    }));
 
     // Restoring local settings
     this._startPromise = (!peer && this.restoreLocally() || Promise.resolve(peer))
@@ -109,6 +124,9 @@ export class NetworkService {
     this.resetData();
     this._started = false;
     this._startPromise = undefined;
+
+    this._subscriptions.forEach(s => s.unsubscribe());
+    this._subscriptions = [];
   }
 
   /**

@@ -8,19 +8,22 @@ import {map} from "rxjs/operators";
 import {environment} from '../../../environments/environment';
 import {delay} from "q";
 import {Injectable} from "@angular/core";
-import {HttpLink} from "apollo-angular-link-http";
+import {HttpLink, Options} from "apollo-angular-link-http";
 import {NetworkService} from "./network.service";
 import {WebSocketLink} from "apollo-link-ws";
 import {ApolloLink} from "apollo-link";
 import {InMemoryCache} from "apollo-cache-inmemory";
 import {AppWebSocket, dataIdFromObject} from "../graphql/graphql.utils";
 import {getMainDefinition} from 'apollo-utilities';
+import {persistCache} from "apollo-cache-persist";
+import {Storage} from "@ionic/storage";
+
 
 @Injectable({providedIn: 'root'})
 export class GraphqlService {
 
   private _started = false;
-  private httpParams;
+  private httpParams: Options;
   private wsParams;
   private wsConnectionParams: { authToken?: string } = {};
 
@@ -35,7 +38,8 @@ export class GraphqlService {
   public constructor(
     private apollo: Apollo,
     private httpLink: HttpLink,
-    private networkService: NetworkService
+    private networkService: NetworkService,
+    private storage: Storage
   ) {
 
     // Start
@@ -342,9 +346,24 @@ export class GraphqlService {
         return forward(operation);
       });
 
-      const imCache = new InMemoryCache({
+      const cache = new InMemoryCache({
         dataIdFromObject: dataIdFromObject
       });
+
+      // Enable cache persistence
+      if (environment.persistCache) {
+        console.debug("[apollo] Starting cache...");
+        await persistCache({
+          cache,
+          storage: {
+            getItem: (key: string) => this.storage.get(key),
+            setItem: (key: string, data: any) => this.storage.set(key, data),
+            removeItem: (key: string) => this.storage.remove(key)
+          },
+          debounce: 1000,
+          debug: true
+        });
+      }
 
       // create Apollo
       this.apollo.create({
@@ -356,7 +375,7 @@ export class GraphqlService {
           ws,
           authLink.concat(http)
         ),
-        cache: imCache,
+        cache,
         connectToDevTools: !environment.production
       }, 'default');
     }

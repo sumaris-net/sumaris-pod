@@ -108,7 +108,7 @@ export class AggregationType extends ExtractionType<AggregationType>
 
   constructor() {
     super();
-    this.recorderPerson = new Person();
+    this.recorderPerson = null;
   }
 
   clone(): AggregationType {
@@ -124,7 +124,7 @@ export class AggregationType extends ExtractionType<AggregationType>
     this.sheetNames = source.sheetNames;
     this.statusId = source.statusId;
     this.description = source.description;
-    source.recorderPerson && this.recorderPerson.fromObject(source.recorderPerson);
+    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson) || null;
 
     if (source.strata) {
       this.strata = this.strata || {

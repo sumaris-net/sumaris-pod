@@ -5,9 +5,9 @@ const _global = typeof global !== 'undefined' ? global : (typeof window !== 'und
 export const NativeWebSocket = _global.WebSocket || _global.MozWebSocket;
 
 /**
-* AppWebSocket class.
-* With a hack on default Websocket, to avoid the use of protocol
-*/
+ * AppWebSocket class.
+ * With a hack on default Websocket, to avoid the use of protocol
+ */
 export const AppWebSocket = function (url: string, protocols?: string | string[]) {
   return new NativeWebSocket(url/*no protocols*/);
 } as any;
@@ -25,11 +25,15 @@ export const dataIdFromObject = function (object: Object): string {
   switch (object['__typename']) {
     // For generic VO: add entityName in the cache key (to distinguish by entity)
     case 'ReferentialVO':
-      return object['entityName'] + ':' + object['id'];
     case 'MeasurementVO':
+    case 'TaxonGroupVO':
+    case 'TaxonNameVO':
+    case 'TaxonNameStrategyVO':
+    case 'TaxonGroupStrategyVO':
       return object['entityName'] + ':' + object['id'];
     // Fallback to default cache key
     default:
       return defaultDataIdFromObject(object);
   }
 };
+

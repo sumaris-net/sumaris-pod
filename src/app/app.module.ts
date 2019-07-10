@@ -3,7 +3,7 @@ import "./vendor";
 import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {NgModule} from "@angular/core";
-import {IonicModule, IonicRouteStrategy} from "@ionic/angular";
+import {IonicModule} from "@ionic/angular";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, MAT_TABS_CONFIG} from "@angular/material";
 import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
@@ -23,7 +23,8 @@ import {HttpClientModule} from "@angular/common/http";
 import {HTTP} from "@ionic-native/http/ngx";
 import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {Camera} from "@ionic-native/camera/ngx";
-import {RouteReuseStrategy} from "@angular/router";
+import {CacheModule} from "ionic-cache";
+import {Network} from "@ionic-native/network/ngx";
 
 @NgModule({
   declarations: [
@@ -34,6 +35,7 @@ import {RouteReuseStrategy} from "@angular/router";
     BrowserModule,
     HttpClientModule,
     IonicModule.forRoot(),
+    CacheModule.forRoot(),
     LeafletModule.forRoot(),
     // functional modules
     CoreModule,
@@ -48,6 +50,7 @@ import {RouteReuseStrategy} from "@angular/router";
     Keyboard,
     Camera,
     HTTP,
+    Network,
     {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     {provide: MAT_DATE_LOCALE, useValue: 'en'},

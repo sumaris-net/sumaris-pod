@@ -284,10 +284,17 @@ export class Referential extends Entity<Referential> {
   }
 }
 
-export class ReferentialRef extends Entity<ReferentialRef> {
+export declare interface IReferentialRef {
+  label: string;
+  name: string;
+  statusId: number;
+  entityName: string;
+}
+
+export class ReferentialRef extends Entity<ReferentialRef> implements IReferentialRef {
 
   static fromObject(source: any): ReferentialRef {
-    if (isNil(source)) return null;
+    if (!source || source instanceof ReferentialRef) return source;
     const res = new ReferentialRef();
     res.fromObject(source);
     return res;
@@ -341,6 +348,7 @@ export class ReferentialRef extends Entity<ReferentialRef> {
 export class Configuration extends Entity<Configuration> {
 
   static fromObject(source: Configuration): Configuration {
+    if (!source || source instanceof Configuration) return source;
     const res = new Configuration();
     res.fromObject(source);
     return res;
@@ -403,6 +411,7 @@ export class Configuration extends Entity<Configuration> {
 export class Person extends Entity<Person> implements Cloneable<Person> {
 
   static fromObject(source: any): Person {
+    if (!source || source instanceof Person) return source;
     const result = new Person();
     result.fromObject(source);
     return result;
@@ -475,6 +484,7 @@ export class Department extends Referential implements Cloneable<Department> {
   siteUrl: string;
 
   static fromObject(source: any): Department {
+    if (!source || source instanceof Department) return source;
     const res = new Department();
     res.fromObject(source);
     return res;
@@ -546,6 +556,7 @@ export class UserSettings extends Entity<UserSettings> implements Cloneable<User
 export class Account extends Person {
 
   static fromObject(source: any): Account {
+    if (!source || source instanceof Account) return source;
     const result = new Account();
     result.fromObject(source);
     return result;
@@ -588,6 +599,7 @@ export class Account extends Person {
 export class Peer extends Entity<Peer> implements Cloneable<Peer> {
 
   static fromObject(source: any): Peer {
+    if (!source || source instanceof Peer) return source;
     const res = new Peer();
     res.fromObject(source);
     return res;

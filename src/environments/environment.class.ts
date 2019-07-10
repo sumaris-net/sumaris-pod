@@ -16,4 +16,7 @@ export class Environment {
 
   // A list of peers, to select as peer, in settings
   defaultPeers?: { host: string; port: number; useSsl?: boolean; }[];
+
+  // Enable cache persistence ?
+  persistCache?: boolean;
 }

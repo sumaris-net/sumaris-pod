@@ -21,13 +21,13 @@ import {RegisterConfirmPage} from "./register/confirm/confirm";
 import {AccountPage} from "./account/account";
 import {
   DataService,
-  TableDataService,
-  LoadResult,
   fromDateISOString,
   isNil,
   isNotNil,
+  LoadResult,
   nullIfUndefined,
   SharedModule,
+  TableDataService,
   toDateISOString
 } from '../shared/shared.module';
 import {AppForm} from './form/form.class';
@@ -56,15 +56,16 @@ import {
   Entity,
   entityToString,
   EntityUtils,
+  IReferentialRef,
   joinProperties,
   LocationLevelIds,
   Person,
+  personsToString,
+  personToString,
   Referential,
   ReferentialRef,
   referentialToString,
-  StatusIds,
-  personToString,
-  personsToString
+  StatusIds
 } from './services/model';
 // import ngx-translate and the http loader
 import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -76,6 +77,10 @@ import {LocalSettingsValidatorService} from "./services/local-settings.validator
 import {GraphqlService} from "./services/graphql.service";
 import {LocalSettingsService} from "./services/local-settings.service";
 import {AppEditorPage} from "./form/editor-page.class";
+import {Network} from "@ionic-native/network";
+import {StatusBar} from "@ionic-native/status-bar/ngx";
+import {SplashScreen} from "@ionic-native/splash-screen/ngx";
+import {Keyboard} from "@ionic-native/keyboard/ngx";
 
 export {
   environment,
@@ -108,6 +113,7 @@ export {
   LocationLevelIds,
   Referential,
   ReferentialRef,
+  IReferentialRef,
   Department,
   Person,
   DataService,

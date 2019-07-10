@@ -176,6 +176,12 @@ export class OperationService extends BaseDataService implements TableDataServic
             fetchPolicy?: WatchQueryFetchPolicy
            }
   ): Observable<LoadResult<Operation>> {
+
+    if (isNil(filter.tripId)) {
+      console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
+      return Observable.empty();
+    }
+
     const variables: any = {
       offset: offset || 0,
       size: size || 1000,

@@ -28,8 +28,8 @@ export function trimEmptyToNull<T>(str: string | null | undefined): string | nul
   const value = str && str.trim() || undefined;
   return value && value.length && value || null;
 }
-export function toBoolean(obj: boolean | null | undefined, defaultValue: boolean): boolean {
-  return (obj !== undefined && obj !== null) ? obj : defaultValue;
+export function toBoolean(obj: boolean | null | undefined | string, defaultValue: boolean): boolean {
+  return (obj !== undefined && obj !== null) ? (obj !== "false" ? !!obj : false) : defaultValue;
 }
 export function toFloat(obj: string | null | undefined): number | null {
   return (obj !== undefined && obj !== null) ? parseFloat(obj) : null;

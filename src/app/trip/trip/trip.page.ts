@@ -107,7 +107,10 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     // Watch program, to configure tables from program properties
     this.registerSubscription(
       this.programSubject.asObservable()
-        .pipe(filter(isNotNilOrBlank), switchMap(label => this.programService.watchByLabel(label)))
+        .pipe(
+          filter(isNotNilOrBlank),
+          switchMap(programLabel => this.programService.watchByLabel(programLabel, true))
+        )
         .subscribe(program => {
           if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
           this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE, true);

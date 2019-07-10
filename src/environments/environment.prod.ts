@@ -13,6 +13,7 @@ export const environment: Environment = {
 
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,
+  persistCache: false,
 
   // Leave null,
   defaultPeer: null,

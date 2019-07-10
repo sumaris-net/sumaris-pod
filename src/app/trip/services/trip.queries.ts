@@ -132,12 +132,13 @@ export const DataFragments = {
       ...ReferentialFragment
     }
     taxonName {
-      ...ReferentialFragment
+      ...TaxonNameFragment
     }
     measurementValues     
     __typename 
   }
-  ${Fragments.referential}`,
+  ${Fragments.referential}
+  ${ReferentialFragments.taxonName}`,
   vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {
     id
     vesselId

@@ -5,9 +5,6 @@ import {ReferentialRefService} from './referential/referential.module';
 import {ConfigService} from './core/services/config.service';
 import {DOCUMENT} from "@angular/common";
 import {Configuration} from "./core/services/model";
-import {SplashScreen} from '@ionic-native/splash-screen/ngx';
-import {StatusBar} from '@ionic-native/status-bar/ngx';
-import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {PlatformService} from "./core/services/platform.service";
 
 

@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
-import {IWithProgramEntity, PmfmStrategy, Program} from "./model";
+import {Observable, Subject} from "rxjs";
+import {filter, first, map} from "rxjs/operators";
+import {EntityUtils, isNotNil, IWithProgramEntity, PmfmStrategy, Program} from "./model";
 import {
   AccountService,
   BaseDataService,
@@ -15,12 +15,16 @@ import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "../services/referential.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
+import {TaxonGroupRef} from "./model/taxon.model";
+import {isNilOrBlank} from "../../shared/functions";
+import {CacheService} from "ionic-cache";
 
 export declare class ProgramFilter {
   searchText?: string;
   withProperty?: string;
   //acquisitionLevel?: string;
 }
+
 const ProgramFragments = {
   lightProgram: gql`
     fragment LightProgramFragment on ProgramVO {
@@ -35,6 +39,21 @@ const ProgramFragments = {
       properties
     }
     `,
+  programRef: gql`
+    fragment ProgramRefFragment on ProgramVO {
+      id
+      label
+      name
+      description
+      comments
+      updateDate
+      creationDate
+      statusId
+      properties      
+      strategies {        
+        ...StrategyRefFragment
+      }
+    }`,
   program: gql`
     fragment ProgramFragment on ProgramVO {
       id
@@ -50,6 +69,30 @@ const ProgramFragments = {
         ...StrategyFragment
       }
     }`,
+  strategyRef: gql`
+    fragment StrategyRefFragment on StrategyVO {
+      id
+      label
+      name
+      description
+      comments
+      updateDate
+      creationDate
+      statusId
+      gears { 
+        ...ReferentialFragment
+      }
+      taxonGroups { 
+        ...TaxonGroupStrategyFragment
+      }
+      taxonNames { 
+        ...TaxonNameStrategyFragment
+      }
+      pmfmStrategies {
+        ...PmfmStrategyRefFragment
+      }
+    }
+  `,
   strategy: gql`
     fragment StrategyFragment on StrategyVO {
       id
@@ -64,22 +107,18 @@ const ProgramFragments = {
         ...ReferentialFragment
       }
       taxonGroups { 
-        ...ReferentialFragment
+        ...TaxonGroupStrategyFragment
       }
       taxonNames { 
-        id
-        label
-        name
-        referenceTaxonId
-        __typename
+        ...TaxonNameStrategyFragment
       }
       pmfmStrategies {
         ...PmfmStrategyFragment
       }
     }
   `,
-  lightPmfmStrategy: gql`
-    fragment LightPmfmStrategyFragment on PmfmStrategyVO {
+  pmfmStrategyRef: gql`
+    fragment PmfmStrategyRefFragment on PmfmStrategyVO {
       id
       pmfmId
       methodId
@@ -132,15 +171,42 @@ const ProgramFragments = {
       taxonGroupIds
       referenceTaxonIds
       __typename
-  }`
+  }`,
+  taxonGroupStrategy: gql`
+    fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
+      id
+      label   
+      name
+      priorityLevel
+      taxonNames {
+        ...TaxonNameFragment
+      }
+      __typename
+    }
+  `,
+  taxonNameStrategy: gql`
+    fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
+      id
+      label   
+      name
+      priorityLevel
+      __typename
+    }
+  `
 };
-const LoadLightQuery: any = gql`
-  query LightProgram($id: Int, $label: String){
+const LoadRefQuery: any = gql`
+  query ProgramRef($id: Int, $label: String){
       program(id: $id, label: $label){
-        ...LightProgramFragment
+        ...ProgramRefFragment
       }
   }
-  ${ProgramFragments.lightProgram}
+  ${ProgramFragments.programRef}
+  ${ProgramFragments.strategyRef}
+  ${ProgramFragments.pmfmStrategyRef}
+  ${ProgramFragments.taxonGroupStrategy}
+  ${ProgramFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}
 `;
 
 const LoadQuery: any = gql`
@@ -149,10 +215,13 @@ const LoadQuery: any = gql`
         ...ProgramFragment
       }
   }
-  ${ProgramFragments.pmfmStrategy}  
-  ${ProgramFragments.strategy}
   ${ProgramFragments.program}
+  ${ProgramFragments.strategy}
+  ${ProgramFragments.pmfmStrategy}  
+  ${ProgramFragments.taxonGroupStrategy}
+  ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}
 `;
 
 const LoadAllQuery: any = gql`
@@ -165,42 +234,24 @@ const LoadAllQuery: any = gql`
   ${ProgramFragments.lightProgram}
 `;
 
-const LoadProgramPmfms: any = gql`
-  query LoadProgramPmfms($program: String) {
-    programPmfms(program: $program){
-      ...LightPmfmStrategyFragment
-    }
-  }
-  ${ProgramFragments.lightPmfmStrategy}
-`;
+const ProgramCacheKeys = {
+  GROUP: 'program',
+  PMFMS: 'programPmfms',
+  GEARS: 'programGears',
+};
 
-const LoadProgramGears: any = gql`
-  query LoadProgramGears($program: String) {
-    programGears(program: $program){
-      ...ReferentialFragment
-    }
-  }
-  ${ReferentialFragments.referential}
-`;
-
-
-const LoadProgramTaxonGroups: any = gql`
-  query LoadProgramTaxonGroups($program: String) {
-    programTaxonGroups(program: $program){
-      ...ReferentialFragment
-    }
-  }
-  ${ReferentialFragments.referential}
-`;
+const cacheBuster$ = new Subject<void>();
 
 @Injectable()
 export class ProgramService extends BaseDataService
   implements TableDataService<Program, ProgramFilter>,
     EditorDataService<Program, ProgramFilter> {
 
+
   constructor(
     protected graphql: GraphqlService,
-    protected accountService: AccountService
+    protected accountService: AccountService,
+    protected cache: CacheService
   ) {
     super(graphql);
 
@@ -259,36 +310,103 @@ export class ProgramService extends BaseDataService
     throw new Error("Not implemented yet");
   }
 
-  watchByLabel(label: string): Observable<Program> {
+  /**
+   * Watch program by label
+   * @param label
+   * @param toEntity
+   */
+  watchByLabel(label: string, toEntity: boolean): Observable<Program> {
+
+    if (this._debug) console.debug(`[program-service] Watch program {${label}}...`);
+
     return this.graphql.watchQuery<{ program: any }>({
-      query: LoadLightQuery,
-      variables: {
-        label: label
-      },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
-    })
-      .pipe(
-        map(({program}) => Program.fromObject(program))
-      );
+        query: LoadRefQuery,
+        variables: {
+          label: label
+        },
+        error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
+      })
+        .pipe(
+          filter(isNotNil),
+          map(({program}) => {
+            if (this._debug) console.debug(`[program-service] Program loaded {${label}}`, program);
+            return toEntity ? Program.fromObject(program) : program;
+          })
+        );
   }
 
-  async loadByLabel(label: string): Promise<Program> {
-    const res = await this.graphql.query<{ program: any }>({
-      query: LoadLightQuery,
-      variables: {
-        label: label
-      },
-      error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
-    });
+  async existsByLabel(label: string): Promise<Boolean> {
+    if (isNilOrBlank(label)) return false;
 
-    return res && res.program && Program.fromObject(res.program);
+    const program = await this.watchByLabel(label, false).toPromise();
+    return EntityUtils.isNotEmpty(program);
+  }
 
+  loadByLabel(label: string): Promise<Program> {
+    return this.watchByLabel(label, true)
+      .pipe(
+        filter(isNotNil),
+        first(),
+        map(Program.fromObject)
+      )
+      .toPromise();
+  }
+
+  /**
+   * Watch program pmfms
+   */
+  watchProgramPmfms(programLabel: string, options: {
+    acquisitionLevel: string;
+    gear?: string;
+    taxonGroupId?: number;
+    referenceTaxonId?: number;
+    debug?: boolean;
+  }): Observable<PmfmStrategy[]> {
+
+    //const cacheKey = [ProgramCacheKeys.PMFMS, options.acquisitionLevel, options.gear, options.taxonGroupId, options.referenceTaxonId].join('|');
+
+    return this.watchByLabel(programLabel, false) // Watch the program
+      .pipe(
+        filter(isNotNil),
+        map(program => {
+          // TODO: select valid strategy (from date and location)
+          const strategy = program && program.strategies && program.strategies[0];
+
+          const pmfmIds = []; // used to avoid duplicated pmfms
+          const res = (strategy && strategy.pmfmStrategies || [])
+          // Filter on acquisition level and gear
+            .filter(p =>
+              pmfmIds.indexOf(p.pmfmId) === -1
+              && (
+                !options || (
+                  (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
+                  // Filter on gear (if PMFM has gears = compatible with all gears)
+                  && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g === options.gear) !== -1)
+                  // Filter on taxon group
+                  && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
+                  // Filter on reference taxon
+                  && (!options.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === options.referenceTaxonId) !== -1)
+                  // Add to list of IDs
+                  && pmfmIds.push(p.pmfmId)
+                )
+              ))
+            .map(PmfmStrategy.fromObject)
+
+            // Sort on rank order
+            .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
+
+          if (options.debug) console.debug(`[program-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
+          console.debug(`TODO [program-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
+
+          // TODO: translate name/label using translate service ?
+          return res;
+        }));
   }
 
   /**
    * Load program pmfms
    */
-  async loadProgramPmfms(program: string, options?: {
+  loadProgramPmfms(programLabel: string, options?: {
     acquisitionLevel: string;
     gear?: string;
     taxonGroupId?: number;
@@ -296,88 +414,74 @@ export class ProgramService extends BaseDataService
     debug?: boolean;
   }): Promise<PmfmStrategy[]> {
 
-    // TODO: add a cache ?
+    return this.watchProgramPmfms(programLabel, options)
+      .pipe(filter(isNotNil), first())
+      .toPromise();
+  }
 
-    if (this._debug) console.debug(`[referential-service] Getting pmfms (program=${program}, acquisitionLevel=${options && options.acquisitionLevel}, gear=${options && options.gear})`);
-    const data = await this.graphql.query<{ programPmfms: PmfmStrategy[] }>({
-      query: LoadProgramPmfms,
-      variables: {
-        program: program
-      },
-      error: {code: ErrorCodes.LOAD_PROGRAM_PMFMS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_PMFMS_ERROR"},
-      fetchPolicy: "cache-first"
-    });
-    const pmfmIds = []; // used to avoid duplicated pmfms
-
-    // For DEBUG ONLY
-    if (options.debug) console.debug(`[program-service] PMFM for ${options.acquisitionLevel} (not filtered):`, data && data.programPmfms);
-
-    const res = (data && data.programPmfms || [])
-    // Filter on acquisition level and gear
-      .filter(p =>
-        pmfmIds.indexOf(p.pmfmId) === -1
-        && (
-          !options || (
-            (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
-            // Filter on gear (if PMFM has gears = compatible with all gears)
-            && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g === options.gear) !== -1)
-            // Filter on taxon group
-            && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
-            // Filter on reference taxon
-            && (!options.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === options.referenceTaxonId) !== -1)
-            // Add to list of IDs
-            && pmfmIds.push(p.pmfmId)
-          )
+  /**
+   * Watch program gears
+   */
+  watchGears(programLabel: string): Observable<ReferentialRef[]> {
+    return this.cache.loadFromObservable(
+      ProgramCacheKeys.GEARS,
+      this.watchByLabel(programLabel, false) // Load the program
+        .pipe(
+          filter(isNotNil),
+          map(program => {
+            // TODO: select valid strategy (from date and location)
+            const strategy = program && program.strategies && program.strategies[0];
+            const res = (strategy && strategy.gears || []);
+            if (this._debug) console.debug(`[program-service] Gears for program ${program}: `, res);
+            return res ;
+          })
         ))
-      // Convert into model
-      .map(PmfmStrategy.fromObject);
-    // Sort on rank order
-    res.sort((p1, p2) => p1.rankOrder - p2.rankOrder);
-
-    // For DEBUG only
-    if (options.debug) console.debug(`[program-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
-
-    return res;
-    // TODO: translate name/label using translate service ?
+      // Convert into model (after cache)
+      .pipe(map(res => res.map(ReferentialRef.fromObject)));
   }
 
   /**
    * Load program gears
    */
-  async loadGears(program: string): Promise<ReferentialRef[]> {
-    if (this._debug) console.debug(`[referential-service] Getting gears for program ${program}`);
-    const data = await this.graphql.query<{ programGears: ReferentialRef[] }>({
-      query: LoadProgramGears,
-      variables: {
-        program: program
-      },
-      error: {code: ErrorCodes.LOAD_PROGRAM_GEARS_ERROR, message: "REFERENTIAL.ERROR.LOAD_PROGRAM_GEARS_ERROR"}
-    });
-    return (data && data.programGears || []).map(ReferentialRef.fromObject);
+  loadGears(programLabel: string): Promise<ReferentialRef[]> {
+    // Load the program
+    return this.watchGears(programLabel)
+      .pipe(filter(isNotNil), first())
+      .toPromise();
+  }
+
+  /**
+   * Watch program taxon groups
+   */
+  watchTaxonGroups(programLabel: string): Observable<TaxonGroupRef[]> {
+
+    return this.watchByLabel(programLabel, false)
+      .pipe(
+        map(program => {
+          // TODO: select valid strategy (from date and location)
+          const strategy = program && program.strategies && program.strategies[0];
+          const res = (strategy && strategy.taxonGroups || []);
+          if (this._debug) console.debug(`[program-service] Taxon groups for program ${program}: `, res);
+          return res;
+        })
+      )
+      // Convert into model (after cache)
+      .pipe(map(res => res.map(TaxonGroupRef.fromObject)));
   }
 
   /**
    * Load program taxon groups
    */
-  async loadTaxonGroups(program: string): Promise<ReferentialRef[]> {
-    if (this._debug) console.debug(`[referential-service] Getting taxon groups for program ${program}`);
-    const data = await this.graphql.query<{ programTaxonGroups: ReferentialRef[] }>({
-      query: LoadProgramTaxonGroups,
-      variables: {
-        program: program
-      },
-      error: {
-        code: ErrorCodes.LOAD_PROGRAM_TAXON_GROUPS_ERROR,
-        message: "REFERENTIAL.ERROR.LOAD_PROGRAM_TAXON_GROUPS_ERROR"
-      }
-    });
-    return (data && data.programTaxonGroups || []).map(ReferentialRef.fromObject);
+  loadTaxonGroups(programLabel: string): Promise<TaxonGroupRef[]> {
+    return this.watchTaxonGroups(programLabel)
+      .pipe(filter(isNotNil), first())
+      .toPromise();
   }
 
 
   async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Program> {
 
-    if (this._debug) console.debug(`[program-service] Loading program {${id}}`);
+    if (this._debug) console.debug(`[program-service] Loading program {${id}}...`);
 
     const res = await this.graphql.query<{ program: any }>({
       query: LoadQuery,
@@ -394,7 +498,13 @@ export class ProgramService extends BaseDataService
     throw new Error("TODO: implement programService.delete()");
   }
 
+
   async save(data: Program, options?: any): Promise<Program> {
+    if (this._debug) console.debug(`[program-service] Saving program {${data.label}}...`, data);
+
+    // Clean cache
+    this.cache.clearGroup(ProgramCacheKeys.GROUP);
+
     // TODO
     throw new Error("TODO: implement programService.save()");
   }
