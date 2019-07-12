@@ -161,6 +161,20 @@ public class Beans {
      * <p>splitByProperty.</p>
      *
      * @param list a {@link Iterable} object.
+     * @param propertyName a {@link String} object.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link Map} object.
+     */
+    public static <K, V> Multimap<K, V> splitByNotUniqueProperty(Iterable<V> list, String propertyName) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
+        return Multimaps.index(list, input -> getProperty(input, propertyName));
+    }
+
+    /**
+     * <p>splitByProperty.</p>
+     *
+     * @param list a {@link Iterable} object.
      * @param <K> a K object.
      * @param <V> a V object.
      * @return a {@link Map} object.

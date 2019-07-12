@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
@@ -52,6 +53,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -100,18 +102,32 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         // Load parent entity
         Operation parent = get(Operation.class, operationId);
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
 
         // Remember existing entities
+        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.PROPERTY_LABEL);
         final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getBatches()));
 
         // Save each batches
-        List<BatchVO> result = sources.stream().map(source -> {
+        sources.forEach(source -> {
             source.setOperationId(operationId);
+
             if (source.getId() != null) {
                 sourcesIdsToRemove.remove(source.getId());
             }
-            return save(source);
-        }).collect(Collectors.toList());
+            else {
+                Collection<Batch> existingBatchs = sourcesByLabelMap.get(source.getLabel());
+                // Use label only if unique
+                if (existingBatchs != null && existingBatchs.size() == 1) {
+                    Batch existingBatch = existingBatchs.iterator().next();
+                    sourcesIdsToRemove.remove(existingBatch.getId());
+                    source.setId(existingBatch.getId());
+                    optimizedSave(source, existingBatch, false, newUpdateDate, false);
+                    return;
+                }
+            }
+            optimizedSave(source, null, false, newUpdateDate, false);
+        });
 
         // Remove unused entities
         if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
@@ -119,14 +135,17 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         }
 
         // Remove parent (use only parentId)
-        result.stream().forEach(batch -> {
+        sources.forEach(batch -> {
             if (batch.getParent() != null) {
                 batch.setParentId(batch.getParent().getId());
                 batch.setParent(null);
             }
         });
 
-        return result;
+        entityManager.flush();
+        entityManager.clear();
+
+        return sources;
     }
 
 
@@ -200,6 +219,59 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
     }
 
     /* -- protected methods -- */
+
+    protected BatchVO optimizedSave(BatchVO source,
+                             Batch entity,
+                             boolean checkUpdateDate,
+                             Timestamp newUpdateDate,
+                             boolean flush) {
+        Preconditions.checkNotNull(source);
+
+        EntityManager entityManager = getEntityManager();
+        if (entity == null && source.getId() != null) {
+            entity = get(Batch.class, source.getId());
+        }
+        boolean isNew = (entity == null);
+        if (isNew) {
+            entity = new Batch();
+        }
+
+        if (!isNew && checkUpdateDate) {
+            // Check update date
+            // FIXME: Client app: update entity from the save() result
+            checkUpdateDateForUpdate(source, entity);
+
+            // Lock entityName
+            //lockForUpdate(entity);
+        }
+
+        // Copy some fields from the trip
+        copySomeFieldsFromOperation(source);
+
+        // VO -> Entity
+        batchVOToEntity(source, entity, true);
+
+        // Update update_dt
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entityName
+        if (isNew) {
+            entityManager.persist(entity);
+            source.setId(entity.getId());
+        } else {
+            entityManager.merge(entity);
+        }
+
+        // Update date
+        source.setUpdateDate(newUpdateDate);
+
+        if (flush) {
+            entityManager.flush();
+            entityManager.clear();
+        }
+
+        return source;
+    }
 
     protected BatchVO toBatchVO(Batch source, boolean allFields) {
 
