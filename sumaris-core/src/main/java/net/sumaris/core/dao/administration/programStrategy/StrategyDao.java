@@ -47,4 +47,10 @@ public interface StrategyDao {
 
     PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source, boolean copyPmfmValue);
 
+    List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
+
+    StrategyVO save(StrategyVO source);
+
+    void delete(int id);
+
 }

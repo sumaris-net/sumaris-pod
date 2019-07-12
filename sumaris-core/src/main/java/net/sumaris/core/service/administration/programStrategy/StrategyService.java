@@ -58,4 +58,6 @@ public interface StrategyService {
 	@Transactional(readOnly = true)
 	List<TaxonNameStrategyVO> getTaxonNames(int strategyId);
 
+	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
+
 }

@@ -56,6 +56,7 @@ public class Strategy implements IItemReferentialEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_fk", nullable = false)
     private Status status;
+
     @Column(name = "creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;

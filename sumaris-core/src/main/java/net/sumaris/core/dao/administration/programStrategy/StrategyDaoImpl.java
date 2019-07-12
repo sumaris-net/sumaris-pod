@@ -25,24 +25,22 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameDao;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.administration.programStrategy.*;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.referential.*;
+import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
+import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +48,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.criteria.*;
+import java.sql.Timestamp;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -342,7 +343,128 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
         return target;
     }
 
+    @Override
+    public List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources) {
+        // Load parent entity
+        Program parent = get(Program.class, programId);
 
+        // Remember existing entities
+        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getStrategies()));
+
+        // Save each entities
+        List<StrategyVO> result = sources.stream().map(source -> {
+            source.setProgramId(programId);
+            if (source.getId() != null) {
+                sourcesIdsToRemove.remove(source.getId());
+            }
+            return save(source);
+        }).collect(Collectors.toList());
+
+        // Remove unused entities
+        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
+            sourcesIdsToRemove.forEach(this::delete);
+        }
+
+        return result;
+    }
+
+    @Override
+    public StrategyVO save(StrategyVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getProgramId(), "Missing 'programId'");
+        Preconditions.checkNotNull(source.getLabel(), "Missing 'label'");
+        Preconditions.checkNotNull(source.getName(), "Missing 'name'");
+        Preconditions.checkNotNull(source.getStatusId(), "Missing 'statusId'");
+
+        EntityManager entityManager = getEntityManager();
+        Strategy entity = null;
+        if (source.getId() != null) {
+            entity = get(Strategy.class, source.getId());
+        }
+        boolean isNew = (entity == null);
+        if (isNew) {
+            entity = new Strategy();
+        }
+
+        // If new
+        if (isNew) {
+            // Set default status to Temporary
+            if (source.getStatusId() == null) {
+                source.setStatusId(config.getStatusIdTemporary());
+            }
+        }
+        // If update
+        else {
+
+            // Check update date
+            checkUpdateDateForUpdate(source, entity);
+
+            // Lock entityName
+            lockForUpdate(entity, LockModeType.PESSIMISTIC_WRITE);
+        }
+
+        strategyVOToEntity(source, entity, true);
+
+        // Update update_dt
+        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        entity.setUpdateDate(newUpdateDate);
+
+        // Save entity
+        if (isNew) {
+            // Force creation date
+            entity.setCreationDate(newUpdateDate);
+            source.setCreationDate(newUpdateDate);
+
+            entityManager.persist(entity);
+            source.setId(entity.getId());
+        } else {
+            entityManager.merge(entity);
+        }
+
+        source.setUpdateDate(newUpdateDate);
+
+        // Save pmfm stratgeies
+        //saveProperties(source.getProperties(), entity, newUpdateDate);
+
+        //getEntityManager().flush();
+        //getEntityManager().clear();
+
+        return source;
+    }
+
+    public void delete(int id) {
+        log.debug(String.format("Deleting strategy {id=%s}...", id));
+        delete(Strategy.class, id);
+    }
+
+    /* -- protected method -- */
+
+    protected void strategyVOToEntity(StrategyVO source, Strategy target, boolean copyIfNull) {
+
+
+        Beans.copyProperties(source, target);
+
+        // Program
+        if (copyIfNull || source.getProgramId() != null) {
+            if (source.getProgramId() == null) {
+                target.setProgram(null);
+            }
+            else {
+                target.setProgram(load(Program.class, source.getProgramId()));
+            }
+        }
+
+        // Status
+        if (copyIfNull || source.getStatusId() != null) {
+            if (source.getStatusId() == null) {
+                target.setStatus(null);
+            }
+            else {
+                target.setStatus(load(Status.class, source.getStatusId()));
+            }
+        }
+
+    }
 
     protected List<TaxonNameStrategyVO> getTaxonNames(Strategy source) {
         if (CollectionUtils.isEmpty(source.getReferenceTaxons())) return null;

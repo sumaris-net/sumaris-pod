@@ -70,4 +70,7 @@ public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
     private List<TaxonGroup2TaxonHierarchy> parentTaxonGroups;
 
 
+    public String toString() {
+        return String.format("ReferenceTaxon{id=%s}", id);
+    }
 }

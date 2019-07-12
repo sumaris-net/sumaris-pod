@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +43,9 @@ public class ProgramServiceImpl implements ProgramService {
 
 	@Autowired
 	protected ProgramDao  programDao;
+
+	@Autowired
+	protected StrategyService strategyService;
 
 	@Override
 	public List<ProgramVO> getAll() {
@@ -68,7 +71,15 @@ public class ProgramServiceImpl implements ProgramService {
 	@Override
 	public ProgramVO save(ProgramVO source) {
 		Preconditions.checkNotNull(source);
-		return programDao.save(source);
+		ProgramVO savedProgram = programDao.save(source);
+
+		// Save strategies
+		if (savedProgram.getStrategies() != null) {
+			List<StrategyVO> savedStrategies = strategyService.saveByProgramId(savedProgram.getId(), source.getStrategies());
+			savedProgram.setStrategies(savedStrategies);
+		}
+
+		return savedProgram;
 	}
 
 	@Override

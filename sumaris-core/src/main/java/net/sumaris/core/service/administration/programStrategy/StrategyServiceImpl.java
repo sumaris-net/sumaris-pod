@@ -26,14 +26,11 @@ package net.sumaris.core.service.administration.programStrategy;
 import net.sumaris.core.dao.administration.programStrategy.StrategyDao;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 
 @Service("strategyService")
@@ -72,5 +69,15 @@ public class StrategyServiceImpl implements StrategyService {
 	@Override
 	public List<TaxonNameStrategyVO> getTaxonNames(int strategyId) {
 		return strategyDao.getTaxonNames(strategyId);
+	}
+
+	@Override
+	public List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources) {
+		List<StrategyVO> result = strategyDao.saveByProgramId(programId, sources);
+
+		// Save pmfm strategy
+		//saveMeasurements(result);
+
+		return result;
 	}
 }

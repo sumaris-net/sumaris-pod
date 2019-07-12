@@ -238,7 +238,7 @@ public class ProgramDaoImpl extends HibernateDaoSupport implements ProgramDao {
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
-        // Save entityName
+        // Save entity
         if (isNew) {
             // Force creation date
             entity.setCreationDate(newUpdateDate);

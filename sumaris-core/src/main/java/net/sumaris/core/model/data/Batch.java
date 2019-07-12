@@ -39,6 +39,7 @@ import java.util.List;
 public class Batch implements IDataEntity<Integer> {
 
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
+    public static final String PROPERTY_LABEL = "label";
     public static final String PROPERTY_OPERATION = "operation";
     public static final String PROPERTY_PARENT = "parent";
     public static final String PROPERTY_SORTING_MEASUREMENTS = "sortingMeasurements";
@@ -128,4 +129,8 @@ public class Batch implements IDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
     @JoinColumn(name = "operation_fk", nullable = false)
     private Operation operation;
+
+    public String toString() {
+        return String.format("Batch{id=%s,label=%s}", id, label);
+    }
 }
