@@ -55,6 +55,21 @@
     </query>
   </named-query>
 
+  <named-query name="findTaxon">
+    <query>
+      <![CDATA[
+      SELECT
+        t
+      FROM
+        Department t
+        inner join fetch t.status s
+      WHERE
+        (:statusIds is null OR s.id IN (:statusIds))
+        AND (:withLogo is null OR t.logo.id is not null)
+      ]]>
+    </query>
+  </named-query>
+
   <!--<named-query name="findDepartments">
     <query>
       <![CDATA[

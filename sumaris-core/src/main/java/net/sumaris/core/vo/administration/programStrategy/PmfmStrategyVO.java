@@ -35,8 +35,10 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class
-PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer>  {
+public class PmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer>  {
+
+    public static final String PROPERTY_LABEL = "label";
+    public static final String PROPERTY_PMFM = "pmfm";
 
     private Integer id;
 

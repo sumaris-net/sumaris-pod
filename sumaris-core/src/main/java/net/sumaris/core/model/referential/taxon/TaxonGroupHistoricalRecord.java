@@ -43,11 +43,9 @@ import java.util.List;
 @Table(name = "taxon_group_historical_record")
 public class TaxonGroupHistoricalRecord implements IUpdateDateEntityBean<Integer, Date> {
 
-    public static final String PROPERTY_TAXON_GROUP_TYPE = "taxonGroupType";
-    public static final String PROPERTY_STRATEGIES = "strategies";
-
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "TAXON_GROUP_HISTORICAL_REC_SEQ")
+    @SequenceGenerator(name = "TAXON_GROUP_HISTORICAL_REC_SEQ", sequenceName="TAXON_GROUP_HISTORICAL_REC_SEQ")
     private Integer id;
 
     @Column(name = "start_date", nullable = false)

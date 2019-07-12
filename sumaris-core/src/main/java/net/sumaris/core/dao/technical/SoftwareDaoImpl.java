@@ -124,7 +124,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
             if (parent.getProperties() != null) {
                 List<SoftwareProperty> toRemove = ImmutableList.copyOf(parent.getProperties());
                 parent.getProperties().clear();
-                toRemove.stream().forEach(em::remove);
+                toRemove.forEach(em::remove);
             }
         }
         else {
@@ -167,7 +167,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
             // Remove old properties
             if (MapUtils.isNotEmpty(existingProperties)) {
                 parent.getProperties().removeAll(existingProperties.values());
-                existingProperties.values().stream().forEach(em::remove);
+                existingProperties.values().forEach(em::remove);
             }
 
         }

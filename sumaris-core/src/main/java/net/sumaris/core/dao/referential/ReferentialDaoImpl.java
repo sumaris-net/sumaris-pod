@@ -71,6 +71,8 @@ import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -167,7 +169,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         result.put(Fraction.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Fraction.class, Fraction.PROPERTY_MATRIX));
         result.put(QualitativeValue.class.getSimpleName(), BeanUtils.getPropertyDescriptor(QualitativeValue.class, QualitativeValue.PROPERTY_PARAMETER));
         result.put(TaxonGroup.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonGroup.PROPERTY_TAXON_GROUP_TYPE));
-        result.put(TaxonName.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonName.PROPERTY_TAXONOMIC_LEVEL));
+        result.put(TaxonName.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonName.class, TaxonName.PROPERTY_TAXONOMIC_LEVEL));
         result.put(Strategy.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Strategy.class, Strategy.PROPERTY_PROGRAM));
         result.put(Metier.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Metier.class, Metier.PROPERTY_GEAR));
         result.put(GroupingLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(GroupingLevel.class, GroupingLevel.PROPERTY_GROUPING_CLASSIFICAION));
@@ -198,7 +200,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     StringUtils.trimToNull(filter.getSearchAttribute()),
                     filter.getStatusIds(),
                     sortAttribute,
-                    sortDirection)
+                    sortDirection, null)
                 .setFirstResult(offset)
                 .setMaxResults(size)
                 .getResultStream()
@@ -438,14 +440,15 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                 .collect(Collectors.toList());
     }
 
-    private <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
-                                         Integer levelId,
-                                         Integer[] levelIds,
-                                         String searchText,
-                                         String searchAttribute,
-                                         Integer[] statusIds,
-                                         String sortAttribute,
-                                         SortDirection sortDirection) {
+    public <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
+                                             Integer levelId,
+                                             Integer[] levelIds,
+                                             String searchText,
+                                             String searchAttribute,
+                                             Integer[] statusIds,
+                                             String sortAttribute,
+                                             SortDirection sortDirection,
+                                             QueryVisitor<T> queryVisitor) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
         Root<T> entityRoot = query.from(entityClass);
@@ -528,6 +531,14 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         if (statusIdsClause != null) {
             whereClause = (whereClause == null) ? statusIdsClause : builder.and(whereClause, statusIdsClause);
+        }
+
+        // Delegate to visitor
+        if (queryVisitor != null) {
+            Expression<Boolean> additionnalWhere = queryVisitor.apply(query, entityRoot);
+            if (additionnalWhere != null) {
+                whereClause = (whereClause == null) ? additionnalWhere : builder.and(whereClause, additionnalWhere);
+            }
         }
 
         if (whereClause != null) {

@@ -53,4 +53,6 @@ public interface ProgramService {
 	List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
 	ProgramVO save(ProgramVO program);
+
+	void delete(int id);
 }

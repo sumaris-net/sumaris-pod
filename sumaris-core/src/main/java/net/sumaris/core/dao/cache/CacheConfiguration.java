@@ -100,13 +100,18 @@ public class CacheConfiguration {
     }
 
     @Bean
-    public EhCacheFactoryBean pmfmByProgramIdCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_PROGRAM_ID, 1500, 1500, 100);
+    public EhCacheFactoryBean pmfmByStrategyIdCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.PMFM_BY_STRATEGY_ID, 1500, 1500, 100);
+    }
+
+    @Bean
+    public EhCacheFactoryBean programByIdCache() {
+        return Caches.createHeapCache(ehcache(), CacheNames.PROGRAM_BY_ID, 100, 1500, 100);
     }
 
     @Bean
     public EhCacheFactoryBean programByLabelCache() {
-        return Caches.createHeapCache(ehcache(), CacheNames.PROGRAM_BY_LABEL, 1500, 1500, 100);
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.PROGRAM_BY_LABEL, 100);
     }
 
     @Bean
@@ -117,6 +122,11 @@ public class CacheConfiguration {
     @Bean
     public EhCacheFactoryBean taxonNameByTaxonReferenceId() {
         return Caches.createEternalHeapCache(ehcache(), CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, 600);
+    }
+
+    @Bean
+    public EhCacheFactoryBean taxonNamesByTaxonGroupId() {
+        return Caches.createEternalHeapCache(ehcache(), CacheNames.TAXON_NAMES_BY_TAXON_GROUP_ID, 600);
     }
 
     @Bean

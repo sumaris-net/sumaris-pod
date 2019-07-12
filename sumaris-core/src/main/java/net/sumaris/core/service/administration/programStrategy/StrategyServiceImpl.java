@@ -24,9 +24,10 @@ package net.sumaris.core.service.administration.programStrategy;
 
 
 import net.sumaris.core.dao.administration.programStrategy.StrategyDao;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +45,13 @@ public class StrategyServiceImpl implements StrategyService {
 	protected StrategyDao strategyDao;
 
 	@Override
-	public List<StrategyVO> findByProgram(int programId) {
-		return strategyDao.findByProgram(programId);
+	public List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions) {
+		return strategyDao.findByProgram(programId, fetchOptions);
 	}
 
 	@Override
-	public List<PmfmStrategyVO> getPmfmStrategies(int programId) {
-		return strategyDao.getPmfmStrategies(programId);
+	public List<PmfmStrategyVO> getPmfmStrategies(int strategyId) {
+		return strategyDao.getPmfmStrategies(strategyId);
 	}
 
 	@Override
@@ -59,12 +60,17 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public List<ReferentialVO> getGears(int programId) {
-		return strategyDao.getGears(programId);
+	public List<ReferentialVO> getGears(int strategyId) {
+		return strategyDao.getGears(strategyId);
 	}
 
 	@Override
-	public List<ReferentialVO> getTaxonGroups(int programId) {
-		return strategyDao.getTaxonGroups(programId);
+	public List<TaxonGroupStrategyVO> getTaxonGroups(int strategyId) {
+		return strategyDao.getTaxonGroups(strategyId);
+	}
+
+	@Override
+	public List<TaxonNameStrategyVO> getTaxonNames(int strategyId) {
+		return strategyDao.getTaxonNames(strategyId);
 	}
 }

@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -55,7 +56,7 @@ public class BatchVO implements IUpdateDateEntityBean<Integer, Date> {
     private String samplingRatioText;
     private Integer individualCount;
     private ReferentialVO taxonGroup;
-    private ReferentialVO taxonName;
+    private TaxonNameVO taxonName;
 
     private OperationVO operation;
     private Integer operationId;

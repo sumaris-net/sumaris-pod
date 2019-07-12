@@ -31,6 +31,7 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.util.Beans;
@@ -38,6 +39,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.BatchVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -215,7 +217,7 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
 
         // Taxon name (from reference)
         if (source.getReferenceTaxon() != null) {
-            ReferentialVO taxonName = taxonNameDao.getTaxonNameReferent(source.getReferenceTaxon().getId());
+            TaxonNameVO taxonName = taxonNameDao.getTaxonNameReferent(source.getReferenceTaxon().getId());
             target.setTaxonName(taxonName);
         }
 
@@ -276,9 +278,14 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
                 target.setReferenceTaxon(null);
             }
             else {
-                // Get the taxon name, then set reference taxon
-                TaxonName taxonname = get(TaxonName.class, source.getTaxonName().getId());
-                target.setReferenceTaxon(taxonname.getReferenceTaxon());
+                if (source.getTaxonName().getReferenceTaxonId() != null) {
+                    target.setReferenceTaxon(load(ReferenceTaxon.class, source.getTaxonName().getReferenceTaxonId()));
+                }
+                else {
+                    // Get the taxon name, then set reference taxon
+                    TaxonName taxonname = get(TaxonName.class, source.getTaxonName().getId());
+                    target.setReferenceTaxon(taxonname.getReferenceTaxon());
+                }
             }
         }
 

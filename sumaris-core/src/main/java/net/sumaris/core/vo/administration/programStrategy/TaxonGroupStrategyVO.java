@@ -23,7 +23,7 @@ package net.sumaris.core.vo.administration.programStrategy;
  */
 
 import lombok.Data;
-import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
@@ -31,10 +31,9 @@ import net.sumaris.core.vo.referential.TaxonNameVO;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Data
-public class StrategyVO implements IReferentialVO {
+public class TaxonGroupStrategyVO implements IReferentialVO {
 
     private Integer id;
     private String label;
@@ -45,11 +44,8 @@ public class StrategyVO implements IReferentialVO {
     private Date creationDate;
 
     private Integer statusId;
-    private Integer programId;
+    private Integer levelId;
 
-    private List<PmfmStrategyVO> pmfmStrategies;
-    private List<ReferentialVO> gears;
-    private List<TaxonGroupStrategyVO> taxonGroups;
-    private List<TaxonNameStrategyVO> taxonNames;
+    Integer priorityLevel;
 
 }

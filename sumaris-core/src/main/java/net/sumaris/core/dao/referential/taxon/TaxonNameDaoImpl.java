@@ -23,23 +23,26 @@ package net.sumaris.core.dao.referential.taxon;
  */
 
 import com.google.common.collect.ImmutableList;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
-import net.sumaris.core.model.referential.taxon.TaxonomicLevelId;
+import net.sumaris.core.model.referential.taxon.*;
+import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,9 +53,64 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
     private static final Logger log =
             LoggerFactory.getLogger(TaxonNameDaoImpl.class);
 
+    @Autowired
+    private ReferentialDao referentialDao;
+
+    @Override
+    public List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size,
+                                          String sortAttribute, SortDirection sortDirection) {
+        EntityManager em = getEntityManager();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
+
+        // With synonym
+        boolean withSynonyms = filter.getWithSynonyms() != null ? filter.getWithSynonyms() : false;
+
+        // Taxon group
+        ParameterExpression<Collection> taxonGroupIdsParam = builder.parameter(Collection.class);
+
+        // Where clause visitor
+        ReferentialDao.QueryVisitor<TaxonName> queryVisitor = (query, root) -> {
+
+            Expression<Boolean> whereClause = null;
+            if (!withSynonyms) {
+                whereClause = builder.equal(root.get(TaxonName.PROPERTY_IS_REFERENT), Boolean.TRUE);
+            }
+
+            Expression<Boolean> taxonGroupClause = null;
+            if (ArrayUtils.isNotEmpty(filter.getTaxonGroupIds())) {
+                Join<TaxonName, ReferenceTaxon> rt = root.join(TaxonName.PROPERTY_REFERENCE_TAXON, JoinType.INNER);
+                ListJoin<ReferenceTaxon, TaxonGroup2TaxonHierarchy> tgh = rt.joinList(ReferenceTaxon.PROPERTY_PARENT_TAXON_GROUPS, JoinType.INNER);
+                taxonGroupClause = builder.in(tgh.get(TaxonGroup2TaxonHierarchy.PROPERTY_PARENT_TAXON_GROUP).get(TaxonGroup.PROPERTY_ID))
+                        .value(taxonGroupIdsParam);
+                whereClause = whereClause == null ?  taxonGroupClause : builder.and(whereClause, taxonGroupClause);
+            }
+
+            return whereClause;
+        };
+
+        TypedQuery<TaxonName> typedQuery = referentialDao.createFindQuery(TaxonName.class,
+                null,
+                filter.getTaxonomicLevelIds(),
+                StringUtils.trimToNull(filter.getSearchText()),
+                StringUtils.trimToNull(filter.getSearchAttribute()),
+                filter.getStatusIds(),
+                sortAttribute,
+                sortDirection,
+                queryVisitor);
+
+        if (ArrayUtils.isNotEmpty(filter.getTaxonGroupIds())) {
+            typedQuery.setParameter(taxonGroupIdsParam,  ImmutableList.copyOf(filter.getTaxonGroupIds()));
+        }
+
+         return typedQuery.getResultStream()
+                .map(this::toTaxonNameVO)
+                .collect(Collectors.toList());
+    }
+
     @Override
     public List<TaxonNameVO> getAll(boolean withSynonyms) {
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        EntityManager em = getEntityManager();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<TaxonName> query = builder.createQuery(TaxonName.class);
         Root<TaxonName> root = query.from(TaxonName.class);
 
@@ -70,14 +128,17 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
                         )
                 ));
 
-        TypedQuery<TaxonName> q = getEntityManager().createQuery(query)
-                .setParameter(withSynonymParam, Boolean.valueOf(withSynonyms));
-        return toTaxonNameVOs(q.getResultList());
+        return em.createQuery(query)
+                .setParameter(withSynonymParam, withSynonyms ? null : false)
+                .getResultStream()
+                .map(this::toTaxonNameVO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public TaxonNameVO getTaxonNameReferent(Integer referenceTaxonId) {
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        EntityManager em = getEntityManager();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<TaxonName> query = builder.createQuery(TaxonName.class);
         Root<TaxonName> root = query.from(TaxonName.class);
 
@@ -86,7 +147,7 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         query.select(root)
                 .where(builder.equal(root.get(TaxonName.PROPERTY_REFERENCE_TAXON).get(ReferenceTaxon.PROPERTY_ID), idParam));
 
-        TypedQuery<TaxonName> q = getEntityManager().createQuery(query)
+        TypedQuery<TaxonName> q = em.createQuery(query)
                 .setParameter(idParam, referenceTaxonId);
         List<TaxonName> referenceTaxons = q.getResultList();
         if (CollectionUtils.isEmpty(referenceTaxons)) return null;
@@ -95,6 +156,51 @@ public class TaxonNameDaoImpl extends HibernateDaoSupport implements TaxonNameDa
         }
 
         return toTaxonNameVO(referenceTaxons.get(0));
+    }
+
+    @Override
+    public List<TaxonName> getAllTaxonNameByParentIds(Collection<Integer> taxonNameParentIds) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<TaxonName> query = builder.createQuery(TaxonName.class);
+        Root<TaxonName> root = query.from(TaxonName.class);
+
+        ParameterExpression<Collection> parentIdsParam = builder.parameter(Collection.class);
+
+        query.where(builder.in(root.get(TaxonName.PROPERTY_PARENT_TAXON_NAME).get(TaxonName.PROPERTY_ID)).value(parentIdsParam));
+
+        return getEntityManager().createQuery(query)
+                .setParameter(parentIdsParam, taxonNameParentIds)
+                .getResultList();
+    }
+
+    @Override
+    public List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId) {
+        EntityManager em = getEntityManager();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
+        CriteriaQuery<TaxonName> query = builder.createQuery(TaxonName.class);
+        Root<TaxonGroup2TaxonHierarchy> root = query.from(TaxonGroup2TaxonHierarchy.class);
+
+        ParameterExpression<Integer> taxonGroupIdParam = builder.parameter(Integer.class);
+
+        Join<TaxonGroup2TaxonHierarchy, ReferenceTaxon> rt = root.join(TaxonGroup2TaxonHierarchy.PROPERTY_CHILD_REFERENCE_TAXON, JoinType.INNER);
+        Join<ReferenceTaxon, TaxonName> tn = rt.joinList(ReferenceTaxon.PROPERTY_TAXON_NAMES, JoinType.INNER);
+
+        query.select(tn)
+                .where(builder.and(
+                        // Filter on taxon_group
+                        builder.equal(root.get(TaxonGroup2TaxonHierarchy.PROPERTY_PARENT_TAXON_GROUP).get(TaxonGroup.PROPERTY_ID), taxonGroupIdParam),
+                        // Filter on taxonomic level (species and subspecies)
+                        builder.in(tn.get(TaxonName.PROPERTY_TAXONOMIC_LEVEL).get(TaxonomicLevel.PROPERTY_ID))
+                                .value(ImmutableList.of(TaxonomicLevelId.SPECIES.getId(), TaxonomicLevelId.SUBSPECIES.getId())),
+                        // Filter on is_referent
+                        builder.equal(tn.get(TaxonName.PROPERTY_IS_REFERENT), Boolean.TRUE)
+                ));
+
+        return em.createQuery(query)
+                .setParameter(taxonGroupIdParam, taxonGroupId)
+                .getResultStream()
+                .map(this::toTaxonNameVO)
+                .collect(Collectors.toList());
     }
 
     /* -- protected methods -- */

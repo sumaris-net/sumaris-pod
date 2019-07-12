@@ -62,7 +62,7 @@ public interface ExtractionProductDao {
     ExtractionProductVO save(ExtractionProductVO source);
 
     @Caching(evict = {
-            @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#id"),
+            @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_STATUS, allEntries = true)
     })

@@ -34,6 +34,7 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
@@ -56,7 +57,9 @@ import java.util.stream.Collectors;
 @Repository("observedLocationDao")
 public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements ObservedLocationDao {
 
-    /** Logger. */
+    /**
+     * Logger.
+     */
     private static final Logger log =
             LoggerFactory.getLogger(ObservedLocationDaoImpl.class);
 
@@ -127,28 +130,28 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.and(
-                // Filter: program
-                builder.or(
-                        builder.isNull(programIdParam),
-                        builder.equal(root.get(ObservedLocation.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
-                ),
-                // Filter: startDate
-                builder.or(
-                        builder.isNull(startDateParam),
-                        builder.not(builder.lessThan(root.get(ObservedLocation.PROPERTY_END_DATE_TIME), startDateParam))
-                ),
-                // Filter: endDate
-                builder.or(
-                    builder.isNull(endDateParam),
-                    builder.not(builder.greaterThan(root.get(ObservedLocation.PROPERTY_START_DATE_TIME), endDateParam))
-                ),
-                // Filter: location
-                builder.or(
-                        builder.isNull(locationIdParam),
-                        builder.equal(root.get(ObservedLocation.PROPERTY_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
-                )
-            ));
+                .where(builder.and(
+                        // Filter: program
+                        builder.or(
+                                builder.isNull(programIdParam),
+                                builder.equal(root.get(ObservedLocation.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                        ),
+                        // Filter: startDate
+                        builder.or(
+                                builder.isNull(startDateParam),
+                                builder.not(builder.lessThan(root.get(ObservedLocation.PROPERTY_END_DATE_TIME), startDateParam))
+                        ),
+                        // Filter: endDate
+                        builder.or(
+                                builder.isNull(endDateParam),
+                                builder.not(builder.greaterThan(root.get(ObservedLocation.PROPERTY_START_DATE_TIME), endDateParam))
+                        ),
+                        // Filter: location
+                        builder.or(
+                                builder.isNull(locationIdParam),
+                                builder.equal(root.get(ObservedLocation.PROPERTY_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                        )
+                ));
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
@@ -235,8 +238,8 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
 
     @Override
     public <T> T get(int id, Class<T> targetClass) {
-        if (targetClass.isAssignableFrom(ObservedLocation.class)) return (T)get(ObservedLocation.class, id);
-        if (targetClass.isAssignableFrom(ObservedLocationVO.class)) return (T)get(id);
+        if (targetClass.isAssignableFrom(ObservedLocation.class)) return (T) get(ObservedLocation.class, id);
+        if (targetClass.isAssignableFrom(ObservedLocationVO.class)) return (T) get(id);
         throw new IllegalArgumentException("Unable to convert into " + targetClass.getName());
     }
 
@@ -252,9 +255,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         boolean isNew = (entity == null);
         if (isNew) {
             entity = new ObservedLocation();
-        }
-
-        else {
+        } else {
             // Check update date
             checkUpdateDateForUpdate(source, entity);
 
@@ -414,7 +415,9 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         }
 
         // Program
-        target.setProgram(programDao.toProgramVO(source.getProgram()));
+        target.setProgram(programDao.toProgramVO(source.getProgram(),
+                ProgramFetchOptions.builder().withProperties(false)
+                        .build()));
 
 
         target.setQualityFlagId(source.getQualityFlag().getId());
@@ -457,8 +460,7 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
         if (copyIfNull || source.getLocation() != null) {
             if (source.getLocation() == null || source.getLocation().getId() == null) {
                 target.setLocation(null);
-            }
-            else {
+            } else {
                 target.setLocation(load(Location.class, source.getLocation().getId()));
             }
         }
@@ -469,17 +471,16 @@ public class ObservedLocationDaoImpl extends BaseDataDaoImpl implements Observed
                 if (CollectionUtils.isNotEmpty(target.getObservers())) {
                     target.getObservers().clear();
                 }
-            }
-            else {
+            } else {
                 Map<Integer, Person> observersToRemove = Beans.splitById(target.getObservers());
                 source.getObservers().stream()
                         .map(IEntity::getId)
                         .forEach(personId -> {
-                    if (observersToRemove.remove(personId) == null) {
-                        // Add new item
-                        target.getObservers().add(load(Person.class, personId));
-                    }
-                });
+                            if (observersToRemove.remove(personId) == null) {
+                                // Add new item
+                                target.getObservers().add(load(Person.class, personId));
+                            }
+                        });
 
                 // Remove deleted tableNames
                 target.getObservers().removeAll(observersToRemove.values());

@@ -219,11 +219,17 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
             }
         }
 
-        // Recorder department
-        DataDaos.copyRecorderDepartment(getEntityManager(), source, target, copyIfNull);
+
+
         // Recorder person
         DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
 
+        // Recorder department
+        DataDaos.copyRecorderDepartment(getEntityManager(), source, target, copyIfNull);
+        if (target.getRecorderDepartment() == null && target.getRecorderPerson() != null) {
+            // If nul, use recorder person department
+            target.setRecorderDepartment(target.getRecorderPerson().getDepartment());
+        }
     }
 
     protected void saveProductTables(List<ExtractionProductTableVO> sources, int productId, Timestamp updateDate) {

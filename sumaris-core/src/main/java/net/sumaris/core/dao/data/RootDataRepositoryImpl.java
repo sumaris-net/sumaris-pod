@@ -32,6 +32,7 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
@@ -63,7 +64,7 @@ public class RootDataRepositoryImpl<
         F extends IRootDataFilter
         >
         extends SumarisJpaRepositoryImpl<E, Integer>
-        implements RootDataRepository<E, ID, V, F>{
+        implements RootDataRepository<E, ID, V, F> {
 
     /**
      * Logger.
@@ -212,8 +213,8 @@ public class RootDataRepositoryImpl<
 
         // Observers
         if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            Set<PersonVO> sourceObservers = ((IWithObserversEntity)source).getObservers();
-            Set<Person> targetObservers = SetUtils.emptyIfNull(((IWithObserversEntity)target).getObservers());
+            Set<PersonVO> sourceObservers = ((IWithObserversEntity) source).getObservers();
+            Set<Person> targetObservers = SetUtils.emptyIfNull(((IWithObserversEntity) target).getObservers());
             if (copyIfNull || sourceObservers != null) {
                 if (CollectionUtils.isEmpty(sourceObservers)) {
                     if (CollectionUtils.isNotEmpty(targetObservers)) {
@@ -258,14 +259,16 @@ public class RootDataRepositoryImpl<
 
         // Program
         if (source.getProgram() != null) {
-            target.setProgram(programDao.toProgramVO(source.getProgram()));
+            target.setProgram(programDao.toProgramVO(source.getProgram(),
+                    ProgramFetchOptions.builder().withProperties(false)
+                            .build()));
         }
 
         // Vessel
         if (source instanceof IWithVesselEntity && target instanceof IWithVesselFeaturesEntity) {
             VesselFeaturesVO vesselFeatures = new VesselFeaturesVO();
-            vesselFeatures.setVesselId((Integer)((IWithVesselEntity)source).getVessel().getId());
-            ((IWithVesselFeaturesEntity<Integer, VesselFeaturesVO>)target).setVesselFeatures(vesselFeatures);
+            vesselFeatures.setVesselId((Integer) ((IWithVesselEntity) source).getVessel().getId());
+            ((IWithVesselFeaturesEntity<Integer, VesselFeaturesVO>) target).setVesselFeatures(vesselFeatures);
         }
 
         // Recorder department
@@ -282,12 +285,12 @@ public class RootDataRepositoryImpl<
 
         // Observers
         if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            Set<Person> sourceObservers = ((IWithObserversEntity)source).getObservers();
+            Set<Person> sourceObservers = ((IWithObserversEntity) source).getObservers();
             if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(sourceObservers)) {
                 Set<PersonVO> observers = sourceObservers.stream()
                         .map(personDao::toPersonVO)
                         .collect(Collectors.toSet());
-                ((IWithObserversEntity<Integer, PersonVO>)target).setObservers(observers);
+                ((IWithObserversEntity<Integer, PersonVO>) target).setObservers(observers);
             }
         }
     }
@@ -323,16 +326,16 @@ public class RootDataRepositoryImpl<
         return PageRequest.of(offset / size, size);
     }
 
-    protected  void copyVessel(IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> source,
-                                                      IWithVesselEntity<Integer, Vessel> target,
-                                                      boolean copyIfNull) {
+    protected void copyVessel(IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> source,
+                              IWithVesselEntity<Integer, Vessel> target,
+                              boolean copyIfNull) {
         DataDaos.copyVessel(getEntityManager(), source, target, copyIfNull);
     }
 
 
-    protected  void copyObservers(IWithObserversEntity<Integer, PersonVO> source,
-                                  IWithObserversEntity<Integer, Person> target,
-                               boolean copyIfNull) {
+    protected void copyObservers(IWithObserversEntity<Integer, PersonVO> source,
+                                 IWithObserversEntity<Integer, Person> target,
+                                 boolean copyIfNull) {
         DataDaos.copyObservers(getEntityManager(), source, target, copyIfNull);
     }
 

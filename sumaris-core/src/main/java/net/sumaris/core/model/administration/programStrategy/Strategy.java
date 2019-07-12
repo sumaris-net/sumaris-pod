@@ -46,6 +46,8 @@ public class Strategy implements IItemReferentialEntity {
     public static final String PROPERTY_PROGRAM = "program";
     public static final String PROPERTY_GEARS = "gears";
     public static final String PROPERTY_TAXON_GROUPS = "taxonGroups";
+    public static final String PROPERTY_PMFM_STRATEGIES = "pmfmStrategies";
+
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)

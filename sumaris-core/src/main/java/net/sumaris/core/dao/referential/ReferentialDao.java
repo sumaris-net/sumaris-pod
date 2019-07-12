@@ -33,10 +33,19 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Root;
 import java.util.List;
+import java.util.function.BiFunction;
 
 public interface ReferentialDao {
 
+    interface QueryVisitor<T> {
+        Expression<Boolean> apply(CriteriaQuery<T> query, Root<T> root);
+    }
 
     @Cacheable(cacheNames = CacheNames.REFERENTIAL_TYPES)
     List<ReferentialTypeVO> getAllTypes();
@@ -73,4 +82,14 @@ public interface ReferentialDao {
     Long count(String entityName);
 
     Long countByLevelId(String entityName, Integer... levelIds);
+
+    <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
+                                      Integer levelId,
+                                      Integer[] levelIds,
+                                      String searchText,
+                                      String searchAttribute,
+                                      Integer[] statusIds,
+                                      String sortAttribute,
+                                      SortDirection sortDirection,
+                                      QueryVisitor<T> queryVisitor);
 }

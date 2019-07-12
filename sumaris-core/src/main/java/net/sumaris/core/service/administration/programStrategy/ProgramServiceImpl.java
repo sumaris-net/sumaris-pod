@@ -23,6 +23,7 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.administration.programStrategy.ProgramDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -60,12 +61,19 @@ public class ProgramServiceImpl implements ProgramService {
 
 	@Override
 	public ProgramVO getByLabel(String label) {
+		Preconditions.checkNotNull(label);
 		return programDao.getByLabel(label);
 	}
 
 	@Override
-	public ProgramVO save(ProgramVO program) {
-		return programDao.save(program);
+	public ProgramVO save(ProgramVO source) {
+		Preconditions.checkNotNull(source);
+		return programDao.save(source);
+	}
+
+	@Override
+	public void delete(int id) {
+		programDao.delete(id);
 	}
 }
 

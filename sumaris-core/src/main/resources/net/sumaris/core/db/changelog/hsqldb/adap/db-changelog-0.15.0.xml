@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-0.15.0.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Insert taxon_name  COD -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-301" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where label = 'COD'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+          <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+          <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">COD</column>
+            <column name="NAME">Gadus morhua</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/>
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Cabillaud</column>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert taxon_name  NEP -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-302" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where label = 'NEP'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+          <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+          <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">NEP</column>
+            <column name="NAME">Nephrops norvegicus</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/>
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Langoustine commune</column>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+
+    </changeSet>
+
+    <!-- Insert taxon_name HAD -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-303" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where label = 'HAD'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="NAME">Gadidae</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="26"/>
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">FMGADID - issu de la reprise Reftax du 25/05/2011</column>
+            <column name="UPPER_RANK" valueNumeric="301700000"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="NAME">Melanogrammus</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="26"/>
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">MELA - issu de la reprise Reftax du 25/05/2011</column>
+            <column name="UPPER_RANK" valueNumeric="303000000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select reference_taxon_fk from taxon_name WHERE name='Gadidae')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+          <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+          <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">HAD</column>
+            <column name="NAME">Melanogrammus aeglefinus</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/>
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">MELAAEG - issu de la reprise Reftax du 25/05/2011</column>
+            <column name="UPPER_RANK" valueNumeric="303100000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select reference_taxon_fk from taxon_name WHERE name='Melanogrammus')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+
+    </changeSet>
+
+    <!-- Insert taxon_name RJB_1 and RJB_2 -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-304" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where label like 'RJB_%'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">RJB_1</column>
+            <column name="NAME">Dipturus flossada</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/>
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Eglefin</column>
+            <column name="PARENT_TAXON_NAME_FK" valueNumeric="1014"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="NEXT VALUE FOR reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_NAME_SEQ"/>
+            <column name="LABEL">RJB_2</column>
+            <column name="NAME">Dipturus intermedia</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/>
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Grand pocheteau gris</column>
+            <column name="PARENT_TAXON_NAME_FK" valueNumeric="1014"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert taxon_group_historical_record -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-310" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_group_historical_record</sqlCheck>
+            </and>
+        </preConditions>
+        <!-- COD cabillaud -->
+        <insert tableName="taxon_group_historical_record">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">1970-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='COD' and TAXON_GROUP_TYPE_FK=2"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='COD'"/>
+        </insert>
+        <!-- NEP Langoustine -->
+        <insert tableName="taxon_group_historical_record">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">1970-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='NEP' and TAXON_GROUP_TYPE_FK=2"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='NEP'"/>
+        </insert>
+        <!-- HAD Eglefin -->
+        <insert tableName="taxon_group_historical_record">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">1970-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='HAD' and TAXON_GROUP_TYPE_FK=2"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='HAD'"/>
+        </insert>
+        <!-- MNZ Baudroie -->
+        <insert tableName="taxon_group_historical_record">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">1970-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='MNZ' and TAXON_GROUP_TYPE_FK=2"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='ANK'"/>
+        </insert>
+        <!-- RJB Pocheteau gris -->
+        <insert tableName="taxon_group_historical_record">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">1970-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='RJB' and TAXON_GROUP_TYPE_FK=2"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='RJB_1'"/>
+        </insert>
+        <insert tableName="taxon_group_historical_record">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">1970-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='RJB' and TAXON_GROUP_TYPE_FK=2"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='RJB_2'"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

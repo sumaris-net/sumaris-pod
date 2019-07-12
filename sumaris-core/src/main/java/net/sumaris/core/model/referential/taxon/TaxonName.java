@@ -45,7 +45,8 @@ public class TaxonName implements IItemReferentialEntity {
     public static final String PROPERTY_TAXONOMIC_LEVEL = "taxonomicLevel";
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "TAXON_NAME_SEQ")
+    @SequenceGenerator(name = "TAXON_NAME_SEQ", sequenceName="TAXON_NAME_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

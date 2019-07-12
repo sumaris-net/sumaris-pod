@@ -33,6 +33,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
@@ -60,7 +61,9 @@ import java.util.stream.Collectors;
 @Repository("tripDao")
 public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
 
-    /** Logger. */
+    /**
+     * Logger.
+     */
     private static final Logger log =
             LoggerFactory.getLogger(TripDaoImpl.class);
 
@@ -144,29 +147,29 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
 
         query.select(root)
-            .where(builder.and(
-                // Filter: program
-                builder.or(
-                        builder.isNull(programIdParam),
-                        builder.equal(root.get(Trip.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
-                ),
-                // Filter: startDate
-                builder.or(
-                        builder.isNull(startDateParam),
-                        builder.not(builder.lessThan(root.get(Trip.PROPERTY_RETURN_DATE_TIME), startDateParam))
-                ),
-                // Filter: endDate
-                builder.or(
-                    builder.isNull(endDateParam),
-                    builder.not(builder.greaterThan(root.get(Trip.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
-                ),
-                // Filter: location
-                builder.or(
-                        builder.isNull(locationIdParam),
-                        builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
-                        builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
-                )
-            ));
+                .where(builder.and(
+                        // Filter: program
+                        builder.or(
+                                builder.isNull(programIdParam),
+                                builder.equal(root.get(Trip.PROPERTY_PROGRAM).get(Program.PROPERTY_ID), programIdParam)
+                        ),
+                        // Filter: startDate
+                        builder.or(
+                                builder.isNull(startDateParam),
+                                builder.not(builder.lessThan(root.get(Trip.PROPERTY_RETURN_DATE_TIME), startDateParam))
+                        ),
+                        // Filter: endDate
+                        builder.or(
+                                builder.isNull(endDateParam),
+                                builder.not(builder.greaterThan(root.get(Trip.PROPERTY_DEPARTURE_DATE_TIME), endDateParam))
+                        ),
+                        // Filter: location
+                        builder.or(
+                                builder.isNull(locationIdParam),
+                                builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
+                                builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                        )
+                ));
 
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
@@ -264,9 +267,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         boolean isNew = (entity == null);
         if (isNew) {
             entity = new Trip();
-        }
-
-        else {
+        } else {
             // Check update date
             checkUpdateDateForUpdate(source, entity);
 
@@ -420,7 +421,8 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         Beans.copyProperties(source, target);
 
         // Program
-        target.setProgram(programDao.toProgramVO(source.getProgram()));
+        target.setProgram(programDao.toProgramVO(source.getProgram(),
+                ProgramFetchOptions.builder().withProperties(false).build()));
 
         // Vessel
         VesselFeaturesVO vesselFeatures = new VesselFeaturesVO();
@@ -467,8 +469,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         if (copyIfNull || source.getDepartureLocation() != null) {
             if (source.getDepartureLocation() == null || source.getDepartureLocation().getId() == null) {
                 target.setDepartureLocation(null);
-            }
-            else {
+            } else {
                 target.setDepartureLocation(load(Location.class, source.getDepartureLocation().getId()));
             }
         }
@@ -477,8 +478,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         if (copyIfNull || source.getReturnLocation() != null) {
             if (source.getReturnLocation() == null || source.getReturnLocation().getId() == null) {
                 target.setReturnLocation(null);
-            }
-            else {
+            } else {
                 target.setReturnLocation(load(Location.class, source.getReturnLocation().getId()));
             }
         }

@@ -76,3 +76,164 @@ BEGIN
     RETURN NULL;
 END;
 //
+
+-- --------------------------------------------------------------------------
+--
+-- Function to fill TAXON_GROUP_HIERARCHY and TAXON_GROUP2TAXON_HIERARCHY tables
+--
+-- --------------------------------------------------------------------------
+-- 10/02/16 EB  Trace execution in PROCESSING_HISTORY
+-- --------------------------------------------------------------------------
+create or replace PROCEDURE P_FILL_TAXON_GROUP_HIERARCHY
+AS
+    PATH_FATHER VARCHAR2(255);
+    NB_FATHERS NUMBER;
+    FATHER_ID NUMBER;
+    CURRENT_FATHER NUMBER;
+    CURRENT_PROCESSING_FK NUMBER;
+
+CURSOR c IS (
+                  SELECT
+                    CHILD_ID,
+                    (LEVEL - 1) as NB_FATHERS,
+                    substr(SYS_CONNECT_BY_PATH(FATHER_ID,'-'),2) as PATH_FATHER
+                  FROM (
+                    SELECT
+                      ID as CHILD_ID,
+                      PARENT_TAXON_GROUP_FK as FATHER_ID
+                    FROM
+                      TAXON_GROUP
+                  )
+                  -- WHERE LEVEL > 1
+                  START WITH FATHER_ID IS NULL
+                  CONNECT BY PRIOR CHILD_ID = FATHER_ID
+              );
+CURSOR c2 IS (
+                  SELECT DISTINCT
+                    TG.ID as CHILD_ID,
+                    (LEVEL - 1) as NB_FATHERS,
+                    substr(SYS_CONNECT_BY_PATH(TG.PARENT_TAXON_GROUP_FK,'-'),2) as PATH_FATHER,
+                    TGHR.REFERENCE_TAXON_FK,
+                    TGHR.START_DATE as START_DATE,
+                    TGHR.END_DATE as END_DATE
+                  FROM
+                    TAXON_GROUP TG
+                    left outer join TAXON_GROUP_HISTORICAL_RECORD TGHR
+                        on TG.ID = TGHR.TAXON_GROUP_FK
+                  WHERE LEVEL > 1
+                  START WITH TG.PARENT_TAXON_GROUP_FK IS NULL
+                  CONNECT BY PRIOR TG.ID = TG.PARENT_TAXON_GROUP_FK
+
+              );
+BEGIN
+  -- trace process in processing_hisory
+    insert into PROCESSING_HISTORY(ID, PROCESSING_TYPE_FK, NAME, PROCESSING_DATE,PROCESSING_STATUS_FK)
+    values (PROCESSING_HISTORY_SEQ.nextval,
+            (SELECT ID FROM PROCESSING_TYPE WHERE LABEL='SYS_P_FILL_TAXON_GROUP_HIERARCHY'),
+            'P_FILL_TAXON_GROUP_HIERARCHY',
+            systimestamp,
+            (SELECT ID FROM PROCESSING_STATUS WHERE LABEL='WAITING_EXECUTION'));
+
+    select PROCESSING_HISTORY_SEQ.currval into CURRENT_PROCESSING_FK from dual;
+
+    ------------------------------------------------------------------------------
+    -- PART 1 : fill TAXON_GROUP_HIERARCHY
+    ------------------------------------------------------------------------------
+    DELETE FROM TAXON_GROUP_HIERARCHY;
+
+    -- get all couples (child/father) with the calculated ratio
+    FOR i IN c LOOP
+
+        -- get cursor data
+        PATH_FATHER := i.PATH_FATHER;
+    NB_FATHERS  := i.NB_FATHERS;
+
+        -- For each parent
+    FOR j IN REVERSE 1..NB_FATHERS LOOP
+
+          -- get the current father_id and the current ratio
+          CURRENT_FATHER := INSTR(PATH_FATHER, '-', 1, j);
+    IF (j = NB_FATHERS) THEN
+            FATHER_ID := TO_NUMBER(SUBSTR(PATH_FATHER,CURRENT_FATHER + 1));
+    ELSE
+            FATHER_ID := TO_NUMBER(SUBSTR(PATH_FATHER,CURRENT_FATHER + 1, INSTR(PATH_FATHER,'-',1, j+1)-CURRENT_FATHER-1));
+    END IF;
+
+          -- insert into temporay table
+    INSERT INTO TAXON_GROUP_HIERARCHY (CHILD_TAXON_GROUP_FK, PARENT_TAXON_GROUP_FK)
+    VALUES (i.CHILD_ID, FATHER_ID);
+    END LOOP;
+    END LOOP;
+
+      -- insert link to itself
+    INSERT INTO TAXON_GROUP_HIERARCHY (CHILD_TAXON_GROUP_FK, PARENT_TAXON_GROUP_FK)
+    SELECT ID, ID FROM TAXON_GROUP;
+
+    ------------------------------------------------------------------------------
+    -- PART 2 : fill TAXON_GROUP2TAXON_HIERARCHY
+    ------------------------------------------------------------------------------
+    DELETE FROM TAXON_GROUP2TAXON_HIERARCHY;
+
+    -- get all couples (child/father) with the calculated ratio
+    FOR i IN c2 LOOP
+
+        -- get cursor data
+        PATH_FATHER := i.PATH_FATHER;
+    NB_FATHERS  := i.NB_FATHERS;
+
+    IF (i.REFERENCE_TAXON_FK is not NULL) THEN
+
+    -- insert link between child<-->reference_taxon
+    INSERT INTO TAXON_GROUP2TAXON_HIERARCHY (PARENT_TAXON_GROUP_FK, CHILD_REFERENCE_TAXON_FK, START_DATE, END_DATE, IS_INHERITED)
+    SELECT i.CHILD_ID, i.REFERENCE_TAXON_FK, i.START_DATE, i.END_DATE, '0'
+    FROM DUAL
+    where not exists (
+            select * from TAXON_GROUP2TAXON_HIERARCHY where
+                    PARENT_TAXON_GROUP_FK = i.CHILD_ID
+                                                        and CHILD_REFERENCE_TAXON_FK = i.REFERENCE_TAXON_FK
+                                                        and START_DATE = i.START_DATE
+        );
+
+    -- For each parent
+    FOR j IN REVERSE 1..NB_FATHERS LOOP
+
+            -- get the current father_id and the current ratio
+            CURRENT_FATHER := INSTR(PATH_FATHER, '-', 1, j);
+    IF (j = NB_FATHERS) THEN
+              FATHER_ID := TO_NUMBER(SUBSTR(PATH_FATHER,CURRENT_FATHER + 1));
+    ELSE
+              FATHER_ID := TO_NUMBER(SUBSTR(PATH_FATHER,CURRENT_FATHER + 1, INSTR(PATH_FATHER,'-',1, j+1)-CURRENT_FATHER-1));
+    END IF;
+
+            -- insert link between father<-->reference_taxon
+    INSERT INTO TAXON_GROUP2TAXON_HIERARCHY (PARENT_TAXON_GROUP_FK, CHILD_REFERENCE_TAXON_FK, START_DATE, END_DATE, IS_INHERITED)
+    SELECT FATHER_ID, i.REFERENCE_TAXON_FK, i.START_DATE, i.END_DATE, '1'
+    FROM DUAL
+    where not exists (
+            select * from TAXON_GROUP2TAXON_HIERARCHY where
+                    PARENT_TAXON_GROUP_FK = FATHER_ID
+                                                        and CHILD_REFERENCE_TAXON_FK = i.REFERENCE_TAXON_FK
+                                                        and START_DATE = i.START_DATE
+        );
+    END LOOP;
+    END IF;
+    END LOOP;
+
+      --  update processing_history status
+    UPDATE PROCESSING_HISTORY
+    SET PROCESSING_STATUS_FK = 'SUCCESS'
+    WHERE ID = CURRENT_PROCESSING_FK;
+
+    -- commit changes
+    COMMIT;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+          --  update processing_history status
+    UPDATE PROCESSING_HISTORY
+    SET PROCESSING_STATUS_FK = 'ERROR'
+    WHERE ID = CURRENT_PROCESSING_FK;
+
+    raise_application_error(-20001,'An error was encountered - '||SQLCODE||' -ERROR- '||SQLERRM);
+END;
+//

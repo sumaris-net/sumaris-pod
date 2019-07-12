@@ -23,17 +23,29 @@ package net.sumaris.core.dao.referential.taxon;
  */
 
 import net.sumaris.core.dao.cache.CacheNames;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.springframework.cache.annotation.Cacheable;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface TaxonNameDao {
 
+    List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
     List<TaxonNameVO> getAll(boolean withSynonyms);
 
     @Cacheable(cacheNames = CacheNames.TAXON_NAME_BY_TAXON_REFERENCE_ID, unless = "#result == null")
     TaxonNameVO getTaxonNameReferent(Integer referenceTaxonId);
+
+    List<TaxonName> getAllTaxonNameByParentIds(Collection<Integer> taxonNameParentIds);
+
+    @Cacheable(cacheNames = CacheNames.TAXON_NAMES_BY_TAXON_GROUP_ID, unless = "#result == null")
+    List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId);
+
 
 }

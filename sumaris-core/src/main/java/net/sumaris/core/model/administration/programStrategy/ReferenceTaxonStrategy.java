@@ -35,6 +35,7 @@ public class ReferenceTaxonStrategy implements Serializable {
 
     public static final String PROPERTY_STRATEGY = "strategy";
     public static final String PROPERTY_REFERENCE_TAXON = "referenceTaxon";
+    public static final String PROPERTY_PRIORITY_LEVEL = "priorityLevel";
 
     @Column(name = "priority_level")
     private Integer priorityLevel;

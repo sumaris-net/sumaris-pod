@@ -28,6 +28,7 @@ import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrat
 import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
@@ -43,16 +44,30 @@ import java.util.List;
 @Table(name = "reference_taxon")
 public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
 
+    public static final String PROPERTY_TAXON_NAMES = "taxonNames";
+    public static final String PROPERTY_PARENT_TAXON_GROUPS = "parentTaxonGroups";
+
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "REFERENCE_TAXON_SEQ")
+    @SequenceGenerator(name = "REFERENCE_TAXON_SEQ", sequenceName="REFERENCE_TAXON_SEQ")
     private Integer id;
 
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonName.class, mappedBy = TaxonName.PROPERTY_REFERENCE_TAXON)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<TaxonName> taxonNames;
+
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.PROPERTY_REFERENCE_TAXON)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<ReferenceTaxonStrategy> strategies;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroup2TaxonHierarchy.class, mappedBy = TaxonGroup2TaxonHierarchy.PROPERTY_CHILD_REFERENCE_TAXON)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    private List<TaxonGroup2TaxonHierarchy> parentTaxonGroups;
+
 
 }

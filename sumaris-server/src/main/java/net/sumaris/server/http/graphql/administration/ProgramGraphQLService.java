@@ -23,25 +23,32 @@ package net.sumaris.server.http.graphql.administration;
  */
 
 import com.google.common.base.Preconditions;
-import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLContext;
-import io.leangen.graphql.annotations.GraphQLMutation;
-import io.leangen.graphql.annotations.GraphQLQuery;
+import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
+import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
+import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.data.IWithObserversEntity;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.PmfmService;
 import net.sumaris.core.service.referential.ReferentialService;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.http.security.IsAdmin;
+import net.sumaris.server.http.security.IsSupervisor;
+import net.sumaris.server.http.security.IsUser;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +57,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -68,6 +76,9 @@ public class ProgramGraphQLService {
 
     @Autowired
     private PmfmService pmfmService;
+
+    @Autowired
+    private TaxonNameService taxonNameService;
 
     @Autowired
     public ProgramGraphQLService() {
@@ -104,57 +115,10 @@ public class ProgramGraphQLService {
         return programService.findByFilter(filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
-    @GraphQLQuery(name = "programPmfms", description = "Get program's pmfm")
-    @Transactional(readOnly = true)
-    public List<PmfmStrategyVO> getProgramPmfms(
-            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel,
-            @GraphQLArgument(name = "acquisitionLevel", description = "A valid acquisition level (e.g. 'TRIP', 'OPERATION', 'PHYSICAL_GEAR')") String acquisitionLevel
-            ) {
-        Preconditions.checkNotNull(programLabel, "Missing program");
-        ProgramVO program = programService.getByLabel(programLabel);
-
-        if (program == null) throw new SumarisTechnicalException(String.format("Program {%s} not found", programLabel));
-
-        // ALl pmfm from the program
-        if (StringUtils.isBlank(acquisitionLevel)) {
-            List<PmfmStrategyVO> res = strategyService.getPmfmStrategies(program.getId());
-            return res;
-        }
-
-        ReferentialVO acquisitionLevelVO = referentialService.findByUniqueLabel(AcquisitionLevel.class.getSimpleName(), acquisitionLevel);
-        return strategyService.getPmfmStrategiesByAcquisitionLevel(program.getId(), acquisitionLevelVO.getId());
-
-    }
-
-    @GraphQLQuery(name = "programGears", description = "Get program's gears")
-    @Transactional(readOnly = true)
-    public List<ReferentialVO> getProgramGears(
-            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel) {
-        Preconditions.checkNotNull(programLabel, "Missing program");
-        ProgramVO program = programService.getByLabel(programLabel);
-
-        if (program == null) throw new SumarisTechnicalException(String.format("Program {%s} not found", programLabel));
-
-        return strategyService.getGears(program.getId());
-
-    }
-
-    @GraphQLQuery(name = "programTaxonGroups", description = "Get program's taxon groups")
-    @Transactional(readOnly = true)
-    public List<ReferentialVO> getProgramTaxonGroups(
-            @GraphQLArgument(name = "program", description = "A valid program code") String programLabel) {
-        Preconditions.checkNotNull(programLabel, "Missing program");
-        ProgramVO program = programService.getByLabel(programLabel);
-
-        if (program == null) throw new SumarisTechnicalException(String.format("Program {%s} not found", programLabel));
-
-        return strategyService.getTaxonGroups(program.getId());
-
-    }
-
     @GraphQLQuery(name = "strategies", description = "Get program's strategie")
-    public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program) {
-        return strategyService.findByProgram(program.getId());
+    public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program,
+                                                   @GraphQLEnvironment() Set<String> fields) {
+        return strategyService.findByProgram(program.getId(), getFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "pmfm", description = "Get strategy pmfm")
@@ -162,8 +126,24 @@ public class ProgramGraphQLService {
         if (pmfmStrategy.getPmfm() != null) {
             return pmfmStrategy.getPmfm();
         }
-        if (pmfmStrategy.getPmfm() == null && pmfmStrategy.getPmfmId() != null) {
+        else if (pmfmStrategy.getPmfmId() != null) {
             return pmfmService.get(pmfmStrategy.getPmfmId());
+        }
+        return null;
+    }
+
+    @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
+    public List<TaxonNameVO> getTaxonGroupStrategyTaxonNames(@GraphQLContext TaxonGroupStrategyVO taxonGroup) {
+        if (taxonGroup.getId() != null) {
+            return taxonNameService.getAllByTaxonGroup(taxonGroup.getId());
+        }
+        return null;
+    }
+
+    @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
+    public List<TaxonNameVO> getTaxonGroupTaxonNames(@GraphQLContext TaxonGroupVO taxonGroup) {
+        if (taxonGroup.getId() != null) {
+            return taxonNameService.getAllByTaxonGroup(taxonGroup.getId());
         }
         return null;
     }
@@ -171,12 +151,25 @@ public class ProgramGraphQLService {
     /* -- Mutations -- */
 
     @GraphQLMutation(name = "saveProgram", description = "Save a program (with strategies)")
-    @IsAdmin
+    @IsSupervisor
     public ProgramVO saveProgram(
             @GraphQLArgument(name = "program") ProgramVO program) {
         return programService.save(program);
     }
 
-    /* -- Protected methods -- */
+    @GraphQLMutation(name = "deleteProgram", description = "Delete a program")
+    @IsAdmin
+    public void deleteProgram(@GraphQLArgument(name = "id") int id) {
+        programService.delete(id);
+    }
 
+    /* -- Protected methods -- */
+    protected StrategyFetchOptions getFetchOptions(Set<String> fields) {
+        return StrategyFetchOptions.builder()
+                .withPmfmStrategyInheritance(
+                        fields.contains(Strategy.PROPERTY_PMFM_STRATEGIES + "/" + PmfmStrategyVO.PROPERTY_LABEL)
+                        && !fields.contains(Strategy.PROPERTY_PMFM_STRATEGIES + "/" + PmfmStrategyVO.PROPERTY_PMFM)
+                )
+                .build();
+    }
 }

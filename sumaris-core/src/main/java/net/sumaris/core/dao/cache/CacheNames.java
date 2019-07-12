@@ -31,12 +31,14 @@ public interface CacheNames {
     String REFERENTIAL_TYPES = "net.sumaris.core.dao.referential.allTypesCache";
     String REFERENTIAL_LEVEL_BY_UNIQUE_LABEL = "net.sumaris.core.dao.referential.findByUniqueLabelCache";
 
-    String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programBylabelCache";
+    String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programByIdCache";
+    String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabelCache";
 
     String PMFM_BY_ID = "net.sumaris.core.dao.referential.pmfmByIdCache";
-    String PMFM_BY_PROGRAM_ID = "net.sumaris.core.dao.administration.programStrategy.pmfmByProgramIdCache";
+    String PMFM_BY_STRATEGY_ID = "net.sumaris.core.dao.administration.programStrategy.pmfmByStrategyIdCache";
 
     String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";
+    String TAXON_NAMES_BY_TAXON_GROUP_ID= "net.sumaris.core.dao.referential.taxonNamesByTaxonGroupId";
 
     String PRODUCTS = "net.sumaris.core.dao.technical.product.productsCache";
     String PRODUCT_BY_LABEL = "net.sumaris.core.dao.technical.product.productByLabelCache";

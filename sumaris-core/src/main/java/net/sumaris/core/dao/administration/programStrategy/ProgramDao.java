@@ -25,11 +25,16 @@ package net.sumaris.core.dao.administration.programStrategy;
 import net.sumaris.core.dao.cache.CacheNames;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -40,12 +45,37 @@ public interface ProgramDao {
 
     List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
+    @Cacheable(cacheNames = CacheNames.PROGRAM_BY_ID)
     ProgramVO get(int id);
 
-    @Cacheable(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#label")
+    @Cacheable(cacheNames = CacheNames.PROGRAM_BY_LABEL)
     ProgramVO getByLabel(String label);
 
     ProgramVO toProgramVO(Program source);
 
-    ProgramVO save(ProgramVO program);
+    ProgramVO toProgramVO(Program source, ProgramFetchOptions fetchOptions);
+
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#source.id", condition = "#source.id != null"),
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.id != null"),
+            },
+            put = {
+                    @CachePut(cacheNames= CacheNames.PROGRAM_BY_ID, key="#source.id", condition = " #source.id != null"),
+                    @CachePut(cacheNames= CacheNames.PROGRAM_BY_LABEL, key="#source.label", condition = "#source.id != null")
+            }
+    )
+    ProgramVO save(ProgramVO source);
+
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#id", condition = "#source.id != null"),
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, allEntries = true)
+            }
+    )
+    void delete(int id);
+
+    List<TaxonGroupVO> getTaxonGroups(int programId);
+
+    List<ReferentialVO> getGears(int programId);
 }
