@@ -33,17 +33,17 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     {
       id: StatusIds.ENABLE,
       icon: 'checkmark',
-      label: 'REFERENTIAL.STATUS_ENABLE'
+      label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
     },
     {
       id: StatusIds.DISABLE,
       icon: 'close',
-      label: 'REFERENTIAL.STATUS_DISABLE'
+      label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
     },
     {
       id: StatusIds.TEMPORARY,
       icon: 'warning',
-      label: 'REFERENTIAL.STATUS_TEMPORARY'
+      label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
     }
   ];
   statusById;
