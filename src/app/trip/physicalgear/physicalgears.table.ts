@@ -27,7 +27,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
 
   set value(data: PhysicalGear[]) {
     this.memoryDataService.value = data;
-    this.markForCheck();
   }
 
   get value(): PhysicalGear[] {

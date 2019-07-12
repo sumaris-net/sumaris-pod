@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/forms";
-import {LocalSettings} from "./model";
+import {FieldOptions, LocalSettings} from "./model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {NetworkService} from "./network.service";
 
@@ -24,11 +24,27 @@ export class LocalSettingsValidatorService implements ValidatorService {
       locale: [data && data.locale || null, Validators.required],
       latLongFormat: [data && data.latLongFormat || null, Validators.required],
       usageMode: [data && data.usageMode || 'DESK', Validators.required],
-      peerUrl: [data && data.peerUrl, Validators.required]
+      peerUrl: [data && data.peerUrl, Validators.required],
+      fields: this.getFieldsArray(data && data.fields)
     }, {
       asyncValidators: (group: FormGroup) => this.peerAlive(group.get('peerUrl'))
     });
   }
+
+  getFieldsArray(array?: FieldOptions[]) {
+    return this.formBuilder.array(
+      (array || []).map(item => this.getFieldControl(item))
+    );
+  }
+
+  getFieldControl(data?: FieldOptions): FormGroup {
+    return this.formBuilder.group({
+      key: [data && data.key || '', Validators.required],
+      attributes: [data && data.attributes || '', Validators.required]
+    });
+  }
+
+  /* -- protected methods -- */
 
   protected async peerAlive(peerUrlControl: AbstractControl): Promise<ValidationErrors | null>  {
     const alive = await this.networkService.checkPeerAlive(peerUrlControl.value);
@@ -47,4 +63,5 @@ export class LocalSettingsValidatorService implements ValidatorService {
       SharedValidators.clearError(peerUrlControl, 'peerAlive');
     }
   }
+
 }

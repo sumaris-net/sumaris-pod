@@ -10,7 +10,7 @@
       <ion-row no-padding>
 
         <!-- left  margin -->
-        <ion-col size="0" size-lg="3">&nbsp;
+        <ion-col size="0" size-lg="2">&nbsp;
         </ion-col>
 
         <ion-col padding>
@@ -26,10 +26,23 @@
           <!-- account inheritance -->
           <mat-form-field [hidden]="!isLogin">
             <input matInput hidden formControlName="accountInheritance" type="text">
-            <mat-checkbox (change)="setAccountInheritance($event.checked)" [checked]="accountInheritance">
+
+            <!-- check box (if desktop) -->
+            <mat-checkbox
+              *ngIf="!mobile"
+              (change)="setAccountInheritance($event.checked)"
+              [checked]="accountInheritance">
               <span translate>SETTINGS.INHERIT_FROM_ACCOUNT</span></mat-checkbox>
-            <mat-error *ngIf="form.controls['accountInheritance'].hasError('required') && form.controls['accountInheritance'].touched"
-                       translate>ERROR.FIELD_REQUIRED
+
+            <!-- slide toggle (if mobile) -->
+            <ion-text *ngIf="mobile" translate>SETTINGS.INHERIT_FROM_ACCOUNT</ion-text>
+            <mat-slide-toggle matSuffix
+                              *ngIf="mobile"
+                              (change)="setAccountInheritance($event.checked)"
+                              [checked]="accountInheritance">
+
+            </mat-slide-toggle>
+            <mat-error *ngIf="form.controls.accountInheritance.hasError('required')" translate>ERROR.FIELD_REQUIRED
             </mat-error>
           </mat-form-field>
 
@@ -40,10 +53,36 @@
                 {{localeMap[locale]}}
               </mat-option>
             </mat-select>
-            <mat-error *ngIf="form.controls['locale'].hasError('required') && form.controls['locale'].touched"
+            <mat-error *ngIf="form.controls.locale.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+
+          <!-- Network entry -->
+          <h3>
+            <ion-text translate>SETTINGS.NETWORK_DIVIDER</ion-text>
+          </h3>
+
+          <!-- Peer address -->
+          <mat-form-field>
+            <input matInput type="text" [placeholder]="'SETTINGS.PEER_URL'|translate" formControlName="peerUrl"
+                   required>
+
+            <button mat-icon-button type="button" matSuffix (click)="showSelectPeerModal()" tabindex="-1"
+                    [title]="'SETTINGS.BTN_CHANGE_PEER'|translate">
+              <mat-icon>search</mat-icon>
+            </button>
+
+            <mat-error *ngIf="form.controls.peerUrl.hasError('required')"
                        translate>ERROR.FIELD_REQUIRED
             </mat-error>
+            <mat-error *ngIf="form.controls.peerUrl.hasError('peerAlive')"
+                       translate>SETTINGS.ERROR.PEER_NOT_REACHABLE
+            </mat-error>
           </mat-form-field>
+
+          <!-- Data entry -->
+          <h3>
+            <ion-text translate>SETTINGS.DATA_ENTRY_DIVIDER</ion-text>
+          </h3>
 
           <!-- lat/long format-->
           <mat-form-field>
@@ -54,7 +93,7 @@
               </mat-option>
             </mat-select>
             <mat-error
-              *ngIf="form.controls['latLongFormat'].hasError('required') && form.controls['latLongFormat'].touched"
+              *ngIf="form.controls.latLongFormat.hasError('required')"
               translate>ERROR.FIELD_REQUIRED
             </mat-error>
           </mat-form-field>
@@ -67,27 +106,86 @@
                 {{'SETTINGS.USAGE_MODES.'+item|translate}}
               </mat-option>
             </mat-select>
-            <mat-error *ngIf="form.controls['usageMode'].touched && form.controls['usageMode'].hasError('required')"
-              translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="form.controls.usageMode.hasError('required')"
+                       translate>ERROR.FIELD_REQUIRED
+            </mat-error>
           </mat-form-field>
 
-          <!-- Peer address -->
-          <mat-form-field>
-            <input matInput type="text" [placeholder]="'SETTINGS.PEER_URL'|translate" formControlName="peerUrl" required>
+          <!-- Fields options -->
+          <ion-grid formArrayName="fields" no-padding>
+            <ng-container *ngFor="let fieldForm of fieldsForm?.controls; let i=index">
+              <ion-row no-padding [formGroupName]="i">
+                <ion-col no-padding>
+                  <!-- field key -->
+                  <mat-form-field>
+                    <mat-select formControlName="key" [placeholder]=" 'SETTINGS.FIELD_NAME'|translate">
+                      <mat-option *ngFor="let item of fields" [value]="item.key">{{ item.label | translate }}
+                      </mat-option>
+                    </mat-select>
 
-            <button mat-icon-button type="button" matSuffix (click)="showSelectPeerModal()" tabindex="-1" [title]="'SETTINGS.BTN_CHANGE_PEER'|translate">
-              <mat-icon>search</mat-icon>
-            </button>
+                  </mat-form-field>
+                </ion-col>
+                <ion-col no-padding padding-left>
+                  <!-- field attributes -->
+                  <mat-form-field *ngIf="fieldForm.get('key').value">
+                    <mat-select formControlName="attributes"
+                                [placeholder]="'SETTINGS.FIELD_DISPLAY'|translate"
+                                required>
+                      <mat-option *ngFor="let attributes of fieldsMap[fieldForm.get('key').value].attributes"
+                                  [value]="attributes.join(',')">
+                        <ng-container *ngFor="let key of attributes; let j=index">
+                          <span *ngIf="j > 0"> - </span>
+                          {{ ('SETTINGS.FIELDS.ATTRIBUTES.' + key.toUpperCase()) | translate }}
+                        </ng-container>
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </ion-col>
+                <ion-col size="2">
+                  <button type="button" mat-icon-button color="light" [disabled]="loading"
+                          [title]="'COMMON.BTN_DELETE'|translate"
+                          (click)="fieldsFormHelper.removeAt(i)">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                  <button type="button" mat-icon-button color="light" [disabled]="loading"
+                          *ngIf="fieldsFormHelper.isLast(i)" [title]="'SETTINGS.BTN_ADD_FIELD'|translate"
+                          (click)="fieldsFormHelper.add()">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </ion-col>
+              </ion-row>
+            </ng-container>
+          </ion-grid>
 
-            <mat-error *ngIf="form.controls['peerUrl'].touched && form.controls['peerUrl'].hasError('required')"
-                       translate>ERROR.FIELD_REQUIRED</mat-error>
-            <mat-error *ngIf="form.controls['peerUrl'].touched && form.controls['peerUrl'].hasError('peerAlive')"
-                       translate>SETTINGS.ERROR.PEER_NOT_REACHABLE</mat-error>
-          </mat-form-field>
         </ion-col>
 
+
+        <!--        <div formArrayName="fields">-->
+        <!--          <ng-container *ngFor="let fieldForm of form.get('fields')?.controls; let i=index">-->
+        <!--            <form [formGroupName]="i">-->
+        <!--              <mat-form-field >-->
+        <!--                <mat-select formControlName="name"-->
+        <!--                            [placeholder]="'TODO Name'|translate"-->
+        <!--                            required>-->
+        <!--                  <mat-option *ngFor="let field of fieldNames" [value]="field.name">-->
+        <!--                    {{field.name|translate}}-->
+        <!--                  </mat-option>-->
+        <!--                </mat-select>-->
+        <!--              </mat-form-field>-->
+        <!--              <mat-form-field >-->
+        <!--                <mat-select formControlName="attributes"-->
+        <!--                            [placeholder]="'TODO Name'|translate"-->
+        <!--                            required>-->
+        <!--                  <mat-option *ngFor="let item of fieldComboAttributes" [value]="item.attributes">-->
+        <!--                    {{item.label|translate}}-->
+        <!--                  </mat-option>-->
+        <!--                </mat-select>-->
+        <!--              </mat-form-field>-->
+        <!--            </form>-->
+        <!--          </ng-container>-->
+        <!--        </div>-->
         <!-- right margin -->
-        <ion-col size="0" size-lg="3">&nbsp;
+        <ion-col size="0" size-lg="2">&nbsp;
         </ion-col>
       </ion-row>
     </ion-grid>

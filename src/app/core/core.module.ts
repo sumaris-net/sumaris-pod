@@ -46,7 +46,7 @@ import {RegisterModal} from './register/modal/modal-register';
 import {AppGraphQLModule} from './graphql/graphql.module';
 import {DateAdapter} from "@angular/material";
 import * as moment from "moment/moment";
-import {AppFormUtils} from './form/form.utils';
+import {AppFormUtils, FormArrayHelper} from './form/form.utils';
 
 import {environment} from '../../environments/environment';
 import {
@@ -77,10 +77,7 @@ import {LocalSettingsValidatorService} from "./services/local-settings.validator
 import {GraphqlService} from "./services/graphql.service";
 import {LocalSettingsService} from "./services/local-settings.service";
 import {AppEditorPage} from "./form/editor-page.class";
-import {Network} from "@ionic-native/network";
-import {StatusBar} from "@ionic-native/status-bar/ngx";
-import {SplashScreen} from "@ionic-native/splash-screen/ngx";
-import {Keyboard} from "@ionic-native/keyboard/ngx";
+import {MatOptionFormField} from "./config/option-field.component";
 
 export {
   environment,
@@ -129,7 +126,8 @@ export {
   entityToString,
   referentialToString,
   personToString,
-  personsToString
+  personsToString,
+  FormArrayHelper
 };
 
 export function HttpLoaderFactory(http: HttpClient) {
@@ -174,7 +172,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     MenuComponent,
     TableSelectColumnsComponent,
     EntityMetadataComponent,
-    FormButtonsBarComponent
+    FormButtonsBarComponent,
+    MatOptionFormField
   ],
   exports: [
     CommonModule,
@@ -190,7 +189,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     MenuComponent,
     ReactiveFormsModule,
     TranslateModule,
-    AboutModal
+    AboutModal,
+    MatOptionFormField
   ],
   entryComponents: [
     AboutModal,

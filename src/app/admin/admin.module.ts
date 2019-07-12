@@ -4,7 +4,7 @@ import {CoreModule} from '../core/core.module';
 import {PersonService} from './services/person.service';
 import {PersonValidatorService} from './services/person.validator';
 import {UsersPage} from './users/list/users';
-import {ConfigPage} from './config/config.component';
+import {RemoteConfigPage} from './config/config.component';
 import {CarouselComponent} from './config/carousel/carousel.component';
 
 export {
@@ -18,12 +18,12 @@ export {
   ],
   declarations: [
     UsersPage,
-    ConfigPage,
+    RemoteConfigPage,
     CarouselComponent
   ],
   exports: [
     UsersPage,
-    ConfigPage
+    RemoteConfigPage
   ],
   entryComponents: [],
   providers: [

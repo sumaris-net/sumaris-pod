@@ -2,7 +2,17 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable, Subject} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
-import {EntityUtils, isNotNil, IWithProgramEntity, PmfmStrategy, Program} from "./model";
+import {
+  Department,
+  EntityUtils,
+  isNil,
+  isNotNil,
+  IWithProgramEntity,
+  Person,
+  PmfmStrategy,
+  Program, StatusIds,
+  TaxonomicLevelIds
+} from "./model";
 import {
   AccountService,
   BaseDataService,
@@ -15,9 +25,11 @@ import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "../services/referential.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
-import {TaxonGroupRef} from "./model/taxon.model";
-import {isNilOrBlank} from "../../shared/functions";
+import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
+import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
+import {ReferentialRefService} from "./referential-ref.service";
+import {Trip} from "../../trip/services/model/trip.model";
 
 export declare class ProgramFilter {
   searchText?: string;
@@ -68,7 +80,8 @@ const ProgramFragments = {
       strategies {        
         ...StrategyFragment
       }
-    }`,
+    }
+    `,
   strategyRef: gql`
     fragment StrategyRefFragment on StrategyVO {
       id
@@ -103,6 +116,7 @@ const ProgramFragments = {
       updateDate
       creationDate
       statusId
+      programId
       gears { 
         ...ReferentialFragment
       }
@@ -234,10 +248,29 @@ const LoadAllQuery: any = gql`
   ${ProgramFragments.lightProgram}
 `;
 
+
+const SaveQuery: any = gql`
+  mutation SaveProgram($program:ProgramVOInput){
+    saveProgram(program: $program){
+      ...ProgramFragment
+    }
+  }
+  ${ProgramFragments.program}
+  ${ProgramFragments.strategy}
+  ${ProgramFragments.pmfmStrategy}  
+  ${ProgramFragments.taxonGroupStrategy}
+  ${ProgramFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}
+`;
+
 const ProgramCacheKeys = {
   GROUP: 'program',
+
+  BY_LABEL: 'programByLabel',
   PMFMS: 'programPmfms',
   GEARS: 'programGears',
+  TAXON_NAME_BY_GROUP: 'programTaxonNameByGroup'
 };
 
 const cacheBuster$ = new Subject<void>();
@@ -251,6 +284,7 @@ export class ProgramService extends BaseDataService
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
+    protected referentialRefService: ReferentialRefService,
     protected cache: CacheService
   ) {
     super(graphql);
@@ -302,8 +336,11 @@ export class ProgramService extends BaseDataService
       );
   }
 
-  async saveAll(data: Program[], options?: any): Promise<Program[]> {
-    throw new Error("Not implemented yet");
+  async saveAll(entities: Program[], options?: any): Promise<Program[]> {
+    if (!entities) return entities;
+
+
+    return await Promise.all(entities.map((program) => this.save(program, options)));
   }
 
   deleteAll(data: Program[], options?: any): Promise<any> {
@@ -319,20 +356,23 @@ export class ProgramService extends BaseDataService
 
     if (this._debug) console.debug(`[program-service] Watch program {${label}}...`);
 
-    return this.graphql.watchQuery<{ program: any }>({
+    const cacheKey = `${ProgramCacheKeys.BY_LABEL}|${label}`;
+    return this.cache.loadFromObservable(cacheKey,
+      this.graphql.watchQuery<{ program: any }>({
         query: LoadRefQuery,
         variables: {
           label: label
         },
         error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
       })
-        .pipe(
-          filter(isNotNil),
-          map(({program}) => {
-            if (this._debug) console.debug(`[program-service] Program loaded {${label}}`, program);
-            return toEntity ? Program.fromObject(program) : program;
-          })
-        );
+        .pipe(filter(isNotNil)),
+      ProgramCacheKeys.GROUP)
+      .pipe(
+        map(({program}) => {
+          if (this._debug) console.debug(`[program-service] Program loaded {${label}}`, program);
+          return toEntity ? Program.fromObject(program) : program;
+        })
+      );
   }
 
   async existsByLabel(label: string): Promise<Boolean> {
@@ -343,13 +383,7 @@ export class ProgramService extends BaseDataService
   }
 
   loadByLabel(label: string): Promise<Program> {
-    return this.watchByLabel(label, true)
-      .pipe(
-        filter(isNotNil),
-        first(),
-        map(Program.fromObject)
-      )
-      .toPromise();
+    return this.watchByLabel(label, true).toPromise();
   }
 
   /**
@@ -360,47 +394,49 @@ export class ProgramService extends BaseDataService
     gear?: string;
     taxonGroupId?: number;
     referenceTaxonId?: number;
-    debug?: boolean;
-  }): Observable<PmfmStrategy[]> {
+  }, debug?: boolean): Observable<PmfmStrategy[]> {
 
-    //const cacheKey = [ProgramCacheKeys.PMFMS, options.acquisitionLevel, options.gear, options.taxonGroupId, options.referenceTaxonId].join('|');
+    const cacheKey = [ProgramCacheKeys.PMFMS, programLabel, JSON.stringify(options)].join('|');
 
-    return this.watchByLabel(programLabel, false) // Watch the program
+    return this.cache.loadFromObservable(cacheKey,
+      this.watchByLabel(programLabel, false) // Watch the program
+        .pipe(
+          filter(isNotNil),
+          map(program => {
+              // TODO: select valid strategy (from date and location)
+              const strategy = program && program.strategies && program.strategies[0];
+
+              const pmfmIds = []; // used to avoid duplicated pmfms
+              const res = (strategy && strategy.pmfmStrategies || [])
+              // Filter on acquisition level and gear
+                .filter(p =>
+                  pmfmIds.indexOf(p.pmfmId) === -1
+                  && (
+                    !options || (
+                      (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
+                      // Filter on gear (if PMFM has gears = compatible with all gears)
+                      && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g === options.gear) !== -1)
+                      // Filter on taxon group
+                      && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
+                      // Filter on reference taxon
+                      && (!options.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === options.referenceTaxonId) !== -1)
+                      // Add to list of IDs
+                      && pmfmIds.push(p.pmfmId)
+                    )
+                  ))
+
+                // Sort on rank order
+                .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
+
+              if (debug) console.debug(`[program-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
+
+              // TODO: translate name/label using translate service ?
+              return res;
+            }
+          )), ProgramCacheKeys.GROUP)
       .pipe(
-        filter(isNotNil),
-        map(program => {
-          // TODO: select valid strategy (from date and location)
-          const strategy = program && program.strategies && program.strategies[0];
-
-          const pmfmIds = []; // used to avoid duplicated pmfms
-          const res = (strategy && strategy.pmfmStrategies || [])
-          // Filter on acquisition level and gear
-            .filter(p =>
-              pmfmIds.indexOf(p.pmfmId) === -1
-              && (
-                !options || (
-                  (!options.acquisitionLevel || p.acquisitionLevel === options.acquisitionLevel)
-                  // Filter on gear (if PMFM has gears = compatible with all gears)
-                  && (!options.gear || !p.gears || !p.gears.length || p.gears.findIndex(g => g === options.gear) !== -1)
-                  // Filter on taxon group
-                  && (!options.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === options.taxonGroupId) !== -1)
-                  // Filter on reference taxon
-                  && (!options.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === options.referenceTaxonId) !== -1)
-                  // Add to list of IDs
-                  && pmfmIds.push(p.pmfmId)
-                )
-              ))
-            .map(PmfmStrategy.fromObject)
-
-            // Sort on rank order
-            .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
-
-          if (options.debug) console.debug(`[program-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
-          console.debug(`TODO [program-service] PMFM for ${options.acquisitionLevel} (filtered):`, res);
-
-          // TODO: translate name/label using translate service ?
-          return res;
-        }));
+        map(res => res && res.map(PmfmStrategy.fromObject))
+      );
   }
 
   /**
@@ -411,10 +447,9 @@ export class ProgramService extends BaseDataService
     gear?: string;
     taxonGroupId?: number;
     referenceTaxonId?: number;
-    debug?: boolean;
-  }): Promise<PmfmStrategy[]> {
+  }, debug?: boolean): Promise<PmfmStrategy[]> {
 
-    return this.watchProgramPmfms(programLabel, options)
+    return this.watchProgramPmfms(programLabel, options, debug)
       .pipe(filter(isNotNil), first())
       .toPromise();
   }
@@ -423,8 +458,8 @@ export class ProgramService extends BaseDataService
    * Watch program gears
    */
   watchGears(programLabel: string): Observable<ReferentialRef[]> {
-    return this.cache.loadFromObservable(
-      ProgramCacheKeys.GEARS,
+    const cacheKey = [ProgramCacheKeys.GEARS, programLabel].join('|');
+    return this.cache.loadFromObservable(cacheKey,
       this.watchByLabel(programLabel, false) // Load the program
         .pipe(
           filter(isNotNil),
@@ -433,10 +468,10 @@ export class ProgramService extends BaseDataService
             const strategy = program && program.strategies && program.strategies[0];
             const res = (strategy && strategy.gears || []);
             if (this._debug) console.debug(`[program-service] Gears for program ${program}: `, res);
-            return res ;
+            return res;
           })
-        ))
-      // Convert into model (after cache)
+        ), ProgramCacheKeys.GROUP)
+    // Convert into model (after cache)
       .pipe(map(res => res.map(ReferentialRef.fromObject)));
   }
 
@@ -478,6 +513,56 @@ export class ProgramService extends BaseDataService
       .toPromise();
   }
 
+  /**
+   * Load program taxon groups
+   */
+  async suggestTaxonNames(value: any, options: {
+    program?: string;
+    taxonomicLevelId?: number;
+    taxonomicLevelIds?: number[]
+    searchAttribute?: string;
+    taxonGroupId?: number;
+  }): Promise<ReferentialRef[]> {
+
+    // Search on taxon group's taxon'
+    if (isNotNil(options.program) && isNotNil(options.taxonGroupId)) {
+
+      const mapCacheKey = [ProgramCacheKeys.TAXON_NAME_BY_GROUP, JSON.stringify(options)].join('|');
+
+      const taxonNamesByTaxonGroupId = await this.cache.getOrSetItem(mapCacheKey,
+        async (): Promise<{ [key: number]: ReferentialRef[] }> => {
+          const taxonGroups = await this.loadTaxonGroups(options.program);
+          return (taxonGroups || []).reduce((res, taxonGroup) => {
+            if (isNotEmptyArray(taxonGroup.taxonNames)) {
+              res[taxonGroup.id] = taxonGroup.taxonNames;
+            }
+            return res;
+          }, {});
+        }, ProgramCacheKeys.GROUP);
+
+      const values = taxonNamesByTaxonGroupId[options.taxonGroupId];
+      if (isNotEmptyArray(values)) {
+        return this.referentialRefService.suggestFromArray(values, value, {
+          searchAttribute: options.searchAttribute || 'name'
+        });
+      }
+      const res = await this.referentialRefService.suggestTaxonNames(value, {
+        taxonomicLevelId: options.taxonomicLevelId,
+        taxonomicLevelIds: options.taxonomicLevelIds,
+        taxonGroupId: options.taxonGroupId,
+        searchAttribute: options.searchAttribute || 'name'
+      });
+
+      return res;
+    }
+
+    return this.referentialRefService.suggestTaxonNames(value, {
+      taxonomicLevelId: options.taxonomicLevelId,
+      taxonomicLevelIds: options.taxonomicLevelIds,
+      taxonGroupId: options.taxonGroupId,
+      searchAttribute: options.searchAttribute || 'name'
+    });
+  }
 
   async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Program> {
 
@@ -500,13 +585,31 @@ export class ProgramService extends BaseDataService
 
 
   async save(data: Program, options?: any): Promise<Program> {
-    if (this._debug) console.debug(`[program-service] Saving program {${data.label}}...`, data);
+    if (!data) return data;
 
     // Clean cache
-    this.cache.clearGroup(ProgramCacheKeys.GROUP);
+    await this.cache.clearGroup(ProgramCacheKeys.GROUP);
 
-    // TODO
-    throw new Error("TODO: implement programService.save()");
+    // Fill default properties
+    this.fillDefaultProperties(data);
+    const json = data.asObject();
+
+    const now = Date.now();
+    if (this._debug) console.debug("[program-service] Saving program...", json);
+
+    const res = await this.graphql.mutate<{ saveProgram: Program }>({
+      mutation: SaveQuery,
+      variables: {
+        program: json
+      },
+      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: "PROGRAM.ERROR.SAVE_PROGRAM_ERROR"}
+    });
+    const savedProgram = res && res.saveProgram;
+    this.copyIdAndUpdateDate(savedProgram, data);
+
+    if (this._debug) console.debug(`[pogram-service] Program saved and updated in ${Date.now() - now}ms`, data);
+
+    return data;
   }
 
   listenChanges(id: number, options?: any): Observable<Program | undefined> {
@@ -527,5 +630,44 @@ export class ProgramService extends BaseDataService
 
     // Check same department
     return this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
+  }
+
+  /* -- protected methods -- */
+
+
+  protected fillDefaultProperties(program: Program) {
+    program.statusId = isNotNil(program.statusId) ? program.statusId : StatusIds.ENABLE;
+
+    // Update strategies
+    (program.strategies || []).forEach(strategy => {
+
+      strategy.statusId = isNotNil(strategy.statusId) ? strategy.statusId : StatusIds.ENABLE;
+
+      // Force a valid programId
+      // (because a bad copy can leave an old value)
+      strategy.programId = isNotNil(program.id) ? program.id : undefined;
+    });
+
+  }
+
+  protected copyIdAndUpdateDate(source: Program, target: Program) {
+    EntityUtils.copyIdAndUpdateDate(source, target);
+
+    // Update strategies
+    if (target.strategies && source.strategies) {
+      target.strategies.forEach(entity => {
+
+        // Make sure program id is copy (need by equals)
+        entity.programId = source.id;
+
+        const savedStrategy = source.strategies.find(json => entity.equals(json));
+        EntityUtils.copyIdAndUpdateDate(savedStrategy, entity);
+
+        // Update pmfm strategy
+        // TODO
+
+      });
+    }
+
   }
 }

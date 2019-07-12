@@ -25,7 +25,7 @@ export const DEFAULT_PAGE_SIZE = 20;
 export const RESERVED_START_COLUMNS = ['select', 'id'];
 export const RESERVED_END_COLUMNS = ['actions'];
 
-export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDestroy {
+export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
 
   private _initialized = false;
   private _subscriptions: Subscription[] = [];
@@ -103,6 +103,12 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
   get invalid(): boolean {
     return this.editedRow && this.editedRow.editing ? (this.editedRow.validator && this.editedRow.validator.invalid) : false;
   }
+
+  @Output()
+  get pending(): boolean {
+    return this.editedRow && this.editedRow.editing ? (this.editedRow.validator && this.editedRow.validator.pending) : false;
+  }
+
 
   disable() {
     if (!this._initialized || !this.table) return;
@@ -426,6 +432,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
       });
       await alert.present();
       await alert.onDidDismiss();
+      if (!confirm) return; // user cancelled
+
+      // Loop, with confirmation
+      return this.deleteSelection(true);
     }
 
     if (this.debug) console.debug("[table] Delete selection...");

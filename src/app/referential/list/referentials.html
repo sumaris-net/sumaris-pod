@@ -132,8 +132,6 @@
             [appAutofocus]="row.id == -1 && row.editing" [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
-
-        <!-- {{row.currentData.label}} -->
       </mat-cell>
     </ng-container>
 
@@ -148,7 +146,6 @@
             [readonly]="!row.editing">
           <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
-        <!-- {{row.currentData.name}} -->
       </mat-cell>
     </ng-container>
 

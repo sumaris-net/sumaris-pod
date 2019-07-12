@@ -1,7 +1,8 @@
-import {AbstractControl, FormArray, FormGroup} from "@angular/forms";
-import {nullIfUndefined} from "../../shared/shared.module";
+import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {isNil, nullIfUndefined} from "../../shared/shared.module";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
+import {Entity, EntityUtils, Person} from "../services/model";
 
 export class AppFormUtils {
   static copyForm2Entity = copyForm2Entity;
@@ -12,6 +13,12 @@ export class AppFormUtils {
   static filterNumberInput = filterNumberInput;
   static disableControls = disableControls;
   static selectInputContent = selectInputContent;
+
+  // ArrayForm
+  static addValueInArray = addValueInArray;
+  static removeValueInArray = removeValueInArray;
+  static resizeArray = resizeArray;
+  static clearValueInArray = clearValueInArray;
 }
 
 /**
@@ -63,7 +70,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
         if (control.length > 0) {
           // Use the first form group, as model
           const itemControl = control.at(0) as FormGroup;
-          value[key] = (source[key] || []).map(item => getFormValueFromEntity(item || {}, itemControl))
+          value[key] = (source[key] || []).map(item => getFormValueFromEntity(item || {}, itemControl));
           if (value[key].length != control.length) {
             console.warn("TODO: implement form array add/remove, using control", itemControl);
           }
@@ -162,4 +169,171 @@ export function selectInputContent(event: MouseEvent) {
     return false;
   }
   return true;
+}
+
+export function addValueInArray(formBuilder: FormBuilder,
+                                form: FormGroup,
+                                arrayName: string,
+                                createControl: (value?: any) => AbstractControl,
+                                equals: (v1: any, v2: any) => boolean,
+                                isEmpty: (value: any) => boolean,
+                                value: any,
+                                options?: { emitEvent: boolean; }): boolean {
+  options = options || {emitEvent: true};
+  console.debug("[form] Adding " + arrayName);
+
+  let arrayControl = form.get(arrayName) as FormArray;
+  let hasChanged = false;
+  let index = -1;
+
+  if (!arrayControl) {
+    arrayControl = formBuilder.array([]);
+    form.addControl(arrayName, arrayControl);
+  } else {
+
+    // Search if value already exists
+    if (!isEmpty(value)) {
+      index = (arrayControl.value || []).findIndex(v => equals(value, v));
+    }
+
+    // If value not exists, but last value is empty: use it
+    if (index === -1 && arrayControl.length && isEmpty(arrayControl.at(arrayControl.length - 1).value)) {
+      index = arrayControl.length - 1;
+    }
+  }
+
+  // Replace the existing value
+  if (index !== -1) {
+    if (!isEmpty(value)) {
+      arrayControl.at(index).patchValue(value, options);
+      hasChanged = true;
+    }
+  } else {
+    const control = createControl(value);
+    arrayControl.push(control);
+    index = arrayControl.length - 1;
+    hasChanged = true;
+  }
+
+  if (hasChanged) {
+    if (isNil(options.emitEvent) || options.emitEvent) {
+      // Mark array control dirty
+      if (!isEmpty(value)) {
+        arrayControl.markAsDirty();
+      }
+    }
+  }
+
+  return hasChanged;
+}
+
+export function resizeArray(formBuilder: FormBuilder,
+                            form: FormGroup,
+                            arrayName: string,
+                            createControl: () => AbstractControl,
+                            length: number): boolean {
+  let arrayControl = form.get(arrayName) as FormArray;
+  if (!arrayControl) {
+    arrayControl = formBuilder.array([]);
+    form.addControl(arrayName, arrayControl);
+  }
+  const hasChanged = arrayControl.length !== length;
+
+  // Increase size
+  if (arrayControl.length < length) {
+    while (arrayControl.length < length) {
+      arrayControl.push(createControl());
+    }
+  }
+
+  // Or reduce
+  else if (arrayControl.length > length) {
+    while (arrayControl.length > length) {
+      arrayControl.at(arrayControl.length - 1);
+    }
+  }
+
+  return hasChanged;
+}
+
+export function removeValueInArray(form: FormGroup,
+                                   arrayName: string,
+                                   isEmpty: (value: any) => boolean,
+                                   index: number): boolean {
+  const arrayControl = form.get(arrayName) as FormArray;
+
+  // Do not remove if last criterion
+  if (arrayControl.length === 1) {
+    return clearValueInArray(form, arrayName, isEmpty, index);
+  }
+
+  arrayControl.removeAt(index);
+  arrayControl.markAsDirty();
+  return true;
+}
+
+export function clearValueInArray(form: FormGroup,
+                                  arrayName: string,
+                                  isEmpty: (value: any) => boolean,
+                                  index: number): boolean {
+  const arrayControl = form.get(arrayName) as FormArray;
+
+  const control = arrayControl.at(index);
+  if (isEmpty(control.value)) return false; // skip (not need to clear)
+
+  if (control instanceof FormGroup) {
+    AppFormUtils.copyEntity2Form({}, control);
+  }
+  else if (control instanceof FormArray) {
+    control.setValue([]);
+  }
+  else {
+    control.setValue(null);
+  }
+  arrayControl.markAsDirty();
+  return true;
+}
+
+
+export class FormArrayHelper<T = Entity<T>> {
+
+  private readonly arrayControl: FormArray;
+
+  constructor(
+    private formBuilder: FormBuilder,
+    private form: FormGroup,
+    private arrayName: string,
+    private createControl: (value?: T) => AbstractControl,
+    private equals: (v1: T, v2: T) => boolean,
+    private isEmpty: (value: T) => boolean
+  ) {
+
+    // Make sure to create the array
+    this.arrayControl = form.get(arrayName) as FormArray;
+    if (!this.arrayControl) {
+      console.warn(`[form] Missing array control ${arrayName}: will add it!`);
+      this.arrayControl = formBuilder.array([]);
+      form.addControl(arrayName, this.arrayControl);
+    }
+  }
+
+  add(value?: T, options?: { emitEvent: boolean }): boolean {
+    return addValueInArray(this.formBuilder, this.form, this.arrayName, this.createControl, this.equals, this.isEmpty, value, options);
+  }
+
+  removeAt(index: number) {
+    return removeValueInArray(this.form, this.arrayName, this.isEmpty, index);
+  }
+
+  resize(length: number): boolean {
+    return resizeArray(this.formBuilder, this.form, this.arrayName, this.createControl, length);
+  }
+
+  clearAt(index: number): boolean {
+    return clearValueInArray(this.form, this.arrayName, this.isEmpty, index);
+  }
+
+  isLast(index: number): boolean {
+    return (this.arrayControl.length - 1) === index;
+  }
 }

@@ -80,8 +80,8 @@
     "APP_NAME": "Nom de l'application",
     "DESCRIPTION": "Description (page d'accueil)",
     "LOGO_PARTNERS": "Logo des partenaires (page d'accueil) :",
-    "PROPERTIES": "Options :",
-    "PROPERTY_KEY": "Clé",
+    "PROPERTIES_DIVIDER": "Options :",
+    "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
     "BTN_ADD_PROPERTY": "Ajouter une option",
     "OPTIONS": {
@@ -198,11 +198,23 @@
     "INHERIT_FROM_ACCOUNT": "Utiliser les préférences de l'utilisateur connecté",
     "LOCALE": "Langue",
     "LAT_LONG_FORMAT": "Format latitude/longitude",
+    "NETWORK_DIVIDER": "Paramètres réseau",
     "PEER_URL": "Addresse du noeud réseau",
-    "USAGE_MODE": "Mode de fonctionnement",
+    "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
+    "USAGE_MODE": "Mode de saisie",
     "USAGE_MODES":  {
-      "FIELD": "Saisie sur le terrain",
-      "DESK": "Saisie au bureau (a posteriori)"
+      "FIELD": "Saisie terrain",
+      "DESK": "Saisie bureau"
+    },
+    "FIELD_NAME": "Champ de saisie",
+    "FIELD_DISPLAY": "Affichage",
+    "BTN_ADD_FIELD": "Ajouter un champ",
+    "FIELDS": {
+      "TAXON_GROUP": "Espèce commerciale",
+      "ATTRIBUTES": {
+        "LABEL": "Code",
+        "NAME": "Libellé"
+      }
     },
     "BTN_CHANGE_PEER": "Changer de noeud",
     "ERROR": {
@@ -374,7 +386,8 @@
       },
       "TABLE": {
         "BTN_INDIVIDUAL_MEASURE": "Mesures",
-        "BTN_BURST_INPUT": "Saisir en mode rafale",
+        "BTN_BURST_INPUT": "Mode rafale",
+        "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
         "LABEL": "Libellé",
         "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
@@ -565,7 +578,7 @@
     }
   },
   "REFERENTIAL": {
-    "LABEL": "Code :",
+    "LABEL": "Code",
     "NAME": "Libellé",
     "LEVEL": "Niveau",
     "DESCRIPTION": "Description",
@@ -625,12 +638,35 @@
   },
   "PROGRAM": {
     "TAB_GENERAL": "Détails",
+    "TAB_STRATEGIES": "Strategies",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
+    "PROPERTIES_DIVIDER": "Options :",
+    "PROPERTY_KEY": "Option",
+    "PROPERTY_VALUE": "Valeur",
     "NEW": {
       "TITLE": "Nouveau programme"
     },
     "EDIT": {
       "TITLE": "Programme {{label}} - {{name}}"
+    },
+    "OPTIONS": {
+      "TRIP_SALE_ENABLE": "Marée : Saisir la vente ?",
+      "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce : Espèces commerciales ?",
+      "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce : Espèces scientiques ?",
+      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
+      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientiques ?",
+      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Capture > Test de survie : Espèces scientiques ?",
+      "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
+      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation sur site > Date de fin ?",
+      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation sur site > Niveau du lieu",
+      "LOCATION_LEVEL_PORT": "Ports",
+      "LOCATION_LEVEL_AUCTION": "Criées",
+      "LANDING_EDITOR": "Observation sur site > Débarquement: éditeur",
+      "LANDING_EDITOR_LANDING": "Débarquement",
+      "LANDING_EDITOR_CONTROL": "Contrôle"
+    },
+    "STRATEGY": {
+
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",

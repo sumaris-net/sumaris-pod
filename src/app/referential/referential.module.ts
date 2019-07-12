@@ -25,10 +25,10 @@ import {
   PmfmStrategy,
   QualitativeLabels,
   QualityFlagIds,
+  qualityFlagToColor,
   Referential,
   ReferentialRef,
   referentialToString,
-  qualityFlagToColor,
   StatusIds,
   TaxonGroupIds,
   TaxonomicLevelIds,
@@ -38,7 +38,11 @@ import {
 
 import {ReferentialFragments} from './services/referential.queries';
 import {ReferentialForm} from "./form/referential.form";
-import {ProgramPage} from "./program/list/program.page";
+import {ProgramPage} from "./program/program.page";
+import {ProgramValidatorService} from "./services/validator/program.validator";
+import {ConfigOptionValidatorService} from "./services/validator/config-option.validator";
+import {StrategyValidatorService} from "./services/validator/strategy.validator";
+import {StrategiesTable} from "./program/strategies.table";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -62,7 +66,8 @@ export {
     VesselPage,
     VesselForm,
     VesselModal,
-    ProgramPage
+    ProgramPage,
+    StrategiesTable
   ],
   exports: [
     ReferentialsPage,
@@ -81,7 +86,10 @@ export {
     ReferentialValidatorService,
     ProgramService,
     VesselService,
-    VesselValidatorService
+    VesselValidatorService,
+    ProgramValidatorService,
+    ConfigOptionValidatorService,
+    StrategyValidatorService
   ]
 })
 export class ReferentialModule {

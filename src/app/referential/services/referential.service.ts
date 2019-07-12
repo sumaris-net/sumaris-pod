@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {EntityUtils, isNotNil, Referential, StatusIds} from "./model";
+import {EntityUtils, isNil, isNotNil, Referential, StatusIds} from "./model";
 import {LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
@@ -22,6 +22,24 @@ export declare class ReferentialFilter {
   statusId?: number;
   statusIds?: number[];
 }
+export declare class TaxonNameFilter {
+
+  taxonomicLevelId?: number;
+  taxonomicLevelIds?: number[];
+  searchText?: string;
+  searchAttribute?: string;
+  statusId?: number;
+  statusIds?: number[];
+
+  taxonGroupId: number;
+  taxonGroupIds?: number[];
+}
+
+export declare class ReferentialType {
+  id: string;
+  level?: string;
+}
+
 const LoadAllQuery: any = gql`
   query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -39,10 +57,7 @@ const LoadAllQuery: any = gql`
     referentialsCount(entityName: $entityName)
   }
 `;
-export declare class ReferentialType {
-  id: string
-  level?: string
-};
+
 const LoadReferentialTypes: any = gql`
   query ReferentialTypes{
     referentialTypes {
@@ -63,12 +78,14 @@ const LoadReferentialLevels: any = gql`
   }
 `;
 
-const SaveReferentials: any = gql`
+const SaveAllQuery: any = gql`
   mutation SaveReferentials($referentials:[ReferentialVOInput]){
     saveReferentials(referentials: $referentials){
       id
       label
       name
+      description
+      comments
       updateDate
       creationDate
       statusId
@@ -78,7 +95,7 @@ const SaveReferentials: any = gql`
   }
 `;
 
-const DeleteReferentials: any = gql`
+const DeleteAll: any = gql`
   mutation deleteReferentials($entityName: String, $ids:[Int]){
     deleteReferentials(entityName: $entityName, ids: $ids)
   }
@@ -182,7 +199,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     if (this._debug) console.debug(`[referential-service] Saving all ${entityName}...`, json);
 
     const res = await this.graphql.mutate<{ saveReferentials: Referential[] }>({
-      mutation: SaveReferentials,
+      mutation: SaveAllQuery,
       variables: {
         referentials: json
       },
@@ -231,7 +248,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     if (this._debug) console.debug(`[referential-service] Saving ${entity.entityName}...`, json);
 
     const data = await this.graphql.mutate<{ saveReferentials: any }>({
-      mutation: SaveReferentials,
+      mutation: SaveAllQuery,
       variables: {
         referentials: [json]
       },
@@ -281,7 +298,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     if (this._debug) console.debug(`[referential-service] Deleting ${entityName}...`, ids);
 
     const res = await this.graphql.mutate<any>({
-      mutation: DeleteReferentials,
+      mutation: DeleteAll,
       variables: {
         entityName: entityName,
         ids: ids
@@ -350,6 +367,6 @@ export class ReferentialService extends BaseDataService implements TableDataServ
 
   protected fillDefaultProperties(entity: Referential) {
 
-    entity.statusId = (entity.statusId == undefined) ? 1 : entity.statusId;
+    entity.statusId = isNotNil(entity.statusId) ? entity.statusId : StatusIds.ENABLE;
   }
 }

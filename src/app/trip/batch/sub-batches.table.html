@@ -4,10 +4,10 @@
           [title]="'COMMON.DISPLAYED_COLUMNS'|translate">
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
   </button>
-  <button mat-menu-item (click)="toggleForm()">
-    <ion-icon *ngIf="showForm" matPrefix name="checkmark"></ion-icon>
-    <ion-label translate>TRIP.BATCH.TABLE.BTN_BURST_INPUT</ion-label>
-  </button>
+<!--  <button mat-menu-item (click)="toggleForm()">-->
+<!--    <ion-icon *ngIf="showForm" matPrefix name="checkmark"></ion-icon>-->
+<!--    <ion-label translate>TRIP.BATCH.TABLE.BTN_BURST_INPUT</ion-label>-->
+<!--  </button>-->
 </mat-menu>
 
 <mat-toolbar>
@@ -34,6 +34,13 @@
   </ion-item>
 
   <span class="toolbar-spacer"></span>
+
+  <!-- enable burst input -->
+  <ion-button color="light"
+              [title]="'TRIP.BATCH.TABLE.BTN_BURST_INPUT_HELP'|translate"
+              (click)="toggleForm()">
+    <ion-label translate>TRIP.BATCH.TABLE.BTN_BURST_INPUT</ion-label>
+  </ion-button>
 
   <!-- Options menu -->
   <button mat-icon-button [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.OPTIONS'|translate">

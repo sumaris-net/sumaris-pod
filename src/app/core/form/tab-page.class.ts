@@ -49,6 +49,11 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     return (this._forms && !!this._forms.find(form => form.invalid)) || (this._tables && !!this._tables.find(table => !table.invalid));
   }
 
+  public get pending(): boolean {
+    return (this._forms && !!this._forms.find(form => form.pending)) || (this._tables && !!this._tables.find(table => table.pending));
+  }
+
+
   protected get tables(): AppTable<any, any>[] {
     return this._tables;
   }

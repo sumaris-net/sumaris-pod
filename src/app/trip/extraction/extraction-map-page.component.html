@@ -291,6 +291,8 @@
                              [cpPosition]="'top'"
                              [cpSaveClickOutside]="true"
                              [cpOutputFormat]="'rgba'"
+                             [cpOKButton]="true"
+                             [cpOKButtonText]="'COMMON.BTN_VALIDATE'|translate"
                              required/>
                       <mat-error *ngIf="legendForm.get('startColor').hasError('required')" translate>
                         ERROR.FIELD_REQUIRED

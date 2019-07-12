@@ -6,7 +6,7 @@ import { Referential } from "./model";
 @Injectable()
 export class ReferentialValidatorService implements ValidatorService {
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(protected formBuilder: FormBuilder) {
   }
 
   getRowValidator(): FormGroup {
@@ -24,8 +24,7 @@ export class ReferentialValidatorService implements ValidatorService {
       name: ['', Validators.required],
       description: ['', Validators.maxLength(255)],
       comments: ['', Validators.maxLength(2000)],
-      entityName: ['', Validators.required],
-      dirty: ['']
+      entityName: ['', Validators.required]
     });
   }
 }

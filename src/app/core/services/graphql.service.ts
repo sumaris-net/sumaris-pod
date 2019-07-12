@@ -352,7 +352,7 @@ export class GraphqlService {
 
       // Enable cache persistence
       if (environment.persistCache) {
-        console.debug("[apollo] Starting cache...");
+        console.debug("[apollo] Starting persistence cache...");
         await persistCache({
           cache,
           storage: {

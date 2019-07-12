@@ -39,9 +39,9 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
 
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
-  protected disabling: boolean = false;
 
   type: string;
+  numberInputStep: string;
 
   @Input() pmfm: PmfmStrategy;
 
@@ -107,6 +107,9 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
       } else if (this.pmfm.label === "LONGITUDE") {
         type = "longitude";
       }
+      else {
+        this.numberInputStep = this.computeNumberInputStep(this.pmfm);
+      }
     }
     this.type = type;
   }
@@ -132,17 +135,8 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    if (this.disabling) return;
-
-    this.disabling = true;
-
+    if (this.disabled === isDisabled) return;
     this.disabled = isDisabled;
-    if (isDisabled) {
-      //this.formControl.disable({ onlySelf: true, emitEvent: false });
-    } else {
-      //this.formControl.enable({ onlySelf: true, emitEvent: false });
-    }
-    this.disabling = false;
     this.cd.markForCheck();
   }
 
@@ -170,7 +164,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
   }
 
   filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
-    if (event.keyCode == 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
+    if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
       this.onKeypressEnter.emit(event);
       return;
     }

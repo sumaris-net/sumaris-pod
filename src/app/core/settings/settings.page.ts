@@ -1,20 +1,18 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {AccountService} from '../services/account.service';
-import {Account, LocalSettings, Peer, referentialToString, UsageMode} from '../services/model';
-import {FormBuilder, FormControl} from '@angular/forms';
+import {FieldOptions, LocalSettings, Peer, referentialToString, UsageMode} from '../services/model';
+import {FormArray, FormBuilder, FormControl} from '@angular/forms';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
-import {DateAdapter, MatCheckboxChange} from "@angular/material";
-import {AppFormUtils} from '../form/form.utils';
+import {DateAdapter} from "@angular/material";
+import {AppFormUtils, FormArrayHelper} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 import {ValidatorService} from "angular4-material-table";
 import {LocalSettingsValidatorService} from "../services/local-settings.validator";
 import {PlatformService} from "../services/platform.service";
 import {NetworkService} from "../services/network.service";
-import {isNilOrBlank, isNotNil, toBoolean} from "../../shared/functions";
+import {isNilOrBlank, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {distinctUntilChanged, startWith} from "rxjs/operators";
-import {merge} from "rxjs";
 
 @Component({
   selector: 'page-settings',
@@ -28,15 +26,24 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
   private _data: LocalSettings;
 
+  mobile: boolean;
   loading = true;
   saving = false;
   usageModes: UsageMode[] = ['FIELD', 'DESK'];
+  fields = [{
+    key: 'taxonGroup',
+    label: 'SETTINGS.FIELDS.TAXON_GROUP',
+    type: 'combo',
+    attributes: [['label', 'name'], ['name'], ['name', 'label'], ['label']]
+  }];
+  fieldsMap: any;
   localeMap = {
     'fr': 'Français',
     'en': 'English'
   };
   locales: String[] = [];
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
+  fieldsFormHelper: FormArrayHelper<FieldOptions>;
 
   get accountInheritance(): boolean {
     return this.form.controls['accountInheritance'].value;
@@ -44,6 +51,10 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
   get isLogin(): boolean {
     return this.accountService.isLogin();
+  }
+
+  get fieldsForm(): FormArray {
+    return this.form.get('fields') as FormArray;
   }
 
   constructor(
@@ -64,6 +75,13 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       this.locales.push(locale);
     }
 
+    this.fieldsMap = this.fields.reduce((res, field) => {
+      res[field.key] = field;
+      return res;
+    }, {});
+
+    this.mobile = this.platform.mobile;
+
     // By default, disable the form
     this._enable = false;
   }
@@ -71,9 +89,19 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   async ngOnInit() {
     super.ngOnInit();
 
+    this.fieldsFormHelper = new FormArrayHelper<FieldOptions>(this.formBuilder,
+      this.form,
+      'fields',
+      (value) => this.validatorService.getFieldControl(value),
+      (o1, o2) => (!o1 && !o2) || (o1.key === o2.key),
+      (o) => !o || (!o.key && !o.attributes)
+    );
+    //this.fieldFormArray.resize(1);
+
     // Make sure platform is ready
     await this.platform.ready();
 
+    // Load settings
     await this.load();
 
     this.accountService.onLogin.subscribe(() => this.setAccountInheritance(this.accountInheritance));
@@ -100,9 +128,13 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       data.peerUrl = peer && peer.url;
     }
 
+    // Set combo attributes
+    data.fields = data.fields || [];
+
     // Remember data
     this._data = data;
 
+    this.fieldsFormHelper.resize(Math.max(data.fields.length, 1));
     this.form.patchValue(data, {emitEvent: false});
     this.markAsPristine();
 

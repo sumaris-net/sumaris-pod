@@ -342,7 +342,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           map(() => this.measurementsForm.form)
         )
         .subscribe((formGroup) => {
-          console.log("[operation] TODO check SUMARIS samplingTypeControl");
 
           // If PMFM "Sampling type" exists (e.g. SUMARiS), then use to enable/disable some tables
           const samplingTypeControl = formGroup && formGroup.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
@@ -351,9 +350,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
               samplingTypeControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(() => samplingTypeControl.value),
+                  startWith(samplingTypeControl.value),
                   filter(EntityUtils.isNotEmpty),
-                  map(value => value.label),
+                  map(qv => qv.label),
                   distinctUntilChanged()
                 )
                 .subscribe(qvLabel => {
@@ -389,7 +388,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
               isSamplingControl.valueChanges
                 .pipe(
                   debounceTime(400),
-                  startWith(() => isSamplingControl.value),
+                  startWith(isSamplingControl.value),
                   filter(isNotNil),
                   distinctUntilChanged()
                 )
@@ -425,9 +424,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           if (isNotNil(samplingTypeControl)) {
             this.registerSubscription(
               tripProgressControl.valueChanges
-                .debounceTime(400)
                 .pipe(
-                  startWith(() => tripProgressControl.value),
+                  debounceTime(400),
+                  startWith(tripProgressControl.value),
                   filter(isNotNil),
                   distinctUntilChanged()
                 )
@@ -457,8 +456,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         .subscribe(program => {
           if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
           if (this.batchesTable) {
-            this.batchesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_GROUP_ENABLE, true);
-            this.batchesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.BATCH_TAXON_NAME_ENABLE, true);
+            this.batchesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
+            this.batchesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
             // Force taxon name in sub batches, if not filled in root batch
             if (this.subBatchesTable) {
               this.subBatchesTable.showTaxonNameColumn = !this.batchesTable.showTaxonNameColumn;

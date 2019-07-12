@@ -31,7 +31,7 @@ export class NetworkService {
 
   public onStart = new Subject<Peer>();
 
-  public onStateChanged = new EventEmitter<any>();
+  public getNetworkStatusChanges = new EventEmitter<any>();
 
   get peer(): Peer {
     return this._peer && this._peer.clone();
@@ -77,12 +77,12 @@ export class NetworkService {
 
     this._subscriptions.push(this.network.onDisconnect().subscribe(() => {
       console.info("[network] Disconnected");
-      this.onStateChanged.emit(false);
+      this.getNetworkStatusChanges.emit(false);
     }));
 
     this._subscriptions.push(this.network.onConnect().subscribe(() => {
       console.info(`[network] Connection {${this.network.type}}`);
-      this.onStateChanged.emit(this.network.type);
+      this.getNetworkStatusChanges.emit(this.network.type);
     }));
 
     // Restoring local settings

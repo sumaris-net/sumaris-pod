@@ -20,7 +20,6 @@ const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 @Component({
   selector: 'app-landing-table',
   templateUrl: 'landings.table.html',
-  styleUrls: ['landings.table.scss'],
   providers: [
     {provide: ValidatorService, useClass: LandingValidatorService}
   ],

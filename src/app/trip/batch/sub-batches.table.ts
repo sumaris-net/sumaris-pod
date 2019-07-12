@@ -11,16 +11,11 @@ import {
   ViewChild
 } from "@angular/core";
 import {Observable, Subscription} from 'rxjs';
-import {debounceTime, map, switchMap, tap} from "rxjs/operators";
+import {debounceTime, map, mergeMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AcquisitionLevelCodes, AppFormUtils, EntityUtils, environment, ReferentialRef} from "../../core/core.module";
 import {Batch, PmfmStrategy, referentialToString} from "../services/trip.model";
-import {
-  PmfmIds,
-  QualitativeLabels,
-  ReferentialRefService,
-  TaxonomicLevelIds
-} from "../../referential/referential.module";
+import {PmfmIds, QualitativeLabels, ReferentialRefService} from "../../referential/referential.module";
 import {FormGroup, Validators} from "@angular/forms";
 import {isNil, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/shared.module";
 import {UsageMode} from "../../core/services/model";
@@ -31,6 +26,7 @@ import {BatchesContext} from "./batches-context.class";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
+import {selectInputContent} from "../../core/form/form.utils";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -140,6 +136,10 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     return this.getShowColumn('individualCount');
   }
 
+  get dirty(): boolean {
+    return this._dirty || this.memoryDataService.dirty;
+  }
+
   @Input() showCommentsColumn = true;
   @Input() usageMode: UsageMode;
   @Input() context: BatchesContext;
@@ -194,7 +194,10 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
         .pipe(
           debounceTime(250),
           map((value) => {
-            if (EntityUtils.isNotEmpty(value)) return [value];
+            if (EntityUtils.isNotEmpty(value)) {
+              console.log("TODO: load taxon names ??");
+              return [value];
+            }
             value = (typeof value === "string" && value !== "*") && value || undefined;
             if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
             if (isNil(value)) return this._availableSortedParents; // All
@@ -213,12 +216,15 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       this.$taxonNames = this.registerCellValueChanges('taxonName')
         .pipe(
           debounceTime(250),
-          switchMap((value) => this.referentialRefService.suggest(value,
-            {
-              entityName: 'TaxonName',
-              levelId: TaxonomicLevelIds.SPECIES,
-              searchAttribute: 'label'
-            })
+          mergeMap(async (value) => {
+              const parent = this.editedRow.validator.get('parent').value;
+              return this.programService.suggestTaxonNames(value,
+                {
+                  program: this.program,
+                  searchAttribute: 'name',
+                  taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
+                });
+            }
           ),
           // Save implicit value
           tap(items => this.updateImplicitValue('taxonName', items))
@@ -289,8 +295,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     // Reset individual count, if manual mode
     if (this.form.enableIndividualCount) {
       newBatch.individualCount = null;
-    }
-    else if (isNil(newBatch.individualCount)){
+    } else if (isNil(newBatch.individualCount)) {
       newBatch.individualCount = 1;
     }
 
@@ -313,8 +318,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     if (this.form.disabled) {
       this.form.enable();
       this.form.value = newBatch;
-    }
-    else {
+    } else {
       this.form.form.patchValue(newBatch, {emitEvent: false});
       this.form.markAsPristine();
       this.form.markAsUntouched();
@@ -345,6 +349,22 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   markAsUntouched() {
     super.markAsUntouched();
     this.form.markAsUntouched();
+  }
+
+  enable() {
+    super.enable();
+
+    if (this.showForm && this.form.disabled) {
+      this.form.enable();
+    }
+  }
+
+  disable() {
+    super.disable();
+
+    if (this.showForm && this.form.enabled) {
+      this.form.disable();
+    }
   }
 
   /* -- protected methods -- */
@@ -386,8 +406,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       if (row.validator) {
         row.validator.patchValue(newBatch);
         row.validator.markAsDirty();
-      }
-      else {
+      } else {
         row.currentData = newBatch;
       }
     }
@@ -396,7 +415,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     return row;
   }
 
-  protected async setAvailableParents(parents: Batch[], opts?: {emitEvent?: boolean; linkDataToParent?: boolean;}) {
+  protected async setAvailableParents(parents: Batch[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean; }) {
     opts = opts || {emitEvent: true, linkDataToParent: true};
 
     this._availableParents = parents;
@@ -405,7 +424,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     if (this.displayParentPmfm) {
       this._availableSortedParents = this.sortData(parents.slice(), this.displayParentPmfm.pmfmId.toString());
     } else {
-      this._availableSortedParents = this.sortData(parents.slice(), 'taxonGroup');
+      this._availableSortedParents = this.sortData(parents.slice(), 'parent');
     }
 
     this.form.availableParents = this._availableSortedParents;
@@ -512,10 +531,11 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   protected sortData(data: Batch[], sortBy?: string, sortDirection?: string): Batch[] {
-    sortBy = (sortBy !== 'parent') && sortBy || 'parent.rankOrder'; // Replace parent by its rankOrder
+    sortBy = (sortBy && sortBy !== 'parent') ? sortBy : 'parent.rankOrder'; // Replace parent by its rankOrder
     return this.memoryDataService.sort(data, sortBy, sortDirection);
   }
 
+  selectInputContent = selectInputContent;
 
   parentToString(batch: Batch) {
     // TODO: use options

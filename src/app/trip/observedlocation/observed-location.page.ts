@@ -47,10 +47,10 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> im
     this.onProgramChanged
       .subscribe(program => {
         if (this.debug) console.debug(`[observed-location] Program ${program.label} loaded, with properties: `, program.properties);
-        this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE, false);
-        this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS) || [LocationLevelIds.PORT];
+        this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
+        this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
 
-        const landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR) || 'landing';
+        const landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
         this.landingEditor = (landingEditor === 'landing' || landingEditor === 'control') ? landingEditor : 'landing';
       });
   }

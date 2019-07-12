@@ -116,11 +116,16 @@ export class AppComponent {
 
     // Settings colors
     if (options.colors) {
-      Object.getOwnPropertyNames(options.colors).forEach(color => {
-        if (color !== undefined && color !== null) {
-          // TODO
-          //document.documentElement.style.removeProperty(`--ion-color-${color}`);
-          //document.documentElement.style.setProperty(`--ion-color-${color}`, color);
+      Object.getOwnPropertyNames(options.colors).forEach(colorName => {
+
+        // Remove existing value
+        document.documentElement.style.removeProperty(`--ion-color-${colorName}`);
+
+        // Set new value, if any
+        const color = options.colors[colorName];
+        if (isNotNil(color)) {
+          document.documentElement.style.setProperty(`--ion-color-${colorName}`, color);
+          // TODO compute shade, hint, ...
         }
       });
     }

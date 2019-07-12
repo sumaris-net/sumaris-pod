@@ -1,6 +1,12 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
 import { ValidatorService, TableElement } from "angular4-material-table";
-import { AppTableDataSource, AppTable, AppFormUtils } from "../../../core/core.module";
+import {
+  AppTableDataSource,
+  AppTable,
+  AppFormUtils,
+  RESERVED_START_COLUMNS,
+  RESERVED_END_COLUMNS
+} from "../../../core/core.module";
 import { VesselValidatorService } from "../../services/vessel.validator";
 import { VesselService, VesselFilter } from "../../services/vessel-service";
 import { VesselModal } from "../modal/modal-vessel";
@@ -37,15 +43,15 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
     private formBuilder: FormBuilder
   ) {
     super(route, router, platform, location, modalCtrl, accountService,
-      ['select',
-        'id',
-        'exteriorMarking',
-        'startDate',
-        'name',
-        'basePortLocation',
-        'comments',
-        'actions'
-      ],
+      // columns
+      RESERVED_START_COLUMNS
+        .concat([
+          'exteriorMarking',
+          'startDate',
+          'name',
+          'basePortLocation',
+          'comments'])
+        .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<VesselFeatures, VesselFilter>(VesselFeatures, vesselService, vesselValidatorService),
       {
         date: null,

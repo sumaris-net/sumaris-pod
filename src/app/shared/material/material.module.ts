@@ -22,7 +22,8 @@ import {
   MatStepperModule,
   MatTableModule,
   MatTabsModule,
-  MatToolbarModule
+  MatToolbarModule,
+  MatSlideToggleModule
 } from "@angular/material";
 import {CdkTableModule} from "@angular/cdk/table";
 import {MatDatepickerModule} from '@angular/material/datepicker';
@@ -59,7 +60,8 @@ const modules: any[] = [
   MatProgressSpinnerModule,
   MatProgressBarModule,
   MatRadioModule,
-  MatBadgeModule
+  MatBadgeModule,
+  MatSlideToggleModule
 ];
 
 @NgModule({

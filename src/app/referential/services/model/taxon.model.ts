@@ -18,9 +18,9 @@ export const TaxonomicLevelIds = {
 
 export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRef {
 
-  static fromObject(source: any): TaxonGroupRef {
+  static fromObject(source: any): TaxonNameRef {
     if (isNil(source)) return null;
-    const res = new TaxonGroupRef();
+    const res = new TaxonNameRef();
     res.fromObject(source);
     return res;
   }

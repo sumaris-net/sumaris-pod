@@ -69,7 +69,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingFilter> imple
       this.onProgramChanged
         .subscribe(program => {
           if (this.debug) console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
-          this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS) || [LocationLevelIds.PORT];
+          this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
           //this.markForCheck();
         }));
 

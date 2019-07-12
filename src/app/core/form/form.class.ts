@@ -33,6 +33,10 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     return this.form.invalid;
   }
 
+  get pending(): boolean {
+    return this.form.pending;
+  }
+
   get valid(): boolean {
     return this.form.valid;
   }
@@ -75,6 +79,9 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     }
   }
 
+  @Input()
+  form?: FormGroup;
+
   @Output()
   onCancel: EventEmitter<any> = new EventEmitter<any>();
 
@@ -83,8 +90,9 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   protected constructor(
     protected dateAdapter: DateAdapter<Moment> | DateFormatPipe,
-    public form?: FormGroup
+    form?: FormGroup
   ) {
+    this.form = form || this.form;
   }
 
   ngOnInit() {

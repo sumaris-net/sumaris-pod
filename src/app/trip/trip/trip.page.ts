@@ -113,7 +113,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
         )
         .subscribe(program => {
           if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
-          this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE, true);
+          this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
         })
     );
   }

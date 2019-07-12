@@ -32,6 +32,7 @@ import {environment} from "../../../environments/environment";
 import {SpeciesBatchValidatorService} from "../services/validator/species-batch.validator";
 import {AppFormUtils, PlatformService} from "../../core/core.module";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
+import {isNotNilOrBlank} from "../../shared/functions";
 
 @Component({
   selector: 'app-batch-form',
@@ -170,9 +171,33 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   }
 
   protected getValue(): Batch {
-    const data = super.getValue();
+    const json = this.form.value;
 
-    return data;
+    // Convert measurements
+    json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.toEntityValues(json.measurementValues, this.$pmfms.getValue()));
+
+    this.data.fromObject(json);
+
+    if (this.isSampling && json.children && json.children.length === 1) {
+      const child = this.data.children && this.data.children[0] || new Batch();
+      const childJson = json.children[0];
+      // Convert measurements
+      childJson.measurementValues = Object.assign({}, child.measurementValues, MeasurementValuesUtils.toEntityValues(childJson.measurementValues, this.samplingBatchPmfms));
+
+      // Convert sampling ratio
+      if (isNotNilOrBlank(childJson.samplingRatio)) {
+        childJson.samplingRatioText = `${childJson.samplingRatio}%`;
+        childJson.samplingRatio = +childJson.samplingRatio / 100;
+      }
+
+      child.fromObject(childJson);
+      this.data.children = [child];
+    }
+    else {
+      this.data.children = [];
+    }
+
+    return this.data;
   }
 
   setIsSampling(enable: boolean) {

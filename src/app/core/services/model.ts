@@ -1,7 +1,6 @@
 import {Moment} from "moment/moment";
 import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../shared/shared.module";
 import {isNilOrBlank} from "../../shared/functions";
-import {SelectCompareFn} from "@ionic/core";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -11,13 +10,13 @@ export const StatusIds = {
   TEMPORARY: 2,
   DELETED: 3,
   ALL: 99
-}
+};
 
 export const LocationLevelIds = {
   COUNTRY: 1,
   PORT: 2,
   AUCTION: 3
-}
+};
 
 export const AcquisitionLevelCodes = {
   TRIP: 'TRIP',
@@ -34,8 +33,100 @@ export const AcquisitionLevelCodes = {
   SALE: 'SALE',
   OBSERVED_LOCATION: 'OBSERVED_LOCATION',
   OBSERVED_VESSEL: 'OBSERVED_VESSEL'
+};
+
+export declare type ConfigOptionType = 'integer' | 'double' | 'boolean' | 'string' | 'enum' | 'color';
+
+export declare interface ConfigOptionEnum {
+  key: string;
+  label: string;
 }
 
+export declare interface ConfigOption {
+  key: string;
+  label: string;
+  defaultValue?: any;
+  isTransient?: boolean; // Useful only for remote configuration
+  values?: ConfigOptionEnum[];
+  type: ConfigOptionType;
+}
+
+export const ConfigOptions = {
+  LOGO: {
+    key: 'sumaris.logo',
+    label: 'CONFIGURATION.OPTIONS.LOGO',
+    type: 'string'
+  },
+  FAVICON: {
+    key: 'sumaris.favicon',
+    label: 'CONFIGURATION.OPTIONS.FAVICON',
+    type: 'string'
+  },
+  DEFAULT_LOCALE: {
+    key: 'sumaris.defaultLocale',
+    label: 'CONFIGURATION.OPTIONS.DEFAULT_LOCALE',
+    type: 'enum',
+    values: [
+      {
+        key: 'en',
+        label: 'English'
+      },
+      {
+        key: 'fr',
+        label: 'Français'
+      }
+    ]
+  },
+  DEFAULT_LAT_LONG_FORMAT: {
+    key: 'sumaris.defaultLatLongFormat',
+    label: 'CONFIGURATION.OPTIONS.DEFAULT_LATLONG_FORMAT',
+    type: 'enum',
+    values: [
+      {
+        key: 'DDMMSS',
+        label: 'COMMON.DDMMSS_PLACEHOLDER'
+      },
+      {
+        key: 'DDMM',
+        label: 'COMMON.DDMM_PLACEHOLDER'
+      },
+      {
+        key: 'DD',
+        label: 'COMMON.DD_PLACEHOLDER'
+      }
+    ]
+  },
+  LOGO_LARGE: {
+    key: 'sumaris.logo.large',
+    label: 'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE',
+    type: 'string'
+  },
+  HOME_PARTNERS_DEPARTMENTS: {
+    key: 'sumaris.partner.departments',
+    label: 'CONFIGURATION.OPTIONS.HOME.PARTNER_DEPARTMENTS',
+    type: 'string'
+  },
+  HOME_BACKGROUND_IMAGE: {
+    key: 'sumaris.background.images',
+    label: 'CONFIGURATION.OPTIONS.HOME.BACKGROUND_IMAGES',
+    type: 'string'
+  },
+  COLOR_PRIMARY: {
+    key: 'sumaris.color.primary',
+    label: 'CONFIGURATION.OPTIONS.COLORS.PRIMARY',
+    type: 'color'
+  },
+  COLOR_SECONDARY: {
+    key: 'sumaris.color.secondary',
+    label: 'CONFIGURATION.OPTIONS.COLORS.SECONDARY',
+    type: 'color'
+  },
+  COLOR_TERTIARY: {
+    key: 'sumaris.color.tertiary',
+    label: 'CONFIGURATION.OPTIONS.COLORS.TERTIARY',
+    type: 'color'
+  }
+};
 
 export type UsageMode = 'DESK' | 'FIELD';
 
@@ -190,7 +281,7 @@ export class EntityUtils {
     return (this.isEmpty(o1) && this.isEmpty(o2)) || (o1.id === o2.id);
   }
 
-  static copyIdAndUpdateDate(source: Entity<any> | undefined, target: Entity<any>, opts?: {creationDate?: boolean;}) {
+  static copyIdAndUpdateDate(source: Entity<any> | undefined, target: Entity<any>, opts?: { creationDate?: boolean; }) {
     if (!source) return;
 
     // Update (id and updateDate)
@@ -203,7 +294,7 @@ export class EntityUtils {
     }
   }
 
-  static sort<T extends Entity<T>|any>(data: T[], sortBy?: string, sortDirection?: string): T[] {
+  static sort<T extends Entity<T> | any>(data: T[], sortBy?: string, sortDirection?: string): T[] {
     const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
     return data.sort((a, b) => {
       const valueA = EntityUtils.getPropertyByPath(a, sortBy);
@@ -622,7 +713,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
   pubkey: string;
 
   favicon: string;
-  status: 'UP'|'DOWN';
+  status: 'UP' | 'DOWN';
   softwareName: string;
   softwareVersion: string;
   label: string;
@@ -676,15 +767,21 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
 }
 
 /* -- Local settings -- */
+export declare class FieldOptions {
+  key: string;
+  attributes: string;
+  //defaultValues: any[];
+}
 
 export declare interface LocalSettings {
   pages?: any;
   peerUrl?: string;
-  latLongFormat?: string;
+  latLongFormat?: 'DDMMSS' | 'DDMM' | 'DD';
   accountInheritance?: boolean;
   locale?: string;
   usageMode?: UsageMode;
   defaultPrograms?: string[];
   mobile?: boolean;
   touchUi?: boolean;
+  fields?: FieldOptions[];
 }

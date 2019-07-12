@@ -83,6 +83,10 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return this.getShowColumn('taxonName');
   }
 
+  get dirty(): boolean {
+    return this._dirty || this.memoryDataService.dirty;
+  }
+
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
 
@@ -147,21 +151,27 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
   protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
     console.debug("[batches-table] Adding new batch", newBatch);
-    this.addRowToTable();
-    return new Promise<TableElement<Batch>>((resolve) => {
-      setTimeout(() => {
-        const rankOrder = this.editedRow.currentData.rankOrder;
-        newBatch.rankOrder = rankOrder;
 
-        // Adapt measurement values to row
-        this.normalizeRowMeasurementValues(newBatch, this.editedRow);
+    const row = await this.addRowToTable();
+    if (!row) throw new Error("Could not add row t table");
 
-        this.editedRow.currentData = newBatch;
-        this.confirmEditCreate(null, this.editedRow);
-        this.markForCheck();
-        resolve(this.editedRow);
-      }, 100);
-    });
+    // Adapt measurement values to row
+    this.normalizeRowMeasurementValues(newBatch, row);
+
+    // Override rankOrder (keep computed value)
+    newBatch.rankOrder = row.currentData.rankOrder;
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(newBatch);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = newBatch;
+    }
+
+    this.confirmEditCreate(null, row);
+    this.markAsDirty();
+    return row;
   }
 
   protected async openRow(id: number, row: TableElement<Batch>): Promise<boolean> {

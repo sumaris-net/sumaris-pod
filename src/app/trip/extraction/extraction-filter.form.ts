@@ -59,7 +59,7 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
 
   protected constructor(
     protected injector: Injector,
-    public form?: FormGroup
+    form?: FormGroup
   ) {
     super(injector.get(DateFormatPipe), form);
     this.formBuilder = injector.get(FormBuilder);

@@ -27,7 +27,7 @@ import {
   referentialToString,
   UsageMode
 } from "../../core/services/model";
-import {debounceTime, filter, map, startWith, switchMap, tap} from "rxjs/operators";
+import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
 import {getPmfmName, isNil, isNotNil, PmfmStrategy, TaxonomicLevelIds} from "../../referential/services/model";
 import {merge, Observable} from "rxjs";
 import {isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
@@ -39,6 +39,7 @@ import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
 import {MeasurementQVFormField} from "../measurement/measurement-qv.form-field.component";
+import {Events} from "@ionic/angular";
 
 @Component({
   selector: 'app-sub-batch-form',
@@ -56,6 +57,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   _availableParents: Batch[] = [];
   onShowParentDropdown = new EventEmitter<UIEvent>(true);
+  onShowTaxonNameDropdown = new EventEmitter<UIEvent>(true);
+
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
 
@@ -154,20 +157,33 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       );
 
     // Taxon name combo
-    this.$taxonNames = this.form.get('taxonName').valueChanges
+    this.$taxonNames = merge(
+      this.onShowTaxonNameDropdown
+        .pipe(
+          filter(event => !event.defaultPrevented),
+          map((_) => this.form.get('taxonName').value)
+        ),
+      this.form.get('taxonName').valueChanges
+        .pipe(debounceTime(250))
+    )
       .pipe(
-        debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value, {
-          entityName: 'TaxonName',
-          levelId: TaxonomicLevelIds.SPECIES,
-          searchAttribute: 'label'
-        })),
+        mergeMap(async (value) => {
+          const parent = this.form.get('parent').value;
+          // TODO: check if there is a parent ?
+          if (isNil(value) && isNil(parent)) return [];
+          return this.programService.suggestTaxonNames(value,
+            {
+              program: this.program,
+              searchAttribute: 'name',
+              taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
+            });
+        }),
         // Remember implicit value
         tap(res => this.updateImplicitValue('taxonName', res))
       );
 
     this.enableIndividualCountControl.valueChanges
-      .pipe(startWith(() => this.enableIndividualCountControl.value))
+      .pipe(startWith(this.enableIndividualCountControl.value))
       .subscribe((enable) => {
         if (enable) {
           this.form.get('individualCount').enable();

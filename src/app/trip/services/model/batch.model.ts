@@ -4,6 +4,12 @@ import {DataEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
 
+export declare interface BatchWeight {
+  methodId: number;
+  estimated: boolean;
+  calculated: boolean;
+  value: any;
+}
 
 export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<Batch> {
 
@@ -48,6 +54,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
   taxonName: ReferentialRef;
   comments: string;
   measurementValues: { [key: number]: any };
+  weight: BatchWeight;
 
   operationId: number;
   parentId: number;
@@ -71,6 +78,8 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     this.parent = null;
     this.measurementValues = {};
     this.children = [];
+
+    this.weight = null;
   }
 
   clone(): Batch {
@@ -98,6 +107,8 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
       // Parent Id not need, as the tree batch will be used by pod
       delete target.parent;
       delete target.parentId;
+
+      delete target.weight;
     }
 
     return target;
@@ -106,7 +117,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
   fromObject(source: any): Batch {
     super.fromObject(source);
     this.label = source.label;
-    this.rankOrder = source.rankOrder;
+    this.rankOrder = +source.rankOrder;
     this.exhaustiveInventory = source.exhaustiveInventory;
     this.samplingRatio = isNotNilOrBlank(source.samplingRatio) ? parseFloat(source.samplingRatio) : null;
     this.samplingRatioText = source.samplingRatioText;
@@ -187,8 +198,8 @@ export class BatchUtils {
 
   public static canMergeSubBatch(b1: Batch, b2: Batch, pmfms: PmfmStrategy[]): boolean {
     return EntityUtils.equals(b1.parent, b2.parent)
-        && EntityUtils.equals(b1.taxonName, b2.taxonName)
-        && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
+      && EntityUtils.equals(b1.taxonName, b2.taxonName)
+      && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
   }
 
   static getOrCreateSamplingChild(parent: Batch) {

@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "angular4-material-table";
 import {Batch, PmfmStrategy, ReferentialRef, TaxonGroupIds} from "../services/trip.model";
 import {TaxonomicLevelIds,} from "../../referential/referential.module";
 import {BatchGroupsValidatorService} from "../services/trip.validators";
@@ -13,6 +13,8 @@ import {MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurem
 import {ModalController} from "@ionic/angular";
 import {debounceTime, switchMap, tap} from "rxjs/operators";
 import {Observable} from "rxjs";
+import {BatchWeight} from "../services/model/batch.model";
+import {isNotNilOrBlank} from "../../shared/functions";
 
 
 @Component({
@@ -103,33 +105,18 @@ export class BatchGroupsTable extends BatchesTable {
       this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
         const child = (batch.children || []).find(c => c.label === `${batch.label}.${qv.label}`);
         if (child) {
-          // Use as the column index
-          let i = qvIndex * 5;
 
-          // Column: individual count
-          measurementValues[i++] = child && isNotNil(child.individualCount) ? child.individualCount : null;
+          this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
 
-          // Column: total weight
-          const totalWeight = child && this.getWeight(child.measurementValues);
-          measurementValues[i++] = totalWeight && !totalWeight.calculated && totalWeight.value || null;
-
-          // Remember method used for the total weight (estimated or not)
-          weightMethodValues[qvIndex] = weightMethodValues[qvIndex] || (totalWeight && totalWeight.estimated);
-
-          if (child.children && child.children.length == 1) {
-            const samplingChild = child.children[0];
-            // Column: sampling ratio
-            measurementValues[i++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio * 100 : null;
-
-            // Column: sampling individual count
-            measurementValues[i++] = isNotNil(samplingChild.individualCount) ? samplingChild.individualCount : null;
-            const samplingWeightWeight = this.getWeight(samplingChild.measurementValues);
-
-            // Column: sampling weight
-            measurementValues[i++] = samplingWeightWeight && !samplingWeightWeight.calculated && samplingWeightWeight.value;
-
-            // Remember method used for the sampling weight (estimated or not)
-            weightMethodValues[qvIndex] = weightMethodValues[qvIndex] || (samplingWeightWeight && samplingWeightWeight.estimated);
+          // Remember method used for the weight (estimated or not)
+          if (!weightMethodValues[qvIndex]) {
+            if (child.weight && child.weight.estimated) {
+              weightMethodValues[qvIndex] = true;
+            }
+            else if (child.children && child.children.length === 1) {
+              const samplingChild = child.children[0];
+              weightMethodValues[qvIndex] = samplingChild.weight && samplingChild.weight.estimated;
+            }
           }
         }
       });
@@ -212,6 +199,60 @@ export class BatchGroupsTable extends BatchesTable {
 
 
   /* -- protected methods -- */
+
+  protected normalizeRowMeasurementValues(data: Batch, row: TableElement<Batch>) {
+    // When batch has the QV value
+    if (this.qvPmfm) {
+      const qvId = data.measurementValues[this.qvPmfm.pmfmId];
+      if (isNotNilOrBlank(qvId)) {
+        const qvIndex = this.qvPmfm.qualitativeValues.findIndex(qv => qv.id === +qvId);
+        if (qvIndex !== -1) {
+          // Replace measurement values inside a new map, based on fake pmfms
+          data.measurementValues = this.getFakeMeasurementValuesFromQvChild(data, {}, qvIndex);
+          super.normalizeRowMeasurementValues(data, row);
+        }
+      }
+    }
+    else {
+      super.normalizeRowMeasurementValues(data, row);
+    }
+
+  }
+
+  protected getFakeMeasurementValuesFromQvChild(data: Batch, measurementValues?: {[key: string]: any}, qvIndex?: number): {[key: string]: any} {
+    if (!data) return measurementValues; // skip
+
+    if (isNil(qvIndex)) {
+      const qvId = this.qvPmfm && data.measurementValues[this.qvPmfm.pmfmId];
+      qvIndex = isNotNil(qvId) && this.qvPmfm.qualitativeValues.findIndex(qv => qv.id === +qvId);
+      if (qvIndex === -1) throw Error("Invalid batch: no QV value");
+    }
+
+    measurementValues = measurementValues || {};
+    let i = qvIndex * 5;
+
+    // Column: individual count
+    measurementValues[i++] = isNotNil(data.individualCount) ? data.individualCount : null;
+
+    // Column: total weight
+    data.weight = this.getWeight(data.measurementValues) || undefined;
+    measurementValues[i++] = data.weight && !data.weight.calculated && data.weight.value || null;
+
+    // Sampling batch
+    if (data.children && data.children.length === 1) {
+      const samplingChild = data.children[0];
+      // Column: sampling ratio
+      measurementValues[i++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio * 100 : null;
+
+      // Column: sampling individual count
+      measurementValues[i++] = isNotNil(samplingChild.individualCount) ? samplingChild.individualCount : null;
+      samplingChild.weight = this.getWeight(samplingChild.measurementValues);
+
+      // Column: sampling weight
+      measurementValues[i++] = samplingChild.weight && !samplingChild.weight.calculated && samplingChild.weight.value;
+    }
+    return measurementValues;
+  }
 
   // Override parent function
   protected mapPmfms(pmfms: PmfmStrategy[]): PmfmStrategy[] {
@@ -314,7 +355,7 @@ export class BatchGroupsTable extends BatchesTable {
     return (qvIndex % 2 !== 0);
   }
 
-  protected getWeight(measurementValues: { [key: string]: any }): { methodId: number; estimated: boolean; calculated: boolean; value: any } | undefined {
+  protected getWeight(measurementValues: { [key: string]: any }): BatchWeight | undefined {
     // Use try default method
     let value = measurementValues[this.defaultWeightPmfm.pmfmId];
     if (isNotNil(value)) {

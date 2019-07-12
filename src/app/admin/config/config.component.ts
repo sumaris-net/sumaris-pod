@@ -1,80 +1,33 @@
 import {Component, OnInit} from "@angular/core";
-
-import {Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {BehaviorSubject} from 'rxjs';
-import {FormArray, FormBuilder} from "@angular/forms";
-import {Configuration, Department} from '../../core/services/model';
+import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {ConfigOption, ConfigOptions, Configuration, Department, EntityUtils} from '../../core/services/model';
 import {ConfigService} from "src/app/core/services/config.service";
-import {AppForm, AppFormUtils, ConfigValidatorService, isNotNil, PlatformService} from "src/app/core/core.module";
+import {AppForm, ConfigValidatorService, isNil, PlatformService} from "src/app/core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
-import {first} from "rxjs/operators";
+import {FormArrayHelper} from "../../core/form/form.utils";
 
-
-export declare type ConfigOption = {
-  key: string;
-  label: string;
-  defaultValue?: string;
-  isTransient?: boolean;
-}
-
-const CONFIG_OPTIONS: Array<ConfigOption> = [
-  {
-    key: 'sumaris.logo',
-    label: 'CONFIGURATION.OPTIONS.LOGO'
-  },
-  {
-    key: 'sumaris.favicon',
-    label: 'CONFIGURATION.OPTIONS.FAVICON'
-  },
-  {
-    key: 'sumaris.defaultLocale',
-    label: 'CONFIGURATION.OPTIONS.DEFAULT_LOCALE'
-  },
-  {
-    key: 'sumaris.defaultLatLongFormat',
-    label: 'CONFIGURATION.OPTIONS.DEFAULT_LATLONG_FORMAT'
-  },
-  {
-    key: 'sumaris.logo.large',
-    label: 'CONFIGURATION.OPTIONS.HOME.LOGO_LARGE'
-  },
-  {
-    key: 'sumaris.partner.departments',
-    label: 'CONFIGURATION.OPTIONS.HOME.PARTNER_DEPARTMENTS'
-  },
-  {
-    key: 'sumaris.background.images',
-    label: 'CONFIGURATION.OPTIONS.HOME.BACKGROUND_IMAGES'
-  },
-  {
-    key: 'sumaris.color.primary',
-    label: 'CONFIGURATION.OPTIONS.COLORS.PRIMARY'
-  },
-  {
-    key: 'sumaris.color.secondary',
-    label: 'CONFIGURATION.OPTIONS.COLORS.SECONDARY'
-  },
-  {
-    key: 'sumaris.color.tertiary',
-    label: 'CONFIGURATION.OPTIONS.COLORS.TERTIARY'
-  }
-];
 
 @Component({
   moduleId: module.id.toString(),
-  selector: 'page-config',
+  selector: 'app-remote-config-page',
   templateUrl: 'config.component.html',
   styleUrls: ['./config.component.scss']
 })
-export class ConfigPage extends AppForm<Configuration> implements OnInit {
+export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
+
+  private _propertyOptionsCache: { [index: number]: ConfigOption } = {};
 
   loading = true;
   partners = new BehaviorSubject<Department[]>(null);
   data: Configuration;
 
-  options = CONFIG_OPTIONS;
+  options = Object.getOwnPropertyNames(ConfigOptions).map(name => ConfigOptions[name]);
+  optionMap: { [key: string]: ConfigOption };
+
+  propertiesFormHelper: FormArrayHelper<{key: string; value: string}>;
 
   get propertiesForm(): FormArray {
     return this.form.get('properties') as FormArray;
@@ -91,12 +44,28 @@ export class ConfigPage extends AppForm<Configuration> implements OnInit {
       ) {
     super(dateAdapter, validator.getFormGroup());
 
+    this.optionMap = {};
+    this.options.forEach(o => {
+      this.optionMap[o.key] = o;
+    });
   };
 
-  ngOnInit() {
+  async ngOnInit() {
 
-    // Load, when plateform is ready
-    this.platform.ready().then(() => this.load());
+    this.propertiesFormHelper = new FormArrayHelper<{key: string; value: string}>(
+      this.formBuilder,
+      this.form,
+      'properties',
+      (value) => this.validator.getPropertyFormGroup(value),
+      (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
+      (value) => isNil(value) || (isNil(value.key) && isNil(value.value))
+    );
+
+    // Wait plateform is ready
+    await this.platform.ready();
+
+    // Then, load
+    this.load();
   }
 
   async load() {
@@ -118,9 +87,19 @@ export class ConfigPage extends AppForm<Configuration> implements OnInit {
   }
 
   updateView(data: Configuration) {
+    if (!data) return; //skip
     this.data = data;
-    this.form = this.validator.getFormGroup(data);
-    if (data) this.partners.next(data.partners);
+
+    const json = data.asObject();
+
+    // Transform properties map into array
+    json.properties = EntityUtils.getObjectAsArray(data.properties || {});
+    this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
+
+    this.form.patchValue(json, {emitEvent: false});
+    this.markAsPristine();
+
+    this.partners.next(json.partners);
     this.loading = false;
   }
 
@@ -148,6 +127,20 @@ export class ConfigPage extends AppForm<Configuration> implements OnInit {
     }
   }
 
+  getPropertyOption(index: number): ConfigOption {
+    let option = this._propertyOptionsCache[index];
+    if (!option) {
+      option = this.updatePropertyOption(index);
+      this._propertyOptionsCache[index] = option;
+    }
+    return option;
+  }
+
+  updatePropertyOption(index: number): ConfigOption {
+    const optionKey = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
+    const option = optionKey && this.optionMap[optionKey] || null;
+    return option;
+  }
 
   removePartner(icon: String){
     console.log("remove Icon " + icon);
@@ -157,23 +150,5 @@ export class ConfigPage extends AppForm<Configuration> implements OnInit {
     await this.load();
   }
 
-  addProperty(property?: {key: string; value: string}) {
-    const control = this.propertiesForm;
-    control.push(this.validator.getPropertyFormGroup(property));
-  }
-
-  removeProperty($event: MouseEvent, index: number) {
-    const control = this.propertiesForm;
-
-    // Do not remove if last item, but clear it
-    if (control.length == 1) {
-      control.at(0).setValue({key: null, value: null});
-      return;
-    }
-
-    control.removeAt(index);
-
-    this.form.markAsDirty();
-  }
 }
 

@@ -17,6 +17,7 @@ import {
   toDateISOString
 } from "../../core/core.module";
 import {Moment} from "moment/moment";
+import {ConfigOption, ConfigOptionType} from "../../core/services/model";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
@@ -87,28 +88,6 @@ export const PmfmLabelPatterns = {
   BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/
 };
 
-export const ProgramProperties = {
-
-  // Trip
-  TRIP_SALE_ENABLE: 'sumaris.trip.sale.enable',
-  BATCH_TAXON_NAME_ENABLE: 'sumaris.trip.operation.batch.taxonName.enable',
-  BATCH_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.batch.taxonGroup.enable',
-  SAMPLE_TAXON_NAME_ENABLE: 'sumaris.trip.operation.batch.taxonName.enable',
-  SAMPLE_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.batch.taxonGroup.enable',
-  SURVIVAL_TEST_TAXON_NAME_ENABLE: 'sumaris.trip.operation.survivalTest.taxonName.enable',
-  SURVIVAL_TEST_TAXON_GROUP_ENABLE: 'sumaris.trip.operation.survivalTest.taxonGroup.enable',
-
-  // Observed location
-  OBSERVED_LOCATION_END_DATE_TIME_ENABLE: 'sumaris.observedLocation.endDateTime.enable',
-  OBSERVED_LOCATION_LOCATION_LEVEL_IDS: 'sumaris.observedLocation.location.level.ids',
-
-  // Landing
-  LANDING_EDITOR: 'sumaris.landing.editor'
-
-  // Landing
-  //LANDING_DETAILS_ENABLE: 'sumaris.landing.details.enable',
-};
-
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
   GOOD: 1,
@@ -138,7 +117,7 @@ export function getPmfmName(pmfm: PmfmStrategy, opts?: {
 }): string {
   const matches = PMFM_NAME_REGEXP.exec(pmfm.name);
   const name = matches && matches[1] || pmfm.name;
-  if (opts && opts.withUnit && pmfm.unit && (pmfm.type == 'integer' || pmfm.type == 'double')) {
+  if (opts && opts.withUnit && pmfm.unit && (pmfm.type === 'integer' || pmfm.type === 'double')) {
     return `${name} (${pmfm.unit})`;
   }
   return name;
@@ -250,6 +229,95 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 }
 
 
+export const ProgramProperties = {
+
+  // Trip
+  TRIP_SALE_ENABLE: {
+    key: "sumaris.trip.sale.enable",
+    label: "PROGRAM.OPTIONS.TRIP_SALE_ENABLE",
+    defaultValue: "true",
+    type: 'boolean' as ConfigOptionType
+  },
+  TRIP_BATCH_TAXON_NAME_ENABLE: {
+    key: "sumaris.trip.operation.batch.taxonName.enable",
+    label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_NAME_ENABLE",
+    defaultValue: "true",
+    type: 'boolean' as ConfigOptionType
+  },
+  TRIP_BATCH_TAXON_GROUP_ENABLE: {
+    key: "sumaris.trip.operation.batch.taxonGroup.enable",
+    label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUP_ENABLE",
+    defaultValue: "true",
+    type: 'boolean' as ConfigOptionType
+  },
+  TRIP_SAMPLE_TAXON_NAME_ENABLE: {
+    key: "sumaris.trip.operation.sample.taxonName.enable",
+    label: "PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_NAME_ENABLE",
+    defaultValue: "true",
+    type: 'boolean'
+  },
+  TRIP_SAMPLE_TAXON_GROUP_ENABLE: {
+    key: "sumaris.trip.operation.sample.taxonGroup.enable",
+    label: "PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_GROUP_ENABLE",
+    defaultValue: "true",
+    type: 'boolean' as ConfigOptionType
+  },
+  TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE: {
+    key: "sumaris.trip.operation.survivalTest.taxonName.enable",
+    label: "PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE",
+    defaultValue: "true",
+    type: 'boolean' as ConfigOptionType
+  },
+  TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE: {
+    key: "sumaris.trip.operation.survivalTest.taxonGroup.enable",
+    label: "PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE",
+    defaultValue: "true",
+    type: 'boolean' as ConfigOptionType
+  },
+
+  // Observed location
+  OBSERVED_LOCATION_END_DATE_TIME_ENABLE: {
+    key: 'sumaris.observedLocation.endDateTime.enable',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_END_DATE_TIME_ENABLE",
+    defaultValue: "false",
+    type: 'boolean' as ConfigOptionType
+  },
+  OBSERVED_LOCATION_LOCATION_LEVEL_IDS: {
+    key: 'sumaris.observedLocation.location.level.ids',
+    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS",
+    type: 'enum' as ConfigOptionType,
+    values: [
+      {
+        key: LocationLevelIds.PORT.toString(),
+        label: 'PROGRAM.OPTIONS.LOCATION_LEVEL_PORT'
+      },
+      {
+        key: LocationLevelIds.AUCTION.toString(),
+        label: 'PROGRAM.OPTIONS.LOCATION_LEVEL_AUCTION'
+      }
+    ],
+    defaultValue: LocationLevelIds.PORT.toString(),
+  },
+
+  // Landing
+  LANDING_EDITOR: {
+    key: 'sumaris.landing.editor',
+    label: 'PROGRAM.OPTIONS.LANDING_EDITOR',
+    type: 'enum' as ConfigOptionType,
+    values: [
+      {
+        key: 'landing',
+        label: 'PROGRAM.OPTIONS.LANDING_EDITOR_LANDING'
+      },
+      {
+        key: 'control',
+        label: 'PROGRAM.OPTIONS.LANDING_EDITOR_CONTROL'
+      }],
+    defaultValue: 'landing'
+  }
+
+};
+
 export class Program extends Entity<Program> {
 
   static fromObject(source: any): Program {
@@ -314,19 +382,21 @@ export class Program extends Entity<Program> {
   }
 
   equals(other: Program): boolean {
-    return super.equals(other) && this.id === other.id;
+    return super.equals(other) || this.label === other.label;
   }
 
-  getPropertyAsBoolean(key: string, defaultValue?: boolean): boolean {
-    return isNotNil(this.properties[key]) ? this.properties[key] !== "false" : (defaultValue || false);
+  getPropertyAsBoolean(option: ConfigOption): boolean {
+    const value = this.getProperty(option);
+    return value && value !== "false";
   }
 
-  getPropertyAsNumbers(key: string): number[] {
-    return this.properties[key] && this.properties[key].split(',').map(parseInt) || undefined;
+  getPropertyAsNumbers(option: ConfigOption): number[] {
+    const value = this.getProperty(option);
+    return value && value.split(',').map(parseInt) || undefined;
   }
 
-  getProperty(key: string): string {
-    return this.properties[key];
+  getProperty(option: ConfigOption): string {
+    return isNotNil(this.properties[option.key]) ? this.properties[option.key] : (option.defaultValue || undefined);
   }
 }
 
@@ -508,6 +578,13 @@ export class Strategy extends Entity<Strategy> {
   }
 
   equals(other: Strategy): boolean {
-    return super.equals(other) && this.label === other.label;
+    return super.equals(other)
+      // Or by functional attributes
+      || (
+        // Same label
+        this.label === other.label
+        // Same program
+        && ((!this.programId && !other.programId) || this.programId === other.programId)
+      );
   }
 }

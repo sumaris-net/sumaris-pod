@@ -6,6 +6,7 @@ import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {StatusBar} from "@ionic-native/status-bar/ngx";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {LocalSettingsService} from "./local-settings.service";
+import {CacheService} from "ionic-cache";
 
 
 @Injectable()
@@ -28,7 +29,8 @@ export class PlatformService {
     private statusBar: StatusBar,
     private keyboard: Keyboard,
     private settingsService: LocalSettingsService,
-    private networkService: NetworkService
+    private networkService: NetworkService,
+    private cache: CacheService
   ) {
 
     this.start();
@@ -59,6 +61,11 @@ export class PlatformService {
             this.settingsService.mobile = this.mobile;
           }
         }),
+      this.cache.ready()
+        .then(() => {
+          this.cache.setDefaultTTL(60 * 60); // 1 hour
+          this.cache.setOfflineInvalidate(false);
+        }),
       this.settingsService.ready(),
       this.networkService.ready()
     ])
@@ -86,6 +93,7 @@ export class PlatformService {
     this.statusBar.styleDefault();
     this.statusBar.overlaysWebView(false);
     this.keyboard.hideFormAccessoryBar(true);
+
   }
 }
 

@@ -11,9 +11,9 @@
     <input matInput #matInput
            formControlName="parent"
            [matAutocomplete]="autoParentBatch"
-           (keyup.arrowdown)="onShowParentDropdown.emit($event)"
            [placeholder]="displayParentPmfm && getPmfmName(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT' | translate)"
            [required]="showParent"
+           (keyup.arrowdown)="onShowParentDropdown.emit($event)"
            (click)="selectInputContent($event) && onShowParentDropdown.emit($event)">
     <mat-error *ngIf="form.controls.parent.hasError('required')" translate>ERROR.FIELD_REQUIRED
     </mat-error>
@@ -22,7 +22,7 @@
     <button mat-button matSuffix mat-icon-button tabindex="-1"
             type="button"
             (click)="onShowParentDropdown.emit($event)"
-            [hidden]="form.disabled">
+            [hidden]="form.controls.parent.disabled">
       <mat-icon>arrow_drop_down</mat-icon>
     </button>
   </mat-form-field>
@@ -72,10 +72,17 @@
            [matAutocomplete]="autoTaxonName"
            [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
            (blur)="applyImplicitValue('taxonName')"
+           (keyup.arrowdown)="onShowTaxonNameDropdown.emit($event)"
+           (click)="selectInputContent($event) && onShowTaxonNameDropdown.emit($event)"
            required>
     <mat-error *ngIf="form.controls.taxonName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="form.controls.taxonName.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-
+    <button mat-button matSuffix mat-icon-button tabindex="-1"
+            type="button"
+            (click)="onShowTaxonNameDropdown.emit($event)"
+            [hidden]="form.controls.taxonName.disabled">
+      <mat-icon>arrow_drop_down</mat-icon>
+    </button>
   </mat-form-field>
 
   <mat-autocomplete autoActiveFirstOption

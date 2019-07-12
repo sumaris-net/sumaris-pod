@@ -168,10 +168,21 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   async save(event): Promise<boolean> {
+    console.debug("[root-data-editor] Asking to save...");
     if (this.loading || this.saving || !this.dirty) return false;
+
 
     // Not valid
     if (!this.valid) {
+
+      // Pending
+      if (this.pending) {
+        console.debug("[root-data-editor] Form is pending. Waiting end...");
+        return new Promise<boolean>((resolve) => {
+          setTimeout(() => resolve(this.save(event)), 100);
+        });
+      }
+
       this.markAsTouched();
       this.logFormErrors();
       this.openFirstInvalidTab();
@@ -182,7 +193,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     this.saving = true;
     this.error = undefined;
 
-    if (this.debug) console.debug("[root-data-editor] Saving control...");
+    if (this.debug) console.debug("[root-data-editor] Saving data...");
 
     // Get data
     const data = await this.getValue();

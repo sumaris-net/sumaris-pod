@@ -40,7 +40,7 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: ValidatorService,
-  protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getRowValidator());
 

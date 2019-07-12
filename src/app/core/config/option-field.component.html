@@ -4,8 +4,8 @@
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
     <input matInput #matInput
            autocomplete="off" type="number"
-           [min]="pmfm.minValue"
-           [max]="pmfm.maxValue"
+           [min]="option.minValue"
+           [max]="option.maxValue"
            pattern="[0-9]*"
            step="1"
            [placeholder]="placeholder"
@@ -16,9 +16,9 @@
            (click)="selectInputContent($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.hasError('min')">
-      {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate:formControl.errors['min'] }}</mat-error>
+      {{'ERROR.FIELD_MIN' | translate:formControl.errors['min'] }}</mat-error>
     <mat-error *ngIf="formControl.hasError('max')">
-      {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:formControl.errors['max'] }}</mat-error>
+      {{'ERROR.FIELD_MAX' | translate:formControl.errors['max'] }}</mat-error>
     <mat-error *ngIf="formControl.hasError('pattern')">
       {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
     <mat-error *ngIf="formControl.hasError('integer')">
@@ -34,10 +34,9 @@
 
     <input matInput #matInput
            type="number"
-           autocomplete="off" [min]="pmfm.minValue" [max]="pmfm.maxValue"
+           autocomplete="off" [min]="option.minValue" [max]="option.maxValue"
            decimal="true"
            [placeholder]="placeholder"
-           [step]="numberInputStep"
            (keypress)="filterNumberInput($event, true)"
            [formControl]="formControl"
            [required]="required"
@@ -45,12 +44,9 @@
            (click)="selectInputContent($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <mat-error *ngIf="formControl.hasError('min')">
-      {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:formControl.errors['min'] }}</mat-error>
+      {{ 'ERROR.FIELD_MIN' | translate:formControl.errors['min'] }}</mat-error>
     <mat-error *ngIf="formControl.hasError('max')">
-      {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:formControl.errors['max'] }}</mat-error>
-    <mat-error *ngIf="formControl.hasError('maxDecimals')">
-      {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max:
-      pmfm.maximumNumberDecimals} }}</mat-error>
+      {{ 'ERROR.FIELD_MAX' | translate:formControl.errors['max'] }}</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -62,7 +58,6 @@
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
                      [required]="required"
-                     [compact]="compact"
                      [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
@@ -72,33 +67,66 @@
   <!-- date -->
   <mat-date-time *ngSwitchCase="'date'"
                  [formControl]="formControl"
-                 [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+                 [placeholder]="placeholder"
                  [floatLabel]="floatLabel"
                  [required]="required"
                  [readonly]="readonly"
-                 [displayTime]="pmfm.unit==='Date & Time'"
-                 [compact]="compact"
+                 [displayTime]="false"
                  [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
   </mat-date-time>
 
-  <!-- qualitative value -->
-  <mat-form-field-measurement-qv *ngSwitchCase="'qualitative_value'"
-                                 [pmfm]="pmfm"
-                                 [formControl]="formControl"
-                                 [floatLabel]="floatLabel"
-                                 [placeholder]="placeholder"
-                                 [required]="required"
-                                 [readonly]="readonly"
-                                 [compact]="compact"
-                                 [tabindex]="tabindex"
-                                 (keypress.enter)="onKeypressEnter.emit($event)">
+  <!-- date time -->
+  <mat-date-time *ngSwitchCase="'dateTime'"
+                 [formControl]="formControl"
+                 [placeholder]="placeholder"
+                 [floatLabel]="floatLabel"
+                 [required]="required"
+                 [readonly]="readonly"
+                 [displayTime]="true"
+                 [tabindex]="tabindex">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
-  </mat-form-field-measurement-qv>
+  </mat-date-time>
+
+  <!-- enum -->
+  <mat-form-field *ngSwitchCase="'enum'" [floatLabel]="floatLabel">
+    <mat-select [formControl]="formControl"
+                [placeholder]="placeholder"
+                [required]="required"
+                [tabindex]="tabindex"
+                (keypress.enter)="onKeypressEnter.emit($event)">
+      <mat-option *ngFor="let item of option.values" [value]="item.key">{{ item.label | translate }}</mat-option>
+    </mat-select>
+
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+
+    <div matSuffix>
+      <ng-content select="[matSuffix]"></ng-content>
+    </div>
+  </mat-form-field>
+
+  <mat-form-field *ngSwitchCase="'color'" [floatLabel]="floatLabel">
+
+    <ion-icon margin-right name="color-fill" matPrefix></ion-icon>
+
+    <input matInput autocomplete="off"
+           [formControl]="formControl"
+           [style.color]="'transparent'"
+           [style.background]="formControl.value"
+           [colorPicker]="formControl.value"
+           [cpPosition]="'top'"
+           [cpSaveClickOutside]="true"
+           (colorPickerChange)="formControl.setValue($event)"
+           [cpOutputFormat]="'hex'"
+           [cpOKButton]="true"
+           [cpOKButtonText]="'COMMON.BTN_VALIDATE'|translate"
+           [required]="required"/>
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  </mat-form-field>
 
   <!-- string -->
   <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
@@ -116,44 +144,10 @@
     </div>
   </mat-form-field>
 
-  <!-- latitude -->
-  <mat-latlong *ngSwitchCase="'latitude'"
-               [floatLabel]="floatLabel"
-               [formControl]="formControl"
-               type="latitude"
-               [placeholder]="placeholder"
-               [required]="required"
-               [tabindex]="tabindex"
-               [latLongPattern]="latLongFormat">
-    <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
-    </div>
-  </mat-latlong>
-
-  <!-- longitude -->
-  <mat-latlong *ngSwitchCase="'longitude'"
-               [floatLabel]="floatLabel"
-               [formControl]="formControl"
-               type="longitude"
-               [placeholder]="placeholder"
-               [required]="required"
-               [tabindex]="tabindex"
-               [latLongPattern]="latLongFormat">
-    <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
-    </div>
-  </mat-latlong>
-
   <!-- other -->
   <div *ngSwitchDefault>
-<!--    <input matInput #matInput autocomplete="off"-->
-<!--           type="text"-->
-<!--           [placeholder]="placeholder"-->
-<!--           [formControl]="formControl"-->
-<!--           [required]="required"-->
-<!--           [tabindex]="tabindex">-->
-    <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>
-    <mat-error *ngIf="!type">Error on field for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>
+    <mat-error *ngIf="type">Unknown type {{type}} for option {{option.key}}. Please report this error.</mat-error>
+    <mat-error *ngIf="!type">Error on option field. Please check console log for details.</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>

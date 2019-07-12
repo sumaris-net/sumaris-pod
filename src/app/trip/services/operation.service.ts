@@ -495,10 +495,16 @@ export class OperationService extends BaseDataService implements TableDataServic
   copyIdAndUpdateDateOnBatch(sources: (Batch | any)[], targets: Batch[]) {
     if (sources && targets) {
       targets.forEach(target => {
-        const source = sources.find(json => target.equals(json));
-        EntityUtils.copyIdAndUpdateDate(source, target);
+        const index = sources.findIndex(json => target.equals(json));
+        if (index !== -1) {
+          EntityUtils.copyIdAndUpdateDate(sources[index], target);
+          sources.splice(index, 1); // remove from sources list, as it has been found
+        }
+        else {
+          console.error("Batch NOT found ! ", target);
+        }
 
-        // Apply to children
+        // Loop on children
         if (target.children && target.children.length) {
           this.copyIdAndUpdateDateOnBatch(sources, target.children);
         }

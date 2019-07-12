@@ -1,6 +1,5 @@
 import {BehaviorSubject, Observable} from "rxjs-compat";
-import {LoadResult, TableDataService} from "../../core/core.module";
-import {IEntityWithMeasurement} from "../../trip/services/model/measurement.model";
+import {Entity, LoadResult, TableDataService} from "../../core/core.module";
 import {EntityUtils} from "../../core/services/model";
 import {mergeMap} from "rxjs/operators";
 
@@ -10,7 +9,7 @@ export interface InMemoryTableDataServiceOptions<T> {
   onSave?: (data: T[]) => T[] | Promise<T[]>;
 }
 
-export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = any> implements TableDataService<T, F> {
+export class InMemoryTableDataService<T extends Entity<T>, F = any> implements TableDataService<T, F> {
 
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
 
@@ -22,12 +21,16 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = a
 
   hasRankOrder = false;
   debug = false;
+  dirty = false;
 
   set value(data: T[]) {
     if (this.data !== data) {
       this.data = data;
-      this._dataSubject.next({data: data || [], total: data && data.length || 0});
+      if (this._dataSubject.observers.length) {
+        this._dataSubject.next({data: data || [], total: data && data.length || 0});
+      }
     }
+    this.dirty = false;
   }
 
   get value(): T[] {
@@ -61,13 +64,11 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = a
     } else {
       // /!\ Always create a copy of the original array
       // Because datasource will only update if the array changed
-      this.data = this.data.splice(0);
+      this.data = this.data.slice(0);
 
-      setTimeout(() => {
-        this._dataSubject.next({
-          data: this.data,
-          total: this.data.length
-        });
+      this._dataSubject.next({
+        data: this.data,
+        total: this.data.length
       });
     }
 
@@ -99,6 +100,7 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = a
     }
 
     this.data = data;
+    this.dirty = true;
     return this.data;
   }
 
@@ -110,6 +112,7 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = a
       const keep = data.findIndex(i => item.equals(i)) === -1;
       return keep ? res.concat(item) : res;
     }, []);
+    this.dirty = true;
   }
 
   sort(data: T[], sortBy?: string, sortDirection?: string): T[] {
@@ -122,15 +125,6 @@ export class InMemoryTableDataService<T extends IEntityWithMeasurement<T>, F = a
 
   connect(): Observable<LoadResult<T>> {
     return this._dataSubject.asObservable();
-    // return this._dataSubject.asObservable()
-    //   .pipe(
-    //     startWith(() => {
-    //       data: this.data,
-    //         total
-    //     :
-    //       thid.data.length
-    //     })
-    //   );
   }
 }
 

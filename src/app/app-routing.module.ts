@@ -3,7 +3,7 @@ import {ActivatedRouteSnapshot, ExtraOptions, RouteReuseStrategy, RouterModule, 
 import {HomePage} from './core/home/home';
 import {RegisterConfirmPage} from './core/register/confirm/confirm';
 import {AccountPage} from './core/account/account';
-import {AuthGuardService, environment} from './core/core.module';
+import {AuthGuardService} from './core/core.module';
 import {UsersPage} from './admin/users/list/users';
 import {VesselsPage} from './referential/vessel/list/vessels';
 import {VesselPage} from './referential/vessel/page/page-vessel';
@@ -11,7 +11,7 @@ import {ReferentialsPage} from './referential/list/referentials';
 import {TripPage, TripsPage} from './trip/trip.module';
 import {OperationPage} from './trip/operation/operation.page';
 import {ExtractionTablePage} from "./trip/extraction/extraction-table-page.component";
-import {ConfigPage} from './admin/config/config.component';
+import {RemoteConfigPage} from './admin/config/config.component';
 import {ObservedLocationPage} from "./trip/observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.page";
 import {SettingsPage} from "./core/settings/settings.page";
@@ -20,7 +20,7 @@ import {LandingPage} from "./trip/landing/landing.page";
 import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-control-landing.page";
 import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
 import {IonicRouteStrategy} from "@ionic/angular";
-import {ProgramPage} from "./referential/program/list/program.page";
+import {ProgramPage} from "./referential/program/program.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -68,7 +68,7 @@ const routes: Routes = [
   {
     path: 'admin/config',
     pathMatch: 'full',
-    component: ConfigPage,
+    component: RemoteConfigPage,
     canActivate: [AuthGuardService],
     data: {
       profile: 'ADMIN'

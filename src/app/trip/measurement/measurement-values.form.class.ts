@@ -242,6 +242,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
         formGroup.reset({}, {onlySelf: true, emitEvent: false});
       }
       this.loading = false;
+      this.loadingControls = false;
+      this.$loadingControls.next(false);
       return true;
     }
 
