@@ -2,17 +2,7 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable, Subject} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
-import {
-  Department,
-  EntityUtils,
-  isNil,
-  isNotNil,
-  IWithProgramEntity,
-  Person,
-  PmfmStrategy,
-  Program, StatusIds,
-  TaxonomicLevelIds
-} from "./model";
+import {EntityUtils, isNil, isNotNil, IWithProgramEntity, PmfmStrategy, Program, StatusIds} from "./model";
 import {
   AccountService,
   BaseDataService,
@@ -26,10 +16,9 @@ import {ReferentialFragments} from "../services/referential.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {isEmptyArray, isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
+import {isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefService} from "./referential-ref.service";
-import {Trip} from "../../trip/services/model/trip.model";
 
 export declare class ProgramFilter {
   searchText?: string;
@@ -270,7 +259,8 @@ const ProgramCacheKeys = {
   BY_LABEL: 'programByLabel',
   PMFMS: 'programPmfms',
   GEARS: 'programGears',
-  TAXON_NAME_BY_GROUP: 'programTaxonNameByGroup'
+  TAXON_NAME_BY_GROUP: 'programTaxonNameByGroup',
+  TAXON_NAMES: 'taxonNameByGroup'
 };
 
 const cacheBuster$ = new Subject<void>();
@@ -354,7 +344,7 @@ export class ProgramService extends BaseDataService
    */
   watchByLabel(label: string, toEntity: boolean): Observable<Program> {
 
-    if (this._debug) console.debug(`[program-service] Watch program {${label}}...`);
+    //if (this._debug) console.debug(`[program-service] Watch program {${label}}...`);
 
     const cacheKey = `${ProgramCacheKeys.BY_LABEL}|${label}`;
     return this.cache.loadFromObservable(cacheKey,
@@ -364,9 +354,9 @@ export class ProgramService extends BaseDataService
           label: label
         },
         error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
-      })
-        .pipe(filter(isNotNil)),
-      ProgramCacheKeys.GROUP)
+      }).pipe(filter(isNotNil)),
+      ProgramCacheKeys.GROUP
+    )
       .pipe(
         map(({program}) => {
           if (this._debug) console.debug(`[program-service] Program loaded {${label}}`, program);
@@ -527,41 +517,54 @@ export class ProgramService extends BaseDataService
     // Search on taxon group's taxon'
     if (isNotNil(options.program) && isNotNil(options.taxonGroupId)) {
 
-      const mapCacheKey = [ProgramCacheKeys.TAXON_NAME_BY_GROUP, JSON.stringify(options)].join('|');
-
-      const taxonNamesByTaxonGroupId = await this.cache.getOrSetItem(mapCacheKey,
-        async (): Promise<{ [key: number]: ReferentialRef[] }> => {
-          const taxonGroups = await this.loadTaxonGroups(options.program);
-          return (taxonGroups || []).reduce((res, taxonGroup) => {
-            if (isNotEmptyArray(taxonGroup.taxonNames)) {
-              res[taxonGroup.id] = taxonGroup.taxonNames;
-            }
-            return res;
-          }, {});
-        }, ProgramCacheKeys.GROUP);
-
+      // Get map from program
+      const taxonNamesByTaxonGroupId = this.getProgramTaxonNamesByTaxonGroupId(options.program);
       const values = taxonNamesByTaxonGroupId[options.taxonGroupId];
       if (isNotEmptyArray(values)) {
         return this.referentialRefService.suggestFromArray(values, value, {
           searchAttribute: options.searchAttribute || 'name'
         });
       }
-      const res = await this.referentialRefService.suggestTaxonNames(value, {
+    }
+
+    // If nothing found in program, or species defined
+    const res = await this.referentialRefService.suggestTaxonNames(value, {
         taxonomicLevelId: options.taxonomicLevelId,
         taxonomicLevelIds: options.taxonomicLevelIds,
         taxonGroupId: options.taxonGroupId,
         searchAttribute: options.searchAttribute || 'name'
       });
 
-      return res;
+    // If there result, use it
+    if (res && res.length) return res;
+
+    // Then, retry without the taxon groups (because link, in the DB may have been omitted)
+    if (isNotNil(options.taxonGroupId)) {
+      return await this.referentialRefService.suggestTaxonNames(value, {
+        taxonomicLevelId: options.taxonomicLevelId,
+        taxonomicLevelIds: options.taxonomicLevelIds,
+        searchAttribute: options.searchAttribute || 'name'
+      });
     }
 
-    return this.referentialRefService.suggestTaxonNames(value, {
-      taxonomicLevelId: options.taxonomicLevelId,
-      taxonomicLevelIds: options.taxonomicLevelIds,
-      taxonGroupId: options.taxonGroupId,
-      searchAttribute: options.searchAttribute || 'name'
-    });
+    // Nothing found
+    return [];
+  }
+
+  async getProgramTaxonNamesByTaxonGroupId(program: string): Promise<{ [key: number]: TaxonNameRef[] } | undefined> {
+    const mapCacheKey = [ProgramCacheKeys.TAXON_NAME_BY_GROUP, program].join('|');
+
+    return await this.cache.getOrSetItem(mapCacheKey,
+      async (): Promise<{ [key: number]: TaxonNameRef[] }> => {
+        const taxonGroups = await this.loadTaxonGroups(program);
+        return (taxonGroups || []).reduce((res, taxonGroup) => {
+          if (isNotEmptyArray(taxonGroup.taxonNames)) {
+            res[taxonGroup.id] = taxonGroup.taxonNames;
+            //empty = false;
+          }
+          return res;
+        }, {});
+      }, ProgramCacheKeys.GROUP);
   }
 
   async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Program> {

@@ -10,7 +10,6 @@ import {Entity} from "../services/model";
 import {Subscription} from "rxjs-compat";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
-import {AccountService} from '../services/account.service';
 import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
@@ -159,7 +158,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     protected platform: Platform | PlatformService,
     protected location: Location,
     protected modalCtrl: ModalController,
-    protected settingsService: AccountService | LocalSettingsService,
+    protected settings: LocalSettingsService,
     protected columns: string[],
     public dataSource?: AppTableDataSource<T, F>,
     private _filter?: F,
@@ -527,7 +526,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   protected getDisplayColumns(): string[] {
-    var userColumns = this.settingsService.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
+    let userColumns = this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
     // No user override: use defaults
     if (!userColumns) return this.columns;
 
@@ -550,7 +549,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       .concat(hiddenColumns)
       .filter(name => name !== "actions")
       .filter(name => !this.excludesColumns.includes(name))
-      .map((name, index) => {
+      .map(name => {
         return {
           name,
           label: this.getI18nColumnName(name),
@@ -574,7 +573,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
         this.markForCheck();
 
         // Update user settings
-        await this.settingsService.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
+        await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
       });
     return modal.present();
   }

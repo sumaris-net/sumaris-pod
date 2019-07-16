@@ -5,7 +5,7 @@ import {
   AppTable,
   AppFormUtils,
   RESERVED_START_COLUMNS,
-  RESERVED_END_COLUMNS
+  RESERVED_END_COLUMNS, LocalSettingsService
 } from "../../../core/core.module";
 import { VesselValidatorService } from "../../services/vessel.validator";
 import { VesselService, VesselFilter } from "../../services/vessel-service";
@@ -38,11 +38,12 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
+    protected settings: LocalSettingsService,
     protected vesselValidatorService: VesselValidatorService,
     protected vesselService: VesselService,
     private formBuilder: FormBuilder
   ) {
-    super(route, router, platform, location, modalCtrl, accountService,
+    super(route, router, platform, location, modalCtrl, settings,
       // columns
       RESERVED_START_COLUMNS
         .concat([

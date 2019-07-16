@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AppTable, AppTableDataSource, isNil, isNotNil} from "../../core/core.module";
+import {AppTable, AppTableDataSource, isNil, isNotNil, LocalSettingsService} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
 import {Referential, ReferentialRef, StatusIds} from "../services/model";
@@ -67,12 +67,13 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
+    protected settings: LocalSettingsService,
     protected validatorService: ReferentialValidatorService,
     protected referentialService: ReferentialService,
     protected formBuilder: FormBuilder,
     protected translate: TranslateService
   ) {
-    super(route, router, platform, location, modalCtrl, accountService,
+    super(route, router, platform, location, modalCtrl, settings,
       // columns
       RESERVED_START_COLUMNS
         .concat([

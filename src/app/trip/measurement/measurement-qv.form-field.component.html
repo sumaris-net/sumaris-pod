@@ -34,19 +34,22 @@
                       autoActiveFirstOption
                       [displayWith]="displayWith">
       <ion-row class="mat-autocomplete-header" no-padding>
-        <ion-col size="3">
-          <ion-label translate>REFERENTIAL.LABEL</ion-label>
-        </ion-col>
-        <ion-col>
-          <ion-label translate>REFERENTIAL.NAME</ion-label>
-        </ion-col>
+        <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
+          <ion-col size="3" *ngSwitchCase="'label'">
+            <ion-label translate>REFERENTIAL.LABEL</ion-label>
+          </ion-col>
+          <ion-col *ngSwitchCase="'name'">
+            <ion-label translate>REFERENTIAL.NAME</ion-label>
+          </ion-col>
+        </ng-container>
       </ion-row>
 
       <mat-option *ngFor="let item of items | async" [value]="item" no-padding>
         <ion-row>
-          <ion-col size="3" [innerHTML]="item.label | highlight: {search: formControl.value }"></ion-col>
-          <ion-col *ngIf="!compact" [innerHTML]="item.name | highlight: {search: formControl.value }"></ion-col>
-          <ion-col *ngIf="compact">{{item.name}}</ion-col>
+          <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
+            <ion-col size="3" *ngSwitchCase="'label'" [innerHTML]="item.label | highlight: {search: formControl.value }"></ion-col>
+            <ion-col *ngSwitchCase="'name'" [innerHTML]="item.name | highlight: {search: formControl.value }"></ion-col>
+          </ng-container>
         </ion-row>
       </mat-option>
     </mat-autocomplete>
@@ -64,12 +67,14 @@
 
       <!-- header -->
       <ion-row class="mat-select-header" no-padding>
-        <ion-col size="3">
-          <ion-label translate>REFERENTIAL.LABEL</ion-label>
-        </ion-col>
-        <ion-col>
-          <ion-label translate>REFERENTIAL.NAME</ion-label>
-        </ion-col>
+        <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
+          <ion-col size="3" *ngSwitchCase="'label'">
+            <ion-label translate>REFERENTIAL.LABEL</ion-label>
+          </ion-col>
+          <ion-col *ngSwitchCase="'name'">
+            <ion-label translate>REFERENTIAL.NAME</ion-label>
+          </ion-col>
+        </ng-container>
       </ion-row>
 
       <!-- None option -->
@@ -86,11 +91,15 @@
       <!-- options -->
       <mat-option *ngFor="let item of pmfm.qualitativeValues" [value]="item" no-padding>
         <ion-row no-padding>
-          <ion-col *ngIf="compact" size="3">{{item.label}}</ion-col>
-          <ion-col *ngIf="!compact" size="3" size-lg="2">{{item.label}}</ion-col>
-          <ion-col>
-            <ion-label>{{item.name}}</ion-label>
-          </ion-col>
+          <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
+            <ng-container *ngSwitchCase="'label'">
+              <ion-col *ngIf="compact" size="3">{{item.label}}</ion-col>
+              <ion-col *ngIf="!compact" size="3" size-lg="2">{{item.label}}</ion-col>
+            </ng-container>
+            <ion-col *ngSwitchCase="'name'">
+              <ion-label>{{item.name}}</ion-label>
+            </ion-col>
+          </ng-container>
         </ion-row>
       </mat-option>
     </mat-select>
@@ -112,8 +121,9 @@
                       [tabIndex]="tabindex && (tabindex + i)"
                       expand="block"
                       [color]="!formControl.value ? 'medium' : (formControl.value?.id === item.id ? 'accent' : 'light')">
-            <ion-text *ngIf="compact">{{item.label}}</ion-text>
-            <ion-text *ngIf="!compact">{{item.name}}</ion-text>
+            <ion-label>
+              <ion-text *ngFor="let attr of searchAttributes" [ngSwitch]="attr">{{item[attr]}}</ion-text>
+            </ion-label>
           </ion-button>
         </ion-col>
       </ion-row>

@@ -238,6 +238,12 @@ export const ProgramProperties = {
     defaultValue: "true",
     type: 'boolean' as ConfigOptionType
   },
+  TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: {
+    key: "false",
+    label: "PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE",
+    defaultValue: "false",
+    type: 'boolean'
+  },
   TRIP_BATCH_TAXON_NAME_ENABLE: {
     key: "sumaris.trip.operation.batch.taxonName.enable",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_NAME_ENABLE",
@@ -247,6 +253,12 @@ export const ProgramProperties = {
   TRIP_BATCH_TAXON_GROUP_ENABLE: {
     key: "sumaris.trip.operation.batch.taxonGroup.enable",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUP_ENABLE",
+    defaultValue: "true",
+    type: 'boolean' as ConfigOptionType
+  },
+  TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE: {
+    key: "sumaris.trip.operation.batch.individualCount.enable",
+    label: "PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE",
     defaultValue: "true",
     type: 'boolean' as ConfigOptionType
   },
@@ -432,6 +444,8 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   taxonGroupIds: number[];
   referenceTaxonIds: number[];
   qualitativeValues: ReferentialRef[];
+
+  hidden?: boolean;
 
   constructor() {
     super();

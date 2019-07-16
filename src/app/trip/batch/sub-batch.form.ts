@@ -27,19 +27,24 @@ import {
   referentialToString,
   UsageMode
 } from "../../core/services/model";
-import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
-import {getPmfmName, isNil, isNotNil, PmfmStrategy, TaxonomicLevelIds} from "../../referential/services/model";
+import {debounceTime, filter, map, mergeMap, startWith, tap} from "rxjs/operators";
+import {
+  getPmfmName,
+  isNil,
+  isNotNil,
+  MethodIds,
+  PmfmLabelPatterns,
+  PmfmStrategy
+} from "../../referential/services/model";
 import {merge, Observable} from "rxjs";
 import {isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {BatchesContext} from "./batches-context.class";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
 import {MeasurementQVFormField} from "../measurement/measurement-qv.form-field.component";
-import {Events} from "@ionic/angular";
 
 @Component({
   selector: 'app-sub-batch-form',
@@ -52,6 +57,9 @@ import {Events} from "@ionic/angular";
 export class SubBatchForm extends MeasurementValuesForm<Batch>
   implements OnInit, OnDestroy {
 
+  protected _initialPmfms: PmfmStrategy[];
+  protected _qvPmfm: PmfmStrategy;
+
   $taxonNames: Observable<ReferentialRef[]>;
   $filteredParents: Observable<Batch[]>;
 
@@ -62,8 +70,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
 
-  @Input() context: BatchesContext;
-
   @Input() tabindex: number;
 
   @Input() usageMode: UsageMode;
@@ -72,11 +78,25 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @Input() showTaxonName = true;
 
+  @Input() showIndividualCount = true;
+
   @Input() displayParentPmfm: PmfmStrategy;
 
   @Input() onNewParentClick: () => Promise<Batch | undefined>;
 
   @Input() showError = true;
+
+  @Input() set qvPmfm(value: PmfmStrategy) {
+    this._qvPmfm = value;
+    // If already loaded, re apply pmfms, to be able to execute mapPmfms
+    if (value && !this.loadingPmfms) {
+      this.setPmfms(this.$pmfms);
+    }
+  };
+
+  get qvPmfm(): PmfmStrategy {
+    return this._qvPmfm;
+  };
 
   @Input() set availableParents(parents: Batch[]) {
     if (this._availableParents === parents) return; // skip
@@ -109,7 +129,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     protected settings: LocalSettingsService,
     protected platform: PlatformService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getRowValidator());
+    super(dateAdapter, measurementValidatorService, formBuilder, programService, cd,
+      validatorService.getRowValidator(), {
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
+      });
 
     this.mobile = platform.mobile;
 
@@ -118,7 +141,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Control for indiv. count enable
     this.enableIndividualCountControl = this.formBuilder.control(this.mobile, Validators.required);
-    this.enableIndividualCountControl.setValue(false, {emitEvet: false});
+    this.enableIndividualCountControl.setValue(false, {emitEvent: false});
 
     // For DEV only
     this.debug = !environment.production;
@@ -248,6 +271,20 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   /* -- protected methods -- */
 
+  protected mapPmfms(pmfms: PmfmStrategy[]) {
+
+    if (this.qvPmfm) {
+      // Remove QV pmfms
+      const index = pmfms.findIndex(pmfm => pmfm.pmfmId === this.qvPmfm.pmfmId);
+      if (index !== -1) {
+        const qvPmfm = this.qvPmfm.clone();
+        qvPmfm.hidden = true;
+        pmfms[index] = qvPmfm;
+      }
+    }
+
+    return pmfms;
+  }
 
   setValue(data: Batch) {
     // Replace parent with value of availableParents
@@ -266,15 +303,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     if (pmfmForm) {
       json.measurementValues = Object.assign({},
         this.data.measurementValues || {}, // Keep additionnal PMFM values
-        MeasurementValuesUtils.toEntityValues(pmfmForm.value, this.$pmfms.getValue() || []));
+        MeasurementValuesUtils.toEntityValues(pmfmForm.value, this._initialPmfms || []));
     } else {
       json.measurementValues = {};
-    }
-
-    // Replace by the right parent
-    const parent = this.form.get('parent').value;
-    if (parent) {
-      console.log("TODO Update parent to the right QV children");
     }
 
     this.data.fromObject(json);
@@ -322,12 +353,11 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   /* -- protected method -- */
 
-  protected updateTabIndex() {
+  protected async updateTabIndex() {
     if (this.tabindex && this.tabindex !== -1) {
       setTimeout(async () => {
         // Make sure form is ready
         await this.onReady();
-
 
         let tabindex = this.tabindex+1;
         this.matInputs.forEach(input => {

@@ -230,7 +230,7 @@ export class BatchUtils {
   static prepareSubBatchesForTable(rootBatches: Batch[], subAcquisitionLevel: string, qvPmfm?: PmfmStrategy): Batch[] {
     if (qvPmfm) {
       return rootBatches.reduce((res, rootBatch) => {
-        return res.concat(rootBatch.children.reduce((res, qvBatch) => {
+        return res.concat((rootBatch.children || []).reduce((res, qvBatch) => {
           const children = BatchUtils.getChildrenByLevel(qvBatch, subAcquisitionLevel);
           return res.concat(children
             .map(child => {

@@ -32,14 +32,14 @@
                         [debug]="debug"
                         [acquisitionLevel]="acquisitionLevel"
                         [pmfms]="pmfms|async"
+                        [qvPmfm]="qvPmfm"
                         [showParent]="showParentColumn"
                         [showTaxonName]="showTaxonNameColumn"
                         [displayParentPmfm]="displayParentPmfm"
                         [onNewParentClick]="onNewParentClick"
                         (onSubmit)="addBatch($event)"
-                        tabindex="1"
-                        [context]="context"
-    ></app-sub-batch-form>
+                        [tabindex]="1">
+    </app-sub-batch-form>
 
   </div>
 
@@ -93,6 +93,16 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
         {{measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm) }}
+      </mat-cell>
+    </ng-container>
+
+    <!-- individualCount column -->
+    <ng-container matColumnDef="individualCount">
+      <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+        <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm">
+        {{row.currentData?.individualCount}}
       </mat-cell>
     </ng-container>
 

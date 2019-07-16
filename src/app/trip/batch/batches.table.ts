@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component, EventEmitter,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from "@angular/core";
 import {Observable, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
@@ -8,12 +17,12 @@ import {PmfmLabelPatterns, ReferentialRefService} from "../../referential/refere
 import {isNotNil} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {UsageMode} from "../../core/services/model";
+import {FieldOptions, UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {BatchModal} from "./batch.modal";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {BatchUtils} from "../services/model/batch.model";
-import {BatchesContext} from "./batches-context.class";
+import {isNotEmptyArray} from "../../shared/functions";
 
 
 export interface BatchFilter {
@@ -43,12 +52,14 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   protected _initialPmfms: PmfmStrategy[];
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
+  protected fieldsOptions: {
+    taxonGroup?: FieldOptions,
+    taxonName?: FieldOptions
+  } = {};
 
   qvPmfm: PmfmStrategy;
   defaultWeightPmfm: PmfmStrategy;
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
-
-  @Input() context: BatchesContext;
 
   @Input()
   set value(data: Batch[]) {
@@ -60,7 +71,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   }
 
   get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settingsService.isUsageMode('FIELD');
+    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
   @Input() usageMode: UsageMode;
@@ -89,6 +100,9 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
+
+  @Output()
+  onNewSubBatches = new EventEmitter<Batch[]>();
 
   constructor(
     injector: Injector,
@@ -124,11 +138,11 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
     this.setShowColumn('comments', this.showCommentsColumn);
 
-    if (!this.context) {
-      console.warn("[sub-batches-table] No input context! Creating new...");
-      this.context = new BatchesContext();
-    }
+    await this.settings.ready();
 
+    // Read fields options, from settings
+    this.fieldsOptions.taxonGroup = this.settings.getFieldOptions('taxonGroup');
+    this.fieldsOptions.taxonName = this.settings.getFieldOptions('taxonName');
   }
 
   setParent(data: Operation | Landing) {
@@ -215,7 +229,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     });
 
     // Open the modal
-    modal.present();
+    await modal.present();
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
@@ -223,13 +237,21 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return (data instanceof Batch) ? data : undefined;
   }
 
-  async openSubBatchesModal(event: UIEvent, row: TableElement<Batch>) {
+  async onSubBatchesClick(event: UIEvent, row: TableElement<Batch>) {
     if (event) event.preventDefault();
 
     let parentBatch = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
 
     // Use sampling batch (if exists)
     parentBatch = BatchUtils.getSamplingChild(parentBatch) || parentBatch;
+
+    const defaultBatch = new Batch();
+    defaultBatch.parent = parentBatch;
+
+    await this.openSubBatchesModal(defaultBatch);
+  }
+
+  async openSubBatchesModal(defaultValue?: Batch): Promise<Batch[]> {
 
     // Define a function to add new parent
     const onNewParentClick = this.mobile ? async () => {
@@ -246,38 +268,36 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
         map((res) => res.map((row) => row.currentData as Batch))
       ) : Observable.of((await this.dataSource.getRows()).map((row) => row.currentData as Batch));
 
-    // Define parent batch as default
-    this.context.setDefault(parentBatch);
-
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
       componentProps: {
         program: this.program,
-        acquisitionLevel: this.acquisitionLevel,
+        acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
         usageMode: this.usageMode,
-        parent: parentBatch,
-        value: this.getSubBatches(parentBatch),
-        showTaxonNameColumn: this.showTaxonNameColumn,
+        defaultValue: defaultValue,
+        qvPmfm: this.qvPmfm,
+        // Scientific species is required, if not set in root batches
+        showTaxonNameColumn: !this.showTaxonNameColumn,
         availableParents: availableParents,
-        onNewParentClick: onNewParentClick,
-        context: this.context
+        onNewParentClick: onNewParentClick
       }, keyboardClose: true
     });
 
     // Open the modal
-    modal.present();
+    await modal.present();
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     onModalDismiss.next(); // disconnect to service
-    if (data && this.debug) console.debug("[batches-table] Sub-batches modal result: ", data);
-    return (data instanceof Array) ? data : undefined;
-  }
 
-  async getIndividualMeasureParent(): Promise<Batch[]> {
-    if (this._dirty) await this.save();
-    const batches = this.memoryDataService.value;
-    return batches;
+    if (isNotEmptyArray(data)) {
+
+      if (data && this.debug) console.debug("[batches-table] Sub-batches modal result: ", data);
+
+      this.onNewSubBatches.emit(data);
+    }
+
+    return data;
   }
 
   /* -- protected methods -- */

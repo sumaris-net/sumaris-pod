@@ -83,8 +83,7 @@
                          [usageMode]="usageMode"
                          [showTaxonGroupColumn]="true"
                          [showTaxonNameColumn]="true"
-                         [showCommentsColumn]="false"
-                         [context]="batchesContext">
+                         [showCommentsColumn]="false">
       </app-batches-table>
 
       <!-- tab group for batches -->
@@ -111,7 +110,8 @@
                               [showTaxonGroupColumn]="true"
                               [showTaxonNameColumn]="true"
                               [showCommentsColumn]="false"
-                              [context]="batchesContext">
+                              (onNewSubBatches)="subBatchesTable.add($event)"
+          >
           </table-batch-groups>
         </mat-tab>
 
@@ -130,8 +130,6 @@
                                  [program]="programSubject | async"
                                  [usageMode]="usageMode"
                                  [debug]="debug"
-                                 [showTaxonNameColumn]="false"
-                                 [context]="batchesContext"
                                  [tabindex]="200">
           </app-sub-batches-table>
         </mat-tab>

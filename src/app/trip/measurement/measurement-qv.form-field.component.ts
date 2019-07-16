@@ -22,8 +22,8 @@ import {FloatLabelType, MatSelect} from "@angular/material";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {toBoolean} from "../../shared/functions";
-import {AppFormUtils} from "../../core/core.module";
+import {isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {AppFormUtils, LocalSettingsService} from "../../core/core.module";
 import {sort} from "../../core/services/model";
 
 @Component({
@@ -77,9 +77,9 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   @Input() style: 'autocomplete' | 'select' | 'button';
 
-  @Input() searchAttributes: ('label' | 'name')[];
+  @Input() searchAttributes: string[];
 
-  @Input() sortAttribute: 'label' | 'name';
+  @Input() sortAttribute: string;
 
   @Output('keypress.enter')
   onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
@@ -92,6 +92,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   constructor(
     private platform: PlatformService,
+    private settings: LocalSettingsService,
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
@@ -112,14 +113,20 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
-    this.searchAttributes = isNotNil(this.searchAttributes) && this.searchAttributes.length ?
-      this.searchAttributes :
-      (this.compact ? ['label'] : ['label', 'name']);
-    this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : this.searchAttributes[0];
-    this._sortedQualitativeValues = sort(this.pmfm.qualitativeValues, this.sortAttribute);
+    const options = this.settings.getFieldOptions('qualitativeValue', {attributesArray: this.compact ? ['label'] : ['label', 'name']});
+    this.searchAttributes = isNotEmptyArray(this.searchAttributes) && this.searchAttributes || options.searchAttribute && [options.searchAttribute] || options.attributesArray;
+    this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : options.searchAttribute;
+
+    // Sort values
+    this._sortedQualitativeValues = this.pmfm.qualitativeValues.length < 5 ?
+      // Keep rankOrder, if less than 5 item (e.g. Landing/Discard - see issue #112)
+      sort(this.pmfm.qualitativeValues, 'rankOrder') :
+      sort(this.pmfm.qualitativeValues, this.sortAttribute);
 
     this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
-    this.displayWith = this.displayWith || (this.compact ? this.referentialToLabel : referentialToString);
+    this.displayWith = this.displayWith || (this.compact ?
+      (obj) => obj && obj[this.searchAttributes[0]] :
+      (obj) => referentialToString(obj, this.searchAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
     if (!this.mobile) {
@@ -214,11 +221,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   clear() {
     this.formControl.setValue(null);
     this.markForCheck();
-  }
-
-
-  referentialToLabel(obj: Referential | ReferentialRef | any): string {
-    return obj && obj.label || '';
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

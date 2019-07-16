@@ -95,7 +95,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
     this.writing = true;
     if (value !== this._value) {
       this._value = value;
-      this.showRadio = isNotNil(this._value);
+      this.showRadio = this._value !== undefined;
       setTimeout(() => this.updateTabIndex());
     }
     this.writing = false;

@@ -99,45 +99,64 @@
     <ion-spinner float-center *ngIf="loading"></ion-spinner>
 
     <!-- Measurements -->
+
     <ion-row no-padding
              *ngFor="let pmfm of $pmfms | async; index as i;">
-      <ion-col no-padding>
-        <mat-form-field-measurement [pmfm]="pmfm"
-                                    [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
-                                    [placeholder]="(pmfm.isWeight && 'TRIP.BATCH.EDIT.TOTAL_WEIGHT')|translate"
-                                    [compact]="compact"
-                                    [tabindex]="tabindex+10 + i*2"
-                                    [required]="true"
-                                    [floatLabel]="floatLabel">
-        </mat-form-field-measurement>
 
+      <!-- qualitative value (force 'button' style, on mobile)-->
+      <ion-col no-padding *ngIf="pmfm.isQualitative; else otherField">
+        <mat-form-field-measurement-qv #matInput
+                                       [pmfm]="pmfm"
+                                       [style]="mobile? 'button' : 'autocomplete'"
+                                       [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                       [floatLabel]="floatLabel"
+                                       [tabindex]="tabindex+10 + i*2"
+                                       [compact]="compact"
+                                       [required]="true">
+        </mat-form-field-measurement-qv>
       </ion-col>
 
-      <!-- is estimated weight ?-->
-      <ion-col no-padding padding-left
-               size="3"
-               *ngIf="pmfm.isWeight">
+      <!-- NOT qualitative value -->
+      <ng-template #otherField>
+        <ion-col no-padding>
+          <mat-form-field-measurement #matInput
+                                      [pmfm]="pmfm"
+                                      [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                      [placeholder]="(pmfm.isWeight && 'TRIP.BATCH.EDIT.TOTAL_WEIGHT')|translate"
+                                      [compact]="compact"
+                                      [tabindex]="tabindex+10 + i*2"
+                                      [required]="true"
+                                      [floatLabel]="floatLabel">
+          </mat-form-field-measurement>
 
-        <mat-form-field floatLabel="never">
-          <!-- fake input -->
-          <input matInput
-                 [formControl]="estimatedWeightControl"
-                 [required]="true"
-                 hidden
-                 tabindex="-1">
+        </ion-col>
 
-          <!-- add a empty label, to force height-->
-          <ion-label>&nbsp;</ion-label>
+        <!-- is estimated weight ?-->
+        <ion-col no-padding padding-left
+                 size="3"
+                 *ngIf="pmfm.isWeight">
 
-          <!-- checkbox, when compact -->
-          <mat-checkbox matPrefix [formControl]="estimatedWeightControl"
-                        labelPosition="after"
-                        [tabindex]="tabindex+10 + i*2 + 1">
-            <ion-text>{{'TRIP.BATCH.EDIT.ESTIMATED_WEIGHT'|translate}}</ion-text>
-          </mat-checkbox>
-        </mat-form-field>
+          <mat-form-field floatLabel="never">
+            <!-- fake input -->
+            <input matInput
+                   [formControl]="estimatedWeightControl"
+                   [required]="true"
+                   hidden
+                   tabindex="-1">
 
-      </ion-col>
+            <!-- add a empty label, to force height-->
+            <ion-label>&nbsp;</ion-label>
+
+            <!-- checkbox, when compact -->
+            <mat-checkbox matPrefix [formControl]="estimatedWeightControl"
+                          labelPosition="after"
+                          [tabindex]="tabindex+10 + i*2 + 1">
+              <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
+            </mat-checkbox>
+          </mat-form-field>
+
+        </ion-col>
+      </ng-template>
     </ion-row>
 
     <!-- Total NB individual  -->

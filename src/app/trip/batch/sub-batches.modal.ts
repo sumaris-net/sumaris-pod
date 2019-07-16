@@ -36,12 +36,12 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
 })
 export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
+  private _defaultValue: Batch;
   private _parent: Batch;
 
   @Input()
   set parent(parent: Batch) {
     this._parent = parent;
-    this.value = parent.children || [];
   }
 
   @Input() onNewParentClick: () => Promise<Batch | undefined>;
@@ -60,6 +60,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return this.form.invalid;
   }
 
+  set defaultValue(value: Batch) {
+    this._defaultValue = value;
+  }
+
   constructor(
     protected injector: Injector,
     protected viewCtrl: ModalController,
@@ -73,14 +77,26 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     // TODO: for DEV only
     this.debug = !environment.production;
+
+    this.showIndividualCount = false;
   }
 
-  ngOnInit(): void {
-    super.ngOnInit();
+  async ngOnInit() {
+    await super.ngOnInit();
+
+    await this.form.onReady();
 
     // Init the form
-    this.resetForm();
+    this.setValueFromParent(this.availableParents as Batch[], this.qvPmfm);
 
+    if (this._defaultValue) {
+      const initBatch = (this._defaultValue instanceof Batch) ? this._defaultValue.clone() : Batch.fromObject(this._defaultValue);
+      initBatch.parent = this._defaultValue.parent;
+      await this.resetForm(initBatch);
+    }
+    else {
+      await this.resetForm();
+    }
   }
 
   async close(event?: UIEvent) {

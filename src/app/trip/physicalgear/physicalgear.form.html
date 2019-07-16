@@ -19,8 +19,8 @@
                  (keyup.arrowdown)="onShowGearDropdown.next('*')"
                  [tabindex]="tabindex"
                  required>
-          <mat-error *ngIf="form.controls['gear'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls['gear'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+          <mat-error *ngIf="form.controls.gear.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.gear.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
 
           <button mat-button matSuffix mat-icon-button tabindex="-1"
                   type="button"
@@ -48,6 +48,30 @@
             </ion-row>
           </mat-option>
         </mat-autocomplete>
+      </ion-col>
+    </ion-row>
+
+    <!-- rankOrder -->
+    <ion-row no-padding>
+      <ion-col size="12" no-padding>
+        <mat-form-field>
+          <input matInput
+                 formControlName="rankOrder"
+                 autocomplete="off"
+                 type="number"
+                 step="1"
+                 pattern="[0-9]*"
+                 min="1"
+                 (click)="selectInputContent($event)"
+                 [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER'|translate"
+                 [tabindex]="tabindex + 1">
+
+          <mat-error *ngIf="form.controls.rankOrder.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.rankOrder.hasError('min')">
+            {{'ERROR.FIELD_MIN' | translate:form.controls.rankOrder.errors['min'] }}</mat-error>
+          <mat-error *ngIf="form.controls.rankOrder.hasError('integer')">
+            {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+        </mat-form-field>
       </ion-col>
     </ion-row>
 

@@ -12,7 +12,7 @@ import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
-  onUpdateControls: (formGroup: FormGroup) => void | Promise<void>;
+  onUpdateControls?: (formGroup: FormGroup) => void | Promise<void>;
 }
 
 export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> implements OnInit {
@@ -87,18 +87,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input() set pmfms(pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]) {
     this.loading = true;
-    if (pmfms instanceof Observable) {
-      pmfms.pipe(filter(isNotNil), first())
-        .subscribe(pmfms => {
-          if (pmfms !== this.$pmfms.getValue()) {
-            this.loadingPmfms = false;
-            this.$pmfms.next(pmfms);
-          }
-        });
-    } else if (pmfms instanceof Array && pmfms !== this.$pmfms.getValue()) {
-      this.loadingPmfms = false;
-      this.$pmfms.next(pmfms);
-    }
+    this.setPmfms(pmfms);
   }
 
   protected constructor(protected dateAdapter: DateAdapter<Moment>,
@@ -189,15 +178,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       console.debug(`${this.logPrefix} No pmfm found (program=${this._program}, acquisitionLevel=${this._acquisitionLevel}, gear='${this._gear}'. Please fill program's strategies !`);
     }
 
-    // Call pmfm map function
-    if (this.options && this.options.mapPmfms) {
-      if (this.debug) console.debug(`${this.logPrefix} Remapping pmfms...`);
-      const res = this.options.mapPmfms(pmfms);
-      pmfms = (res instanceof Promise) ? await res : res;
-    }
-
-    this.loadingPmfms = false;
-    this.$pmfms.next(pmfms);
+    pmfms = await this.setPmfms(pmfms);
 
     if (this.enabled) this.loading = false;
 
@@ -368,6 +349,31 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.data.fromObject(json);
 
     return this.data;
+  }
+
+  async setPmfms(pmfms: PmfmStrategy[] | Observable<PmfmStrategy[]>): Promise<PmfmStrategy[]> {
+    if (!pmfms) return undefined; // skip
+
+    // Wait loaded
+    if (pmfms instanceof Observable) {
+      console.log("Form: waiting pmfms before emit $pmfms")
+      pmfms = await pmfms.pipe(filter(isNotNil), first()).toPromise();
+    }
+
+    // Map
+    if (this.options && this.options.mapPmfms) {
+      const res = this.options.mapPmfms(pmfms);
+      pmfms = (res instanceof Promise) ? await res : res;
+    }
+
+    if (pmfms instanceof Array && pmfms !== this.$pmfms.getValue()) {
+
+      // Apply
+      this.loadingPmfms = false;
+      this.$pmfms.next(pmfms);
+    }
+
+    return pmfms;
   }
 
   protected get logPrefix(): string {

@@ -16,7 +16,13 @@ import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {AcquisitionLevelCodes, ReferentialRef, referentialToString, UsageMode} from "../../core/services/model";
+import {
+  AcquisitionLevelCodes,
+  FieldOptions,
+  ReferentialRef,
+  referentialToString,
+  UsageMode
+} from "../../core/services/model";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
 import {
   isNil,
@@ -44,6 +50,11 @@ import {isNotNilOrBlank} from "../../shared/functions";
 })
 export class BatchForm extends MeasurementValuesForm<Batch>
   implements OnInit, OnDestroy {
+
+  protected fieldsOptions: {
+    taxonGroup?: FieldOptions,
+    taxonName?: FieldOptions
+  } = {};
 
   defaultWeightPmfm: PmfmStrategy;
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
@@ -104,10 +115,16 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     this.debug = !environment.production;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     super.ngOnInit();
 
     console.debug("[batch-form] Init form");
+
+    await this.settings.ready();
+
+    // Read fields options, from settings
+    this.fieldsOptions.taxonGroup = this.settings.getFieldOptions('taxonGroup');
+    this.fieldsOptions.taxonName = this.settings.getFieldOptions('taxonName');
 
     // Taxon groups combo
     this.$taxonGroups = merge(
@@ -124,7 +141,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         switchMap((value) => this.referentialRefService.suggest(value, {
           entityName: 'TaxonGroup',
           levelId: TaxonGroupIds.FAO,
-          searchAttribute: 'label'
+          searchAttribute: this.fieldsOptions.taxonGroup.searchAttribute
         })),
         // Remember implicit value
         tap(res => this.updateImplicitValue('taxonGroup', res))
@@ -143,11 +160,14 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       )
       .pipe(
         throttleTime(100),
-        switchMap((value) => this.referentialRefService.suggest(value, {
-          entityName: 'TaxonName',
-          levelId: TaxonomicLevelIds.SPECIES,
-          searchAttribute: 'label'
-        })),
+        switchMap((value) => {
+          const taxonGroup = this.form.get('taxonGroup').value;
+          return this.programService.suggestTaxonNames(value, {
+            program: this.program,
+            searchAttribute: this.fieldsOptions.taxonName.searchAttribute,
+            taxonGroupId: taxonGroup && taxonGroup.id || undefined
+          })
+        }),
         // Remember implicit value
         tap(res => this.updateImplicitValue('taxonName', res))
       );

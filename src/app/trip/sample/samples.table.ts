@@ -50,7 +50,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settingsService.isUsageMode('FIELD');
+    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
   @Input() usageMode: UsageMode;

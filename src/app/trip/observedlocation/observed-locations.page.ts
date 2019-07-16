@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
+import {AppTable, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {
   LocationLevelIds,
   ObservedLocation,
@@ -49,6 +49,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
+    protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: ObservedLocationService,
     protected referentialRefService: ReferentialRefService,
@@ -57,7 +58,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
     protected cd: ChangeDetectorRef
   ) {
 
-    super(route, router, platform, location, modalCtrl, accountService,
+    super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat([
           'quality',

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {ModalController, NavParams} from '@ionic/angular';
 import {BehaviorSubject} from "rxjs";
 
-declare interface ColumnItem {
+export declare interface ColumnItem {
   name?: string;
   label: string;
   visible: boolean;

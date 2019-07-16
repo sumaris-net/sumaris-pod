@@ -20,13 +20,13 @@ export class SubBatchValidatorService implements ValidatorService {
       updateDate: [''],
       rankOrder: ['1', Validators.required],
       label: [data && data.label || ''],
-      individualCount: ['', Validators.compose([Validators.min(1), SharedValidators.integer])],
+      individualCount: ['1', Validators.compose([Validators.min(1), SharedValidators.integer])],
       samplingRatio: [null, SharedValidators.empty], // Make no sense to have sampling ratio
       samplingRatioText: [null, SharedValidators.empty], // Make no sense to have sampling ratio
       taxonGroup: [null, SharedValidators.entity],
       taxonName: [null, SharedValidators.entity],
       comments: [''],
-      parent: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      parent: ['', Validators.compose([Validators.required, SharedValidators.object])],
       measurementValues: this.formBuilder.group({})
     });
   }

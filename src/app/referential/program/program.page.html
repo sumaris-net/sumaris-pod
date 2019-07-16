@@ -24,74 +24,88 @@
           <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
         </ion-item>
 
-        <!-- base form-->
-        <app-referential-form #referentialForm
-                              [form]="form"
-                              [showError]="false"
-                              [debug]="debug"
-                              (onSubmit)="save($event)">
-        </app-referential-form>
+        <ion-grid no-padding>
 
-        <!-- properties divider-->
-        <h3>
-          <ion-text translate>PROGRAM.PROPERTIES_DIVIDER</ion-text>
-        </h3>
+          <ion-row no-padding>
+            <ion-col no-padding padding-top>
+              <!-- base form-->
+              <app-referential-form #referentialForm
+                                    [form]="form"
+                                    [showError]="false"
+                                    [debug]="debug"
+                                    (onSubmit)="save($event)">
 
-        <!-- Properties -->
-        <form [formGroup]="form" class="form-container">
-          <ion-grid formArrayName="properties" no-padding>
-            <ng-container *ngFor="let propertyForm of propertiesForm?.controls; let i=index">
-              <ion-row no-padding [formGroupName]="i">
+                <!-- properties divider-->
+                <h3>
+                  <ion-text translate>PROGRAM.PROPERTIES_DIVIDER</ion-text>
+                </h3>
 
-                <!-- property key -->
-                <ion-col no-padding>
-                  <mat-form-field floatLabel="never">
-                    <mat-select [formControl]="propertyForm.controls.key"
-                                [placeholder]="'PROGRAM.PROPERTY_KEY'|translate"
-                                (selectionChange)="updatePropertyOption(i)"
-                                required>
-                      <mat-option *ngFor="let item of options" [value]="item.key">{{ item.label | translate }}
-                      </mat-option>
-                    </mat-select>
+                <!-- Properties -->
+                <form [formGroup]="form" class="form-container">
+                  <div formArrayName="properties" no-padding>
+                    <div *ngFor="let propertyForm of propertiesForm?.controls; let i=index">
+                      <ion-row no-padding [formGroupName]="i">
 
-                    <mat-error *ngIf="propertyForm.controls.key.hasError('required') && !propertiesFormHelper.isLast(i)"
-                               translate>ERROR.FIELD_REQUIRED
-                    </mat-error>
-                  </mat-form-field>
-                </ion-col>
+                        <!-- property key -->
+                        <ion-col size="6" no-padding>
+                          <mat-form-field floatLabel="never">
+                            <mat-select [formControl]="propertyForm.controls.key"
+                                        [placeholder]="'PROGRAM.PROPERTY_KEY'|translate"
+                                        (selectionChange)="updatePropertyOption(i)"
+                                        [tabindex]="20+i*2"
+                                        required>
+                              <mat-option *ngFor="let item of options" [value]="item.key">{{ item.label | translate }}
+                              </mat-option>
+                            </mat-select>
 
-                <!-- property value -->
-                <ion-col no-padding padding-left>
-                  <mat-option-form-field *ngIf="getPropertyOption(i); let option"
-                                         floatLabel="never"
-                                         [option]="option"
-                                         [formControl]="propertyForm.controls.value"
-                                         [placeholder]="'PROGRAM.PROPERTY_VALUE' | translate"
-                                         [required]="true">
-                  </mat-option-form-field>
-                </ion-col>
+                            <mat-error *ngIf="propertyForm.controls.key.hasError('required') && !propertiesFormHelper.isLast(i)"
+                                       translate>ERROR.FIELD_REQUIRED
+                            </mat-error>
+                          </mat-form-field>
+                        </ion-col>
 
-                <ion-col size="2" no-padding>
-                  <button type="button" mat-icon-button color="light"
-                          [disabled]="loading"
-                          [title]="'COMMON.BTN_DELETE'|translate"
-                          (click)="propertiesFormHelper.removeAt(i)">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                  <button *ngIf="propertiesFormHelper.isLast(i)"
-                          type="button"
-                          mat-icon-button
-                          color="light"
-                          [disabled]="loading"
-                          [title]="'CONFIGURATION.BTN_ADD_PROPERTY'|translate"
-                          (click)="propertiesFormHelper.add()">
-                    <mat-icon>add</mat-icon>
-                  </button>
-                </ion-col>
-              </ion-row>
-            </ng-container>
-          </ion-grid>
-        </form>
+                        <!-- property value -->
+                        <ion-col no-padding padding-left>
+                          <mat-option-form-field *ngIf="getPropertyOption(i); let option"
+                                                 [option]="option"
+                                                 [formControl]="propertyForm.controls.value"
+                                                 [placeholder]="'PROGRAM.PROPERTY_VALUE' | translate"
+                                                 [required]="true"
+                                                 [tabindex]="20+i*2">
+                          </mat-option-form-field>
+                        </ion-col>
+
+                        <ion-col size="auto" no-padding>
+                          <button type="button" mat-icon-button color="light"
+                                  [disabled]="loading"
+                                  [title]="'COMMON.BTN_DELETE'|translate"
+                                  (click)="propertiesFormHelper.removeAt(i)">
+                            <mat-icon>close</mat-icon>
+                          </button>
+                          <button [hidden]="!propertiesFormHelper.isLast(i)"
+                                  type="button"
+                                  mat-icon-button
+                                  color="light"
+                                  [disabled]="loading"
+                                  [title]="'CONFIGURATION.BTN_ADD_PROPERTY'|translate"
+                                  (click)="propertiesFormHelper.add()">
+                            <mat-icon>add</mat-icon>
+                          </button>
+                        </ion-col>
+                      </ion-row>
+                    </div>
+                  </div>
+                </form>
+
+              </app-referential-form>
+            </ion-col>
+
+            <ion-col no-padding size="12" size-xl="3">
+              <entity-metadata [value]="data"></entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
       </div>
     </mat-tab>
 
@@ -105,7 +119,7 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="strategiesTable.invalid"></ion-icon>
       </ng-template>
 
-      <div>
+      <div padding>
 
         <!-- error -->
         <ion-item *ngIf="strategiesTable.error" visible-xs visible-sm lines="none">

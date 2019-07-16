@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Params, Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
 import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
@@ -20,12 +20,11 @@ import {Validators} from "@angular/forms";
 import * as moment from "moment";
 import {Moment} from "moment";
 import {IndividualMonitoringSubSamplesTable} from "../sample/individualmonitoring/individual-monitoring-samples.table";
-import {Program, ProgramProperties} from "../../referential/services/model";
+import {ProgramProperties} from "../../referential/services/model";
 import {SubBatchesTable} from "../batch/sub-batches.table";
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
 import {BatchesTable} from "../batch/batches.table";
-import {BatchesContext} from "../batch/batches-context.class";
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -53,7 +52,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   showSampleTables = false;
   showBatchTables = false;
   enableSubBatchesTable = false;
-  batchesContext = new BatchesContext();
 
   usageMode: UsageMode;
   mobile: boolean;
@@ -91,7 +89,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   ) {
     super(route, router, alterCtrl, translate);
 
-    this.mobile = settings.mobile;
+    // Init mobile (WARN
+    this.mobile = this.settings.mobile;
 
     // Listen route parameters
     this.route.queryParams.pipe(first())
@@ -113,8 +112,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.debug = !environment.production;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     super.ngOnInit();
+
+    await this.settings.ready();
+
+    this.mobile = this.settings.mobile;
     this.batchesTable = this.mobile ? this.simpleBatchesTable : this.batchGroupsTable;
 
     // Register sub forms & table
@@ -455,13 +458,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         )
         .subscribe(program => {
           if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
-          if (this.batchesTable) {
-            this.batchesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
-            this.batchesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
-            // Force taxon name in sub batches, if not filled in root batch
-            if (this.subBatchesTable) {
-              this.subBatchesTable.showTaxonNameColumn = !this.batchesTable.showTaxonNameColumn;
-            }
+          this.batchesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
+          this.batchesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+          // Force taxon name in sub batches, if not filled in root batch
+          if (this.subBatchesTable) {
+            this.subBatchesTable.showTaxonNameColumn = !this.batchesTable.showTaxonNameColumn;
+            this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
           }
         })
     );

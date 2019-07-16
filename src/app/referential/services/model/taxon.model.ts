@@ -78,7 +78,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef> implements IReferential
   statusId: number;
   entityName: string;
 
-  taxonNames: ReferentialRef[];
+  taxonNames: TaxonNameRef[];
 
   constructor(data?: {
     id?: number,

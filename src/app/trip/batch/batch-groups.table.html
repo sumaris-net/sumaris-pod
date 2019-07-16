@@ -18,11 +18,10 @@
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-<!--  <span class="toolbar-spacer"></span>-->
+  <!--span class="toolbar-spacer"></span-->
 
-<!--  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">-->
-<!--    <mat-icon>more_vert</mat-icon>-->
-<!--  </button>-->
+
+
 </mat-toolbar>
 
 <!-- error -->
@@ -53,6 +52,18 @@
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
 
+<!--  <ng-container *ngFor="let qv of qvPmfm?.qualitativeValues; let index"  [matColumnDef]="'totalWeight-' + qv.id">-->
+<!--    <mat-header-cell *matHeaderCellDef >-->
+<!--      <mat-label float-center>-->
+<!--        <span>Total weight</span>-->
+<!--      </mat-label>-->
+<!--    </mat-header-cell>-->
+
+<!--    <mat-cell *matCellDef="let row">-->
+<!--      TOTO-->
+<!--    </mat-cell>-->
+<!--  </ng-container>-->
+
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef class="qv" [class.even]="pmfm.id % 2 === 0"
@@ -76,7 +87,14 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition"></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+      <!-- Options menu -->
+      <button mat-icon-button
+              [title]="'COMMON.OPTIONS'|translate"
+              (click)="openSelectColumnsModal($event)">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </mat-header-cell>
   </ng-container>
 
   <mat-header-row class="first-header-row" *matHeaderRowDef="displayedColumns"></mat-header-row>
@@ -176,6 +194,18 @@
 
   </ng-container>
 
+<!--  <ng-container *ngFor="let qv of qvPmfm?.qualitativeValues; let index"  [matColumnDef]="'totalWeight-' + qv.id">-->
+<!--    <mat-header-cell *matHeaderCellDef mat-sort-header class="total" >-->
+<!--      <mat-label float-center>-->
+<!--        <span>Total weight</span>-->
+<!--      </mat-label>-->
+<!--    </mat-header-cell>-->
+
+<!--    <mat-cell *matCellDef="let row">-->
+<!--      TOTO-->
+<!--    </mat-cell>-->
+<!--  </ng-container>-->
+
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
 
@@ -189,10 +219,20 @@
 
     <mat-cell *matCellDef="let row" [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)" [class.even]="isEven(pmfm)">
       <mat-form-field-measurement
+        *ngIf="pmfm.pmfmId % 5 !== 3"
         [readonly]="!row.editing"
         [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
         [compact]="true" floatLabel="never">
+
       </mat-form-field-measurement>
+
+      <!-- open individual measures -->
+      <button mat-button mat-icon-button color="light" *ngIf="pmfm.pmfmId % 5 === 3"
+              [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
+              (click)="onSubBatchesClick($event, row, pmfm.id)">
+        {{row.validator.controls.measurementValues.controls[pmfm.pmfmId].value}}
+        <mat-icon>list</mat-icon>
+      </button>
     </mat-cell>
   </ng-container>
 
@@ -203,7 +243,7 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
       <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+        <input matInput [formControl]="row.validator.controls.comments" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
           [readonly]="!row.editing">
       </mat-form-field>
     </mat-cell>

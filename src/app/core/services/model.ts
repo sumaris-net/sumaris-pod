@@ -278,7 +278,7 @@ export class EntityUtils {
   }
 
   static equals(o1: Entity<any>, o2: Entity<any>): boolean {
-    return (this.isEmpty(o1) && this.isEmpty(o2)) || (o1.id === o2.id);
+    return (!!o1 === !!o2) || (o1 && o2 && o1.id === o2.id);
   }
 
   static copyIdAndUpdateDate(source: Entity<any> | undefined, target: Entity<any>, opts?: { creationDate?: boolean; }) {
@@ -605,7 +605,7 @@ export class Department extends Referential implements Cloneable<Department> {
     super.fromObject(source);
     this.logo = source.logo;
     this.siteUrl = source.siteUrl;
-    delete this.entityName; // not need 
+    delete this.entityName; // not need
     return this;
   }
 }
@@ -770,6 +770,8 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
 export declare class FieldOptions {
   key: string;
   attributes: string;
+  attributesArray?: string[];
+  searchAttribute?: string;
   //defaultValues: any[];
 }
 

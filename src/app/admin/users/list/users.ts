@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
-import {AppTable, AppTableDataSource, environment} from "../../../core/core.module";
+import {AppTable, AppTableDataSource, environment, LocalSettingsService} from "../../../core/core.module";
 import {Person, PRIORITIZED_USER_PROFILES, referentialToString, StatusIds} from "../../../core/services/model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/person.validator";
@@ -56,12 +56,13 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
+    protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: PersonService,
     protected cd: ChangeDetectorRef,
     formBuilder: FormBuilder
   ) {
-    super(route, router, platform, location, modalCtrl, accountService,
+    super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat([
           'avatar',

@@ -75,7 +75,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   }
 
   get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settingsService.isUsageMode('FIELD');
+    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
   @Input() showLabelColumn = false;

@@ -210,7 +210,9 @@
     "FIELD_DISPLAY": "Affichage",
     "BTN_ADD_FIELD": "Ajouter un champ",
     "FIELDS": {
+      "QUALITATIVE_VALUE": "Paramètre avec liste de valeurs",
       "TAXON_GROUP": "Espèce commerciale",
+      "TAXON_NAME": "Espèce scientifique",
       "ATTRIBUTES": {
         "LABEL": "Code",
         "NAME": "Libellé"
@@ -303,6 +305,7 @@
       "EDIT": {
         "TITLE": "Engin #{{rankOrder}}",
         "GEAR": "Code de l'engin",
+        "RANK_ORDER": "Numéro de l'engin",
         "FEATURES": "Caractéristiques physiques :",
         "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}"
       },
@@ -381,7 +384,8 @@
         "INDIVIDUAL": {
           "TITLE": "Mesures individuelles",
           "INDIVIDUAL_COUNT": "Nb individus",
-          "BURST_FORM_TITLE": "Saisie rafale :"
+          "BURST_FORM_TITLE": "Saisie rafale :",
+          "BTN_MANUAL_ENTRY": "Saisie manuelle"
         }
       },
       "TABLE": {
@@ -400,7 +404,8 @@
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant.",
         "PARENT": "Lot espèce",
-        "INDIVIDUAL_COUNT": "Nb indiv.",
+        "INDIVIDUAL_COUNT": "Nombre individus",
+        "WEIGHT": "Poids (kg)",
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?"
       }
@@ -651,8 +656,10 @@
     },
     "OPTIONS": {
       "TRIP_SALE_ENABLE": "Marée : Saisir la vente ?",
+      "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin : Saisir le numéro d'engin ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce : Espèces commerciales ?",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce : Espèces scientiques ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir le nombre d'individu ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientiques ?",
       "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Capture > Test de survie : Espèces scientiques ?",

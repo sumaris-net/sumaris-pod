@@ -16,6 +16,7 @@ import {
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormBuilder} from "@angular/forms";
+import {selectInputContent} from "../../core/form/form.utils";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -128,4 +129,5 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   }
 
   referentialToString = referentialToString;
+  selectInputContent = selectInputContent;
 }

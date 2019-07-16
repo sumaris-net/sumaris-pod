@@ -138,10 +138,9 @@
       <!-- open individual measures -->
       <button mat-icon-button small color="light"
               [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
-              (click)="openSubBatchesModal($event, row)">
-        <mat-icon [matBadge]="row.currentData.individualCount"
-                  matBadgePosition="above after">list
-        </mat-icon>
+              (click)="onSubBatchesClick($event, row)">
+        {{row.currentData.individualCount}}
+        <mat-icon>list</mat-icon>
       </button>
     </mat-cell>
   </ng-container>

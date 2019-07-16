@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {LocalSettings, Peer, UsageMode} from "./model";
+import {FieldOptions, LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
@@ -10,6 +10,7 @@ import {isNotNilOrBlank} from "../../shared/functions";
 import {Platform} from "@ionic/angular";
 
 export const SETTINGS_STORAGE_KEY = "settings";
+export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
 
 @Injectable()
 export class LocalSettingsService {
@@ -73,11 +74,8 @@ export class LocalSettingsService {
     this.data.locale = this.translate.currentLang || this.translate.defaultLang;
     this.data.latLongFormat = environment.defaultLatLongFormat || 'DDMM';
     this.data.accountInheritance = true;
-
-    this.data.mobile = this.platform.is('mobile');
-    this.data.mobile = this.data.mobile || this.platform.is('phablet') || this.platform.is('tablet');
-
-    this.data.usageMode = this.data.mobile ? "FIELD" : "DESK"; // FIELD by default, if mobile detected
+    this.data.mobile = undefined;
+    this.data.usageMode = undefined;
 
     const defaultPeer = environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
     this.data.peerUrl = defaultPeer && defaultPeer.url || undefined;
@@ -90,8 +88,14 @@ export class LocalSettingsService {
     if (this._started) return;
 
     // Restoring local settings
-    this._startPromise = this.restoreLocally()
-      .then((settings) => {
+    this._startPromise = this.platform.ready()
+      .then(() => {
+        this.data.mobile = this.platform.is('mobile');
+        this.data.mobile = this.data.mobile || this.platform.is('phablet') || this.platform.is('tablet');
+        this.data.usageMode = this.data.mobile ? "FIELD" : "DESK"; // FIELD by default, if mobile detected
+      })
+      .then(() => this.restoreLocally())
+      .then(async (settings) => {
         this._started = true;
         this._startPromise = undefined;
         return settings;
@@ -120,7 +124,14 @@ export class LocalSettingsService {
 
     // Restore local settings (or keep old settings)
     if (isNotNilOrBlank(settingsStr)) {
-      this.data = JSON.parse(settingsStr);
+      const restoredData = JSON.parse(settingsStr);
+
+      // Avoid to override transient properties
+      SETTINGS_TRANSIENT_PROPERTIES.forEach(transientKey => {
+        delete restoredData[transientKey];
+      });
+
+      this.data = Object.assign(this.data, restoredData);
     }
 
     // Emit event
@@ -173,6 +184,18 @@ export class LocalSettingsService {
 
     // Update local settings
     await this.saveLocally();
+  }
+
+  public getFieldOptions(fieldName: string, defaultOptions?: {attributesArray?: string[];}): FieldOptions {
+    let options = this.data && this.data.fields &&  this.data.fields.find(fo => fo.key===fieldName) as FieldOptions;
+    if (!options) {
+      // Default
+      options = Object.assign({key: fieldName, attributes: 'label,name'}, defaultOptions||{}) as FieldOptions;
+    }
+    options.attributes = options.attributes || options.attributesArray && options.attributesArray.join(',');
+    options.attributesArray = options.attributesArray || options.attributes.split(',');
+    options.searchAttribute = options.searchAttribute || (options.attributesArray && options.attributesArray.length === 1 ? options.attributesArray[0] : undefined);
+    return options;
   }
 
   /* -- Protected methods -- */

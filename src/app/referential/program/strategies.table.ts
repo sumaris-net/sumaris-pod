@@ -4,7 +4,7 @@ import {
   AccountService,
   AppTable,
   AppTableDataSource,
-  environment, isNotNil, referentialToString,
+  environment, isNotNil, LocalSettingsService, referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS, StatusIds
 } from "../../core/core.module";
@@ -79,12 +79,13 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
+    protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryTableDataService<Strategy, StrategyFilter>,
     protected cd: ChangeDetectorRef,
     protected injector: Injector
   ) {
-    super(route, router, platform, location, modalCtrl, accountService,
+    super(route, router, platform, location, modalCtrl, settings,
       // columns
       RESERVED_START_COLUMNS
         .concat([

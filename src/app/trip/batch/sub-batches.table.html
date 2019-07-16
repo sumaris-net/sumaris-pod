@@ -1,15 +1,3 @@
-<!-- options menu -->
-<mat-menu #optionsMenu="matMenu" xPosition="before">
-  <button mat-menu-item (click)="openSelectColumnsModal($event)"
-          [title]="'COMMON.DISPLAYED_COLUMNS'|translate">
-    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
-  </button>
-<!--  <button mat-menu-item (click)="toggleForm()">-->
-<!--    <ion-icon *ngIf="showForm" matPrefix name="checkmark"></ion-icon>-->
-<!--    <ion-label translate>TRIP.BATCH.TABLE.BTN_BURST_INPUT</ion-label>-->
-<!--  </button>-->
-</mat-menu>
-
 <mat-toolbar>
   <button mat-icon-button *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate"
           (click)="addRow()">
@@ -43,7 +31,9 @@
   </ion-button>
 
   <!-- Options menu -->
-  <button mat-icon-button [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.OPTIONS'|translate">
+  <button mat-icon-button
+          [title]="'COMMON.OPTIONS'|translate"
+          (click)="openSelectColumnsModal($event)">
     <mat-icon>more_vert</mat-icon>
   </button>
 </mat-toolbar>
@@ -98,14 +88,14 @@
           </mat-header-cell>
           <mat-cell *matCellDef="let row">
             <mat-form-field floatLabel="never">
-              <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent"
+              <input matInput [formControl]="row.validator.controls.parent" [matAutocomplete]="autoParent"
                      [appAutofocus]="row.id == -1 && row.editing"
                      [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT' | translate)"
                      (focus)="onCellFocus($event, row, 'parent')" (blur)="onCellBlur($event, row, 'parent')"
                      (click)="$event.target.select()" required>
-              <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED
+              <mat-error *ngIf="row.validator.controls.parent.hasError('required')" translate>ERROR.FIELD_REQUIRED
               </mat-error>
-              <mat-error *ngIf="row.validator.controls['parent'].hasError('entity')" translate>ERROR.FIELD_INVALID
+              <mat-error *ngIf="row.validator.controls.parent.hasError('object')" translate>ERROR.FIELD_INVALID
               </mat-error>
             </mat-form-field>
 
@@ -123,7 +113,7 @@
                   <ion-col size="1" [innerHTML]="batch.rankOrder"></ion-col>
                   <ion-col>
               <span
-                [innerHTML]="parentToString(batch) | highlight: {search: row.validator.controls['parent'].value }"></span>
+                [innerHTML]="parentToString(batch) | highlight: {search: row.validator.controls.parent.value }"></span>
                   </ion-col>
                 </ion-row>
               </mat-option>
@@ -187,7 +177,7 @@
 
         <!-- individualCount column -->
         <ng-container matColumnDef="individualCount">
-          <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+          <mat-header-cell *matHeaderCellDef>
             <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
           </mat-header-cell>
           <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
@@ -276,13 +266,15 @@
       <app-sub-batch-form #form
                           [debug]="debug"
                           [acquisitionLevel]="acquisitionLevel"
+                          [program]="program"
                           [pmfms]="pmfms|async"
+                          [qvPmfm]="qvPmfm"
                           [showParent]="true"
                           [showTaxonName]="showTaxonNameColumn"
+                          [showIndividualCount]="showIndividualCount"
                           [displayParentPmfm]="displayParentPmfm"
                           (onSubmit)="addBatch($event)"
-                          [tabindex]="tabindex"
-                          [context]="context">
+                          [tabindex]="tabindex">
 
         <!-- buttons -->
         <ion-row no-padding padding-top>

@@ -4,7 +4,7 @@ import {Batch, PmfmStrategy, ReferentialRef, TaxonGroupIds} from "../services/tr
 import {TaxonomicLevelIds,} from "../../referential/referential.module";
 import {BatchGroupsValidatorService} from "../services/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
-import {BatchesTable, BatchFilter} from "./batches.table";
+import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
 import {isNil, isNotNil, toFloat, toInt} from "../../shared/shared.module";
 import {MethodIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
@@ -13,9 +13,12 @@ import {MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurem
 import {ModalController} from "@ionic/angular";
 import {debounceTime, switchMap, tap} from "rxjs/operators";
 import {Observable} from "rxjs";
-import {BatchWeight} from "../services/model/batch.model";
-import {isNotNilOrBlank} from "../../shared/functions";
+import {BatchUtils, BatchWeight} from "../services/model/batch.model";
+import {isNotEmptyArray, isNotNilOrBlank} from "../../shared/functions";
+import {ColumnItem, TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
+import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 
+const DEFAULT_USER_COLUMNS =["weight", "individualCount"];
 
 @Component({
   selector: 'table-batch-groups',
@@ -66,7 +69,7 @@ export class BatchGroupsTable extends BatchesTable {
         switchMap((value) => this.referentialRefService.suggest(value, {
           entityName: 'TaxonGroup',
           levelId: TaxonGroupIds.FAO,
-          searchAttribute: 'label'
+          searchAttribute: this.fieldsOptions.taxonGroup.searchAttribute
         })),
         // Remember implicit value
         tap(res => this.updateImplicitValue('taxonGroup', res))
@@ -79,7 +82,7 @@ export class BatchGroupsTable extends BatchesTable {
         switchMap((value) => this.referentialRefService.suggest(value, {
           entityName: 'TaxonName',
           levelId: TaxonomicLevelIds.SPECIES,
-          searchAttribute: 'label'
+          searchAttribute: this.fieldsOptions.taxonName.searchAttribute
         })),
         // Remember implicit value
         tap(res => this.updateImplicitValue('taxonName', res))
@@ -196,7 +199,23 @@ export class BatchGroupsTable extends BatchesTable {
     return data;
   }
 
+  async onSubBatchesClick(event: UIEvent, row: TableElement<Batch>, qvIndex?: number): Promise<void> {
+    if (event) event.preventDefault();
 
+    const json = row.currentData;
+    let parentBatch = row.validator ? Batch.fromObject(json) : json;
+
+    const defaultBatch = new Batch();
+    defaultBatch.parent = parentBatch;
+
+    if (isNotNil(qvIndex) && this.qvPmfm) {
+      const qv = this.qvPmfm.qualitativeValues[qvIndex];
+      const qvPmfmId = this.qvPmfm.pmfmId.toString();
+      defaultBatch.measurementValues[qvPmfmId] = qv.id.toString();
+    }
+
+    await this.openSubBatchesModal(defaultBatch);
+  }
 
   /* -- protected methods -- */
 
@@ -420,20 +439,89 @@ export class BatchGroupsTable extends BatchesTable {
     if (this.weightMethodForm) this.weightMethodForm.markAsUntouched({onlySelf: true});
   }
 
-  protected getI18nColumnName(columnName: string): string {
-    if (!this.qvPmfm) return super.getI18nColumnName(columnName); // Skip
+  // Override default pmfms
+  updateColumns(pmfms?: PmfmStrategy[]) {
+    pmfms = pmfms || this.pmfms.getValue();
+    if (!pmfms) return; // Pmfm not loaded: skip
 
-    // Try to resolve PMFM column
-    if (PMFM_ID_REGEXP.test(columnName)) {
-      console.log("TODO: Check this unsafe code !! => should use initialPmfms ?");
-      const pmfmIndex = parseInt(columnName);
-      const pmfm = (this.pmfms.getValue() || []).find(p => p.pmfmId === pmfmIndex);
-      const qvIndex = pmfm.id;
-      return `${this.translate.instant(this.qvPmfm.qualitativeValues[qvIndex].name)} > ${this.translate.instant(pmfm.name)}`;
+    this.displayedColumns = this.getDisplayColumns();
+    if (!this.loading) this.markForCheck();
+  }
 
-    }
+  protected getUserColumns(): string[] {
+    const userColumns = this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
+    // No user override: use defaults
+    return userColumns || DEFAULT_USER_COLUMNS.slice(0);
+  }
+  protected getDisplayColumns(userColumns?: string[]): string[] {
+    userColumns = userColumns || this.getUserColumns();
 
-    return super.getI18nColumnName(columnName);
+    const individualCountIndex = userColumns.findIndex(c => c === 'individualCount');
+    let weightIndex = userColumns.findIndex(c => c === 'weight');
+    weightIndex = (weightIndex !== -1 && individualCountIndex === -1 ? 1 : weightIndex);
+
+    const pmfmColumns = (this.qvPmfm && this.qvPmfm.qualitativeValues || []).reduce((res, qv, index) => {
+      let offset = index * 5;
+
+      return res.concat([
+        individualCountIndex !== -1 ? (offset + individualCountIndex) : -1,
+        weightIndex !== -1 ? (offset + weightIndex) : -1,
+        offset + 2,
+        individualCountIndex !== -1 ? (offset + 3 + individualCountIndex) : -1,
+        weightIndex !== -1 ? (offset + 3 + weightIndex) : -1]);
+    }, [])
+      // Remove hidden column
+      .filter(c => c !== -1)
+      .map(colPmfmId => colPmfmId.toString());
+
+    return RESERVED_START_COLUMNS
+      .concat(BATCH_RESERVED_START_COLUMNS)
+      .concat(pmfmColumns)
+      //.concat(this.qvPmfm && this.qvPmfm.qualitativeValues ? ['totalWeight-' + this.qvPmfm.qualitativeValues[0].id] : [])
+      .concat(BATCH_RESERVED_END_COLUMNS)
+      .concat(RESERVED_END_COLUMNS)
+      .filter(name => !this.excludesColumns.includes(name));
+  }
+
+  async openSelectColumnsModal() {
+
+    const userColumns = this.getUserColumns();
+    const hiddenColumns = DEFAULT_USER_COLUMNS.slice(0)
+      .filter(name => userColumns.indexOf(name) == -1);
+    const columns = userColumns
+      .concat(hiddenColumns)
+      .map(name => {
+        const label = (name === 'individualCount') ? 'TRIP.BATCH.TABLE.INDIVIDUAL_COUNT' :
+          ((name === 'weight') ? 'TRIP.BATCH.TABLE.WEIGHT' : '');
+        return {
+          name,
+          label,
+          visible: userColumns.indexOf(name) !== -1
+        };
+      });
+
+    const modal = await this.modalCtrl.create({
+      component: TableSelectColumnsComponent,
+      componentProps: {columns: columns}
+    });
+
+    // On dismiss
+    modal.onDidDismiss()
+      .then(async (res) => {
+        if (!res || !res.data) return; // CANCELLED
+        const columns = res.data;
+
+        // Update columns
+        const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+
+        // Update user settings
+        await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
+
+        this.displayedColumns = this.getDisplayColumns(userColumns);
+
+        this.markForCheck();
+      });
+    return modal.present();
   }
 }
 

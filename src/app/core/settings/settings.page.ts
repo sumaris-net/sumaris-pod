@@ -30,12 +30,27 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   loading = true;
   saving = false;
   usageModes: UsageMode[] = ['FIELD', 'DESK'];
-  fields = [{
-    key: 'taxonGroup',
-    label: 'SETTINGS.FIELDS.TAXON_GROUP',
-    type: 'combo',
-    attributes: [['label', 'name'], ['name'], ['name', 'label'], ['label']]
-  }];
+  fields = [
+    {
+      key: 'qualitativeValue',
+      label: 'SETTINGS.FIELDS.QUALITATIVE_VALUE',
+      type: 'combo',
+      attributes: [['label', 'name'], ['name'], ['name', 'label'], ['label']]
+    },
+    {
+      key: 'taxonGroup',
+      label: 'SETTINGS.FIELDS.TAXON_GROUP',
+      type: 'combo',
+      attributes: [['label', 'name'], ['name'], ['name', 'label'], ['label']]
+    },
+    {
+      key: 'taxonName',
+      label: 'SETTINGS.FIELDS.TAXON_NAME',
+      type: 'combo',
+      attributes: [['label', 'name'], ['name'], ['name', 'label'], ['label']]
+    }
+
+  ];
   fieldsMap: any;
   localeMap = {
     'fr': 'Français',
