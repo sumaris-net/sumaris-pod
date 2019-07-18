@@ -22,39 +22,52 @@ package net.sumaris.core.dao.referential.taxon;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import net.sumaris.core.dao.referential.ReferentialSpecifications;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupHistoricalRecord;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Parameter;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static net.sumaris.core.dao.referential.ReferentialSpecifications.inStatusIds;
+import static net.sumaris.core.dao.referential.taxon.TaxonGroupSpecifications.hasType;
+import static net.sumaris.core.dao.referential.taxon.TaxonGroupSpecifications.inGearIds;
 
 public class TaxonGroupRepositoryImpl
         extends SumarisJpaRepositoryImpl<TaxonGroup, Integer>
         implements TaxonGroupRepositoryExtend {
 
+
     private static final Logger log =
             LoggerFactory.getLogger(TaxonGroupRepositoryImpl.class);
+
+
 
     @Autowired
     private TaxonNameDao taxonNameDao;
@@ -64,10 +77,50 @@ public class TaxonGroupRepositoryImpl
     }
 
     @Override
+    public List<TaxonGroupVO> findTargetSpeciesByFilter(
+                                               ReferentialFilterVO filter,
+                                               int offset,
+                                               int size,
+                                               String sortAttribute,
+                                               SortDirection sortDirection) {
+
+        Preconditions.checkNotNull(filter);
+        Integer[] gearIds = (filter.getLevelId() != null) ? new Integer[]{filter.getLevelId()} :
+                filter.getLevelIds();
+
+        Specification<TaxonGroup> specification = Specification.where(
+                ReferentialSpecifications.<TaxonGroup>searchText(filter.getSearchAttribute(), "searchText"))
+            .and(hasType(TaxonGroupTypeId.METIER_SPECIES.getId()))
+            .and(inStatusIds(filter.getStatusIds()))
+            .and(inGearIds(gearIds));
+
+        String searchText = StringUtils.isBlank(filter.getSearchText()) ? null : (filter.getSearchText() + "*") // add trailing wildcard
+                .replaceAll("[*]+", "*") // group escape chars
+                .replaceAll("[%]", "\\%") // protected '%' chars
+                .replaceAll("[*]", "%"); // replace asterix
+
+        TypedQuery<TaxonGroup> query = getQuery(specification, TaxonGroup.class, getPageable(offset, size, sortAttribute, sortDirection));
+
+        Parameter<String> searchTextParam = query.getParameter("searchText", String.class);
+        if (searchTextParam != null) {
+            query.setParameter(searchTextParam, searchText);
+        }
+
+        return query.getResultStream()
+                    .distinct()
+                    .map(this::toTaxonGroupVO)
+                    .collect(Collectors.toList());
+    }
+
+
+    @Override
     public TaxonGroupVO toTaxonGroupVO(TaxonGroup source) {
         TaxonGroupVO target = new TaxonGroupVO();
 
         Beans.copyProperties(source, target);
+
+        // StatusId
+        target.setStatusId(source.getStatus().getId());
 
         return target;
     }
@@ -221,4 +274,5 @@ public class TaxonGroupRepositoryImpl
         log.info(String.format("Technical table TAXON_GROUP2TAXON_HISTORY successfully updated. (inserts: %s, deletes: %s)",
                 insertCounter.getValue(), deleteCounter.getValue()));
     }
+
 }

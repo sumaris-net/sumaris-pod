@@ -316,15 +316,6 @@ public class RootDataRepositoryImpl<
 
     /* -- protected methods -- */
 
-    protected Pageable getPageable(int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        if (sortAttribute != null) {
-            return PageRequest.of(offset / size, size,
-                    (sortDirection == null) ? Sort.Direction.ASC :
-                            Sort.Direction.fromString(sortDirection.toString()),
-                    sortAttribute);
-        }
-        return PageRequest.of(offset / size, size);
-    }
 
     protected void copyVessel(IWithVesselFeaturesEntity<Integer, VesselFeaturesVO> source,
                               IWithVesselEntity<Integer, Vessel> target,

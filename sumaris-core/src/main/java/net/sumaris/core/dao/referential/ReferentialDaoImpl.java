@@ -155,6 +155,8 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
     protected static Map<String, PropertyDescriptor> initLevelPropertyNameMap() {
         Map<String, PropertyDescriptor> result = new HashMap<>();
+
+        // Detect level properties, by name
         entityClassMap.values().stream().forEach((clazz) -> {
             PropertyDescriptor[] pds = BeanUtils.getPropertyDescriptors(clazz);
             for (PropertyDescriptor pd: pds) {
@@ -280,6 +282,7 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         // Get the entity class
         Class<? extends IReferentialEntity> entityClass = getEntityClass(entityName);
+
         log.debug(String.format("Deleting %s {id=%s}...", entityName, id));
         delete(entityClass, id);
     }
@@ -465,7 +468,12 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                 levelId = null;
                 levelIdsParam = builder.parameter(Collection.class);
                 PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
-                levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID)).value(levelIdsParam);
+                if (pd != null) {
+                    levelClause = builder.in(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID)).value(levelIdsParam);
+                }
+                else {
+                    log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
+                }
             }
         }
         // Level Id
@@ -475,6 +483,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
             PropertyDescriptor pd = levelPropertyNameMap.get(entityClass.getSimpleName());
             if (pd != null) {
                 levelClause = builder.equal(entityRoot.get(pd.getName()).get(IReferentialEntity.PROPERTY_ID), levelIdParam);
+            }
+            else {
+                log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
             }
         }
 
@@ -518,7 +529,6 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         if (ArrayUtils.isNotEmpty(statusIds)) {
             statusIdsClause = builder.in(entityRoot.get(IItemReferentialEntity.PROPERTY_STATUS).get(IItemReferentialEntity.PROPERTY_ID)).value(statusIdsParam);
         }
-
 
         // Compute where clause
         Expression<Boolean> whereClause = null;
@@ -574,10 +584,10 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
         if (searchTextClause != null) {
             String searchTextAsPrefix = null;
             if (StringUtils.isNotBlank(searchText)) {
-                searchTextAsPrefix = (searchText + "*"); // add trailing escape char
-                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]+", "*"); // group escape chars
-                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[%]", "\\%"); // protected '%' chars
-                searchTextAsPrefix = searchTextAsPrefix.replaceAll("[*]", "%"); // replace asterix
+                searchTextAsPrefix = (searchText + "*") // add trailing escape char
+                    .replaceAll("[*]+", "*") // group escape chars
+                    .replaceAll("[%]", "\\%") // protected '%' chars
+                    .replaceAll("[*]", "%"); // replace asterix
             }
             String searchTextAnyMatch = StringUtils.isNotBlank(searchTextAsPrefix) ? ("%"+searchTextAsPrefix) : null;
             typedQuery.setParameter(searchAsPrefixParam, searchTextAsPrefix);
@@ -617,9 +627,8 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
 
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = entityClassMap.get(entityName);
-        if (entityClass == null) {
-            throw new IllegalArgumentException("No entity with name [" + entityName + "]");
-        }
+        if (entityClass == null)
+            throw new IllegalArgumentException(String.format("No entity with name [%s]", entityName));
         return entityClass;
     }
 

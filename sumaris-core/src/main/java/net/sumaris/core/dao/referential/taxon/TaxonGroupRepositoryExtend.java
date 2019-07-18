@@ -22,9 +22,13 @@ package net.sumaris.core.dao.referential.taxon;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.springframework.data.repository.NoRepositoryBean;
+
+import java.util.List;
 
 @NoRepositoryBean
 public interface TaxonGroupRepositoryExtend {
@@ -38,4 +42,11 @@ public interface TaxonGroupRepositoryExtend {
     long countTaxonGroupHierarchy();
 
     TaxonGroupVO toTaxonGroupVO(TaxonGroup taxonGroup);
+
+    List<TaxonGroupVO> findTargetSpeciesByFilter(
+            ReferentialFilterVO filter,
+            int offset,
+            int size,
+            String sortAttribute,
+            SortDirection sortDirection);
 }

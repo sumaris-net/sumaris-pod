@@ -29,6 +29,7 @@ import lombok.Data;
 @Builder
 public class StrategyFetchOptions {
 
+    @Builder.Default
     private boolean withPmfmStrategyInheritance = false;
 
 }

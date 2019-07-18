@@ -1,7 +1,10 @@
 package net.sumaris.core.service.referential.taxon;
 
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
 import org.slf4j.Logger;
@@ -10,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service("taxonGroupService")
 public class TaxonGroupServiceImpl implements TaxonGroupService {
@@ -28,18 +33,17 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
     @PostConstruct
     protected void afterPropertiesSet() {
 
-        // Check fill hierarchy is need
-        if (taxonGroupRepository.countTaxonGroupHierarchy() == 0l) {
+        // Check version
+        Version minVersion = VersionBuilder.create("0.15.0").build();
+        if (minVersion.after(databaseSchemaService.getDbVersion())) {
+            log.info("/!\\ Skipping taxon group hierarchy update, beacause database schema version < 0.15.0. Please restart after schema update.");
+        }
 
-            // Check version
-            Version minVersion = VersionBuilder.create("0.15.0").build();
-            if (!databaseSchemaService.getDbVersion().afterOrEquals(minVersion)) {
-                log.info("Skipping taxon group hierarchy update: Database schema version < [0.15.0]");
-            }
-            else {
-                // Make sure taxon group hierarchies are well init
+        // Check fill hierarchy is need
+        else {
+            //if (taxonGroupRepository.countTaxonGroupHierarchy() == 0l) {
                 self.updateTaxonGroupHierarchies();
-            }
+            //}
         }
     }
 
@@ -49,4 +53,12 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
         taxonGroupRepository.updateTaxonGroupHierarchies();
     }
 
+    @Override
+    public List<TaxonGroupVO> findTargetSpeciesByFilter(ReferentialFilterVO filter,
+                                           int offset,
+                                           int size,
+                                           String sortAttribute,
+                                           SortDirection sortDirection) {
+        return taxonGroupRepository.findTargetSpeciesByFilter(filter, offset, size, sortAttribute, sortDirection);
+    }
 }

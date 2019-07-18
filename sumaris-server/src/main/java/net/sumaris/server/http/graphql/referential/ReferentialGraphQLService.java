@@ -28,6 +28,7 @@ import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
@@ -35,7 +36,6 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.http.security.IsAdmin;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +56,9 @@ public class ReferentialGraphQLService {
     @Autowired
     private TaxonNameService taxonNameService;
 
+    @Autowired
+    private TaxonGroupService taxonGroupService;
+
     /* -- Referential queries -- */
 
     @GraphQLQuery(name = "referentialTypes", description = "Get all types of referential")
@@ -66,13 +69,23 @@ public class ReferentialGraphQLService {
 
     @GraphQLQuery(name = "referentials", description = "Search in referentials")
     @Transactional(readOnly = true)
-    public List<ReferentialVO> findReferentialsByFilter(
+    public List<? extends ReferentialVO> findReferentialsByFilter(
             @GraphQLArgument(name = "entityName") String entityName,
             @GraphQLArgument(name = "filter") ReferentialFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.PROPERTY_NAME) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+
+
+        // Special case
+        if ("TargetSpecies".equals(entityName)) {
+            return taxonGroupService.findTargetSpeciesByFilter(
+                    filter != null ? filter : new ReferentialFilterVO(),
+                    offset, size, sort,
+                    SortDirection.valueOf(direction.toUpperCase()));
+        }
+
         return referentialService.findByFilter(entityName, filter, offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 

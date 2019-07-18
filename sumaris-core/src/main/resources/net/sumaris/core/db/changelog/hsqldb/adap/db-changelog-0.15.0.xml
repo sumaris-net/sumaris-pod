@@ -210,42 +210,58 @@
         <insert tableName="taxon_group_historical_record">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
             <column name="START_DATE">1970-01-01 00:00:00</column>
-            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='COD' and TAXON_GROUP_TYPE_FK=2"/>
-            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='COD'"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(select max(id) from TAXON_GROUP WHERE LABEL='COD' and TAXON_GROUP_TYPE_FK=2)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(reference_taxon_fk) from taxon_name WHERE is_referent=true AND LABEL='COD')"/>
         </insert>
         <!-- NEP Langoustine -->
         <insert tableName="taxon_group_historical_record">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
             <column name="START_DATE">1970-01-01 00:00:00</column>
-            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='NEP' and TAXON_GROUP_TYPE_FK=2"/>
-            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='NEP'"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(select max(id) from TAXON_GROUP WHERE LABEL='NEP' and TAXON_GROUP_TYPE_FK=2)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(reference_taxon_fk) from taxon_name WHERE is_referent=true AND LABEL='NEP')"/>
         </insert>
         <!-- HAD Eglefin -->
         <insert tableName="taxon_group_historical_record">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
             <column name="START_DATE">1970-01-01 00:00:00</column>
-            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='HAD' and TAXON_GROUP_TYPE_FK=2"/>
-            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='HAD'"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(select max(id) from TAXON_GROUP WHERE LABEL='HAD' and TAXON_GROUP_TYPE_FK=2)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(reference_taxon_fk) from taxon_name WHERE is_referent=true AND LABEL='HAD')"/>
         </insert>
         <!-- MNZ Baudroie -->
         <insert tableName="taxon_group_historical_record">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
             <column name="START_DATE">1970-01-01 00:00:00</column>
-            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='MNZ' and TAXON_GROUP_TYPE_FK=2"/>
-            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='ANK'"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(select max(id) from TAXON_GROUP WHERE LABEL='MNZ' and TAXON_GROUP_TYPE_FK=2)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(reference_taxon_fk) from taxon_name WHERE is_referent=true AND LABEL='ANK')"/>
         </insert>
         <!-- RJB Pocheteau gris -->
         <insert tableName="taxon_group_historical_record">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
             <column name="START_DATE">1970-01-01 00:00:00</column>
-            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='RJB' and TAXON_GROUP_TYPE_FK=2"/>
-            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='RJB_1'"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(select max(id) from TAXON_GROUP WHERE LABEL='RJB' and TAXON_GROUP_TYPE_FK=2)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(reference_taxon_fk) from taxon_name WHERE is_referent=true AND LABEL='RJB_1')"/>
         </insert>
         <insert tableName="taxon_group_historical_record">
             <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
             <column name="START_DATE">1970-01-01 00:00:00</column>
-            <column name="TAXON_GROUP_FK" valueComputed="select max(id) from TAXON_GROUP WHERE LABEL='RJB' and TAXON_GROUP_TYPE_FK=2"/>
-            <column name="REFERENCE_TAXON_FK" valueComputed="select max(id) from reference_taxon WHERE WHERE LABEL='RJB_2'"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(select max(id) from TAXON_GROUP WHERE LABEL='RJB' and TAXON_GROUP_TYPE_FK=2)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(reference_taxon_fk) from taxon_name WHERE is_referent=true AND LABEL='RJB_2')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert missing taxon_group_historical_record for MNZ -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-311" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM taxon_group_historical_record WHERE TAXON_GROUP_FK=(select max(id) from TAXON_GROUP WHERE LABEL='MNZ' and TAXON_GROUP_TYPE_FK=2)</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="taxon_group_historical_record">
+            <column name="ID" valueComputed="NEXT VALUE FOR TAXON_GROUP_HISTORICAL_REC_SEQ"/>
+            <column name="START_DATE">1970-01-01 00:00:00</column>
+            <column name="TAXON_GROUP_FK" valueComputed="(select max(id) from TAXON_GROUP WHERE LABEL='MNZ' and TAXON_GROUP_TYPE_FK=2)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(reference_taxon_fk) from taxon_name WHERE is_referent=true AND LABEL='MON')"/>
         </insert>
     </changeSet>
 

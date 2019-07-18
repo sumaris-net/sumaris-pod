@@ -23,15 +23,9 @@ package net.sumaris.core.model.referential;
  */
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.data.BatchQuantificationMeasurement;
-import net.sumaris.core.model.data.BatchSortingMeasurement;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Type de traitement.
@@ -47,8 +41,8 @@ import java.util.List;
 public class ProcessingType implements IItemReferentialEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PROCESSING_STATUS_SEQ")
-    @SequenceGenerator(name = "PROCESSING_STATUS_SEQ", sequenceName="PROCESSING_STATUS_SEQ")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "PROCESSING_TYPE_SEQ")
+    @SequenceGenerator(name = "PROCESSING_TYPE_SEQ", sequenceName="PROCESSING_TYPE_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

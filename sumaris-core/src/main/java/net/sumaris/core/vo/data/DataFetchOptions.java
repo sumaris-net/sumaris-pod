@@ -31,10 +31,16 @@ import java.util.Date;
 @Builder
 public class DataFetchOptions {
 
+    @Builder.Default
     private boolean withRecorderDepartment = true;
+
+    @Builder.Default
     private boolean withRecorderPerson = true;
+
+    @Builder.Default
     private boolean withObservers = true;
 
+    @Builder.Default
     private boolean withChildrenEntities = false;
 
 }

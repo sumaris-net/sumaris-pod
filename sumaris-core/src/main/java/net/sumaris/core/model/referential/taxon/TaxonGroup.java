@@ -23,14 +23,13 @@ package net.sumaris.core.model.referential.taxon;
  */
 
 import lombok.Data;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.metier.Metier;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -52,6 +51,8 @@ public class TaxonGroup implements IItemReferentialEntity {
 
     public static final String PROPERTY_TAXON_GROUP_TYPE = "taxonGroupType";
     public static final String PROPERTY_STRATEGIES = "strategies";
+    public static final String PROPERTY_METIERS = "metiers";
+
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -91,4 +92,8 @@ public class TaxonGroup implements IItemReferentialEntity {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.PROPERTY_TAXON_GROUP)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<TaxonGroupStrategy> strategies;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Metier.class, mappedBy = Metier.PROPERTY_TAXON_GROUP)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    private List<Metier> metiers;
 }

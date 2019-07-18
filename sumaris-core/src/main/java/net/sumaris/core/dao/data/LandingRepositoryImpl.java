@@ -49,36 +49,7 @@ public class LandingRepositoryImpl
         extends RootDataRepositoryImpl<Landing, Integer, LandingVO, LandingFilterVO>
         implements LandingRepositoryExtend {
 
-    static Specification<Landing> hasObservedLocationId(Integer observedLocationId) {
-        if (observedLocationId == null) return null;
-        return (root, query, cb) -> cb.equal(root.get(Landing.PROPERTY_OBSERVED_LOCATION).get(IEntity.PROPERTY_ID), observedLocationId);
-    }
 
-    static Specification<Landing> hasTripId(Integer tripId) {
-        if (tripId == null) return null;
-        return (root, query, cb) -> cb.equal(root.get(Landing.PROPERTY_TRIP).get(IEntity.PROPERTY_ID), tripId);
-    }
-
-    static Specification<Landing> hasLocationId(Integer locationId) {
-        if (locationId == null) return null;
-        return (root, query, cb) -> cb.equal(root.get(Landing.PROPERTY_LOCATION).get(IEntity.PROPERTY_ID), locationId);
-    }
-
-    static Specification<Landing> betweenDate(Date startDate, Date endDate) {
-        if (startDate == null && endDate == null) return null;
-        return (root, query, cb) -> {
-            if (startDate != null && endDate != null) {
-                return cb.and(
-                        cb.greaterThanOrEqualTo(root.get(Landing.PROPERTY_DATE_TIME), startDate),
-                        cb.lessThanOrEqualTo(root.get(Landing.PROPERTY_DATE_TIME), endDate)
-                );
-            } else if (startDate == null && endDate != null) {
-                return cb.lessThanOrEqualTo(root.get(Landing.PROPERTY_DATE_TIME), endDate);
-            } else {
-                return cb.greaterThanOrEqualTo(root.get(Landing.PROPERTY_DATE_TIME), startDate);
-            }
-        };
-    }
 
     private static final Logger log =
             LoggerFactory.getLogger(LandingRepositoryImpl.class);

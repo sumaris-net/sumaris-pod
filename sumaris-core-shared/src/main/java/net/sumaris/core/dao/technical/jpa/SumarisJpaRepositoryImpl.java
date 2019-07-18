@@ -3,6 +3,7 @@ package net.sumaris.core.dao.technical.jpa;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.hibernate.LockOptions;
@@ -11,6 +12,9 @@ import org.hibernate.dialect.Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -134,5 +138,15 @@ public class SumarisJpaRepositoryImpl<T, ID extends Serializable>
             }
         }
         return result;
+    }
+
+    protected Pageable getPageable(int offset, int size, String sortAttribute, SortDirection sortDirection) {
+        if (sortAttribute != null) {
+            return PageRequest.of(offset / size, size,
+                    (sortDirection == null) ? Sort.Direction.ASC :
+                            Sort.Direction.fromString(sortDirection.toString()),
+                    sortAttribute);
+        }
+        return PageRequest.of(offset / size, size);
     }
 }

@@ -108,11 +108,12 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         }
 
         // Enable fetch profiles
+        Session session = getSession();
         if (fieldOptions.isWithRecorderDepartment() || fieldOptions.isWithRecorderPerson())
-            entityManager.unwrap(Session.class).enableFetchProfile(Trip.FETCH_PROFILE_RECORDER);
+            session.enableFetchProfile(Trip.FETCH_PROFILE_RECORDER);
         if (fieldOptions.isWithObservers())
-            entityManager.unwrap(Session.class).enableFetchProfile(Trip.FETCH_PROFILE_OBSERVERS);
-        entityManager.unwrap(Session.class).enableFetchProfile(Trip.FETCH_PROFILE_LOCATION);
+            session.enableFetchProfile(Trip.FETCH_PROFILE_OBSERVERS);
+        session.enableFetchProfile(Trip.FETCH_PROFILE_LOCATION);
 
         return toTripVOs(entityManager.createQuery(query)
                 .setFirstResult(offset)

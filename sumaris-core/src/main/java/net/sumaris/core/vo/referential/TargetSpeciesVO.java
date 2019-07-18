@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.referential.taxon;
+package net.sumaris.core.vo.referential;
 
 /*-
  * #%L
@@ -22,17 +22,16 @@ package net.sumaris.core.dao.referential.taxon;
  * #L%
  */
 
+import lombok.Data;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-@Repository("taxonGroupRepository")
-public interface TaxonGroupRepository
-        extends JpaRepository<TaxonGroup, Integer>,
-        TaxonGroupRepositoryExtend {
+@Data
+public class TargetSpeciesVO extends ReferentialVO {
 
+    private Integer metierId;
+    private Integer gearId;
 
-    TaxonGroup getOneByLabelAndTaxonGroupTypeId(String label, Integer taxonGroupTypeId);
-
-
+    public TargetSpeciesVO() {
+        this.setEntityName(TaxonGroup.class.getSimpleName());
+    }
 }

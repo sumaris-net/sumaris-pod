@@ -46,6 +46,14 @@
     </preConditions>
     <createSequence sequenceName="TAXON_NAME_SEQ"/>
   </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-9-3">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="PROCESSING_TYPE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="PROCESSING_TYPE_SEQ"/>
+  </changeSet>
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-11">
     <preConditions onFail="MARK_RAN">
@@ -201,10 +209,7 @@
   <!-- Insert processing status -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-25" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <and>
-        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-        <not><sqlCheck expectedResult="5">SELECT count(*) FROM processing_status</sqlCheck></not>
-      </and>
+      <not><sqlCheck expectedResult="5">SELECT count(*) FROM processing_status</sqlCheck></not>
     </preConditions>
     <delete tableName="processing_status"/>
     <insert tableName="processing_status">
@@ -253,10 +258,7 @@
   <!-- Insert processing type -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-26" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <and>
-        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-        <sqlCheck expectedResult="0">SELECT count(*) FROM processing_type where label='SYS_P_FILL_TAXON_GROUP_HIERARCHY'</sqlCheck>
-      </and>
+      <sqlCheck expectedResult="0">SELECT count(*) FROM processing_type where label='SYS_P_FILL_TAXON_GROUP_HIERARCHY'</sqlCheck>
     </preConditions>
     <insert tableName="processing_type">
       <column name="ID" valueComputed="NEXT VALUE FOR processing_type_seq"/>
@@ -266,6 +268,44 @@
       <column name="CREATION_DATE" valueComputed="sysdate" />
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
     </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-27">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="taxon_group_historical_record"/></not>
+    </preConditions>
+    <createTable tableName="taxon_group_historical_record">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="taxon_group_hist_record_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="reference_taxon_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="taxon_group_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-28" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="reference_taxon_fk" baseTableName="taxon_group_historical_record" constraintName="FK3nhcidceqsauu3aua1be6krdb" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="reference_taxon" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-29" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="taxon_group_historical_record" constraintName="FK52rdbqf6qba9i9e54t39wykg6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-30" failOnError="false">
+    <dropForeignKeyConstraint baseTableName="LOCATION_AREA" constraintName="FK_LOCATION_AREA_ID"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-31" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count(*) FROM processing_history where processing_type_fk IS NULL</sqlCheck>
+    </preConditions>
+    <addNotNullConstraint columnDataType="int" columnName="processing_type_fk" tableName="processing_history"/>
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->
