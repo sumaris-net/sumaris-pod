@@ -87,7 +87,7 @@
     </preConditions>
     <createTable tableName="processing_status">
       <column name="id" type="INT">
-        <constraints primaryKey="true" primaryKeyName="processing_statusPK"/>
+        <constraints primaryKey="true" primaryKeyName="processing_status_pk"/>
       </column>
       <column name="comments" type="VARCHAR(2000)"/>
       <column name="creation_date" type="TIMESTAMP">
@@ -210,6 +210,7 @@
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-25" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not><sqlCheck expectedResult="5">SELECT count(*) FROM processing_status</sqlCheck></not>
+      <not><sqlCheck expectedResult="0">SELECT count(*) FROM status</sqlCheck></not>
     </preConditions>
     <delete tableName="processing_status"/>
     <insert tableName="processing_status">
@@ -259,6 +260,7 @@
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-26" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <sqlCheck expectedResult="0">SELECT count(*) FROM processing_type where label='SYS_P_FILL_TAXON_GROUP_HIERARCHY'</sqlCheck>
+      <not><sqlCheck expectedResult="0">SELECT count(*) FROM processing_status</sqlCheck></not>
     </preConditions>
     <insert tableName="processing_type">
       <column name="ID" valueComputed="NEXT VALUE FOR processing_type_seq"/>
