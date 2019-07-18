@@ -176,7 +176,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     );
 
     // Enable sub batches when table pmfms ready
-    this.subBatchesTable.pmfms
+    this.subBatchesTable.$pmfms
       .pipe(filter(isNotNil), first())
       .subscribe(pmfms => {
         if (!this.enableSubBatchesTable && pmfms.length > 0) {
@@ -311,7 +311,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.batchesTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchesTable.acquisitionLevel + "#"));
 
     // make sure PMFMs are loaded (need the QV pmfm)
-    this.batchesTable.pmfms.pipe(filter(isNotNil), first())
+    this.batchesTable.$pmfms.pipe(filter(isNotNil), first())
       .subscribe((_) => {
         this.subBatchesTable.setValueFromParent(this.batchesTable.value, this.batchesTable.qvPmfm);
       });

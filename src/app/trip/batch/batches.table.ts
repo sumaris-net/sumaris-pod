@@ -13,11 +13,11 @@ import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AcquisitionLevelCodes, environment, isNil, ReferentialRef} from "../../core/core.module";
 import {Batch, getPmfmName, Landing, Operation, PmfmStrategy, referentialToString} from "../services/trip.model";
-import {PmfmLabelPatterns, ReferentialRefService} from "../../referential/referential.module";
+import {PmfmIds, PmfmLabelPatterns, ReferentialRefService} from "../../referential/referential.module";
 import {isNotNil} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {FieldOptions, UsageMode} from "../../core/services/model";
+import {FieldSettings, UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {BatchModal} from "./batch.modal";
 import {measurementValueToString} from "../services/model/measurement.model";
@@ -52,10 +52,6 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   protected _initialPmfms: PmfmStrategy[];
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected fieldsOptions: {
-    taxonGroup?: FieldOptions,
-    taxonName?: FieldOptions
-  } = {};
 
   qvPmfm: PmfmStrategy;
   defaultWeightPmfm: PmfmStrategy;
@@ -133,16 +129,14 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     this.debug = !environment.production;
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     super.ngOnInit();
 
     this.setShowColumn('comments', this.showCommentsColumn);
 
-    await this.settings.ready();
-
-    // Read fields options, from settings
-    this.fieldsOptions.taxonGroup = this.settings.getFieldOptions('taxonGroup');
-    this.fieldsOptions.taxonName = this.settings.getFieldOptions('taxonName');
+    // Configuration autocomplete fields
+    this.registerAutocompleteField('taxonGroup');
+    this.registerAutocompleteField('taxonName');
   }
 
   setParent(data: Operation | Landing) {
@@ -323,7 +317,13 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     }, {});
 
     // Find the first qualitative PMFM
-    this.qvPmfm = pmfms.find(p => p.type === 'qualitative_value');
+    let qvPmfm = pmfms.find(p => p.type === 'qualitative_value');
+    // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
+    if (qvPmfm && qvPmfm.pmfmId === PmfmIds.DISCARD_OR_LANDING) {
+      qvPmfm = qvPmfm.clone(); // copy, to keep original array
+      qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
+    }
+    this.qvPmfm = qvPmfm;
 
     // Remove weight pmfms
     return pmfms.filter(p => !p.isWeight);

@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Configuration, EntityUtils, FieldOptions} from "./model";
+import {Configuration, EntityUtils} from "./model";
 
 @Injectable()
 export class ConfigValidatorService {

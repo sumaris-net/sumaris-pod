@@ -74,7 +74,7 @@
   </ng-container>
 
   <!-- Pmfms columns -->
-  <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
       <ion-label>{{getPmfmColumnHeader(pmfm)}}
         <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
@@ -99,7 +99,7 @@
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-      <!-- no actions buttons, because no validator -->
+      <!-- no actions buttons (no validator) -->
     </mat-cell>
   </ng-container>
 

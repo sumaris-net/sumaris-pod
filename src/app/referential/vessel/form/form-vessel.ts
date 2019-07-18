@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {VesselValidatorService} from "../../services/vessel.validator";
-import {FormGroup} from "@angular/forms";
 import {LocationLevelIds, ReferentialRef, referentialToString, VesselFeatures} from "../../services/model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";

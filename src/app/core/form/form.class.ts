@@ -5,12 +5,19 @@ import {DateAdapter} from "@angular/material";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {AppFormUtils} from "./form.utils";
+import {SuggestionDataService} from "../../shared/services/data-service.class";
+import {MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
+import {LocalSettingsService} from "../services/local-settings.service";
 
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   private _subscriptions: Subscription[];
   protected _enable = false;
   protected _implicitValues: { [key: string]: any } = {};
+
+  autocompleteFields: {
+    [key: string]: MatAutocompleteFieldConfig
+  } = {};
   error: string = null;
 
   @Input() debug = false;
@@ -26,7 +33,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
   get dirty(): boolean {
-    return this.form.dirty;
+    return this.form && this.form.dirty;
   }
 
   get invalid(): boolean {
@@ -90,7 +97,8 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   protected constructor(
     protected dateAdapter: DateAdapter<Moment> | DateFormatPipe,
-    form?: FormGroup
+    form?: FormGroup,
+    protected settings?: LocalSettingsService
   ) {
     this.form = form || this.form;
   }
@@ -183,6 +191,33 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
       control.markAsDirty();
       this._implicitValues[name] = null;
     }
+  }
+
+  protected registerAutocompleteField(fieldName: string, options?: {
+    defaultAttributes?: string[];
+    service?: SuggestionDataService<any>
+    suggestFn?: (value: any, options?: any) => Promise<any[]>
+  }) {
+    options = options || {};
+    const service: SuggestionDataService<any> = options.service || (options.suggestFn && {
+      suggest: (value: any, filter?: any) => options.suggestFn(value, filter)
+    }) || undefined;
+    const attributes = this.settings.getFieldAttributes(fieldName, options.defaultAttributes);
+
+    const config = {
+      attributes,
+      service,
+      filter: {
+        searchAttribute: attributes.length === 1 ? attributes[0] : undefined
+      }
+    };
+    this.autocompleteFields[fieldName] = config;
+
+    return config;
+  }
+
+  public getAutocompleteField(fieldName: string): MatAutocompleteFieldConfig {
+    return this.autocompleteFields[fieldName] || this.registerAutocompleteField(fieldName);
   }
 
   protected markForCheck() {

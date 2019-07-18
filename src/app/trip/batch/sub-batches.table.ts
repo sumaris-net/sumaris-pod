@@ -13,12 +13,19 @@ import {
 import {Observable, Subscription} from 'rxjs';
 import {debounceTime, map, mergeMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AcquisitionLevelCodes, AppFormUtils, EntityUtils, environment, ReferentialRef} from "../../core/core.module";
+import {
+  AcquisitionLevelCodes,
+  AppFormUtils,
+  EntityUtils,
+  environment,
+  IReferentialRef,
+  ReferentialRef
+} from "../../core/core.module";
 import {Batch, PmfmStrategy, referentialToString} from "../services/trip.model";
 import {PmfmIds, QualitativeLabels, ReferentialRefService} from "../../referential/referential.module";
 import {FormGroup, Validators} from "@angular/forms";
-import {isNil, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/shared.module";
-import {FieldOptions, UsageMode} from "../../core/services/model";
+import {isNil, isNilOrBlank, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/shared.module";
+import {FieldSettings, UsageMode} from "../../core/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {BatchUtils} from "../services/model/batch.model";
@@ -26,6 +33,7 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {selectInputContent} from "../../core/form/form.utils";
+import {DisplayFn} from "../../shared/material/material.autocomplete";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -63,26 +71,35 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
   private _parentSubscription: Subscription;
   private _availableParents: Batch[] = [];
+  private _qvPmfm: PmfmStrategy;
 
   protected _availableSortedParents: Batch[] = [];
+  protected _parentToStringOptions: any;
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryTableDataService<Batch, SubBatchFilter>;
-  protected fieldsOptions: {
-    taxonName?: FieldOptions
-  } = {};
+
+  $taxonNames: Observable<any[]>;
+  $filteredParents: Observable<Batch[]>;
 
   @Input() displayParentPmfm: PmfmStrategy;
 
-  $taxonNames: Observable<ReferentialRef[]>;
-  $filteredParents: Observable<Batch[]>;
-
   @Input() showForm = false;
 
-  @Input() qvPmfm: PmfmStrategy;
-
   @Input() tabindex: number;
+
+  @Input() set qvPmfm(value: PmfmStrategy) {
+    this._qvPmfm = value;
+    // If already loaded, re apply pmfms, to be able to execute mapPmfms
+    if (value) {
+      this.measurementsDataService.pmfms = this.pmfms;
+    }
+  };
+
+  get qvPmfm(): PmfmStrategy {
+    return this._qvPmfm;
+  };
 
   @Input()
   set availableParents(parents: Observable<Batch[]> | Batch[]) {
@@ -162,7 +179,9 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
         }
       }),
       validatorService,
-      options
+      Object.assign(options, {
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
+      })
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -178,57 +197,35 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     this.debug = !environment.production;
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     super.ngOnInit();
 
-    await this.settings.ready();
-
-    // Read fields options, from settings
-    this.fieldsOptions.taxonName = this.settings.getFieldOptions('taxonName');
+    // Configure some autocomplete fields
+    const taxonGroupConfig = this.registerAutocompleteField('taxonGroup');
+    const taxonNameConfig = this.registerAutocompleteField('taxonName', {
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
+    });
+    this._parentToStringOptions = {
+      pmfm: this.displayParentPmfm,
+      taxonGroupAttributes: taxonGroupConfig.attributes as string[],
+      taxonNameAttributes: taxonNameConfig.attributes  as string[]
+    };
 
     this.setShowColumn('comments', this.showCommentsColumn);
 
     if (this.inlineEdition) { // can be override bu subclasses
 
+      const taxonNameConfig = this.registerAutocompleteField('parentBatch', {
+        suggestFn: (value: any, options?: any) => this.suggestParent(value)
+      });
+
       // Parent combo
       this.$filteredParents = this.registerCellValueChanges('parent')
         .pipe(
           debounceTime(250),
-          map((value) => {
-            if (EntityUtils.isNotEmpty(value)) {
-              console.log("TODO: load taxon names ??");
-              return [value];
-            }
-            value = (typeof value === "string" && value !== "*") && value || undefined;
-            if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
-            if (isNil(value)) return this._availableSortedParents; // All
-            const ucValueParts = value.trim().toUpperCase().split(" ", 1);
-            // Search on labels (taxonGroup or taxonName)
-            return this._availableSortedParents.filter(p =>
-              (p.taxonGroup && startsWithUpperCase(p.taxonGroup.label, ucValueParts[0])) ||
-              (p.taxonName && startsWithUpperCase(p.taxonName.label, ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]))
-            );
-          }),
+          mergeMap((value) => this.suggestParent(value)),
           // Save implicit value
           tap(res => this.updateImplicitValue('parent', res))
-        );
-
-      // Taxon name combo
-      this.$taxonNames = this.registerCellValueChanges('taxonName')
-        .pipe(
-          debounceTime(250),
-          mergeMap(async (value) => {
-              const parent = this.editedRow.validator.get('parent').value;
-              return this.programService.suggestTaxonNames(value,
-                {
-                  program: this.program,
-                  searchAttribute: this.fieldsOptions.taxonName.searchAttribute,
-                  taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
-                });
-            }
-          ),
-          // Save implicit value
-          tap(items => this.updateImplicitValue('taxonName', items))
         );
 
       // Listening on column 'IS_DEAD' value changes
@@ -268,7 +265,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     }
   }
 
-  async addBatch(event?: UIEvent) {
+  async doSubmitForm(event?: UIEvent) {
     if (this.loading || !this.confirmEditCreate()) return; // skip
 
     if (this.form.invalid) {
@@ -325,7 +322,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       newBatch.taxonName = previousBatch.taxonName;
     }
 
-    MeasurementValuesUtils.normalizeFormEntity(newBatch, this.pmfms.getValue(), this.form.form);
+    MeasurementValuesUtils.normalizeFormEntity(newBatch, this.$pmfms.getValue(), this.form.form);
 
     if (this.form.disabled) {
       this.form.enable();
@@ -346,7 +343,6 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     this.qvPmfm = qvPmfm;
     const subBatches = BatchUtils.prepareSubBatchesForTable(parents, this.acquisitionLevel, qvPmfm);
-    console.debug("TODO: check subbatches: ", subBatches);
 
     await this.setAvailableParents(parents, {emitEvent: false, linkDataToParent: false});
 
@@ -380,6 +376,51 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   /* -- protected methods -- */
+  protected async suggestParent(value: any): Promise<any[]> {
+    if (EntityUtils.isNotEmpty(value)) {
+      return [value];
+    }
+    value = (typeof value === "string" && value !== "*") && value || undefined;
+    if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
+
+    if (isNil(value)) return this._availableSortedParents; // All
+
+    const ucValueParts = value.trim().toUpperCase().split(" ", 1);
+
+    // Search on labels (taxonGroup or taxonName)
+    return this._availableSortedParents.filter(p =>
+      (p.taxonGroup && startsWithUpperCase(p.taxonGroup.label, ucValueParts[0])) ||
+      (p.taxonName && startsWithUpperCase(p.taxonName.label, ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]))
+    );
+  }
+
+  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+    const parent = this.editedRow && this.editedRow.validator.get('parent').value;
+    if (isNilOrBlank(value) && isNil(parent)) return [];
+    return this.programService.suggestTaxonNames(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute,
+        taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
+      });
+  }
+
+  protected mapPmfms(pmfms: PmfmStrategy[]) {
+
+    if (this.qvPmfm) {
+      // Remove QV pmfms
+      const index = pmfms.findIndex(pmfm => pmfm.pmfmId === this.qvPmfm.pmfmId);
+      if (index !== -1) {
+        // Replace original pmfm by a copy, with hidden=true
+        const qvPmfm = this.qvPmfm.clone();
+        qvPmfm.hidden = true;
+
+        pmfms[index] = qvPmfm;
+      }
+    }
+
+    return pmfms;
+  }
 
   protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
     if (this.debug) console.debug("[batches-table] Adding batch to table:", newBatch);
@@ -387,7 +428,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     // Make sure individual count if init
     newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
 
-    const pmfms = this.pmfms.getValue() || [];
+    const pmfms = this.$pmfms.getValue() || [];
     MeasurementValuesUtils.normalizeFormEntity(newBatch, pmfms);
 
     const rows = await this.dataSource.getRows();
@@ -550,8 +591,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   selectInputContent = selectInputContent;
 
   parentToString(batch: Batch) {
-    // TODO: use options
-    return BatchUtils.parentToString(batch);
+    return BatchUtils.parentToString(batch, this._parentToStringOptions);
   }
 
   referentialToString = referentialToString;

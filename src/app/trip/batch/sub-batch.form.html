@@ -15,7 +15,6 @@
            [required]="showParent"
            (keyup.arrowdown)="onShowParentDropdown.emit($event)"
            (click)="selectInputContent($event) && onShowParentDropdown.emit($event)"
-           tabindex="1"
           >
     <mat-error *ngIf="form.controls.parent.hasError('required')" translate>ERROR.FIELD_REQUIRED
     </mat-error>
@@ -27,29 +26,31 @@
             [hidden]="form.controls.parent.disabled">
       <mat-icon>arrow_drop_down</mat-icon>
     </button>
-  </mat-form-field>
 
-  <mat-autocomplete #autoParentBatch="matAutocomplete"
-                    autoActiveFirstOption
-                    [displayWith]="parentToString">
-    <ion-row class="mat-autocomplete-header">
-      <ion-col size="1">
-        <ion-text>#</ion-text>
-      </ion-col>
-      <ion-col>
-        <ion-text translate>TRIP.BATCH.TABLE.PARENT</ion-text>
-      </ion-col>
-    </ion-row>
-    <mat-option *ngFor="let batch of $filteredParents | async" [value]="batch" no-padding>
-      <ion-row>
-        <ion-col size="1" [innerHTML]="batch.rankOrder"></ion-col>
+    <mat-autocomplete #autoParentBatch="matAutocomplete"
+                      autoActiveFirstOption
+                      [displayWith]="parentToString">
+      <ion-row class="mat-autocomplete-header">
+        <ion-col size="1">
+          <ion-text>#</ion-text>
+        </ion-col>
         <ion-col>
-                  <span
-                    [innerHTML]="parentToString(batch) | highlight: {search: form.controls.parent.value }"></span>
+          <ion-text translate>TRIP.BATCH.TABLE.PARENT</ion-text>
         </ion-col>
       </ion-row>
-    </mat-option>
-  </mat-autocomplete>
+      <mat-option *ngFor="let batch of $filteredParents | async" [value]="batch" no-padding>
+        <ion-row>
+          <ion-col size="1" [innerHTML]="batch.rankOrder"></ion-col>
+          <ion-col>
+                  <span
+                    [innerHTML]="parentToString(batch) | highlight: {search: form.controls.parent.value }"></span>
+          </ion-col>
+        </ion-row>
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+
+
 
 <!--  <ion-grid no-padding>-->
 <!--    <ion-row no-padding>-->
@@ -72,50 +73,19 @@
                                  #matInput
                                  [pmfm]="qvPmfm"
                                  [style]="mobile? 'button' : 'autocomplete'"
-                                 [formControl]="form.controls.measurementValues.controls[qvPmfm.pmfmId]"
+                                 [formControl]="form.controls.measurementValues.controls[qvPmfm.pmfmId.toString()]"
                                  [floatLabel]="floatLabel"
-                                 [compact]="compact">
+                                 [compact]="compact"
+                                 [required]="true">
   </mat-form-field-measurement-qv>
 
   <!-- Espèce scientifique -->
-  <mat-form-field>
-    <input matInput #matInput
-           formControlName="taxonName"
-           [matAutocomplete]="autoTaxonName"
-           [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
-           (blur)="applyImplicitValue('taxonName')"
-           (keyup.arrowdown)="onShowTaxonNameDropdown.emit($event)"
-           (click)="selectInputContent($event) && onShowTaxonNameDropdown.emit($event)"
-           required>
-    <mat-error *ngIf="form.controls.taxonName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-    <mat-error *ngIf="form.controls.taxonName.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-    <button mat-button matSuffix mat-icon-button tabindex="-1"
-            type="button"
-            (click)="onShowTaxonNameDropdown.emit($event)"
-            [hidden]="form.controls.taxonName.disabled">
-      <mat-icon>arrow_drop_down</mat-icon>
-    </button>
-  </mat-form-field>
-
-  <mat-autocomplete autoActiveFirstOption
-                    #autoTaxonName="matAutocomplete"
-                    [displayWith]="referentialToString">
-    <ion-row class="mat-autocomplete-header">
-      <ion-col size="3">
-        <ion-text translate>REFERENTIAL.LABEL</ion-text>
-      </ion-col>
-      <ion-col>
-        <ion-text translate>REFERENTIAL.NAME</ion-text>
-      </ion-col>
-    </ion-row>
-    <mat-option *ngFor="let item of $taxonNames | async" [value]="item" no-padding>
-      <ion-row>
-        <ion-col size="3"
-                 [innerHTML]="item.label | highlight: {search: form.controls.taxonName.value }"></ion-col>
-        <ion-col [innerHTML]="item.name | highlight: {search: form.controls.taxonName.value }"></ion-col>
-      </ion-row>
-    </mat-option>
-  </mat-autocomplete>
+  <mat-autocomplete-field #matInput
+    formControlName="taxonName"
+    [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
+    [required]="true"
+    [config]="autocompleteFields.taxonName">
+  </mat-autocomplete-field>
 
   <!-- pmfms -->
   <ng-container *ngFor="let pmfm of $pmfms | async; index as i; last as isLast">

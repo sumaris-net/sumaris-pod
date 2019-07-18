@@ -6,7 +6,7 @@ import {EntityUtils, isNil, isNotNil, IWithProgramEntity, PmfmStrategy, Program,
 import {
   AccountService,
   BaseDataService,
-  environment,
+  environment, IReferentialRef,
   LoadResult,
   ReferentialRef,
   TableDataService
@@ -15,8 +15,8 @@ import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "../services/referential.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
-import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {isNilOrBlank, isNotEmptyArray} from "../../shared/functions";
+import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
+import {isNilOrBlank, isNotEmptyArray, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefService} from "./referential-ref.service";
 
@@ -259,6 +259,7 @@ const ProgramCacheKeys = {
   BY_LABEL: 'programByLabel',
   PMFMS: 'programPmfms',
   GEARS: 'programGears',
+  TAXON_GROUPS: 'programTaxonGroups',
   TAXON_NAME_BY_GROUP: 'programTaxonNameByGroup',
   TAXON_NAMES: 'taxonNameByGroup'
 };
@@ -498,9 +499,37 @@ export class ProgramService extends BaseDataService
    * Load program taxon groups
    */
   loadTaxonGroups(programLabel: string): Promise<TaxonGroupRef[]> {
-    return this.watchTaxonGroups(programLabel)
-      .pipe(filter(isNotNil), first())
-      .toPromise();
+    const mapCacheKey = [ProgramCacheKeys.TAXON_GROUPS, programLabel].join('|');
+    return this.cache.getOrSetItem(mapCacheKey,
+      () => this.watchTaxonGroups(programLabel)
+            .pipe(filter(isNotNil), first())
+            .toPromise(),
+      ProgramCacheKeys.GROUP);
+  }
+
+  /**
+   * Suggest program taxon groups
+   */
+  async suggestTaxonGroups(value: any, options: {
+    program?: string;
+    searchAttribute?: string;
+  }): Promise<IReferentialRef[]> {
+    // Search on program's taxon groups
+    if (isNotNil(options.program)) {
+      const values = await this.loadTaxonGroups(options.program);
+      if (isNotEmptyArray(values)) {
+        return suggestFromArray(values, value, {
+          searchAttribute: options.searchAttribute
+        });
+      }
+    }
+
+    // If nothing found in program, or species defined
+    return await this.referentialRefService.suggest(value, {
+      entityName: 'TaxonGroup',
+      levelId: TaxonGroupIds.FAO,
+      searchAttribute: options.searchAttribute
+    });
   }
 
   /**
@@ -518,11 +547,11 @@ export class ProgramService extends BaseDataService
     if (isNotNil(options.program) && isNotNil(options.taxonGroupId)) {
 
       // Get map from program
-      const taxonNamesByTaxonGroupId = this.getProgramTaxonNamesByTaxonGroupId(options.program);
+      const taxonNamesByTaxonGroupId = this.loadProgramTaxonNamesByTaxonGroupId(options.program);
       const values = taxonNamesByTaxonGroupId[options.taxonGroupId];
       if (isNotEmptyArray(values)) {
-        return this.referentialRefService.suggestFromArray(values, value, {
-          searchAttribute: options.searchAttribute || 'name'
+        return suggestFromArray(values, value, {
+          searchAttribute: options.searchAttribute
         });
       }
     }
@@ -538,7 +567,7 @@ export class ProgramService extends BaseDataService
     // If there result, use it
     if (res && res.length) return res;
 
-    // Then, retry without the taxon groups (because link, in the DB may have been omitted)
+    // Then, retry without the taxon groups (e.g. when link in DB is missing)
     if (isNotNil(options.taxonGroupId)) {
       return await this.referentialRefService.suggestTaxonNames(value, {
         taxonomicLevelId: options.taxonomicLevelId,
@@ -551,7 +580,7 @@ export class ProgramService extends BaseDataService
     return [];
   }
 
-  async getProgramTaxonNamesByTaxonGroupId(program: string): Promise<{ [key: number]: TaxonNameRef[] } | undefined> {
+  async loadProgramTaxonNamesByTaxonGroupId(program: string): Promise<{ [key: number]: TaxonNameRef[] } | undefined> {
     const mapCacheKey = [ProgramCacheKeys.TAXON_NAME_BY_GROUP, program].join('|');
 
     return await this.cache.getOrSetItem(mapCacheKey,

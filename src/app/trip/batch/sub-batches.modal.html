@@ -15,7 +15,7 @@
       <ion-spinner *ngIf="loading"></ion-spinner>
 
       <ion-button [color]="form.valid ? 'primary' : 'danger'"
-                  *ngIf="!loading && mobile" (click)="addBatch($event)">
+                  *ngIf="!loading && mobile" (click)="doSubmitForm($event)">
         {{'COMMON.BTN_ADD'|translate}}
       </ion-button>
     </ion-buttons>
@@ -31,13 +31,13 @@
     <app-sub-batch-form #form
                         [debug]="debug"
                         [acquisitionLevel]="acquisitionLevel"
-                        [pmfms]="pmfms|async"
+                        [pmfms]="$pmfms|async"
                         [qvPmfm]="qvPmfm"
                         [showParent]="showParentColumn"
                         [showTaxonName]="showTaxonNameColumn"
                         [displayParentPmfm]="displayParentPmfm"
                         [onNewParentClick]="onNewParentClick"
-                        (onSubmit)="addBatch($event)"
+                        (onSubmit)="doSubmitForm($event)"
                         [tabindex]="1">
     </app-sub-batch-form>
 
@@ -85,7 +85,7 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+    <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
       <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm.isDate">
         <ion-label>{{getPmfmColumnHeader(pmfm)}}
           <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
@@ -152,8 +152,8 @@
 
         <ion-button [fill]="form.valid ? 'solid' : 'clear'"
                     [disabled]="loading || !dirty"
-                    (keypress.enter)="addBatch($event)"
-                    (click)="addBatch($event)"
+                    (keypress.enter)="doSubmitForm($event)"
+                    (click)="doSubmitForm($event)"
                     color="tertiary">
           <ion-label translate>COMMON.BTN_ADD</ion-label>
         </ion-button>

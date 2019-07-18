@@ -22,10 +22,10 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {
   AcquisitionLevelCodes,
-  EntityUtils,
+  EntityUtils, FieldSettings,
   ReferentialRef,
   referentialToString,
-  UsageMode
+  UsageMode, IReferentialRef, Referential
 } from "../../core/services/model";
 import {debounceTime, filter, map, mergeMap, startWith, tap} from "rxjs/operators";
 import {
@@ -45,6 +45,9 @@ import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
 import {MeasurementQVFormField} from "../measurement/measurement-qv.form-field.component";
+import {SuggestionDataService} from "../../shared/services/data-service.class";
+import {MatAutocompleteField} from "../../shared/material/material.autocomplete";
+
 
 @Component({
   selector: 'app-sub-batch-form',
@@ -60,7 +63,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   protected _initialPmfms: PmfmStrategy[];
   protected _qvPmfm: PmfmStrategy;
 
-  $taxonNames: Observable<ReferentialRef[]>;
+  fieldsConfigCache = {};
+
+  $taxonNames: Observable<any[]>;
   $filteredParents: Observable<Batch[]>;
 
   _availableParents: Batch[] = [];
@@ -129,7 +134,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     protected settings: LocalSettingsService,
     protected platform: PlatformService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, cd,
+    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
       validatorService.getRowValidator(), {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       });
@@ -145,10 +150,16 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // For DEV only
     this.debug = !environment.production;
+
+
   }
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.registerAutocompleteField('taxonName', {
+        suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
+    });
 
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
@@ -271,6 +282,17 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   /* -- protected methods -- */
 
+  protected suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+    const parent = this.form && this.form.get('parent').value;
+    if (isNilOrBlank(value) && isNil(parent)) return Promise.resolve([]);
+    return this.programService.suggestTaxonNames(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute,
+        taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
+      });
+  }
+
   protected mapPmfms(pmfms: PmfmStrategy[]) {
 
     if (this.qvPmfm) {
@@ -361,7 +383,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
         let tabindex = this.tabindex+1;
         this.matInputs.forEach(input => {
-          if (input instanceof MeasurementFormField || input instanceof MeasurementQVFormField) {
+          if (input instanceof MeasurementFormField
+            || input instanceof MeasurementQVFormField
+            || input instanceof MatAutocompleteField) {
             input.tabindex = tabindex;
           }
           else if (input.nativeElement instanceof HTMLInputElement){

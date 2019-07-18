@@ -1,4 +1,4 @@
-import {EntityUtils, isNil, isNotNil} from "../../../core/core.module";
+import {EntityUtils, isNil, isNotNil, referentialToString} from "../../../core/core.module";
 import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
@@ -164,23 +164,34 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
 
 export class BatchUtils {
 
-  static parentToString(batch: Batch, opts?: { showLabel?: boolean; }): string {
+  static parentToString(batch: Batch, opts?: {
+    pmfm?: PmfmStrategy,
+    taxonGroupAttributes: string[];
+    taxonNameAttributes: string[];
+  }): string {
     if (!batch) return null;
-    opts = opts || {showLabel: false}; // TODO: true by default ?
+    opts = opts || {taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name']};
+    if (opts.pmfm) {
+      console.log("TODO: check parent pmfm", opts.pmfm);
+    }
 
     const hasTaxonGroup = EntityUtils.isNotEmpty(batch.taxonGroup);
     const hasTaxonName = EntityUtils.isNotEmpty(batch.taxonName);
+    // Display only taxon name, if no taxon group or same label
     if (hasTaxonName && (!hasTaxonGroup || batch.taxonGroup.label === batch.taxonName.label)) {
-      return opts.showLabel ? `${batch.taxonName.label} - ${batch.taxonName.name}` : batch.taxonName.name;
+      return referentialToString(batch.taxonName, opts.taxonNameAttributes);
     }
+    // Display both, if both exists
     if (hasTaxonName && hasTaxonGroup) {
-      return opts.showLabel ?
-        `${batch.taxonGroup.label} / ${batch.taxonName.label} - ${batch.taxonName.name}` :
-        batch.taxonName.name;
+      return referentialToString(batch.taxonGroup, opts.taxonGroupAttributes) + ' / '
+        + referentialToString(batch.taxonName, opts.taxonNameAttributes);
     }
+    // Display only taxon group
     if (hasTaxonGroup) {
-      return opts.showLabel ? `${batch.taxonGroup.label} - ${batch.taxonGroup.name}` : batch.taxonGroup.name;
+      return referentialToString(batch.taxonGroup, opts.taxonGroupAttributes);
     }
+
+    // Display rankOrder only (should never occur)
     return `#${batch.rankOrder}`;
   }
 

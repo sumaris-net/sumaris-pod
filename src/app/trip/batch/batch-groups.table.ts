@@ -1,22 +1,21 @@
 import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {Batch, PmfmStrategy, ReferentialRef, TaxonGroupIds} from "../services/trip.model";
-import {TaxonomicLevelIds,} from "../../referential/referential.module";
+import {Batch, PmfmStrategy} from "../services/trip.model";
 import {BatchGroupsValidatorService} from "../services/trip.validators";
 import {FormGroup, Validators} from "@angular/forms";
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from "./batches.table";
-import {isNil, isNotNil, toFloat, toInt} from "../../shared/shared.module";
+import {isNil, isNilOrBlank, isNotNil, toFloat, toInt} from "../../shared/shared.module";
 import {MethodIds} from "../../referential/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {environment} from "../../../environments/environment";
-import {MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurement.model";
+import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {ModalController} from "@ionic/angular";
-import {debounceTime, switchMap, tap} from "rxjs/operators";
 import {Observable} from "rxjs";
-import {BatchUtils, BatchWeight} from "../services/model/batch.model";
-import {isNotEmptyArray, isNotNilOrBlank} from "../../shared/functions";
-import {ColumnItem, TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
+import {BatchWeight} from "../services/model/batch.model";
+import {isNotNilOrBlank} from "../../shared/functions";
+import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
+import {IReferentialRef} from "../../core/services/model";
 
 const DEFAULT_USER_COLUMNS =["weight", "individualCount"];
 
@@ -35,9 +34,6 @@ export class BatchGroupsTable extends BatchesTable {
   protected modalCtrl: ModalController;
 
   weightMethodForm: FormGroup;
-
-  $taxonGroups: Observable<ReferentialRef[]>;
-  $taxonNames: Observable<ReferentialRef[]>;
 
   constructor(
     injector: Injector
@@ -63,30 +59,14 @@ export class BatchGroupsTable extends BatchesTable {
     await super.ngOnInit();
 
     // Taxon group combo
-    this.$taxonGroups = this.registerCellValueChanges('taxonGroup')
-      .pipe(
-        debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value, {
-          entityName: 'TaxonGroup',
-          levelId: TaxonGroupIds.FAO,
-          searchAttribute: this.fieldsOptions.taxonGroup.searchAttribute
-        })),
-        // Remember implicit value
-        tap(res => this.updateImplicitValue('taxonGroup', res))
-      );
+    this.registerAutocompleteField('taxonGroup', {
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+    });
 
     // Taxon name combo
-    this.$taxonNames = this.registerCellValueChanges('taxonName')
-      .pipe(
-        debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value, {
-          entityName: 'TaxonName',
-          levelId: TaxonomicLevelIds.SPECIES,
-          searchAttribute: this.fieldsOptions.taxonName.searchAttribute
-        })),
-        // Remember implicit value
-        tap(res => this.updateImplicitValue('taxonName', res))
-      );
+    this.registerAutocompleteField('taxonName', {
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
+    });
   }
 
   onLoad(data: Batch[]): Batch[] {
@@ -218,6 +198,29 @@ export class BatchGroupsTable extends BatchesTable {
   }
 
   /* -- protected methods -- */
+
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+    //if (isNilOrBlank(value)) return [];
+    return this.programService.suggestTaxonGroups(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute
+      });
+  }
+
+  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+    const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
+
+    // IF taxonGroup column exists: taxon group must be filled first
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(parent)) return [];
+
+    return this.programService.suggestTaxonNames(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute,
+        taxonGroupId: taxonGroup && taxonGroup.id || undefined
+      });
+  }
 
   protected normalizeRowMeasurementValues(data: Batch, row: TableElement<Batch>) {
     // When batch has the QV value
@@ -441,7 +444,7 @@ export class BatchGroupsTable extends BatchesTable {
 
   // Override default pmfms
   updateColumns(pmfms?: PmfmStrategy[]) {
-    pmfms = pmfms || this.pmfms.getValue();
+    pmfms = pmfms || this.$pmfms.getValue();
     if (!pmfms) return; // Pmfm not loaded: skip
 
     this.displayedColumns = this.getDisplayColumns();

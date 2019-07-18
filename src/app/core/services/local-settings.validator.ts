@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/forms";
-import {FieldOptions, LocalSettings} from "./model";
+import {FieldSettings, LocalSettings} from "./model";
 import {SharedValidators} from "../../shared/validator/validators";
 import {NetworkService} from "./network.service";
 
@@ -31,16 +31,16 @@ export class LocalSettingsValidatorService implements ValidatorService {
     });
   }
 
-  getFieldsArray(array?: FieldOptions[]) {
+  getFieldsArray(array?: FieldSettings[]) {
     return this.formBuilder.array(
       (array || []).map(item => this.getFieldControl(item))
     );
   }
 
-  getFieldControl(data?: FieldOptions): FormGroup {
+  getFieldControl(data?: FieldSettings): FormGroup {
     return this.formBuilder.group({
       key: [data && data.key || '', Validators.required],
-      attributes: [data && data.attributes || '', Validators.required]
+      value: [data && data.value || '', Validators.required]
     });
   }
 

@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FieldOptions, LocalSettings, Peer, UsageMode} from "./model";
+import {FieldSettings, LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
@@ -186,16 +186,26 @@ export class LocalSettingsService {
     await this.saveLocally();
   }
 
-  public getFieldOptions(fieldName: string, defaultOptions?: {attributesArray?: string[];}): FieldOptions {
-    let options = this.data && this.data.fields &&  this.data.fields.find(fo => fo.key===fieldName) as FieldOptions;
+  // public async getFieldsSettings(fieldNames: string[]): Promise<{[key: string]: FieldSettings}> {
+  //   if (!this.isStarted()) await this.ready();
+  //   return (fieldNames || []).reduce((res, key) => {
+  //     res[key] = this.getFieldSettings(key);
+  //     return res;
+  //   }, {});
+  // }
+
+  public getFieldAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
+    let options = this.data && this.data.fields &&  this.data.fields.find(fo => fo.key===fieldName) as FieldSettings;
     if (!options) {
       // Default
-      options = Object.assign({key: fieldName, attributes: 'label,name'}, defaultOptions||{}) as FieldOptions;
+      options = {key: fieldName, value: defaultAttributes && defaultAttributes.join(',') || 'label,name'};
+      if (this.data) {
+        console.warn(`[settings] New field {${fieldName}} ! Applying default settings...`);
+        this.data.fields = this.data.fields || [];
+        this.data.fields.push(options);
+      }
     }
-    options.attributes = options.attributes || options.attributesArray && options.attributesArray.join(',');
-    options.attributesArray = options.attributesArray || options.attributes.split(',');
-    options.searchAttribute = options.searchAttribute || (options.attributesArray && options.attributesArray.length === 1 ? options.attributesArray[0] : undefined);
-    return options;
+    return options.value.split(',');
   }
 
   /* -- Protected methods -- */

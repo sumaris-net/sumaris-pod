@@ -589,6 +589,7 @@
     "DESCRIPTION": "Description",
     "COMMENTS": "Commentaires",
     "STATUS": "Etat",
+    "RANKORDER": "#",
     "LIST": {
       "TITLE": "Listes",
       "FILTER": {

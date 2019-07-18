@@ -22,7 +22,7 @@ import {FloatLabelType, MatSelect} from "@angular/material";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {isNotEmptyArray, toBoolean} from "../../shared/functions";
+import {isNotEmptyArray, suggestFromArray, toBoolean} from "../../shared/functions";
 import {AppFormUtils, LocalSettingsService} from "../../core/core.module";
 import {sort} from "../../core/services/model";
 
@@ -113,20 +113,15 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
-    const options = this.settings.getFieldOptions('qualitativeValue', {attributesArray: this.compact ? ['label'] : ['label', 'name']});
-    this.searchAttributes = isNotEmptyArray(this.searchAttributes) && this.searchAttributes || options.searchAttribute && [options.searchAttribute] || options.attributesArray;
-    this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : options.searchAttribute;
+    const attributes = this.settings.getFieldAttributes('qualitativeValue', this.compact && ['label'] || ['label', 'name']);
+    this.searchAttributes = isNotEmptyArray(this.searchAttributes) && this.searchAttributes || attributes;
+    this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
 
     // Sort values
-    this._sortedQualitativeValues = this.pmfm.qualitativeValues.length < 5 ?
-      // Keep rankOrder, if less than 5 item (e.g. Landing/Discard - see issue #112)
-      sort(this.pmfm.qualitativeValues, 'rankOrder') :
-      sort(this.pmfm.qualitativeValues, this.sortAttribute);
+    this._sortedQualitativeValues = sort(this.pmfm.qualitativeValues, this.sortAttribute);
 
     this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
-    this.displayWith = this.displayWith || (this.compact ?
-      (obj) => obj && obj[this.searchAttributes[0]] :
-      (obj) => referentialToString(obj, this.searchAttributes));
+    this.displayWith = this.displayWith || ((obj) => referentialToString(obj, attributes));
     this.clearable = this.compact ? false : this.clearable;
 
     if (!this.mobile) {
@@ -144,23 +139,10 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
             .pipe(
               takeUntil(this._onDestroy),
               filter(EntityUtils.isEmpty),
-              map(value => {
-                value = (typeof value === "string") && (value as string).toUpperCase() || undefined;
-                if (!value || value === '*') return this._sortedQualitativeValues;
-
-                // Filter by label and name
-                return this._sortedQualitativeValues
-                  .filter((qv) => this.match(qv, value));
-              }),
-              // Store implicit value (will use it onBlur if not other value selected)
-              tap(res => {
-                if (res && res.length === 1) {
-                  this._implicitValue = res[0];
-                  this.formControl.setErrors(null);
-                } else {
-                  this._implicitValue = undefined;
-                }
-              })
+              map(value => suggestFromArray(this._sortedQualitativeValues, value, {
+                searchAttributes: this.searchAttributes
+              })),
+              tap(res => this.updateImplicitValue(res))
             )
         );
       }
@@ -197,12 +179,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   }
 
-  checkIfTouched() {
-    if (this.formControl.touched) {
-      this.markForCheck();
-      this._onTouchedCallback();
-    }
-  }
 
   computePlaceholder(pmfm: PmfmStrategy, sortedQualitativeValues: ReferentialRef[]): string {
     if (!sortedQualitativeValues || !sortedQualitativeValues.length) return pmfm && pmfm.name;
@@ -211,9 +187,10 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   _onBlur(event: FocusEvent) {
     // When leave component without object, use implicit value if stored
-    if (typeof this.formControl.value !== "object" && this._implicitValue) {
+    if (this._implicitValue && typeof this.formControl.value !== "object") {
       this.writeValue(this._implicitValue);
     }
+    this._implicitValue = null;
     this.checkIfTouched();
     this.onBlur.emit(event);
   }
@@ -226,6 +203,23 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   selectInputContent = AppFormUtils.selectInputContent;
 
   /* -- protected methods -- */
+
+  protected updateImplicitValue(res: any[]) {
+    // Store implicit value (will use it onBlur if not other value selected)
+    if (res && res.length === 1) {
+      this._implicitValue = res[0];
+      this.formControl.setErrors(null);
+    } else {
+      this._implicitValue = undefined;
+    }
+  }
+
+  protected checkIfTouched() {
+    if (this.formControl.touched) {
+      this.markForCheck();
+      this._onTouchedCallback();
+    }
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

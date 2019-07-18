@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {AccountService} from '../services/account.service';
-import {FieldOptions, LocalSettings, Peer, referentialToString, UsageMode} from '../services/model';
+import {FieldSettings, LocalSettings, Peer, referentialToString, UsageMode} from '../services/model';
 import {FormArray, FormBuilder, FormControl} from '@angular/forms';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
@@ -35,19 +35,19 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       key: 'qualitativeValue',
       label: 'SETTINGS.FIELDS.QUALITATIVE_VALUE',
       type: 'combo',
-      attributes: [['label', 'name'], ['name'], ['name', 'label'], ['label']]
+      values: ['label,name', 'name', 'name,label', 'label']
     },
     {
       key: 'taxonGroup',
       label: 'SETTINGS.FIELDS.TAXON_GROUP',
       type: 'combo',
-      attributes: [['label', 'name'], ['name'], ['name', 'label'], ['label']]
+      values: ['label,name', 'name', 'name,label', 'label']
     },
     {
       key: 'taxonName',
       label: 'SETTINGS.FIELDS.TAXON_NAME',
       type: 'combo',
-      attributes: [['label', 'name'], ['name'], ['name', 'label'], ['label']]
+      values: ['label,name', 'name', 'name,label', 'label']
     }
 
   ];
@@ -58,7 +58,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   };
   locales: String[] = [];
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
-  fieldsFormHelper: FormArrayHelper<FieldOptions>;
+  fieldsFormHelper: FormArrayHelper<FieldSettings>;
 
   get accountInheritance(): boolean {
     return this.form.controls['accountInheritance'].value;
@@ -104,14 +104,13 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   async ngOnInit() {
     super.ngOnInit();
 
-    this.fieldsFormHelper = new FormArrayHelper<FieldOptions>(this.formBuilder,
+    this.fieldsFormHelper = new FormArrayHelper<FieldSettings>(this.formBuilder,
       this.form,
       'fields',
       (value) => this.validatorService.getFieldControl(value),
       (o1, o2) => (!o1 && !o2) || (o1.key === o2.key),
-      (o) => !o || (!o.key && !o.attributes)
+      (o) => !o || (!o.key && !o.value)
     );
-    //this.fieldFormArray.resize(1);
 
     // Make sure platform is ready
     await this.platform.ready();

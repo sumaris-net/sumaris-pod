@@ -10,6 +10,7 @@ import {MeasurementValuesForm} from '../measurement/measurement-values.form.clas
 import {Subject} from 'rxjs';
 import {BatchValidatorService} from '../services/batch.validator';
 import {filter} from "rxjs/operators";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'form-catch-batch',
@@ -31,10 +32,11 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
     protected validatorService: BatchValidatorService,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, measurementsValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementsValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
   }
 
   ngOnInit() {

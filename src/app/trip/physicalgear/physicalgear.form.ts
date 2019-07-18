@@ -5,7 +5,7 @@ import {Moment} from 'moment/moment'
 import {DateAdapter} from "@angular/material";
 import {merge, Observable, Subject} from 'rxjs';
 import {debounceTime, distinct, filter, map, tap} from 'rxjs/operators';
-import {AcquisitionLevelCodes, PlatformService} from '../../core/core.module';
+import {AcquisitionLevelCodes, LocalSettingsService, PlatformService} from '../../core/core.module';
 import {
   EntityUtils,
   ProgramService,
@@ -49,11 +49,12 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
     protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected validatorService: PhysicalGearValidatorService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
     this._enable = true;
     this.mobile = platform.mobile;
     this.requiredGear = true;

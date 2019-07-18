@@ -206,10 +206,16 @@ mat-option:not(:last-child) {
 }
 
 .mat-select-panel {
-  width: 300px !important;
+  width: 250px !important;
 }
 .mat-autocomplete-panel {
-  min-width: 300px !important;
+  min-width: 200px !important;
+}
+.mat-autocomplete-panel.min-width-medium {
+  min-width: 250px !important;
+}
+.mat-autocomplete-panel.min-width-large {
+  min-width: 350px !important;
 }
 .mat-select-panel,
 .mat-autocomplete-panel {

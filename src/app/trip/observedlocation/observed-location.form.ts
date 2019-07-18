@@ -13,7 +13,7 @@ import {
   referentialToString
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {AcquisitionLevelCodes} from '../../core/core.module';
+import {AcquisitionLevelCodes, LocalSettingsService} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable} from 'rxjs';
 import {debounceTime, filter, map, startWith, switchMap, tap} from 'rxjs/operators';
@@ -62,12 +62,13 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
-    protected cd: ChangeDetectorRef,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected personService: PersonService
+    protected personService: PersonService,
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
     this._enable = false;
 
     // Set default acquisition level

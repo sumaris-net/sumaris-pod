@@ -1,13 +1,8 @@
 // Import the core angular services.
-import { AfterContentInit } from "@angular/core";
-import { Directive } from "@angular/core";
-import { ElementRef } from "@angular/core";
-import { OnChanges } from "@angular/core";
-import { OnDestroy } from "@angular/core";
-import { SimpleChanges } from "@angular/core";
-import Timeout = NodeJS.Timeout;
+import {AfterContentInit, Directive, ElementRef, OnChanges, OnDestroy, SimpleChanges} from "@angular/core";
 import {Platform} from "@ionic/angular";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
+import Timeout = NodeJS.Timeout;
 
 // ----------------------------------------------------------------------------------- //
 // ----------------------------------------------------------------------------------- //

@@ -143,9 +143,9 @@ export function qualityFlagToColor(qualityFlagId: number) {
 }
 
 export interface IWithProgramEntity<T> extends Entity<T> {
-  program: Referential | ReferentialRef;
+  program: Referential | any;
   recorderPerson?: Person;
-  recorderDepartment: Referential | ReferentialRef;
+  recorderDepartment: Referential | any;
 }
 
 export class VesselFeatures extends Entity<VesselFeatures> {
@@ -167,7 +167,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   lengthOverAll: number;
   grossTonnageGt: number;
   grossTonnageGrt: number;
-  basePortLocation: ReferentialRef;
+  basePortLocation: any;
   creationDate: Date | Moment;
   recorderDepartment: Department;
   recorderPerson: Person;
@@ -443,7 +443,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   gears: string[];
   taxonGroupIds: number[];
   referenceTaxonIds: number[];
-  qualitativeValues: ReferentialRef[];
+  qualitativeValues: any[];
 
   hidden?: boolean;
 
@@ -534,9 +534,9 @@ export class Strategy extends Entity<Strategy> {
   statusId: number;
   pmfmStrategies: PmfmStrategy[];
 
-  gears: ReferentialRef[];
-  taxonGroups: ReferentialRef[];
-  taxonNames: ReferentialRef[];
+  gears: any[];
+  taxonGroups: any[];
+  taxonNames: any[];
 
   programId: number;
 

@@ -18,27 +18,20 @@ import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {
   AcquisitionLevelCodes,
-  FieldOptions,
+  IReferentialRef,
   ReferentialRef,
   referentialToString,
   UsageMode
 } from "../../core/services/model";
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from "rxjs/operators";
-import {
-  isNil,
-  MethodIds,
-  PmfmLabelPatterns,
-  PmfmStrategy,
-  TaxonGroupIds,
-  TaxonomicLevelIds
-} from "../../referential/services/model";
+import {isNil, MethodIds, PmfmLabelPatterns, PmfmStrategy, TaxonGroupIds} from "../../referential/services/model";
 import {merge, Observable} from "rxjs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {SpeciesBatchValidatorService} from "../services/validator/species-batch.validator";
 import {AppFormUtils, PlatformService} from "../../core/core.module";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {isNotNilOrBlank} from "../../shared/functions";
+import {isNilOrBlank, isNotNilOrBlank} from "../../shared/functions";
 
 @Component({
   selector: 'app-batch-form',
@@ -51,11 +44,6 @@ import {isNotNilOrBlank} from "../../shared/functions";
 export class BatchForm extends MeasurementValuesForm<Batch>
   implements OnInit, OnDestroy {
 
-  protected fieldsOptions: {
-    taxonGroup?: FieldOptions,
-    taxonName?: FieldOptions
-  } = {};
-
   defaultWeightPmfm: PmfmStrategy;
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
   estimatedWeightControl: AbstractControl;
@@ -63,12 +51,6 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   mobile: boolean;
 
   samplingBatchPmfms: PmfmStrategy[];
-
-  onShowTaxonGroupDropdown = new EventEmitter<UIEvent>();
-  $taxonGroups: Observable<ReferentialRef[]>;
-
-  onShowTaxonNameDropdown = new EventEmitter<UIEvent>();
-  $taxonNames: Observable<ReferentialRef[]>;
 
   @Input() tabindex: number;
 
@@ -99,7 +81,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, cd,
+    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
       validatorService.getRowValidator(),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
@@ -120,57 +102,14 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
     console.debug("[batch-form] Init form");
 
-    await this.settings.ready();
-
-    // Read fields options, from settings
-    this.fieldsOptions.taxonGroup = this.settings.getFieldOptions('taxonGroup');
-    this.fieldsOptions.taxonName = this.settings.getFieldOptions('taxonName');
-
-    // Taxon groups combo
-    this.$taxonGroups = merge(
-        this.onShowTaxonGroupDropdown
-          .pipe(
-            filter(e => !e.defaultPrevented),
-            map((_) => "*")
-          ),
-        this.form.get('taxonGroup').valueChanges
-          .pipe(debounceTime(250))
-      )
-      .pipe(
-        throttleTime(100),
-        switchMap((value) => this.referentialRefService.suggest(value, {
-          entityName: 'TaxonGroup',
-          levelId: TaxonGroupIds.FAO,
-          searchAttribute: this.fieldsOptions.taxonGroup.searchAttribute
-        })),
-        // Remember implicit value
-        tap(res => this.updateImplicitValue('taxonGroup', res))
-      );
-
+    // Taxon group combo
+    this.registerAutocompleteField('taxonGroup', {
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+    });
     // Taxon name combo
-    this.$taxonNames =
-      merge(
-        this.onShowTaxonNameDropdown
-          .pipe(
-            filter(e => !e.defaultPrevented),
-            map((_) => "*")
-          ),
-        this.form.get('taxonName').valueChanges
-          .pipe(debounceTime(250))
-      )
-      .pipe(
-        throttleTime(100),
-        switchMap((value) => {
-          const taxonGroup = this.form.get('taxonGroup').value;
-          return this.programService.suggestTaxonNames(value, {
-            program: this.program,
-            searchAttribute: this.fieldsOptions.taxonName.searchAttribute,
-            taxonGroupId: taxonGroup && taxonGroup.id || undefined
-          })
-        }),
-        // Remember implicit value
-        tap(res => this.updateImplicitValue('taxonName', res))
-      );
+    this.registerAutocompleteField('taxonName', {
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
+    });
   }
 
 
@@ -234,6 +173,28 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   }
 
   /* -- protected methods -- */
+
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+    return this.programService.suggestTaxonGroups(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute
+      });
+  }
+
+  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+    const taxonGroup = this.form.get('taxonGroup').value;
+
+    // IF taxonGroup column exists: taxon group must be filled first
+    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(parent)) return [];
+
+    return this.programService.suggestTaxonNames(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute,
+        taxonGroupId: taxonGroup && taxonGroup.id || undefined
+      });
+  }
 
   protected mapPmfms(pmfms: PmfmStrategy[]) {
     let weightMinRankOrder: number = undefined;

@@ -1,8 +1,31 @@
-import {ChangeDetectionStrategy, Component, forwardRef, Input, OnInit, Optional} from "@angular/core";
-import {FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
-import {Observable} from "rxjs";
-import {debounceTime, first, map, mergeMap, startWith, switchMap} from "rxjs/operators";
-import {SuggestionDataService, TableDataService} from "../services/data-service.class";
+import {
+  ChangeDetectionStrategy, ChangeDetectorRef,
+  Component, ElementRef,
+  EventEmitter,
+  forwardRef,
+  Input, OnDestroy,
+  OnInit,
+  Optional,
+  Output, ViewChild
+} from "@angular/core";
+import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
+import {merge, Observable} from "rxjs";
+import {
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  startWith,
+  switchMap,
+  takeUntil, takeWhile,
+  tap,
+  throttleTime
+} from "rxjs/operators";
+import {SuggestionDataService} from "../services/data-service.class";
+import {joinProperties, suggestFromArray, selectInputContent, isNotEmptyArray, getPropertyByPath} from "../functions";
+import {ReferentialRef} from "../../core/services/model";
+import {IFocusable} from "./focusable";
+import {MatAutocomplete} from "@angular/material";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -10,20 +33,36 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
   multi: true
 };
 
+export declare type DisplayFn = (obj:any) => string;
+
+export declare interface  MatAutocompleteFieldConfig<T=any> {
+  service?: SuggestionDataService<T>;
+  filter?: any;
+  items?: Observable<T[]> | T[];
+  attributes: string[];
+  columnSizes?: number[];
+  displayWith?: DisplayFn;
+}
+
 @Component({
   selector: 'mat-autocomplete-field',
   templateUrl: 'material.autocomplete.html',
   providers: [DEFAULT_VALUE_ACCESSOR],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatAutocompleteField implements OnInit {
+export class MatAutocompleteField implements OnInit, IFocusable, OnDestroy, ControlValueAccessor  {
+
+  private _implicitValue: any;
+  private _onDestroy = new EventEmitter(true);
+  private _onRefresh = new EventEmitter<UIEvent>(true);
+
+  onShowDropdown = new EventEmitter<UIEvent>(true);
+
 
   private _onChangeCallback = (_: any) => {
   };
   private _onTouchedCallback = () => {
   };
-
-  items: Observable<any[]>;
 
   @Input() formControl: FormControl;
 
@@ -39,32 +78,122 @@ export class MatAutocompleteField implements OnInit {
 
   @Input() required = false;
 
-  @Input() displayWith = (_: any) => '';
+  @Input() readonly = false;
+
+  @Input() clearable = false;
+
+  @Input() items: Observable<any[]> | any[];
+
+  @Input() debounceTime = 250;
+
+  @Input() displayWith: DisplayFn | null;
+
+  @Input() displayAttributes: string[];
+
+  @Input() displayColumnSizes: number[];
+
+  @Input() tabindex: number;
+
+  @Input() appAutofocus: boolean;
+
+  @Input() config: MatAutocompleteFieldConfig;
+
+  @Input('class') classList: string;
+
+  @Output('click') onClick = new EventEmitter<MouseEvent>();
+
+  @Output('blur') onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+
+  @ViewChild('matInput') matInput: ElementRef;
+
+  @ViewChild('autoCombo') matAutocomplete: MatAutocomplete;
 
   constructor(
+    protected cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
-
   }
 
   ngOnInit() {
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-autocomplete-field>.");
 
-    if (this.service) {
-      this.items = this.formControl.valueChanges
+    // Configuration from config object
+    if (this.config) {
+      this.service = this.service || this.config.service;
+      this.filter = this.filter || this.config.filter;
+      this.displayAttributes = this.displayAttributes || this.config.attributes;
+      this.displayColumnSizes = this.displayColumnSizes || this.config.columnSizes;
+      this.displayWith = this.displayWith || this.config.displayWith;
+    }
+
+    // Default values
+    this.displayAttributes = this.displayAttributes || (this.filter && this.filter.attributes) || ['label', 'name'];
+    this.displayWith = this.displayWith || ((obj) => obj && joinProperties(obj, this.displayAttributes));
+    this.displayColumnSizes = isNotEmptyArray(this.displayColumnSizes) ?
+      this.displayColumnSizes :
+      this.displayAttributes.map(attr => (attr === 'label') ? 2 : (attr === 'rankOrder' ? 1 : undefined));
+    console.log(this.displayColumnSizes);
+
+    const updateEvents$ = merge(
+      this._onRefresh
         .pipe(
-          startWith('*'),
-          debounceTime(250),
-          switchMap((value) => this.service.suggest(value as string, this.filter))
+          map((_) => this.formControl.value)
+        ),
+      this.onShowDropdown
+        .pipe(
+          filter(event => !event || !event.defaultPrevented),
+          map((_) => this.formControl.value)
+        ),
+      this.formControl.valueChanges
+        .pipe(
+          debounceTime(this.debounceTime),
+          distinctUntilChanged()
+        )
+    )
+        .pipe(
+          //startWith(''),
+          takeUntil(this._onDestroy)
+        )
+    ;
+
+    if (this.service) {
+      this.items = updateEvents$
+        .pipe(
+          throttleTime(100),
+          switchMap((value) => this.service.suggest(value, this.filter)),
+          // Store implicit value (will use it onBlur if not other value selected)
+          tap(res =>  this.updateImplicitValue(res))
+        );
+    }
+    else if (this.items instanceof Array){
+      const values = this.items;
+      const searchOptions = Object.assign({searchAttributes: this.displayAttributes}, this.filter);
+      this.items = updateEvents$
+        .pipe(
+          map(value => suggestFromArray(values, value, searchOptions)),
+          // Store implicit value (will use it onBlur if not other value selected)
+          tap(res =>  this.updateImplicitValue(res))
         );
     }
 
-    //this.formControl.valueChanges.subscribe(value => this._onChange(value));
+    if (!this.items) {
+      console.warn("Missing attribute 'service', 'items' or 'config' in <mat-autocomplete-field>", this);
+    }
+
+    // Update tab index
+    this.updateTabIndex();
+  }
+
+  ngOnDestroy(): void {
+    this._onDestroy.emit();
   }
 
   writeValue(value: any): void {
-    //console.debug("writeValue", value);
+    if (value !== this.formControl.value) {
+      this.formControl.patchValue(value, {emitEvent: false});
+      this._onChangeCallback(value);
+    }
   }
 
   registerOnChange(fn: any): void {
@@ -76,11 +205,70 @@ export class MatAutocompleteField implements OnInit {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    if (isDisabled) {
-      //this.formControl.disable({ onlySelf: true, emitEvent: false });
-    } else {
-      //this.formControl.enable({ onlySelf: true, emitEvent: false });
+  }
+
+  clear() {
+    this.formControl.setValue(null);
+    this.markForCheck();
+  }
+
+  refresh() {
+    this._onRefresh.emit();
+  }
+
+  selectInputContent = selectInputContent;
+
+  _onBlur(event: FocusEvent) {
+    // When leave component without object, use implicit value if stored
+    if (this._implicitValue && typeof this.formControl.value !== "object") {
+      this.writeValue(this._implicitValue);
+    }
+    this._implicitValue = null;
+    this.checkIfTouched();
+    this.onBlur.emit(event);
+
+    this.matAutocomplete.showPanel=false;
+  }
+
+  focus() {
+    if (this.matInput) {
+      this.matInput.nativeElement.focus();
     }
   }
 
+  getPropertyByPath = getPropertyByPath;
+
+  /* -- protected method -- */
+
+  protected updateImplicitValue(res: any[]) {
+    // Store implicit value (will use it onBlur if not other value selected)
+    if (res && res.length === 1) {
+      this._implicitValue = res[0];
+      this.formControl.setErrors(null);
+    } else {
+      this._implicitValue = undefined;
+    }
+  }
+
+  protected checkIfTouched() {
+    if (this.formControl.touched) {
+      this.markForCheck();
+      this._onTouchedCallback();
+    }
+  }
+
+  protected updateTabIndex() {
+    if (this.tabindex && this.tabindex !== -1) {
+      setTimeout(() => {
+        if (this.matInput) {
+          this.matInput.nativeElement.tabIndex = this.tabindex;
+        }
+        this.markForCheck();
+      });
+    }
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }

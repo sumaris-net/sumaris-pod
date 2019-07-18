@@ -1,5 +1,5 @@
 import {Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {filter, first} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
@@ -82,8 +82,13 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return this.getShowColumn('comments');
   }
 
-  get pmfms(): BehaviorSubject<PmfmStrategy[]> {
+  get $pmfms(): BehaviorSubject<PmfmStrategy[]> {
     return this.measurementsDataService.$pmfms;
+  }
+
+  @Input() set pmfms(pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]) {
+    this.loading = true;
+    this.measurementsDataService.pmfms = pmfms;
   }
 
   protected constructor(
@@ -141,7 +146,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     super.ngOnInit();
 
     this.registerSubscription(
-      this.pmfms
+      this.$pmfms
         .pipe(filter(isNotNil))
         .subscribe(pmfms => {
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
@@ -192,7 +197,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   public updateColumns(pmfms?: PmfmStrategy[]) {
 
-    pmfms = pmfms || this.pmfms.getValue();
+    pmfms = pmfms || this.$pmfms.getValue();
     if (!pmfms) return;
 
     const pmfmColumnNames = pmfms.map(p => p.pmfmId.toString());
@@ -214,10 +219,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!this.loading) this.updateColumns();
   }
 
-  public async onPmfmsLoaded() {
+  public async onReady() {
     // Wait pmfms load, and controls load
-    if (isNil(this.pmfms.getValue())) {
-      await this.pmfms
+    if (isNil(this.$pmfms.getValue())) {
+      await this.$pmfms
         .pipe(
           filter(isNotNil),
           first()
@@ -225,7 +230,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     }
   }
 
-  /* -- protected abstract methods -- */
+  /* -- protected methods -- */
 
   // Can be override by subclass
   protected async onNewEntity(data: T): Promise<void> {
@@ -233,8 +238,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       data.rankOrder = (await this.getMaxRankOrder()) + 1;
     }
   }
-
-  /* -- protected methods -- */
 
   protected async getMaxRankOrder(): Promise<number> {
     const rows = await this.dataSource.getRows();
@@ -260,7 +263,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Try to resolve PMFM column, using the cached pmfm list
     if (PMFM_ID_REGEXP.test(columnName)) {
       const pmfmId = parseInt(columnName);
-      const pmfm = (this.pmfms.getValue() || []).find(p => p.pmfmId === pmfmId);
+      const pmfm = (this.$pmfms.getValue() || []).find(p => p.pmfmId === pmfmId);
       if (pmfm) return pmfm.name;
     }
 

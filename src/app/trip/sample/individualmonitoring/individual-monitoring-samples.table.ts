@@ -33,7 +33,7 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
   ngOnInit() {
     super.ngOnInit();
 
-    this.pmfms
+    this.$pmfms
       .pipe(filter(isNotNil))
       .subscribe(pmfms => {
 

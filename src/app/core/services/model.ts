@@ -1,6 +1,21 @@
 import {Moment} from "moment/moment";
-import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../shared/shared.module";
-import {isNilOrBlank} from "../../shared/functions";
+import {
+  attributeComparator,
+  fromDateISOString,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  joinProperties,
+  sort,
+  toDateISOString
+} from "../../shared/shared.module";
+import {Observable} from "rxjs";
+
+export {
+  joinProperties,
+  attributeComparator,
+  sort
+};
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -153,35 +168,12 @@ export declare interface Cloneable<T> {
   clone(): T;
 }
 
-export function joinProperties(obj: any, properties: String[], separator?: string): string | undefined {
-  if (!obj) throw "Could not display an undefined entity.";
-  separator = separator || " - ";
-  return properties.reduce((result: string, key: string, index: number) => {
-    return index ? (result + separator + obj[key]) : obj[key];
-  }, "");
-}
-
-export function attributeComparator<T>(attribute: string): (a: T, b: T) => number {
-  return (a: T, b: T) => {
-    const valueA = a[attribute];
-    const valueB = b[attribute];
-    return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
-  };
-}
-
-export function sort<T>(array: T[], attribute: string): T[] {
-  return array.sort((a, b) => {
-    const valueA = a[attribute];
-    const valueB = b[attribute];
-    return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
-  });
-}
 
 export function entityToString(obj: Entity<any> | any, properties?: String[]): string | undefined {
   return obj && obj.id && joinProperties(obj, properties || ['name']) || undefined;
 }
 
-export function referentialToString(obj: Referential | ReferentialRef | any, properties?: String[]): string | undefined {
+export function referentialToString(obj: Referential | any | any, properties?: String[]): string | undefined {
   return obj && obj.id && joinProperties(obj, properties || ['label', 'name']) || undefined;
 }
 
@@ -382,9 +374,9 @@ export declare interface IReferentialRef {
   entityName: string;
 }
 
-export class ReferentialRef extends Entity<ReferentialRef> implements IReferentialRef {
+export class ReferentialRef extends Entity<any> implements IReferentialRef {
 
-  static fromObject(source: any): ReferentialRef {
+  static fromObject(source: any): any {
     if (!source || source instanceof ReferentialRef) return source;
     const res = new ReferentialRef();
     res.fromObject(source);
@@ -407,11 +399,11 @@ export class ReferentialRef extends Entity<ReferentialRef> implements IReferenti
     this.name = data && data.name;
   }
 
-  clone(): ReferentialRef {
+  clone(): any {
     return this.copy(new ReferentialRef());
   }
 
-  copy(target: ReferentialRef): ReferentialRef {
+  copy(target: any): any {
     target.fromObject(this);
     return target;
   }
@@ -423,7 +415,7 @@ export class ReferentialRef extends Entity<ReferentialRef> implements IReferenti
     return target;
   }
 
-  fromObject(source: any): Entity<ReferentialRef> {
+  fromObject(source: any): Entity<any> {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;
@@ -767,12 +759,14 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
 }
 
 /* -- Local settings -- */
-export declare class FieldOptions {
+export declare class FieldSettings {
   key: string;
-  attributes: string;
-  attributesArray?: string[];
-  searchAttribute?: string;
-  //defaultValues: any[];
+  value: string;
+  // attributes?: string[];
+  // searchAttribute?: string;
+  // toString?: (obj: any) => string;
+  // toHtmlColumn?: (obj: any) => string;
+  // $htmlColumnHeader?: Observable<string>;
 }
 
 export declare interface LocalSettings {
@@ -785,5 +779,5 @@ export declare interface LocalSettings {
   defaultPrograms?: string[];
   mobile?: boolean;
   touchUi?: boolean;
-  fields?: FieldOptions[];
+  fields?: FieldSettings[];
 }

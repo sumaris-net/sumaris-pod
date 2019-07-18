@@ -1,8 +1,10 @@
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {isNil, nullIfUndefined} from "../../shared/shared.module";
+import {isNil, nullIfUndefined, selectInputContent} from "../../shared/shared.module";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
-import {Entity, EntityUtils, Person} from "../services/model";
+import {Entity} from "../services/model";
+
+export {selectInputContent};
 
 export class AppFormUtils {
   static copyForm2Entity = copyForm2Entity;
@@ -155,21 +157,6 @@ export function disableControls(form: FormGroup, paths: string[]) {
   });
 }
 
-export function selectInputContent(event: MouseEvent) {
-  if (event.defaultPrevented) return false;
-  const input = (event.target as any);
-  if (input && input.content && input.select) {
-    try {
-      input.select();
-      event.preventDefault();
-      event.stopPropagation();
-    } catch (err) {
-      console.error("Could not select input content", err);
-    }
-    return false;
-  }
-  return true;
-}
 
 export function addValueInArray(formBuilder: FormBuilder,
                                 form: FormGroup,

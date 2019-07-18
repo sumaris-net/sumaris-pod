@@ -34,25 +34,6 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<!-- First table header
-<mat-table class="table-survival-test">
-  <ng-container matColumnDef="select">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-  <ng-container matColumnDef="rankOrder">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-  <ng-container *ngFor="let pmfm of pmfmHeaders | async" matColumnDef="{{pmfm.pmfmId}}">
-    <mat-header-cell *matHeaderCellDef class="col-{{pmfm.count}}">
-      <ion-label>{{pmfm.name | translate}}</ion-label>
-    </mat-header-cell>
-  </ng-container>
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-  <mat-header-row *matHeaderRowDef="displayedHeaderColumns"></mat-header-row>
-</mat-table> -->
-
 
 <mat-table [dataSource]="dataSource" class="table-survival-test" matSort matSortActive="rankOrder"
            matSortDirection="asc"
@@ -104,7 +85,7 @@
   </ng-container>
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef [class.mat-cell-date-time]="pmfm.isDate">
       <ion-label>
         <span>{{getPmfmColumnHeader(pmfm)}}</span>

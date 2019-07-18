@@ -65,7 +65,7 @@
 <!--  </ng-container>-->
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef class="qv" [class.even]="pmfm.id % 2 === 0"
                      [class.odd]="pmfm.id % 2 !== 0"
                      [class.show]="pmfm.pmfmId % 5 === 0">
@@ -129,67 +129,30 @@
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['taxonGroup']" [matAutocomplete]="autoTaxonGroup"
-          [appAutofocus]="row.id == -1 && row.editing" [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
-          (focus)="onCellFocus($event, row, 'taxonGroup')" (blur)="onCellBlur($event, row, 'taxonGroup')" (click)="$event.target.select()"
-          required>
-        <mat-error *ngIf="row.validator.controls.taxonGroup.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        <mat-error *ngIf="row.validator.controls.taxonGroup.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-      </mat-form-field>
 
-      <mat-autocomplete autoActiveFirstOption #autoTaxonGroup="matAutocomplete" [displayWith]="referentialToString">
-        <ion-row class="mat-autocomplete-header">
-          <ion-col size="3">
-            <ion-text translate>REFERENTIAL.LABEL</ion-text>
-          </ion-col>
-          <ion-col>
-            <ion-text translate>REFERENTIAL.NAME</ion-text>
-          </ion-col>
-        </ion-row>
-        <mat-option *ngFor="let item of $taxonGroups | async" [value]="item" no-padding>
-          <ion-row>
-            <ion-col size="3" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonGroup'].value }"></ion-col>
-          </ion-row>
-        </mat-option>
-      </mat-autocomplete>
+    <mat-cell *matCellDef="let row">
+      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+                              [formControl]="row.validator.controls.taxonGroup"
+                              [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
+                              [required]="true"
+                              [config]="autocompleteFields.taxonGroup">
+      </mat-autocomplete-field>
     </mat-cell>
   </ng-container>
 
-  <!-- taxon name (scientific species) -->
+  <!-- Taxon name (scientific species) -->
   <ng-container matColumnDef="taxonName">
     <mat-header-cell *matHeaderCellDef mat-sort-header >
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['taxonName']" [matAutocomplete]="autoTaxonName"
-          [placeholder]="'TRIP.BATCH.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
-               (focus)="onCellFocus($event, row, 'taxonName')"
-          (blur)="onCellBlur($event, row, 'taxonName')"
-               (click)="$event.target.select()" required>
-        <mat-error *ngIf="row.validator.controls.taxonName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        <mat-error *ngIf="row.validator.controls.taxonName.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-      </mat-form-field>
 
-      <mat-autocomplete autoActiveFirstOption #autoTaxonName="matAutocomplete" [displayWith]="referentialToString">
-        <ion-row class="mat-autocomplete-header">
-          <ion-col size="3">
-            <ion-text translate>REFERENTIAL.LABEL</ion-text>
-          </ion-col>
-          <ion-col>
-            <ion-text translate>REFERENTIAL.NAME</ion-text>
-          </ion-col>
-        </ion-row>
-        <mat-option *ngFor="let item of $taxonNames | async" [value]="item" no-padding>
-          <ion-row>
-            <ion-col size="3" [innerHTML]="item.label | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: row.validator.controls['taxonName'].value }"></ion-col>
-          </ion-row>
-        </mat-option>
-      </mat-autocomplete>
+      <mat-autocomplete-field floatLabel="never" [classList]="'large'"
+                              [formControl]="row.validator.controls.taxonName"
+                              [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
+                              [required]="true"
+                              [config]="autocompleteFields.taxonName">
+      </mat-autocomplete-field>
     </mat-cell>
 
   </ng-container>
@@ -207,7 +170,7 @@
 <!--  </ng-container>-->
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
 
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)"
       [class.even]="isEven(pmfm)">
@@ -308,7 +271,7 @@
 <!--</form>-->
 
 <!-- <ion-row>
-  <ion-col *ngFor="let pmfm of pmfms | async">
+  <ion-col *ngFor="let pmfm of $pmfms | async">
     {{pmfm.label}}
   </ion-col>
 </ion-row> -->

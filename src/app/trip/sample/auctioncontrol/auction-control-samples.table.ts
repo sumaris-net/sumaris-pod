@@ -51,7 +51,7 @@ export class AuctionControlSamplesTable extends SamplesTable implements OnInit {
 
     super.ngOnInit();
 
-    this.pmfms
+    this.$pmfms
       .pipe(filter(isNotNil))
       .subscribe(pmfms => {
 

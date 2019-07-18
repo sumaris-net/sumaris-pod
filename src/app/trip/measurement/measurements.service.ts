@@ -49,6 +49,11 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     return this._acquisitionLevel;
   }
 
+  @Input()
+  set pmfms(pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]) {
+    this.setPmfms(pmfms);
+  }
+
   constructor(
     injector: Injector,
     protected dataType: new() => T,
@@ -135,6 +140,8 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
     return this.delegate.deleteAll(data);
   }
 
+
+
   /* -- protected methods -- */
 
   protected async refreshPmfms(): Promise<PmfmStrategy[]> {
@@ -153,30 +160,34 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
       console.debug(`[meas-service] No pmfm found (program=${this.program}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
     }
 
-    // Call pmfm map function
-    if (this.options && this.options.mapPmfms) {
-      if (this.debug) console.debug(`[meas-service] Remapping pmfms...`);
-      const res = this.options.mapPmfms(pmfms);
-      pmfms = (res instanceof Promise) ? await res : res;
-    }
-
-    this.loadingPmfms = false;
-
-    this.$pmfms.next(pmfms);
+    pmfms = await this.setPmfms(pmfms);
 
     return pmfms;
   }
 
-  // public sort(data: T[], sortBy?: string, sortDirection?: string): T[] {
-  //   if (sortBy && PMFM_ID_REGEXP.test(sortBy)) {
-  //     sortBy = 'measurementValues.' + sortBy;
-  //   }
-  //
-  //   // Replace id with rankOrder
-  //   sortBy = this.hasRankOrder && (!sortBy || sortBy === 'id') ? 'rankOrder' : sortBy || 'id';
-  //
-  //   // Execute the sort
-  //   return EntityUtils.sort(data, sortBy, sortDirection);
-  // }
+  protected async setPmfms(pmfms: PmfmStrategy[] | Observable<PmfmStrategy[]>): Promise<PmfmStrategy[]> {
+    if (!pmfms) return undefined; // skip
+
+    // Wait loaded
+    if (pmfms instanceof Observable) {
+      console.log("[measurement-service]: waiting pmfms before emit $pmfms")
+      pmfms = await pmfms.pipe(filter(isNotNil), first()).toPromise();
+    }
+
+    // Map
+    if (this.options && this.options.mapPmfms) {
+      const res = this.options.mapPmfms(pmfms);
+      pmfms = (res instanceof Promise) ? await res : res;
+    }
+
+    if (pmfms instanceof Array && pmfms !== this.$pmfms.getValue()) {
+
+      // Apply
+      this.loadingPmfms = false;
+      this.$pmfms.next(pmfms);
+    }
+
+    return pmfms;
+  }
 }
 

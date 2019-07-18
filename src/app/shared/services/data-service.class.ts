@@ -58,4 +58,3 @@ export declare interface TableDataService<T, F> {
 
   deleteAll(data: T[], options?: any): Promise<any>;
 }
-

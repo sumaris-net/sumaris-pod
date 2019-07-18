@@ -12,7 +12,7 @@ import {
   referentialToString, vesselFeaturesToString, VesselFeatures
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {AcquisitionLevelCodes} from '../../core/core.module';
+import {AcquisitionLevelCodes, LocalSettingsService} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
@@ -68,13 +68,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
-    protected cd: ChangeDetectorRef,
     protected validatorService: LandingValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
-    protected vesselService: VesselService
+    protected vesselService: VesselService,
+    protected settings: LocalSettingsService,
+    protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd, validatorService.getFormGroup());
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;

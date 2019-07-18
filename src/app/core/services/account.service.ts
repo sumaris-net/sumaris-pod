@@ -242,7 +242,8 @@ export class AccountService extends BaseDataService {
     if (this._started) return;
 
     // Restoring local settings
-    this._startPromise = this.restoreLocally()
+    this._startPromise = this.settingsService.ready()
+      .then(() => this.restoreLocally())
       .then(() => {
         this._started = true;
         this._startPromise = undefined;
@@ -320,7 +321,7 @@ export class AccountService extends BaseDataService {
     return !hasUpperOrEqualsProfile(this.data.account.profiles, 'USER');
   }
 
-  public canUserWriteDataForDepartment(recorderDepartment: Referential | ReferentialRef): boolean {
+  public canUserWriteDataForDepartment(recorderDepartment: Referential | any): boolean {
     if (EntityUtils.isEmpty(recorderDepartment)) {
       console.warn("Unable to check if user has right: invalid recorderDepartment", recorderDepartment);
       return false;
@@ -435,7 +436,7 @@ export class AccountService extends BaseDataService {
         if (!isEmailExists) {
           throw { code: ErrorCodes.UNKNOWN_ACCOUNT_EMAIL, message: "ERROR.UNKNOWN_ACCOUNT_EMAIL" };
         }
-        // Email exists, so error = 'bad password' 
+        // Email exists, so error = 'bad password'
         throw { code: ErrorCodes.BAD_PASSWORD, message: "ERROR.BAD_PASSWORD" };
       }
 
@@ -571,7 +572,7 @@ export class AccountService extends BaseDataService {
     return account;
   }
 
-  /** 
+  /**
   * Save account into the local storage
   */
   async saveLocally(): Promise<void> {
@@ -594,8 +595,8 @@ export class AccountService extends BaseDataService {
 
   /**
    * Create or update an user account, to the remote storage
-   * @param account 
-   * @param keyPair 
+   * @param account
+   * @param keyPair
    */
   public async saveRemotely(account: Account): Promise<Account> {
     if (!this.data.pubkey) return Promise.reject("User not logged");
@@ -645,7 +646,7 @@ export class AccountService extends BaseDataService {
 
   /**
    * Load a account by pubkey
-   * @param pubkey 
+   * @param pubkey
    */
   public async loadAccount(pubkey: string, opts?: { fetchPolicy?: FetchPolicy }): Promise<Account | undefined> {
 
@@ -675,8 +676,8 @@ export class AccountService extends BaseDataService {
 
   /**
    * Create or update an user account
-   * @param account 
-   * @param keyPair 
+   * @param account
+   * @param keyPair
    */
   public async saveAccount(account: Account, keyPair: KeyPair): Promise<Account> {
     account.pubkey = account.pubkey || base58.encode(keyPair.publicKey);

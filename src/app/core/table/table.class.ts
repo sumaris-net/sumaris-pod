@@ -18,6 +18,8 @@ import {isNotNil} from "../../shared/shared.module";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
+import {DisplayFn, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
+import {SuggestionDataService} from "../../shared/services/data-service.class";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -35,6 +37,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       formPath?: string;
     }
   } = {};
+  protected autocompleteFields: {
+    [key: string]: MatAutocompleteFieldConfig
+  } = {};
+
   // TODO: change this to private:
   protected _implicitValues: { [key: string]: any } = {};
   protected _enable = true;
@@ -590,6 +596,34 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     if (this.debug) console.debug(`[table] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
   }
 
+  protected registerAutocompleteField(fieldName: string, options?: {
+    defaultAttributes?: string[];
+    service?: SuggestionDataService<any>;
+    filter?: any;
+    displayWith?: DisplayFn;
+    suggestFn?: (value: any, options?: any) => Promise<any[]>;
+  }) : MatAutocompleteFieldConfig {
+    options = options || {};
+    if (this.debug) console.debug(`[table] Registering a autocomplete field ${this.constructor.name} ${fieldName}`);
+
+    const service: SuggestionDataService<any> = options.service || (options.suggestFn && {
+      suggest: (value: any, filter?: any) => options.suggestFn(value, filter)
+    }) || undefined;
+    const attributes = this.settings.getFieldAttributes(fieldName, options.defaultAttributes);
+    const attributesOrFn = attributes.map((a, index) => a === "function" && options.defaultAttributes[index] || a);
+    const filter =   Object.assign({
+      searchAttribute: attributes.length === 1 ? attributes[0] : undefined
+    }, options.filter || {});
+
+    const config = {
+      attributes: attributesOrFn,
+      service,
+      filter,
+      displayWith: options.displayWith
+    };
+    this.autocompleteFields[fieldName] = config;
+    return config;
+  }
 
   protected getI18nColumnName(columnName: string) {
     return this.i18nColumnPrefix + columnName.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase();

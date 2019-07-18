@@ -3,7 +3,7 @@ import {isNil, isNotNil, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {AppForm} from '../../core/core.module';
+import {AppForm, LocalSettingsService} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
@@ -94,11 +94,12 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
                         protected measurementValidatorService: MeasurementsValidatorService,
                         protected formBuilder: FormBuilder,
                         protected programService: ProgramService,
+                        protected settings: LocalSettingsService,
                         protected cd: ChangeDetectorRef,
                         form: FormGroup,
                         protected options?: MeasurementValuesFormOptions<T>
   ) {
-    super(dateAdapter, form);
+    super(dateAdapter, form, settings);
 
     // TODO: DEV only
     //this.debug = true;

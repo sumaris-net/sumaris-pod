@@ -32,13 +32,20 @@ import {
 import {
   fromDateISOString,
   isNil,
+  isNilOrBlank,
   isNotNil,
+  isNotNilOrBlank,
+  isNotEmptyArray,
   nullIfUndefined,
   toBoolean,
   toFloat,
   toInt,
   toDateISOString,
-  startsWithUpperCase
+  startsWithUpperCase,
+  attributeComparator,
+  joinProperties,
+  selectInputContent,
+  sort
 } from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
@@ -48,10 +55,11 @@ import {ColorPickerModule} from 'ngx-color-picker';
 export {
   DataService, TableDataService, LoadResult,
   EditorDataService, EditorDataServiceLoadOptions,
-  isNil, isNotNil, nullIfUndefined,
+  isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined,
   toBoolean, toFloat, toInt,
   toDateISOString, fromDateISOString,
   startsWithUpperCase,
+  attributeComparator, joinProperties, sort, selectInputContent,
   fadeInAnimation, fadeInOutAnimation,
   DateFormatPipe, ToolbarComponent,
   Color, ColorScale
