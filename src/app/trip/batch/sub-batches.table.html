@@ -126,7 +126,7 @@
             <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
           </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <mat-autocomplete-field floatLabel="never"
+            <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                                     [formControl]="row.validator.controls.taxonName"
                                     [placeholder]="'TRIP.BATCH.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
                                     [required]="true"

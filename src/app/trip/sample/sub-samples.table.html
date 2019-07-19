@@ -75,9 +75,9 @@
         <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
 
-      <mat-autocomplete autoActiveFirstOption #autoParent="matAutocomplete" [displayWith]="parentToString">
+      <mat-autocomplete autoActiveFirstOption #autoParent="matAutocomplete" [displayWith]="parentToString" class="min-width-large">
         <ion-row class="mat-autocomplete-header">
-          <ion-col>
+          <ion-col size="3">
             <ion-text>{{displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || '#'}}</ion-text>
           </ion-col>
           <ion-col>
@@ -86,7 +86,7 @@
         </ion-row>
         <mat-option *ngFor="let sample of $filteredParents | async" [value]="sample" no-padding>
           <ion-row>
-            <ion-col [innerHTML]="(displayParentPmfm && sample.measurementValues[displayParentPmfm.pmfmId] || sample.rankOrder) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
+            <ion-col size="3" [innerHTML]="(displayParentPmfm && sample.measurementValues[displayParentPmfm.pmfmId] || sample.rankOrder) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
             <ion-col [innerHTML]="referentialToString(sample.taxonName) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
           </ion-row>
         </mat-option>
