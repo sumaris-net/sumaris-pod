@@ -45,6 +45,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -356,7 +357,12 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
                 else {
                     // Get the taxon name, then set reference taxon
                     TaxonName taxonname = get(TaxonName.class, source.getTaxonName().getId());
-                    target.setReferenceTaxon(taxonname.getReferenceTaxon());
+                    if (taxonname != null) {
+                        target.setReferenceTaxon(taxonname.getReferenceTaxon());
+                    }
+                    else {
+                        throw new DataIntegrityViolationException("Invalid batch: unknown taxon name with id "+ source.getTaxonName().getId());
+                    }
                 }
             }
         }

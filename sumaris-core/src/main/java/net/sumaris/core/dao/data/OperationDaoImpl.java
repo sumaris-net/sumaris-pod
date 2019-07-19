@@ -24,6 +24,8 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
@@ -69,6 +71,12 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
     @Autowired
     private PhysicalGearDao physicalGearDao;
+
+    @Autowired
+    private TaxonGroupRepository taxonGroupDao;
+
+    @Autowired
+    private MetierRepository metierDao;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -212,7 +220,7 @@ public class OperationDaoImpl extends BaseDataDaoImpl implements OperationDao {
 
         // Métier
         if (source.getMetier() != null) {
-            target.setMetier(referentialDao.toReferentialVO(source.getMetier()));
+            target.setMetier(metierDao.toMetierVO(source.getMetier()));
         }
 
         // Recorder department

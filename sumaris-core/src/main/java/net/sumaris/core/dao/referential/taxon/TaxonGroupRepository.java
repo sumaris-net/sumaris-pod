@@ -23,7 +23,9 @@ package net.sumaris.core.dao.referential.taxon;
  */
 
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository("taxonGroupRepository")
@@ -31,8 +33,6 @@ public interface TaxonGroupRepository
         extends JpaRepository<TaxonGroup, Integer>,
         TaxonGroupRepositoryExtend {
 
-
     TaxonGroup getOneByLabelAndTaxonGroupTypeId(String label, Integer taxonGroupTypeId);
-
 
 }

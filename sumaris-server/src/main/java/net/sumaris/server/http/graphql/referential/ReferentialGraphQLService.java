@@ -26,6 +26,7 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
@@ -59,6 +60,9 @@ public class ReferentialGraphQLService {
     @Autowired
     private TaxonGroupService taxonGroupService;
 
+    @Autowired
+    private MetierRepository metierRepository;
+
     /* -- Referential queries -- */
 
     @GraphQLQuery(name = "referentialTypes", description = "Get all types of referential")
@@ -78,9 +82,17 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
 
+        // TODO: not used in app: remove
+        //if ("TargetSpecies".equals(entityName)) {
+        //    return taxonGroupService.findTargetSpeciesByFilter(
+        //            filter != null ? filter : new ReferentialFilterVO(),
+        //            offset, size, sort,
+        //            SortDirection.valueOf(direction.toUpperCase()));
+        //}
+
         // Special case
-        if ("TargetSpecies".equals(entityName)) {
-            return taxonGroupService.findTargetSpeciesByFilter(
+        if ("Metier".equals(entityName)) {
+            return metierRepository.findByFilter(
                     filter != null ? filter : new ReferentialFilterVO(),
                     offset, size, sort,
                     SortDirection.valueOf(direction.toUpperCase()));

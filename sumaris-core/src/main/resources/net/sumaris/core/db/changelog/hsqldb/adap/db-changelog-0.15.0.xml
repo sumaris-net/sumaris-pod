@@ -265,4 +265,21 @@
         </insert>
     </changeSet>
 
+    <!-- Delete unused PMFM strategy -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-312" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not><sqlCheck expectedResult="0">SELECT count(*) FROM PMFM_STRATEGY where STRATEGY=10 AND PMFM_FK=(select max(id) from PMFM WHERE LABEL='GEAR_LABEL')</sqlCheck></not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            delete from PMFM_STRATEGY where STRATEGY_FK=10 AND PMFM_FK=(select max(id) from PMFM WHERE LABEL='GEAR_LABEL');
+            delete from PHYSICAL_GEAR_MEASUREMENT where PMFM_FK=(select max(id) from PMFM WHERE LABEL='GEAR_LABEL');
+            delete from PMFM where LABEL='GEAR_LABEL';
+            update STRATEGY set update_date=current_timestamp where ID=10;
+            update TRIP set update_date=current_timestamp where PROGRAM_FK=(SELECT ID FROM PROGRAM WHERE LABEL='ADAP-MER');
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

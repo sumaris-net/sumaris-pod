@@ -25,12 +25,10 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +56,7 @@ public class OperationVO implements IUpdateDateEntityBean<Integer, Date> {
     private Boolean hasCatch;
     private String comments;
 
-    private ReferentialVO metier;
+    private MetierVO metier;
 
     private TripVO trip;
     private Integer tripId;

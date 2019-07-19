@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.filter;
+package net.sumaris.core.dao.referential.metier;
 
 /*-
  * #%L
@@ -22,21 +22,14 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.Data;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@Data
-public class ReferentialFilterVO {
+@Repository("metierRepository")
+public interface MetierRepository
+        extends JpaRepository<TaxonGroup, Integer>,
+        MetierRepositoryExtend {
 
-    private String label;
-    private String name;
-
-    private Integer[] statusIds;
-
-    private Integer levelId;
-    private Integer[] levelIds;
-
-    private String searchJoin;
-    private String searchText;
-    private String searchAttribute;
 
 }

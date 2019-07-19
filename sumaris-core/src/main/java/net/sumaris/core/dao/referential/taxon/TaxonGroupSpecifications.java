@@ -1,6 +1,7 @@
 package net.sumaris.core.dao.referential.taxon;
 
 import com.google.common.collect.ImmutableList;
+import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -10,7 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.JoinType;
 
-public class TaxonGroupSpecifications {
+public class TaxonGroupSpecifications extends ReferentialSpecifications {
 
     public static Specification<TaxonGroup> hasType(Integer taxonGroupTypeId) {
         if (taxonGroupTypeId == null) return null;

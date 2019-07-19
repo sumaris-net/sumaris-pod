@@ -55,9 +55,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static net.sumaris.core.dao.referential.ReferentialSpecifications.inStatusIds;
-import static net.sumaris.core.dao.referential.taxon.TaxonGroupSpecifications.hasType;
-import static net.sumaris.core.dao.referential.taxon.TaxonGroupSpecifications.inGearIds;
+import static net.sumaris.core.dao.referential.taxon.TaxonGroupSpecifications.*;
 
 public class TaxonGroupRepositoryImpl
         extends SumarisJpaRepositoryImpl<TaxonGroup, Integer>
@@ -67,9 +65,7 @@ public class TaxonGroupRepositoryImpl
     private static final Logger log =
             LoggerFactory.getLogger(TaxonGroupRepositoryImpl.class);
 
-
-
-    @Autowired
+@Autowired
     private TaxonNameDao taxonNameDao;
 
     public TaxonGroupRepositoryImpl(EntityManager entityManager) {

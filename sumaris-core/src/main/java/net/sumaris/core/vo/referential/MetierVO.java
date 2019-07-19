@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.filter;
+package net.sumaris.core.vo.referential;
 
 /*-
  * #%L
@@ -23,20 +23,18 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.Data;
+import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
+
+import java.util.List;
 
 @Data
-public class ReferentialFilterVO {
+public class MetierVO extends ReferentialVO {
 
-    private String label;
-    private String name;
+    private ReferentialVO gear;
+    private TaxonGroupVO taxonGroup;
 
-    private Integer[] statusIds;
-
-    private Integer levelId;
-    private Integer[] levelIds;
-
-    private String searchJoin;
-    private String searchText;
-    private String searchAttribute;
-
+    public MetierVO() {
+        this.setEntityName(Metier.class.getSimpleName());
+    }
 }

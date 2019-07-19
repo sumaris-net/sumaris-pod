@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.administration.user;
+package net.sumaris.core.dao.referential.metier;
 
 /*-
  * #%L
@@ -22,29 +22,26 @@ package net.sumaris.core.vo.administration.user;
  * #L%
  */
 
-import lombok.Data;
-import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
+import org.springframework.data.repository.NoRepositoryBean;
 
-import java.util.Date;
+import java.util.List;
 
-@Data
-public class DepartmentVO extends ReferentialVO {
+@NoRepositoryBean
+public interface MetierRepositoryExtend {
 
-    public static final String PROPERTY_HAS_LOGO = "hasLogo";
-    public static final String PROPERTY_LOGO = "logo";
+    MetierVO toMetierVO(Metier metier);
 
-    private Integer id;
-    private Date updateDate;
-    private Date creationDate;
-    private String label;
-    private String name;
-    private Integer statusId;
-    private String siteUrl;
-    private boolean hasLogo;
-    private String logo;
-
-    public DepartmentVO() {
-        this.setEntityName(Department.class.getSimpleName());
-    }
+    List<ReferentialVO> findByFilter(
+            ReferentialFilterVO filter,
+            int offset,
+            int size,
+            String sortAttribute,
+            SortDirection sortDirection);
 }

@@ -192,7 +192,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         vo.setPhysicalGearId(1);
 
         // Metier
-        vo.setMetier(createReferentialVO(fixtures.getMetierIdForOTB(0)));
+        vo.setMetier(createMetierVO(fixtures.getMetierIdForOTB(0)));
 
         // Measurements (= vessel use measurements)
         PmfmVO bottomDepthPmfm = pmfmService.getByLabel("BOTTOM_DEPTH_M");
