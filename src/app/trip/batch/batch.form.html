@@ -21,44 +21,6 @@
                                 [required]="showTaxonGroup"
                                 [config]="autocompleteFields.taxonGroup">
         </mat-autocomplete-field>
-
-<!--        <mat-form-field>-->
-<!--          <input matInput formControlName="taxonGroup"-->
-<!--                 [matAutocomplete]="autoTaxonGroup"-->
-<!--                 [appAutofocus]="enabled && showTaxonGroup && !mobile"-->
-<!--                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"-->
-<!--                 tabindex="2"-->
-<!--                 (blur)="applyImplicitValue('taxonGroup')"-->
-<!--                 (click)="selectInputContent($event) && onShowTaxonGroupDropdown.emit($event)"-->
-<!--                 [required]="showTaxonGroup">-->
-<!--          <mat-error *ngIf="form.controls.taxonGroup.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>-->
-<!--          <mat-error *ngIf="form.controls.taxonGroup.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>-->
-
-<!--          <button mat-button matSuffix mat-icon-button tabindex="-1"-->
-<!--                  type="button"-->
-<!--                  (click)="onShowTaxonGroupDropdown.emit($event)"-->
-<!--                  [hidden]="form.disabled">-->
-<!--            <mat-icon>arrow_drop_down</mat-icon>-->
-<!--          </button>-->
-
-<!--          <mat-autocomplete autoActiveFirstOption #autoTaxonGroup="matAutocomplete" [displayWith]="referentialToString">-->
-<!--            <ion-row class="mat-autocomplete-header">-->
-<!--              <ion-col size="3">-->
-<!--                <ion-text translate>REFERENTIAL.LABEL</ion-text>-->
-<!--              </ion-col>-->
-<!--              <ion-col>-->
-<!--                <ion-text translate>REFERENTIAL.NAME</ion-text>-->
-<!--              </ion-col>-->
-<!--            </ion-row>-->
-<!--            <mat-option *ngFor="let item of $taxonGroups | async" [value]="item" no-padding>-->
-<!--              <ion-row>-->
-<!--                <ion-col size="3"-->
-<!--                         [innerHTML]="item.label | highlight: {search: form.controls.taxonGroup.value }"></ion-col>-->
-<!--                <ion-col [innerHTML]="item.name | highlight: {search: form.controls.taxonGroup.value }"></ion-col>-->
-<!--              </ion-row>-->
-<!--            </mat-option>-->
-<!--          </mat-autocomplete>-->
-<!--        </mat-form-field>-->
       </ion-col>
 
       <!-- Taxon name (scientific species) -->
@@ -73,46 +35,6 @@
                                 [required]="showTaxonName"
                                 [config]="autocompleteFields.taxonName">
         </mat-autocomplete-field>
-
-<!--        <mat-form-field>-->
-<!--          <input matInput formControlName="taxonName"-->
-<!--                 [matAutocomplete]="autoTaxonName"-->
-<!--                 [appAutofocus]="enabled && !mobile && !showTaxonGroup && showTaxonName"-->
-<!--                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"-->
-<!--                 (blur)="applyImplicitValue('taxonName')"-->
-<!--                 (click)="selectInputContent($event) && onShowTaxonNameDropdown.emit($event)"-->
-<!--                 tabindex="2"-->
-<!--                 [required]="showTaxonName">-->
-<!--          <mat-error *ngIf="form.controls.taxonName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>-->
-<!--          <mat-error *ngIf="form.controls.taxonName.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>-->
-
-<!--          <button mat-button matSuffix mat-icon-button tabindex="-1"-->
-<!--                  type="button"-->
-<!--                  (click)="onShowTaxonNameDropdown.emit($event)"-->
-<!--                  [hidden]="form.disabled">-->
-<!--            <mat-icon>arrow_drop_down</mat-icon>-->
-<!--          </button>-->
-
-<!--          <mat-autocomplete autoActiveFirstOption #autoTaxonName="matAutocomplete" [displayWith]="referentialToString">-->
-<!--            <ion-row class="mat-autocomplete-header">-->
-<!--              <ion-col size="3">-->
-<!--                <ion-text translate>REFERENTIAL.LABEL</ion-text>-->
-<!--              </ion-col>-->
-<!--              <ion-col>-->
-<!--                <ion-text translate>REFERENTIAL.NAME</ion-text>-->
-<!--              </ion-col>-->
-<!--            </ion-row>-->
-<!--            <mat-option *ngFor="let item of $taxonNames| async" [value]="item" no-padding>-->
-<!--              <ion-row>-->
-<!--                <ion-col size="3"-->
-<!--                         [innerHTML]="item.label | highlight: {search: form.controls.taxonName.value }"></ion-col>-->
-<!--                <ion-col [innerHTML]="item.name | highlight: {search: form.controls.taxonName.value }"></ion-col>-->
-<!--              </ion-row>-->
-<!--            </mat-option>-->
-<!--          </mat-autocomplete>-->
-<!--        </mat-form-field>-->
-
-
       </ion-col>
     </ion-row>
 

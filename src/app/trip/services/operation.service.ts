@@ -21,6 +21,7 @@ import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {isNilOrBlank} from "../../shared/functions";
+import {ReferentialFragments} from "../../referential/referential.module";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -36,7 +37,7 @@ export const OperationFragments = {
     hasCatch
     updateDate
     metier {
-      ...ReferentialFragment
+      ...MetierFragment
     }
     recorderDepartment {
       ...RecorderDepartmentFragment
@@ -45,9 +46,9 @@ export const OperationFragments = {
       ...PositionFragment
     }
   }
-  ${Fragments.referential}
+  ${ReferentialFragments.recorderDepartment}
+  ${ReferentialFragments.metier}
   ${Fragments.position}
-  ${Fragments.recorderDepartment}
   `,
   operation: gql`fragment OperationFragment on OperationVO {
     id
@@ -62,7 +63,7 @@ export const OperationFragments = {
     hasCatch
     updateDate
     metier {
-      ...ReferentialFragment
+      ...MetierFragment
     }
     recorderDepartment {
       ...RecorderDepartmentFragment
@@ -83,10 +84,10 @@ export const OperationFragments = {
       ...BatchFragment
     }
   }
-  ${Fragments.recorderDepartment}
+  ${ReferentialFragments.recorderDepartment}
+  ${ReferentialFragments.metier}
   ${Fragments.position}
   ${Fragments.measurement}
-  ${Fragments.referential}
   ${DataFragments.sample}
   ${DataFragments.batch}
   `
@@ -177,7 +178,7 @@ export class OperationService extends BaseDataService implements TableDataServic
            }
   ): Observable<LoadResult<Operation>> {
 
-    if (isNil(filter.tripId)) {
+    if (!filter || isNil(filter.tripId)) {
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
       return Observable.empty();
     }
@@ -327,7 +328,6 @@ export class OperationService extends BaseDataService implements TableDataServic
    * @param data
    */
   async save(entity: Operation): Promise<Operation> {
-
 
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, {});

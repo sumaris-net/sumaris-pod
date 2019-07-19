@@ -19,7 +19,8 @@ export const environment: Environment = {
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: true,
 
-  persistCache: true,
+  // FIXME: enable cache
+  persistCache: false,
 
   // defaultPeer: {
   //   host: '192.168.0.28',

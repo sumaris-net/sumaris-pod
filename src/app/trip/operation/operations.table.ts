@@ -29,6 +29,9 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 })
 export class OperationTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
+  displayAttributes: {
+    [key: string]: string[]
+  };
   @Input() latLongPattern: string;
 
   @Input() tripId: number;
@@ -39,7 +42,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected platform: Platform,
     protected location: Location,
     protected modalCtrl: ModalController,
-    protected settingsService: LocalSettingsService,
+    protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
     protected referentialRefService: ReferentialRefService,
@@ -47,10 +50,11 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settingsService,
+    super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat(
-          ['metier',
+          ['physicalGear',
+            'targetSpecies',
             'startDateTime',
             'startPosition',
             'endDateTime',
@@ -70,7 +74,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false;
     this.inlineEdition = false;
-    this.latLongPattern = settingsService.settings.latLongFormat;
+    this.latLongPattern = settings.settings.latLongFormat;
     this.pageSize = 1000; // Do not use paginator
   };
 
@@ -78,8 +82,13 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
   ngOnInit() {
     super.ngOnInit();
 
+    this.displayAttributes = {
+      gear: this.settings.getFieldAttributes('gear'),
+      taxonGroup: this.settings.getFieldAttributes('taxonGroup'),
+    };
+
     this.registerSubscription(
-      this.settingsService.onChange.subscribe((settings) => {
+      this.settings.onChange.subscribe((settings) => {
         if (this.loading) return; // skip
         this.latLongPattern = settings.latLongFormat;
         this.markForCheck();

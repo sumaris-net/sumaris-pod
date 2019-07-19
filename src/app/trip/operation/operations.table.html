@@ -58,13 +58,23 @@
     </mat-cell>
   </ng-container>
 
-  <!-- metier -->
-  <ng-container matColumnDef="metier">
+  <!-- physical gear -->
+  <ng-container matColumnDef="physicalGear">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.OPERATION.LIST.METIER</ion-label>
+      <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData?.metier)}}</ion-label>
+      <ion-label>{{referentialToString(row.currentData?.metier.gear, displayAttributes.gear)}}</ion-label>
+    </mat-cell>
+  </ng-container>
+
+  <!-- metier -->
+  <ng-container matColumnDef="targetSpecies">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label>{{referentialToString(row.currentData?.metier, displayAttributes.taxonGroup)}}</ion-label>
     </mat-cell>
   </ng-container>
 

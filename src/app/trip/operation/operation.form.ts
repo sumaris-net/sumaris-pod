@@ -1,12 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
 import {OperationValidatorService} from "../services/operation.validator";
-import {fromDateISOString, Operation, PhysicalGear, Trip} from "../services/trip.model";
+import {fromDateISOString, isNil, Operation, PhysicalGear, Trip} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
 import {debounceTime, map, mergeMap, tap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
-import {AccountService, AppForm} from '../../core/core.module';
+import {AccountService, AppForm, IReferentialRef} from '../../core/core.module';
 import {
   EntityUtils,
   ReferentialRef,
@@ -18,6 +18,7 @@ import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
+import {isNilOrBlank} from "../../shared/functions";
 
 @Component({
   selector: 'form-operation',
@@ -77,19 +78,24 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected physicalGearValidatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected accountService: AccountService,
-    protected settingsService: LocalSettingsService,
+    protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, physicalGearValidatorService.getFormGroup());
+    super(dateAdapter, physicalGearValidatorService.getFormGroup(), settings);
 
   }
 
   ngOnInit() {
-    this.usageMode = this.usageMode || (this.settingsService.isUsageMode('FIELD') ? 'FIELD' : 'DESK');
+    this.usageMode = this.usageMode || (this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK');
     this.enableGps = (this.usageMode === 'FIELD'); /* TODO: && platform has sensor */
-    this.latLongFormat = this.settingsService.latLongFormat;
+    this.latLongFormat = this.settings.latLongFormat;
+
+    // Taxon group combo
+    this.registerAutocompleteField('taxonGroup', {
+      suggestFn: (value: any, options?: any) => this.suggestTargetSpecies(value, options)
+    });
 
     // Combo: physicalGears
     this.physicalGears =
@@ -188,4 +194,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   referentialToString = referentialToString;
+
+  /* -- protected methods -- */
+
+  protected async suggestTargetSpecies(value: any, options?: any): Promise<IReferentialRef[]> {
+    const physicalGear = this.form.get('physicalGear').value;
+
+    // IF taxonGroup column exists: gear must be filled first
+    if (isNilOrBlank(value) && EntityUtils.isEmpty(physicalGear)) return [];
+
+    return this.referentialRefService.suggest(value,
+      {
+        entityName: "Metier",
+        searchJoin: "TaxonGroup",
+        searchAttribute: options && options.searchAttribute,
+        levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || undefined
+      });
+  }
 }

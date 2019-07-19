@@ -237,20 +237,25 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
       await this.updateView(data, trip);
       this.loading = false;
-      this.startListenChanges();
+      this.startListenRemoteChanges();
     }
   }
 
-  startListenChanges() {
+  startListenRemoteChanges() {
+
+    // Listen for changes on server
     if (isNotNil(this.data.id) && this._enableListenChanges) {
 
       const subscription = this.operationService.listenChanges(this.data.id)
         .subscribe((data: Operation | undefined) => {
           const newUpdateDate = data && (data.updateDate as Moment) || undefined;
           if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
-            if (this.debug) console.debug("[operation] Detected update on server", newUpdateDate);
+            if (this.debug) console.debug("[operation] Detected update on server at:", newUpdateDate);
             if (!this.dirty) {
               this.updateView(data, this.trip);
+            }
+            else {
+              // TODO: warn the user, with : a reload button, a force button (to copy updateDate)
             }
           }
         });
@@ -558,7 +563,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         }, 100);
 
         // Subscription to changes
-        this.startListenChanges();
+        this.startListenRemoteChanges();
       }
 
       this.submitted = false;

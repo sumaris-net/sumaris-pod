@@ -71,13 +71,13 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
   }
 
   get latLongFormat(): string {
-    return this.settingsService.settings.latLongFormat || 'DDMM';
+    return this.settings.settings.latLongFormat || 'DDMM';
   }
 
   @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
-    protected settingsService: LocalSettingsService,
+    protected settings: LocalSettingsService,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective

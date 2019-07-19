@@ -78,7 +78,7 @@ export class MatOptionFormField implements OnInit, ControlValueAccessor {
   @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
-    protected settingsService: LocalSettingsService,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {

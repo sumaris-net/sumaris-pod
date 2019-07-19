@@ -46,7 +46,7 @@ export class HomePage implements OnDestroy {
     private modalCtrl: ModalController,
     private translate: TranslateService,
     private configService: ConfigService,
-    private settingsService: LocalSettingsService,
+    private settings: LocalSettingsService,
     private platform: PlatformService,
     private cd: ChangeDetectorRef
   ) {
@@ -125,7 +125,7 @@ export class HomePage implements OnDestroy {
 
   changeLanguage(locale: string) {
 
-    this.settingsService.saveLocalSettings({locale: locale})
+    this.settings.saveLocalSettings({locale: locale})
       .then(() => {
         this.markForCheck();
       });

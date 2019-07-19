@@ -204,7 +204,7 @@ export class AccountService extends BaseDataService {
 
   constructor(
     protected graphql: GraphqlService,
-    private settingsService: LocalSettingsService,
+    private settings: LocalSettingsService,
     private cryptoService: CryptoService,
     private storage: Storage
   ) {
@@ -242,7 +242,7 @@ export class AccountService extends BaseDataService {
     if (this._started) return;
 
     // Restoring local settings
-    this._startPromise = this.settingsService.ready()
+    this._startPromise = this.settings.ready()
       .then(() => this.restoreLocally())
       .then(() => {
         this._started = true;
@@ -309,7 +309,7 @@ export class AccountService extends BaseDataService {
    * @param mode
    */
   public isUsageMode(mode: UsageMode): boolean {
-    return this.settingsService.isUsageMode(mode);
+    return this.settings.isUsageMode(mode);
   }
 
   public isOnlyGuest(): boolean {
@@ -357,8 +357,8 @@ export class AccountService extends BaseDataService {
       data.account.pubkey = base58.encode(keypair.publicKey);
 
       // Default values
-      data.account.settings.locale = this.settingsService.locale;
-      data.account.settings.latLongFormat = this.settingsService.latLongFormat;
+      data.account.settings.locale = this.settings.locale;
+      data.account.settings.latLongFormat = this.settings.latLongFormat;
       data.account.department.id = data.account.department.id || environment.defaultDepartmentId;
 
       this.data.keypair = keypair;
@@ -486,8 +486,8 @@ export class AccountService extends BaseDataService {
       // Fill default values
       account.avatar = account.avatar || "../assets/img/person.png";
       account.settings = account.settings || new UserSettings();
-      account.settings.locale = account.settings.locale || this.settingsService.locale;
-      account.settings.latLongFormat = account.settings.latLongFormat || this.settingsService.latLongFormat || 'DDMM';
+      account.settings.locale = account.settings.locale || this.settings.locale;
+      account.settings.latLongFormat = account.settings.latLongFormat || this.settings.latLongFormat || 'DDMM';
 
       // Read main profile
       this.data.mainProfile = getMainProfile(account.profiles);
@@ -760,7 +760,7 @@ export class AccountService extends BaseDataService {
 
   async sendConfirmationEmail(email: String, locale?: string): Promise<boolean> {
 
-    locale = locale || this.settingsService.locale;
+    locale = locale || this.settings.locale;
     console.debug("[account] Sending confirmation email to {" + email + "} with locale {" + locale + "}...");
 
     return await this.graphql.mutate<boolean>({
@@ -849,14 +849,14 @@ export class AccountService extends BaseDataService {
    * @deprecated
    */
   public getPageSettings(pageId: string, propertyName?: string): string[] {
-    return this.settingsService.getPageSettings(pageId, propertyName);
+    return this.settings.getPageSettings(pageId, propertyName);
   }
 
   /**
    * @deprecated
    */
   public async savePageSetting(pageId: string, value: any, propertyName?: string) {
-    await this.settingsService.savePageSetting(pageId, value, propertyName);
+    await this.settings.savePageSetting(pageId, value, propertyName);
   }
 
   get additionalAccountFields(): AccountFieldDef[] {

@@ -133,7 +133,6 @@ export class MatAutocompleteField implements OnInit, IFocusable, OnDestroy, Cont
     this.displayColumnSizes = isNotEmptyArray(this.displayColumnSizes) ?
       this.displayColumnSizes :
       this.displayAttributes.map(attr => (attr === 'label') ? 2 : (attr === 'rankOrder' ? 1 : undefined));
-    console.log(this.displayColumnSizes);
 
     const updateEvents$ = merge(
       this._onRefresh

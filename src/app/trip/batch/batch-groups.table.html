@@ -134,7 +134,7 @@
       <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                               [formControl]="row.validator.controls.taxonGroup"
                               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
-                              [required]="true"
+                              [required]="showTaxonGroupColumn"
                               [config]="autocompleteFields.taxonGroup">
       </mat-autocomplete-field>
     </mat-cell>
@@ -147,10 +147,10 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row" >
 
-      <mat-autocomplete-field floatLabel="never" [classList]="'large'"
+      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                               [formControl]="row.validator.controls.taxonName"
                               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
-                              [required]="true"
+                              [required]="showTaxonNameColumn"
                               [config]="autocompleteFields.taxonName">
       </mat-autocomplete-field>
     </mat-cell>

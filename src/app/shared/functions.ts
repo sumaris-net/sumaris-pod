@@ -71,8 +71,8 @@ export function suggestFromArray(items: any[], value: any, options?: {
   searchAttribute?: string
   searchAttributes?: string[]
 }): any[] {
-  if (typeof value !== "string") return [value];
-  value = (!value || value === '*') ? undefined : value.toUpperCase();
+  if (isNotNil(value) && typeof value === "object") return [value];
+  value = (typeof value === "string" && value !== '*') && value.toUpperCase() || undefined;
   if (isNilOrBlank(value)) return items;
   const keys = options && (options.searchAttribute && [options.searchAttribute] || options.searchAttributes) || ['label'];
 
@@ -85,7 +85,6 @@ export function suggestFromArray(items: any[], value: any, options?: {
   // If wildcard, search using startsWith
   return items.filter(v => keys.findIndex(key => startsWithUpperCase(v[key], value)) !== -1);
 }
-
 
 export function joinProperties(obj: any, properties: String[], separator?: string): string | undefined {
   if (!obj) throw "Could not display an undefined entity.";

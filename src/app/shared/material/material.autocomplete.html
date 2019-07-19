@@ -8,8 +8,11 @@
          [tabindex]="tabindex"
          (focus)="_onRefresh.emit()"
          (blur)="_onBlur($event)"
-         (keyup.arrowdown)="onShowDropdown.emit($event)"
          (click)="selectInputContent($event) && onShowDropdown.emit($event)">
+  <!--
+    If enable, then
+    (keyup.arrowdown)="autoCombo.opened && onShowDropdown.emit($event)"
+  -->
 
   <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   <mat-error *ngIf="formControl.hasError('entity')||formControl.hasError('object')" translate>ERROR.FIELD_INVALID</mat-error>

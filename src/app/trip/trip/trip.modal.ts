@@ -25,11 +25,11 @@ export class TripModal extends TripPage {
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
     protected dataService: TripService,
-    protected settingsService: LocalSettingsService,
+    protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
     protected programService: ProgramService,
     protected cd: ChangeDetectorRef) {
-    super(route, router, alterCtrl, translate, dateFormat, dataService, settingsService, programService, cd);
+    super(route, router, alterCtrl, translate, dateFormat, dataService, settings, programService, cd);
   }
 
   async save(event: any): Promise<boolean> {

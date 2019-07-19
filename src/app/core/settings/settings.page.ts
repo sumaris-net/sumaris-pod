@@ -48,6 +48,12 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       label: 'SETTINGS.FIELDS.TAXON_NAME',
       type: 'combo',
       values: ['label,name', 'name', 'name,label', 'label']
+    },
+    {
+      key: 'gear',
+      label: 'SETTINGS.FIELDS.GEAR',
+      type: 'combo',
+      values: ['label,name', 'name', 'name,label', 'label']
     }
 
   ];
@@ -80,10 +86,10 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     protected networkService: NetworkService,
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
-    protected settingsService: LocalSettingsService,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, validatorService.getFormGroup());
+    super(dateAdapter, validatorService.getFormGroup(), settings);
 
     // Fill locales
     for (let locale in this.localeMap) {
@@ -127,7 +133,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     this.loading = true;
     console.debug("[settings] Loading settings...");
 
-    const data = this.settingsService.settings || {};
+    const data = this.settings.settings || {};
 
     // Set defaults
     data.accountInheritance = toBoolean(data.accountInheritance, true);
@@ -182,7 +188,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     try {
       this.disable();
 
-      await this.settingsService.saveLocalSettings(data);
+      await this.settings.saveLocalSettings(data);
       this._data = data;
       this.markAsPristine();
 

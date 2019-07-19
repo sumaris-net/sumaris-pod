@@ -1,10 +1,10 @@
-import {fromDateISOString, isNil, isNotNil, toDateISOString} from "../../../core/core.module";
+import {fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
 import {Moment} from "moment/moment";
 import {
-  AcquisitionLevelCodes,
   DataEntity,
   DataRootEntity,
-  DataRootVesselEntity, IWithObserversEntity,
+  DataRootVesselEntity,
+  IWithObserversEntity,
   Person,
   ReferentialRef
 } from "./base.model";
@@ -12,6 +12,7 @@ import {IEntityWithMeasurement, Measurement, MeasurementUtils} from "./measureme
 import {Sale} from "./sale.model";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
+import {MetierRef} from "../../../referential/services/model/taxon.model";
 
 
 /* -- Helper function -- */
@@ -172,7 +173,7 @@ export class Operation extends DataEntity<Operation> {
   startPosition: VesselPosition;
   endPosition: VesselPosition;
 
-  metier: ReferentialRef;
+  metier: MetierRef;
   physicalGear: PhysicalGear;
   tripId: number;
 
@@ -182,10 +183,10 @@ export class Operation extends DataEntity<Operation> {
 
   constructor() {
     super();
-    this.metier = new ReferentialRef();
+    this.metier = null;
     this.startPosition = new VesselPosition();
     this.endPosition = new VesselPosition();
-    this.physicalGear = new PhysicalGear();
+    this.physicalGear = null;
     this.measurements = [];
     this.samples = [];
     this.catchBatch = null;
@@ -231,14 +232,13 @@ export class Operation extends DataEntity<Operation> {
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
     this.tripId = source.tripId;
-    this.physicalGear = source.physicalGear && PhysicalGear.fromObject(source.physicalGear) || new PhysicalGear();
-    this.physicalGear.id = this.physicalGear.id || source.physicalGearId;
+    this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
-    source.metier && this.metier.fromObject(source.metier);
+    this.metier = source.metier && MetierRef.fromObject(source.metier, true/*Copy taxonGroup label/name*/) || undefined;
     if (source.startPosition || source.endPosition) {
       this.startPosition = source.startPosition && VesselPosition.fromObject(source.startPosition);
       this.endPosition = source.endPosition && VesselPosition.fromObject(source.endPosition);

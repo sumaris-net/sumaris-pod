@@ -13,7 +13,7 @@
       <input matInput #matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl"
              [matAutocomplete]="autoQualitativeValue"
              (click)="selectInputContent($event) && onShowDropdown.emit($event)"
-             (keyup.arrowdown)="onShowDropdown.next($event)"
+             (focus)="onShowDropdown.next($event)"
              (blur)="_onBlur($event)"
              [required]="required"
              [tabindex]="tabindex"
@@ -52,7 +52,7 @@
         <ion-row>
             <ion-col *ngFor="let attr of searchAttributes"
                      size="{{attr==='label'?3:undefined}}"
-                     [innerHTML]="item[attr] | highlight: {search: formControl.value }"></ion-col>
+                     [innerHTML]="item && item[attr] | highlight: {search: formControl.value }"></ion-col>
         </ion-row>
       </mat-option>
     </mat-autocomplete>

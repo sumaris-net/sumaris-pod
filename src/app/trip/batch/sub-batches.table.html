@@ -143,10 +143,12 @@
             </ion-label>
           </mat-header-cell>
           <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
-            <mat-form-field-measurement
-              [readonly]="!row.editing"
-              [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
-              floatLabel="never"></mat-form-field-measurement>
+            <mat-form-field-measurement floatLabel="never"
+                                        [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
+                                        [pmfm]="pmfm"
+                                        [readonly]="!row.editing"
+                                        [compact]="true">
+            </mat-form-field-measurement>
           </mat-cell>
         </ng-container>
 

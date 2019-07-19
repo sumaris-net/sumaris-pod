@@ -226,7 +226,7 @@ export class CoreModule {
 
   constructor(
     translate: TranslateService,
-    settingsService: LocalSettingsService,
+    settings: LocalSettingsService,
     accountService: AccountService,
     dateAdapter: DateAdapter<any>) {
 
@@ -258,14 +258,14 @@ export class CoreModule {
       }
     });
 
-    settingsService.onChange.subscribe(settings => {
+    settings.onChange.subscribe(settings => {
       if (settings && settings.locale && settings.locale !== translate.currentLang) {
         translate.use(settings.locale);
       }
     });
 
     accountService.onLogin.subscribe(account => {
-      if (settingsService.settings.accountInheritance) {
+      if (settings.settings.accountInheritance) {
         if (account.settings && account.settings.locale && account.settings.locale !== translate.currentLang) {
           translate.use(account.settings.locale);
         }

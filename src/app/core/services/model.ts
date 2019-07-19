@@ -192,6 +192,7 @@ export function personsToString(data: Person[], separator?: string): string {
 export abstract class Entity<T> implements Cloneable<T> {
   id: number;
   updateDate: Date | Moment;
+  __typename: string;
 
   abstract clone(): T;
 
@@ -205,6 +206,7 @@ export abstract class Entity<T> implements Cloneable<T> {
   fromObject(source: any): Entity<T> {
     this.id = (source.id || source.id === 0) ? source.id : undefined;
     this.updateDate = fromDateISOString(source.updateDate);
+    this.__typename = source.__typename;
     return this;
   }
 
@@ -374,9 +376,9 @@ export declare interface IReferentialRef {
   entityName: string;
 }
 
-export class ReferentialRef extends Entity<any> implements IReferentialRef {
+export class ReferentialRef<T=any> extends Entity<T> implements IReferentialRef {
 
-  static fromObject(source: any): any {
+  static fromObject(source: any): ReferentialRef<any> {
     if (!source || source instanceof ReferentialRef) return source;
     const res = new ReferentialRef();
     res.fromObject(source);
@@ -400,10 +402,12 @@ export class ReferentialRef extends Entity<any> implements IReferentialRef {
   }
 
   clone(): any {
-    return this.copy(new ReferentialRef());
+    const target = new ReferentialRef();
+    this.copy(target);
+    return target;
   }
 
-  copy(target: any): any {
+  copy(target: ReferentialRef<T>): ReferentialRef<T> {
     target.fromObject(this);
     return target;
   }
@@ -415,7 +419,7 @@ export class ReferentialRef extends Entity<any> implements IReferentialRef {
     return target;
   }
 
-  fromObject(source: any): Entity<any> {
+  fromObject(source: any): Entity<T> {
     super.fromObject(source);
     this.label = source.label;
     this.name = source.name;

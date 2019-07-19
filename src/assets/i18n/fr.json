@@ -213,6 +213,7 @@
       "QUALITATIVE_VALUE": "Paramètre avec liste de valeurs",
       "TAXON_GROUP": "Espèce commerciale",
       "TAXON_NAME": "Espèce scientifique",
+      "GEAR": "Engin de pêche",
       "ATTRIBUTES": {
         "LABEL": "Code",
         "NAME": "Libellé"
@@ -341,6 +342,8 @@
       "LIST": {
         "PHYSICAL_GEAR": "Engin utilisé",
         "METIER": "Métier",
+        "METIER": "Métier",
+        "TARGET_SPECIES": "Espèce cible",
         "START_DATE_TIME": "Début d'opération",
         "END_DATE_TIME": "Fin de l'opération",
         "FISHING_START_DATE_TIME": "Début de pêche",

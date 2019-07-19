@@ -186,30 +186,17 @@ export class LocalSettingsService {
     await this.saveLocally();
   }
 
-  // public async getFieldsSettings(fieldNames: string[]): Promise<{[key: string]: FieldSettings}> {
-  //   if (!this.isStarted()) await this.ready();
-  //   return (fieldNames || []).reduce((res, key) => {
-  //     res[key] = this.getFieldSettings(key);
-  //     return res;
-  //   }, {});
-  // }
-
   public getFieldAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
     let options = this.data && this.data.fields &&  this.data.fields.find(fo => fo.key===fieldName) as FieldSettings;
     if (!options) {
       // Default
-      options = {key: fieldName, value: defaultAttributes && defaultAttributes.join(',') || 'label,name'};
-      if (this.data) {
-        console.warn(`[settings] New field {${fieldName}} ! Applying default settings...`);
-        this.data.fields = this.data.fields || [];
-        this.data.fields.push(options);
-      }
+      console.debug(`[settings] No settings found for field {${fieldName}}: applying defaults`);
+      return defaultAttributes || ['label','name'];
     }
     return options.value.split(',');
   }
 
   /* -- Protected methods -- */
-
 
   private saveLocally(): Promise<any> {
     if (!this.data) {

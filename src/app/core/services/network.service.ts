@@ -57,7 +57,7 @@ export class NetworkService {
     private storage: Storage,
     private http: HttpClient,
     private splashScreen: SplashScreen,
-    private settingsService: LocalSettingsService,
+    private settings: LocalSettingsService,
     private network: Network
   ) {
     this.resetData();
@@ -110,8 +110,8 @@ export class NetworkService {
       })
 
       // Wait settings starts, then save peer in settings
-      .then(() => this.settingsService.ready())
-      .then(() => this.settingsService.saveLocalSettings({peerUrl: this._peer.url}));
+      .then(() => this.settings.ready())
+      .then(() => this.settings.saveLocalSettings({peerUrl: this._peer.url}));
     return this._startPromise;
   }
 

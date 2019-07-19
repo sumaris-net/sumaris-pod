@@ -25,11 +25,13 @@ export const dataIdFromObject = function (object: Object): string {
   switch (object['__typename']) {
     // For generic VO: add entityName in the cache key (to distinguish by entity)
     case 'ReferentialVO':
-    case 'MeasurementVO':
+    case 'MetierVO':
+    case 'PmfmVO':
     case 'TaxonGroupVO':
     case 'TaxonNameVO':
     case 'TaxonNameStrategyVO':
     case 'TaxonGroupStrategyVO':
+    case 'MeasurementVO':
       return object['entityName'] + ':' + object['id'];
     // Fallback to default cache key
     default:

@@ -15,12 +15,16 @@ export declare class ReferentialFilter {
   entityName: string;
   label?: string;
   name?: string;
-  levelId?: number;
-  levelIds?: number[];
-  searchText?: string;
-  searchAttribute?: string;
+
   statusId?: number;
   statusIds?: number[];
+
+  levelId?: number;
+  levelIds?: number[];
+
+  searchJoin?: string; // If search is on a sub entity (e.g. Metier can esearch on TaxonGroup)
+  searchText?: string;
+  searchAttribute?: string;
 }
 export declare class TaxonNameFilter {
 
@@ -231,7 +235,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
 
   /**
    * Save a referential entity
-   * @param entity 
+   * @param entity
    */
   async save(entity: Referential, options?: any): Promise<Referential> {
 

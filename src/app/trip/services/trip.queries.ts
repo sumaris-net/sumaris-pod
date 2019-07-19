@@ -2,33 +2,12 @@ import gql from "graphql-tag";
 import {ReferentialFragments} from "../../referential/referential.module";
 
 export const Fragments = {
-  department: gql`fragment DepartmentFragment on DepartmentVO {
-    id
-    label
-    name
-    logo
-    __typename
-  }`,
-  recorderDepartment: gql`fragment RecorderDepartmentFragment on DepartmentVO {
-    id
-    label
-    name
-    logo
-    __typename
-  }`,
-  recorderPerson: gql`fragment RecorderPersonFragment on PersonVO {
-    id
-    firstName
-    lastName
-    avatar
-    department {
-      id
-      label
-      name
-      __typename
-    }
-    __typename
-  }`,
+  referential: ReferentialFragments.referential,
+  department: ReferentialFragments.department,
+  recorderDepartment: ReferentialFragments.recorderDepartment,
+  recorderPerson: ReferentialFragments.recorderPerson,
+  location:ReferentialFragments.location,
+  metier:ReferentialFragments.metier,
   lightPerson: gql`fragment LightPersonFragment on PersonVO {
     id
     firstName
@@ -42,14 +21,6 @@ export const Fragments = {
     }
     __typename
   }`,
-  location: gql`fragment LocationFragment on LocationVO {
-    id
-    label
-    name
-    entityName
-    __typename
-  }`,
-  referential: ReferentialFragments.referential,
   position: gql`fragment PositionFragment on VesselPositionVO {
     id
     dateTime

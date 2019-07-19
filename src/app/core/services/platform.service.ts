@@ -28,7 +28,7 @@ export class PlatformService {
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
     private keyboard: Keyboard,
-    private settingsService: LocalSettingsService,
+    private settings: LocalSettingsService,
     private networkService: NetworkService,
     private cache: CacheService
   ) {
@@ -58,7 +58,7 @@ export class PlatformService {
 
           // Force mobile in settings
           if (this.mobile) {
-            this.settingsService.mobile = this.mobile;
+            this.settings.mobile = this.mobile;
           }
         }),
       this.cache.ready()
@@ -66,7 +66,7 @@ export class PlatformService {
           this.cache.setDefaultTTL(60 * 60); // 1 hour
           this.cache.setOfflineInvalidate(false);
         }),
-      this.settingsService.ready(),
+      this.settings.ready(),
       this.networkService.ready()
     ])
       .then(() => {

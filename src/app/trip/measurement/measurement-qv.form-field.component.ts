@@ -79,6 +79,8 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   @Input() searchAttributes: string[];
 
+  @Input() displayAttributes: string[];
+
   @Input() sortAttribute: string;
 
   @Output('keypress.enter')
@@ -113,7 +115,8 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
-    const attributes = this.settings.getFieldAttributes('qualitativeValue', this.compact && ['label'] || ['label', 'name']);
+    const attributes = this.settings.getFieldAttributes('qualitativeValue', ['label', 'name']);
+    const displayAttributes = this.compact ? ['label'] : attributes;
     this.searchAttributes = isNotEmptyArray(this.searchAttributes) && this.searchAttributes || attributes;
     this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
 
@@ -121,7 +124,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     this._sortedQualitativeValues = sort(this.pmfm.qualitativeValues, this.sortAttribute);
 
     this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
-    this.displayWith = this.displayWith || ((obj) => referentialToString(obj, attributes));
+    this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
     if (!this.mobile) {

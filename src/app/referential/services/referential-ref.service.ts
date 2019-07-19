@@ -154,6 +154,7 @@ export class ReferentialRefService extends BaseDataService
         name: filter.name,
         searchText: filter.searchText,
         searchAttribute: filter.searchAttribute,
+        searchJoin: filter.searchJoin,
         levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
         statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
       }
@@ -183,6 +184,7 @@ export class ReferentialRefService extends BaseDataService
     searchAttribute?: string;
     statusId?: number;
     statusIds?: number[];
+    searchJoin?: string;
   }): Promise<ReferentialRef[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
@@ -192,23 +194,12 @@ export class ReferentialRefService extends BaseDataService
         levelId: options.levelId,
         levelIds: options.levelIds,
         searchText: value as string,
+        searchJoin: options.searchJoin,
         searchAttribute: options.searchAttribute,
         statusId: options.statusId,
         statusIds: options.statusIds
       });
     return res.data;
-  }
-
-  async suggestFromArray(availableValues: ReferentialRef[],
-                         value: any,
-                         options?: {
-                           searchAttribute?: string
-                         }): Promise<ReferentialRef[]> {
-    if (EntityUtils.isNotEmpty(value)) return [value];
-    value = (typeof value === "string" && value !== '*') && value.toUpperCase() || undefined;
-    if (isNilOrBlank(value)) return availableValues;
-    const key = options && options.searchAttribute || 'label';
-    return availableValues.filter(v => startsWithUpperCase(v[key], value));
   }
 
   async loadAllTaxonNames(offset: number,
