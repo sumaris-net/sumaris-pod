@@ -822,7 +822,7 @@ public class DataGraphQLService {
     protected <T extends IWithVesselFeaturesEntity<?, VesselFeaturesVO>> void fillVesselFeatures(T bean, Set<String> fields) {
         // Add vessel if need
         if (hasVesselFeaturesField(fields)) {
-            if (bean.getVesselFeatures().getVesselId() != null) {
+            if (bean.getVesselFeatures() != null && bean.getVesselFeatures().getVesselId() != null) {
                 bean.setVesselFeatures(vesselService.getByVesselIdAndDate(bean.getVesselFeatures().getVesselId(), bean.getVesselDateTime()));
             }
         }
@@ -832,7 +832,7 @@ public class DataGraphQLService {
         // Add vessel if need
         if (hasVesselFeaturesField(fields)) {
             beans.forEach(bean -> {
-                if (bean.getVesselFeatures().getVesselId() != null) {
+                if (bean.getVesselFeatures() != null && bean.getVesselFeatures().getVesselId() != null) {
                     bean.setVesselFeatures(vesselService.getByVesselIdAndDate(bean.getVesselFeatures().getVesselId(), bean.getVesselDateTime()));
                 }
             });
