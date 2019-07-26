@@ -1,5 +1,7 @@
 import * as moment from "moment";
 import {Moment} from "moment";
+import {asInputElement, isInputElement} from "./material/focusable";
+import {ElementRef} from "@angular/core";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
 
@@ -113,7 +115,7 @@ export function sort<T>(array: T[], attribute: string): T[] {
 }
 
 
-export function selectInputContent(event: MouseEvent) {
+export function selectInputContent(event: UIEvent) {
   if (event.defaultPrevented) return false;
   const input = (event.target as any);
   if (input && typeof input.select === "function") {
@@ -141,4 +143,24 @@ export function getPropertyByPath(obj: any, path: string): any {
     return getPropertyByPath(obj[key], path.substring(i + 1));
   }
   throw new Error(`Invalid property path: '${key}' is not an valid object.`);
+}
+
+export function focusInput(element: ElementRef) {
+  const inputElement = asInputElement(element);
+  if (inputElement)
+    inputElement.focus();
+  else {
+    console.warn("Trying to focus on this element:", element);
+  }
+}
+export function setTabIndex(element: ElementRef, tabIndex: number) {
+  if(isInputElement(element)) {
+    element.tabindex = tabIndex;
+  }
+  else if (element && isInputElement(element.nativeElement)) {
+    element.nativeElement.tabIndex = tabIndex;
+  }
+  else {
+    console.warn("Trying to change tabindex on this element:", element);
+  }
 }

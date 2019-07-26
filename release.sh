@@ -1,6 +1,7 @@
 #!/bin/bash
 
 NODEJS_VERSION=10
+PROJECT_NAME=sumaris-app
 
 ### Control that the script is run on `dev` branch
 branch=`git rev-parse --abbrev-ref HEAD`
@@ -66,13 +67,14 @@ rel|pre)
 esac
 
 # Check the Java version
-JAVA_VERSION=`java -version 2>&1 | grep "java version" | awk '{print $3}' | tr -d \"`
+JAVA_VERSION=`java -version 2>&1 | egrep "(java|openjdk) version" | awk '{print $3}' | tr -d \"`
 if [[ $? -ne 0 ]]; then
   echo "No Java JRE 1.8 found in machine. This is required for Android artifacts."
   exit -1
 fi
-JAVA_MINOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[2]}'`
-if [[ ${JAVA_MINOR_VERSION} -ne 8 ]]; then
+JAVA_MAJOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[1]}'`
+fiJAVA_MINOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[2]}'`
+if [[ ${JAVA_MAJOR_VERSION} -ne 1 ]] || [[ ${JAVA_MINOR_VERSION} -ne 8 ]]; then
   echo "Require a Java JRE in version 1.8, but found ${JAVA_VERSION}. You can override your default JAVA_HOME in 'env.sh'."
   exit -1
 fi
@@ -102,7 +104,8 @@ echo "----------------------------------"
 echo "- Creating web artifact..."
 echo "----------------------------------"
 cd $DIRNAME/www
-zip -q -r sumaris-app.zip .
+test -e "${PROJECT_NAME}.zip" || rm ${PROJECT_NAME}.zip
+zip -q -r ${PROJECT_NAME}.zip .
 if [[ $? -ne 0 ]]; then
     exit 1
 fi
@@ -141,7 +144,7 @@ sleep 10s
 description="$4"
 if [[ "_$description" == "_" ]]; then
     description="Release v$2"
-fi 
+fi
 
 echo "**********************************"
 echo "* Uploading artifacts to Github..."

@@ -350,7 +350,7 @@ export class AccountService extends BaseDataService {
 
     if (this._debug) console.debug('[account] Register new user account...', data.account);
     this.data.loaded = false;
-    let now = new Date();
+    let now = Date.now();
 
     try {
       const keypair = await this.cryptoService.scryptKeypair(data.username, data.password);
@@ -378,7 +378,7 @@ export class AccountService extends BaseDataService {
 
       await this.saveLocally();
 
-      console.debug("[account] Account successfully registered in " + (new Date().getTime() - now.getTime()) + "ms");
+      console.debug("[account] Account successfully registered in " + (Date.now() - now) + "ms");
       this.onLogin.next(this.data.account);
       return this.data.account;
     }
@@ -778,7 +778,7 @@ export class AccountService extends BaseDataService {
 
   async confirmEmail(email: String, code: String): Promise<boolean> {
 
-    console.debug("[account-service] Sendng confirm request for email {" + email + "} with code {" + code + "}...");
+    console.debug("[account] Sendng confirm request for email {" + email + "} with code {" + code + "}...");
 
     const res = await this.graphql.mutate<{ confirmAccountEmail: boolean }>({
       mutation: ConfirmEmailMutation,

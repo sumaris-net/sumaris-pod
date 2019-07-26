@@ -10,12 +10,19 @@ This article will explain how to install your environment, then build the applic
 
 2. Install global dependency: 
 ```bash
-npm install -g ionic cordova
+npm install -g ionic cordova cordova-res native-run 
 ```
 
 2. Get sources (clone the repo) : `git clone ...`
 
+### Install additional tools (optional)
+```bash
+sudo apt-get install chromium-browser docker.io
+```
+
 ## Web build
+
+### For development and test
 
 1. Install the environment:
 ```bash
@@ -23,45 +30,54 @@ cd sumaris-app/scrips
 ./env-global.sh
 ```
 
-2. Start the app
-```bash
-npm start
-```
-or
-```bash
-ng serve --port [port]
-```
+2. Check environment configuration:
+
+   - Edit the file `src/environment/environment.ts`
+   
+3. Start the app
+    ```bash
+    cd sumaris-app
+    npm start
+    ```
+   By default, the app should be accessible at [http://localhost:4200](http://localhost:4200)
+   
+   To change the default port, use this command instead:
+    
+    ```bash
+    cd sumaris-app
+    ng serve --port [port]
+    ```
 
 The application should be accessible at [localhost:4200](http://localhost:4200)
 
-3. Check environment configuration
+### Web build for production
 
-Edit the file `src/environment/environment.ts`
+1. Check environment configuration:
 
-4. Build a release (production ready)
-```bash
-npm run build --prod --release
-```
+   - Edit the file `src/environment/environment-prod.ts`
 
+2. Create the release
+    ```bash
+    npm run build --prod --release
+    ```
 
 ## Android build 
 
-1. Build a debug APK:
+### Build a debug APK, for development and test
 
 ```bash
 cd scripts
 ./build-android.sh
 ```
 
-2. Build a release APK (production ready):
+### Build a release APK, for production
 
 ```bash
 cd scripts
 ./release-android.sh
 ```
 
-
-## Developer guide :
+## Useful links
 
 - Ionic 4 colors: https://www.joshmorony.com/a-primer-on-css-4-variables-for-ionic-4/
 - Migration to Ionic 4 tips: https://www.joshmorony.com/my-method-for-upgrading-from-ionic-3-to-ionic-4/

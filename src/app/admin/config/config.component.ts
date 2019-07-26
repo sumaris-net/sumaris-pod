@@ -4,7 +4,7 @@ import {BehaviorSubject} from 'rxjs';
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {ConfigOption, ConfigOptions, Configuration, Department, EntityUtils} from '../../core/services/model';
 import {ConfigService} from "src/app/core/services/config.service";
-import {AppForm, ConfigValidatorService, isNil, PlatformService} from "src/app/core/core.module";
+import {AppForm, AppFormUtils, ConfigValidatorService, isNil, PlatformService} from "src/app/core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {FormArrayHelper} from "../../core/form/form.utils";
@@ -20,6 +20,7 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
 
   private _propertyOptionsCache: { [index: number]: ConfigOption } = {};
 
+  saving = false;
   loading = true;
   partners = new BehaviorSubject<Department[]>(null);
   data: Configuration;
@@ -104,6 +105,15 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
   }
 
   async save($event: any, json?: any) {
+    if (this.saving) return; // skip
+    if (this.form.invalid) {
+      AppFormUtils.logFormErrors(this.form);
+      return;
+    }
+    console.debug("[config] Saving local settings...");
+
+    this.saving = true;
+    this.error = undefined;
 
     json = json || this.form.value;
     this.data.fromObject(json);
@@ -117,13 +127,14 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
       // Update the view
       this.updateView(updatedData);
       this.form.markAsUntouched();
-      this.error = null;
+
     }
     catch(err) {
       this.error = err && err.message || err;
     }
     finally {
       this.enable();
+      this.saving = false;
     }
   }
 

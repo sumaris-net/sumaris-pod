@@ -57,7 +57,7 @@
   </mat-form-field>
 
   <!-- boolean -->
-  <mat-boolean-field *ngSwitchCase="'boolean'"
+  <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
                      [formControl]="formControl"
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
@@ -70,7 +70,7 @@
   </mat-boolean-field>
 
   <!-- date -->
-  <mat-date-time *ngSwitchCase="'date'"
+  <mat-date-time *ngSwitchCase="'date'" #matInput
                  [formControl]="formControl"
                  [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                  [floatLabel]="floatLabel"
@@ -109,7 +109,7 @@
            [required]="required"
            [tabIndex]="tabindex"
            (click)="selectInputContent($event)"
-           (keypress.enter)="onKeypressEnter.emit($event)">
+           (keypress)="filterAlphanumericalInput($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>

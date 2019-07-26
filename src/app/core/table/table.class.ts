@@ -1,8 +1,8 @@
 import {EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatColumnDef, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
-import {Observable, Subject} from 'rxjs';
-import {filter, mergeMap, startWith, switchMap, takeUntil} from "rxjs/operators";
+import {Observable, of, Subject} from 'rxjs';
+import {catchError, filter, mergeMap, startWith, switchMap, takeUntil} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
@@ -14,7 +14,7 @@ import {TableSelectColumnsComponent} from './table-select-columns.component';
 import {Location} from '@angular/common';
 import {ErrorCodes} from "../services/errors";
 import {AppFormUtils} from "../form/form.utils";
-import {isNotNil} from "../../shared/shared.module";
+import {isNil, isNotNil} from "../../shared/shared.module";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
@@ -223,19 +223,19 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
             }
             if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
             return this.dataSource.watchAll(
-              this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
+              this.paginator && this.paginator.pageIndex * this.paginator.pageSize || 0,
               this.paginator && this.paginator.pageSize || this.pageSize || DEFAULT_PAGE_SIZE,
               this.sort && this.sort.active,
-              this.sort && this.sort.direction,
+              this.sort && this.sort.direction && (this.sort.direction === 'desc' ? 'desc' : 'asc') || undefined,
               this._filter
             );
           }),
-        takeUntil(this._onDestroy)
+        takeUntil(this._onDestroy),
+        catchError(err => {
+          this.error = err && err.message || err;
+          return of(undefined);
+        })
       )
-      .catch(err => {
-        this.error = err && err.message || err;
-        return Observable.empty();
-      })
       .subscribe(res => {
         if (res && res.data) {
           this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
@@ -490,6 +490,12 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       }
 
       event.stopPropagation();
+
+      // No ID defined: unable to open details
+      if (isNil(row.currentData.id)) {
+        console.warn("[table] Opening row details, but missing currentData.id!");
+        return false;
+      }
 
       this.loading = true;
       setTimeout(async () => {

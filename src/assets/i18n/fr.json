@@ -41,8 +41,8 @@
     "DDMMSS_PLACEHOLDER": "DD° MM' SS\" N|S",
     "DDMM_PLACEHOLDER": "DD° MM.MMM' N|S",
     "DD_PLACEHOLDER": "+DD.DDD°",
-    "DDDMMSS_PLACEHOLDER": "DD° MM' SS\" E|W",
-    "DDDMM_PLACEHOLDER": "DD° MM.MMM' E|W",
+    "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\" E|W",
+    "DDDMM_PLACEHOLDER": "DDD° MM.MMM' E|W",
     "DDD_PLACEHOLDER": "+DDD.DDD°",
 
     "METADATA": "Métadonnées :",
@@ -200,6 +200,7 @@
     "LAT_LONG_FORMAT": "Format latitude/longitude",
     "NETWORK_DIVIDER": "Paramètres réseau",
     "PEER_URL": "Addresse du noeud réseau",
+    "BTN_CHANGE_PEER": "Changer de noeud",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
     "USAGE_MODES":  {
@@ -219,7 +220,6 @@
         "NAME": "Libellé"
       }
     },
-    "BTN_CHANGE_PEER": "Changer de noeud",
     "ERROR": {
       "PEER_NOT_REACHABLE": "Noeud injoignable"
     }

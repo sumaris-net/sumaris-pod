@@ -79,7 +79,7 @@ export class RegisterForm implements OnInit {
 
   ngOnInit() {
     // For DEV only ------------------------
-    if (environment.production === false) {
+    if (!environment.production) {
       this.form.setValue({
         emailStep: {
           email: 'contact@e-is.pro',

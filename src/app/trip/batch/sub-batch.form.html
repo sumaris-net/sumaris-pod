@@ -97,7 +97,7 @@
                                      [pmfm]="pmfm"
                                      [style]="mobile? 'button' : 'autocomplete'"
                                      [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
-                                     (keypress.enter)="isLast && !enableIndividualCount && doSubmit($event)"
+                                     (keypress.enter)="isLast && doSubmitLastMeasurementField($event)"
                                      [floatLabel]="floatLabel"
                                      [compact]="compact">
       </mat-form-field-measurement-qv>
@@ -109,8 +109,8 @@
                                   [pmfm]="pmfm"
                                   [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
                                   (keypress.enter)="isLast && doSubmitLastMeasurementField($event)"
-                                  [compact]="compact"
-                                  [floatLabel]="floatLabel">
+                                  [floatLabel]="floatLabel"
+                                  [compact]="compact">
       </mat-form-field-measurement>
     </ng-template>
   </ng-container>

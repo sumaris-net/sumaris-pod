@@ -21,21 +21,14 @@ import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {
-  AcquisitionLevelCodes,
-  EntityUtils, FieldSettings,
-  ReferentialRef,
+  AcquisitionLevelCodes, attributeComparator,
+  EntityUtils,
+  IReferentialRef,
   referentialToString,
-  UsageMode, IReferentialRef, Referential
+  UsageMode
 } from "../../core/services/model";
 import {debounceTime, filter, map, mergeMap, startWith, tap} from "rxjs/operators";
-import {
-  getPmfmName,
-  isNil,
-  isNotNil,
-  MethodIds,
-  PmfmLabelPatterns,
-  PmfmStrategy
-} from "../../referential/services/model";
+import {getPmfmName, isNil, isNotNil, PmfmStrategy} from "../../referential/services/model";
 import {merge, Observable} from "rxjs";
 import {isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -45,8 +38,8 @@ import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
 import {MeasurementQVFormField} from "../measurement/measurement-qv.form-field.component";
-import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {MatAutocompleteField} from "../../shared/material/material.autocomplete";
+import {InputElement, isInputElement} from "../../shared/material/focusable";
 
 
 @Component({
@@ -252,21 +245,18 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     // Focus to first input
     this.matInputs
       .map((input) => {
-        if (input instanceof MeasurementFormField) {
-          return input as MeasurementFormField;
-        } else if (input.nativeElement as HTMLInputElement) {
+        if (isInputElement(input)) {
+          return input;
+        } else if (isInputElement(input.nativeElement)) {
           return input.nativeElement;
         }
         return undefined;
       })
-      .filter(isNotNil)
+      .filter(input => isNotNil(input) && isNilOrBlank(input.value))
+      .sort(attributeComparator("tabindex")) // Order by tabindex
       .find(input => {
-        if (isNilOrBlank(input.value)) {
-          if (event) event.preventDefault();
-          input.focus();
-          return true;
-        }
-        return false;
+        input.focus();
+        return true; // stop
       });
   }
 

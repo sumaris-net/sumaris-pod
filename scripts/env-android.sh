@@ -20,6 +20,7 @@ fi
 
 echo "Preparing Android environment:"
 echo " - using Android SDK: ${ANDROID_SDK_ROOT}"
+echo " - using Android SDK tools: ${ANDROID_SDK_TOOLS_ROOT}"
 echo " - using Gradle: ${CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL}"
 echo " - using Java: ${JAVA_HOME}"
 echo " - project dir: ${PROJECT_DIR}"

@@ -22,9 +22,16 @@ import {
   throttleTime
 } from "rxjs/operators";
 import {SuggestionDataService} from "../services/data-service.class";
-import {joinProperties, suggestFromArray, selectInputContent, isNotEmptyArray, getPropertyByPath} from "../functions";
+import {
+  joinProperties,
+  suggestFromArray,
+  selectInputContent,
+  isNotEmptyArray,
+  getPropertyByPath,
+  isNil, setTabIndex, focusInput
+} from "../functions";
 import {ReferentialRef} from "../../core/services/model";
-import {IFocusable} from "./focusable";
+import {InputElement} from "./focusable";
 import {MatAutocomplete} from "@angular/material";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
@@ -50,13 +57,12 @@ export declare interface  MatAutocompleteFieldConfig<T=any> {
   providers: [DEFAULT_VALUE_ACCESSOR],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatAutocompleteField implements OnInit, IFocusable, OnDestroy, ControlValueAccessor  {
+export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, ControlValueAccessor  {
 
   private _implicitValue: any;
   private _onDestroy = new EventEmitter(true);
-  private _onRefresh = new EventEmitter<UIEvent>(true);
 
-  onShowDropdown = new EventEmitter<UIEvent>(true);
+  onDropButtonClick = new EventEmitter<UIEvent>(true);
 
 
   private _onChangeCallback = (_: any) => {
@@ -102,11 +108,18 @@ export class MatAutocompleteField implements OnInit, IFocusable, OnDestroy, Cont
 
   @Output('click') onClick = new EventEmitter<MouseEvent>();
 
-  @Output('blur') onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
+  @Output('blur') onBlur = new EventEmitter<FocusEvent>();
+
+  @Output('focus') onFocus = new EventEmitter<FocusEvent>();
 
   @ViewChild('matInput') matInput: ElementRef;
 
   @ViewChild('autoCombo') matAutocomplete: MatAutocomplete;
+
+  get value(): any {
+    console.log("TODO: check get value")
+    return this.formControl.value
+  }
 
   constructor(
     protected cd: ChangeDetectorRef,
@@ -135,14 +148,15 @@ export class MatAutocompleteField implements OnInit, IFocusable, OnDestroy, Cont
       this.displayAttributes.map(attr => (attr === 'label') ? 2 : (attr === 'rankOrder' ? 1 : undefined));
 
     const updateEvents$ = merge(
-      this._onRefresh
-        .pipe(
-          map((_) => this.formControl.value)
-        ),
-      this.onShowDropdown
+      merge(this.onFocus, this.onClick)
+         .pipe(
+           map((_) => this.formControl.value),
+           filter(value => isNil(value) || typeof value === "string")
+         ),
+      this.onDropButtonClick
         .pipe(
           filter(event => !event || !event.defaultPrevented),
-          map((_) => this.formControl.value)
+          map((_) => "*")
         ),
       this.formControl.valueChanges
         .pipe(
@@ -151,7 +165,6 @@ export class MatAutocompleteField implements OnInit, IFocusable, OnDestroy, Cont
         )
     )
         .pipe(
-          //startWith(''),
           takeUntil(this._onDestroy)
         )
     ;
@@ -179,6 +192,16 @@ export class MatAutocompleteField implements OnInit, IFocusable, OnDestroy, Cont
     if (!this.items) {
       console.warn("Missing attribute 'service', 'items' or 'config' in <mat-autocomplete-field>", this);
     }
+
+    this.onBlur.subscribe( (event: FocusEvent) => {
+      // When leave component without object, use implicit value if stored
+      if (this._implicitValue && typeof this.formControl.value !== "object") {
+        this.writeValue(this._implicitValue);
+      }
+      this._implicitValue = null;
+      this.checkIfTouched();
+      this.matAutocomplete.showPanel=false;
+    });
 
     // Update tab index
     this.updateTabIndex();
@@ -211,28 +234,10 @@ export class MatAutocompleteField implements OnInit, IFocusable, OnDestroy, Cont
     this.markForCheck();
   }
 
-  refresh() {
-    this._onRefresh.emit();
-  }
-
   selectInputContent = selectInputContent;
 
-  _onBlur(event: FocusEvent) {
-    // When leave component without object, use implicit value if stored
-    if (this._implicitValue && typeof this.formControl.value !== "object") {
-      this.writeValue(this._implicitValue);
-    }
-    this._implicitValue = null;
-    this.checkIfTouched();
-    this.onBlur.emit(event);
-
-    this.matAutocomplete.showPanel=false;
-  }
-
   focus() {
-    if (this.matInput) {
-      this.matInput.nativeElement.focus();
-    }
+    focusInput(this.matInput);
   }
 
   getPropertyByPath = getPropertyByPath;
@@ -257,14 +262,12 @@ export class MatAutocompleteField implements OnInit, IFocusable, OnDestroy, Cont
   }
 
   protected updateTabIndex() {
-    if (this.tabindex && this.tabindex !== -1) {
-      setTimeout(() => {
-        if (this.matInput) {
-          this.matInput.nativeElement.tabIndex = this.tabindex;
-        }
-        this.markForCheck();
-      });
-    }
+    if (isNil(this.tabindex) || this.tabindex === -1) return; // skip
+
+    setTimeout(() => {
+      setTabIndex(this.matInput, this.tabindex);
+      this.markForCheck();
+    });
   }
 
   protected markForCheck() {

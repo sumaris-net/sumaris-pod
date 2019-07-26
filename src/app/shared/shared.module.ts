@@ -23,6 +23,7 @@ import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {
+  SuggestionDataService,
   DataService,
   LoadResult,
   TableDataService,
@@ -48,12 +49,13 @@ import {
   sort
 } from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
+import {InputElement} from "./material/focusable";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 
 export {
-  DataService, TableDataService, LoadResult,
+  DataService, SuggestionDataService, TableDataService, LoadResult,
   EditorDataService, EditorDataServiceLoadOptions,
   isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined,
   toBoolean, toFloat, toInt,
@@ -62,7 +64,7 @@ export {
   attributeComparator, joinProperties, sort, selectInputContent,
   fadeInAnimation, fadeInOutAnimation,
   DateFormatPipe, ToolbarComponent,
-  Color, ColorScale
+  Color, ColorScale, InputElement
 };
 
 @NgModule({

@@ -1,14 +1,15 @@
 <mat-form-field [floatLabel]="floatLabel">
 
-  <input matInput #matInput type="text"
+  <input matInput #matInput type="text" [matAutocomplete]="autoCombo"
          [appAutofocus]="appAutofocus"
-         [placeholder]="placeholder" [matAutocomplete]="autoCombo" [formControl]="formControl"
+         [formControl]="formControl"
+         [placeholder]="placeholder"
          [readonly]="readonly"
          [required]="required"
          [tabindex]="tabindex"
-         (focus)="_onRefresh.emit()"
-         (blur)="_onBlur($event)"
-         (click)="selectInputContent($event) && onShowDropdown.emit($event)">
+         (click)="onClick.emit($event)"
+         (focus)="selectInputContent($event) && onFocus.emit($event)"
+         (blur)="onBlur.emit($event)">
   <!--
     If enable, then
     (keyup.arrowdown)="autoCombo.opened && onShowDropdown.emit($event)"
@@ -26,7 +27,7 @@
   </button>
   <button mat-button matSuffix mat-icon-button tabindex="-1"
           type="button"
-          (click)="onShowDropdown.emit($event)"
+          (click)="onDropButtonClick.emit($event)"
           [hidden]="formControl.disabled">
     <mat-icon>arrow_drop_down</mat-icon>
   </button>

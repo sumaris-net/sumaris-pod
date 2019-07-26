@@ -3,24 +3,21 @@
   <span>{{(formControl.value ? 'COMMON.YES' : 'COMMON.NO') | translate }}</span>
 </mat-form-field>
 
-<mat-form-field *ngIf="!readonly" [floatLabel]="showRadio && (!floatLabel || floatLabel == 'auto') ? 'always': floatLabel">
-  <mat-label *ngIf="placeholder && (!compact || !showRadio)">
+<mat-form-field *ngIf="!readonly && !compact" [floatLabel]="showRadio && (!floatLabel || floatLabel == 'auto') ? 'always': floatLabel" >
+  <mat-label *ngIf="placeholder">
     {{placeholder}}
     <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
   </mat-label>
 
-  <input matInput
+  <input matInput #fakeInput type="text" readonly="true"
          [formControl]="formControl"
-         (focus)="_onFocus($event)"
+         (focus)="_onFocusFakeInput($event)"
          [required]="required"
-         [hidden]="value!==undefined"
+         [class.hidden]="showRadio"
          [tabindex]="tabindex">
 
-  <ion-label></ion-label>
-
   <!-- radio button -->
-  <mat-radio-group *ngIf="!compact"
-                   [hidden]="!showRadio && value==undefined"
+  <mat-radio-group [hidden]="!showRadio"
                    [formControl]="formControl"
                    (change)="onRadioValueChanged($event)">
     <mat-radio-button #yesButton
@@ -32,8 +29,27 @@
     </mat-radio-button>
   </mat-radio-group>
 
+  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+</mat-form-field>
+
+<!-- compact mode -->
+<mat-form-field *ngIf="!readonly && compact"
+                [floatLabel]="floatLabel" class="compact">
+  <mat-label *ngIf="placeholder && !showRadio">
+    {{placeholder}}
+  </mat-label>
+
+  <input matInput #matInput
+         [formControl]="formControl"
+         (focus)="_onFocus($event)"
+         [required]="required"
+         [hidden]="value!==undefined"
+         [tabindex]="tabindex">
+
+<!--  <ion-label></ion-label>-->
+
   <!-- checkbox, when compact -->
-  <mat-checkbox *ngIf="compact" [formControl]="formControl" #checkboxButton
+  <mat-checkbox  [formControl]="formControl" #checkboxButton
                 (change)="onCheckboxValueChanged($event)"
                 [indeterminate]="value==undefined"
                 [hidden]="!showRadio && value==undefined"

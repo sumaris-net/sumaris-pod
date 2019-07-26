@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component,
+  Component, ElementRef,
   EventEmitter,
   forwardRef,
   Input,
@@ -13,7 +13,8 @@ import {
 import {FloatLabelType, MatCheckbox, MatCheckboxChange, MatRadioButton, MatRadioChange} from '@angular/material';
 import {ControlValueAccessor, FormBuilder, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
-import {isNotNil} from '../functions';
+import {isNil, isNotNil} from '../functions';
+import {InputElement} from "./focusable";
 
 const noop = () => {
 };
@@ -31,7 +32,7 @@ const noop = () => {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatBooleanField implements OnInit, ControlValueAccessor {
+export class MatBooleanField implements OnInit, ControlValueAccessor, InputElement {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
   private _value: boolean;
@@ -77,6 +78,8 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
 
   @ViewChild('checkboxButton') checkboxButton: MatCheckbox;
 
+  @ViewChild('fakeInput') fakeInput: ElementRef;
+
   constructor(
     private translate: TranslateService,
     private formBuilder: FormBuilder,
@@ -95,7 +98,8 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
     this.writing = true;
     if (value !== this._value) {
       this._value = value;
-      this.showRadio = this._value !== undefined;
+      console.log("TODO: update showRadio")
+      this.showRadio = isNotNil(this._value);
       setTimeout(() => this.updateTabIndex());
     }
     this.writing = false;
@@ -112,35 +116,33 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    if (this.disabling) return;
-
-    this.disabling = true;
     this.disabled = isDisabled;
-    if (isDisabled) {
-      //this.formControl.disable({ onlySelf: true, emitEvent: false });
-    } else {
-      //this.formControl.enable({ onlySelf: true, emitEvent: false });
-    }
-    this.disabling = false;
   }
 
-
-  public checkIfTouched() {
+  checkIfTouched() {
     if (this.formControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
     }
   }
 
-  public _onBlur(event: FocusEvent) {
+  _onBlur(event: FocusEvent) {
     this.checkIfTouched();
     this.onBlur.emit(event);
   }
 
-  public _onFocus(event: any) {
+  _onFocusFakeInput(event: FocusEvent) {
     event.preventDefault();
-    event.target.classList.add('hidden');
-    event.target.tabIndex = -1;
+
+    // Hide the fake input
+    this.fakeInput.nativeElement.classList.add('hidden');
+    this.fakeInput.nativeElement.tabIndex = -1;
+
+    // Focus on first button
+    this.focus();
+  }
+
+  focus() {
     this.showRadio = true;
     setTimeout(() => {
       if (this.yesButton) {
@@ -152,18 +154,28 @@ export class MatBooleanField implements OnInit, ControlValueAccessor {
       this.updateTabIndex();
     });
   }
-
   /* -- protected method -- */
 
+
   private updateTabIndex() {
-    if (this.showRadio && this.tabindex && this.tabindex !== -1) {
-      if (this.yesButton) {
-        this.yesButton._inputElement.nativeElement.tabIndex = this.tabindex + 1;
-      } else if (this.checkboxButton) {
-        this.checkboxButton._inputElement.nativeElement.tabIndex = this.tabindex + 1;
+    if (isNil(this.tabindex) || this.tabindex === -1) return;
+
+    if (this.fakeInput) {
+      if (this.showRadio) {
+        this.fakeInput.nativeElement.classList.add('hidden');
+        this.fakeInput.nativeElement.tabIndex = -1;
+      } else {
+        this.fakeInput.nativeElement.classList.remove('hidden');
+        this.fakeInput.nativeElement.tabIndex = this.tabindex;
       }
-      this.markForCheck();
     }
+    if (this.yesButton) {
+      this.yesButton._inputElement.nativeElement.tabIndex = this.showRadio ? this.tabindex : -1;
+    } else if (this.checkboxButton) {
+      this.checkboxButton._inputElement.nativeElement.tabIndex = this.showRadio ? this.tabindex : -1;
+    }
+    this.markForCheck();
+
   }
 
   private onRadioValueChanged(event: MatRadioChange): void {

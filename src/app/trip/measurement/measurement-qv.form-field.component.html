@@ -61,7 +61,7 @@
   <!-- Basic select -->
   <mat-form-field *ngSwitchCase="'select'" [floatLabel]="floatLabel">
 
-    <mat-select #matSelect [required]="required"
+    <mat-select #matInput [required]="required"
                 [placeholder]="pmfm.name"
                 [formControl]="formControl"
                 (blur)="_onBlur($event)"

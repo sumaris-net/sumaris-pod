@@ -30,8 +30,9 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatMomentDateModule} from '@angular/material-moment-adapter';
 
 import {fadeInAnimation, slideInOutAnimation} from './material.animations';
+import {InputElement} from './focusable';
 
-export { fadeInAnimation, slideInOutAnimation };
+export { fadeInAnimation, slideInOutAnimation, InputElement };
 
 const modules: any[] = [
   MatTableModule,

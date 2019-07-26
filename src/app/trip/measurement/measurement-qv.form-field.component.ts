@@ -12,7 +12,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {isNotNil, PmfmStrategy, Referential} from "../services/trip.model";
+import {isNil, isNotNil, PmfmStrategy, Referential} from "../services/trip.model";
 import {merge, Observable} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
 import {EntityUtils, ReferentialRef, referentialToString} from '../../referential/referential.module';
@@ -22,9 +22,10 @@ import {FloatLabelType, MatSelect} from "@angular/material";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {isNotEmptyArray, suggestFromArray, toBoolean} from "../../shared/functions";
+import {focusInput, isNotEmptyArray, suggestFromArray, toBoolean} from "../../shared/functions";
 import {AppFormUtils, LocalSettingsService} from "../../core/core.module";
 import {sort} from "../../core/services/model";
+import {asInputElement, InputElement} from "../../shared/material/focusable";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',
@@ -38,7 +39,7 @@ import {sort} from "../../core/services/model";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAccessor {
+export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
 
   private _onChangeCallback = (_: any) => {
   };
@@ -90,7 +91,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
   @ViewChild('matInput') matInput: ElementRef;
-  @ViewChild('matSelect') matSelect: MatSelect;
 
   constructor(
     private platform: PlatformService,
@@ -203,6 +203,10 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     this.markForCheck();
   }
 
+  focus() {
+    focusInput(this.matInput);
+  }
+
   selectInputContent = AppFormUtils.selectInputContent;
 
   /* -- protected methods -- */
@@ -237,15 +241,14 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   }
 
   protected updateTabIndex() {
-    if (this.tabindex && this.tabindex !== -1) {
-      setTimeout(() => {
-        if (this.matInput) {
-          this.matInput.nativeElement.tabIndex = this.tabindex;
-        } else if (this.matSelect) {
-          this.matSelect.tabIndex = this.tabindex;
-        }
+    if (isNil(this.tabindex) || this.tabindex === -1) return;
+
+    setTimeout(() => {
+      const inputElement = asInputElement(this.matInput);
+      if (inputElement) {
+        inputElement.tabindex = this.tabindex;
         this.markForCheck();
-      });
-    }
+      }
+    });
   }
 }

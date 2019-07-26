@@ -11,13 +11,14 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {getPmfmName, PmfmStrategy} from "../services/trip.model";
+import {getPmfmName, isNil, PmfmStrategy} from "../services/trip.model";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {FloatLabelType} from "@angular/material";
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {AppFormUtils} from "../../core/core.module";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {toBoolean} from "../../shared/functions";
+import {focusInput, setTabIndex, toBoolean} from "../../shared/functions";
+import {asInputElement, InputElement} from "../../shared/material/focusable";
 
 const noop = () => {
 };
@@ -35,7 +36,7 @@ const noop = () => {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MeasurementFormField implements OnInit, ControlValueAccessor {
+export class MeasurementFormField implements OnInit, ControlValueAccessor, InputElement {
 
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
@@ -171,20 +172,25 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor {
     AppFormUtils.filterNumberInput(event, allowDecimals);
   }
 
+  filterAlphanumericalInput(event: KeyboardEvent) {
+    if (event.keyCode === 13 /*=Enter*/ && this.onKeypressEnter.observers.length) {
+      this.onKeypressEnter.emit(event);
+      return;
+    }
+    // Add features (e.g. check against a pattern)
+  }
+
   focus() {
-    if (this.matInput) this.matInput.nativeElement.focus();
+    focusInput(this.matInput);
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
 
   protected updateTabIndex() {
-    if (this.tabindex && this.tabindex !== -1) {
-      setTimeout(() => {
-        if (this.matInput) {
-          this.matInput.nativeElement.tabIndex = this.tabindex;
-        }
-        this.cd.markForCheck();
-      });
-    }
+    if (isNil(this.tabindex) || this.tabindex === -1) return;
+    setTimeout(() => {
+      setTabIndex(this.matInput, this.tabindex);
+      this.cd.markForCheck();
+    });
   }
 }

@@ -18,27 +18,28 @@ fi
 echo "Current version: $current"
 
 ### Get repo URL
+PROJECT_NAME=sumaris-app
 REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
 REPO=`echo $REMOTE_URL | sed "s/https:\/\/github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
-REPO='sumaris-net/sumaris-app'
+REPO="sumaris-net/${PROJECT_NAME}"
 REPO_URL=https://api.github.com/repos/$REPO
-
+REPO_PUBLIC_URL=https://github.com/$REPO
 
 ###  get auth token
-GITHUB_TOKEN=`cat ~/.config/sumaris/.github`
+GITHUB_TOKEN=`cat ~/.config/${PROJECT_NAME}/.github`
 if [[ "_$GITHUB_TOKEN" != "_" ]]; then
     GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
 else
     echo "ERROR: Unable to find github authentication token file: "
     echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
-    echo " - Then copy the token and paste it in the file '~/.config/sumaris/.github' using a valid token."
+    echo " - Then copy the token and paste it in the file '~/.config/${PROJECT_NAME}/.github' using a valid token."
     exit 1
 fi
 
 case "$1" in
   del)
-    result=`curl -i "$REPO_URL/releases/tags/v$current"`
-    release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_URL/releases/\d+"`
+    result=`curl -i "$REPO_API_URL/releases/tags/v$current"`
+    release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+"`
     if [[ $release_url != "" ]]; then
         echo "Deleting existing release..."
         curl -H 'Authorization: token $GITHUB_TOKEN'  -XDELETE $release_url
@@ -56,25 +57,25 @@ case "$1" in
 
       description=`echo $2`
 
-      result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_URL/releases/tags/v$current"`
+      result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/v$current"`
       release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
       if [[ "_$release_url" != "_" ]]; then
         echo "Deleting existing release... $release_url"
-        result=`curl -H ''"$GITHUT_AUTH"'' -s -XDELETE $release_url` 
+        result=`curl -H ''"$GITHUT_AUTH"'' -s -XDELETE $release_url`
         if [[ "_$result" != "_" ]]; then
             error_message=`echo "$result" | grep -P "\"message\": \"[^\"]+" | grep -oP ": \"[^\"]+\""`
             echo "Delete existing release failed with error$error_message"
             exit 1
         fi
-      else 
+      else
         echo "Release not exists yet on github."
       fi
 
       echo "Creating new release..."
       echo " - tag: v$current"
       echo " - description: $description"
-      result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
-      
+      result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+
       upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
       if [[ "_$upload_url" = "_" ]]; then
@@ -89,8 +90,8 @@ case "$1" in
       dirname=`pwd`
 
       echo "Sending web build..."
-      if [[ -f "$dirname/www/sumaris-app.zip" ]]; then
-        curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T $dirname/www/sumaris-app.zip $upload_url?name=sumaris-app-v$current-web.zip
+      if [[ -f "$dirname/www/${PROJECT_NAME}.zip" ]]; then
+        curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T $dirname/www/${PROJECT_NAME}.zip $upload_url?name=${PROJECT_NAME}-v$current-web.zip
         echo " -> OK!"
       else
         echo "Could not found web release. Skipping."
@@ -98,7 +99,7 @@ case "$1" in
 
       echo "Sending Android build..."
       if [[ -f "$dirname/platforms/android/app/build/outputs/apk/release/app-release.apk" ]]; then
-        curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T $dirname/platforms/android/app/build/outputs/apk/release/app-release.apk $upload_url?name=sumaris-app-v$current-android.apk
+        curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T $dirname/platforms/android/app/build/outputs/apk/release/app-release.apk $upload_url?name=${PROJECT_NAME}-v$current-android.apk
         echo " -> OK!"
       else
         echo "Could not found Android release. Skipping."
@@ -106,7 +107,7 @@ case "$1" in
 
       echo "-----"
       echo "Successfully uploading files !"
-      echo " -> Release url: https://github.com/$REPO/releases/tag/v$current"
+      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/v$current"
     else
       echo "Wrong arguments"
       echo "Usage:"
@@ -121,7 +122,3 @@ case "$1" in
     echo "No task given"
     ;;
 esac
-
-
-
-

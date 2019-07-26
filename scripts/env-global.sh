@@ -12,8 +12,15 @@ fi;
 
 echo "Preparing project environment.."
 NODEJS_VERSION=10
-ANDROID_SDK_ROOT=/opt/android-sdk
+
+#ANDROID_NDK_VERSION=r19c
+ANDROID_SDK_VERSION=r29.0.0
+ANDROID_SDK_TOOLS_VERSION=4333796
+ANDROID_SDK_ROOT=/usr/lib/android-sdk
+ANDROID_SDK_TOOLS_ROOT=${ANDROID_SDK_ROOT}/build-tools
+
 #JAVA_HOME=
+
 GRADLE_VERSION=4.10.3
 CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https\://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip
 

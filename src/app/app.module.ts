@@ -67,12 +67,6 @@ import {Network} from "@ionic-native/network/ngx";
           monthYearA11yLabel: 'MMMM YYYY',
         }
       }
-    },
-    {
-      provide: MAT_TABS_CONFIG,
-      useValue: {
-        //animationDuration: '0ms'
-      }
     }
   ]
 })

@@ -238,7 +238,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       }
     } else {
       // Restore previous values
-      this.form.get('latLongFormat').setValue(this._data.locale, opts);
+      this.form.get('locale').setValue(this._data.locale, opts);
       this.form.get('latLongFormat').setValue(this._data.latLongFormat, opts);
 
       // Enable fields

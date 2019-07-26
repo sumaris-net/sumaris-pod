@@ -169,19 +169,19 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
       row.validator.patchValue({dirty: true});
     }
     return super.confirmCreate(row);
-  };
+  }
 
   confirmEdit(row: TableElement<T>) {
     if (row.validator && row.validator.valid && row.validator.dirty) {
       row.validator.patchValue({dirty: true});
     }
     return super.confirmEdit(row);
-  };
+  }
 
   startEdit(row: TableElement<T>) {
     if (this._debug) console.debug("[table-datasource] Start to edit row", row);
     row.startEdit();
-  };
+  }
 
   cancelOrDelete(row: TableElement<T>) {
     if (this._debug) console.debug("[table-datasource] Cancelling or deleting row", row);
@@ -261,7 +261,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
           await res;
         }
         catch(err)  {
-          console.error(err);
+          console.error(err && err.message | err, err);
         }
       }
     }
