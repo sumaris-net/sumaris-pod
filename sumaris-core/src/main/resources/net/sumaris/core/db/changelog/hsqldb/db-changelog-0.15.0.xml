@@ -310,6 +310,27 @@
     <addNotNullConstraint columnDataType="int" columnName="processing_type_fk" tableName="processing_history"/>
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-32" >
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="batch" columnName="hash"/></not>
+    </preConditions>
+    <addColumn tableName="batch">
+      <column name="hash" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-33" >
+    <preConditions onFail="MARK_RAN">
+      <not><sqlCheck expectedResult="0">SELECT count(*) FROM batch where hash is null</sqlCheck></not>
+    </preConditions>
+    <sql>update BATCH set hash=id where hash is null</sql>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-34" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count(*) FROM batch where hash IS NULL</sqlCheck>
+    </preConditions>
+    <addNotNullConstraint columnDataType="int" columnName="hash" tableName="batch"/>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">

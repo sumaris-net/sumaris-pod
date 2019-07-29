@@ -44,6 +44,7 @@ public class Batch implements IDataEntity<Integer> {
     public static final String PROPERTY_PARENT = "parent";
     public static final String PROPERTY_SORTING_MEASUREMENTS = "sortingMeasurements";
     public static final String PROPERTY_QUANTIFICATION_MEASUREMENTS = "quantificationMeasurements";
+    public static final String PROPERTY_HASH = "hash";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "BATCH_SEQ")
@@ -113,6 +114,9 @@ public class Batch implements IDataEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_batch_fk")
     private Batch parent;
+
+    @Column(name = "hash")
+    private Integer hash;
 
     /* -- measurements -- */
 

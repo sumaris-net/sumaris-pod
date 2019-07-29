@@ -23,9 +23,11 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TaxonNameVO extends ReferentialVO {
 
     private Integer referenceTaxonId;

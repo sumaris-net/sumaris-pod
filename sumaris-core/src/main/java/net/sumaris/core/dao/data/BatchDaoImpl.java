@@ -42,6 +42,7 @@ import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,7 @@ import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -106,33 +108,40 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
 
         // Remember existing entities
+
+        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.PROPERTY_HASH);
         final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.PROPERTY_LABEL);
-        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getBatches()));
+        final Map<Integer, Batch> sourcesIdsToRemove = Beans.splitById(Beans.getList(parent.getBatches()));
 
         // Save each batches
         sources.forEach(source -> {
             source.setOperationId(operationId);
 
+            Batch existingBatch = null;
             if (source.getId() != null) {
-                sourcesIdsToRemove.remove(source.getId());
+                existingBatch = sourcesIdsToRemove.remove(source.getId());
             }
+            // No id found
             else {
-                Collection<Batch> existingBatchs = sourcesByLabelMap.get(source.getLabel());
-                // Use label only if unique
-                if (existingBatchs != null && existingBatchs.size() == 1) {
-                    Batch existingBatch = existingBatchs.iterator().next();
+                // Try to get iit by hash code
+                Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
+                // Not found by hash code: try by label
+                if (CollectionUtils.isEmpty(existingBatchs)) {
+                    existingBatchs = sourcesByLabelMap.get(source.getLabel());
+                }
+                // If one on match => use it
+                if (CollectionUtils.size(existingBatchs) == 1) {
+                    existingBatch = existingBatchs.iterator().next();
                     sourcesIdsToRemove.remove(existingBatch.getId());
                     source.setId(existingBatch.getId());
-                    optimizedSave(source, existingBatch, false, newUpdateDate, false);
-                    return;
                 }
             }
-            optimizedSave(source, null, false, newUpdateDate, false);
+            optimizedSave(source, existingBatch, false, newUpdateDate, false);
         });
 
         // Remove unused entities
-        if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
-            sourcesIdsToRemove.forEach(this::delete);
+        if (MapUtils.isNotEmpty(sourcesIdsToRemove)) {
+            sourcesIdsToRemove.values().forEach(this::delete);
         }
 
         // Remove parent (use only parentId)
@@ -413,6 +422,9 @@ public class BatchDaoImpl extends BaseDataDaoImpl implements BatchDao {
                 target.setQualityFlag(load(QualityFlag.class, source.getQualityFlagId()));
             }
         }
+
+        // Store hash code
+        target.setHash(source.hashCode());
     }
 
     protected void fillListFromTree(final List<BatchVO> result, final BatchVO source) {

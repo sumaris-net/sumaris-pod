@@ -175,6 +175,19 @@ public class Beans {
      * <p>splitByProperty.</p>
      *
      * @param list a {@link Iterable} object.
+     * @param propertyName a {@link String} object.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link Map} object.
+     */
+    public static <V> Multimap<Integer, V> splitByNotUniqueHashcode(Iterable<V> list) {
+        return Multimaps.index(list, Object::hashCode);
+    }
+
+    /**
+     * <p>splitByProperty.</p>
+     *
+     * @param list a {@link Iterable} object.
      * @param <K> a K object.
      * @param <V> a V object.
      * @return a {@link Map} object.

@@ -23,6 +23,7 @@ package net.sumaris.core.vo.administration.user;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.vo.IValueObject;
 import net.sumaris.core.vo.referential.UserProfileVO;
@@ -33,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode
 public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
     public static final String PROPERTY_PUBKEY = "pubkey";
@@ -54,14 +56,18 @@ public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObj
 
     private DepartmentVO department;
 
+    @EqualsAndHashCode.Exclude
     private List<String> profiles;
 
     // Workaround for issue see https://github.com/sumaris-net/sumaris-app/issues/3
     // TODO: remove this, later
+    @EqualsAndHashCode.Exclude
     private String mainProfile;
 
+    @EqualsAndHashCode.Exclude
     private boolean hasAvatar;
 
+    @EqualsAndHashCode.Exclude
     private String avatar;
 
 }

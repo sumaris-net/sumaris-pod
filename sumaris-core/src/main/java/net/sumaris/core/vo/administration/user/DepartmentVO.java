@@ -23,12 +23,14 @@ package net.sumaris.core.vo.administration.user;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
 
 @Data
+@EqualsAndHashCode
 public class DepartmentVO extends ReferentialVO {
 
     public static final String PROPERTY_HAS_LOGO = "hasLogo";
@@ -41,7 +43,11 @@ public class DepartmentVO extends ReferentialVO {
     private String name;
     private Integer statusId;
     private String siteUrl;
+
+    @EqualsAndHashCode.Exclude
     private boolean hasLogo;
+
+    @EqualsAndHashCode.Exclude
     private String logo;
 
     public DepartmentVO() {
