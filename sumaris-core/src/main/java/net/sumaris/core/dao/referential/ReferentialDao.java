@@ -68,6 +68,18 @@ public interface ReferentialDao {
 
     <T extends IReferentialVO, S extends IReferentialEntity> T toTypedVO(S source, Class<T> targetClazz);
 
+
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheNames.PERSON_BY_ID, key = "#source.id", condition = "#source.entityName == 'Person'"),
+                    @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#source.id", condition = "#source.entityName == 'Department'"),
+                    @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Pmfm'"),
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#source.id", condition = "#source.entityName == 'Program'"),
+                    @CacheEvict(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'Program'"),
+                    @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'")
+            }
+    )
     ReferentialVO save(ReferentialVO source);
 
     @Caching(evict= {
@@ -75,7 +87,9 @@ public interface ReferentialDao {
             @CacheEvict(cacheNames = CacheNames.DEPARTMENT_BY_ID, key = "#id", condition = "#entityName == 'Department'"),
             @CacheEvict(cacheNames = CacheNames.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, key = "#id", condition = "#entityName == 'Program'"),
-            @CacheEvict(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'")
+            @CacheEvict(cacheNames = CacheNames.REFERENTIAL_LEVEL_BY_UNIQUE_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
+            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_LABEL, allEntries = true, condition = "#entityName == 'Program'"),
+            @CacheEvict(cacheNames = CacheNames.PROGRAM_BY_ID, key = "#id", condition = "#entityName == 'Program'")
     })
     void delete(String entityName, int id);
 
