@@ -10,28 +10,35 @@ fi
 
 ### Get version to release
 current=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
+if [[ "_$current" != "_" ]]; then
+  echo "ERROR: Unable to read 'version' in the file 'pom.xml'."
+  echo " - Make sure the file 'pom.xml' exists and is readable."
+  exit 1
+fi
 echo "Current version: $current"
 
 ### Get repo URL
+PROJECT_NAME=sumaris-pod
 REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
 REPO=`echo $REMOTE_URL | sed "s/https:\/\/github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
-REPO_URL=https://api.github.com/repos/$REPO
+REPO_API_URL=https://api.github.com/repos/$REPO
+REPO_PUBLIC_URL=https://github.com/$REPO
 
 ###  get auth token
-GITHUB_TOKEN=`cat ~/.config/sumaris/.github`
+GITHUB_TOKEN=`cat ~/.config/${PROJECT_NAME}/.github`
 if [[ "_$GITHUB_TOKEN" != "_" ]]; then
     GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
 else
-    echo "Unable to find github authentication token file: "
+    echo "ERROR: Unable to find github authentication token file: "
     echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
-    echo " - Then copy the token and paste it in the file '~/.config/sumaris/.github' using a valid token."
+    echo " - Then copy the token and paste it in the file '~/.config/${PROJECT_NAME}/.github' using a valid token."
     exit 1
 fi
 
 case "$1" in
   del)
-    result=`curl -i "$REPO_URL/releases/tags/v$current"`
-    release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_URL/releases/\d+"`
+    result=`curl -i "$REPO_API_URL/releases/tags/v$current"`
+    release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+"`
     if [[ $release_url != "" ]]; then
         echo "Deleting existing release..."
         curl -H 'Authorization: token $GITHUB_TOKEN'  -XDELETE $release_url
@@ -51,7 +58,7 @@ case "$1" in
         description="Release v$current"
     fi
 
-    result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_URL/releases/tags/v$current"`
+    result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/v$current"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
     if [[ "_$release_url" != "_" ]]; then
         echo "Deleting existing release... $release_url"
@@ -68,8 +75,15 @@ case "$1" in
     echo "Creating new release..."
     echo " - tag: v$current"
     echo " - description: $description"
-    result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "v'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+    result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "v'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
     upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
+
+    if [[ "_$upload_url" = "_" ]]; then
+      echo "Failed to create new release for repo $REPO."
+      echo "Server response:"
+      echo "$result"
+      exit 1
+    fi
 
     ###  Sending files
     echo "Uploading files... to $upload_url"
@@ -84,7 +98,9 @@ case "$1" in
     echo " - $browser_download_url"
 
     echo "-----------------------------------------"
-    echo "Successfully uploading files to github !"
+    echo "Successfully uploading files !"
+    echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/v$current"
+    exit 0
 
     ;;
   *)
