@@ -27,9 +27,12 @@ export const environment: Environment = {
       host: 'test.sumaris.net',
       port: 443
     },
-    // TODO: change to production peer
     {
       host: 'adap.e-is.pro',
+      port: 443
+    },
+    {
+      host: 'adap.pecheursdebretagne.eu',
       port: 443
     }
   ],
