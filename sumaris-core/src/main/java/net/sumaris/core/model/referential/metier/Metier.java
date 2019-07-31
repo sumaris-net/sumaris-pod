@@ -44,7 +44,8 @@ public class Metier implements IItemReferentialEntity {
     public static final String PROPERTY_TAXON_GROUP = "taxonGroup";
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "METIER_SEQ")
+    @SequenceGenerator(name = "METIER_SEQ", sequenceName="METIER_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

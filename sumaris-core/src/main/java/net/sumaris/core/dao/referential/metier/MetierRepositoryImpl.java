@@ -28,18 +28,16 @@ import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -103,14 +101,18 @@ public class MetierRepositoryImpl
                 .and(inGearIds(levelIds));
 
 
-        TypedQuery<Metier> query = getQuery(specification, Metier.class, getPageable(offset, size, sortAttribute, sortDirection));
+        Pageable page = getPageable(offset, size, sortAttribute, sortDirection);
+        TypedQuery<Metier> query = getQuery(specification, Metier.class, page);
 
         Parameter<String> searchTextParam = query.getParameter("searchText", String.class);
         if (searchTextParam != null) {
             query.setParameter(searchTextParam, searchText);
         }
 
-        return query.getResultStream()
+        return query
+                .setFirstResult(offset)
+                .setMaxResults(size)
+                .getResultStream()
                     .distinct()
                     .map(source -> {
                         MetierVO target = this.toMetierVO(source);
@@ -141,6 +143,7 @@ public class MetierRepositoryImpl
         // Gear
         if (source.getGear() != null) {
             target.setGear(referentialDao.toReferentialVO(source.getGear()));
+            target.setLevelId(source.getGear().getId());
         }
 
         // Taxon group

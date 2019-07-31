@@ -295,4 +295,35 @@
         </sql>
     </changeSet>
 
+    <!-- Delete old metier, and not old target species (only if no data) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-314" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">select count(*) from TRIP</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            delete from metier;
+            delete from taxon_group_hierarchy;
+            delete from taxon_group where taxon_group_type_fk not in (2, 3);
+            delete from taxon_group_type where id=4;
+            update taxon_group_type set label='NATIONAL', name='Espèces Métier' where id=3;
+        </sql>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-315" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">select count(*) from METIER where label='OTBANE'</sqlCheck>
+            </and>
+        </preConditions>
+        <!-- in case old metier was not removed, change status to disable -->
+        <sql>
+            update metier set status_fk = 0;
+        </sql>
+        <sqlFile path="insert_metier.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+
 </databaseChangeLog>

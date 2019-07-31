@@ -331,6 +331,34 @@
     <addNotNullConstraint columnDataType="int" columnName="hash" tableName="batch"/>
   </changeSet>
 
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-35">
+      <preConditions onFail="MARK_RAN">
+          <not>
+              <sequenceExists sequenceName="METIER_SEQ"/>
+          </not>
+      </preConditions>
+      <createSequence sequenceName="METIER_SEQ"/>
+      <sql>select NEXT VALUE FOR METIER_SEQ from METIER</sql>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-36">
+      <preConditions onFail="MARK_RAN">
+          <not>
+              <sequenceExists sequenceName="TAXON_GROUP_SEQ"/>
+          </not>
+      </preConditions>
+      <createSequence sequenceName="TAXON_GROUP_SEQ"/>
+      <sql>select NEXT VALUE FOR TAXON_GROUP_SEQ from TAXON_GROUP</sql>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-37">
+      <preConditions onFail="MARK_RAN">
+          <not>
+              <sequenceExists sequenceName="GEAR_SEQ"/>
+          </not>
+      </preConditions>
+      <createSequence sequenceName="GEAR_SEQ"/>
+      <sql>select NEXT VALUE FOR GEAR_SEQ from GEAR</sql>
+    </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263211-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
@@ -343,6 +371,7 @@
         - Data: Add link between taxon and taxon group
         - Add PROCESSING_HiSTORY
         - Add tables TAXON_GROUP_HIERARCHY and TAXON_GROUP2TAXON_HIERARCHY
+        - Add missing sequences METIER_SEQ, TAXON_GROUP_SEQ, GEAR_SEQ
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
