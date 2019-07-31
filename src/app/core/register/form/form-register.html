@@ -8,8 +8,9 @@
 
       <!-- Email -->
       <mat-form-field>
-        <input matInput [appAutofocus]="true" [autofocusDelay]="500" [placeholder]="'USER.EMAIL'|translate"
-          formControlName="email" autocomplete="section-blue username email" required>
+        <input matInput
+               [appAutofocus]="true" [autofocusDelay]="500" [placeholder]="'USER.EMAIL'|translate"
+          formControlName="email" autocomplete="off" required>
         <mat-error *ngIf="controls.email.hasError('required') && controls.email.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.email.hasError('email') && !controls.email.hasError('required') && controls.email.touched">
           <span>{{'ERROR.FIELD_NOT_VALID_EMAIL' | translate }}</span>
@@ -20,7 +21,7 @@
 
       <!-- Confirm Email -->
       <mat-form-field>
-        <input matInput matFormFieldControl [placeholder]="'REGISTER.CONFIRM_EMAIL'|translate" formControlName="confirmEmail">
+        <input matInput autocomplete="off" matFormFieldControl [placeholder]="'REGISTER.CONFIRM_EMAIL'|translate" formControlName="confirmEmail">
         <mat-error *ngIf="controls.confirmEmail.hasError('required') && controls.confirmEmail.touched" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="controls.confirmEmail.hasError('equals') && controls.confirmEmail.touched">
           <span>{{'REGISTER.ERROR.NOT_SAME_EMAIL' | translate }}</span>
