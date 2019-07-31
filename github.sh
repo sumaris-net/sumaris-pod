@@ -10,7 +10,7 @@ fi
 
 ### Get version to release
 current=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -oP "\d+.\d+.\d+(-\w*)?"`
-if [[ "_$current" != "_" ]]; then
+if [[ "_$current" == "_" ]]; then
   echo "ERROR: Unable to read 'version' in the file 'pom.xml'."
   echo " - Make sure the file 'pom.xml' exists and is readable."
   exit 1
