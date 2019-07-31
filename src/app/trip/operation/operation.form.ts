@@ -184,9 +184,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     };
   }
 
-  copyValue(source: string, target: string) {
+  copyPosition(source: string, target: string) {
     const value = this.form.get(source).value;
-    this.form.get(target).setValue(value);
+
+    this.form.get(target).patchValue({
+      latitude: value.latitude,
+      longitude: value.longitude
+    }, {emitEvent: true});
+    this.markAsDirty();
   }
 
   protected markForCheck() {

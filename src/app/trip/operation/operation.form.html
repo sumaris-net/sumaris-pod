@@ -96,7 +96,7 @@
                 </button>
                 <button type="button" mat-icon-button matSuffix
                         *ngIf="!enableGps && form.controls.startPosition.valid"
-                        (click)="copyValue('startPosition', 'endPosition')"
+                        (click)="copyPosition('startPosition', 'endPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
                 </button>

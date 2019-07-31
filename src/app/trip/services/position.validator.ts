@@ -14,11 +14,11 @@ export class PositionValidatorService implements ValidatorService {
 
   getFormGroup(data?: Position): FormGroup {
     return this.formBuilder.group({
-      'id': [''],
-      'updateDate': [''],
-      'dateTime': [''],
-      'latitude': ['', Validators.required],
-      'longitude': ['', Validators.required]
+      id: [''],
+      updateDate: [''],
+      dateTime: [''],
+      latitude: ['', Validators.required],
+      longitude: ['', Validators.required]
     });
   }
 }
