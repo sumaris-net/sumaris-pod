@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>0.14.5-SNAPSHOT</version>
+    <version>0.15.0</version>
   </parent>
 
   <artifactId>sumaris-core-shared</artifactId>
@@ -92,6 +92,10 @@
     <dependency>
       <groupId>javax.annotation</groupId>
       <artifactId>javax.annotation-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-commons</artifactId>
     </dependency>
     <dependency>
       <groupId>com.querydsl</groupId>
