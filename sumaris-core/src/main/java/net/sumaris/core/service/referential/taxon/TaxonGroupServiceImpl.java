@@ -35,15 +35,19 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
 
         // Check version
         Version minVersion = VersionBuilder.create("0.15.0").build();
-        if (minVersion.after(databaseSchemaService.getDbVersion())) {
-            log.info("/!\\ Skipping taxon group hierarchy update, beacause database schema version < 0.15.0. Please restart after schema update.");
+        Version dbVersion = databaseSchemaService.getDbVersion();
+
+        if (dbVersion == null) {
+            log.info("/!\\ Skipping taxon group hierarchy update, because database schema version is unknown. Please restart after schema update.");
         }
 
-        // Check fill hierarchy is need
+        else if (dbVersion.before(minVersion)) {
+            log.info("/!\\ Skipping taxon group hierarchy update, because database schema version < 0.15.0. Please restart after schema update.");
+        }
+
+        // Fill taxon group hierarchy
         else {
-            //if (taxonGroupRepository.countTaxonGroupHierarchy() == 0l) {
-                self.updateTaxonGroupHierarchies();
-            //}
+            self.updateTaxonGroupHierarchies();
         }
     }
 
