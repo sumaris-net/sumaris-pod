@@ -67,7 +67,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
           prependNewElements: false,
           suppressErrors: false,
           serviceOptions: {
-            saveOnlyDirtyRows: true
+            readOnly: true
           }
         })
     );

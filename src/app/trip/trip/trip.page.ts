@@ -279,10 +279,10 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       }
 
       // Save operations
-      const isOperationSaved = !this.operationTable || await this.operationTable.save();
-      if (isOperationSaved && this.operationTable) {
-        this.operationTable.markAsPristine();
-      }
+      // const isOperationSaved = !this.operationTable || await this.operationTable.save();
+      // if (isOperationSaved && this.operationTable) {
+      //   this.operationTable.markAsPristine();
+      // }
 
       // Update the view (e.g metadata)
       this.updateView(updatedData, isNew/*will update tripId in filter*/);

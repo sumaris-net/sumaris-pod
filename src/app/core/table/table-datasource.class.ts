@@ -90,6 +90,10 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   }
 
   async save(): Promise<boolean> {
+    if (toBoolean(this.serviceOptions.readOnly, false)) {
+      console.error("[table-datasource] Enable to save, because serviceOptions.readOnly=true");
+      return false;
+    }
     if (this._saving) {
       console.error("[table-datasource] Trying to save twice. Should never occur !");
       return false;
