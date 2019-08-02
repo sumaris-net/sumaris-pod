@@ -257,7 +257,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   ngOnDestroy() {
     if (this._subscriptions.length) {
-      if (this.debug) console.debug(`[table] Deleting ${this._subscriptions.length} subscriptions ${this.constructor.name}#*`);
+      //if (this.debug) console.debug(`[table] Deleting ${this._subscriptions.length} subscriptions ${this.constructor.name}#*`);
       this._subscriptions.forEach(s => s.unsubscribe());
       this._subscriptions = [];
     }
@@ -599,7 +599,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   protected registerSubscription(sub: Subscription) {
     this._subscriptions.push(sub);
-    if (this.debug) console.debug(`[table] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
+    //if (this.debug) console.debug(`[table] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
   }
 
   protected registerAutocompleteField(fieldName: string, options?: {

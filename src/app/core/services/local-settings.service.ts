@@ -187,10 +187,9 @@ export class LocalSettingsService {
   }
 
   public getFieldAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
-    let options = this.data && this.data.fields &&  this.data.fields.find(fo => fo.key===fieldName) as FieldSettings;
+    const options = this.data && this.data.fields &&  this.data.fields.find(fo => fo.key===fieldName) as FieldSettings;
     if (!options) {
       // Default
-      console.debug(`[settings] No settings found for field {${fieldName}}: applying defaults`);
       return defaultAttributes || ['label','name'];
     }
     return options.value.split(',');
