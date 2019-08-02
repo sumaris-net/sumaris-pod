@@ -200,7 +200,7 @@
     "LAT_LONG_FORMAT": "Format latitude/longitude",
     "NETWORK_DIVIDER": "Paramètres réseau",
     "PEER_URL": "Addresse du noeud réseau",
-    "BTN_CHANGE_PEER": "Changer de noeud",
+    "BTN_CHANGE_PEER": "Voir les noeuds disponibles",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
     "USAGE_MODES":  {
@@ -342,7 +342,6 @@
       "LIST": {
         "PHYSICAL_GEAR": "Engin utilisé",
         "METIER": "Métier",
-        "METIER": "Métier",
         "TARGET_SPECIES": "Espèce cible",
         "START_DATE_TIME": "Début d'opération",
         "END_DATE_TIME": "Fin de l'opération",
@@ -374,7 +373,7 @@
       },
       "EDIT": {
         "TITLE": "Lot {{label}}",
-        "TAXON_GROUP": "Espèce commerciale",
+        "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_NAME": "Espèce scientifique",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "ESTIMATED_WEIGHT": "Poids estimé",
@@ -399,7 +398,7 @@
         "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Code espèce",
-        "TAXON_NAME": "Espèce scientifique (FAO)",
+        "TAXON_NAME": "Espèce scientifique",
         "TAXON_NAME_PLACEHOLDER": "Code espèce",
         "TOTAL_INDIVIDUAL_COUNT": "Nb indiv. total",
         "TOTAL_WEIGHT": "Poids total",

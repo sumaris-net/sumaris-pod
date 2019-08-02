@@ -64,7 +64,11 @@
     "NO_RESULT": "No result",
 
     "DISPLAYED_COLUMNS": "Displayed columns",
+    "DISPLAYED_COLUMNS_DOTS": "Columns...",
 
+    "FORM": {
+      "HAS_ERROR": "Please correct errors in the form"
+    },
     "PAGINATOR": {
       "ITEMS_PER_PAGE":"Items per page",
       "NEXT_PAGE":"Next page",
@@ -76,7 +80,7 @@
     "APP_NAME": "Application Name",
     "DESCRIPTION": "Description (home page)",
     "LOGO_PARTNERS": "Partners logo (home page):",
-    "PROPERTIES": "Options:",
+    "PROPERTIES_DIVIDER": "Options:",
     "PROPERTY_KEY": "Key",
     "PROPERTY_VALUE": "Value",
     "BTN_ADD_PROPERTY": "Add an option",
@@ -194,13 +198,28 @@
     "INHERIT_FROM_ACCOUNT": "Use the preferences of the logged in user",
     "LOCALE": "Language",
     "LAT_LONG_FORMAT": "Latitude/longitude format",
+    "NETWORK_DIVIDER": "Network settings",
     "PEER_URL": "Network peer address",
+    "BTN_CHANGE_PEER": "See available peers",
+    "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Usage mode",
     "USAGE_MODES":  {
       "FIELD": "On field",
       "DESK": "In office"
     },
-    "BTN_CHANGE_PEER": "Change peer",
+    "FIELD_NAME": "Entry field",
+    "FIELD_DISPLAY": "Display",
+    "BTN_ADD_FIELD": "Add a entry field",
+    "FIELDS": {
+      "QUALITATIVE_VALUE": "Parameter with list of values",
+      "TAXON_GROUP": "Comemrcial species",
+      "TAXON_NAME": "Scientific species",
+      "GEAR": "Fishing gear",
+      "ATTRIBUTES": {
+        "LABEL": "Code",
+        "NAME": "Name"
+      }
+    },
     "ERROR": {
       "PEER_NOT_REACHABLE": "Unreachable peer"
     }
@@ -237,7 +256,6 @@
     "RETURN": "Return:",
     "RETURN_DATE_TIME": "Return date",
     "RETURN_LOCATION": "Return port",
-    "ACTIONS": "Actions on row",
     "COMMENTS": "Comments",
     "QUALITY": "Form status",
     "TAB_GENERAL": "Details",
@@ -282,10 +300,15 @@
     "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
       "RANK_ORDER": "#",
+      "NEW": {
+        "TITLE": "New gear"
+      },
       "EDIT": {
         "TITLE": "Gear #",
         "GEAR": "Gear code",
-        "FEATURES": "Physical parameters:"
+        "RANK_ORDER": "Gear number",
+        "FEATURES": "Physical parameters:",
+        "FEATURE_PLACEHOLDER" : "Feature #{{rankOrder}}"
       },
       "LIST": {
         "SELECT_ROW_HELP": "Select a row to edit it",
@@ -299,6 +322,7 @@
         "TITLE": "New operation"
       },
       "EDIT": {
+        "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
         "TITLE": "<small class='hidden-xs hidden-sm'>{{vessel}} - Trip {{departureDateTime}} - </small>Haul {{startDateTime}}",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
@@ -318,6 +342,7 @@
       "LIST": {
         "PHYSICAL_GEAR": "Used gear",
         "METIER": "Metier",
+        "TARGET_SPECIES": "Target species",
         "START_DATE_TIME": "Start",
         "END_DATE_TIME": "End",
         "FISHING_START_DATE_TIME": "Shooting",
@@ -327,6 +352,7 @@
         "COMMENTS": "Comments"
       },
       "ERROR": {
+        "FIELD_DATE_OUTSIDE_TRIP": "Outside trip period",
         "LOAD_OPERATION_ERROR": "Error while loading the operation.",
         "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
@@ -342,7 +368,32 @@
       }
     },
     "BATCH": {
+      "NEW": {
+        "TITLE": "New species batch"
+      },
+      "EDIT": {
+        "TITLE": "Batch {{label}}",
+        "TAXON_GROUP": "Commercial species (FAO)",
+        "TAXON_NAME": "Scientific species",
+        "BTN_AUTO_INCREMENT": "Auto increment",
+        "ESTIMATED_WEIGHT": "Estimated weight",
+        "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
+        "TOTAL_WEIGHT": "Total weight (kg)",
+        "IS_SAMPLING": "Sampling ?",
+        "SAMPLING_RATIO": "Sampling fraction (%)",
+        "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
+        "SAMPLING_WEIGHT": "Sampling weight (kg)",
+        "INDIVIDUAL": {
+          "TITLE": "Mesures individuelles",
+          "INDIVIDUAL_COUNT": "Nb individus",
+          "BURST_FORM_TITLE": "Saisie rafale :",
+          "BTN_MANUAL_ENTRY": "Saisie manuelle"
+        }
+      },
       "TABLE": {
+        "BTN_INDIVIDUAL_MEASURE": "Measures",
+        "BTN_BURST_INPUT": "Burst mode",
+        "BTN_BURST_INPUT_HELP": "Enable burst mode",
         "LABEL": "Label",
         "LABEL_PLACEHOLDER": "Label",
         "TAXON_GROUP": "Declarative species (FAO)",
@@ -355,6 +406,8 @@
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_WEIGHT": "Sampling weight",
         "PARENT": "Species batch",
+        "INDIVIDUAL_COUNT": "Nb indiv.",
+        "WEIGHT": "Weight (kg)",
         "COMMENTS": "Comments",
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?"
       }
@@ -446,18 +499,42 @@
       "LOAD_ALL_ERROR": "Error while loading observations.",
       "SAVE_ERROR": "Error while saving the observation.",
       "SAVE_ALL_ERROR": "Error while saving observations.",
-      "SUBSCRIBE_ERROR": "Error while subscribe to observations changes"
+      "SUBSCRIBE_ERROR": "Error while subscribe to observation changes"
     }
   },
-  "OBSERVED_VESSEL": {
+  "LANDING": {
+    "TAB_GENERAL": "Details",
+    "TAB_SAMPLES": "Checkpoints",
+    "PROGRAM": "Program",
+    "VESSEL": "Vessel",
+    "LANDING": "Landing:",
+    "DATE_TIME": "Date/Time",
+    "LOCATION": "Landing site",
+    "OBSERVERS": "Observers:",
+    "OBSERVER_PLACEHOLDER": "Observer #",
+    "NEW": {
+      "TITLE": "New observed vessel"
+    },
+    "EDIT": {
+      "TITLE": "Control {{vessel}}",
+      "OTHER_FEATURES": "Other features:"
+    },
     "TABLE": {
       "VESSEL": "Vessel",
       "DATE_TIME": "Date/Time",
+      "LOCATION": "Landing site",
       "OBSERVERS": "Observers",
       "COMMENTS": "Comments"
     },
+    "SELECT_MODAL": {
+      "TITLE": "Detail of observed vessels"
+    },
     "ERROR": {
-      "LOAD_ALL_ERROR": "Error while loading observed vessels."
+      "LOAD_ALL_ERROR": "Error while loading observed vessels.",
+      "LOAD_ERROR": "Error while loading observed vessel.",
+      "SAVE_ERROR": "Error while saving observed vessel",
+      "SAVE_ALL_ERROR": "Error while saving observed vessels",
+      "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes."
     }
   },
   "QUALITY": {
@@ -482,7 +559,6 @@
     "BASE_PORT_LOCATION": "base port",
     "COUNTRY": "Country",
     "COMMENTS": "Comments",
-    "ACTIONS": "Actions on row",
     "START_DATE": "Validity start date",
     "TAB_GENERAL": "General information",
     "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
@@ -509,35 +585,25 @@
     }
   },
   "REFERENTIAL": {
-    "STATUS": "Status",
-    "STATUS_ENABLE": "Enable",
-    "STATUS_DISABLE": "Disabled",
-    "STATUS_TEMPORARY": "Temporary",
-    "STATUS_DELETED": "Deletion in progress",
     "LABEL": "Code",
     "NAME": "Name",
     "LEVEL": "Level",
+    "DESCRIPTION": "Description",
     "COMMENTS": "Comments",
-    "ACTIONS": "Actions on row",
-    "ERROR": {
-      "SAVE_REFERENTIAL_ERROR": "Error while saving referential data.",
-      "SAVE_REFERENTIALS_ERROR": "Error while saving referential data.",
-      "LOAD_REFERENTIAL_ERROR": "Error while loading referential data.",
-      "LOAD_REFERENTIAL_ENTITIES_ERROR": "Error while loading referential types.",
-      "DELETE_REFERENTIALS_ERROR": "Error while deleting referential data",
-      "LOAD_REFERENTIAL_LEVELS_ERROR": "Error while loading level for referential data.",
-      "LOAD_PROGRAM_PMFMS_ERROR": "Error while loading parameters collected by the program",
-      "LOAD_PROGRAM_GEARS_ERROR": "Error while loading gears of the program",
-      "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Error while loading taxon groups of the program",
-      "SAVE_PERSONS_ERROR": "Error while saving users",
-      "DELETE_PERSONS_ERROR": "Error while  deleting some users"
-    },
+    "STATUS": "Status",
+    "RANKORDER": "#",
     "LIST": {
-      "TITLE": "Referentials",
+      "TITLE": "Referential",
       "FILTER": {
         "ENTITY": "Kind",
         "SEARCH_TEXT": "Search: code, name"
       }
+    },
+    "STATUS_ENUM": {
+      "ENABLE": "Enable",
+      "DISABLE": "Disabled",
+      "TEMPORARY": "Temporary",
+      "DELETED": "Deletion in progress"
     },
     "ENTITY": {
       "DEPARTMENT": "Organizations",
@@ -563,6 +629,19 @@
       "ACQUISITION_LEVEL": "Acquisition levels",
       "TRANSCRIBING_ITEM": "Transcribing",
       "METIER": "Metiers"
+    },
+    "ERROR": {
+      "SAVE_REFERENTIAL_ERROR": "Error while saving referential data.",
+      "SAVE_REFERENTIALS_ERROR": "Error while saving referential data.",
+      "LOAD_REFERENTIAL_ERROR": "Error while loading referential data.",
+      "LOAD_REFERENTIAL_ENTITIES_ERROR": "Error while loading referential types.",
+      "DELETE_REFERENTIALS_ERROR": "Error while deleting referential data",
+      "LOAD_REFERENTIAL_LEVELS_ERROR": "Error while loading level for referential data.",
+      "LOAD_PROGRAM_PMFMS_ERROR": "Error while loading parameters collected by the program",
+      "LOAD_PROGRAM_GEARS_ERROR": "Error while loading gears of the program",
+      "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Error while loading taxon groups of the program",
+      "SAVE_PERSONS_ERROR": "Error while saving users",
+      "DELETE_PERSONS_ERROR": "Error while  deleting some users"
     }
   },
   "PROGRAM": {
@@ -628,8 +707,8 @@
     },
     "SHEET": {
       "TR": "Trips",
-      "HH": "Fishing stations",
-      "SL": "Species list"
+      "HH": "Stations",
+      "SL": "Catch"
     },
     "CATEGORY": {
       "PRODUCT": "Fixed product",
@@ -722,6 +801,7 @@
     "FIELD_NOT_VALID_LATITUDE": "Invalid latitude",
     "FIELD_NOT_VALID_LONGITUDE": "Invalid longitude",
     "FIELD_NOT_VALID_PUBKEY": "Invalid public key",
+    "FIELD_NOT_UNIQUE": "Value already used",
     "SPACE_NOT_ALLOW": "Spaces or special characters not allowed",
     "SCRYPT_ERROR": "Unable to create account keys",
     "UNKNOWN_ACCOUNT_EMAIL": "No account matches this email.",
@@ -742,7 +822,8 @@
     "AUTH_SERVER_ERROR": "Error during authentication on the server",
     "AUTH_CHALLENGE_ERROR": "Error during authentication on the server (loading challenge failed)",
     "TABLE_INVALID_ROW_ERROR": "A row is invalid",
-    "SAVE_DATA_ERROR": "Error while savin.<small><br/>If the problem persists, please contact your administrator.</small>"
+    "SAVE_DATA_ERROR": "Error while saving data.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "LOAD_DATA_ERROR": "Error while loading data.<small><br/>If the problem persists, please contact your administrator.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
