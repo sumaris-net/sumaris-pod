@@ -1,17 +1,17 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {AccountService} from '../services/account.service';
 import {FieldSettings, LocalSettings, Peer, referentialToString, UsageMode} from '../services/model';
 import {FormArray, FormBuilder, FormControl} from '@angular/forms';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
-import {DateAdapter} from "@angular/material";
+import {DateAdapter, MatExpansionPanel, MatSlideToggleChange} from "@angular/material";
 import {AppFormUtils, FormArrayHelper} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 import {ValidatorService} from "angular4-material-table";
 import {LocalSettingsValidatorService} from "../services/local-settings.validator";
 import {PlatformService} from "../services/platform.service";
 import {NetworkService} from "../services/network.service";
-import {isNilOrBlank, toBoolean} from "../../shared/functions";
+import {isNil, isNilOrBlank, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
 
 @Component({
@@ -55,16 +55,15 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       type: 'combo',
       values: ['label,name', 'name', 'name,label', 'label']
     }
-
   ];
   fieldsMap: any;
+  fieldsFormHelper: FormArrayHelper<FieldSettings>;
   localeMap = {
     'fr': 'Français',
     'en': 'English'
   };
   locales: String[] = [];
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
-  fieldsFormHelper: FormArrayHelper<FieldSettings>;
 
   get accountInheritance(): boolean {
     return this.form.controls['accountInheritance'].value;
@@ -115,7 +114,10 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       'fields',
       (value) => this.validatorService.getFieldControl(value),
       (o1, o2) => (!o1 && !o2) || (o1.key === o2.key),
-      (o) => !o || (!o.key && !o.value)
+      (o) => !o || isNilOrBlank(o.value),
+      {
+        allowEmptyArray: true
+      }
     );
 
     // Make sure platform is ready
@@ -154,7 +156,8 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     // Remember data
     this._data = data;
 
-    this.fieldsFormHelper.resize(Math.max(data.fields.length, 1));
+    this.fieldsFormHelper.resize(data.fields.length);
+
     this.form.patchValue(data, {emitEvent: false});
     this.markAsPristine();
 
@@ -171,6 +174,10 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   }
 
   async save(event: MouseEvent) {
+
+    // Remove all empty controls
+    this.fieldsFormHelper.removeAllEmpty();
+
     if (this.form.invalid) {
       AppFormUtils.logFormErrors(this.form);
       return;
@@ -265,6 +272,11 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
   async cancel() {
     await this.load();
+  }
+
+  removeFieldAt(index: number) {
+    this.fieldsFormHelper.removeAt(index);
+    this.markForCheck();
   }
 
   referentialToString = referentialToString;

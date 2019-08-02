@@ -117,7 +117,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @ViewChild('autoCombo') matAutocomplete: MatAutocomplete;
 
   get value(): any {
-    console.log("TODO: check get value")
     return this.formControl.value
   }
 

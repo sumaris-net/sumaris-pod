@@ -1,5 +1,5 @@
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {isNil, nullIfUndefined, selectInputContent} from "../../shared/shared.module";
+import {isNil, nullIfUndefined, selectInputContent, toBoolean} from "../../shared/shared.module";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
 import {Entity} from "../services/model";
@@ -246,13 +246,11 @@ export function resizeArray(formBuilder: FormBuilder,
 export function removeValueInArray(form: FormGroup,
                                    arrayName: string,
                                    isEmpty: (value: any) => boolean,
-                                   index: number): boolean {
+                                   index: number,
+                                   opt?: {
+                                     allowEmptyArray: boolean;
+                                   }): boolean {
   const arrayControl = form.get(arrayName) as FormArray;
-
-  // Do not remove if last criterion
-  if (arrayControl.length === 1) {
-    return clearValueInArray(form, arrayName, isEmpty, index);
-  }
 
   arrayControl.removeAt(index);
   arrayControl.markAsDirty();
@@ -285,6 +283,7 @@ export function clearValueInArray(form: FormGroup,
 export class FormArrayHelper<T = Entity<T>> {
 
   private readonly arrayControl: FormArray;
+  private allowEmptyArray: boolean;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -292,7 +291,10 @@ export class FormArrayHelper<T = Entity<T>> {
     private arrayName: string,
     private createControl: (value?: T) => AbstractControl,
     private equals: (v1: T, v2: T) => boolean,
-    private isEmpty: (value: T) => boolean
+    private isEmpty: (value: T) => boolean,
+    options?: {
+      allowEmptyArray: boolean;
+    }
   ) {
 
     // Make sure to create the array
@@ -302,6 +304,8 @@ export class FormArrayHelper<T = Entity<T>> {
       this.arrayControl = formBuilder.array([]);
       form.addControl(arrayName, this.arrayControl);
     }
+
+    this.allowEmptyArray = toBoolean(options && options.allowEmptyArray, false);
   }
 
   add(value?: T, options?: { emitEvent: boolean }): boolean {
@@ -309,7 +313,13 @@ export class FormArrayHelper<T = Entity<T>> {
   }
 
   removeAt(index: number) {
-    return removeValueInArray(this.form, this.arrayName, this.isEmpty, index);
+    // Do not remove if last criterion
+    if (!this.allowEmptyArray && this.arrayControl.length === 1) {
+      return clearValueInArray(this.form, this.arrayName, this.isEmpty, index);
+    }
+    else {
+      return removeValueInArray(this.form, this.arrayName, this.isEmpty, index);
+    }
   }
 
   resize(length: number): boolean {
@@ -322,5 +332,13 @@ export class FormArrayHelper<T = Entity<T>> {
 
   isLast(index: number): boolean {
     return (this.arrayControl.length - 1) === index;
+  }
+
+  removeAllEmpty() {
+    let index = this.arrayControl.controls.findIndex(c => this.isEmpty(c.value));
+    while(index !== -1) {
+      this.removeAt(index);
+      index = this.arrayControl.controls.findIndex(c => this.isEmpty(c.value));
+    }
   }
 }
