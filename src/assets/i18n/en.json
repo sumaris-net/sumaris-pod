@@ -201,7 +201,9 @@
     "NETWORK_DIVIDER": "Network settings",
     "PEER_URL": "Network peer address",
     "BTN_CHANGE_PEER": "See available peers",
-    "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
+    "BTN_SHOW_MORE": "Show more",
+    "BTN_SHOW_MORE_HELP": "Show more settings",
+    "DATA_ENTRY_DIVIDER": "Data entry settings",
     "USAGE_MODE": "Usage mode",
     "USAGE_MODES":  {
       "FIELD": "On field",
