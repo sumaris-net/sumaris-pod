@@ -21,8 +21,7 @@ echo "Current version: $current"
 PROJECT_NAME=sumaris-app
 REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
 REPO=`echo $REMOTE_URL | sed "s/https:\/\/github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
-REPO="sumaris-net/${PROJECT_NAME}"
-REPO_URL=https://api.github.com/repos/$REPO
+REPO_API_URL=https://api.github.com/repos/$REPO
 REPO_PUBLIC_URL=https://github.com/$REPO
 
 ###  get auth token
@@ -55,7 +54,10 @@ case "$1" in
         prerelease="false"
       fi
 
-      description=`echo $2`
+    description=`echo $2`
+    if [[ "_$description" = "_" ]]; then
+        description="Release v$current"
+    fi
 
       result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/v$current"`
       release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
@@ -86,33 +88,39 @@ case "$1" in
       fi
 
       ###  Sending files
-      echo "Uploading files to $upload_url"
-      dirname=`pwd`
+      echo "Uploading files to ${upload_url}"
+      dirname=$(pwd)
 
-      echo "Sending web build..."
-      if [[ -f "$dirname/www/${PROJECT_NAME}.zip" ]]; then
-        curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T $dirname/www/${PROJECT_NAME}.zip $upload_url?name=${PROJECT_NAME}-v$current-web.zip
-        echo " -> OK!"
+      ZIP_FILE="$dirname/www/${PROJECT_NAME}.zip"
+      if [[ -f "${ZIP_FILE}" ]]; then
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${ZIP_FILE}" "${upload_url}?name=${PROJECT_NAME}-v${current}-web.zip")
+        browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
+        ZIP_SHA256=$(sha256sum "${ZIP_FILE}")
+        echo " - ${browser_download_url}  | SHA256 Checksum: ${ZIP_SHA256}"
       else
-        echo "Could not found web release. Skipping."
+        echo " - ERROR: Web release (ZIP) not found! Skipping."
       fi
 
-      echo "Sending Android build..."
-      if [[ -f "$dirname/platforms/android/app/build/outputs/apk/release/app-release.apk" ]]; then
-        curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T $dirname/platforms/android/app/build/outputs/apk/release/app-release.apk $upload_url?name=${PROJECT_NAME}-v$current-android.apk
-        echo " -> OK!"
+      APK_FILE="${dirname}/platforms/android/app/build/outputs/apk/release/app-release.apk"
+      if [[ -f "${APK_FILE}" ]]; then
+        result=$(curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/vnd.android.package-archive' -T "${APK_FILE}" "${upload_url}?name=${PROJECT_NAME}-v${current}-android.apk")
+        browser_download_url=$(echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+")
+        APK_SHA256=$(sha256sum "${APK_FILE}")
+        echo " - ${browser_download_url}  | SHA256 Checksum: ${APK_SHA256}"
       else
-        echo "Could not found Android release. Skipping."
+        echo "- ERROR: Android release (APK) not found! Skipping."
       fi
 
-      echo "-----"
+      echo "-----------------------------------------"
       echo "Successfully uploading files !"
-      echo " -> Release url: $REPO_PUBLIC_URL/releases/tag/v$current"
+      echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/v${current}"
+      exit 0
     else
       echo "Wrong arguments"
       echo "Usage:"
-      echo " > ./github.sh pre|rel <release_description>"
+      echo " > ./github.sh del|pre|rel <release_description>"
       echo "With:"
+      echo " - del: delete existing release"
       echo " - pre: use for pre-release"
       echo " - rel: for full release"
       exit 1
