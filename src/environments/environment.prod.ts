@@ -6,10 +6,10 @@ export const environment: Environment = {
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: true,
-  baseUrl: '/',
-  defaultLocale: 'fr',
-  defaultLatLongFormat: 'DDMM',
-  apolloFetchPolicy: 'cache-first',
+  baseUrl: "/",
+  defaultLocale: "fr",
+  defaultLatLongFormat: "DDMM",
+  apolloFetchPolicy: "cache-first",
   mock: false,
 
   // FIXME: GraphQL subscription never unsubscribe...

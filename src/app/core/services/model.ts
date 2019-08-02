@@ -9,7 +9,7 @@ import {
   sort,
   toDateISOString
 } from "../../shared/shared.module";
-import {Observable} from "rxjs";
+import {noTrailingSlash} from "../../shared/functions";
 
 export {
   joinProperties,
@@ -697,7 +697,8 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
     return Peer.fromObject({
       dns: url.hostname,
       port: isNilOrBlank(url.port) ? undefined : url.port,
-      useSsl: url.protocol && (url.protocol.startsWith('https') || url.protocol.startsWith('wss'))
+      useSsl: url.protocol && (url.protocol.startsWith('https') || url.protocol.startsWith('wss')),
+      path: noTrailingSlash(url.pathname)
     });
   }
 
@@ -707,6 +708,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
   port: number;
   useSsl: boolean;
   pubkey: string;
+  path?: string;
 
   favicon: string;
   status: 'UP' | 'DOWN';
@@ -741,6 +743,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
     this.port = isNotNil(source.port) ? +source.port : undefined;
     this.pubkey = source.pubkey;
     this.useSsl = source.useSsl || (this.port === 443);
+    this.path = source.path || '';
     return this;
   }
 
@@ -748,8 +751,11 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
     return super.equals(other) && this.pubkey === other.pubkey && this.url === other.url;
   }
 
+  /**
+   * Return the peer URL (without trailing slash)
+   */
   get url(): string {
-    return (this.useSsl ? 'https://' : 'http://') + this.hostAndPort;
+    return (this.useSsl ? 'https://' : 'http://') + this.hostAndPort + (this.path || '');
   }
 
   get hostAndPort(): string {

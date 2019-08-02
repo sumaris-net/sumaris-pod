@@ -1,4 +1,4 @@
-import {EventEmitter, Injectable} from "@angular/core";
+import {EventEmitter, Inject, Injectable} from "@angular/core";
 import {CryptoService} from "./crypto.service";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
@@ -12,6 +12,7 @@ import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
 import {toBoolean} from "../../shared/shared.module";
 import { Network } from '@ionic-native/network/ngx';
+import {DOCUMENT} from "@angular/common";
 
 export interface NodeInfo {
   softwareName: string;
@@ -58,7 +59,8 @@ export class NetworkService {
     private http: HttpClient,
     private splashScreen: SplashScreen,
     private settings: LocalSettingsService,
-    private network: Network
+    private network: Network,
+    @Inject(DOCUMENT) private document: Document
   ) {
     this.resetData();
 
@@ -142,8 +144,22 @@ export class NetworkService {
       return Peer.parseUrl(settings.peerUrl);
     }
 
-    // Return the default peer, if exists
-    return environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
+    // Else, use default peer in env, if exists
+    if (environment.defaultPeer) {
+      return Peer.fromObject(environment.defaultPeer);
+    }
+
+    // Else, if App is hosted, try the web site as a peer
+    const location = this.document && this.document.location;
+    if (location && location.protocol && location.protocol.startsWith("http")) {
+      const hostname = this.document.location.host;
+      const detectedPeer = Peer.parseUrl(`${this.document.location.protocol}${hostname}${environment.baseUrl}`);
+      if (await this.checkPeerAlive(detectedPeer)) {
+        return detectedPeer;
+      }
+    }
+
+    return undefined;
   }
 
   /**

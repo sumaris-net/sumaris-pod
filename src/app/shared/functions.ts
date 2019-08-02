@@ -68,6 +68,16 @@ export function matchUpperCase(input: string, regexp: string): boolean {
   return input && !!input.toUpperCase().match(regexp);
 }
 
+/**
+ * Remove trailing slash if any. Examples :
+ * - '/test/' -> '/test'
+ * - '/' -> undefined
+ */
+export function noTrailingSlash(path: string): string {
+  if (!path || path.trim() === '/') return undefined;
+  if (path.trim().lastIndexOf('/') === path.length -1) return path.substring(0, path.length -1);
+  return path;
+}
 
 export function suggestFromArray(items: any[], value: any, options?: {
   searchAttribute?: string

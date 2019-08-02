@@ -10,10 +10,10 @@ export const environment: Environment = {
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: false,
-  baseUrl: '/',
+  baseUrl: "/",
   defaultLocale: "fr",
-  defaultLatLongFormat: 'DDMM',
-  apolloFetchPolicy: 'cache-first',
+  defaultLatLongFormat: "DDMM",
+  apolloFetchPolicy: "cache-first",
   mock: false,
 
   // FIXME: GraphQL subscription never unsubscribe...
@@ -41,6 +41,10 @@ export const environment: Environment = {
     },
     {
       host: 'adap.pecheursdebretagne.eu',
+      port: 443
+    },
+    {
+      host: 'www.sumaris.net',
       port: 443
     },
     {
