@@ -19,7 +19,7 @@
             <column name="update_date" type="TIMESTAMP"/>
         </createTable>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-2" failOnError="false">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1551693303320-2" failOnError="false" runOnChange="true">
         <addForeignKeyConstraint baseColumnNames="id" baseTableName="location_area" constraintName="FK_LOCATION_AREA_ID" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location"/>
     </changeSet>
 

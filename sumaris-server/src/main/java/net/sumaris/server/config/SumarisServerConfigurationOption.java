@@ -54,14 +54,14 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     SERVER_URL(
             "server.url",
             n("sumaris.config.option.server.url.description"),
-            "${server.protocol}://${server.host}://${server.port}",
+            "${server.protocol}://${server.host}:${server.port}",
             String.class,
             false),
 
     REGISTRATION_CONFIRM_URL(
             "sumaris.server.account.register.confirm.url",
             n("sumaris.config.option.server.account.register.confirm.url.description"),
-            "${server.url}/#/confirm/{email}/{code}",
+            "${server.url}/confirm/{email}/{code}",
             String.class,
             false),
 

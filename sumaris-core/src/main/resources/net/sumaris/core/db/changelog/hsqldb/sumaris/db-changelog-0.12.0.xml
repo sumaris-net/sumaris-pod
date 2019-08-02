@@ -41,8 +41,8 @@
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
-                <tableExists tableName="P01_ICES_TRIP"/>
-                <not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM P01_ICES_TRIP</sqlCheck></not>
+                <tableExists tableName="P01_RDB_TRIP"/>
+                <not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM P01_RDB_TRIP</sqlCheck></not>
                 <sqlCheck expectedResult="0">SELECT COUNT(*) FROM EXTRACTION_PRODUCT WHERE LABEL='P01_RDB'</sqlCheck>
             </and>
         </preConditions>
@@ -53,13 +53,14 @@
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="sysdate" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="RECORDER_DEPARTMENT_FK" valueNumeric="1"/>
         </insert>
         <insert tableName="EXTRACTION_PRODUCT_TABLE">
             <column name="ID" valueComputed="NEXT VALUE FOR EXTRACTION_PRODUCT_TABLE_SEQ"/>
             <column name="EXTRACTION_PRODUCT_FK" valueComputed="(SELECT ID FROM EXTRACTION_PRODUCT WHERE LABEL='P01_RDB')"/>
             <column name="LABEL">TR</column>
             <column name="NAME">Trips</column>
-            <column name="TABLE_NAME">P01_ICES_TRIP</column>
+            <column name="TABLE_NAME">P01_RDB_TRIP</column>
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="sysdate" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -69,7 +70,7 @@
             <column name="EXTRACTION_PRODUCT_FK" valueComputed="(SELECT ID FROM EXTRACTION_PRODUCT WHERE LABEL='P01_RDB')"/>
             <column name="LABEL">HH</column>
             <column name="NAME">Fishing operations</column>
-            <column name="TABLE_NAME">P01_ICES_STATION</column>
+            <column name="TABLE_NAME">P01_RDB_STATION</column>
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="sysdate" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -79,7 +80,7 @@
             <column name="EXTRACTION_PRODUCT_FK" valueComputed="(SELECT ID FROM EXTRACTION_PRODUCT WHERE LABEL='P01_RDB')"/>
             <column name="LABEL">SL</column>
             <column name="NAME">Species list</column>
-            <column name="TABLE_NAME">P01_ICES_SPECIES_LIST</column>
+            <column name="TABLE_NAME">P01_RDB_SPECIES_LIST</column>
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="sysdate" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -89,7 +90,7 @@
             <column name="EXTRACTION_PRODUCT_FK" valueComputed="(SELECT ID FROM EXTRACTION_PRODUCT WHERE LABEL='P01_RDB')"/>
             <column name="LABEL">HL</column>
             <column name="NAME">Species length</column>
-            <column name="TABLE_NAME">P01_ICES_SPECIES_LENGTH</column>
+            <column name="TABLE_NAME">P01_RDB_SPECIES_LENGTH</column>
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="sysdate" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -99,7 +100,7 @@
             <column name="EXTRACTION_PRODUCT_FK" valueComputed="(SELECT ID FROM EXTRACTION_PRODUCT WHERE LABEL='P01_RDB')"/>
             <column name="LABEL">CL</column>
             <column name="NAME">Commercial landings</column>
-            <column name="TABLE_NAME">P01_ICES_LANDING</column>
+            <column name="TABLE_NAME">P01_RDB_LANDING</column>
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="sysdate" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -110,11 +111,11 @@
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
-                <tableExists tableName="P01_ICES_STATION"/>
-                <columnExists tableName="P01_ICES_STATION" columnName="FISHING_DURATION"/>
+                <tableExists tableName="P01_RDB_STATION"/>
+                <columnExists tableName="P01_RDB_STATION" columnName="FISHING_DURATION"/>
             </and>
         </preConditions>
-        <renameColumn tableName="P01_ICES_STATION" oldColumnName="FISHING_DURATION" newColumnName="FISHING_TIME"/>
+        <renameColumn tableName="P01_RDB_STATION" oldColumnName="FISHING_DURATION" newColumnName="FISHING_TIME"/>
     </changeSet>
 
 </databaseChangeLog>
