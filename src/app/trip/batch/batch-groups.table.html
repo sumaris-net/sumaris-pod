@@ -191,13 +191,16 @@
 
       </mat-form-field-measurement>
 
-      <!-- open individual measures -->
+      <!-- open individual measures
+      FIXME: before activate this button, need to
+       - compute individualCount dynamically
+       - A click should open the measure tab, with a filter
       <button mat-button mat-icon-button color="light" *ngIf="pmfm.pmfmId % 5 === 3"
               [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
               (click)="onSubBatchesClick($event, row, pmfm.id)">
         {{row.validator.controls.measurementValues.controls[pmfm.pmfmId].value}}
         <mat-icon>list</mat-icon>
-      </button>
+      </button> -->
     </mat-cell>
   </ng-container>
 
