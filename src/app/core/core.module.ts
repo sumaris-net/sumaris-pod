@@ -131,7 +131,11 @@ export {
 };
 
 export function HttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+  if (environment.production) {
+    // This is need to force a reload, after an app update
+    return new TranslateHttpLoader(http, './assets/i18n/', `-${environment.version}.json`);
+  }
+  return new TranslateHttpLoader(http, './assets/i18n/', `.json`);
 }
 
 @NgModule({
