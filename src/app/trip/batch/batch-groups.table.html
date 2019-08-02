@@ -184,6 +184,16 @@
 
     <mat-cell *matCellDef="let row" [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)" [class.even]="isEven(pmfm)">
       <mat-form-field-measurement
+        [readonly]="!row.editing"
+        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
+        [compact]="true" floatLabel="never">
+      </mat-form-field-measurement>
+
+      <!-- open individual measures
+      FIXME: before activate this button, need to
+       - compute individualCount dynamically
+       - A click should open the measure tab, with a filter
+       <mat-form-field-measurement
         *ngIf="pmfm.pmfmId % 5 !== 3"
         [readonly]="!row.editing"
         [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
@@ -191,10 +201,6 @@
 
       </mat-form-field-measurement>
 
-      <!-- open individual measures
-      FIXME: before activate this button, need to
-       - compute individualCount dynamically
-       - A click should open the measure tab, with a filter
       <button mat-button mat-icon-button color="light" *ngIf="pmfm.pmfmId % 5 === 3"
               [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
               (click)="onSubBatchesClick($event, row, pmfm.id)">

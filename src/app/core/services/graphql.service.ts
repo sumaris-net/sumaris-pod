@@ -304,7 +304,7 @@ export class GraphqlService {
     if (!peer) throw Error("[graphql] Missing peer. Unable to start graphql service");
 
     const uri = peer.url + '/graphql';
-    const wsUri = String.prototype.replace.call(uri, /^http:/, "ws:") + '/websocket';
+    const wsUri = String.prototype.replace.call(uri, /^http(s)?:/, "ws$1:") + '/websocket';
     console.info("[graphql] Base uri: " + uri);
     console.info("[graphql] Subscription uri: " + wsUri);
 
