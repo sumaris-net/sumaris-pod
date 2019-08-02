@@ -201,7 +201,6 @@ export class NetworkService {
     }
   }
 
-
   public async showSelectPeerModal(opts?: {allowSelectDownPeer?: boolean;}): Promise<Peer | undefined> {
 
     opts = opts || {};
@@ -233,12 +232,7 @@ export class NetworkService {
    * Get default peers, from environment
    */
   protected async getDefaultPeers(): Promise<Peer[]> {
-    const peers = (environment.defaultPeers || []).map(item => {
-      return Peer.fromObject({
-        dns: item.host,
-        port: item.port
-      });
-    });
+    const peers = (environment.defaultPeers || []).map(Peer.fromObject);
     return Promise.resolve(peers);
   }
 

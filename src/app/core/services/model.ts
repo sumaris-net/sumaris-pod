@@ -737,7 +737,7 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
 
   fromObject(source: any): Entity<Peer> {
     super.fromObject(source);
-    this.dns = source.dns;
+    this.dns = source.dns || source.host;
     this.ipv4 = source.ipv4;
     this.ipv6 = source.ipv6;
     this.port = isNotNil(source.port) ? +source.port : undefined;

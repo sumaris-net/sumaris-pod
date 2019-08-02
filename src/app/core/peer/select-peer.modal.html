@@ -47,7 +47,7 @@
           <ion-col no-padding>
             <ion-label text-wrap>
               <ion-text color="dark">
-                <h3>{{peer.hostAndPort}}</h3>
+                <h3>{{peer.hostAndPort}}{{peer.path}}</h3>
               </ion-text>
               <ion-text color="primary">
                 <h4>{{peer.label}}</h4>
@@ -66,7 +66,7 @@
       <!-- Peer is DOWN -->
       <ion-label text-wrap *ngIf="!peer.reachable">
         <ion-text color="medium">
-          <h3>{{peer.hostAndPort}}</h3>
+          <h3>{{peer.hostAndPort}}{{peer.path}}</h3>
         </ion-text>
         <ion-text color="danger">
           <h4>

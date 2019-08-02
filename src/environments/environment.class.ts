@@ -12,10 +12,10 @@ export class Environment {
   listenRemoteChanges?: boolean;
 
   // A peer to use at startup (useful on a web site deployment)
-  defaultPeer?: { host: string; port: number; useSsl?: boolean; } | undefined | null;
+  defaultPeer?: { host: string; port: number; useSsl?: boolean; path?: string; } | undefined | null;
 
   // A list of peers, to select as peer, in settings
-  defaultPeers?: { host: string; port: number; useSsl?: boolean; }[];
+  defaultPeers?: { host: string; port: number; useSsl?: boolean; path?: string; }[];
 
   // Enable cache persistence ?
   persistCache?: boolean;
