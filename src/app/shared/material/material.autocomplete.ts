@@ -49,6 +49,7 @@ export declare interface  MatAutocompleteFieldConfig<T=any> {
   attributes: string[];
   columnSizes?: number[];
   displayWith?: DisplayFn;
+  showAllOnFocus?: boolean;
 }
 
 @Component({
@@ -98,6 +99,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Input() displayColumnSizes: number[];
 
+  @Input() showAllOnFocus: boolean;
+
   @Input() tabindex: number;
 
   @Input() appAutofocus: boolean;
@@ -137,6 +140,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.displayAttributes = this.displayAttributes || this.config.attributes;
       this.displayColumnSizes = this.displayColumnSizes || this.config.columnSizes;
       this.displayWith = this.displayWith || this.config.displayWith;
+      this.showAllOnFocus = this.showAllOnFocus || this.config.showAllOnFocus;
     }
 
     // Default values
@@ -149,7 +153,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     const updateEvents$ = merge(
       merge(this.onFocus, this.onClick)
          .pipe(
-           map((_) => this.formControl.value),
+           map((_) => this.showAllOnFocus ? '*' : this.formControl.value),
            filter(value => isNil(value) || typeof value === "string")
          ),
       this.onDropButtonClick

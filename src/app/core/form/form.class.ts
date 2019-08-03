@@ -196,7 +196,8 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   protected registerAutocompleteField(fieldName: string, options?: {
     defaultAttributes?: string[];
     service?: SuggestionDataService<any>
-    suggestFn?: (value: any, options?: any) => Promise<any[]>
+    suggestFn?: (value: any, options?: any) => Promise<any[]>;
+    showAllOnFocus?: boolean;
   }) {
     options = options || {};
     const service: SuggestionDataService<any> = options.service || (options.suggestFn && {
@@ -209,7 +210,8 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
       service,
       filter: {
         searchAttribute: attributes.length === 1 ? attributes[0] : undefined
-      }
+      },
+      showAllOnFocus: options.showAllOnFocus
     };
     this.autocompleteFields[fieldName] = config;
 

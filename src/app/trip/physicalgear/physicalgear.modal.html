@@ -51,7 +51,7 @@
 
         <ion-button [fill]="(form.invalid || !form.dirty) ? 'clear' : 'solid'"
                     [disabled]="loading || form.invalid || !form.dirty"
-                    (keypress.enter)="doSubmit()"
+                    (keyup.enter)="doSubmit()"
                     (click)="doSubmit()" color="tertiary">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>

@@ -43,7 +43,7 @@
         <ion-button [fill]="form.invalid ? 'clear' : 'solid'"
                     [disabled]="loading || form.invalid"
                     (click)="doSubmit()"
-                    (keypress.enter)="doSubmit()"
+                    (keyup.enter)="doSubmit()"
                     color="tertiary">
           <ion-label translate>AUTH.BTN_LOGIN</ion-label>
         </ion-button>

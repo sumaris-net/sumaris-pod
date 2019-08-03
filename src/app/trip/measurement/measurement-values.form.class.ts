@@ -357,7 +357,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     // Wait loaded
     if (pmfms instanceof Observable) {
-      console.log("Form: waiting pmfms before emit $pmfms")
+      //console.log("Form: waiting pmfms before emit $pmfms")
       pmfms = await pmfms.pipe(filter(isNotNil), first()).toPromise();
     }
 

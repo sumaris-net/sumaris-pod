@@ -76,6 +76,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
         if (isNotNil(this.queryParams.tab)) {
           this.selectedTabIndex = this.queryParams.tab;
+          this.markForCheck();
         }
       });
   }

@@ -98,7 +98,7 @@
                 [placeholder]="placeholder"
                 [required]="required"
                 [tabindex]="tabindex"
-                (keypress.enter)="onKeypressEnter.emit($event)">
+                (keyup.enter)="onKeypressEnter.emit($event)">
       <mat-option *ngFor="let item of option.values" [value]="item.key">{{ item.label | translate }}</mat-option>
     </mat-select>
 
@@ -137,7 +137,7 @@
            [required]="required"
            [tabIndex]="tabindex"
            (click)="selectInputContent($event)"
-           (keypress.enter)="onKeypressEnter.emit($event)">
+           (keyup.enter)="onKeypressEnter.emit($event)">
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>

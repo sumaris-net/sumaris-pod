@@ -136,8 +136,10 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     event.preventDefault();
 
     // Hide the fake input
-    this.fakeInput.nativeElement.classList.add('hidden');
-    this.fakeInput.nativeElement.tabIndex = -1;
+    if (this.fakeInput) {
+      this.fakeInput.nativeElement.classList.add('hidden');
+      this.fakeInput.nativeElement.tabIndex = -1;
+    }
 
     // Focus on first button
     this.focus();
@@ -154,6 +156,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
       }
       this.updateTabIndex();
     });
+    this.markForCheck();
   }
   /* -- protected method -- */
 

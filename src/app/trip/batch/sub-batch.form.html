@@ -13,9 +13,8 @@
            [matAutocomplete]="autoParentBatch"
            [placeholder]="displayParentPmfm && getPmfmName(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT' | translate)"
            [required]="showParent"
-           (keyup.arrowdown)="onShowParentDropdown.emit($event)"
-           (click)="selectInputContent($event) && onShowParentDropdown.emit($event)"
-          >
+           (focus)="selectInputContent($event) && onShowParentDropdown.emit($event)"
+           (click)="onShowParentDropdown.emit($event)">
     <mat-error *ngIf="form.controls.parent.hasError('required')" translate>ERROR.FIELD_REQUIRED
     </mat-error>
     <mat-error *ngIf="form.controls.parent.hasError('object')" translate>ERROR.FIELD_INVALID</mat-error>

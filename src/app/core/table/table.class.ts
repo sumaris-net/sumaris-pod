@@ -590,7 +590,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     return modal.present();
   }
 
-
   public trackByFn(index: number, row: TableElement<T>) {
     return row.id;
   }
@@ -608,6 +607,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     filter?: any;
     displayWith?: DisplayFn;
     suggestFn?: (value: any, options?: any) => Promise<any[]>;
+    showAllOnFocus?: boolean
   }) : MatAutocompleteFieldConfig {
     options = options || {};
     if (this.debug) console.debug(`[table] Registering a autocomplete field ${this.constructor.name} ${fieldName}`);
@@ -625,7 +625,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       attributes: attributesOrFn,
       service,
       filter,
-      displayWith: options.displayWith
+      displayWith: options.displayWith,
+      showAllOnFocus: options.showAllOnFocus
     };
     this.autocompleteFields[fieldName] = config;
     return config;

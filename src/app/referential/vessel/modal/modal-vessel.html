@@ -40,7 +40,7 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="disabled? 'clear' : 'solid'" (click)="onSave($event)" (keypress.enter)="onSave($event)"
+        <ion-button [fill]="disabled? 'clear' : 'solid'" (click)="onSave($event)" (keyup.enter)="onSave($event)"
                     color="tertiary" [disabled]="disabled">
           <ion-label translate>COMMON.BTN_ADD</ion-label>
         </ion-button>

@@ -41,18 +41,19 @@
 
   <input matInput #matInput
          [formControl]="formControl"
-         (focus)="_onFocus($event)"
+         (focus)="_onFocusFakeInput($event)"
          [required]="required"
-         [hidden]="value!==undefined"
+         [class.hidden]="showRadio"
          [tabindex]="tabindex">
 
-<!--  <ion-label></ion-label>-->
+  <ion-label></ion-label>
 
   <!-- checkbox, when compact -->
-  <mat-checkbox  [formControl]="formControl" #checkboxButton
+  <mat-checkbox [formControl]="formControl"
+                #checkboxButton
                 (change)="onCheckboxValueChanged($event)"
                 [indeterminate]="value==undefined"
-                [hidden]="!showRadio && value==undefined"
+                [hidden]="!showRadio"
                 [tabindex]="tabindex">
   </mat-checkbox>
 

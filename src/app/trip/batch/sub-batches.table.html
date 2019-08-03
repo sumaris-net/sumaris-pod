@@ -91,7 +91,8 @@
               <input matInput [formControl]="row.validator.controls.parent" [matAutocomplete]="autoParent"
                      [appAutofocus]="row.id == -1 && row.editing"
                      [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT' | translate)"
-                     (focus)="onCellFocus($event, row, 'parent')" (blur)="onCellBlur($event, row, 'parent')"
+                     (focus)="onCellFocus($event, row, 'parent')"
+                     (blur)="onCellBlur($event, row, 'parent')"
                      (click)="$event.target.select()" required>
               <mat-error *ngIf="row.validator.controls.parent.hasError('required')" translate>ERROR.FIELD_REQUIRED
               </mat-error>
@@ -268,7 +269,7 @@
             <ion-button color="tertiary"
                         [disabled]="loading || !form.dirty || form.invalid"
                         (click)="doSubmitForm($event)"
-                        (keypress.enter)="doSubmitForm($event)"
+                        (keyup.enter)="doSubmitForm($event)"
                         [tabindex]="tabindex && (tabindex + 51)">
               <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
             </ion-button>

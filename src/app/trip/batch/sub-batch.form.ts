@@ -27,7 +27,7 @@ import {
   referentialToString,
   UsageMode
 } from "../../core/services/model";
-import {debounceTime, filter, map, mergeMap, startWith, tap} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, tap} from "rxjs/operators";
 import {getPmfmName, isNil, isNotNil, PmfmStrategy} from "../../referential/services/model";
 import {merge, Observable} from "rxjs";
 import {isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
@@ -56,14 +56,9 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   protected _initialPmfms: PmfmStrategy[];
   protected _qvPmfm: PmfmStrategy;
 
-  fieldsConfigCache = {};
-
-  $taxonNames: Observable<any[]>;
   $filteredParents: Observable<Batch[]>;
-
   _availableParents: Batch[] = [];
   onShowParentDropdown = new EventEmitter<UIEvent>(true);
-  onShowTaxonNameDropdown = new EventEmitter<UIEvent>(true);
 
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
@@ -143,31 +138,36 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // For DEV only
     this.debug = !environment.production;
-
-
   }
 
   ngOnInit() {
     super.ngOnInit();
 
     this.registerAutocompleteField('taxonName', {
-        suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
+      showAllOnFocus: true
     });
 
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
+
+    const parentControlControl = this.form.get('parent');
+    const taxonNameControl = this.form.get('taxonName');
 
     // Parent combo
     this.$filteredParents = merge(
       this.onShowParentDropdown
         .pipe(
           filter(event => !event.defaultPrevented),
-          map((_) => this.form.get('parent').value)
+          map((_) => '*')
         ),
-      this.form.get('parent').valueChanges
-        .pipe(debounceTime(250))
+      parentControlControl.valueChanges
+        .pipe(
+          debounceTime(250)
+        )
     )
       .pipe(
         map((value) => {
+          // Has select a valid parent: return the parent
           if (EntityUtils.isNotEmpty(value)) return [value];
           value = (typeof value === "string" && value !== "*") && value || undefined;
           if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
@@ -183,43 +183,32 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         tap(res => this.updateImplicitValue('parent', res))
       );
 
-    // Taxon name combo
-    this.$taxonNames = merge(
-      this.onShowTaxonNameDropdown
+    // Reset taxon name combo when parent changed
+    this.registerSubscription(
+      parentControlControl.valueChanges
         .pipe(
-          filter(event => !event.defaultPrevented),
-          map((_) => this.form.get('taxonName').value)
-        ),
-      this.form.get('taxonName').valueChanges
-        .pipe(debounceTime(250))
-    )
-      .pipe(
-        mergeMap(async (value) => {
-          const parent = this.form.get('parent').value;
-          // TODO: check if there is a parent ?
-          if (isNil(value) && isNil(parent)) return [];
-          return this.programService.suggestTaxonNames(value,
-            {
-              program: this.program,
-              searchAttribute: 'name',
-              taxonGroupId: parent && parent.taxonGroup && parent.taxonGroup.id || undefined
-            });
-        }),
-        // Remember implicit value
-        tap(res => this.updateImplicitValue('taxonName', res))
-      );
+          debounceTime(250),
+          filter(EntityUtils.isNotEmpty),
+          map(parent => parent.label),
+          distinctUntilChanged()
+        )
+        .subscribe((value) => {
+          taxonNameControl.patchValue(null, {emitEVent: false});
+          taxonNameControl.markAsPristine({onlySelf: true});
+        }));
 
-    this.enableIndividualCountControl.valueChanges
-      .pipe(startWith(this.enableIndividualCountControl.value))
-      .subscribe((enable) => {
-        if (enable) {
-          this.form.get('individualCount').enable();
-          this.form.get('individualCount').setValidators(Validators.compose([Validators.required, Validators.min(0)]));
-        } else {
-          this.form.get('individualCount').disable();
-          this.form.get('individualCount').setValue(null);
-        }
-      });
+    this.registerSubscription(
+      this.enableIndividualCountControl.valueChanges
+        .pipe(startWith(this.enableIndividualCountControl.value))
+        .subscribe((enable) => {
+          if (enable) {
+            this.form.get('individualCount').enable();
+            this.form.get('individualCount').setValidators(Validators.compose([Validators.required, Validators.min(0)]));
+          } else {
+            this.form.get('individualCount').disable();
+            this.form.get('individualCount').setValue(null);
+          }
+        }));
 
     this.updateTabIndex();
   }
@@ -253,7 +242,13 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         return undefined;
       })
       .filter(input => isNotNil(input) && isNilOrBlank(input.value))
-      .sort(attributeComparator("tabindex")) // Order by tabindex
+      // FIXME: this is not working (la finction d'après ne recupère rien)
+      //.sort(attributeComparator("tabindex")) // Order by tabindex
+      .sort((a, b) => {
+        const valueA = a.tabindex || a.tabIndex;
+        const valueB = b.tabindex || b.tabIndex;
+        return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
+      })
       .find(input => {
         input.focus();
         return true; // stop

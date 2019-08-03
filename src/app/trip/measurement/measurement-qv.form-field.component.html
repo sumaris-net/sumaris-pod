@@ -17,7 +17,7 @@
              (blur)="_onBlur($event)"
              [required]="required"
              [tabindex]="tabindex"
-             (keypress.enter)="onKeypressEnter.emit($event)">
+             (keyup.enter)="onKeypressEnter.emit($event)">
 
       <button mat-button matSuffix mat-icon-button tabindex="-1"
               type="button"

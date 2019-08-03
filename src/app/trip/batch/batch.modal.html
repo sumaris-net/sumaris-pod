@@ -51,7 +51,7 @@
 
         <ion-button [fill]="dirty || invalid ? 'clear' : 'solid'"
                     [disabled]="loading || !dirty || invalid"
-                    (keypress.enter)="doSubmit($event)"
+                    (keyup.enter)="doSubmit($event)"
                     (click)="doSubmit($event)" color="tertiary">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>

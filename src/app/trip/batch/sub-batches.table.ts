@@ -11,21 +11,14 @@ import {
   ViewChild
 } from "@angular/core";
 import {Observable, Subscription} from 'rxjs';
-import {debounceTime, map, mergeMap, tap} from "rxjs/operators";
+import {debounceTime, mergeMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {
-  AcquisitionLevelCodes,
-  AppFormUtils,
-  EntityUtils,
-  environment,
-  IReferentialRef,
-  ReferentialRef
-} from "../../core/core.module";
+import {AcquisitionLevelCodes, AppFormUtils, EntityUtils, environment, IReferentialRef} from "../../core/core.module";
 import {Batch, PmfmStrategy, referentialToString} from "../services/trip.model";
 import {PmfmIds, QualitativeLabels, ReferentialRefService} from "../../referential/referential.module";
 import {FormGroup, Validators} from "@angular/forms";
 import {isNil, isNilOrBlank, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/shared.module";
-import {FieldSettings, UsageMode} from "../../core/services/model";
+import {UsageMode} from "../../core/services/model";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {AppMeasurementsTable, AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {BatchUtils} from "../services/model/batch.model";
@@ -33,7 +26,6 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {selectInputContent} from "../../core/form/form.utils";
-import {DisplayFn} from "../../shared/material/material.autocomplete";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -203,7 +195,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     // Configure some autocomplete fields
     const taxonGroupConfig = this.registerAutocompleteField('taxonGroup');
     const taxonNameConfig = this.registerAutocompleteField('taxonName', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
+      showAllOnFocus: true
     });
     this._parentToStringOptions = {
       pmfm: this.displayParentPmfm,
@@ -215,8 +208,9 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     if (this.inlineEdition) { // can be override bu subclasses
 
-      const taxonNameConfig = this.registerAutocompleteField('parentBatch', {
-        suggestFn: (value: any, options?: any) => this.suggestParent(value)
+      this.registerAutocompleteField('parentBatch', {
+        suggestFn: (value: any, options?: any) => this.suggestParent(value),
+        showAllOnFocus: true
       });
 
       // Parent combo
@@ -296,13 +290,14 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   protected async resetForm(previousBatch?: Batch, options?: {focusFirstEmpty?: boolean}) {
 
     this.form.availableParents = this._availableSortedParents;
+    const enableIndividualCount = this.form.enableIndividualCount;
 
     // Create a new batch
     const newBatch = new Batch();
     await this.onNewEntity(newBatch);
 
     // Reset individual count, if manual mode
-    if (this.form.enableIndividualCount) {
+    if (enableIndividualCount) {
       newBatch.individualCount = null;
     } else if (isNil(newBatch.individualCount)) {
       newBatch.individualCount = 1;
@@ -318,8 +313,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
         newBatch.measurementValues[this.qvPmfm.pmfmId] = previousBatch.measurementValues[this.qvPmfm.pmfmId];
       }
 
-      // Copy taxonName
-      newBatch.taxonName = previousBatch.taxonName;
+      // Copy taxonName if individual count not filled
+      newBatch.taxonName = (!enableIndividualCount && this.showIndividualCount) ? previousBatch.taxonName : null;
     }
 
     MeasurementValuesUtils.normalizeFormEntity(newBatch, this.$pmfms.getValue(), this.form.form);
@@ -431,9 +426,13 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     const pmfms = this.$pmfms.getValue() || [];
     MeasurementValuesUtils.normalizeFormEntity(newBatch, pmfms);
 
-    const rows = await this.dataSource.getRows();
+    let row = undefined;
 
-    let row = this.showIndividualCount ? rows.find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms)) : undefined;
+    // Try to fond an identical sub-batch
+    if (this.showIndividualCount) {
+      const rows = await this.dataSource.getRows();
+      row = rows.find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
+    }
 
     // Already exists: increment individual count
     if (row) {

@@ -152,7 +152,7 @@
 
         <ion-button [fill]="form.valid ? 'solid' : 'clear'"
                     [disabled]="loading || !dirty"
-                    (keypress.enter)="doSubmitForm($event)"
+                    (keyup.enter)="doSubmitForm($event)"
                     (click)="doSubmitForm($event)"
                     color="tertiary">
           <ion-label translate>COMMON.BTN_ADD</ion-label>
