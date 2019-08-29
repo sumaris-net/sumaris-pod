@@ -87,7 +87,16 @@ IONIC_PATH=`which ionic`
 CORDOVA_PATH=`which cordova`
 if [[ "_" == "_${IONIC_PATH}" || "_" == "_${CORDOVA_PATH}" ]]; then
   echo "Installing global dependencies..."
-  npm install -g cordova ionic
+  npm install -g cordova ionic native-run
+  if [[ $? -ne 0 ]]; then
+      exit 1
+  fi
+fi
+
+NATIVE_RUN_PATH=`which native-run`
+if [[ "_" == "_${NATIVE_RUN_PATH}" ]]; then
+  echo "Installing global dependencies..."
+  npm install -g native-run
   if [[ $? -ne 0 ]]; then
       exit 1
   fi
