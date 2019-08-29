@@ -8,7 +8,7 @@ branch=`git rev-parse --abbrev-ref HEAD`
 if [[ ! "$branch" = "master" ]];
 then
   echo ">> This script must be run under \`master\` branch"
-  exit -1
+  exit 1
 fi
 
 DIRNAME=`pwd`
@@ -17,7 +17,7 @@ DIRNAME=`pwd`
 current=`grep -oP "version\": \"\d+.\d+.\d+((a|b)[0-9]+)?" package.json | grep -oP "\d+.\d+.\d+((a|b)[0-9]+)?"`
 if [[ "_$current" == "_" ]]; then
   echo "Unable to read the current version in 'package.json'. Please check version format is: x.y.z (x and y should be an integer)."
-  exit -1;
+  exit 1;
 fi
 echo "Current version: $current"
 
@@ -25,7 +25,7 @@ echo "Current version: $current"
 currentAndroid=`grep -oP "android-versionCode=\"[0-9]+\"" config.xml | grep -oP "\d+"`
 if [[ "_$currentAndroid" == "_" ]]; then
   echo "Unable to read the current Android version in 'config.xml'. Please check version format is an integer."
-  exit -1;
+  exit 1;
 fi
 echo "Current Android version: $currentAndroid"
 
@@ -40,7 +40,7 @@ if [[ ! $2 =~ ^[0-9]+.[0-9]+.[0-9]+((a|b)[0-9]+)?$ || ! $3 =~ ^[0-9]+$ ]]; then
   echo " - version: x.y.z"
   echo " - android-version: nnn"
   echo " - release_description: a comment on release"
-  exit -1
+  exit 1
 fi
 
 echo "new build version: $2"
@@ -70,13 +70,13 @@ esac
 JAVA_VERSION=`java -version 2>&1 | egrep "(java|openjdk) version" | awk '{print $3}' | tr -d \"`
 if [[ $? -ne 0 ]]; then
   echo "No Java JRE 1.8 found in machine. This is required for Android artifacts."
-  exit -1
+  exit 1
 fi
 JAVA_MAJOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[1]}'`
 JAVA_MINOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[2]}'`
 if [[ ${JAVA_MAJOR_VERSION} -ne 1 ]] || [[ ${JAVA_MINOR_VERSION} -ne 8 ]]; then
   echo "Require a Java JRE in version 1.8, but found ${JAVA_VERSION}. You can override your default JAVA_HOME in 'env.sh'."
-  exit -1
+  exit 1
 fi
 echo "Java: $JAVA_VERSION"
 
@@ -89,7 +89,7 @@ if [[ -d "${NVM_DIR}" ]]; then
     fi
 else
     echo "nvm (Node version manager) not found (directory ${NVM_DIR} not found). Please install, and retry"
-    exit -1
+    exit 1
 fi
 
 echo "----------------------------------"

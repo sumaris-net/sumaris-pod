@@ -77,7 +77,7 @@ case "$1" in
       echo " - tag: v$current"
       echo " - description: $description"
       result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
-
+      #echo "DEBUG - $result"
       upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
       if [[ "_$upload_url" = "_" ]]; then
@@ -128,5 +128,6 @@ case "$1" in
     ;;
   *)
     echo "No task given"
+    exit 1
     ;;
 esac
