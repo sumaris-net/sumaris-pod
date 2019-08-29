@@ -25,13 +25,6 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import net.sumaris.core.model.referential.grouping.Grouping;
-import net.sumaris.core.model.referential.grouping.GroupingClassification;
-import net.sumaris.core.model.referential.grouping.GroupingLevel;
-import net.sumaris.core.model.technical.extraction.ExtractionProduct;
-import net.sumaris.core.model.technical.extraction.ExtractionProductColumn;
-import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -42,6 +35,9 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearLevel;
+import net.sumaris.core.model.referential.grouping.Grouping;
+import net.sumaris.core.model.referential.grouping.GroupingClassification;
+import net.sumaris.core.model.referential.grouping.GroupingLevel;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -51,6 +47,10 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.model.referential.transcribing.TranscribingItem;
+import net.sumaris.core.model.technical.configuration.Software;
+import net.sumaris.core.model.technical.extraction.ExtractionProduct;
+import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
@@ -71,8 +71,6 @@ import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -119,7 +117,9 @@ public class ReferentialDaoImpl extends HibernateDaoSupport implements Referenti
                     Grouping.class,
                     // Product
                     ExtractionProduct.class,
-                    ExtractionProductTable.class
+                    ExtractionProductTable.class,
+                    // Software
+                    Software.class
             ), Class::getSimpleName);
 
     private Map<String, PropertyDescriptor> levelPropertyNameMap = initLevelPropertyNameMap();
