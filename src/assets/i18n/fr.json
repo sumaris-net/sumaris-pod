@@ -79,6 +79,7 @@
   "CONFIGURATION": {
     "APP_NAME": "Nom de l'application",
     "DESCRIPTION": "Description (page d'accueil)",
+    "STATUS": "Etat",
     "LOGO_PARTNERS": "Logo des partenaires (page d'accueil) :",
     "PROPERTIES_DIVIDER": "Options :",
     "PROPERTY_KEY": "Option",
@@ -625,12 +626,13 @@
       "TAXON_GROUP": "Espèces commerciales (FAO)",
       "TAXON_NAME": "Espèces scientifique",
       "TAXONOMIC_LEVEL": "Niveaux taxinomique",
-      "REFERENCE_TAXON": "Référence unique de taxon",
-      "PROGRAM": "Programme de collecte",
-      "STRATEGY": "Stratégie de collecte",
-      "ACQUISITION_LEVEL": "Niveau d'acquisition",
-      "TRANSCRIBING_ITEM": "Transcodage",
-      "METIER": "Métier"
+      "REFERENCE_TAXON": "Références uniques de taxon",
+      "PROGRAM": "Programmes de collecte",
+      "STRATEGY": "Stratégies de collecte",
+      "ACQUISITION_LEVEL": "Niveaux d'acquisition",
+      "TRANSCRIBING_ITEM": "Transcodages",
+      "METIER": "Métiers",
+      "SOFTWARE": "Logiciels"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde du référentiel.",

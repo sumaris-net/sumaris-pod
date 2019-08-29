@@ -57,7 +57,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   canOpenDetail = false;
   detailsPath = {
-    'Program': '/referential/program/:id'
+    'Program': '/referential/program/:id',
+    'Software': '/referential/software/:id'
   };
 
   constructor(

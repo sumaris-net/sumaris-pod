@@ -79,6 +79,7 @@
   "CONFIGURATION": {
     "APP_NAME": "Application Name",
     "DESCRIPTION": "Description (home page)",
+    "STATUS": "Status",
     "LOGO_PARTNERS": "Partners logo (home page):",
     "PROPERTIES_DIVIDER": "Options:",
     "PROPERTY_KEY": "Key",
@@ -630,7 +631,8 @@
       "STRATEGY": "Collection strategies",
       "ACQUISITION_LEVEL": "Acquisition levels",
       "TRANSCRIBING_ITEM": "Transcribing",
-      "METIER": "Metiers"
+      "METIER": "Metiers",
+      "SOFTWARE": "Softwares"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Error while saving referential data.",

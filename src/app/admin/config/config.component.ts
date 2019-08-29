@@ -2,7 +2,14 @@ import {Component, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {BehaviorSubject} from 'rxjs';
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {ConfigOption, ConfigOptions, Configuration, Department, EntityUtils} from '../../core/services/model';
+import {
+  ConfigOption,
+  ConfigOptions,
+  Configuration,
+  Department,
+  EntityUtils,
+  StatusIds
+} from '../../core/services/model';
 import {ConfigService} from "src/app/core/services/config.service";
 import {AppForm, AppFormUtils, ConfigValidatorService, isNil, PlatformService} from "src/app/core/core.module";
 import {DateAdapter} from "@angular/material";
@@ -24,7 +31,24 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
   loading = true;
   partners = new BehaviorSubject<Department[]>(null);
   data: Configuration;
-
+  statusList: any[] = [
+    {
+      id: StatusIds.ENABLE,
+      icon: 'checkmark',
+      label: 'REFERENTIAL.STATUS_ENUM.ENABLE'
+    },
+    {
+      id: StatusIds.DISABLE,
+      icon: 'close',
+      label: 'REFERENTIAL.STATUS_ENUM.DISABLE'
+    },
+    {
+      id: StatusIds.TEMPORARY,
+      icon: 'warning',
+      label: 'REFERENTIAL.STATUS_ENUM.TEMPORARY'
+    }
+  ];
+  statusById;
   options = Object.getOwnPropertyNames(ConfigOptions).map(name => ConfigOptions[name]);
   optionMap: { [key: string]: ConfigOption };
 
@@ -49,6 +73,10 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
     this.options.forEach(o => {
       this.optionMap[o.key] = o;
     });
+
+    // Fill statusById
+    this.statusById = {};
+    this.statusList.forEach((status) => this.statusById[status.id] = status);
   };
 
   async ngOnInit() {

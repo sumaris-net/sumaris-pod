@@ -483,6 +483,7 @@ export class Configuration extends Entity<Configuration> {
     this.largeLogo = source.largeLogo;
     this.backgroundImages = source.backgroundImages;
     this.partners = (source.partners || []).map(Department.fromObject);
+    this.statusId = source.statusId;
 
     if (source.properties && source.properties instanceof Array) {
       this.properties = EntityUtils.getArrayAsObject(source.properties);

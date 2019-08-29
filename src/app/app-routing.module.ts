@@ -124,6 +124,19 @@ const routes: Routes = [
             }
           }
         ]
+      },
+      {
+        path: 'software/:id',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: RemoteConfigPage,
+            data: {
+              profile: 'ADMIN'
+            }
+          }
+        ]
       }
     ]
   },

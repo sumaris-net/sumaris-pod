@@ -13,6 +13,21 @@
       <input matInput [placeholder]="'CONFIGURATION.DESCRIPTION' | translate" formControlName="name"/>
     </mat-form-field>
 
+    <!-- Status-->
+    <mat-form-field>
+      <mat-select formControlName="statusId" [placeholder]="'CONFIGURATION.STATUS'|translate">
+        <mat-select-trigger>
+          <span *ngIf="form.controls.statusId.value &gt;= 0">
+            {{ statusById[form.controls.statusId.value]?.label | translate}}</span>
+        </mat-select-trigger>
+        <mat-option *ngFor="let item of statusList" [value]="item.id">
+          <ion-icon [name]="item.icon"></ion-icon>
+          {{ item.label |translate }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    </mat-form-field>
+
     <!-- properties divider-->
     <h3>
       <ion-text translate>CONFIGURATION.PROPERTIES_DIVIDER</ion-text>
