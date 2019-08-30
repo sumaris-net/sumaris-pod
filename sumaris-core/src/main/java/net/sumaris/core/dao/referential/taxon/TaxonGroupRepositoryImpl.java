@@ -26,32 +26,44 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import net.sumaris.core.dao.referential.PmfmDao;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupHistoricalRecord;
 import net.sumaris.core.model.referential.taxon.TaxonGroupTypeId;
 import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.hibernate.Session;
+import org.hibernate.type.IntegerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
+import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,8 +77,14 @@ public class TaxonGroupRepositoryImpl
     private static final Logger log =
             LoggerFactory.getLogger(TaxonGroupRepositoryImpl.class);
 
-@Autowired
+    @Autowired
     private TaxonNameDao taxonNameDao;
+
+    @Autowired
+    private ReferentialDao referentialDao;
+
+    @Autowired
+    private PmfmDao pmfmDao;
 
     public TaxonGroupRepositoryImpl(EntityManager entityManager) {
         super(TaxonGroup.class, entityManager);
@@ -271,4 +289,58 @@ public class TaxonGroupRepositoryImpl
                 insertCounter.getValue(), deleteCounter.getValue()));
     }
 
+    @Override
+    public List<ReferentialVO> getAllDressingByTaxonGroupId(int taxonGroupId, Date startDate, Date endDate, int locationId) {
+        Preconditions.checkNotNull(startDate);
+
+        List<ReferentialVO> result = getEntityManager()
+                .createNamedQuery("RoundWeightConversion.dressingByTaxonGroupId", QualitativeValue.class)
+                .setParameter("taxonGroupId", taxonGroupId)
+                .setParameter("startDate", startDate, TemporalType.DATE)
+                // If no end date, use start date
+                .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
+                .setParameter("locationId", locationId)
+                .getResultStream()
+                .map(p -> referentialDao.toReferentialVO(p))
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isNotEmpty(result)) {
+            return result;
+        }
+
+        // Nothing found for this taxon group, so return all dressings
+        PmfmVO pmfm = pmfmDao.get(PmfmEnum.DRESSING.getId());
+        if (pmfm == null) {
+            throw new DataRetrievalFailureException("PMFM for dressing not found");
+        }
+        return pmfm.getQualitativeValues();
+
+    }
+
+    @Override
+    public List<ReferentialVO> getAllPreservingByTaxonGroupId(int taxonGroupId, Date startDate, Date endDate, int locationId) {
+        Preconditions.checkNotNull(startDate);
+
+        List<ReferentialVO> result = getEntityManager()
+                .createNamedQuery("RoundWeightConversion.preservingByTaxonGroupId", QualitativeValue.class)
+                .setParameter("taxonGroupId", taxonGroupId)
+                .setParameter("startDate", startDate, TemporalType.DATE)
+                // If no end date, use start date
+                .setParameter("endDate", endDate != null ? endDate : startDate, TemporalType.DATE)
+                .setParameter("locationId", locationId)
+                .getResultStream()
+                .map(p -> referentialDao.toReferentialVO(p))
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isNotEmpty(result)) {
+            return result;
+        }
+
+        // Nothing found for this taxon group, so return all dressings
+        PmfmVO pmfm = pmfmDao.get(PmfmEnum.PRESERVATION.getId());
+        if (pmfm == null) {
+            throw new DataRetrievalFailureException("PMFM for preservation not found");
+        }
+        return pmfm.getQualitativeValues();
+    }
 }

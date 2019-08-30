@@ -25,9 +25,11 @@ package net.sumaris.core.dao.referential.taxon;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.springframework.data.repository.NoRepositoryBean;
 
+import java.util.Date;
 import java.util.List;
 
 @NoRepositoryBean
@@ -49,4 +51,9 @@ public interface TaxonGroupRepositoryExtend {
             int size,
             String sortAttribute,
             SortDirection sortDirection);
+
+    List<ReferentialVO> getAllDressingByTaxonGroupId(int taxonGroupId, Date startDate, Date endDate, int locationId);
+
+    List<ReferentialVO> getAllPreservingByTaxonGroupId(int taxonGroupId, Date startDate, Date endDate, int locationId);
+
 }

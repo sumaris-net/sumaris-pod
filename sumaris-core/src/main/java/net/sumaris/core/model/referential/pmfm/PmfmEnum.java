@@ -59,7 +59,10 @@ public enum PmfmEnum implements Serializable  {
     IS_DEAD(94, "IS_DEAD"),
     DISCARD_REASON(95, "DISCARD_REASON"),
 
-    CONTROL_TYPE(130, "CONTROL_TYPE")
+    CONTROL_TYPE(130, "CONTROL_TYPE"),
+
+    PRESERVATION(150, "PRESERVATION"),
+    DRESSING(151, "DRESSING")
     ;
 
     public static PmfmEnum valueOf(final int id) {

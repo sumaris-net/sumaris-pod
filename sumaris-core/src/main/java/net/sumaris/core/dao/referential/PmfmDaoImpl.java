@@ -108,8 +108,15 @@ public class PmfmDaoImpl extends HibernateDaoSupport implements PmfmDao {
             target.setUnit(source.getUnit().getLabel());
         }
 
-        // Qualitative values
-        if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
+        // Qualitative values: from pmfm first, or (if empty) from parameter
+        if (CollectionUtils.isNotEmpty(source.getQualitativeValues())) {
+            List<ReferentialVO> qualitativeValues = source.getQualitativeValues()
+                    .stream()
+                    .map(referentialDao::toReferentialVO)
+                    .collect(Collectors.toList());
+            target.setQualitativeValues(qualitativeValues);
+        }
+        else if (CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
             List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
                     .stream()
                     .map(referentialDao::toReferentialVO)

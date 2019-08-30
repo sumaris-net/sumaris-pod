@@ -39,7 +39,8 @@ public class Location implements IItemReferentialEntity, Serializable {
     public static final String PROPERTY_LOCATION_LEVEL = "locationLevel";
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_SEQ")
+    @SequenceGenerator(name = "LOCATION_SEQ", sequenceName="LOCATION_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
