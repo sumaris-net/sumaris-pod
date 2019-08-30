@@ -7,6 +7,19 @@
 
 mat-form-field {
   width: 100%;
+
+  .mat-form-field-subscript-wrapper {
+    overflow: visible;
+    top: 100%;
+
+    .mat-form-field-hint-wrapper {
+      display: flex;
+
+      .mat-form-field-hint-spacer {
+        flex: 1 0 1em;
+      }
+    }
+  }
 }
 
 mat-error {

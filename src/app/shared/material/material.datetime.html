@@ -70,7 +70,7 @@
         <mat-datepicker [touchUi]="mobile" [disabled]="formControl.disabled" #datePicker2></mat-datepicker>
 
       </mat-form-field>
-      <div class="mat-form-field-subscript mat-form-field-subscript-wrapper" >
+      <div class="mat-form-field-subscript mat-form-field-subscript-wrapper">
         <!-- errors -->
         <ng-container *ngIf="formControl.touched">
           <mat-error *ngIf="formControl.hasError('required')"
@@ -152,8 +152,5 @@
         </ngx-material-timepicker>
       </mat-form-field>
     </ion-col>
-
   </ion-row>
-
-
 </ion-grid>

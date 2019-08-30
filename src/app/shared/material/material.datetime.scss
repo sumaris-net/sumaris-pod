@@ -30,8 +30,8 @@ ion-col.day {
 
   .mat-form-field-subscript-wrapper {
     overflow: visible;
-    right: -45px; // right offset to align hour
-    width: calc(100% + 45px); // get the full component width (overflow on the time part)
+    right: -64px; // right offset to align hour
+    width: calc(100% + 64px); // get the full component width (overflow on the time part)
 
     .mat-form-field-hint-wrapper {
       display: flex;

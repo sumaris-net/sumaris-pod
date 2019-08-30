@@ -146,6 +146,13 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
 
     this.textFormControl.valueChanges
       .subscribe((value) => this.onFormChange(value));
+
+    // Listen status changes outside the component (e.g. when setErrors() is calling on the formControl)
+    this.formControl.statusChanges
+      .subscribe((status) => {
+        if (this.readonly || this.writing || this.disabling) return; // Skip
+        this.markForCheck();
+      });
   }
 
   writeValue(obj: any): void {
@@ -220,7 +227,7 @@ export class MatLatLong implements OnInit, ControlValueAccessor {
 
 
   public checkIfTouched() {
-    if (this.textFormControl.touched) {
+    if (this.formControl.touched || this.textFormControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
     }
