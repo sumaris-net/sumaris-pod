@@ -55,7 +55,8 @@ public class TaxonGroup implements IItemReferentialEntity {
 
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_SEQ")
+    @SequenceGenerator(name = "TAXON_GROUP_SEQ", sequenceName="TAXON_GROUP_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

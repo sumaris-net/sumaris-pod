@@ -27,13 +27,15 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.16.0.xml">
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-1">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-1" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <sequenceExists sequenceName="LOCATION_SEQ"/>
       </not>
     </preConditions>
     <createSequence sequenceName="LOCATION_SEQ"/>
+    <sql>ALTER SEQUENCE LOCATION_SEQ RESTART WITH 2000</sql>
+    <sql>select NEXT VALUE FOR LOCATION_SEQ from STATUS where ID=1</sql>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-2">
     <preConditions onFail="MARK_RAN">
@@ -42,6 +44,73 @@
       </not>
     </preConditions>
     <createSequence sequenceName="ROUND_WEIGHT_CONVERSION_SEQ"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-3">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="round_weight_conversion"/>
+      </not>
+    </preConditions>
+    <createTable tableName="round_weight_conversion">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="round_weight_conversion_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="conversion_coefficient" type="DOUBLE">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="dressing_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="location_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="preserving_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="taxon_group_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-10" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="round_weight_conversion" constraintName="FK82b10lh2qvk744lkmrpyf41pt" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Location" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-11" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="round_weight_conversion" constraintName="FKky2ifbmn5k2r9xhsioffhc4cw" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-12" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="round_weight_conversion" constraintName="FKmfhbf9ufj2titpetlcu04u5cl" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-13" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="preserving_fk" baseTableName="round_weight_conversion" constraintName="FKtc9oeqyva2yncsucmhs3naqcx" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-14" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="dressing_fk" baseTableName="round_weight_conversion" constraintName="FKtqidtohidccsdmx8y85mfxgon" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-15" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="QUALITATIVE_VALUE_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="QUALITATIVE_VALUE_SEQ"/>
+    <sql>ALTER SEQUENCE QUALITATIVE_VALUE_SEQ RESTART WITH 330</sql>
+    <sql>select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ from STATUS where ID=1</sql>
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~  
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~  
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-0.16.0.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is empty. Skipping data insertion by SQL">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Insert countries -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-301" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not><sqlCheck expectedResult="19">SELECT count(*) FROM location where location_level_fk=1</sqlCheck></not>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_countries.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+
+    <!-- Insert parameter PRESERVATION, DRESSING -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-302" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM parameter where label in ('PRESERVATION', 'DRESSING')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="parameter">
+            <column name="ID" valueNumeric="150"/>
+            <column name="LABEL">PRESERVATION</column>
+            <column name="NAME">Etat</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="IS_QUALITATIVE" valueNumeric="1"/>
+            <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="parameter">
+            <column name="ID" valueNumeric="151"/>
+            <column name="LABEL">DRESSING</column>
+            <column name="NAME">Présentation</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="IS_QUALITATIVE" valueNumeric="1"/>
+            <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert pmfm PRESERVATION, DRESSING -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-303" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM pmfm where label in ('PRESERVATION', 'DRESSING')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm">
+            <column name="ID" valueNumeric="150"/>
+            <column name="LABEL">PRESERVATION</column>
+            <column name="PARAMETER_FK" valueNumeric="150"/>
+            <column name="UNIT_FK" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="pmfm">
+            <column name="ID" valueNumeric="151"/>
+            <column name="LABEL">DRESSING</column>
+            <column name="PARAMETER_FK" valueNumeric="150"/>
+            <column name="UNIT_FK" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert PRESERVATION, DRESSING qualitative values -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-304" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM qualitative_value where parameter_fk in (select ID from parameter where label in ('PRESERVATION', 'DRESSING'))</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_qualitative_values.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+
+    <!-- Insert round weight conversion -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-305" runOnChange="true" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM round_weight_conversion</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_round_weight_conversion.sql" relativeToChangelogFile="true" endDelimiter=";" />
+    </changeSet>
+
+</databaseChangeLog>

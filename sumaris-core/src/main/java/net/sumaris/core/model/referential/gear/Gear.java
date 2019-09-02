@@ -43,7 +43,8 @@ public class Gear implements IItemReferentialEntity {
     public static final String PROPERTY_STRATEGIES = "strategies";
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_SEQ")
+    @SequenceGenerator(name = "GEAR_SEQ", sequenceName="GEAR_SEQ")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

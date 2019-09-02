@@ -2,6 +2,8 @@
 
 export JAVA_HOME=/usr/lib/jvm/java-8-oracle/
 
+export SQUIRREL_HOME=/snap/squirrelsql/current
+
 if [[ "_${SQUIRREL_HOME}" == "_" ]]; then
     export SQUIRREL_HOME=/opt/squirrel-sql
     echo "No env variable SQUIRREL_HOME defined. Will use: ${SQUIRREL_HOME}"
