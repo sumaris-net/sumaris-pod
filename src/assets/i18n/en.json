@@ -733,6 +733,15 @@
       }
     },
     "LIVE": {
+      "RDB": {
+        "TITLE": "Raw data (ICES RDB v1.3)",
+        "SHEET": {
+          "TR": "Trips (TR)",
+          "HH": "Fishing stations (HH)",
+          "SL": "Species list (SL)",
+          "HL": "Species length (HL)"
+        }
+      },
       "COST": {
         "TITLE": "Raw data (COST v1.4)",
         "SHEET": {
@@ -742,8 +751,8 @@
           "HL": "Species length (HL)"
         }
       },
-      "ICES": {
-        "TITLE": "Raw data (ICES RDB v1.3)",
+      "FREE": {
+        "TITLE": "Raw data (FREE v1)",
         "SHEET": {
           "TR": "Trips (TR)",
           "HH": "Fishing stations (HH)",

@@ -766,6 +766,15 @@
       }
     },
     "LIVE": {
+      "RDB": {
+        "TITLE": "Données brutes (RDB v1.3)",
+        "SHEET": {
+          "TR": "Marées (TR)",
+          "HH": "Opérations (HH)",
+          "SL": "Captures (SL)",
+          "HL": "Mensurations (HL)"
+        }
+      },
       "COST": {
         "TITLE": "Données brutes (COST v1.4)",
         "SHEET": {
@@ -775,8 +784,8 @@
           "HL": "Mensurations (HL)"
         }
       },
-      "RDB": {
-        "TITLE": "Données brutes (RDB v1.3)",
+      "FREE": {
+        "TITLE": "Données brutes (FREE v1)",
         "SHEET": {
           "TR": "Marées (TR)",
           "HH": "Opérations (HH)",
