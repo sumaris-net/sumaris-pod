@@ -16,6 +16,7 @@ import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.extraction.dao.trip.cost.ExtractionCostTripDao;
+import net.sumaris.core.extraction.dao.trip.free.ExtractionFreeTripDao;
 import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
 import net.sumaris.core.extraction.utils.ExtractionBeans;
@@ -69,6 +70,9 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Resource(name = "extractionCostTripDao")
     ExtractionCostTripDao extractionCostTripDao;
+
+    @Resource(name = "extractionFreeTripDao")
+    ExtractionFreeTripDao extractionFreeTripDao;
 
     @Resource(name = "extractionSurvivalTestDao")
     ExtractionSurvivalTestDao extractionSurvivalTestDao;
@@ -421,6 +425,9 @@ public class ExtractionServiceImpl implements ExtractionService {
                 break;
             case COST:
                 context = extractionCostTripDao.execute(filter);
+                break;
+            case FREE:
+                context = extractionFreeTripDao.execute(filter);
                 break;
             case SURVIVAL_TEST:
                 context = extractionSurvivalTestDao.execute(filter);

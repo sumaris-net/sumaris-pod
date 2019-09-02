@@ -10,6 +10,7 @@ public enum ExtractionRawFormatEnum {
 
     RDB("TR", "HH", "SL", "HL"),
     COST ("TR", "HH", "SL", "HL"),
+    FREE ("TR", "HH", "SL", "HL"),
     SURVIVAL_TEST("TR", "HH", "SL", "HL", "ST", "RL")
     ;
 

@@ -324,7 +324,7 @@ public class AggregationRdbTripDaoImpl<
 
         // Bind some ids
         xmlQuery.bind("sexPmfmId", String.valueOf(PmfmEnum.SEX.getId()));
-        xmlQuery.bind("lengthTotalPmfmId", String.valueOf(PmfmEnum.LENGTH_TOTAL_CM.getId()));
+        xmlQuery.bind("lengthTotalCmPmfmId", String.valueOf(PmfmEnum.LENGTH_TOTAL_CM.getId()));
 
         return xmlQuery;
     }

@@ -31,10 +31,17 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     private ExtractionService service;
 
     @Test
-    public void extractLiveTripAsFile_ICES() {
+    public void extractLiveTripAsFile_RDB() {
 
         // Test the RDB format
         service.executeAndDumpTrips(ExtractionRawFormatEnum.RDB, null);
+    }
+
+    @Test
+    public void extractLiveTripAsFile_Free() {
+
+        // Test the RDB format
+        service.executeAndDumpTrips(ExtractionRawFormatEnum.FREE, null);
     }
 
     @Test

@@ -22,6 +22,8 @@
 
 <query type="select">
 
+  <select alias="HARBOUR_NAME" type="text">L.NAME</select>
+
   <select alias="MAIN_OBSERVED_METIER" type="text">(SELECT VUM.ALPHANUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;mainMetierPmfmId)</select>
   <select alias="HAS_CONVEYOR_BELT" type="text">(SELECT DECODE(VUM.NUMERICAL_VALUE, 1, 'Y', 0, 'N', null) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;conveyorBeltPmfmId)</select>
   <select alias="NB_FISHERMEN" type="number">(SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.TRIP_FK=T.ID and VUM.PMFM_FK=&amp;nbFishermenPmfmId)</select>

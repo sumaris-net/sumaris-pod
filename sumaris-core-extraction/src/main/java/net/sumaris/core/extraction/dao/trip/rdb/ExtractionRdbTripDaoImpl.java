@@ -16,6 +16,7 @@ import net.sumaris.core.extraction.vo.trip.rdb.ExtractionRdbTripVersion;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.StringUtils;
@@ -397,7 +398,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO> exte
 
         // Bind some ids
         xmlQuery.bind("sexPmfmId", String.valueOf(PmfmEnum.SEX.getId()));
-        xmlQuery.bind("lengthTotalPmfmId", String.valueOf(PmfmEnum.LENGTH_TOTAL_CM.getId()));
+        xmlQuery.bind("lengthTotalCmPmfmId", String.valueOf(PmfmEnum.LENGTH_TOTAL_CM.getId()));
+        xmlQuery.bind("lengthCarapaceCmPmfmId", String.valueOf(PmfmEnum.LENGTH_CARAPACE_CM.getId()));
+        xmlQuery.bind("centimeterUnitId", String.valueOf(UnitEnum.CM.getId()));
+        xmlQuery.bind("millimeterUnitId", String.valueOf(UnitEnum.MM.getId()));
 
         return xmlQuery;
     }

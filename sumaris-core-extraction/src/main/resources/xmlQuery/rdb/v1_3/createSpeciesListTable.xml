@@ -55,6 +55,8 @@
       CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY,
       SEX, LENGTH_CODE
     </groupby>
+
+<!--    <orderby direction="ASC">S.SAMPLE_ID, LENGTH_CODE</orderby>-->
   </query>
 
 </queries>
