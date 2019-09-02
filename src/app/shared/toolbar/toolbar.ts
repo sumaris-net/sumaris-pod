@@ -38,7 +38,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   hasValidate = false;
 
   @Input()
-  mobile= false;
+  mobile: boolean;
 
   @Input()
   defaultBackHref: string;
@@ -69,8 +69,10 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   ) {
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    //await this.platform.ready();
     this.mobile = toBoolean(this.mobile, this.platform.is('mobile'));
+    console.log('[toolbar] mobile=' + this.mobile);
     this.hasValidate = toBoolean(this.hasValidate, this.onValidate.observers.length > 0) && this.mobile;
     this._subscription = this.progressBarService.onProgressChanged
       .pipe(
