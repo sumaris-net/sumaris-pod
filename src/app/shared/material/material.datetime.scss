@@ -53,6 +53,7 @@ ion-col.hour {
     mat-label,
     input[type=text] {
       text-align: left;
+      min-width: 50px; // Make placeholder (hh:mm) visible
     }
   }
 }

@@ -15,6 +15,7 @@ export class AppFormUtils {
   static filterNumberInput = filterNumberInput;
   static disableControls = disableControls;
   static selectInputContent = selectInputContent;
+  static markAsTouched = markAsTouched;
 
   // ArrayForm
   static addValueInArray = addValueInArray;
@@ -279,6 +280,21 @@ export function clearValueInArray(form: FormGroup,
   return true;
 }
 
+export function markAsTouched(form: FormGroup) {
+  if (!form) return;
+  form.markAsTouched();
+  Object.getOwnPropertyNames(form.controls)
+    .forEach(key => {
+      const control = form.get(key);
+      if (control instanceof FormGroup) {
+        markAsTouched(control); // recursive call
+      }
+      else {
+        control.markAsTouched({onlySelf: true});
+        control.updateValueAndValidity({onlySelf: true});
+      }
+    });
+}
 
 export class FormArrayHelper<T = Entity<T>> {
 
