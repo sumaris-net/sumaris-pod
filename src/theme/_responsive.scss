@@ -15,6 +15,20 @@ $screen-xl: 1200px;
 // --------------------------------------------------
 // Hidden/Visible responsive
 // --------------------------------------------------
+html.plt-mobile {
+  [hidden-mobile],
+  .hidden-mobile {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  [visible-mobile],
+  .visible-mobile {
+    display: inherit !important;
+    visibility: visible !important;
+  }
+
+}
+
 @media screen and (max-width: $screen-xxs-max) {
   @-ms-viewport {
     width: 320px;
