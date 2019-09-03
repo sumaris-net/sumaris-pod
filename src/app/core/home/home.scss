@@ -126,21 +126,21 @@ ion-text {
 // Desktop or wide screen
 @media screen and (min-width: $screen-md) {
   ion-content {
-    // Avoid boittom-banner to override main-content
-    min-height: 606px;
+    // Avoid bottom-banner to override main-content
+    min-height: calc(100% - 100px);
 
     ion-card {
-      margin-top: auto ;
-      margin-left: auto ;
-      margin-right: auto ;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .bottom-banner {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
     }
   }
-
-
-  .bottom-banner {
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
-  }
 }
+
+

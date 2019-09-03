@@ -1,4 +1,4 @@
-<app-toolbar visible-xs visible-sm>
+<app-toolbar visible-xs visible-sm visible-mobile>
   <ion-button mat-icon-button [matMenuTriggerFor]="matmenu">
     <mat-icon slot="icon-only">public</mat-icon>
   </ion-button>
@@ -35,7 +35,7 @@
       </div>
     </div>
 
-    <div hidden-xs hidden-sm>
+    <div hidden-xs hidden-sm hidden-mobile>
       <ion-toolbar translucent>
         <ion-buttons slot="start">
           <ion-menu-toggle>
@@ -84,7 +84,7 @@
           <span translate>HOME.BTN_MY_ACCOUNT</span>
         </ion-button>
 
-        <p *ngIf="isLogin" ion-text color="primary" class="hidden-xs hidden-sm">
+        <p *ngIf="isLogin" ion-text color="primary" hidden-xs hidden-sm hidden-mobile>
           <span [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></span>
           <br/>
           <a ion-text color="danger" href="#" (click)="logout($event)">
@@ -94,15 +94,14 @@
       </ion-footer>
     </ion-card>
 
-    <p class="hidden-xs">&nbsp;</p>
-    <div class="visible-sm" style="width: 100%; display: block !important; height: 1px; ">&nbsp;</div>
+<!--    <p class="hidden-xs">&nbsp;</p>-->
+<!--    <div class="visible-sm" style="width: 100%; display: block !important; height: 1px; ">&nbsp;</div>-->
 
-
-    <!-- Display configured Departments logos -->
-    <div class="bottom-banner" *ngIf="!loadingBanner" @fadeInAnimation>
-      <a href="{{ item.siteUrl }}" *ngFor="let item of partners | async ">
-        <img class="logo" src="{{ item.logo }}" alt="{{item.label}}"  [title]="item.label" />
-      </a>
-    </div>
+  <!-- Display configured Departments logos -->
+  <div class="bottom-banner" *ngIf="!loadingBanner" @fadeInAnimation>
+    <a href="{{ item.siteUrl }}" *ngFor="let item of partners | async ">
+      <img class="logo" src="{{ item.logo }}" alt="{{item.label}}"  [title]="item.label" />
+    </a>
+  </div>
 
 </ion-content>
