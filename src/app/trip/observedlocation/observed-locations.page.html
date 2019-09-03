@@ -215,12 +215,12 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm *ngIf="inlineEdition">
+<ion-footer hidden-xs hidden-sm hidden-mobile *ngIf="inlineEdition">
   <form-buttons-bar (onCancel)="cancel()" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
 </ion-footer>
 
 <!-- Add Button  -->
-<ion-fab vertical="bottom" horizontal="end" class="visible-xs visible-sm">
+<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

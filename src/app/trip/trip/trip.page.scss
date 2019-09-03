@@ -1,3 +1,6 @@
+:host {
+  --ion-tab-min-height: calc(100%);
+}
 app-toolbar ion-spinner {
   width: 20px;
   height: 20px;
@@ -11,4 +14,11 @@ ion-col>ion-label {
 
 table-operations.hidden {
   visibility: hidden !important;
+}
+
+.mat-tab-group {
+
+  .mat-tab-body .mat-tab-body-content {
+    min-height: var(--ion-tab-min-height, 250px);
+  }
 }

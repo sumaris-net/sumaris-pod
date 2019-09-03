@@ -108,7 +108,7 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm [translucent]="true">
+<ion-footer [translucent]="true" hidden-xs hidden-sm hidden-mobile>
   <form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)" [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
 
     <!-- error -->
@@ -119,3 +119,21 @@
 
   </form-buttons-bar>
 </ion-footer>
+
+<!-- FAB button: add gear -->
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="physicalGearTable.enabled && selectedTabIndex==1" @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="physicalGearTable.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
+
+<!-- FAB button: add operation -->
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="operationTable.enabled && selectedTabIndex==2" @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="operationTable.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

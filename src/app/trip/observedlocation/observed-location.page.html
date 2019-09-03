@@ -18,7 +18,7 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="observedLocationForm.error" visible-xs visible-sm>
+      <ion-item *ngIf="observedLocationForm.error" visible-xs visible-sm visible-mobile>
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
       </ion-item>
@@ -58,7 +58,7 @@
       <div no-padding>
 
         <!-- error -->
-        <ion-item *ngIf="landingsTable.error" visible-xs visible-sm>
+        <ion-item *ngIf="landingsTable.error" visible-xs visible-sm visible-mobile>
           <ion-icon color="danger" slot="start" name="alert"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="landingsTable.error|translate"></ion-label>
         </ion-item>
@@ -79,7 +79,7 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm>
+<ion-footer hidden-xs hidden-sm hidden-mobile>
 
   <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading" [disabledCancel]="!dirty || loading">
 

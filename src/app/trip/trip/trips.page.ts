@@ -6,7 +6,7 @@ import {
   AppTable,
   AppTableDataSource,
   LocalSettingsService,
-  personsToString,
+  personsToString, PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
@@ -49,7 +49,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
-    protected platform: Platform,
+    protected platform: PlatformService,
     protected location: Location,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,

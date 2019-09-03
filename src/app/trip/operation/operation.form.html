@@ -91,11 +91,11 @@
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat">
                 <button type="button" mat-icon-button matSuffix (click)="fillPosition('startPosition')" tabindex="-1"
-                        *ngIf="enableGps">
+                        [hidden]="!enableGps">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
                 <button type="button" mat-icon-button matSuffix
-                        *ngIf="!enableGps && form.controls.startPosition.valid"
+                        [hidden]="enableGps || form.controls.startPosition.invalid"
                         (click)="copyPosition('startPosition', 'endPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>

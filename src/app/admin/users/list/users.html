@@ -1,5 +1,6 @@
 <app-toolbar [title]="'USER.LIST.TITLE'|translate" color="primary"
-             [canGoBack]="false">
+             [canGoBack]="false"
+             [hasValidate]="!loading && dirty" (onValidate)="save()">
 </app-toolbar>
 
 <ion-content no-padding>
@@ -272,12 +273,12 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm *ngIf="inlineEdition">
+<ion-footer *ngIf="inlineEdition" hidden-xs hidden-sm hidden-mobile>
   <form-buttons-bar (onCancel)="onRefresh.emit()" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
 </ion-footer>
 
-<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm>
-  <ion-fab-button color="secondary" (click)="addRow()">
+<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>

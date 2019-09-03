@@ -12,7 +12,7 @@ import {AppFormUtils, AppTabPage, environment} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {TranslateService} from '@ngx-translate/core';
 import {Subject} from 'rxjs';
-import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
+import {DateFormatPipe, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import * as moment from "moment";
 import {Moment} from "moment";
@@ -32,6 +32,7 @@ import {UsageMode} from "../../core/services/model";
     LocalSettingsService,
     ProgramService
   ],
+  animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripPage extends AppTabPage<Trip> implements OnInit {

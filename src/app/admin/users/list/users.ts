@@ -1,18 +1,21 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
-import {AppTable, AppTableDataSource, environment, LocalSettingsService} from "../../../core/core.module";
+import {
+  AppTable,
+  AppTableDataSource,
+  environment,
+  LocalSettingsService,
+  PlatformService
+} from "../../../core/core.module";
 import {Person, PRIORITIZED_USER_PROFILES, referentialToString, StatusIds} from "../../../core/services/model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/person.validator";
-import {ModalController, Platform} from "@ionic/angular";
+import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountFieldDef, AccountService} from "../../../core/services/account.service";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {ValidatorService} from "angular4-material-table";
-import {SaleValidatorService} from "../../../trip/services/sale.validator";
-import {debounceTime, switchMap, tap} from "rxjs/operators";
-import {TaxonGroupIds} from "../../../referential/services/model";
 
 @Component({
   selector: 'page-configuration',
@@ -52,7 +55,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
-    protected platform: Platform,
+    protected platform: PlatformService,
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,

@@ -1,6 +1,6 @@
 <mat-toolbar>
   <button mat-icon-button
-          hidden-xs hidden-sm
+          hidden-xs hidden-sm hidden-mobile
           *ngIf="!selection.hasValue() && enabled"
           [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
@@ -14,7 +14,7 @@
     <mat-icon>delete</mat-icon>
   </button>
 
-  <ion-item *ngIf="error" hidden-xs hidden-sm lines="none">
+  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
@@ -27,7 +27,7 @@
 </mat-toolbar>
 
 <!-- error -->
-<ion-item *ngIf="error" visible-xs visible-sm>
+<ion-item *ngIf="error" visible-xs visible-sm visible-mobile>
   <ion-icon color="danger" slot="start" name="alert"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
@@ -157,12 +157,12 @@
 </ion-row>
 -->
 
-<!-- Add Button  -->
+<!-- Add Button
 <ion-fab vertical="bottom" horizontal="end"
          *ngIf="enabled"
          class="visible-xs visible-sm">
   <ion-fab-button color="tertiary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
-</ion-fab>
+</ion-fab>-->
 

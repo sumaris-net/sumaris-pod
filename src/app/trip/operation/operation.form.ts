@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
 import {OperationValidatorService} from "../services/operation.validator";
-import {fromDateISOString, isNil, Operation, PhysicalGear, Trip} from "../services/trip.model";
+import {fromDateISOString, Operation, PhysicalGear, Trip} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
@@ -194,13 +194,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.markAsDirty();
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
   referentialToString = referentialToString;
 
   /* -- protected methods -- */
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 
   protected async suggestTargetSpecies(value: any, options?: any): Promise<IReferentialRef[]> {
     const physicalGear = this.form.get('physicalGear').value;

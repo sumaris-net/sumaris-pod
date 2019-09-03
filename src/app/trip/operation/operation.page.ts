@@ -10,7 +10,7 @@ import {CatchBatchForm} from '../catch/catch.form';
 import {AlertController} from "@ionic/angular";
 import {TranslateService} from '@ngx-translate/core';
 import {AcquisitionLevelCodes, UsageMode} from '../../core/services/model';
-import {isNil, isNotNil} from '../../shared/shared.module';
+import {fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {Subject} from 'rxjs';
 import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
@@ -33,6 +33,7 @@ import {isNotNilOrBlank} from "../../shared/functions";
   selector: 'page-operation',
   templateUrl: './operation.page.html',
   styleUrls: ['./operation.page.scss'],
+  animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {
