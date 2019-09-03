@@ -9,8 +9,8 @@
       <!-- <ion-back-button icon="arrow-back" [defaultHref]="defaultBackHref" (onClick)="onBackClick($event)" #backButton>
       </ion-back-button> -->
 
-      <ion-menu-toggle>
-        <ion-button>
+      <ion-menu-toggle [hidden]="canGoBack">
+        <ion-button >
           <ion-icon slot="icon-only" name="menu"></ion-icon>
         </ion-button>
       </ion-menu-toggle>

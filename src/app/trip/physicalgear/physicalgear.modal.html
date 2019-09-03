@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button class="back-button" (click)="cancel()" visible-xs visible-sm visible-mobile>
+      <ion-button class="back-button" (click)="cancel($event)" visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -13,7 +13,7 @@
     <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button class="back-button" (click)="save()"
+      <ion-button class="back-button" (click)="save($event)"
                   *ngIf="!loading && form.valid"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
@@ -47,14 +47,14 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="cancel()">
+        <ion-button fill="clear" color="dark" (click)="cancel($event)">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
         <ion-button [fill]="(form.invalid || !form.dirty) ? 'clear' : 'solid'"
                     [disabled]="loading || form.invalid || !form.dirty"
-                    (keyup.enter)="save()"
-                    (click)="save()" color="tertiary">
+                    (keyup.enter)="save($event)"
+                    (click)="save($event)" color="tertiary">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>

@@ -60,18 +60,22 @@ export class PhysicalGearModal implements OnInit {
   }
 
 
-  async cancel() {
-    await this.saveIfDirtyAndConfirm();
+  async cancel(event: UIEvent) {
+    await this.saveIfDirtyAndConfirm(event);
+    if (!event.defaultPrevented) {
+      // abort changes
+      await this.viewCtrl.dismiss();
+    }
   }
 
-  async save(event?: any): Promise<boolean> {
+  async save(event?: UIEvent): Promise<boolean> {
     if (!this.form.valid || this.loading) return false;
     this.loading = true;
 
     // Nothing to save: just leave
     if (!this.form.dirty) {
       await this.viewCtrl.dismiss();
-      return;
+      return false;
     }
 
     try {
@@ -87,7 +91,7 @@ export class PhysicalGearModal implements OnInit {
 
   /* -- protected functions -- */
 
-  protected async saveIfDirtyAndConfirm(): Promise<boolean> {
+  protected async saveIfDirtyAndConfirm(event: UIEvent): Promise<boolean> {
     if (!this.form.dirty) return true;
 
     let confirm = false;
@@ -123,13 +127,13 @@ export class PhysicalGearModal implements OnInit {
     await alert.onDidDismiss();
 
     if (!confirm) {
-      if (cancel) return false; // cancel
+      if (cancel) event.preventDefault();
+      return !cancel;
+    } // cancel
 
-      // abort changes
-      await this.viewCtrl.dismiss();
-    }
-
-    await this.save(event);
+    const saved = await this.save(event);
+    if (saved) event.preventDefault();
+    return saved;
   }
 
   protected markForCheck() {

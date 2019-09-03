@@ -204,6 +204,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       this.usageMode = this.computeUsageMode(trip);
 
       const data = new Operation();
+      data.tripId = trip.id;
 
       // If is on field mode, fill default values
       if (this.usageMode === 'FIELD') {
@@ -326,7 +327,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     await this.updateTitle();
 
     // Compute the default back href
-    this.defaultBackHref = `/trips/${data.tripId}?tab=2`;
+    if (data && isNotNil(data.tripId)) {
+      this.defaultBackHref = `/trips/${this.data.tripId}?tab=2`;
+    }
+    else {
+      this.defaultBackHref = null;
+    }
 
     this.markAsPristine();
     this.markAsUntouched();

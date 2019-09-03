@@ -6,7 +6,7 @@ import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
 import {debounceTime, map, mergeMap, tap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
-import {AccountService, AppForm, IReferentialRef} from '../../core/core.module';
+import {AccountService, AppForm, IReferentialRef, PlatformService} from '../../core/core.module';
 import {
   EntityUtils,
   ReferentialRef,
@@ -35,7 +35,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   onFocusPhysicalGear: EventEmitter<any> = new EventEmitter<any>();
   onFocusMetier: EventEmitter<any> = new EventEmitter<any>();
-  enableGps: boolean;
+  enableGeolocation: boolean;
   latLongFormat: string;
 
   @Input() showComment = true;
@@ -80,17 +80,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
+    protected platform: PlatformService,
     protected cd: ChangeDetectorRef
   ) {
-
     super(dateAdapter, physicalGearValidatorService.getFormGroup(), settings);
-
   }
 
   ngOnInit() {
     this.usageMode = this.usageMode || (this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK');
-    this.enableGps = (this.usageMode === 'FIELD'); /* TODO: && platform has sensor */
     this.latLongFormat = this.settings.latLongFormat;
+
+    this.enableGeolocation = (this.usageMode === 'FIELD') &&
+      (this.platform.is('mobile') || this.platform.is('mobileweb'));
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
@@ -157,10 +158,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
    * Get the position by GPS sensor
    * @param fieldName
    */
-  fillPosition(fieldName: string) {
+  async fillPosition(fieldName: string) {
+    console.log("TODO Check fillPosition...");
+
     const positionGroup = this.form.controls[fieldName];
     if (positionGroup && positionGroup instanceof FormGroup) {
-      positionGroup.patchValue(this.getGPSPosition(), {emitEvent: false, onlySelf: true});
+      const coords = await this.getGeoCoordinates();
+      positionGroup.patchValue(coords, {emitEvent: false, onlySelf: true});
     }
     // Set also the end date time
     if (fieldName == 'endPosition') {
@@ -172,16 +176,26 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   /**
-   * Get the position by GPS sensor
-   * @param fieldName
+   * Get the position by geo loc sensor
    */
-  getGPSPosition(): { latitude: number, longitude: number } {
-    // TODO : access GPS sensor
-    console.log("TODO: get GPS position use FAKE values !!");
-    return {
-      latitude: 50.11,
-      longitude: 0.11
-    };
+  getGeoCoordinates(): Promise<{ latitude: number; longitude: number; }> {
+    return new Promise<{ latitude: number; longitude: number; }>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (position: Position) => {
+          console.log('TODO check geo loc result:', position);
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        },
+        (err) => {
+          console.error(err);
+          reject(err);
+        },
+        // Options
+        { maximumAge: 3000, timeout: 1000, enableHighAccuracy: true }
+      );
+    });
   }
 
   copyPosition(source: string, target: string) {

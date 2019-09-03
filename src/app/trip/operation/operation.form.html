@@ -90,12 +90,14 @@
                            type="longitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat">
-                <button type="button" mat-icon-button matSuffix (click)="fillPosition('startPosition')" tabindex="-1"
-                        [hidden]="!enableGps">
+                <button type="button" mat-icon-button matLatlongSuffix
+                        (click)="fillPosition('startPosition')"
+                        tabindex="-1"
+                        [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <button type="button" mat-icon-button matSuffix
-                        [hidden]="enableGps || form.controls.startPosition.invalid"
+                <button type="button" mat-icon-button matLatlongSuffix
+                        [hidden]="enableGeolocation || form.controls.startPosition.invalid"
                         (click)="copyPosition('startPosition', 'endPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
@@ -138,8 +140,9 @@
                            type="longitude"
                            [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                            [latLongPattern]="latLongFormat">
-                <button type="button" mat-icon-button matSuffix (click)="fillPosition('endPosition')" tabindex="-1"
-                        *ngIf="enableGps">
+                <button type="button" mat-icon-button matLatlongSuffix
+                        (click)="fillPosition('endPosition')" tabindex="-1"
+                        [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
               </mat-latlong>
