@@ -356,46 +356,6 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }
   }
 
-  protected async saveIfDirtyAndConfirm(): Promise<boolean> {
-    if (!this.dirty) return true;
-
-    let confirm = false;
-    let cancel = false;
-    const translations = this.translate.instant(['COMMON.BTN_SAVE', 'COMMON.BTN_CANCEL', 'COMMON.BTN_ABORT_CHANGES', 'CONFIRM.SAVE', 'CONFIRM.ALERT_HEADER']);
-    const alert = await this.alertCtrl.create({
-      header: translations['CONFIRM.ALERT_HEADER'],
-      message: translations['CONFIRM.SAVE'],
-      buttons: [
-        {
-          text: translations['COMMON.BTN_CANCEL'],
-          role: 'cancel',
-          cssClass: 'secondary',
-          handler: () => {
-            cancel = true;
-          }
-        },
-        {
-          text: translations['COMMON.BTN_ABORT_CHANGES'],
-          cssClass: 'secondary',
-          handler: () => { }
-        },
-        {
-          text: translations['COMMON.BTN_SAVE'],
-          handler: () => {
-            confirm = true; // update upper value
-          }
-        }
-      ]
-    });
-    await alert.present();
-    await alert.onDidDismiss();
-
-    if (!confirm) return !cancel;
-
-    const saved = await this.save(event);
-    return saved;
-  }
-
   /**
    * Compute the title
    * @param data

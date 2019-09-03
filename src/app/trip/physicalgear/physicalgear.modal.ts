@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {ModalController} from "@ionic/angular";
+import {AlertController, ModalController} from "@ionic/angular";
 import {AcquisitionLevelCodes} from "../../referential/services/model";
 import {PhysicalGear} from "../services/trip.model";
 import {PhysicalGearForm} from "./physicalgear.form";
@@ -35,6 +35,7 @@ export class PhysicalGearModal implements OnInit {
   @ViewChild('form') form: PhysicalGearForm;
 
   constructor(
+    protected alertCtrl: AlertController,
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
     protected platform: PlatformService,
@@ -60,25 +61,76 @@ export class PhysicalGearModal implements OnInit {
 
 
   async cancel() {
-    await this.viewCtrl.dismiss();
+    await this.saveIfDirtyAndConfirm();
   }
 
-  async doSubmit(): Promise<any> {
-    if (!this.form.valid || this.loading) return;
+  async save(event?: any): Promise<boolean> {
+    if (!this.form.valid || this.loading) return false;
     this.loading = true;
+
+    // Nothing to save: just leave
+    if (!this.form.dirty) {
+      await this.viewCtrl.dismiss();
+      return;
+    }
 
     try {
       const gear = this.form.value;
-      return this.viewCtrl.dismiss(gear);
+      return await this.viewCtrl.dismiss(gear);
     }
     catch (err) {
       this.loading = false;
       this.form.error = err && err.message || err;
-      return;
+      return false;
     }
   }
 
   /* -- protected functions -- */
+
+  protected async saveIfDirtyAndConfirm(): Promise<boolean> {
+    if (!this.form.dirty) return true;
+
+    let confirm = false;
+    let cancel = false;
+    const translations = this.translate.instant(['COMMON.BTN_SAVE', 'COMMON.BTN_CANCEL', 'COMMON.BTN_ABORT_CHANGES', 'CONFIRM.SAVE', 'CONFIRM.ALERT_HEADER']);
+    const alert = await this.alertCtrl.create({
+      header: translations['CONFIRM.ALERT_HEADER'],
+      message: translations['CONFIRM.SAVE'],
+      buttons: [
+        {
+          text: translations['COMMON.BTN_CANCEL'],
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            cancel = true;
+          }
+        },
+        {
+          text: translations['COMMON.BTN_ABORT_CHANGES'],
+          cssClass: 'secondary',
+          handler: () => {
+          }
+        },
+        {
+          text: translations['COMMON.BTN_SAVE'],
+          handler: () => {
+            confirm = true; // update upper value
+          }
+        }
+      ]
+    });
+    await alert.present();
+    await alert.onDidDismiss();
+
+    if (!confirm) {
+      if (cancel) return false; // cancel
+
+      // abort changes
+      await this.viewCtrl.dismiss();
+    }
+
+    await this.save(event);
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

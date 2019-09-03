@@ -1,8 +1,8 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button *ngIf="mobile" (click)="cancel()">
-        {{'COMMON.BTN_CANCEL'|translate}}
+      <ion-button class="back-button" (click)="cancel()" visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
 
@@ -13,8 +13,10 @@
     <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button icon-only *ngIf="mobile && !loading && form.dirty && form.valid" (click)="doSubmit()">
-        <ion-icon name="checkmark"></ion-icon>
+      <ion-button class="back-button" (click)="save()"
+                  *ngIf="!loading && form.valid"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -51,8 +53,8 @@
 
         <ion-button [fill]="(form.invalid || !form.dirty) ? 'clear' : 'solid'"
                     [disabled]="loading || form.invalid || !form.dirty"
-                    (keyup.enter)="doSubmit()"
-                    (click)="doSubmit()" color="tertiary">
+                    (keyup.enter)="save()"
+                    (click)="save()" color="tertiary">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
