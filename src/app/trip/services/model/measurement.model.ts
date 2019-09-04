@@ -203,16 +203,22 @@ export class MeasurementUtils {
 
 export class MeasurementValuesUtils {
 
-  static equals(m1: { [key: number]: any }, m2: { [key: number]: any }): boolean {
-    return (isNil(m1) && isNil(m2))
-      || !(Object.getOwnPropertyNames(m1).find(key => m1[key] !== m2[key]));
+
+  static equalsValue(v1: any,
+                     v2: any): boolean {
+    return (v1 === v2) || (v1 && v2 && isNotNil(v1.id) && v1.id === v2.id);
   }
 
-  static equalsPmfms(m1: { [key: number]: any },
-                     m2: { [key: number]: any },
+  static equals(m1: { [pmfmId: number]: any }, m2: { [pmfmId: number]: any }): boolean {
+    return (isNil(m1) && isNil(m2))
+      || !(Object.getOwnPropertyNames(m1).find(pmfmId => !MeasurementValuesUtils.equalsValue(m1[pmfmId], m2[pmfmId])));
+  }
+
+  static equalsPmfms(m1: { [pmfmId: number]: any },
+                     m2: { [pmfmId: number]: any },
                      pmfms: PmfmStrategy[]): boolean {
     return (isNil(m1) && isNil(m2))
-      || !(pmfms.find(pmfm => m1[pmfm.pmfmId] !== m2[pmfm.pmfmId]));
+      || !pmfms.find(pmfm => !MeasurementValuesUtils.equalsValue(m1[pmfm.pmfmId], m2[pmfm.pmfmId]));
   }
 
   static valueToString = measurementValueToString;
