@@ -17,7 +17,8 @@ import {
   toDateISOString
 } from "../../core/core.module";
 import {Moment} from "moment/moment";
-import {ConfigOption, ConfigOptionType} from "../../core/services/model";
+import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {PropertiesMap} from "../../core/services/model";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
@@ -228,15 +229,13 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   }
 }
 
-
-export const ProgramProperties = {
-
+export const ProgramProperties: FormFieldDefinitionMap = {
   // Trip
   TRIP_SALE_ENABLE: {
     key: "sumaris.trip.sale.enable",
     label: "PROGRAM.OPTIONS.TRIP_SALE_ENABLE",
     defaultValue: "true",
-    type: 'boolean' as ConfigOptionType
+    type: 'boolean'
   },
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: {
     key: "false",
@@ -248,19 +247,19 @@ export const ProgramProperties = {
     key: "sumaris.trip.operation.batch.taxonName.enable",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_NAME_ENABLE",
     defaultValue: "true",
-    type: 'boolean' as ConfigOptionType
+    type: 'boolean'
   },
   TRIP_BATCH_TAXON_GROUP_ENABLE: {
     key: "sumaris.trip.operation.batch.taxonGroup.enable",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUP_ENABLE",
     defaultValue: "true",
-    type: 'boolean' as ConfigOptionType
+    type: 'boolean'
   },
   TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE: {
     key: "sumaris.trip.operation.batch.individualCount.enable",
     label: "PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE",
     defaultValue: "true",
-    type: 'boolean' as ConfigOptionType
+    type: 'boolean'
   },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: {
     key: "sumaris.trip.operation.sample.taxonName.enable",
@@ -272,19 +271,19 @@ export const ProgramProperties = {
     key: "sumaris.trip.operation.sample.taxonGroup.enable",
     label: "PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_GROUP_ENABLE",
     defaultValue: "true",
-    type: 'boolean' as ConfigOptionType
+    type: 'boolean'
   },
   TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE: {
     key: "sumaris.trip.operation.survivalTest.taxonName.enable",
     label: "PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE",
     defaultValue: "true",
-    type: 'boolean' as ConfigOptionType
+    type: 'boolean'
   },
   TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE: {
     key: "sumaris.trip.operation.survivalTest.taxonGroup.enable",
     label: "PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE",
     defaultValue: "true",
-    type: 'boolean' as ConfigOptionType
+    type: 'boolean'
   },
 
   // Observed location
@@ -292,20 +291,20 @@ export const ProgramProperties = {
     key: 'sumaris.observedLocation.endDateTime.enable',
     label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_END_DATE_TIME_ENABLE",
     defaultValue: "false",
-    type: 'boolean' as ConfigOptionType
+    type: 'boolean'
   },
   OBSERVED_LOCATION_LOCATION_LEVEL_IDS: {
     key: 'sumaris.observedLocation.location.level.ids',
     label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS",
-    type: 'enum' as ConfigOptionType,
+    type: 'enum',
     values: [
       {
         key: LocationLevelIds.PORT.toString(),
-        label: 'PROGRAM.OPTIONS.LOCATION_LEVEL_PORT'
+        value: 'PROGRAM.OPTIONS.LOCATION_LEVEL_PORT'
       },
       {
         key: LocationLevelIds.AUCTION.toString(),
-        label: 'PROGRAM.OPTIONS.LOCATION_LEVEL_AUCTION'
+        value: 'PROGRAM.OPTIONS.LOCATION_LEVEL_AUCTION'
       }
     ],
     defaultValue: LocationLevelIds.PORT.toString(),
@@ -315,15 +314,15 @@ export const ProgramProperties = {
   LANDING_EDITOR: {
     key: 'sumaris.landing.editor',
     label: 'PROGRAM.OPTIONS.LANDING_EDITOR',
-    type: 'enum' as ConfigOptionType,
+    type: 'enum',
     values: [
       {
         key: 'landing',
-        label: 'PROGRAM.OPTIONS.LANDING_EDITOR_LANDING'
+        value: 'PROGRAM.OPTIONS.LANDING_EDITOR_LANDING'
       },
       {
         key: 'control',
-        label: 'PROGRAM.OPTIONS.LANDING_EDITOR_CONTROL'
+        value: 'PROGRAM.OPTIONS.LANDING_EDITOR_CONTROL'
       }],
     defaultValue: 'landing'
   }
@@ -345,7 +344,7 @@ export class Program extends Entity<Program> {
   comments: string;
   creationDate: Date | Moment;
   statusId: number;
-  properties: { [key: string]: string };
+  properties: PropertiesMap;
   strategies: Strategy[];
 
   constructor(data?: {
@@ -385,7 +384,7 @@ export class Program extends Entity<Program> {
     this.statusId = source.statusId;
     this.creationDate = fromDateISOString(source.creationDate);
     if (source.properties && source.properties instanceof Array) {
-      this.properties = EntityUtils.getArrayAsObject(source.properties);
+      this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
     } else {
       this.properties = source.properties;
     }
@@ -397,18 +396,18 @@ export class Program extends Entity<Program> {
     return super.equals(other) || this.label === other.label;
   }
 
-  getPropertyAsBoolean(option: ConfigOption): boolean {
-    const value = this.getProperty(option);
+  getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
+    const value = this.getProperty(definition);
     return value && value !== "false";
   }
 
-  getPropertyAsNumbers(option: ConfigOption): number[] {
-    const value = this.getProperty(option);
+  getPropertyAsNumbers(definition: FormFieldDefinition): number[] {
+    const value = this.getProperty(definition);
     return value && value.split(',').map(parseInt) || undefined;
   }
 
-  getProperty(option: ConfigOption): string {
-    return isNotNil(this.properties[option.key]) ? this.properties[option.key] : (option.defaultValue || undefined);
+  getProperty(definition: FormFieldDefinition): string {
+    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
   }
 }
 

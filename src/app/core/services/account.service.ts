@@ -6,13 +6,12 @@ import {
   getMainProfile,
   hasUpperOrEqualsProfile,
   Referential,
-  ReferentialRef,
   StatusIds,
   UsageMode,
   UserProfileLabel,
   UserSettings
 } from "./model";
-import {Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import gql from "graphql-tag";
 import {Storage} from '@ionic/storage';
 import {FetchPolicy} from "apollo-client";
@@ -24,6 +23,7 @@ import {environment} from "../../../environments/environment";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "./graphql.service";
 import {LocalSettingsService} from "./local-settings.service";
+import {FormFieldDefinition} from "../../shared/form/field.model";
 
 
 export declare interface AccountHolder {
@@ -41,18 +41,6 @@ export interface AuthData {
 }
 export interface RegisterData extends AuthData {
   account: Account;
-}
-
-export interface AccountFieldDef<T = any> {
-  name: string;
-  label: string;
-  required: boolean;
-  dataService?: SuggestionDataService<T>;
-  dataFilter?: any;
-  updatable: {
-    registration: boolean;
-    account: boolean;
-  };
 }
 
 const TOKEN_STORAGE_KEY = "token";
@@ -192,7 +180,7 @@ export class AccountService extends BaseDataService {
 
   private _startPromise: Promise<any>;
   private _started = false;
-  private _additionalAccountFields: AccountFieldDef[] = [];
+  private _$additionalFields = new BehaviorSubject<FormFieldDefinition[]>([]);
 
   public onLogin = new Subject<Account>();
   public onLogout = new Subject<any>();
@@ -859,20 +847,25 @@ export class AccountService extends BaseDataService {
     await this.settings.savePageSetting(pageId, value, propertyName);
   }
 
-  get additionalAccountFields(): AccountFieldDef[] {
-    return this._additionalAccountFields;
+  get additionalFields(): FormFieldDefinition[] {
+    return this._$additionalFields.getValue();
   }
 
-  getAdditionalAccountField(name: string): AccountFieldDef | undefined {
-    return this._additionalAccountFields.find(f => f.name === name);
+  get $additionalFields(): Observable<FormFieldDefinition[]> {
+    return this._$additionalFields.asObservable();
   }
 
-  addAdditionalAccountField(field: AccountFieldDef) {
-    if (!!this._additionalAccountFields.find(f => f.name === field.name)) {
-      throw new Error("Additional account field {" + field.name + "} already define.");
+  getAdditionalField(key: string): FormFieldDefinition | undefined {
+    return this._$additionalFields.getValue().find(f => f.key === key);
+  }
+
+  registerAdditionalField(field: FormFieldDefinition) {
+    const values = this._$additionalFields.getValue();
+    if (!!values.find(f => f.key === field.key)) {
+      throw new Error("Additional account field {" + field.key + "} already define.");
     }
-    if (this._debug) console.debug("[account] Adding additional account field {" + field.name + "}", field);
-    this._additionalAccountFields.push(field);
+    if (this._debug) console.debug("[account] Adding additional account field {" + field.key + "}", field);
+    this._$additionalFields.next(values.concat(field));
   }
 
   async authenticateAndGetToken(token?: string, counter?: number): Promise<string> {

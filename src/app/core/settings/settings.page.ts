@@ -1,10 +1,10 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {AccountService} from '../services/account.service';
-import {FieldSettings, LocalSettings, Peer, referentialToString, UsageMode} from '../services/model';
-import {FormArray, FormBuilder, FormControl} from '@angular/forms';
+import {EntityUtils, LocalSettings, Peer, referentialToString, UsageMode, Locales} from '../services/model';
+import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
-import {DateAdapter, MatExpansionPanel, MatSlideToggleChange} from "@angular/material";
+import {DateAdapter} from "@angular/material";
 import {AppFormUtils, FormArrayHelper} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
 import {ValidatorService} from "angular4-material-table";
@@ -13,6 +13,7 @@ import {PlatformService} from "../services/platform.service";
 import {NetworkService} from "../services/network.service";
 import {isNil, isNilOrBlank, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../services/local-settings.service";
+import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 
 @Component({
   selector: 'page-settings',
@@ -24,45 +25,19 @@ import {LocalSettingsService} from "../services/local-settings.service";
 })
 export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDestroy {
 
-  private _data: LocalSettings;
+  private data: LocalSettings;
 
   mobile: boolean;
   loading = true;
   saving = false;
+  locales = Locales;
   usageModes: UsageMode[] = ['FIELD', 'DESK'];
-  fields = [
-    {
-      key: 'qualitativeValue',
-      label: 'SETTINGS.FIELDS.QUALITATIVE_VALUE',
-      type: 'combo',
-      values: ['label,name', 'name', 'name,label', 'label']
-    },
-    {
-      key: 'taxonGroup',
-      label: 'SETTINGS.FIELDS.TAXON_GROUP',
-      type: 'combo',
-      values: ['label,name', 'name', 'name,label', 'label']
-    },
-    {
-      key: 'taxonName',
-      label: 'SETTINGS.FIELDS.TAXON_NAME',
-      type: 'combo',
-      values: ['label,name', 'name', 'name,label', 'label']
-    },
-    {
-      key: 'gear',
-      label: 'SETTINGS.FIELDS.GEAR',
-      type: 'combo',
-      values: ['label,name', 'name', 'name,label', 'label']
-    }
-  ];
-  fieldsMap: any;
-  fieldsFormHelper: FormArrayHelper<FieldSettings>;
-  localeMap = {
-    'fr': 'Français',
-    'en': 'English'
-  };
-  locales: String[] = [];
+
+  propertyDefinitions: FormFieldDefinition[];
+  propertyDefinitionsByKey: FormFieldDefinitionMap = {};
+  propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
+  propertiesFormHelper: FormArrayHelper<FormFieldValue>;
+
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
 
   get accountInheritance(): boolean {
@@ -73,8 +48,8 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     return this.accountService.isLogin();
   }
 
-  get fieldsForm(): FormArray {
-    return this.form.get('fields') as FormArray;
+  get propertiesForm(): FormArray {
+    return this.form.get('properties') as FormArray;
   }
 
   constructor(
@@ -90,15 +65,20 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
 
-    // Fill locales
-    for (let locale in this.localeMap) {
-      this.locales.push(locale);
-    }
+    this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
+      this.formBuilder,
+      this.form,
+      'properties',
+      (value) => this.validatorService.getPropertyFormGroup(value),
+      (v1, v2) => (!v1 && !v2) || (v1.key === v2.key),
+      (value) =>  isNil(value) || (isNil(value.key) && isNil(value.value)),
+      {
+        allowEmptyArray: true
+      }
+    );
 
-    this.fieldsMap = this.fields.reduce((res, field) => {
-      res[field.key] = field;
-      return res;
-    }, {});
+    this.propertyDefinitions = settings.additionalFields.slice(); // copy options
+    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o); // fill map
 
     this.mobile = this.platform.mobile;
 
@@ -109,17 +89,6 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   async ngOnInit() {
     super.ngOnInit();
 
-    this.fieldsFormHelper = new FormArrayHelper<FieldSettings>(this.formBuilder,
-      this.form,
-      'fields',
-      (value) => this.validatorService.getFieldControl(value),
-      (o1, o2) => (!o1 && !o2) || (o1.key === o2.key),
-      (o) => !o || isNilOrBlank(o.value),
-      {
-        allowEmptyArray: true
-      }
-    );
-
     // Make sure platform is ready
     await this.platform.ready();
 
@@ -128,6 +97,29 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
     this.accountService.onLogin.subscribe(() => this.setAccountInheritance(this.accountInheritance));
     this.accountService.onLogout.subscribe(() => this.setAccountInheritance(this.accountInheritance));
+  }
+
+  getPropertyDefinition(index: number): FormFieldDefinition {
+    let definition = this.propertyDefinitionsByIndex[index];
+    if (!definition) {
+      definition = this.updatePropertyDefinition(index);
+      this.propertyDefinitionsByIndex[index] = definition;
+    }
+    return definition;
+  }
+
+  updatePropertyDefinition(index: number): FormFieldDefinition {
+    const key = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
+    const definition = key && this.propertyDefinitionsByKey[key] || null;
+    this.propertyDefinitionsByIndex[index] = definition; // update map by index
+    this.markForCheck();
+    return definition;
+  }
+
+  removePropertyAt(index: number) {
+    this.propertiesFormHelper.removeAt(index);
+    this.propertyDefinitionsByIndex = {}; // clear cache by index
+    this.markForCheck();
   }
 
   async load() {
@@ -150,15 +142,23 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       data.peerUrl = peer && peer.url;
     }
 
-    // Set combo attributes
-    data.fields = data.fields || [];
-
     // Remember data
-    this._data = data;
+    this.updateView(data);
+  }
 
-    this.fieldsFormHelper.resize(data.fields.length);
+  updateView(data: LocalSettings) {
+    if (!data) return; //skip
+    this.data = data;
 
-    this.form.patchValue(data, {emitEvent: false});
+    const json: any = Object.assign({}, data || {});
+    console.log("TODO check: update view", json);
+
+    // Transform properties map into array
+    json.properties = EntityUtils.getObjectAsArray(data.properties|| {});
+    console.log("TODO check properties:", json.properties)
+    this.propertiesFormHelper.resize(json.properties.length);
+
+    this.form.patchValue(json, {emitEvent: false});
     this.markAsPristine();
 
     this.enable({emitEvent: false});
@@ -169,14 +169,12 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     this.loading = false;
     this.error = null;
     this.markForCheck();
-
-
   }
 
   async save(event: MouseEvent) {
 
     // Remove all empty controls
-    this.fieldsFormHelper.removeAllEmpty();
+    this.propertiesFormHelper.removeAllEmpty();
 
     if (this.form.invalid) {
       AppFormUtils.logFormErrors(this.form);
@@ -187,7 +185,8 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
     this.saving = true;
     this.error = undefined;
-    const data = this.form.value;
+    const json = this.form.value;
+    json.properties = EntityUtils.getPropertyArrayAsObject(json.properties);
 
     // Check peer alive, before saving
     const peerChanged = this.form.get('peerUrl').dirty;
@@ -195,13 +194,13 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     try {
       this.disable();
 
-      await this.settings.saveLocalSettings(data);
-      this._data = data;
+      await this.settings.saveLocalSettings(json);
+      this.data = json;
       this.markAsPristine();
 
       // Update the network peer
       if (peerChanged) {
-        this.networkService.peer = Peer.parseUrl(data.peerUrl);
+        this.networkService.peer = Peer.parseUrl(json.peerUrl);
       }
 
     } catch (err) {
@@ -211,7 +210,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       this.enable({emitEvent: false});
 
       // Apply inheritance
-      this.setAccountInheritance(data.accountInheritance, {emitEvent: false});
+      this.setAccountInheritance(json.accountInheritance, {emitEvent: false});
 
       this.saving = false;
       this.markForCheck();
@@ -221,7 +220,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
   public setAccountInheritance(enable: boolean, opts?: { emitEvent?: boolean; }) {
     // Make sure to update the value in control
     this.form.controls['accountInheritance'].setValue(enable, opts);
-    if (this._data.accountInheritance !== enable) {
+    if (this.data.accountInheritance !== enable) {
       this.form.controls['accountInheritance'].markAsDirty({onlySelf: false});
     }
 
@@ -245,8 +244,8 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       }
     } else {
       // Restore previous values
-      this.form.get('locale').setValue(this._data.locale, opts);
-      this.form.get('latLongFormat').setValue(this._data.latLongFormat, opts);
+      this.form.get('locale').setValue(this.data.locale, opts);
+      this.form.get('latLongFormat').setValue(this.data.latLongFormat, opts);
 
       // Enable fields
       this.form.get('locale').enable(opts);
@@ -267,17 +266,12 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       control.markAsDirty({onlySelf: false});
       this.markAsDirty();
     }
-
   }
 
   async cancel() {
     await this.load();
   }
 
-  removeFieldAt(index: number) {
-    this.fieldsFormHelper.removeAt(index);
-    this.markForCheck();
-  }
 
   referentialToString = referentialToString;
 

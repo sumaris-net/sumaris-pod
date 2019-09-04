@@ -3,14 +3,12 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {EntityUtils, Program} from "../model";
 
 import {ValidatorService} from "angular4-material-table";
-import {ConfigOptionValidatorService} from "./config-option.validator";
 
 @Injectable()
 export class ProgramValidatorService implements ValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder,
-    protected configOptionValidator: ConfigOptionValidatorService
+    protected formBuilder: FormBuilder
   ) {
   }
 
@@ -35,11 +33,14 @@ export class ProgramValidatorService implements ValidatorService {
   getPropertiesArray(array?: any) {
     const properties = (array && array instanceof Array) ? array : EntityUtils.getObjectAsArray(array || {});
     return this.formBuilder.array(
-      properties.map(item => this.configOptionValidator.getFormGroup(item))
+      properties.map(item => this.getPropertyFormGroup(item))
     );
   }
 
-  getPropertyFormGroup(data?: {key: string; value: string; }) {
-    return this.configOptionValidator.getFormGroup(data);
+  getPropertyFormGroup(data?: {key: string; value?: string;}): FormGroup {
+    return this.formBuilder.group({
+      key: [data && data.key || null, Validators.compose([Validators.required, Validators.max(50)])],
+      value: [data && data.value || null, Validators.compose([Validators.required, Validators.max(100)])]
+    });
   }
 }

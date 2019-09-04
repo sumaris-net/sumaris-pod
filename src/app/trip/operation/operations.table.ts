@@ -83,8 +83,8 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     super.ngOnInit();
 
     this.displayAttributes = {
-      gear: this.settings.getFieldAttributes('gear'),
-      taxonGroup: this.settings.getFieldAttributes('taxonGroup'),
+      gear: this.settings.getFieldDisplayAttributes('gear'),
+      taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
     };
 
     this.registerSubscription(

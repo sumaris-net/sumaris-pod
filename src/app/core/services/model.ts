@@ -10,6 +10,7 @@ import {
   toDateISOString
 } from "../../shared/shared.module";
 import {noTrailingSlash} from "../../shared/functions";
+import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 
 export {
   joinProperties,
@@ -50,23 +51,25 @@ export const AcquisitionLevelCodes = {
   OBSERVED_VESSEL: 'OBSERVED_VESSEL'
 };
 
-export declare type ConfigOptionType = 'integer' | 'double' | 'boolean' | 'string' | 'enum' | 'color';
+export const Locales: LocaleConfig[] = [
+  {
+    id: 'fr',
+    name: 'Français',
+    country: 'fr'
+  },
+  {
+    id: 'en',
+    name: 'English (UK)',
+    country: 'gb'
+  },
+  {
+    id: 'en-US',
+    name: 'English (US)',
+    country: 'us'
+  }
+];
 
-export declare interface ConfigOptionEnum {
-  key: string;
-  label: string;
-}
-
-export declare interface ConfigOption {
-  key: string;
-  label: string;
-  defaultValue?: any;
-  isTransient?: boolean; // Useful only for remote configuration
-  values?: ConfigOptionEnum[];
-  type: ConfigOptionType;
-}
-
-export const ConfigOptions = {
+export const ConfigOptions: FormFieldDefinitionMap = {
   LOGO: {
     key: 'sumaris.logo',
     label: 'CONFIGURATION.OPTIONS.LOGO',
@@ -81,16 +84,9 @@ export const ConfigOptions = {
     key: 'sumaris.defaultLocale',
     label: 'CONFIGURATION.OPTIONS.DEFAULT_LOCALE',
     type: 'enum',
-    values: [
-      {
-        key: 'en',
-        label: 'English'
-      },
-      {
-        key: 'fr',
-        label: 'Français'
-      }
-    ]
+    values: Locales.map(l => {
+      return {key: l.id, value: l.name} as FormFieldValue;
+    })
   },
   DEFAULT_LAT_LONG_FORMAT: {
     key: 'sumaris.defaultLatLongFormat',
@@ -99,15 +95,15 @@ export const ConfigOptions = {
     values: [
       {
         key: 'DDMMSS',
-        label: 'COMMON.DDMMSS_PLACEHOLDER'
+        value: 'COMMON.DDMMSS_PLACEHOLDER'
       },
       {
         key: 'DDMM',
-        label: 'COMMON.DDMM_PLACEHOLDER'
+        value: 'COMMON.DDMM_PLACEHOLDER'
       },
       {
         key: 'DD',
-        label: 'COMMON.DD_PLACEHOLDER'
+        value: 'COMMON.DD_PLACEHOLDER'
       }
     ]
   },
@@ -142,6 +138,7 @@ export const ConfigOptions = {
     type: 'color'
   }
 };
+
 
 export type UsageMode = 'DESK' | 'FIELD';
 
@@ -255,6 +252,7 @@ export class EntityUtils {
   }
 
   static getObjectAsArray(source?: { [key: string]: string }): { key: string; value?: string; }[] {
+    if (source instanceof Array) return source;
     return Object.getOwnPropertyNames(source || {})
       .map(key => {
         return {
@@ -264,7 +262,7 @@ export class EntityUtils {
       });
   }
 
-  static getArrayAsObject(source?: { key: string; value?: string; }[]): { [key: string]: string } {
+  static getPropertyArrayAsObject(source?: FormFieldValue[]): { [key: string]: string } {
     return (source || []).reduce((res, item) => {
       res[item.key] = item.value;
       return res;
@@ -272,7 +270,7 @@ export class EntityUtils {
   }
 
   static equals(o1: Entity<any>, o2: Entity<any>): boolean {
-    return (!o1 && !o2) || (o1 && o2 && o1.id === o2.id);
+    return (o1 === o2) || (isNil(o1) && isNil(o2))  || (o1 && o2 && o1.id === o2.id);
   }
 
   static copyIdAndUpdateDate(source: Entity<any> | undefined, target: Entity<any>, opts?: { creationDate?: boolean; }) {
@@ -486,7 +484,7 @@ export class Configuration extends Entity<Configuration> {
     this.statusId = source.statusId;
 
     if (source.properties && source.properties instanceof Array) {
-      this.properties = EntityUtils.getArrayAsObject(source.properties);
+      this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
     } else {
       this.properties = source.properties;
     }
@@ -770,14 +768,15 @@ export class Peer extends Entity<Peer> implements Cloneable<Peer> {
 }
 
 /* -- Local settings -- */
-export declare class FieldSettings {
-  key: string;
-  value: string;
-  // attributes?: string[];
-  // searchAttribute?: string;
-  // toString?: (obj: any) => string;
-  // toHtmlColumn?: (obj: any) => string;
-  // $htmlColumnHeader?: Observable<string>;
+
+export declare interface LocaleConfig {
+  id: string;
+  name: string;
+  country?: string;
+}
+
+export declare interface PropertiesMap {
+  [key: string]: string;
 }
 
 export declare interface LocalSettings {
@@ -790,5 +789,6 @@ export declare interface LocalSettings {
   defaultPrograms?: string[];
   mobile?: boolean;
   touchUi?: boolean;
-  fields?: FieldSettings[];
+  properties?: PropertiesMap;
 }
+

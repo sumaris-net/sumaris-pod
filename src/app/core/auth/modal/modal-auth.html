@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button class="visible-xs visible-sm" (click)="cancel()">
+      <ion-button (click)="cancel()" visible-xs visible-sm visible-mobile>
         {{'COMMON.BTN_CANCEL'|translate}}
       </ion-button>
     </ion-buttons>
@@ -13,7 +13,9 @@
     <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button visible-xs visible-sm (click)="doSubmit()" *ngIf="!loading">
+      <ion-button
+        (click)="doSubmit()" *ngIf="!loading"
+        visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -25,9 +27,7 @@
   </form-auth>
 </ion-content>
 
-
-
-<ion-footer hidden-xs hidden-sm>
+<ion-footer hidden-xs hidden-sm hidden-mobile>
 
   <ion-toolbar>
 

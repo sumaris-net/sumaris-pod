@@ -23,46 +23,49 @@ import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
 import {ProgressInterceptor} from "./interceptors/progess.interceptor";
 import {
-  SuggestionDataService,
   DataService,
-  LoadResult,
-  TableDataService,
   EditorDataService,
-  EditorDataServiceLoadOptions
+  EditorDataServiceLoadOptions,
+  LoadResult,
+  SuggestionDataService,
+  TableDataService
 } from "./services/data-service.class";
 import {
+  attributeComparator,
+  changeCaseToUnderscore,
+  filterNumberInput,
   fromDateISOString,
   isNil,
   isNilOrBlank,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  isNotEmptyArray,
-  nullIfUndefined,
-  toBoolean,
-  toFloat,
-  toInt,
-  toDateISOString,
-  startsWithUpperCase,
-  attributeComparator,
   joinProperties,
+  nullIfUndefined,
   selectInputContent,
-  sort
+  sort,
+  startsWithUpperCase,
+  toBoolean,
+  toDateISOString,
+  toFloat,
+  toInt
 } from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
 import {InputElement} from "./material/focusable";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
+import {AppFormField} from "./form/field.component";
 
 export {
   DataService, SuggestionDataService, TableDataService, LoadResult,
   EditorDataService, EditorDataServiceLoadOptions,
   isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, isNotEmptyArray, nullIfUndefined,
   toBoolean, toFloat, toInt,
-  toDateISOString, fromDateISOString,
+  toDateISOString, fromDateISOString, filterNumberInput,
   startsWithUpperCase,
   attributeComparator, joinProperties, sort, selectInputContent,
-  fadeInAnimation, fadeInOutAnimation,
+  fadeInAnimation, fadeInOutAnimation, changeCaseToUnderscore,
   DateFormatPipe, ToolbarComponent,
   Color, ColorScale, InputElement
 };
@@ -90,7 +93,8 @@ export {
     MatDateTime,
     MatLatLong,
     MatBooleanField,
-    MatAutocompleteField
+    MatAutocompleteField,
+    AppFormField
   ],
   exports: [
     MaterialModule,
@@ -110,7 +114,8 @@ export {
     MatLatLong,
     MatBooleanField,
     MatAutocompleteField,
-    ColorPickerModule
+    ColorPickerModule,
+    AppFormField
   ],
   providers: [
     DateFormatPipe,

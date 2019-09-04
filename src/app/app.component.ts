@@ -1,11 +1,14 @@
 import {Component, Inject} from '@angular/core';
 import {MenuItem} from './core/menu/menu.component';
-import {AccountService, isNotNil} from './core/core.module';
+import {AccountService, isNotNil, joinProperties, LocalSettingsService} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
 import {ConfigService} from './core/services/config.service';
 import {DOCUMENT} from "@angular/common";
 import {Configuration} from "./core/services/model";
 import {PlatformService} from "./core/services/platform.service";
+import {throttleTime} from "rxjs/operators";
+import {changeCaseToUnderscore} from "./shared/shared.module";
+import {FormFieldDefinition} from "./shared/form/field.model";
 
 
 @Component({
@@ -54,7 +57,8 @@ export class AppComponent {
     private platform: PlatformService,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
-    private configurationService: ConfigService
+    private configurationService: ConfigService,
+    private settings: LocalSettingsService
   ) {
 
     this.platform.ready().then(() => {
@@ -65,6 +69,7 @@ export class AppComponent {
       // Add additional account fields
       this.addAccountFields();
 
+      this.addSettingsFields();
     });
   }
 
@@ -135,18 +140,64 @@ export class AppComponent {
 
     console.debug("[app] Add additional account fields...");
 
-    // Add account field: department
-    this.accountService.addAdditionalAccountField({
-      name: 'department',
+    const attributes = this.settings.getFieldDisplayAttributes('department');
+    const departmentDefinition = {
+      key: 'department',
       label: 'USER.DEPARTMENT',
-      required: true,
-      dataService: this.referentialRefService,
-      dataFilter: {entityName: 'Department'},
-      updatable: {
-        registration: true,
-        account: false
+      type: 'entity',
+      autocomplete: {
+        service: this.referentialRefService,
+        filter: {entityName: 'Department'},
+        displayWith: (value) => joinProperties(value, attributes),
+        attributes: attributes
+      },
+      extra: {
+        registration: {
+          required: true
+        },
+        account: {
+          required: true,
+          disable: true
+        }
       }
-    });
+    } as FormFieldDefinition;
+
+    // Add account field: department
+    this.accountService.registerAdditionalField(departmentDefinition);
+
+    // When settings changed
+    this.settings.onChange
+      .pipe(throttleTime(400))
+      .subscribe(() => {
+        // Update the display fn
+        const attributes = this.settings.getFieldDisplayAttributes('department');
+        departmentDefinition.autocomplete.displayWith = (value) => joinProperties(value, attributes);
+        departmentDefinition.autocomplete.attributes = attributes;
+      });
   }
+
+  protected addSettingsFields() {
+
+    console.debug("[app] Add additional settings fields...");
+
+    this.settings.registerAdditionalFields(
+      // Configurable fields
+      ['department', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
+        // Map into option definition
+        .map(fieldName => {
+        return {
+          key: `sumaris.field.${fieldName}.attributes`,
+          label: `SETTINGS.FIELDS.${changeCaseToUnderscore(fieldName).toUpperCase()}`,
+          type: 'enum',
+          values: [
+            {key: 'label,name',   value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL_NAME'},
+            {key: 'name',         value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME'},
+            {key: 'name,label',   value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME_LABEL'},
+            {key: 'label',        value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL'}
+          ]
+        } as FormFieldDefinition;
+      }));
+  }
+
 }
 

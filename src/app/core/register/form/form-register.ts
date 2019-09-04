@@ -1,11 +1,21 @@
-import { Component, EventEmitter, Output, ViewChild, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators, FormControl, AbstractControl, ValidationErrors, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
-import { RegisterData, AccountService, AccountFieldDef } from "../../services/account.service";
-import { Account, referentialToString, Entity } from "../../services/model";
-import { MatHorizontalStepper } from "@angular/material";
-import { Observable, Subscription } from "rxjs";
-import { AccountValidatorService } from "../../services/account.validator";
-import { environment } from "../../../../environments/environment";
+import {Component, EventEmitter, OnInit, Output, ViewChild} from "@angular/core";
+import {
+  AbstractControl,
+  AsyncValidatorFn,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from "@angular/forms";
+import {AccountService, RegisterData} from "../../services/account.service";
+import {Account, referentialToString} from "../../services/model";
+import {MatHorizontalStepper} from "@angular/material";
+import {Observable, Subscription} from "rxjs";
+import {AccountValidatorService} from "../../services/account.validator";
+import {environment} from "../../../../environments/environment";
+import {FormFieldDefinition} from "../../../shared/form/field.model";
 
 
 @Component({
@@ -17,7 +27,7 @@ export class RegisterForm implements OnInit {
 
   protected debug = false;
 
-  additionalFields: AccountFieldDef[];
+  additionalFields: FormFieldDefinition[];
   form: FormGroup;
   forms: FormGroup[];
   subscriptions: Subscription[] = [];
@@ -61,11 +71,13 @@ export class RegisterForm implements OnInit {
       firstName: new FormControl(null, Validators.compose([Validators.required, Validators.minLength(2)]))
     };
 
-    // Add additionnal fields to details form
-    this.additionalFields = this.accountService.additionalAccountFields.filter(field => field.updatable.registration);
+    // Add additional fields to details form
+    this.additionalFields = this.accountService.additionalFields
+      // Keep only required fields
+      .filter(field => field.extra && field.extra.registration && field.extra.registration.required);
     this.additionalFields.forEach(field => {
       //if (this.debug) console.debug("[register-form] Add additional field {" + field.name + "} to form", field);
-      formDetailDef[field.name] = new FormControl(null, this.accountValidatorService.getValidators(field));
+      formDetailDef[field.key] = new FormControl(null, this.accountValidatorService.getValidators(field));
     });
 
     this.forms.push(formBuilder.group(formDetailDef));

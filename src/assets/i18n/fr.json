@@ -26,6 +26,7 @@
     "BTN_SHOW_HELP": "Voir l'aide",
     "BTN_HIDE_MENU": "Masquer le menu",
     "BTN_SHOW_MENU": "Afficher le menu",
+    "BTN_SHOW_MORE": "Afficher plus",
     "BTN_LOGOUT": "Quitter",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
@@ -202,7 +203,6 @@
     "NETWORK_DIVIDER": "Paramètres réseau",
     "PEER_URL": "Addresse du noeud réseau",
     "BTN_CHANGE_PEER": "Voir les noeuds disponibles",
-    "BTN_SHOW_MORE": "Afficher plus",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
@@ -210,17 +210,20 @@
       "FIELD": "Saisie terrain",
       "DESK": "Saisie bureau"
     },
-    "FIELD_NAME": "Champ de saisie",
-    "FIELD_DISPLAY": "Affichage",
-    "BTN_ADD_FIELD": "Ajouter un champ",
+    "PROPERTY_KEY": "Option",
+    "PROPERTY_VALUE": "Valeur",
+    "BTN_ADD_PROPERTY": "Ajouter une option",
     "FIELDS": {
-      "QUALITATIVE_VALUE": "Paramètre avec liste de valeurs",
-      "TAXON_GROUP": "Espèce commerciale",
-      "TAXON_NAME": "Espèce scientifique",
-      "GEAR": "Engin de pêche",
+      "DEPARTMENT": "Affichage > Organisme",
+      "QUALITATIVE_VALUE": "Affichage > Valeurs d'un paramètre",
+      "TAXON_GROUP": "Affichage > Espèce commerciale",
+      "TAXON_NAME": "Affichage > Espèce scientifique",
+      "GEAR": "Affichage > Engin de pêche",
       "ATTRIBUTES": {
         "LABEL": "Code",
-        "NAME": "Libellé"
+        "NAME": "Libellé",
+        "LABEL_NAME": "Code - Libellé",
+        "NAME_LABEL": "Libellé - Code"
       }
     },
     "ERROR": {
@@ -652,9 +655,10 @@
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Strategies",
     "TAB_ACCESS_RIGHTS": "Droits d'accès",
-    "PROPERTIES_DIVIDER": "Options :",
-    "PROPERTY_KEY": "Option",
+    "PROPERTIES_DIVIDER": "Paramètres du programme :",
+    "PROPERTY_KEY": "Paramètre",
     "PROPERTY_VALUE": "Valeur",
+    "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "NEW": {
       "TITLE": "Nouveau programme"
     },

@@ -108,14 +108,11 @@
       </mat-form-field>
 
       <!-- Additional fields -->
-      <mat-autocomplete-field *ngFor="let field of additionalFields"
-                              [placeholder]="field.label|translate"
-                              [formControlName]="field.name"
-                              [service]="field.dataService"
-                              [filter]="field.dataFilter"
-                              [required]="field.required"
-                              [displayWith]="referentialToString">
-      </mat-autocomplete-field>
+      <app-form-field *ngFor="let field of additionalFields"
+                      [definition]="field"
+                      [formControlName]="field.key"
+                      [required]="true">
+      </app-form-field>
 
     </form>
   </mat-step>

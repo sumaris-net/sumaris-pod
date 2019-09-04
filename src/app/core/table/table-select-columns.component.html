@@ -1,7 +1,8 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button class="visible-xs visible-sm" (click)="cancel()">
+      <ion-button (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
         {{'COMMON.BTN_CANCEL'|translate}}
       </ion-button>
     </ion-buttons>
@@ -11,8 +12,9 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button icon-only class="visible-xs visible-sm" (click)="close()">
-        <ion-icon name="checkmark"></ion-icon>
+      <ion-button (click)="close()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

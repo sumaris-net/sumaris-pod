@@ -3,8 +3,8 @@ import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {Account, getMainProfile, StatusIds} from "./model";
 import {AccountService} from "./account.service";
-import {AccountFieldDef} from "../core.module";
 import {SharedValidators} from "../../shared/validator/validators";
+import {FormFieldDefinition} from "../../shared/form/field.model";
 
 @Injectable()
 export class AccountValidatorService implements ValidatorService {
@@ -37,20 +37,20 @@ export class AccountValidatorService implements ValidatorService {
     };
 
     // Add additional fields
-    this.accountService.additionalAccountFields.forEach(field => {
+    this.accountService.additionalFields.forEach(field => {
       //console.debug("[register-form] Add additional field {" + field.name + "} to form", field);
-      formDef[field.name] = [data && data[field.name] || null, this.getValidators(field)];
+      formDef[field.key] = [data && data[field.key] || null, this.getValidators(field)];
     });
 
     return formDef;
   }
 
-  public getValidators(field: AccountFieldDef): ValidatorFn | ValidatorFn[] {
+  public getValidators(field: FormFieldDefinition): ValidatorFn | ValidatorFn[] {
     const validatorFns: ValidatorFn[] = [];
-    if (field.required) {
+    if (field.extra && field.extra.account && field.extra.account.required) {
       validatorFns.push(Validators.required);
     }
-    if (!!field.dataService) {
+    if (field.type === 'entity') {
       validatorFns.push(SharedValidators.entity);
     }
 

@@ -11,11 +11,12 @@ import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/person.validator";
 import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
-import {AccountFieldDef, AccountService} from "../../../core/services/account.service";
+import {AccountService} from "../../../core/services/account.service";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../../core/table/table.class";
 import {ValidatorService} from "angular4-material-table";
+import {FormFieldDefinition} from "../../../shared/form/field.model";
 
 @Component({
   selector: 'page-configuration',
@@ -31,7 +32,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
   canEdit = false;
   filterForm: FormGroup;
   profiles: string[] = PRIORITIZED_USER_PROFILES;
-  additionalFields: AccountFieldDef[];
+  additionalFields: FormFieldDefinition[];
   statusList: any[] = [
     {
       id: StatusIds.ENABLE,
@@ -76,7 +77,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
           'status',
           'pubkey'
         ])
-        .concat(accountService.additionalAccountFields.map(field => field.name))
+        .concat(accountService.additionalFields.map(field => field.key))
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Person, PersonFilter>(Person, dataService, validatorService, {
         prependNewElements: false,
@@ -100,7 +101,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     this.statusById = {};
     this.statusList.forEach((status) => this.statusById[status.id] = status);
 
-    this.additionalFields = this.accountService.additionalAccountFields;
+    this.additionalFields = this.accountService.additionalFields;
 
     // For DEV only --
     this.debug = !environment.production;

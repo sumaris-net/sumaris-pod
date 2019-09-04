@@ -19,7 +19,7 @@
 
       <div padding>
         <!-- error -->
-        <ion-item *ngIf="referentialForm.error" visible-xs visible-sm lines="none">
+        <ion-item *ngIf="referentialForm.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
         </ion-item>
@@ -42,8 +42,22 @@
 
                 <!-- Properties -->
                 <form [formGroup]="form" class="form-container">
-                  <div formArrayName="properties" no-padding>
-                    <div *ngFor="let propertyForm of propertiesForm?.controls; let i=index">
+                  <ion-grid formArrayName="properties" no-padding>
+                    <ion-row no-padding>
+                      <ion-col no-padding size="12" align-self-end>
+                        <span class="toolbar-spacer"></span>
+
+                        <!-- Show more options -->
+                        <ion-button color="light" *ngIf="propertiesForm?.length === 0"
+                                    [title]="'PROGRAM.BTN_SHOW_MORE_HELP'|translate"
+                                    (click)="propertiesFormHelper.add()">
+                          <ion-label translate>COMMON.BTN_SHOW_MORE</ion-label>
+                          <ion-icon slot="end" name="arrow-dropdown"></ion-icon>
+                        </ion-button>
+                      </ion-col>
+                    </ion-row>
+
+                    <ng-container *ngFor="let propertyForm of propertiesForm?.controls; let i=index">
                       <ion-row no-padding [formGroupName]="i">
 
                         <!-- property key -->
@@ -51,10 +65,10 @@
                           <mat-form-field floatLabel="never">
                             <mat-select [formControl]="propertyForm.controls.key"
                                         [placeholder]="'PROGRAM.PROPERTY_KEY'|translate"
-                                        (selectionChange)="updatePropertyOption(i)"
+                                        (selectionChange)="updatePropertyDefinition(i)"
                                         [tabindex]="20+i*2"
                                         required>
-                              <mat-option *ngFor="let item of options" [value]="item.key">{{ item.label | translate }}
+                              <mat-option *ngFor="let item of propertyDefinitions" [value]="item.key">{{ item.label | translate }}
                               </mat-option>
                             </mat-select>
 
@@ -66,13 +80,13 @@
 
                         <!-- property value -->
                         <ion-col no-padding padding-left>
-                          <mat-option-form-field *ngIf="getPropertyOption(i); let option"
-                                                 [option]="option"
-                                                 [formControl]="propertyForm.controls.value"
-                                                 [placeholder]="'PROGRAM.PROPERTY_VALUE' | translate"
-                                                 [required]="true"
-                                                 [tabindex]="20+i*2">
-                          </mat-option-form-field>
+                          <app-form-field *ngIf="getPropertyDefinition(i); let definition"
+                                           [definition]="definition"
+                                           [formControl]="propertyForm.controls.value"
+                                           [placeholder]="'PROGRAM.PROPERTY_VALUE' | translate"
+                                           [required]="true"
+                                           [tabindex]="20+i*2">
+                          </app-form-field>
                         </ion-col>
 
                         <ion-col size="auto" no-padding>
@@ -93,8 +107,8 @@
                           </button>
                         </ion-col>
                       </ion-row>
-                    </div>
-                  </div>
+                    </ng-container>
+                  </ion-grid>
                 </form>
 
               </app-referential-form>
@@ -119,10 +133,10 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="strategiesTable.invalid"></ion-icon>
       </ng-template>
 
-      <div padding>
+      <div no-padding>
 
         <!-- error -->
-        <ion-item *ngIf="strategiesTable.error" visible-xs visible-sm lines="none">
+        <ion-item *ngIf="strategiesTable.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="strategiesTable.error|translate"></ion-label>
         </ion-item>

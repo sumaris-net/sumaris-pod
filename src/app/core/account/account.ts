@@ -1,21 +1,24 @@
-import {Component, OnDestroy} from '@angular/core';
-import {Subscription} from 'rxjs';
-import {AccountFieldDef, AccountService} from '../services/account.service';
-import {Account, referentialToString, StatusIds, UsageMode} from '../services/model';
+import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
+import {Observable, Subject, Subscription} from 'rxjs';
+import {AccountService} from '../services/account.service';
+import {Account, Locales, referentialToString, StatusIds} from '../services/model';
 import {UserSettingsValidatorService} from '../services/user-settings.validator';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {AccountValidatorService} from '../services/account.validator';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {Platform} from '@ionic/angular';
 import {AppFormUtils} from '../form/form.utils';
 import {TranslateService} from "@ngx-translate/core";
+import {FormFieldDefinition} from "../../shared/form/field.model";
+import {subscribe} from "graphql";
+import {throttleTime} from "rxjs/operators";
 
 @Component({
   selector: 'page-account',
   templateUrl: 'account.html',
-  styleUrls: ['./account.scss']
+  styleUrls: ['./account.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccountPage extends AppForm<Account> implements OnDestroy {
 
@@ -28,14 +31,10 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     sending: false,
     error: undefined
   };
-  additionalFields: AccountFieldDef[];
+  additionalFields: FormFieldDefinition[];
   settingsForm: FormGroup;
   settingsContentForm: FormGroup;
-  localeMap = {
-    'fr': 'Français',
-    'en': 'English'
-  };
-  locales: String[] = [];
+  locales = Locales;
   latLongFormats = ['DDMMSS', 'DDMM', 'DD'];
   saving = false;
 
@@ -54,13 +53,7 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.settingsContentForm = (this.settingsForm.controls['content'] as FormGroup);
     this.form.addControl('settings', this.settingsForm);
 
-    // Store additional fields
-    this.additionalFields = accountService.additionalAccountFields;
-
-    // Fill locales
-    for (let locale in this.localeMap) {
-      this.locales.push(locale);
-    }
+      ;
 
     // By default, disable the form
     this.disable();
@@ -72,10 +65,14 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
       this.setValue(this.accountService.account);
       this.markAsPristine();
     }));
-    if (accountService.isLogin()) {
-      this.onLogin(this.accountService.account);
-    }
-  };
+
+    this.registerSubscription(this.accountService.$additionalFields.subscribe((additionalFields) => {
+      this.additionalFields = additionalFields.slice();
+      if (accountService.isLogin()) {
+        this.onLogin(this.accountService.account);
+      }
+    }));
+  }
 
   ngOnDestroy() {
     super.ngOnDestroy();
@@ -153,8 +150,8 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     this.saving = true;
     this.error = undefined;
 
-    let json = Object.assign(this.accountService.account.asObject(), this.form.value);
-    let newAccount = Account.fromObject(json);
+    const json = Object.assign(this.accountService.account.asObject(), this.form.value);
+    const newAccount = Account.fromObject(json);
 
     console.debug("[account] Saving account...", newAccount);
     try {
@@ -184,10 +181,11 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
 
     // Always disable some additional fields
     this.additionalFields
-      .filter(field => !field.updatable.account)
+      .filter(field => field.extra && field.extra.account && field.extra.account.disable || false)
       .forEach(field => {
-        this.form.controls[field.name].disable();
+        this.form.controls[field.key].disable();
       });
+    this.markForCheck();
   }
 
   referentialToString = referentialToString;

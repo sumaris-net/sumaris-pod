@@ -30,7 +30,7 @@
 </mat-toolbar>
 
 <!-- error -->
-<ion-item *ngIf="error" visible-xs visible-sm>
+<ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
   <ion-icon color="danger" slot="start" name="alert"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
@@ -152,7 +152,7 @@
     [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing" (click)="clickRow($event, row)"></mat-row>
 </mat-table>
 
-<ion-fab right bottom visible-xs visible-sm>
+<ion-fab right bottom visible-xs visible-sm visible-mobile>
   <button ion-fab color="light" (click)="addRow()">
     <ion-icon name="md-add"></ion-icon>
   </button>

@@ -40,7 +40,6 @@ import {ReferentialFragments} from './services/referential.queries';
 import {ReferentialForm} from "./form/referential.form";
 import {ProgramPage} from "./program/program.page";
 import {ProgramValidatorService} from "./services/validator/program.validator";
-import {ConfigOptionValidatorService} from "./services/validator/config-option.validator";
 import {StrategyValidatorService} from "./services/validator/strategy.validator";
 import {StrategiesTable} from "./program/strategies.table";
 
@@ -88,7 +87,6 @@ export {
     VesselService,
     VesselValidatorService,
     ProgramValidatorService,
-    ConfigOptionValidatorService,
     StrategyValidatorService
   ]
 })

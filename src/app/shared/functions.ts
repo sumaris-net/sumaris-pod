@@ -79,6 +79,15 @@ export function noTrailingSlash(path: string): string {
   return path;
 }
 
+/**
+ * Replace case change by an underscore (.e.g 'myString' becomes 'my_string')
+ * @param value
+ */
+export function changeCaseToUnderscore(value: string): string {
+  if (isNilOrBlank(value)) return value;
+  return value.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase();
+}
+
 export function suggestFromArray(items: any[], value: any, options?: {
   searchAttribute?: string
   searchAttributes?: string[]
@@ -100,10 +109,7 @@ export function suggestFromArray(items: any[], value: any, options?: {
 
 export function joinProperties(obj: any, properties: String[], separator?: string): string | undefined {
   if (!obj) throw "Could not display an undefined entity.";
-  separator = separator || " - ";
-  return properties.reduce((result: string, key: string, index: number) => {
-    return index ? (result + separator + obj[key]) : obj[key];
-  }, "");
+  return properties.map((key: string) => obj[key]).filter(isNotNilOrBlank).join(separator || " - ");
 }
 
 export function attributeComparator<T>(attribute: string): (a: T, b: T) => number {
@@ -124,7 +130,6 @@ export function sort<T>(array: T[], attribute: string): T[] {
     });
 }
 
-
 export function selectInputContent(event: UIEvent) {
   if (event.defaultPrevented) return false;
   const input = (event.target as any);
@@ -139,6 +144,30 @@ export function selectInputContent(event: UIEvent) {
     }
   }
   return true;
+}
+
+export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) {
+  //input number entered or one of the 4 direction up, down, left and right
+  if ((event.which >= 48 && event.which <= 57) || (event.which >= 37 && event.which <= 40)) {
+    //console.debug('input number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+    // OK
+  }
+  // Decimal separator
+  else if (allowDecimals && (event.key === '.' || event.key === ',')) {
+    //console.debug('input decimal separator entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+    // OK
+  } else {
+    //input command entered of delete, backspace or one of the 4 direction up, down, left and right
+    if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode == 46 || event.which == 8 || event.keyCode == 9) {
+      //console.debug('input command entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode);
+      // OK
+    }
+    // Cancel other keyboard events
+    else {
+      //console.debug('input not number entered :' + event.which + ' ' + event.keyCode + ' ' + event.charCode + ' ' + event.code );
+      event.preventDefault();
+    }
+  }
 }
 
 export function getPropertyByPath(obj: any, path: string): any {

@@ -1,7 +1,8 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, EventEmitter,
+  Component,
+  EventEmitter,
   Injector,
   Input,
   OnDestroy,
@@ -17,7 +18,7 @@ import {PmfmIds, PmfmLabelPatterns, ReferentialRefService} from "../../referenti
 import {isNotNil} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
-import {FieldSettings, UsageMode} from "../../core/services/model";
+import {UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {BatchModal} from "./batch.modal";
 import {measurementValueToString} from "../services/model/measurement.model";

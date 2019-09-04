@@ -18,10 +18,9 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="landingForm.error" visible-xs visible-sm>
+      <ion-item *ngIf="landingForm.error" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-        >
       </ion-item>
 
       <ion-grid no-padding>
@@ -58,7 +57,7 @@
       <div no-padding>
 
         <!-- error -->
-        <ion-item *ngIf="samplesTable.error" visible-xs visible-sm>
+        <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
         </ion-item>

@@ -100,14 +100,12 @@
 
 
               <!-- Additional fields -->
-              <mat-autocomplete-field *ngFor="let field of additionalFields"
-                                      [placeholder]="field.label|translate"
-                                      [formControlName]="field.name"
-                                      [service]="field.dataService"
-                                      [filter]="field.dataFilter"
-                                      [required]="field.required"
-                                      [displayWith]="referentialToString">
-              </mat-autocomplete-field>
+              <ng-container *ngFor="let definition of additionalFields">
+                <app-form-field [definition]="definition"
+                                [formControlName]="definition.key"
+                                [required]="definition.extra && definition.extra.account && definition.extra.account.required || false">
+                </app-form-field>
+              </ng-container>
 
               <h3 translate>ACCOUNT.USER_DETAILS.TECHNICAL_DIVIDER</h3>
 
@@ -161,8 +159,8 @@
 
               <mat-form-field>
                 <mat-select [placeholder]="'ACCOUNT.SETTINGS.LOCALE'|translate" formControlName="locale" required>
-                  <mat-option *ngFor="let locale of locales" [value]="locale">
-                    {{localeMap[locale]}}
+                  <mat-option *ngFor="let item of locales" [value]="item.id">
+                    {{item.name}}
                   </mat-option>
                 </mat-select>
                 <mat-error *ngIf="settingsForm.controls.locale.hasError('required') && settingsForm.controls.locale.dirty"

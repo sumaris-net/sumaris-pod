@@ -44,28 +44,28 @@
             <mat-form-field floatLabel="never">
               <mat-select formControlName="key"
                           [placeholder]="'CONFIGURATION.PROPERTY_KEY'|translate"
-                          (selectionChange)="updatePropertyOption(i)">
-                <mat-option *ngFor="let item of options" [value]="item.key">{{ item.label | translate }}</mat-option>
+                          (selectionChange)="updatePropertyDefinition(i)">
+                <mat-option *ngFor="let item of propertyDefinitions" [value]="item.key">{{ item.label | translate }}</mat-option>
               </mat-select>
             </mat-form-field>
           </ion-col>
 
           <!-- property value -->
           <ion-col no-padding padding-left>
-            <mat-option-form-field *ngIf="getPropertyOption(i); let option"
-                                   floatLabel="never"
-                                   [option]="option"
-                                   [formControl]="propertyForm.controls.value"
-                                   [placeholder]="'PROGRAM.PROPERTY_VALUE' | translate"
-                                   [required]="true">
-            </mat-option-form-field>
+            <app-form-field *ngIf="getPropertyDefinition(i); let definition"
+                             floatLabel="never"
+                             [definition]="definition"
+                             [formControl]="propertyForm.controls.value"
+                             [placeholder]="'PROGRAM.PROPERTY_VALUE' | translate"
+                             [required]="true">
+            </app-form-field>
           </ion-col>
 
           <ion-col size="2" no-padding>
             <button type="button" mat-icon-button color="light"
                     [disabled]="loading"
                     [title]="'COMMON.BTN_DELETE'|translate"
-                    (click)="propertiesFormHelper.removeAt(i)">
+                    (click)="removePropertyAt(i)">
               <mat-icon>close</mat-icon>
             </button>
             <button *ngIf="propertiesFormHelper.isLast(i)"

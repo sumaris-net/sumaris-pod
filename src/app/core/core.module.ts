@@ -4,7 +4,7 @@ import {RouterModule} from '@angular/router';
 
 import {PlatformService} from './services/platform.service';
 import {NetworkService} from './services/network.service';
-import {AccountFieldDef, AccountService} from './services/account.service';
+import {AccountService} from './services/account.service';
 import {ConfigService} from './services/config.service';
 
 import {AccountValidatorService} from './services/account.validator';
@@ -77,7 +77,6 @@ import {LocalSettingsValidatorService} from "./services/local-settings.validator
 import {GraphqlService} from "./services/graphql.service";
 import {LocalSettingsService} from "./services/local-settings.service";
 import {AppEditorPage} from "./form/editor-page.class";
-import {MatOptionFormField} from "./config/option-field.component";
 
 export {
   environment,
@@ -91,7 +90,6 @@ export {
   PlatformService,
   AccountService,
   NetworkService,
-  AccountFieldDef,
   BaseDataService,
   AccountValidatorService,
   UserSettingsValidatorService,
@@ -176,8 +174,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     MenuComponent,
     TableSelectColumnsComponent,
     EntityMetadataComponent,
-    FormButtonsBarComponent,
-    MatOptionFormField
+    FormButtonsBarComponent
   ],
   exports: [
     CommonModule,
@@ -193,8 +190,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     MenuComponent,
     ReactiveFormsModule,
     TranslateModule,
-    AboutModal,
-    MatOptionFormField
+    AboutModal
   ],
   entryComponents: [
     AboutModal,

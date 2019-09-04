@@ -97,7 +97,7 @@
   </mat-expansion-panel>
 
   <!-- error -->
-  <ion-item *ngIf="error" visible-xs visible-sm>
+  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>

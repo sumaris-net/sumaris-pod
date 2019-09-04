@@ -615,7 +615,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     const service: SuggestionDataService<any> = options.service || (options.suggestFn && {
       suggest: (value: any, filter?: any) => options.suggestFn(value, filter)
     }) || undefined;
-    const attributes = this.settings.getFieldAttributes(fieldName, options.defaultAttributes);
+    const attributes = this.settings.getFieldDisplayAttributes(fieldName, options.defaultAttributes);
     const attributesOrFn = attributes.map((a, index) => a === "function" && options.defaultAttributes[index] || a);
     const filter =   Object.assign({
       searchAttribute: attributes.length === 1 ? attributes[0] : undefined

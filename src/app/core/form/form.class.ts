@@ -197,7 +197,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     const service: SuggestionDataService<any> = options.service || (options.suggestFn && {
       suggest: (value: any, filter?: any) => options.suggestFn(value, filter)
     }) || undefined;
-    const attributes = this.settings.getFieldAttributes(fieldName, options.defaultAttributes);
+    const attributes = this.settings.getFieldDisplayAttributes(fieldName, options.defaultAttributes);
 
     const config = {
       attributes,

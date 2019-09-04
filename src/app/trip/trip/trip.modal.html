@@ -13,12 +13,14 @@
     <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading && stepper.selectedIndex === 0" (click)="tripForm.doSubmit($event, tripForm.value)">
-        <ion-icon name="arrow-forward"></ion-icon>
+      <ion-button  visible-xs visible-sm visible-mobile
+                   *ngIf="!loading && stepper.selectedIndex === 0" (click)="tripForm.doSubmit($event, tripForm.value)">
+        <ion-icon slot="icon-only" name="arrow-forward"></ion-icon>
       </ion-button>
 
-      <ion-button icon-only class="visible-xs visible-sm" *ngIf="!loading && stepper.selectedIndex === 1" (click)="save($event)">
-        <ion-icon name="checkmark"></ion-icon>
+      <ion-button visible-xs visible-sm visible-mobile
+          *ngIf="!loading && stepper.selectedIndex === 1" (click)="save($event)">
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

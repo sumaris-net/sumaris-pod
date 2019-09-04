@@ -1,9 +1,8 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {EntityUtils, Program, Strategy} from "../model";
+import {Strategy} from "../model";
 
 import {ValidatorService} from "angular4-material-table";
-import {ConfigOptionValidatorService} from "./config-option.validator";
 
 @Injectable()
 export class StrategyValidatorService implements ValidatorService {

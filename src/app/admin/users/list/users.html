@@ -159,15 +159,17 @@
     </ng-container>
 
     <!-- additional fields -->
-    <ng-container *ngFor="let field of additionalFields" [matColumnDef]="field.name">
+    <ng-container *ngFor="let definition of additionalFields" [matColumnDef]="definition.key">
       <mat-header-cell *matHeaderCellDef>
-        <span>{{field.label|translate}}</span>
+        <span>{{definition.label|translate}}</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        <mat-autocomplete-field floatLabel="never" [placeholder]="field.label|translate" [formControl]="row.validator.controls[field.name]"
-          [service]="field.dataService" [filter]="field.dataFilter"
-          [required]="field.required" [displayWith]="referentialToString">
-        </mat-autocomplete-field>
+        <app-form-field floatLabel="never"
+                        [definition]="definition"
+                        [placeholder]="definition.label|translate"
+                        [formControl]="row.validator.controls[definition.key]"
+                        [required]="definition.extra && definition.extra.account && definition.extra.account.required">
+        </app-form-field>
       </mat-cell>
     </ng-container>
 

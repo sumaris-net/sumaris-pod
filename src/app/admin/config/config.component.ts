@@ -1,31 +1,25 @@
-import {Component, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {BehaviorSubject} from 'rxjs';
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {
-  ConfigOption,
-  ConfigOptions,
-  Configuration,
-  Department,
-  EntityUtils,
-  StatusIds
-} from '../../core/services/model';
+import {ConfigOptions, Configuration, Department, EntityUtils, StatusIds} from '../../core/services/model';
 import {ConfigService} from "src/app/core/services/config.service";
 import {AppForm, AppFormUtils, ConfigValidatorService, isNil, PlatformService} from "src/app/core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {FormArrayHelper} from "../../core/form/form.utils";
+import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 
 
 @Component({
   moduleId: module.id.toString(),
   selector: 'app-remote-config-page',
   templateUrl: 'config.component.html',
-  styleUrls: ['./config.component.scss']
+  styleUrls: ['./config.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
 
-  private _propertyOptionsCache: { [index: number]: ConfigOption } = {};
 
   saving = false;
   loading = true;
@@ -49,10 +43,10 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
     }
   ];
   statusById;
-  options = Object.getOwnPropertyNames(ConfigOptions).map(name => ConfigOptions[name]);
-  optionMap: { [key: string]: ConfigOption };
-
-  propertiesFormHelper: FormArrayHelper<{key: string; value: string}>;
+  propertyDefinitions: FormFieldDefinition[] = Object.getOwnPropertyNames(ConfigOptions).map(name => ConfigOptions[name]);
+  propertyDefinitionsByKey: FormFieldDefinitionMap = {};
+  propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
+  propertiesFormHelper: FormArrayHelper<FormFieldValue>;
 
   get propertiesForm(): FormArray {
     return this.form.get('properties') as FormArray;
@@ -69,10 +63,8 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
       ) {
     super(dateAdapter, validator.getFormGroup());
 
-    this.optionMap = {};
-    this.options.forEach(o => {
-      this.optionMap[o.key] = o;
-    });
+    // Fill propertyDefinitionMap
+    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o);
 
     // Fill statusById
     this.statusById = {};
@@ -166,19 +158,26 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
     }
   }
 
-  getPropertyOption(index: number): ConfigOption {
-    let option = this._propertyOptionsCache[index];
+  getPropertyDefinition(index: number): FormFieldDefinition {
+    let option = this.propertyDefinitionsByIndex[index];
     if (!option) {
-      option = this.updatePropertyOption(index);
-      this._propertyOptionsCache[index] = option;
+      option = this.updatePropertyDefinition(index);
+      this.propertyDefinitionsByIndex[index] = option;
     }
     return option;
   }
 
-  updatePropertyOption(index: number): ConfigOption {
-    const optionKey = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
-    const option = optionKey && this.optionMap[optionKey] || null;
-    return option;
+  updatePropertyDefinition(index: number): FormFieldDefinition {
+    const key = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
+    const definition = key && this.propertyDefinitionsByKey[key] || null;
+    this.propertyDefinitionsByIndex[index] = definition; // update map by index
+    return definition;
+  }
+
+  removePropertyAt(index: number) {
+    this.propertiesFormHelper.removeAt(index);
+    this.propertyDefinitionsByIndex = {}; // clear map by index
+    this.markForCheck();
   }
 
   removePartner(icon: String){

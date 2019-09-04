@@ -27,7 +27,7 @@
 </mat-toolbar>
 
 <!-- error -->
-<ion-item *ngIf="error" visible-xs visible-sm visible-mobile>
+<ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
   <ion-icon color="danger" slot="start" name="alert"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>

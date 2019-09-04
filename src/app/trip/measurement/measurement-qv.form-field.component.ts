@@ -115,8 +115,8 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
-    const attributes = this.settings.getFieldAttributes('qualitativeValue', ['label', 'name']);
-    const displayAttributes = this.compact ? ['label'] : attributes;
+    const attributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
+    const displayAttributes = this.compact && attributes.length > 1 ? ['label'] : attributes;
     this.searchAttributes = isNotEmptyArray(this.searchAttributes) && this.searchAttributes || attributes;
     this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
 

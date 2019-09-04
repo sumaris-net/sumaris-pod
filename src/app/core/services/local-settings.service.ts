@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FieldSettings, LocalSettings, Peer, UsageMode} from "./model";
+import {LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
@@ -8,6 +8,7 @@ import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {Platform} from "@ionic/angular";
+import {FormFieldDefinition} from "../../shared/form/field.model";
 
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
@@ -15,8 +16,11 @@ export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
 @Injectable()
 export class LocalSettingsService {
 
+  private _debug = false;
   private _startPromise: Promise<any>;
   private _started = false;
+  private _additionalFields: FormFieldDefinition[] = [];
+
   private data: LocalSettings;
 
   public onChange = new Subject<LocalSettings>();
@@ -63,9 +67,15 @@ export class LocalSettingsService {
     private storage: Storage
   ) {
 
+    // Register default options
+    //this.registerFields(Object.getOwnPropertyNames(CoreOptions).map(key => CoreOptions[key]));
+
     this.resetData();
 
     this.start();
+
+    // TODO for DEV only
+    //this._debug = !environment.production;
   }
 
   private resetData() {
@@ -115,6 +125,10 @@ export class LocalSettingsService {
 
   public isUsageMode(mode: UsageMode): boolean {
     return this.usageMode === mode;
+  }
+
+  public isFieldUsageMode(): boolean {
+    return this.usageMode === 'FIELD';
   }
 
   public async restoreLocally(): Promise<LocalSettings | undefined> {
@@ -186,13 +200,30 @@ export class LocalSettingsService {
     await this.saveLocally();
   }
 
-  public getFieldAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
-    const options = this.data && this.data.fields &&  this.data.fields.find(fo => fo.key===fieldName) as FieldSettings;
-    if (!options) {
+  public getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
+    const value = this.data && this.data.properties &&  this.data.properties[`sumaris.field.${fieldName}.attributes`];
+    console.log("TODO check attributes: ", fieldName, value);
+    if (!value) {
       // Default
       return defaultAttributes || ['label','name'];
     }
-    return options.value.split(',');
+    return value.split(',');
+  }
+
+  get additionalFields(): FormFieldDefinition[] {
+    return this._additionalFields;
+  }
+
+  registerAdditionalField(def: FormFieldDefinition) {
+    if (this._additionalFields.findIndex(f => f.key === def.key) !== -1) {
+      throw new Error(`Additional additional property {${def.key}} already define.`);
+    }
+    if (this._debug) console.debug(`[settings] Adding additional property {${def.key}}`, def);
+    this._additionalFields.push(def);
+  }
+
+  registerAdditionalFields(defs: FormFieldDefinition[]) {
+    (defs || []).forEach(def => this.registerAdditionalField(def));
   }
 
   /* -- Protected methods -- */

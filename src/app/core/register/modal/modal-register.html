@@ -1,10 +1,12 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button *ngIf="form.isBeginning()" (click)="cancel()" visible-xs visible-sm>
+      <ion-button *ngIf="form.isBeginning()" (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
         {{'COMMON.BTN_CANCEL'|translate}}
       </ion-button>
-      <ion-button *ngIf="!form.isBeginning()" (click)="form.slidePrev()" visible-xs visible-sm>
+      <ion-button *ngIf="!form.isBeginning()" (click)="form.slidePrev()"
+                  visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -14,12 +16,14 @@
     <ion-buttons slot="end">
       <ion-spinner *ngIf="sending"></ion-spinner>
 
-      <ion-button *ngIf="!form.isEnd()" (click)="form.slideNext()" visible-xs visible-sm>
+      <ion-button *ngIf="!form.isEnd()" (click)="form.slideNext()"
+                  visible-xs visible-sm visible-mobile>
         <ion-label translate>COMMON.BTN_NEXT</ion-label>
         <ion-icon slot="end" name="arrow-forward"></ion-icon>
       </ion-button>
 
-      <ion-button *ngIf="form.isEnd() && !sending" (click)="doSubmit()" visible-xs visible-sm>
+      <ion-button *ngIf="form.isEnd() && !sending" (click)="doSubmit()"
+                  visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="send"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -31,7 +35,7 @@
   </form-register>
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm>
+<ion-footer hidden-xs hidden-sm hidden-mobile>
   <!-- buttons -->
   <ion-toolbar>
 

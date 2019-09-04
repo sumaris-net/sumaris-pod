@@ -1,13 +1,13 @@
-import {Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {AppEditorPage, EntityUtils, environment, FormArrayHelper, isNil, AccountService} from "../../core/core.module";
+import {AccountService, AppEditorPage, EntityUtils, environment, FormArrayHelper, isNil} from "../../core/core.module";
 import {Program, ProgramProperties, referentialToString} from "../services/model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
-import {ConfigOption} from "../../core/services/model";
 import {StrategiesTable} from "./strategies.table";
+import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 
 @Component({
   selector: 'app-program',
@@ -15,13 +15,13 @@ import {StrategiesTable} from "./strategies.table";
   providers: [
     {provide: ValidatorService, useClass: ProgramValidatorService}
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
-  private _propertyOptionsCache: { [index: number]: ConfigOption } = {};
-
-  options = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
-  optionMap: { [key: string]: ConfigOption };
+  propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
+  propertyDefinitionsByKey: FormFieldDefinitionMap = {};
+  propertyDefinitionsByIndex: { [index: number]: FormFieldDefinition } = {};
   propertiesFormHelper: FormArrayHelper<{ key: string; value: string }>;
 
   canEdit: boolean;
@@ -31,7 +31,6 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
   @ViewChild('referentialForm') referentialForm: ReferentialForm;
   @ViewChild('strategiesTable') strategiesTable: StrategiesTable;
-
 
   get propertiesForm(): FormArray {
     return this.form.get('properties') as FormArray;
@@ -47,21 +46,24 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
       Program,
       programService);
     this.form = validatorService.getRowValidator();
-    this.propertiesFormHelper = new FormArrayHelper<{ key: string; value: string }>(
+    this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
       injector.get(FormBuilder),
       this.form,
       'properties',
       (value) => validatorService.getPropertyFormGroup(value),
       (v1, v2) => (!v1 && !v2) || v1.key === v2.key,
-      (value) => isNil(value) || (isNil(value.key) && isNil(value.value))
+      (value) => isNil(value) || (isNil(value.key) && isNil(value.value)),
+      {
+        allowEmptyArray: true
+      }
     );
     this.defaultBackHref = "/referential/list?entity=Program";
     this.canEdit = this.accountService.isSupervisor();
 
     // Fill options map
-    this.optionMap = {};
-    this.options.forEach(o => {
-      this.optionMap[o.key] = o;
+    this.propertyDefinitionsByKey = {};
+    this.propertyDefinitions.forEach(o => {
+      this.propertyDefinitionsByKey[o.key] = o;
     });
 
     this.debug = !environment.production;
@@ -81,19 +83,27 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
       });
   }
 
-  getPropertyOption(index: number): ConfigOption {
-    let option = this._propertyOptionsCache[index];
-    if (!option) {
-      option = this.updatePropertyOption(index);
-      this._propertyOptionsCache[index] = option;
+  getPropertyDefinition(index: number): FormFieldDefinition {
+    let definition = this.propertyDefinitionsByIndex[index];
+    if (!definition) {
+      definition = this.updatePropertyDefinition(index);
+      this.propertyDefinitionsByIndex[index] = definition;
     }
-    return option;
+    return definition;
   }
 
-  updatePropertyOption(index: number): ConfigOption {
-    const optionKey = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
-    const option = optionKey && this.optionMap[optionKey] || null;
-    return option;
+  updatePropertyDefinition(index: number): FormFieldDefinition {
+    const key = (this.propertiesForm.at(index) as FormGroup).controls.key.value;
+    const definition = key && this.propertyDefinitionsByKey[key] || null;
+    this.propertyDefinitionsByIndex[index] = definition; // update map by index
+    this.markForCheck();
+    return definition;
+  }
+
+  removePropertyAt(index: number) {
+    this.propertiesFormHelper.removeAt(index);
+    this.propertyDefinitionsByIndex = {}; // clear map by index
+    this.markForCheck();
   }
 
   /* -- protected methods -- */
@@ -118,7 +128,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
     // Transform properties map into array
     json.properties = EntityUtils.getObjectAsArray(json.properties);
-    this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
+    this.propertiesFormHelper.resize(json.properties.length);
 
     this.form.patchValue(json, {emitEvent: false});
 
@@ -156,5 +166,6 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   }
 
   referentialToString = referentialToString;
+
 }
 
