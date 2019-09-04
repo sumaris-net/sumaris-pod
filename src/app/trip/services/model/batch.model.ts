@@ -208,7 +208,7 @@ export class BatchUtils {
   }
 
   public static canMergeSubBatch(b1: Batch, b2: Batch, pmfms: PmfmStrategy[]): boolean {
-    return ((!b1.parent && !b2.parent) || (b1.parent && b1.parent.equals(b2.parent)))
+    return ((!b1.parent && !b2.parent) || (b1.parent === b2.parent/*.equals(b2.parent)*/))
       && EntityUtils.equals(b1.taxonName, b2.taxonName)
       && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
   }
