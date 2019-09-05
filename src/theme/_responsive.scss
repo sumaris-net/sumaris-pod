@@ -331,8 +331,10 @@ html.plt-mobile {
 @media screen and (max-width: $screen-sm-max) {
   form ion-col>ion-label[float-center],
   form ion-col>ion-label[float-end] {
+    display: block;
     text-align: start !important;
     line-height: 37px;
+    margin-top: 0;
   }
 }
 
@@ -340,7 +342,11 @@ html.plt-mobile {
 @media screen and (min-width: $screen-md) {
   form ion-col > ion-label[float-center],
   form ion-col > ion-label[float-end] {
+    display: block;
     text-align: end !important;
+    line-height: 37px;
+    margin-top: 11px;
+    margin-bottom: 11px;
   }
 }
 
