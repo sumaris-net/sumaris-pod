@@ -332,9 +332,14 @@ html.plt-mobile {
   form ion-col>ion-label[float-center],
   form ion-col>ion-label[float-end] {
     display: block;
+    width: 100%;
     text-align: start !important;
     line-height: 37px;
     margin-top: 0;
+    margin-bottom: 0px;
+    margin-right: 0px;
+    //padding-left: var(--ion-label-padding, 11px);
+    //background-color: var(--ion-color-light);
   }
 }
 
