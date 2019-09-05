@@ -3,9 +3,9 @@
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
-<ion-content>
+<ion-content [fullscreen]="true">
 
-  <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
     <mat-tab label="{{'PROGRAM.TAB_GENERAL'|translate}}">
@@ -180,3 +180,12 @@
 
   </form-buttons-bar>
 </ion-footer>
+
+<!-- FAB Button: add strategy -->
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="strategiesTable.addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

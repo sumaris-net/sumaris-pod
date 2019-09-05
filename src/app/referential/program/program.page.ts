@@ -1,13 +1,23 @@
 import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {AccountService, AppEditorPage, EntityUtils, environment, FormArrayHelper, isNil} from "../../core/core.module";
+import {
+  AccountService,
+  AppEditorPage,
+  EntityUtils,
+  environment,
+  FormArrayHelper,
+  isNil,
+  isNotNil
+} from "../../core/core.module";
 import {Program, ProgramProperties, referentialToString} from "../services/model";
 import {ProgramService} from "../services/program.service";
 import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "./strategies.table";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {fadeInOutAnimation} from "../../shared/shared.module";
+import {MatTabChangeEvent} from "@angular/material";
 
 @Component({
   selector: 'app-program',
@@ -15,6 +25,7 @@ import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../..
   providers: [
     {provide: ValidatorService, useClass: ProgramValidatorService}
   ],
+  animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProgramPage extends AppEditorPage<Program> implements OnInit {
@@ -167,6 +178,10 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   }
 
   referentialToString = referentialToString;
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 
 }
 

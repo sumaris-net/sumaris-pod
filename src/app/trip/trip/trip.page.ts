@@ -440,7 +440,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   /* -- protected methods -- */
 
-  protected markForCHeck() {
+  protected markForCheck() {
     this.cd.markForCheck();
   }
 }
