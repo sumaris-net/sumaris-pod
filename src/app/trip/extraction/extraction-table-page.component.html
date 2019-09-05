@@ -109,7 +109,7 @@
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel color="primary" no-padding>
     <mat-expansion-panel-header>
-      <mat-panel-title hidden-xs hidden-sm>
+      <mat-panel-title hidden-xs hidden-sm hidden-mobile>
         <ion-label>
           <!-- Loading spinner -->
           <ion-spinner [ngClass]="{'center':true}" *ngIf="loading && !filterExpansionPanel.expanded"></ion-spinner>
@@ -250,7 +250,7 @@
 
 </ion-content>
 
-<!--<ion-footer hidden-xs hidden-sm>-->
+<!--<ion-footer hidden-xs hidden-sm hidden-mobile>-->
 <!--  <form-buttons-bar (onSave)="save($event)"-->
 <!--                    [disabled]="!dirty || loading"-->
 <!--                    (onCancel="cancel($event)"-->

@@ -1,4 +1,4 @@
-<app-toolbar [title]="title | async" color="primary" [hasValidate]="!loading && dirty" (onValidate)="save($event)"
+<app-toolbar [title]="title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
   <ion-spinner *ngIf="loading"></ion-spinner>
 </app-toolbar>
@@ -19,9 +19,9 @@
 
       <div padding>
         <!-- error -->
-        <ion-item *ngIf="referentialForm.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
         </ion-item>
 
         <ion-grid no-padding>
@@ -167,7 +167,7 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm>
+<ion-footer hidden-xs hidden-sm hidden-mobile>
 
   <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
                     [disabledCancel]="!dirty || loading">

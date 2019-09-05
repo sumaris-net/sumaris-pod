@@ -124,6 +124,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   protected setValue(data: Program) {
     if (!data) return; // Skip
 
+    console.log("TODO check Settings value", data);
     const json = data.asObject();
 
     // Transform properties map into array
@@ -133,7 +134,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     this.form.patchValue(json, {emitEvent: false});
 
     // strategies
-    this.strategiesTable.value = data.strategies;
+    this.strategiesTable.value = data.strategies.slice(); // force update
 
     this.markAsPristine();
   }
