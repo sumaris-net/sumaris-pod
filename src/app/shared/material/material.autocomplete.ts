@@ -28,7 +28,7 @@ import {
   selectInputContent,
   isNotEmptyArray,
   getPropertyByPath,
-  isNil, setTabIndex, focusInput
+  isNil, setTabIndex, focusInput, changeCaseToUnderscore
 } from "../functions";
 import {ReferentialRef} from "../../core/services/model";
 import {InputElement} from "./focusable";
@@ -106,6 +106,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() appAutofocus: boolean;
 
   @Input() config: MatAutocompleteFieldConfig;
+
+  @Input() i18nPrefix = 'REFERENTIAL.';
 
   @Input('class') classList: string;
 
@@ -238,12 +240,13 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   }
 
   selectInputContent = selectInputContent;
+  getPropertyByPath = getPropertyByPath;
+  changeCaseToUnderscore = changeCaseToUnderscore;
 
   focus() {
     focusInput(this.matInput);
   }
 
-  getPropertyByPath = getPropertyByPath;
 
   /* -- protected method -- */
 

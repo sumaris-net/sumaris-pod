@@ -23,7 +23,7 @@ import {MatTabChangeEvent} from "@angular/material";
   selector: 'app-program',
   templateUrl: 'program.page.html',
   providers: [
-    {provide: ValidatorService, useClass: ProgramValidatorService}
+    {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush

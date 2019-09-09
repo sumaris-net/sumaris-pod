@@ -24,7 +24,7 @@ export declare interface StrategyFilter {
   templateUrl: 'strategies.table.html',
   styleUrls: ['strategies.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: StrategyValidatorService},
+    {provide: ValidatorService, useExisting: StrategyValidatorService},
     {
       provide: InMemoryTableDataService,
       useFactory: () => new InMemoryTableDataService<Strategy, StrategyFilter>(Strategy, {})

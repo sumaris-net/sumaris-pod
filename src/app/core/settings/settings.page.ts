@@ -19,7 +19,7 @@ import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../..
   selector: 'page-settings',
   templateUrl: 'settings.page.html',
   providers: [
-    {provide: ValidatorService, useClass: LocalSettingsValidatorService},
+    {provide: ValidatorService, useExisting: LocalSettingsValidatorService},
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

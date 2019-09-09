@@ -94,7 +94,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       (this.platform.is('mobile') || this.platform.is('mobileweb'));
 
     // Taxon group combo
-    this.registerAutocompleteField('taxonGroup', {
+    this.registerAutocompleteConfig('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTargetSpecies(value, options)
     });
 

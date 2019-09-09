@@ -19,7 +19,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
   selector: 'app-sub-batches-modal',
   templateUrl: 'sub-batches.modal.html',
   providers: [
-    {provide: ValidatorService, useClass: SubBatchValidatorService},
+    {provide: ValidatorService, useExisting: SubBatchValidatorService},
     {
       provide: SubBatchesTableOptions,
       useFactory: () => {

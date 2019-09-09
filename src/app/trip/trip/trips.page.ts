@@ -31,7 +31,7 @@ import {TranslateService} from "@ngx-translate/core";
   selector: 'page-trips',
   templateUrl: 'trips.page.html',
   providers: [
-    {provide: ValidatorService, useClass: TripValidatorService}
+    {provide: ValidatorService, useExisting: TripValidatorService}
   ],
   styleUrls: ['./trips.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -38,7 +38,7 @@
     <ion-row>
       <ion-col>
         <mat-form-field>
-          <ion-icon margin-right name="pin" matPrefix></ion-icon>
+          <ion-icon name="pin" matPrefix></ion-icon>
           <input matInput [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate" [matAutocomplete]="autoLocation"
             formControlName="basePortLocation" required>
           <mat-error *ngIf="form.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

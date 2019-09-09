@@ -17,7 +17,7 @@ import {SpeciesBatchValidatorService} from "../services/validator/species-batch.
   selector: 'app-batch-modal',
   templateUrl: 'batch.modal.html',
   providers: [
-    {provide: ValidatorService, useClass: SpeciesBatchValidatorService}
+    {provide: ValidatorService, useExisting: SpeciesBatchValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

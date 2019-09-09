@@ -187,9 +187,10 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     }
   }
 
-  protected registerAutocompleteField(fieldName: string, options?: {
-    defaultAttributes?: string[];
-    service?: SuggestionDataService<any>
+  protected registerAutocompleteConfig(fieldName: string, options?: {
+    attributes?: string[];
+    service?: SuggestionDataService<any>;
+    filter?: any;
     suggestFn?: (value: any, options?: any) => Promise<any[]>;
     showAllOnFocus?: boolean;
   }) {
@@ -197,14 +198,14 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     const service: SuggestionDataService<any> = options.service || (options.suggestFn && {
       suggest: (value: any, filter?: any) => options.suggestFn(value, filter)
     }) || undefined;
-    const attributes = this.settings.getFieldDisplayAttributes(fieldName, options.defaultAttributes);
+    const attributes = this.settings.getFieldDisplayAttributes(fieldName, options.attributes);
 
     const config = {
       attributes,
       service,
-      filter: {
+      filter: Object.assign(options.filter || {}, {
         searchAttribute: attributes.length === 1 ? attributes[0] : undefined
-      },
+      }),
       showAllOnFocus: options.showAllOnFocus
     };
     this.autocompleteFields[fieldName] = config;
@@ -212,8 +213,8 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     return config;
   }
 
-  public getAutocompleteField(fieldName: string): MatAutocompleteFieldConfig {
-    return this.autocompleteFields[fieldName] || this.registerAutocompleteField(fieldName);
+  public getAutocompleteConfig(fieldName: string): MatAutocompleteFieldConfig {
+    return this.autocompleteFields[fieldName] || this.registerAutocompleteConfig(fieldName);
   }
 
   protected markForCheck() {

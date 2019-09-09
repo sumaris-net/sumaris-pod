@@ -96,7 +96,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
 
     this.formControl.setValidators(this.measurementValidatorService.getValidator(this.pmfm));
     this.placeholder = this.placeholder || getPmfmName(this.pmfm, {withUnit: !this.compact});
-    this.required = toBoolean(this.required, this.pmfm.isMandatory);
+    this.required = toBoolean(this.required, this.pmfm.required);
 
     this.updateTabIndex();
 

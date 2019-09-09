@@ -6,42 +6,31 @@ import {SharedValidators} from "../../shared/validator/validators";
 
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {ProgramService} from "../../referential/services/program.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 const REGEXP_INTEGER = /^[0-9]+$/;
 const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
 
-export declare type FormGroupConfig = { [key: string]: any };
-
-
-// export abstract class ContextualValidatorService<T> extends ValidatorService {
-//
-//   abstract getRowValidator(context: any): FormGroup;
-//
-//   abstract getFormGroup(data?: T): FormGroup;
-// }
-
 @Injectable()
 export class MeasurementsValidatorService implements ValidatorService {
 
-  private _pmfmsCache: {[key: string]: PmfmStrategy[] } = {};
-  private _pmfmsFormGroupConfigCache: {[key: string]: FormGroupConfig} = {};
-
   constructor(
     protected formBuilder: FormBuilder,
+    protected settings: LocalSettingsService,
     protected programService: ProgramService) {
   }
 
-  public getRowValidator(options?: any): FormGroup {
+  getRowValidator(options?: any): FormGroup {
     options = options || {};
     return this.getFormGroup(options && options.$pmfms || []);
   }
 
-  public getFormGroup(pmfms: PmfmStrategy[]): FormGroup {
+  getFormGroup(pmfms: PmfmStrategy[]): FormGroup {
     const config = this.getFormGroupConfig(pmfms);
     return this.formBuilder.group(config);
   }
 
-  public getFormGroupConfig(pmfms: PmfmStrategy[]): { [key: string]: any } {
+  getFormGroupConfig(pmfms: PmfmStrategy[]): { [key: string]: any } {
     return pmfms.reduce((res, pmfm) => {
       const validator = this.getValidator(pmfm);
       if (validator) {
@@ -54,7 +43,7 @@ export class MeasurementsValidatorService implements ValidatorService {
     }, {});
   }
 
-  public updateFormGroup(form: FormGroup, pmfms: PmfmStrategy[], options?: {
+  updateFormGroup(form: FormGroup, pmfms: PmfmStrategy[], options?: {
     protectedAttributes?: string[];
   }) {
     options = options || { protectedAttributes: ['id', 'rankOrder', 'comments', 'updateDate'] };
@@ -84,15 +73,17 @@ export class MeasurementsValidatorService implements ValidatorService {
       .forEach(controlName => form.removeControl(controlName));
   }
 
-  public getValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[]): ValidatorFn {
+  getValidator(pmfm: PmfmStrategy, validatorFns?: ValidatorFn[]): ValidatorFn {
     validatorFns = validatorFns || [];
-    if (pmfm.isMandatory) {
+    // Add required validator (if NOT in ON FIELD mode)
+    if (pmfm.required && !this.settings.isFieldUsageMode()) {
+      console.log("TODO: check PMFM validator required=true")
       validatorFns.push(Validators.required);
     }
-    if (pmfm.type === 'string') {
+    if (pmfm.isAlphanumeric) {
       validatorFns.push(Validators.maxLength(40));
     }
-    else if (pmfm.type === 'integer' || pmfm.type === 'double') {
+    else if (pmfm.isNumeric) {
 
       if (isNotNil(pmfm.minValue)) {
         validatorFns.push(Validators.min(pmfm.minValue));
@@ -101,8 +92,7 @@ export class MeasurementsValidatorService implements ValidatorService {
         validatorFns.push(Validators.max(pmfm.maxValue));
       }
 
-      // Pattern validation
-      let pattern: RegExp;
+      // Pattern validation:
       // Integer or double with 0 decimals
       if (pmfm.type === 'integer' || pmfm.maximumNumberDecimals === 0) {
         validatorFns.push(Validators.pattern(REGEXP_INTEGER));

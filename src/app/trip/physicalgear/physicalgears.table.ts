@@ -16,7 +16,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
   templateUrl: 'physicalgears.table.html',
   styleUrls: ['physicalgears.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: PhysicalGearValidatorService}
+    {provide: ValidatorService, useExisting: PhysicalGearValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

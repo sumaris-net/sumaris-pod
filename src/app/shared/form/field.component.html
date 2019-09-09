@@ -153,9 +153,8 @@
                           [filter]="definition.autocomplete?.filter"
                           [required]="required"
                           [displayWith]="getDisplayValueFn(definition)">
-    <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
-    </div>
+    <ng-content select="[matPrefix]"></ng-content>
+    <ng-content select="[matSuffix]"></ng-content>
   </mat-autocomplete-field>
 
   <!-- other -->

@@ -40,7 +40,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   loadingPmfms = true;
 
   pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-  onLoading = new BehaviorSubject<boolean>(null);
 
   @Input() showError = false;
 

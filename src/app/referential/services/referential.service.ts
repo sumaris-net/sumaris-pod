@@ -105,7 +105,7 @@ const DeleteAll: any = gql`
   }
 `;
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ReferentialService extends BaseDataService implements TableDataService<Referential, ReferentialFilter> {
 
   constructor(

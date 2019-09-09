@@ -9,7 +9,7 @@ import {LocalSettingsService} from "./local-settings.service";
 import {CacheService} from "ionic-cache";
 
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PlatformService {
 
   private _started = false;

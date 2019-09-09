@@ -9,7 +9,7 @@ import {ValidatorService} from "angular4-material-table";
   selector: 'app-referential-form',
   templateUrl: './referential.form.html',
   providers: [
-    {provide: ValidatorService, useClass: ReferentialValidatorService}
+    {provide: ValidatorService, useExisting: ReferentialValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

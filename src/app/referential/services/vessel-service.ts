@@ -109,7 +109,7 @@ const DeleteVessels: any = gql`
   }
 `;
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class VesselService extends BaseDataService implements SuggestionDataService<VesselFeatures>, TableDataService<VesselFeatures, VesselFilter> {
 
   constructor(

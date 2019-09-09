@@ -27,11 +27,6 @@ import {UsageMode} from "../../core/services/model";
   selector: 'page-trip',
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
-  providers: [
-    TripService,
-    LocalSettingsService,
-    ProgramService
-  ],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

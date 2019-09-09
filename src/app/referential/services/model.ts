@@ -490,8 +490,16 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     return this;
   }
 
+  get required(): boolean {
+    return this.isMandatory;
+  }
+
   get isNumeric(): boolean {
     return isNotNil(this.type) && (this.type === 'integer' || this.type === 'double');
+  }
+
+  get isAlphanumeric(): boolean {
+    return isNotNil(this.type) && (this.type === 'string');
   }
 
   get isDate(): boolean {

@@ -15,7 +15,7 @@ import {SubSamplesTable} from "../sub-samples.table";
   templateUrl: '../sub-samples.table.html',
   styleUrls: ['../sub-samples.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: SubSampleValidatorService}
+    {provide: ValidatorService, useExisting: SubSampleValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

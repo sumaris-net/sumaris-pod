@@ -1,6 +1,6 @@
 import { EventEmitter, Injectable } from '@angular/core';
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ProgressBarService {
     public onProgressChanged: EventEmitter<string> =  new EventEmitter();
 

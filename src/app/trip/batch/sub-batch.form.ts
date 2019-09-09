@@ -46,7 +46,7 @@ import {InputElement, isInputElement} from "../../shared/material/focusable";
   selector: 'app-sub-batch-form',
   templateUrl: 'sub-batch.form.html',
   providers: [
-    {provide: ValidatorService, useClass: SubBatchValidatorService}
+    {provide: ValidatorService, useExisting: SubBatchValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -143,7 +143,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   ngOnInit() {
     super.ngOnInit();
 
-    this.registerAutocompleteField('taxonName', {
+    this.registerAutocompleteConfig('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: true
     });

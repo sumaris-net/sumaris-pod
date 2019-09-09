@@ -214,11 +214,12 @@
     "PROPERTY_VALUE": "Valeur",
     "BTN_ADD_PROPERTY": "Ajouter une option",
     "FIELDS": {
-      "DEPARTMENT": "Affichage > Organisme",
-      "QUALITATIVE_VALUE": "Affichage > Valeurs d'un paramètre",
-      "TAXON_GROUP": "Affichage > Espèce commerciale",
-      "TAXON_NAME": "Affichage > Espèce scientifique",
-      "GEAR": "Affichage > Engin de pêche",
+      "DEPARTMENT": "Liste déroulante > Organismes",
+      "LOCATION": "Liste déroulante > Lieux (port, etc.)",
+      "QUALITATIVE_VALUE": "Liste déroulante > Valeurs d'un paramètre",
+      "TAXON_GROUP": "Liste déroulante > Espèces commerciale",
+      "TAXON_NAME": "Liste déroulante > Espèces scientifique",
+      "GEAR": "Liste déroulante > Engins de pêche",
       "ATTRIBUTES": {
         "LABEL": "Code",
         "NAME": "Libellé",
@@ -598,6 +599,11 @@
     "COMMENTS": "Commentaires",
     "STATUS": "Etat",
     "RANKORDER": "#",
+    "EXTERIOR_MARKING": "Immatriculation",
+    "BASE_PORT_LOCATION": {
+      "LABEL": "Port d'attache",
+      "NAME": ""
+    },
     "LIST": {
       "TITLE": "Listes",
       "FILTER": {

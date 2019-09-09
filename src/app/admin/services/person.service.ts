@@ -67,7 +67,7 @@ const DeletePersons: any = gql`
   }
 `;
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class PersonService extends BaseDataService implements TableDataService<Person, PersonFilter>, DataService<Person, PersonFilter> {
 
   constructor(

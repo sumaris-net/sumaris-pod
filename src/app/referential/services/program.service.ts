@@ -266,7 +266,7 @@ const ProgramCacheKeys = {
 
 const cacheBuster$ = new Subject<void>();
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ProgramService extends BaseDataService
   implements TableDataService<Program, ProgramFilter>,
     EditorDataService<Program, ProgramFilter> {

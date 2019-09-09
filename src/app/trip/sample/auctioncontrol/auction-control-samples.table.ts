@@ -16,7 +16,7 @@ import {isNotNilOrBlank} from "../../../shared/functions";
   templateUrl: '../samples.table.html',
   styleUrls: ['./auction-control-samples.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: SampleValidatorService}
+    {provide: ValidatorService, useExisting: SampleValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

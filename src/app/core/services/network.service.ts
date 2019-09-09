@@ -21,7 +21,7 @@ export interface NodeInfo {
   nodeName?: string;
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class NetworkService {
 
   private _debug = false;
@@ -32,7 +32,7 @@ export class NetworkService {
 
   public onStart = new Subject<Peer>();
 
-  public getNetworkStatusChanges = new EventEmitter<any>();
+  public onNetworkStatusChanges = new EventEmitter<any>();
 
   get peer(): Peer {
     return this._peer && this._peer.clone();
@@ -79,12 +79,12 @@ export class NetworkService {
 
     this._subscriptions.push(this.network.onDisconnect().subscribe(() => {
       console.info("[network] Disconnected");
-      this.getNetworkStatusChanges.emit(false);
+      this.onNetworkStatusChanges.emit(false);
     }));
 
     this._subscriptions.push(this.network.onConnect().subscribe(() => {
       console.info(`[network] Connection {${this.network.type}}`);
-      this.getNetworkStatusChanges.emit(this.network.type);
+      this.onNetworkStatusChanges.emit(this.network.type);
     }));
 
     // Restoring local settings

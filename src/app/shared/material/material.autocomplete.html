@@ -1,4 +1,7 @@
 <mat-form-field [floatLabel]="floatLabel">
+  <div matPrefix>
+    <ng-content select="[matAutocompletePrefix]"></ng-content>
+  </div>
 
   <input matInput #matInput type="text" [matAutocomplete]="autoCombo"
          [appAutofocus]="appAutofocus"
@@ -14,6 +17,8 @@
     If enable, then
     (keyup.arrowdown)="autoCombo.opened && onShowDropdown.emit($event)"
   -->
+
+  <ng-content select="[matSuffix]"></ng-content>
 
   <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   <mat-error *ngIf="formControl.hasError('entity')||formControl.hasError('object')" translate>ERROR.FIELD_INVALID</mat-error>
@@ -38,7 +43,7 @@
                     [class]="classList">
     <ion-row class="mat-autocomplete-header" no-padding>
       <ion-col *ngFor="let attr of displayAttributes; index as i;"  [size]="displayColumnSizes[i]" >
-        <ion-text>{{ ('REFERENTIAL.' + attr.toUpperCase()) | translate }}</ion-text>
+        <ion-text>{{ (i18nPrefix + changeCaseToUnderscore(attr).toUpperCase()) | translate }}</ion-text>
       </ion-col>
     </ion-row>
 

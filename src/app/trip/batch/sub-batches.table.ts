@@ -44,7 +44,7 @@ export interface SubBatchFilter {
   templateUrl: 'sub-batches.table.html',
   styleUrls: ['sub-batches.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: SubBatchValidatorService},
+    {provide: ValidatorService, useExisting: SubBatchValidatorService},
     {
       provide: SubBatchesTableOptions,
       useValue: {

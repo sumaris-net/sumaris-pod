@@ -4,7 +4,7 @@ import {
   entityToString,
   fromDateISOString,
   isNil,
-  isNotNil,
+  isNotNil, LocalSettingsService,
   LocationLevelIds,
   personsToString,
   personToString,
@@ -39,7 +39,8 @@ import {Operation} from "../model/trip.model";
 export abstract class DataEntityValidatorService<T extends DataEntity<T>> implements ValidatorService {
 
   protected constructor(
-    protected formBuilder: FormBuilder) {
+    protected formBuilder: FormBuilder
+    ) {
   }
 
   getRowValidator(): FormGroup {

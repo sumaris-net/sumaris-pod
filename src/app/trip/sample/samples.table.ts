@@ -26,7 +26,7 @@ export interface SampleFilter {
   templateUrl: 'samples.table.html',
   styleUrls: ['samples.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: SampleValidatorService}
+    {provide: ValidatorService, useExisting: SampleValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

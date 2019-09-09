@@ -7,7 +7,7 @@ import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
 import {debounceTime, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
-import {AppForm} from '../../core/core.module';
+import {AppForm, LocalSettingsService} from '../../core/core.module';
 import {
   ReferentialRef,
   ReferentialRefService,
@@ -15,6 +15,8 @@ import {
   VesselModal,
   VesselService
 } from "../../referential/referential.module";
+import {FormFieldDefinition} from "../../shared/form/field.model";
+import {UsageMode} from "../../core/services/model";
 
 @Component({
   selector: 'form-trip',
@@ -24,12 +26,14 @@ import {
 })
 export class TripForm extends AppForm<Trip> implements OnInit {
 
+  returnLocationDefinition: FormFieldDefinition;
   $programs: Observable<ReferentialRef[]>;
   $vessels: Observable<VesselFeatures[]>;
   $locations: Observable<ReferentialRef[]>;
 
   @Input() showComment = true;
   @Input() showError = true;
+  @Input() usageMode: UsageMode;
 
   get value(): any {
     const json = this.form.value;
@@ -44,12 +48,17 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     super.setValue(json);
   }
 
+  get isOnFieldMode(): boolean {
+    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: TripValidatorService,
     protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -58,6 +67,8 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.usageMode = this.usageMode || this.settings.usageMode;
 
     // Combo: programs
     this.$programs = this.form.controls['program']
@@ -72,6 +83,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       );
 
     // Combo: vessels
+    this.registerAutocompleteConfig('vesselFeatures', {
+      service: this.vesselService,
+      attributes: ['exteriorMarking', 'name', 'basePortLocation.label', 'basePortLocation.name']/*.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))*/
+    });
+
     this.$vessels = this.form.controls['vesselFeatures']
       .valueChanges
       .pipe(
@@ -80,23 +96,14 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         tap(res => this.updateImplicitValue('vesselFeatures', res))
       );
 
-    // Combo: location
-    this.$locations =
-      merge(
-        this.form.controls['departureLocation'].valueChanges,
-        this.form.controls['returnLocation'].valueChanges
-      )
-        .pipe(
-          debounceTime(250),
-          switchMap(value => this.referentialRefService.suggest(value, {
-            entityName: 'Location',
-            levelId: LocationLevelIds.PORT
-          })),
-          tap(res => {
-            this.updateImplicitValue('departureLocation', res);
-            this.updateImplicitValue('returnLocation', res);
-          })
-        );
+    // Combo location
+    this.registerAutocompleteConfig('location', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.PORT
+      }
+    });
   }
 
   async addVesselModal(): Promise<any> {

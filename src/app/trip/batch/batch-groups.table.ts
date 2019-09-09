@@ -24,7 +24,7 @@ const DEFAULT_USER_COLUMNS =["weight", "individualCount"];
   templateUrl: 'batch-groups.table.html',
   styleUrls: ['batch-groups.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: BatchGroupsValidatorService}
+    {provide: ValidatorService, useExisting: BatchGroupsValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

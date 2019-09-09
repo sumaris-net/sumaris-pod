@@ -23,7 +23,7 @@ const DEFAULT_ENTITY_NAME = "Location";
   templateUrl: 'referentials.html',
   styleUrls: ['referentials.scss'],
   providers: [
-    {provide: ValidatorService, useClass: ReferentialValidatorService}
+    {provide: ValidatorService, useExisting: ReferentialValidatorService}
   ],
 })
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {

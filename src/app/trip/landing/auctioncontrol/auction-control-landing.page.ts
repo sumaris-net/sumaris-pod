@@ -13,7 +13,7 @@ import {isNilOrBlank} from "../../../shared/functions";
   selector: 'app-landing-auction-control',
   templateUrl: './auction-control-landing.page.html',
   providers: [
-    {provide: ValidatorService, useClass: LandingValidatorService}
+    {provide: ValidatorService, useExisting: LandingValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

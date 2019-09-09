@@ -57,8 +57,8 @@ export class AppComponent {
     private platform: PlatformService,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
-    private configurationService: ConfigService,
-    private settings: LocalSettingsService
+    private configurationService: ConfigService
+    //private settings: LocalSettingsService
   ) {
 
     this.platform.ready().then(() => {
@@ -140,63 +140,63 @@ export class AppComponent {
 
     console.debug("[app] Add additional account fields...");
 
-    const attributes = this.settings.getFieldDisplayAttributes('department');
-    const departmentDefinition = {
-      key: 'department',
-      label: 'USER.DEPARTMENT',
-      type: 'entity',
-      autocomplete: {
-        service: this.referentialRefService,
-        filter: {entityName: 'Department'},
-        displayWith: (value) => joinProperties(value, attributes),
-        attributes: attributes
-      },
-      extra: {
-        registration: {
-          required: true
-        },
-        account: {
-          required: true,
-          disable: true
-        }
-      }
-    } as FormFieldDefinition;
-
-    // Add account field: department
-    this.accountService.registerAdditionalField(departmentDefinition);
-
-    // When settings changed
-    this.settings.onChange
-      .pipe(throttleTime(400))
-      .subscribe(() => {
-        // Update the display fn
-        const attributes = this.settings.getFieldDisplayAttributes('department');
-        departmentDefinition.autocomplete.displayWith = (value) => joinProperties(value, attributes);
-        departmentDefinition.autocomplete.attributes = attributes;
-      });
+    // const attributes = this.settings.getFieldDisplayAttributes('department');
+    // const departmentDefinition = {
+    //   key: 'department',
+    //   label: 'USER.DEPARTMENT',
+    //   type: 'entity',
+    //   autocomplete: {
+    //     service: this.referentialRefService,
+    //     filter: {entityName: 'Department'},
+    //     displayWith: (value) => joinProperties(value, attributes),
+    //     attributes: attributes
+    //   },
+    //   extra: {
+    //     registration: {
+    //       required: true
+    //     },
+    //     account: {
+    //       required: true,
+    //       disable: true
+    //     }
+    //   }
+    // } as FormFieldDefinition;
+    //
+    // // Add account field: department
+    // this.accountService.registerAdditionalField(departmentDefinition);
+    //
+    // // When settings changed
+    // this.settings.onChange
+    //   .pipe(throttleTime(400))
+    //   .subscribe(() => {
+    //     // Update the display fn
+    //     const attributes = this.settings.getFieldDisplayAttributes('department');
+    //     departmentDefinition.autocomplete.displayWith = (value) => joinProperties(value, attributes);
+    //     departmentDefinition.autocomplete.attributes = attributes;
+    //   });
   }
 
   protected addSettingsFields() {
 
     console.debug("[app] Add additional settings fields...");
 
-    this.settings.registerAdditionalFields(
-      // Configurable fields
-      ['department', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
-        // Map into option definition
-        .map(fieldName => {
-        return {
-          key: `sumaris.field.${fieldName}.attributes`,
-          label: `SETTINGS.FIELDS.${changeCaseToUnderscore(fieldName).toUpperCase()}`,
-          type: 'enum',
-          values: [
-            {key: 'label,name',   value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL_NAME'},
-            {key: 'name',         value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME'},
-            {key: 'name,label',   value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME_LABEL'},
-            {key: 'label',        value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL'}
-          ]
-        } as FormFieldDefinition;
-      }));
+    // this.settings.registerAdditionalFields(
+    //   // Configurable fields
+    //   ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear']
+    //     // Map into option definition
+    //     .map(fieldName => {
+    //     return {
+    //       key: `sumaris.field.${fieldName}.attributes`,
+    //       label: `SETTINGS.FIELDS.${changeCaseToUnderscore(fieldName).toUpperCase()}`,
+    //       type: 'enum',
+    //       values: [
+    //         {key: 'label,name',   value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL_NAME'},
+    //         {key: 'name',         value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME'},
+    //         {key: 'name,label',   value: 'SETTINGS.FIELDS.ATTRIBUTES.NAME_LABEL'},
+    //         {key: 'label',        value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL'}
+    //       ]
+    //     } as FormFieldDefinition;
+    //   }));
   }
 
 }

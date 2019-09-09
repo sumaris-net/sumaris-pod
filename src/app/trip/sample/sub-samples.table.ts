@@ -26,7 +26,7 @@ export interface SubSampleFilter {
   templateUrl: 'sub-samples.table.html',
   styleUrls: ['sub-samples.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: SubSampleValidatorService}
+    {provide: ValidatorService, useExisting: SubSampleValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

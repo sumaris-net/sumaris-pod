@@ -23,7 +23,7 @@ import {FormFieldDefinition} from "../../../shared/form/field.model";
   templateUrl: 'users.html',
   styleUrls: ['./users.scss'],
   providers: [
-    {provide: ValidatorService, useClass: PersonValidatorService}
+    {provide: ValidatorService, useExisting: PersonValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

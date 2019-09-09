@@ -23,7 +23,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
   templateUrl: 'operations.table.html',
   styleUrls: ['operations.table.scss'],
   providers: [
-    {provide: ValidatorService, useClass: OperationValidatorService}
+    {provide: ValidatorService, useExisting: OperationValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

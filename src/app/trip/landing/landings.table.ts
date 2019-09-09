@@ -21,7 +21,7 @@ const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
   selector: 'app-landing-table',
   templateUrl: 'landings.table.html',
   providers: [
-    {provide: ValidatorService, useClass: LandingValidatorService}
+    {provide: ValidatorService, useExisting: LandingValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

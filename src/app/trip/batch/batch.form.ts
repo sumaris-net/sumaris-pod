@@ -37,7 +37,7 @@ import {isNilOrBlank, isNotNilOrBlank} from "../../shared/functions";
   selector: 'app-batch-form',
   templateUrl: 'batch.form.html',
   providers: [
-    {provide: ValidatorService, useClass: SpeciesBatchValidatorService}
+    {provide: ValidatorService, useExisting: SpeciesBatchValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -103,11 +103,11 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     console.debug("[batch-form] Init form");
 
     // Taxon group combo
-    this.registerAutocompleteField('taxonGroup', {
+    this.registerAutocompleteConfig('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
     });
     // Taxon name combo
-    this.registerAutocompleteField('taxonName', {
+    this.registerAutocompleteConfig('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
     });
   }

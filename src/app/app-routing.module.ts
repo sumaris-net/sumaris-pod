@@ -3,7 +3,7 @@ import {ActivatedRouteSnapshot, ExtraOptions, RouteReuseStrategy, RouterModule, 
 import {HomePage} from './core/home/home';
 import {RegisterConfirmPage} from './core/register/confirm/confirm';
 import {AccountPage} from './core/account/account';
-import {AuthGuardService} from './core/core.module';
+import {AuthGuardService, environment} from './core/core.module';
 import {UsersPage} from './admin/users/list/users';
 import {VesselsPage} from './referential/vessel/list/vessels';
 import {VesselPage} from './referential/vessel/page/page-vessel';

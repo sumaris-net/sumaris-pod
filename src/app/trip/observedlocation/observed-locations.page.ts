@@ -28,7 +28,7 @@ import {qualityFlagToColor} from "../../referential/services/model";
   templateUrl: 'observed-locations.page.html',
   styleUrls: ['observed-locations.page.scss'],
   providers: [
-    {provide: ValidatorService, useClass: ObservedLocationValidatorService}
+    {provide: ValidatorService, useExisting: ObservedLocationValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

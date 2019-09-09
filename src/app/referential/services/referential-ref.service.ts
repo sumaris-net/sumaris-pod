@@ -48,7 +48,7 @@ const LoadAllTaxonNamesQuery: any = gql`
   }
 `;
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ReferentialRefService extends BaseDataService
   implements SuggestionDataService<ReferentialRef> {
 

@@ -23,7 +23,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR} from '../constants';
 import {SharedValidators} from '../validator/validators';
-import {isNilOrBlank} from "../functions";
+import {isNilOrBlank, toBoolean} from "../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
 import {fadeInAnimation} from "./material.animations";
@@ -70,7 +70,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   protected writing = true;
   protected disabling = false;
 
-  mobile = false;
+  mobile: boolean;
   form: FormGroup;
   displayPattern: string;
   dayPattern: string;
@@ -93,13 +93,15 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
 
   @Input() readonly = false;
 
-  @Input() required = false;
+  @Input() required: boolean;
 
   @Input() compact = false;
 
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
   @Input() tabindex: number;
+
+  @Input() startDate: Date;
 
   @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
   @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
@@ -125,20 +127,20 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-date-time>.");
 
-    const isRequired = this.required || this.formControl.validator === Validators.required;
+    this.required = toBoolean(this.required, this.formControl.validator === Validators.required);
     if (this.displayTime) {
       this.form = this.formBuilder.group({
-        day: (isRequired ? ['', Validators.required] : ['']),
-        hour: ['', isRequired ? Validators.compose([Validators.required, Validators.pattern(HOUR_TIME_PATTERN)]) : Validators.pattern(HOUR_TIME_PATTERN)]
+        day: (this.required ? ['', Validators.required] : ['']),
+        hour: ['', this.required ? Validators.compose([Validators.required, Validators.pattern(HOUR_TIME_PATTERN)]) : Validators.pattern(HOUR_TIME_PATTERN)]
       });
     } else {
       this.form = this.formBuilder.group({
-        day: (isRequired ? ['', Validators.required] : [''])
+        day: (this.required ? ['', Validators.required] : [''])
       });
     }
 
     // Add custom 'validDate' validator
-    this.formControl.setValidators(isRequired ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
+    this.formControl.setValidators(this.required ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
     //this.formControl.updateValueAndValidity({ emitEvent: false, onlySelf: true });
 
     // Get patterns to display date and date+time
