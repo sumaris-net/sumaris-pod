@@ -13,8 +13,7 @@
       <ion-col no-padding
                size="12" size-md=""
                [hidden]="!showTaxonGroup">
-        <mat-autocomplete-field floatLabel="never"
-                                formControlName="taxonGroup"
+        <mat-autocomplete-field formControlName="taxonGroup"
                                 [appAutofocus]="enabled && showTaxonGroup && !mobile"
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
                                 tabindex="1"

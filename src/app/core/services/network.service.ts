@@ -6,13 +6,14 @@ import {environment} from "../../../environments/environment";
 import {Peer} from "./model";
 import {ModalController} from "@ionic/angular";
 import {SelectPeerModal} from "../peer/select-peer.modal";
-import {Subject, Subscription} from "rxjs";
+import {BehaviorSubject, Subject, Subscription} from "rxjs";
 import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.service";
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
 import {toBoolean} from "../../shared/shared.module";
 import { Network } from '@ionic-native/network/ngx';
 import {DOCUMENT} from "@angular/common";
+import {timeout} from "async";
 
 export interface NodeInfo {
   softwareName: string;
@@ -29,10 +30,19 @@ export class NetworkService {
   private _startPromise: Promise<any>;
   private _started = false;
   private _subscriptions: Subscription[] = [];
+  private _connectionType: string;
 
-  public onStart = new Subject<Peer>();
+  onStart = new Subject<Peer>();
 
-  public onNetworkStatusChanges = new EventEmitter<any>();
+  onNetworkStatusChanges = new BehaviorSubject<string>(null);
+
+  get online(): boolean {
+    return this._started && this._connectionType !== 'none';
+  }
+
+  get offline(): boolean {
+    return this._started && this._connectionType === 'none';
+  }
 
   get peer(): Peer {
     return this._peer && this._peer.clone();
@@ -77,16 +87,6 @@ export class NetworkService {
 
     console.info("[network] Starting network...");
 
-    this._subscriptions.push(this.network.onDisconnect().subscribe(() => {
-      console.info("[network] Disconnected");
-      this.onNetworkStatusChanges.emit(false);
-    }));
-
-    this._subscriptions.push(this.network.onConnect().subscribe(() => {
-      console.info(`[network] Connection {${this.network.type}}`);
-      this.onNetworkStatusChanges.emit(this.network.type);
-    }));
-
     // Restoring local settings
     this._startPromise = (!peer && this.restoreLocally() || Promise.resolve(peer))
       .then(async (peer: Peer | undefined) => {
@@ -113,7 +113,14 @@ export class NetworkService {
 
       // Wait settings starts, then save peer in settings
       .then(() => this.settings.ready())
-      .then(() => this.settings.saveLocalSettings({peerUrl: this._peer.url}));
+      .then(() => this.settings.saveLocalSettings({peerUrl: this._peer.url}))
+      .then(() => this.setConnectionType(this.network.type));
+
+    // Listen for network changes
+    this._subscriptions.push(this.network.onDisconnect().subscribe(() => this.setConnectionType('none')));
+    this._subscriptions.push(this.network.onConnect().subscribe(() => this.setConnectionType(this.network.type)));
+
+
     return this._startPromise;
   }
 
@@ -186,7 +193,6 @@ export class NetworkService {
     this._peer = null;
   }
 
-
   protected async get<T>(uri: string): Promise<T> {
     try {
       return (await this.http.get(uri).toPromise()) as T;
@@ -198,6 +204,15 @@ export class NetworkService {
         console.error(`[network] Error on get request ${uri}: ${err.status}`);
       }
       throw {code: err.status, message: "ERROR.UNKNOWN_NETWORK_ERROR"};
+    }
+  }
+
+  public setConnectionType(connectionType?: string) {
+    connectionType = (connectionType || 'ethernet').toLowerCase();
+    if (connectionType != this._connectionType) {
+      this._connectionType = connectionType;
+      console.info(`[network] Connection {${connectionType}}`);
+      this.onNetworkStatusChanges.next(connectionType);
     }
   }
 

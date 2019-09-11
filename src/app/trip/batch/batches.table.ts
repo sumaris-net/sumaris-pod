@@ -95,6 +95,9 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return this._dirty || this.memoryDataService.dirty;
   }
 
+  @Input()
+  availableSubBatchesFn: (defaultBatch: Batch) => Promise<Batch[]>;
+
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
 
@@ -251,17 +254,22 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     // Define a function to add new parent
     const onNewParentClick = this.mobile ? async () => {
       const newBatch = await this.openDetailModal();
+      if (!newBatch) return undefined;
       await this.addBatchToTable(newBatch);
       return newBatch;
     } : undefined;
 
     // Define available parent, as an observable (if new parent can added)
     const onModalDismiss = new Subject<any>();
-    const availableParents = this.mobile ? this.dataSource.connect()
+    const availableParents =
+      // If mobile, create an observable, linked to table rows
+      this.mobile ? this.dataSource.connect()
       .pipe(
         takeUntil(onModalDismiss),
         map((res) => res.map((row) => row.currentData as Batch))
-      ) : Observable.of((await this.dataSource.getRows()).map((row) => row.currentData as Batch));
+      ) :
+      // else, create a copy
+      Observable.of((await this.dataSource.getRows()).map((row) => row.currentData as Batch));
 
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
@@ -274,6 +282,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
         // Scientific species is required, if not set in root batches
         showTaxonNameColumn: !this.showTaxonNameColumn,
         availableParents: availableParents,
+        availableSubBatchesFn: this.availableSubBatchesFn,
         onNewParentClick: onNewParentClick
       }, keyboardClose: true
     });
@@ -285,9 +294,11 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     const {data} = await modal.onDidDismiss();
     onModalDismiss.next(); // disconnect to service
 
+    console.debug("[batches-table] Sub-batches modal result: ", data);
+
     if (isNotEmptyArray(data)) {
 
-      if (data && this.debug) console.debug("[batches-table] Sub-batches modal result: ", data);
+      //if (data && this.debug) console.debug("[batches-table] Sub-batches modal result: ", data);
 
       this.onNewSubBatches.emit(data);
     }

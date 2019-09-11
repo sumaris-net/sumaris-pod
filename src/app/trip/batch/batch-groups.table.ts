@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector} from "@angular/core";
+import {ChangeDetectionStrategy, Component, Injector, Input} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {Batch, PmfmStrategy} from "../services/trip.model";
 import {BatchGroupsValidatorService} from "../services/trip.validators";
@@ -30,10 +30,10 @@ const DEFAULT_USER_COLUMNS =["weight", "individualCount"];
 })
 export class BatchGroupsTable extends BatchesTable {
 
-
   protected modalCtrl: ModalController;
 
   weightMethodForm: FormGroup;
+
 
   constructor(
     injector: Injector
@@ -182,11 +182,11 @@ export class BatchGroupsTable extends BatchesTable {
   async onSubBatchesClick(event: UIEvent, row: TableElement<Batch>, qvIndex?: number): Promise<void> {
     if (event) event.preventDefault();
 
-    const json = row.currentData;
-    let parentBatch = row.validator ? Batch.fromObject(json) : json;
+    let parentBatch = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
 
     const defaultBatch = new Batch();
     defaultBatch.parent = parentBatch;
+    defaultBatch.parentId = parentBatch.id;
 
     if (isNotNil(qvIndex) && this.qvPmfm) {
       const qv = this.qvPmfm.qualitativeValues[qvIndex];
@@ -225,19 +225,22 @@ export class BatchGroupsTable extends BatchesTable {
   protected normalizeRowMeasurementValues(data: Batch, row: TableElement<Batch>) {
     // When batch has the QV value
     if (this.qvPmfm) {
-      const qvId = data.measurementValues[this.qvPmfm.pmfmId];
-      if (isNotNilOrBlank(qvId)) {
-        const qvIndex = this.qvPmfm.qualitativeValues.findIndex(qv => qv.id === +qvId);
-        if (qvIndex !== -1) {
+
+      const measurementValues = Object.assign({}, row.currentData.measurementValues);
+      // For each group (one by qualitative value)
+      this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
+        const child = (data.children || []).find(c => c.label === `${data.label}.${qv.label}`);
+        if (child) {
+
           // Replace measurement values inside a new map, based on fake pmfms
-          data.measurementValues = this.getFakeMeasurementValuesFromQvChild(data, {}, qvIndex);
-          super.normalizeRowMeasurementValues(data, row);
+          this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
         }
-      }
+      });
+      data.measurementValues = measurementValues;
     }
-    else {
-      super.normalizeRowMeasurementValues(data, row);
-    }
+
+    // Inherited method
+    super.normalizeRowMeasurementValues(data, row);
 
   }
 

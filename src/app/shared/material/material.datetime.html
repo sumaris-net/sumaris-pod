@@ -65,7 +65,8 @@
 
         <button type="button" mat-icon-button tabindex="-1" matSuffix #datePickerButton2 (click)="openDatePicker($event, datePicker2)" [disabled]="formControl.disabled">
           <mat-icon *ngIf="!mobile">keyboard_arrow_down</mat-icon>
-          <mat-icon *ngIf="mobile">calendar_today</mat-icon>
+          <!-- TODO: find a calendar icon change this icon -->
+          <mat-icon *ngIf="mobile"><ion-icon name="calendar"></ion-icon></mat-icon>
         </button>
         <mat-datepicker [touchUi]="mobile"
                         [disabled]="formControl.disabled"

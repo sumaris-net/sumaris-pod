@@ -24,7 +24,6 @@ import {ProgramProperties} from "../../referential/services/model";
 import {SubBatchesTable} from "../batch/sub-batches.table";
 import {SubSamplesTable} from "../sample/sub-samples.table";
 import {SamplesTable} from "../sample/samples.table";
-import {BatchesTable} from "../batch/batches.table";
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
@@ -69,11 +68,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringSubSamplesTable;
   @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
 
-  // Batch tables (= simpleBatchesTable or batchGroupsTable)
-  batchesTable: BatchesTable;
-  @ViewChild('simpleBatchesTable') simpleBatchesTable: BatchesTable;
   @ViewChild('batchGroupsTable') batchGroupsTable: BatchGroupsTable;
-
   @ViewChild('subBatchesTable') subBatchesTable: SubBatchesTable;
 
   constructor(
@@ -93,22 +88,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Init mobile (WARN
     this.mobile = this.settings.mobile;
 
-    // Listen route parameters
-    this.route.queryParams.pipe(first())
-      .subscribe(queryParams => {
-        const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]);
-        if (isNotNil(subTabIndex)) {
-          this.selectedBatchTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
-          this.selectedSampleTabIndex = subTabIndex;
-        } else {
-          this.selectedBatchTabIndex = 0;
-          this.selectedSampleTabIndex = 0;
-        }
-        if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
-        if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
-        this.markForCheck();
-      });
-
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -118,21 +97,16 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     await this.settings.ready();
 
-    this.mobile = this.settings.mobile;
-    this.batchesTable = this.mobile ? this.simpleBatchesTable : this.batchGroupsTable;
-
-    // Register sub forms & table
-    this.registerForms([this.opeForm, this.measurementsForm, this.catchBatchForm])
-      .registerTables([
-        this.samplesTable,
-        this.individualMonitoringTable,
-        this.individualReleaseTable,
-        this.batchesTable,
-        this.subBatchesTable
-      ]);
-
-    // Disable, during load
-    this.disable();
+    // Listen route parameters
+    this.route.queryParams.pipe(first())
+      .subscribe(queryParams => {
+        const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
+        this.selectedBatchTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
+        this.selectedSampleTabIndex = subTabIndex;
+        if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+        if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+        this.markForCheck();
+      });
 
     // Read route
     this.route.params.pipe(first())
@@ -144,6 +118,21 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           await this.load(+id, {tripId: tripId});
         }
       });
+
+    this.mobile = this.settings.mobile;
+
+    // Register sub forms & table
+    this.registerForms([this.opeForm, this.measurementsForm, this.catchBatchForm])
+      .registerTables([
+        this.samplesTable,
+        this.individualMonitoringTable,
+        this.individualReleaseTable,
+        this.batchGroupsTable,
+        this.subBatchesTable
+      ]);
+
+    // Disable, during load
+    this.disable();
 
     this.registerSubscription(
       this.opeForm.form.controls['physicalGear'].valueChanges.subscribe((res) => {
@@ -167,7 +156,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Update available parent on individual batch table, when batch group changes
     this.registerSubscription(
-      this.batchesTable.listChange
+      this.batchGroupsTable.listChange
         .pipe(debounceTime(400))
         .subscribe(rootBatches => {
           if (this.loading || !this.enableSubBatchesTable) return; // skip during loading
@@ -175,6 +164,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           this.subBatchesTable.availableParents = (rootBatches || []);
         })
     );
+
 
     // Enable sub batches when table pmfms ready
     this.subBatchesTable.$pmfms
@@ -185,6 +175,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           this.markForCheck();
         }
       });
+
+    // Link greoup table to individual
+    this.batchGroupsTable.availableSubBatchesFn = async () => {
+      if (this.subBatchesTable.dirty) await this.subBatchesTable.save();
+      return this.subBatchesTable.value;
+    };
 
     this.ngInitExtension();
   }
@@ -281,7 +277,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       const program = trip && trip.program && trip.program.label;
       this.programSubject.next(program);
 
-      this.batchesTable.program = program;
+      this.batchGroupsTable.program = program;
       if (this.subBatchesTable) this.subBatchesTable.program = program;
     }
 
@@ -315,12 +311,13 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Set batches table (with root batches)
-    this.batchesTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchesTable.acquisitionLevel + "#"));
+    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));;
 
     // make sure PMFMs are loaded (need the QV pmfm)
-    this.batchesTable.$pmfms.pipe(filter(isNotNil), first())
+    this.batchGroupsTable.$pmfms
+      .pipe(filter(isNotNil), first())
       .subscribe((_) => {
-        this.subBatchesTable.setValueFromParent(this.batchesTable.value, this.batchesTable.qvPmfm);
+        this.subBatchesTable.setValueFromParent(this.batchGroupsTable.value, this.batchGroupsTable.qvPmfm);
       });
 
     // Update title
@@ -470,11 +467,11 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         )
         .subscribe(program => {
           if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
-          this.batchesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
-          this.batchesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+          this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
+          this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
           // Force taxon name in sub batches, if not filled in root batch
           if (this.subBatchesTable) {
-            this.subBatchesTable.showTaxonNameColumn = !this.batchesTable.showTaxonNameColumn;
+            this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn;
             this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
           }
         })
@@ -532,11 +529,11 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Save batch sampling tables
     if (this.showBatchTables) {
-      await this.batchesTable.save();
+      await this.batchGroupsTable.save();
       await this.subBatchesTable.save();
 
       // get batches
-      const batches = BatchUtils.prepareRootBatchesForSaving(this.batchesTable.value, this.subBatchesTable.value, this.batchesTable.qvPmfm);
+      const batches = BatchUtils.prepareRootBatchesForSaving(this.batchGroupsTable.value, this.subBatchesTable.value, this.batchGroupsTable.qvPmfm);
       this.data.catchBatch.children = batches;
     } else {
       this.data.catchBatch.children = undefined;
@@ -631,7 +628,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     super.onSubTabChange(event);
     if (!this.loading) {
       // On each tables, confirm editing row
-      this.batchesTable.confirmEditCreate();
+      this.batchGroupsTable.confirmEditCreate();
       this.subBatchesTable.confirmEditCreate();
     }
   }
@@ -678,9 +675,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         AppFormUtils.logFormErrors(this.individualMonitoringTable.editedRow.validator, "[monitoring-table]");
       }
     }
-    if (this.batchesTable.invalid) {
-      if (this.batchesTable.editedRow && this.batchesTable.editedRow.editing) {
-        AppFormUtils.logFormErrors(this.batchesTable.editedRow.validator, "[batches-table]");
+    if (this.batchGroupsTable.invalid) {
+      if (this.batchGroupsTable.editedRow && this.batchGroupsTable.editedRow.editing) {
+        AppFormUtils.logFormErrors(this.batchGroupsTable.editedRow.validator, "[batches-table]");
       }
     }
     if (this.subBatchesTable.invalid) {
@@ -702,7 +699,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // tab 0
     const tab0Invalid = this.opeForm.invalid || this.measurementsForm.invalid;
     // tab 1
-    const subTab0Invalid = (this.showBatchTables && this.batchesTable.invalid) || (this.showSampleTables && this.samplesTable.invalid);
+    const subTab0Invalid = (this.showBatchTables && this.batchGroupsTable.invalid) || (this.showSampleTables && this.samplesTable.invalid);
     const subTab1Invalid = (this.showBatchTables && this.subBatchesTable.invalid) || (this.showSampleTables && this.individualMonitoringTable.invalid);
     const subTab2Invalid = this.showBatchTables && this.individualReleaseTable.invalid || false;
     const tab1Invalid = this.catchBatchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;

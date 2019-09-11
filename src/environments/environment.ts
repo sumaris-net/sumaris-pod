@@ -17,7 +17,7 @@ export const environment: Environment = {
   mock: false,
 
   // FIXME: GraphQL subscription never unsubscribe...
-  listenRemoteChanges: true,
+  listenRemoteChanges: false,
 
   // FIXME: enable cache
   persistCache: false,

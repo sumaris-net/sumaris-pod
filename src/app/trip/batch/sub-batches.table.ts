@@ -109,11 +109,11 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   set value(data: Batch[]) {
-    this.memoryDataService.value = data;
+    this.setValue(data);
   }
 
   get value(): Batch[] {
-    return this.memoryDataService.value;
+    return this.getValue();
   }
 
   get isOnFieldMode(): boolean {
@@ -277,7 +277,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   async add(batches: Batch[], opts?: {linkDataToParent?: boolean}) {
-    if (opts && toBoolean(opts.linkDataToParent, true)) {
+    if (toBoolean(opts && opts.linkDataToParent, true)) {
       this.linkDataToParent(batches);
     }
 
@@ -286,6 +286,15 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     }
   }
 
+  /* -- protected method -- */
+
+  protected setValue(data: Batch[]) {
+    this.memoryDataService.value = data;
+  }
+
+  protected getValue(): Batch[] {
+    return this.memoryDataService.value;
+  }
 
   protected async resetForm(previousBatch?: Batch, options?: {focusFirstEmpty?: boolean}) {
 
@@ -414,7 +423,9 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       }
     }
 
-    return pmfms;
+    return pmfms
+      // Exclude weight Pmfm
+      .filter(p => !p.isWeight);
   }
 
   protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
@@ -428,7 +439,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     let row = undefined;
 
-    // Try to fond an identical sub-batch
+    // Try to find an identical sub-batch
     if (this.showIndividualCount) {
       const rows = await this.dataSource.getRows();
       row = rows.find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));

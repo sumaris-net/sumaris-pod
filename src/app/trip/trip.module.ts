@@ -61,6 +61,7 @@ import {SubBatchForm} from "./batch/sub-batch.form";
 import {PhysicalGearModal} from "./physicalgear/physicalgear.modal";
 import {BatchModal} from "./batch/batch.modal";
 import {BatchForm} from "./batch/batch.form";
+import {SpeciesBatchValidatorService} from "./services/validator/species-batch.validator";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -171,6 +172,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       BatchValidatorService,
       SubBatchValidatorService,
       BatchGroupsValidatorService,
+      SpeciesBatchValidatorService,
       SampleValidatorService,
       SubSampleValidatorService,
       ExtractionService

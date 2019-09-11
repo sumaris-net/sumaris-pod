@@ -1,8 +1,9 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="cancel()" *ngIf="mobile">
-        {{'COMMON.BTN_CANCEL'|translate}}
+      <ion-button (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
 
@@ -13,8 +14,10 @@
     <ion-buttons slot="end" >
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button  *ngIf="!loading && dirty && valid && mobile" (click)="doSubmit($event)">
-        {{'COMMON.BTN_ADD'|translate}}
+      <ion-button *ngIf="!loading" (click)="close($event)"
+                  [disabled]="form.invalid"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -31,12 +34,12 @@
                   [showTaxonGroup]="showTaxonGroup"
                   [showTaxonName]="showTaxonName"
                   [showIndividualCount]="showIndividualCount"
-                  (onSubmit)="doSubmit($event)"
+                  (onSubmit)="close($event)"
   ></app-batch-form>
 
 </ion-content>
 
-<ion-footer *ngIf="!mobile">
+<ion-footer hidden-xs hidden-sm hidden-mobile>
 
   <ion-toolbar>
 
@@ -51,8 +54,8 @@
 
         <ion-button [fill]="dirty || invalid ? 'clear' : 'solid'"
                     [disabled]="loading || !dirty || invalid"
-                    (keyup.enter)="doSubmit($event)"
-                    (click)="doSubmit($event)" color="tertiary">
+                    (keyup.enter)="close($event)"
+                    (click)="close($event)" color="tertiary">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>

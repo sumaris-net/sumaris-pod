@@ -139,7 +139,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.setDatasource(new AppTableDataSource(dataType, this.measurementsDataService, encapsulatedValidator, options));
 
     // For DEV only
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {

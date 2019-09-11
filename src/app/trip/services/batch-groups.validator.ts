@@ -2,6 +2,7 @@ import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../shared/validator/validators";
+import {BatchValidatorService} from "./batch.validator";
 
 @Injectable()
 export class BatchGroupsValidatorService implements ValidatorService {

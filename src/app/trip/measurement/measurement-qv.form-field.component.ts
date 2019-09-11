@@ -12,7 +12,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {isNil, isNotNil, PmfmStrategy, Referential} from "../services/trip.model";
+import {entityToString, isNil, isNotNil, PmfmStrategy, Referential} from "../services/trip.model";
 import {merge, Observable} from 'rxjs';
 import {filter, map, takeUntil, tap} from 'rxjs/operators';
 import {EntityUtils, ReferentialRef, referentialToString} from '../../referential/referential.module';
@@ -22,7 +22,7 @@ import {FloatLabelType, MatSelect} from "@angular/material";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {focusInput, isNotEmptyArray, suggestFromArray, toBoolean} from "../../shared/functions";
+import {focusInput, isNotEmptyArray, joinProperties, suggestFromArray, toBoolean} from "../../shared/functions";
 import {AppFormUtils, LocalSettingsService} from "../../core/core.module";
 import {sort} from "../../core/services/model";
 import {asInputElement, InputElement} from "../../shared/material/focusable";
@@ -182,7 +182,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   }
 
-
   computePlaceholder(pmfm: PmfmStrategy, sortedQualitativeValues: ReferentialRef[]): string {
     if (!sortedQualitativeValues || !sortedQualitativeValues.length) return pmfm && pmfm.name;
     return sortedQualitativeValues.reduce((res, qv) => (res + "/" + (qv.label || qv.name)), "").substr(1);
@@ -208,6 +207,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
+  entityToString = entityToString;
 
   /* -- protected methods -- */
 

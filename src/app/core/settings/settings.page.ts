@@ -77,9 +77,6 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
       }
     );
 
-    this.propertyDefinitions = settings.additionalFields.slice(); // copy options
-    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o); // fill map
-
     this.mobile = this.platform.mobile;
 
     // By default, disable the form
@@ -91,6 +88,11 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
     // Make sure platform is ready
     await this.platform.ready();
+
+    this.propertyDefinitions = this.settings.additionalFields.slice(); // copy options
+    this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o); // fill map
+    console.log('TODO check settings:', this.propertyDefinitions);
+
 
     // Load settings
     await this.load();
@@ -151,11 +153,9 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     this.data = data;
 
     const json: any = Object.assign({}, data || {});
-    console.log("TODO check: update view", json);
 
     // Transform properties map into array
     json.properties = EntityUtils.getObjectAsArray(data.properties|| {});
-    console.log("TODO check properties:", json.properties)
     this.propertiesFormHelper.resize(json.properties.length);
 
     this.form.patchValue(json, {emitEvent: false});

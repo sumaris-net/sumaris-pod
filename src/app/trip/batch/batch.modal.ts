@@ -100,8 +100,8 @@ export class BatchModal {
     await this.viewCtrl.dismiss();
   }
 
-  async doSubmit(event?: UIEvent) {
-    if (!this.form.dirty || this.loading) return; // avoid many call
+  async close(event?: UIEvent) {
+    if (this.loading) return; // avoid many call
 
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
@@ -113,6 +113,7 @@ export class BatchModal {
 
     // Save table content
     const data = this.form.value;
+
     await this.viewCtrl.dismiss(data);
   }
 

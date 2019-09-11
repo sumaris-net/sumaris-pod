@@ -10,7 +10,7 @@
 <ion-content>
 
   <mat-tab-group #matTabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
-                 animationDuration="0s">
+                 animationDuration="0s" >
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
@@ -74,34 +74,25 @@
         </form-catch-batch>
       </div>
 
-      <!-- Batches (mobile table) -->
-      <app-batches-table #simpleBatchesTable
-                         [hidden]="!mobile"
-                         [debug]="debug"
-                         acquisitionLevel="SORTING_BATCH"
-                         [program]="programSubject | async"
-                         [usageMode]="usageMode"
-                         [showTaxonGroupColumn]="true"
-                         [showTaxonNameColumn]="true"
-                         [showCommentsColumn]="false">
-      </app-batches-table>
-
       <!-- tab group for batches -->
       <mat-tab-group #batchTabGroup
-                     [hidden]="!showBatchTables || mobile"
+                     [hidden]="!showBatchTables"
                      animationDuration="0s"
                      [(selectedIndex)]="selectedBatchTabIndex"
-                     (selectedTabChange)="onBatchTabChange($event)">
+                     (selectedTabChange)="onBatchTabChange($event)"
+                     >
 
         <!-- TAB: species list -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES'|translate}}">
           <ng-template mat-tab-label>
-            <mat-icon>line_weight</mat-icon>
+            <mat-icon><ion-icon name="cube"></ion-icon></mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_SPECIES</ion-label>
             <ion-icon slot="end" name="alert" color="danger"
                       *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
           </ng-template>
 
+
+          <!-- Batches group (if NOT mobile) -->
           <table-batch-groups #batchGroupsTable
                               acquisitionLevel="SORTING_BATCH"
                               [program]="programSubject | async"
@@ -110,8 +101,7 @@
                               [showTaxonGroupColumn]="true"
                               [showTaxonNameColumn]="true"
                               [showCommentsColumn]="false"
-                              (onNewSubBatches)="subBatchesTable.add($event)"
-          >
+                              (onNewSubBatches)="subBatchesTable.add($event)">
           </table-batch-groups>
         </mat-tab>
 
@@ -119,7 +109,7 @@
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
                  [disabled]="!enableSubBatchesTable">
           <ng-template mat-tab-label>
-            <mat-icon>list</mat-icon>
+            <mat-icon>assessment</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
             <ion-icon slot="end" name="alert" color="danger"
                       *ngIf="submitted && (subBatchesTable.invalid || false)"></ion-icon>
@@ -224,11 +214,36 @@
   </form-buttons-bar>
 </ion-footer>
 
-<!-- FAB button: add batch -->
-<ion-fab vertical="bottom" horizontal="end"
-         *ngIf="simpleBatchesTable.enabled && selectedTabIndex==1" @fadeInOutAnimation
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         *ngIf="showBatchTables && selectedTabIndex === 1" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="simpleBatchesTable.addRow($event)">
+
+  <ion-fab-button color="tertiary">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
+
+  <ion-fab-list side="top">
+
+    <!-- add batch -->
+    <ion-fab-button color="tertiary" (click)="batchGroupsTable.addRow($event)">
+      <ion-icon name="cube" ></ion-icon>
+<!--      <mat-icon>line_weight</mat-icon>-->
+    </ion-fab-button>
+
+    <!-- add sub-batch -->
+    <ion-fab-button color="tertiary" (click)="batchGroupsTable.openSubBatchesModal()">
+      <mat-icon>assessment</mat-icon>
+    </ion-fab-button>
+
+  </ion-fab-list>
 </ion-fab>
+
+<!-- FAB button: add sub-batch
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="subBatchesTable.enabled && selectedTabIndex === 1 && selectedBatchTabIndex === 1" @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="simpleBatchesTable.openSubBatchesModal()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>-->

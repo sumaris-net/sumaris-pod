@@ -77,7 +77,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
       this.propertyDefinitionsByKey[o.key] = o;
     });
 
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -135,7 +135,6 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   protected setValue(data: Program) {
     if (!data) return; // Skip
 
-    console.log("TODO check Settings value", data);
     const json = data.asObject();
 
     // Transform properties map into array

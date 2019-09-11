@@ -1,4 +1,4 @@
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
+import {fromDateISOString, toDateISOString} from "../../../core/core.module";
 import {Moment} from "moment/moment";
 import {
   DataEntity,
@@ -13,6 +13,7 @@ import {Sale} from "./sale.model";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {MetierRef} from "../../../referential/services/model/taxon.model";
+import * as moment from "moment";
 
 
 /* -- Helper function -- */
@@ -79,6 +80,11 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.gears = source.gears && source.gears.filter(g => !!g).map(PhysicalGear.fromObject) || undefined;
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+
+    // Remove fake dates (e.g. if returnDateTime = departureDateTime)
+    if (this.returnDateTime && this.returnDateTime.isSameOrBefore(this.departureDateTime)) {
+      this.returnDateTime = undefined;
+    }
     return this;
   }
 
@@ -204,10 +210,19 @@ export class Operation extends DataEntity<Operation> {
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
+
+    // Fill end date, using start date (can be null if ON FIELD mode)
+    target.endDateTime = target.endDateTime || target.startDateTime;
+    if (target.endPosition && (target.endPosition.latitude || target.endPosition.longitude)) {
+      target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
+    }
+
     target.metier = this.metier && this.metier.asObject(false/*Always minify=false, because of operations tables cache*/) || undefined;
 
     // Create an array of position, instead of start/end
-    target.positions = [this.startPosition, this.endPosition].map(p => p && p.asObject(minify)) || undefined;
+    target.positions = [this.startPosition, this.endPosition]
+      .filter(p => p && p.dateTime)
+      .map(p => p && p.asObject(minify)) || undefined;
     delete target.startPosition;
     delete target.endPosition;
 
@@ -235,6 +250,7 @@ export class Operation extends DataEntity<Operation> {
     this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
+
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
@@ -246,9 +262,11 @@ export class Operation extends DataEntity<Operation> {
     }
     else if (source.positions) {
       const positions = source.positions.map(VesselPosition.fromObject).sort(sortByDateTimeFn) || undefined;
-      if (positions.length == 2) {
+      if (positions.length >= 1 && positions.length <= 2) {
         this.startPosition = positions[0];
-        this.endPosition = positions[1];
+        if (positions.length > 1) {
+          this.endPosition = positions[positions.length-1];
+        }
         this.positions = undefined;
       }
       else {
@@ -264,6 +282,17 @@ export class Operation extends DataEntity<Operation> {
 
     // Batches list to tree
     this.catchBatch = Batch.fromObjectArrayAsTree(source.batches);
+
+    // Remove fake dates (e.g. if endDateTime = startDateTime)
+    if (this.endDateTime && this.endDateTime.isSameOrBefore(this.startDateTime)) {
+      this.endDateTime = undefined;
+    }
+    if (this.fishingEndDateTime && this.fishingEndDateTime.isSameOrBefore(this.fishingStartDateTime)) {
+      this.fishingEndDateTime = undefined;
+    }
+    if (this.endPosition && this.endPosition.dateTime && this.startPosition && this.endPosition.dateTime.isSameOrBefore(this.startPosition.dateTime)) {
+      this.endPosition.dateTime = undefined;
+    }
 
     return this;
   }

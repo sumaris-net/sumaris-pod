@@ -2,6 +2,7 @@ import {Observable} from "rxjs";
 import {R} from "apollo-angular/types";
 import {ServiceError} from "./errors";
 import {GraphqlService} from "./graphql.service";
+import {environment} from "../../../environments/environment.prod";
 
 export abstract class BaseDataService<T = any> {
 
@@ -14,6 +15,9 @@ export abstract class BaseDataService<T = any> {
   protected constructor(
     protected graphql: GraphqlService
   ) {
+
+    // for DEV only
+    this._debug = !environment.production;
   }
 
   /**
@@ -41,6 +45,14 @@ export abstract class BaseDataService<T = any> {
     variables: V
   }, propertyName: string, newValue: any) {
     return this.graphql.addToQueryCache(opts, propertyName, newValue);
+  }
+
+
+  protected updateToQueryCache<V = R>(opts: {
+    query: any,
+    variables: V
+  }, propertyName: string, newValue: any) {
+    return this.graphql.updateToQueryCache(opts, propertyName, newValue);
   }
 
   protected addManyToQueryCache<V = R>(opts: {

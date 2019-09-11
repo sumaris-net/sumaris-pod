@@ -206,11 +206,9 @@ export class LocalSettingsService {
 
   public getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
     const value = this.data && this.data.properties &&  this.data.properties[`sumaris.field.${fieldName}.attributes`];
-    console.log("TODO check attributes: ", fieldName, value);
-    if (!value) {
-      // Default
-      return defaultAttributes || ['label','name'];
-    }
+    // Nothing found in settings: return defaults
+    if (!value) return defaultAttributes || ['label','name'];
+
     return value.split(',');
   }
 

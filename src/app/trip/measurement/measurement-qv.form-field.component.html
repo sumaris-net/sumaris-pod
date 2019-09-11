@@ -125,7 +125,7 @@
                       expand="block"
                       [color]="!formControl.value ? 'medium' : (formControl.value?.id === item.id ? 'accent' : 'light')">
             <ion-label>
-              <ion-text *ngFor="let attr of searchAttributes" [ngSwitch]="attr">{{item[attr]}}</ion-text>
+              {{entityToString(item, searchAttributes)}}
             </ion-label>
           </ion-button>
         </ion-col>

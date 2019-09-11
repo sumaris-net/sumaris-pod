@@ -7,7 +7,7 @@
 
   <mat-toolbar>
     <button mat-icon-button
-            hidden-xs hidden-sm
+            hidden-xs hidden-sm hidden-mobile
             *ngIf="canEdit && !selection.hasValue()"
             [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
@@ -23,7 +23,7 @@
       <mat-icon>delete</mat-icon>
     </button>
 
-    <ion-item *ngIf="error" hidden-xs hidden-sm lines="none">
+    <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
       <ion-icon color="danger" slot="start" name="alert"></ion-icon>
       <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
     </ion-item>

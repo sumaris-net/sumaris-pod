@@ -159,7 +159,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
    * @param fieldName
    */
   async fillPosition(fieldName: string) {
-    console.log("TODO Check fillPosition...");
 
     const positionGroup = this.form.controls[fieldName];
     if (positionGroup && positionGroup instanceof FormGroup) {

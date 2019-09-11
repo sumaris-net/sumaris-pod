@@ -104,7 +104,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     this.additionalFields = this.accountService.additionalFields;
 
     // For DEV only --
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   };
 
   ngOnInit() {

@@ -68,10 +68,12 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.i18nColumnPrefix = 'LANDING.TABLE.';
     this.autoLoad = false; // waiting parent to load
     this.inlineEdition = false;
-    this.debug = !environment.production;
 
     // Set default acquisition Level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+
+    // FOR DEV ONLY ----
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

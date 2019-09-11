@@ -1,26 +1,25 @@
 <mat-toolbar>
+  <!-- TODO hidden-mobile -->
   <button mat-icon-button *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+  <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
     (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
 
-  <ion-item *ngIf="error" hidden-xs hidden-sm lines="none">
+  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <!--span class="toolbar-spacer"></span-->
-
-
 
 </mat-toolbar>
 
@@ -51,18 +50,6 @@
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
 
-<!--  <ng-container *ngFor="let qv of qvPmfm?.qualitativeValues; let index"  [matColumnDef]="'totalWeight-' + qv.id">-->
-<!--    <mat-header-cell *matHeaderCellDef >-->
-<!--      <mat-label float-center>-->
-<!--        <span>Total weight</span>-->
-<!--      </mat-label>-->
-<!--    </mat-header-cell>-->
-
-<!--    <mat-cell *matCellDef="let row">-->
-<!--      TOTO-->
-<!--    </mat-cell>-->
-<!--  </ng-container>-->
-
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef class="qv" [class.even]="pmfm.id % 2 === 0"
@@ -86,7 +73,7 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+    <mat-header-cell *matHeaderCellDef>
       <!-- Options menu -->
       <button mat-icon-button
               [title]="'COMMON.OPTIONS'|translate"
@@ -123,7 +110,7 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
   </ng-container>
 
-  <!-- taxon group (commercial species) -->
+  <!-- Taxon group (commercial species) -->
   <ng-container matColumnDef="taxonGroup">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
@@ -157,18 +144,6 @@
     </mat-cell>
 
   </ng-container>
-
-<!--  <ng-container *ngFor="let qv of qvPmfm?.qualitativeValues; let index"  [matColumnDef]="'totalWeight-' + qv.id">-->
-<!--    <mat-header-cell *matHeaderCellDef mat-sort-header class="total" >-->
-<!--      <mat-label float-center>-->
-<!--        <span>Total weight</span>-->
-<!--      </mat-label>-->
-<!--    </mat-header-cell>-->
-
-<!--    <mat-cell *matCellDef="let row">-->
-<!--      TOTO-->
-<!--    </mat-cell>-->
-<!--  </ng-container>-->
 
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
@@ -224,28 +199,36 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+    <mat-header-cell *matHeaderCellDef>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+    <mat-cell *matCellDef="let row">
 
       <!-- undo or delete  -->
-      <button mat-icon-button small color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+      <button mat-icon-button color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
         (click)="cancelOrDelete($event, row)">
         <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
         <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
       </button>
       <!-- validate -->
-      <button mat-icon-button small color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
+      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
         (click)="confirmEditCreate($event, row)">
         <mat-icon>check</mat-icon>
       </button>
       <!-- add -->
-      <button mat-icon-button small color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
+      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
         (click)="confirmAndAddRow($event, row)">
         <mat-icon>add</mat-icon>
       </button>
+      <!-- open individual measures -->
+      <button mat-icon-button color="light" *ngIf="!row.editing"
+              [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
+              (click)="onSubBatchesClick($event, row)">
+<!--        <mat-icon [matBadge]="row.currentData.individualCount"-->
+<!--                  matBadgePosition="above after">assessment</mat-icon>-->
+        <mat-icon>assessment</mat-icon>
+      </button>
       <!-- open individual measures
-      <button mat-icon-button small color="light"
+      <button mat-icon-button color="light"
               *ngIf="!row.editing"
               [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
               (click)="openSubBatchesModal($event, row)">
@@ -287,8 +270,8 @@
 </ion-row> -->
 
 
-<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="secondary" (click)="addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+<!--<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>-->
+<!--  <ion-fab-button color="secondary" (click)="addRow()">-->
+<!--    <ion-icon name="add"></ion-icon>-->
+<!--  </ion-fab-button>-->
+<!--</ion-fab>-->

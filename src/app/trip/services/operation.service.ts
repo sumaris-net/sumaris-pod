@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Apollo} from "apollo-angular";
 import {Observable} from "rxjs-compat";
 import {
   Batch,
-  DataEntity, Department,
+  DataEntity,
+  Department,
   EntityUtils,
   isNil,
   Measurement,
@@ -14,7 +14,7 @@ import {
   VesselPosition
 } from "./trip.model";
 import {map} from "rxjs/operators";
-import {TableDataService, LoadResult} from "../../shared/shared.module";
+import {LoadResult, TableDataService} from "../../shared/shared.module";
 import {AccountService, AcquisitionLevelCodes, BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
@@ -244,6 +244,7 @@ export class OperationService extends BaseDataService implements TableDataServic
     });
 
     const data = res && res.operation && Operation.fromObject(res.operation);
+
     if (data && this._debug) console.debug(`[operation-service] Operation #${id} loaded in ${Date.now() - now}ms`, data);
     return data;
   }
@@ -292,10 +293,10 @@ export class OperationService extends BaseDataService implements TableDataServic
     let rankOrderOnPeriod = 1;
     entities.sort(sortByEndDateOrStartDateFn).forEach(o => o.rankOrderOnPeriod = rankOrderOnPeriod++);
 
-    const json = entities.map(t => {
-      // Fill default properties (as recorder department and person)
-      this.fillDefaultProperties(t, options);
-      return t.asObject(true/*minify*/);
+    const json = entities.map(o => {
+      // Fill default properties
+      this.fillDefaultProperties(o, options);
+      return this.asObject(o);
     });
 
     const now = new Date();
@@ -333,33 +334,34 @@ export class OperationService extends BaseDataService implements TableDataServic
     this.fillDefaultProperties(entity, {});
 
     // Transform into json
-    const json = entity.asObject(true/*minify*/);
-    const isNew = !entity.id && entity.id !== 0;
+    const json = this.asObject(entity);
+    const isNew = isNil(entity.id);
 
     const now = new Date();
     if (this._debug) console.debug("[operation-service] Saving operation...", json);
 
-    const res = await this.graphql.mutate<{ saveOperations: Operation[] }>({
+    await this.graphql.mutate<{ saveOperations: Operation[] }>({
       mutation: SaveOperations,
       variables: {
         operations: [json]
       },
-      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"}
-    });
+      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"},
+      update: (proxy, res) => {
+        const savedOperation = res && res.data && res.data.saveOperations && res.data.saveOperations[0];
+        if (savedOperation) {
+          // Copy id and update Date
+          this.copyIdAndUpdateDate(savedOperation, entity);
 
-    const savedOperation = res && res.saveOperations && res.saveOperations[0];
-    if (savedOperation) {
-      // Copy id and update Date
-      this.copyIdAndUpdateDate(savedOperation, entity);
-
-      // Update the cache
-      if (isNew && this._lastVariables.loadAll) {
-        this.addToQueryCache({
-          query: LoadAllQuery,
-          variables: this._lastVariables.loadAll
-        }, 'operations', savedOperation);
+          // Update the cache
+          if (isNew && this._lastVariables.loadAll) {
+            this.addToQueryCache({
+              query: LoadAllQuery,
+              variables: this._lastVariables.loadAll
+            }, 'operations', savedOperation);
+          }
+        }
       }
-    }
+    });
 
     if (this._debug) console.debug("[operation-service] Operation saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
 
@@ -398,6 +400,12 @@ export class OperationService extends BaseDataService implements TableDataServic
   }
 
   /* -- protected methods -- */
+
+  protected asObject(entity: Operation): any {
+    const copy: any = entity.asObject(true/*minify*/);
+
+    return copy;
+  }
 
   protected fillDefaultProperties(entity: Operation, options?: any) {
 

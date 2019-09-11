@@ -53,6 +53,10 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
         .concat(
+          platform.is('mobile') ?
+            ['physicalGear',
+              'targetSpecies',
+              'startDateTime']  :
           ['physicalGear',
             'targetSpecies',
             'startDateTime',

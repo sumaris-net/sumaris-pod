@@ -1,9 +1,9 @@
 import {Observable, Subject} from "rxjs";
 import {Apollo} from "apollo-angular";
-import {ApolloClient, ApolloQueryResult, FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
+import {ApolloClient, ApolloQueryResult, FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
-import {map} from "rxjs/operators";
+import {catchError, first, map} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
 import {delay} from "q";
@@ -13,11 +13,16 @@ import {NetworkService} from "./network.service";
 import {WebSocketLink} from "apollo-link-ws";
 import {ApolloLink} from "apollo-link";
 import {InMemoryCache} from "apollo-cache-inmemory";
-import {AppWebSocket, dataIdFromObject} from "../graphql/graphql.utils";
+import {AppWebSocket, createTrackerLink, dataIdFromObject, restoreTrackedQueries} from "../graphql/graphql.utils";
 import {getMainDefinition} from 'apollo-utilities';
 import {persistCache} from "apollo-cache-persist";
 import {Storage} from "@ionic/storage";
-
+import {RetryLink} from 'apollo-link-retry';
+import QueueLink from 'apollo-link-queue';
+import SerializingLink from 'apollo-link-serialize';
+import loggerLink from 'apollo-link-logger';
+import {Platform} from "@ionic/angular";
+import {EntityUtils} from "./model";
 
 @Injectable({providedIn: 'root'})
 export class GraphqlService {
@@ -30,12 +35,13 @@ export class GraphqlService {
   public onStart = new Subject<void>();
 
   protected _debug = false;
-  protected _lastVariables: any = {
-    loadAll: undefined,
-    load: undefined
-  };
+
+  protected get isOffline(): boolean {
+    return !this._started;
+  }
 
   public constructor(
+    private platform: Platform,
     private apollo: Apollo,
     private httpLink: HttpLink,
     private networkService: NetworkService,
@@ -121,15 +127,29 @@ export class GraphqlService {
   public mutate<T, V = R>(opts: {
     mutation: any,
     variables: V,
-    error?: ServiceError
+    error?: ServiceError,
+    context?: {
+      serializationKey?: string;
+      tracked?: boolean;
+      optimisticResponse?: any;
+    },
+    optimisticResponse?: T;
+    update?: MutationUpdaterFn<T>
   }): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       this.apollo.mutate<ApolloQueryResult<T>, V>({
         mutation: opts.mutation,
-        variables: opts.variables
+        variables: opts.variables,
+        context: opts.context,
+        optimisticResponse: opts.optimisticResponse as any,
+        update: opts.update as any
       })
-        .catch(error => this.onApolloError<T>(error))
-        .first()
+        .pipe(
+          catchError(error => this.onApolloError<T>(error)),
+          first()
+        )
+        //.catch(error => this.onApolloError<T>(error))
+        //.first()
         .subscribe(({data, errors}) => {
           if (errors) {
             const error = errors[0] as any;
@@ -292,6 +312,37 @@ export class GraphqlService {
     console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
+  public updateToQueryCache<V = R>(opts: {
+    query: any,
+    variables: V
+  }, propertyName: string, newValue: any) {
+
+    try {
+      const values = this.apollo.getClient().readQuery(opts);
+
+      if (values && values[propertyName]) {
+        const existingIndex = (values[propertyName] || []).findIndex(v => EntityUtils.equals(newValue, v));
+        if (existingIndex !== -1) {
+          values[propertyName].splice(existingIndex, 1, newValue);
+        }
+        else {
+          values[propertyName].push(newValue);
+        }
+
+        this.apollo.getClient().writeQuery({
+          query: opts.query,
+          variables: opts.variables,
+          data: values
+        });
+        return; // OK: stop here
+      }
+    } catch (err) {
+      // continue
+      // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
+    }
+    if (this._debug) console.debug("[data-service] Unable to update entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+  }
+
   /* -- protected methods -- */
 
 
@@ -327,31 +378,47 @@ export class GraphqlService {
     if (!client) {
       console.debug("[apollo] Creating GraphQL client...");
 
-      // Http link
-      const http = this.httpLink.create(this.httpParams);
-
       // Websocket link
-      const ws = new WebSocketLink(this.wsParams);
+      const wsLink = new WebSocketLink(this.wsParams);
+
+      const queueLink = new QueueLink();
+      const serializingLink = new SerializingLink();
+      const retryLink = new RetryLink();
+      const trackerLink = createTrackerLink({
+        storage: {
+          getItem: (key: string) => this.storage.get(key),
+          setItem: (key: string, data: any) => this.storage.set(key, data),
+          removeItem: (key: string) => this.storage.remove(key)
+        },
+        onNetworkStatusChange: this.networkService.onNetworkStatusChanges.asObservable(),
+        debounce: 1000,
+        debug: true
+      });
 
       const authLink = new ApolloLink((operation, forward) => {
 
         // Use the setContext method to set the HTTP headers.
-        operation.setContext({
-          headers: {
-            authorization: this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : ''
-          }
-        });
+        operation.setContext(Object.assign(operation.getContext() || {},
+          {
+            headers: {
+              authorization: this.wsConnectionParams.authToken ? `token ${this.wsConnectionParams.authToken}` : ''
+            }
+          }));
 
         // Call the next link in the middleware chain.
         return forward(operation);
       });
 
+      // Http link
+      const httpLink = this.httpLink.create(this.httpParams);
+
       const cache = new InMemoryCache({
         dataIdFromObject: dataIdFromObject
       });
 
+
       // Enable cache persistence
-      if (environment.persistCache) {
+      if (this.platform.is('mobile') && environment.persistCache) {
         console.debug("[apollo] Starting persistence cache...");
         await persistCache({
           cache,
@@ -360,30 +427,90 @@ export class GraphqlService {
             setItem: (key: string, data: any) => this.storage.set(key, data),
             removeItem: (key: string) => this.storage.remove(key)
           },
+          trigger: this.platform.is("android") ? "background" : "write",
           debounce: 1000,
           debug: true
         });
+
       }
 
       // create Apollo
       this.apollo.create({
-        link: ApolloLink.split(
-          ({query}) => {
-            const def = getMainDefinition(query);
-            return def.kind === 'OperationDefinition' && def.operation === 'subscription';
-          },
-          ws,
-          authLink.concat(http)
+        link:
+          ApolloLink.split(
+            ({query}) => {
+              const def = getMainDefinition(query);
+              return def.kind === 'OperationDefinition' && def.operation === 'mutation';
+            },
+
+            // Handle mutations
+            ApolloLink.from([
+              loggerLink,
+              trackerLink,
+              queueLink,
+              serializingLink,
+              retryLink,
+              authLink,
+              httpLink
+            ]),
+
+            ApolloLink.split(
+            (operation) => {
+                const def = getMainDefinition(operation.query);
+                return def.kind === 'OperationDefinition' && def.operation === 'subscription';
+              },
+
+              // Handle subscriptions
+              wsLink,
+
+              // Handle queries
+              ApolloLink.from([
+                //loggerLink,
+                retryLink,
+                authLink,
+                httpLink
+              ])
+          )
         ),
         cache,
         connectToDevTools: !environment.production
       }, 'default');
+
+      this.networkService.onNetworkStatusChanges.subscribe(() => {
+        if (this.networkService.online) {
+          console.debug("[graphql] Disabling mutations queue");
+          queueLink.open();
+          //queueLink.close();
+        } else {
+          console.debug("[graphql] Enabling mutations queue");
+          queueLink.close();
+        }
+      });
+
     }
 
     this._started = true;
 
     // Emit event
     this.onStart.next();
+
+    // Enable tracked queries persistence
+    if (this.platform.is('mobile') && environment.persistCache) {
+
+      try {
+        await restoreTrackedQueries({
+          apolloClient: this.apollo.getClient(),
+          storage: {
+            getItem: (key: string) => this.storage.get(key),
+            setItem: (key: string, data: any) => this.storage.set(key, data),
+            removeItem: (key: string) => this.storage.remove(key)
+          },
+          debug: true
+        });
+      } catch(err) {
+        console.error('[graphql] Failed to restore tracked queries from storage: ' + (err && err.message || err), err);
+      }
+    }
   }
 
   protected async stop() {
@@ -473,4 +600,5 @@ export class GraphqlService {
       await client.cache.reset();
     }
   }
+
 }

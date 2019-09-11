@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
 import {Department, EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService, environment} from "../../core/core.module";
+import {BaseDataService, environment, NetworkService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
 
@@ -12,6 +12,9 @@ import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
+
+import uuidv4 from 'uuid/v4';
+import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -213,6 +216,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
 
   constructor(
     protected graphql: GraphqlService,
+    protected network: NetworkService,
     protected accountService: AccountService
   ) {
     super(graphql);
@@ -372,28 +376,44 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving trip...", json);
 
-    const res = await this.graphql.mutate<{ saveTrips: any }>({
+    if (isNew) {
+      entity.id = -1;
+    }
+
+    await this.graphql.mutate<{ saveTrips: any }>({
       mutation: SaveAllQuery,
       variables: {
         trips: [json]
       },
-      error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" }
+      context: {
+        serializationKey: dataIdFromObject(entity),
+        tracked: true,
+        optimisticResponse: {saveTrips: [entity]}
+      },
+      error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
+      update: (proxy, {data}) => {
+        const savedEntity = data && data.saveTrips && data.saveTrips[0];
+        if (savedEntity && savedEntity != entity) {
+          this.copyIdAndUpdateDate(savedEntity, entity);
+          if (this._debug) console.debug(`[trip-service] Trip saved in ${Date.now() - now}ms`, entity);
+        }
+
+        // Add to cache
+        if (isNew && this._lastVariables.loadAll) {
+          this.addToQueryCache({
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'trips', savedEntity);
+        }
+        else if(this._lastVariables.load) {
+          this.updateToQueryCache({
+            query: LoadQuery,
+            variables: this._lastVariables.load
+          }, 'trip', savedEntity);
+        }
+      }
     });
 
-    const savedEntity = res && res.saveTrips && res.saveTrips[0];
-    if (savedEntity) {
-      this.copyIdAndUpdateDate(savedEntity, entity);
-
-      // Add to cache
-      if (isNew && this._lastVariables.loadAll) {
-        this.addToQueryCache({
-          query: LoadAllQuery,
-          variables: this._lastVariables.loadAll
-        }, 'trips', savedEntity);
-      }
-    }
-
-    if (this._debug) console.debug(`[trip-service] Trip saved in ${Date.now() - now}ms`, entity);
 
     return entity;
   }
@@ -597,12 +617,14 @@ export class TripService extends BaseDataService implements TableDataService<Tri
 
       // Recorder department
       if (person && person.department && !entity.recorderDepartment) {
-        entity.recorderDepartment = Department.fromObject({id: person.department.id});
+        entity.recorderDepartment = person.department;
+        //entity.recorderDepartment = Department.fromObject({id: person.department.id, __typename: 'DepartmentVO'});
       }
 
       // Recorder person
       if (person && person.id && !entity.recorderPerson) {
-        entity.recorderPerson = Person.fromObject({id: person.id});
+        entity.recorderPerson = person;
+        //entity.recorderPerson = Person.fromObject({id: person.id, __typename: 'PersonVO'});
       }
     }
 

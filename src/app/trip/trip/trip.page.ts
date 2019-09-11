@@ -8,7 +8,7 @@ import {EntityUtils, Trip} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppFormUtils, AppTabPage, environment} from '../../core/core.module';
+import {AppFormUtils, AppTabPage, environment, NetworkService} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {TranslateService} from '@ngx-translate/core';
 import {Subject} from 'rxjs';
@@ -66,6 +66,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     router: Router,
     alertCtrl: AlertController,
     translate: TranslateService,
+    public network: NetworkService,
     protected dateFormat: DateFormatPipe,
     protected dataService: TripService,
     protected settings: LocalSettingsService,
@@ -77,7 +78,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.usageMode = this.settings.usageMode;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {

@@ -293,4 +293,25 @@ export class BatchUtils {
     });
     return rootBatches;
   }
+
+  static prepareBatchesForSimpleTable(rootBatches: Batch[], qvPmfm?: PmfmStrategy): Batch[] {
+    if (!qvPmfm) return rootBatches || [];
+
+    return (rootBatches || []).reduce((res, rootBatch) => {
+        const children = qvPmfm.qualitativeValues.map((qv, index) => {
+          let child = (rootBatch.children || []).find(childBatch => childBatch.measurementValues[qvPmfm.pmfmId] == qv);
+          if (!child) {
+            console.log("Creating new batch");
+            child = new Batch();
+            child.parent = rootBatch;
+            child.rankOrder = index + 1;
+            child.measurementValues = {};
+            child.measurementValues[qvPmfm.pmfmId] = qv;
+          }
+          return child;
+        });
+        rootBatch.children = children;
+        return res.concat(children);
+      }, []);
+  }
 }

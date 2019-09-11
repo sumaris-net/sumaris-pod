@@ -1,16 +1,8 @@
-import {
-  AppFormUtils,
-  Entity,
-  EntityUtils,
-  fromDateISOString,
-  isNil,
-  isNotNil,
-  toDateISOString
-} from "../../../core/core.module";
+import {AppFormUtils, Entity, fromDateISOString, isNil, isNotNil, toDateISOString} from "../../../core/core.module";
 import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity} from "./base.model";
-import {TableElement} from "angular4-material-table";
-import {AbstractControl, FormGroup} from "@angular/forms";
+import {FormGroup} from "@angular/forms";
+import {isNotNilOrNaN} from "../../../shared/functions";
 
 export const PMFM_ID_REGEXP = /\d+/;
 
@@ -266,9 +258,9 @@ export class MeasurementValuesUtils {
         }
         return null;
       case "integer":
-        return isNotNil(value) ? parseInt(value) : null;
+        return isNotNilOrNaN(value) ? parseInt(value) : null;
       case "double":
-        return isNotNil(value) ? parseFloat(value) : null;
+        return isNotNilOrNaN(value) ? parseFloat(value) : null;
       case "string":
         return value || null;
       case "boolean":

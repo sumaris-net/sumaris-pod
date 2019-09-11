@@ -1,4 +1,23 @@
-import {defaultDataIdFromObject} from "apollo-cache-inmemory";
+import {defaultDataIdFromObject, NormalizedCacheObject} from "apollo-cache-inmemory";
+import {ApolloLink} from "apollo-link";
+import uuidv4 from 'uuid/v4';
+import {EventEmitter} from "@angular/core";
+import {
+  debounceTime,
+  filter,
+  map,
+  mergeMap,
+  skipUntil,
+  skipWhile, switchMap,
+  takeUntil,
+  takeWhile,
+  tap,
+  throttleTime
+} from "rxjs/operators";
+import {PersistedData, PersistentStorage} from "apollo-cache-persist/types";
+import {BehaviorSubject, Observable} from "rxjs";
+import {ApolloClient} from "apollo-client";
+import {Apollo} from "apollo-angular";
 
 declare let window: any;
 const _global = typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : {});
@@ -39,3 +58,96 @@ export const dataIdFromObject = function (object: Object): string {
   }
 };
 
+export interface TrackedQuery {
+  id: string;
+  name: string;
+  queryJSON: string;
+  variablesJSON: string;
+  contextJSON: string;
+}
+
+export const TRACKED_QUERIES_STORAGE_KEY = "apollo-tracker-persist";
+
+export function createTrackerLink(opts: {
+  storage?: PersistentStorage<PersistedData<TrackedQuery[]>>;
+  onNetworkStatusChange: Observable<string>;
+  debounce?: number;
+  debug?: boolean;
+  }): ApolloLink {
+
+  const trackedQueriesUpdated = new EventEmitter();
+  const trackedQueriesById: {[id: string]: TrackedQuery} = {};
+
+  const networkStatusSubject = new BehaviorSubject<string>('none');
+  opts.onNetworkStatusChange.subscribe(type => networkStatusSubject.next(type));
+
+  trackedQueriesUpdated.pipe(
+    debounceTime(opts.debounce || 1000),
+    switchMap(() => networkStatusSubject),
+    // Continue if offline
+    filter((type) => type === 'none' && !!opts.storage)
+  ).subscribe(() => {
+      const trackedQueries = Object.getOwnPropertyNames(trackedQueriesById)
+        .map(key => trackedQueriesById[key])
+        .filter(value => value !== undefined);
+      if (opts.debug) console.debug("[graphql] Saving tracked queries to storage", trackedQueries);
+      return opts.storage.setItem(TRACKED_QUERIES_STORAGE_KEY, trackedQueries);
+    });
+
+  return new ApolloLink((operation, forward) => {
+    if (forward === undefined) {
+      return null;
+    }
+    const context = operation.getContext();
+    if (!context || !context.tracked) return forward(operation);
+
+    const id = uuidv4();
+    console.debug(`[apollo-tracker-link] Watching tracked query {${operation.operationName}#${id}}`);
+    const trackedQuery: TrackedQuery = {
+      id: uuidv4(),
+      name: operation.operationName,
+      queryJSON: JSON.stringify(operation.query),
+      variablesJSON: JSON.stringify(operation.variables),
+      contextJSON: JSON.stringify(context)
+    };
+
+    // Add to map
+    trackedQueriesById[id] = trackedQuery;
+    trackedQueriesUpdated.emit();
+
+    return forward(operation).map(data => {
+      console.debug(`[apollo-tracker-link] Tracked query {${operation.operationName}#${id}} succeed!`, data);
+      delete trackedQueriesById[id];
+      trackedQueriesUpdated.emit(trackedQueriesById); // update
+
+      return data;
+    });
+  });
+}
+
+export async function restoreTrackedQueries(opts: {
+  apolloClient: ApolloClient<any>;
+  storage: PersistentStorage<PersistedData<TrackedQuery[]>>;
+  debug?: boolean;
+}) {
+
+  const list = (await opts.storage.getItem(TRACKED_QUERIES_STORAGE_KEY)) as TrackedQuery[];
+
+  if (!list) return;
+  if (opts.debug) console.debug("[apollo-tracker-link] Restoring tracked queries", list);
+
+  const promises = (list || []).map(trackedQuery => {
+    const context = JSON.parse(trackedQuery.contextJSON);
+    const query = JSON.parse(trackedQuery.queryJSON);
+    const variables = JSON.parse(trackedQuery.variablesJSON);
+    return opts.apolloClient.mutate({
+      context,
+      mutation: query,
+      optimisticResponse: context.optimisticResponse,
+      //update: updateHandlerByName[trackedQuery.name],
+      variables,
+    })
+  });
+
+  return Promise.all(promises);
+}

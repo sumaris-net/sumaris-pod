@@ -1,22 +1,25 @@
 <mat-toolbar>
-  <button mat-icon-button *ngIf="!selection.hasValue() && enabled && !mobile" [title]="'COMMON.BTN_ADD'|translate"
+  <!-- TODO hidden-mobile -->
+  <button mat-icon-button
+          hidden-xs hidden-sm
+          *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate"
           (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="selection.hasValue() && enabled"
+  <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
           [title]="'COMMON.BTN_DELETE'|translate"
           (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()"
           [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
 
-  <ion-item *ngIf="error" hidden-xs hidden-sm lines="none">
+  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
@@ -33,7 +36,6 @@
   <ion-icon color="danger" slot="start" name="alert"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
-
 
 <mat-table [dataSource]="dataSource" class="table-survival-test" matSort matSortActive="rankOrder"
            matSortDirection="asc"
@@ -58,9 +60,8 @@
       <ion-label *ngIf="!loading">#</ion-label>
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.rankOrder }}</mat-cell>
+    <mat-cell *matCellDef="let row">{{ row.currentData.rankOrder  || row.currentData.parent?.rankOrder}}</mat-cell>
   </ng-container>
-
 
   <!-- taxon group (commercial species) -->
   <ng-container matColumnDef="taxonGroup">
@@ -68,7 +69,7 @@
       <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{referentialToString(row.currentData.taxonGroup)}}
+      {{referentialToString(row.currentData.taxonGroup || row.currentData.parent?.taxonGroup)}}
     </mat-cell>
   </ng-container>
 
@@ -82,6 +83,14 @@
       {{referentialToString(row.currentData.taxonName)}}
     </mat-cell>
 
+  </ng-container>
+
+  <!-- rankOrder Column = weight -->
+  <ng-container matColumnDef="weight">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>TRIP.BATCH.TABLE.TOTAL_WEIGHT</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">{{ measurementValueToString(row.currentData.measurementValues[defaultWeightPmfm.pmfmId], defaultWeightPmfm) }}</mat-cell>
   </ng-container>
 
   <!-- Pmfm columns -->
@@ -117,11 +126,10 @@
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <!-- open individual measures -->
-      <button mat-icon-button small color="light"
+      <button mat-icon-button color="light"
               [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
               (click)="onSubBatchesClick($event, row)">
-        {{row.currentData.individualCount}}
-        <mat-icon>list</mat-icon>
+        <mat-icon>assessment</mat-icon>
       </button>
     </mat-cell>
   </ng-container>

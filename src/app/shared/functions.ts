@@ -17,6 +17,9 @@ export function isNotNil<T>(obj: T | null | undefined): boolean {
 export function isNotNilOrBlank<T>(obj: T | null | undefined): boolean {
   return obj !== undefined && obj !== null && (typeof obj !== 'string' || obj.trim() !== "");
 }
+export function isNotNilOrNaN<T>(obj: T | null | undefined): boolean {
+  return obj !== undefined && obj !== null && (typeof obj !== "number" || !isNaN(obj));
+}
 export function isNotEmptyArray<T>(obj: T[] | null | undefined): boolean {
   return obj !== undefined && obj !== null && obj.length > 0;
 }

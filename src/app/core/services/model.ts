@@ -287,12 +287,16 @@ export class EntityUtils {
   }
 
   static sort<T extends Entity<T> | any>(data: T[], sortBy?: string, sortDirection?: string): T[] {
+    return data.sort(this.sortComparator(sortBy, sortDirection));
+  }
+
+  static sortComparator<T extends Entity<T> | any>(sortBy?: string, sortDirection?: string): (a: T, b: T) => number {
     const after = (!sortDirection || sortDirection === 'asc') ? 1 : -1;
-    return data.sort((a, b) => {
+    return (a, b) => {
       const valueA = EntityUtils.getPropertyByPath(a, sortBy);
       const valueB = EntityUtils.getPropertyByPath(b, sortBy);
       return valueA === valueB ? 0 : (valueA > valueB ? after : (-1 * after));
-    });
+    };
   }
 }
 

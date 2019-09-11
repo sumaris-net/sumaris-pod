@@ -132,14 +132,42 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   protected getValue(): Batch {
     const json = this.form.value;
 
+    const pmfms = this.$pmfms.getValue();
+    const qvPmfm = pmfms && pmfms[0].isQualitative ? pmfms[0] : undefined;
+
+    let data = this.data;
+    if (qvPmfm) {
+      const parentJson = {
+        id: json.id,
+        rankOrder: json.rankOrder,
+        label: json.label,
+        taxonGroup: json.taxonGroup,
+        taxonName: json.taxonName,
+        measurementValues: {}
+      };
+      delete json.id;
+      delete json.rankOrder;
+      json.label = `${json.label}.${ json.measurementValues[qvPmfm.pmfmId].label}`;
+      delete json.taxonGroup;
+      delete json.taxonName;
+
+      this.data.fromObject(parentJson);
+
+      data = (this.data.children || []).find(b => b.label === json.label);
+      if (!data) {
+        data = new Batch();
+        data.children = this.data.children || [];
+        this.data.children = [data];
+      }
+    }
+
     // Convert measurements
     json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.toEntityValues(json.measurementValues, this.$pmfms.getValue()));
+    data.fromObject(json);
 
-    this.data.fromObject(json);
-
-    if (this.isSampling && json.children && json.children.length === 1) {
-      const child = this.data.children && this.data.children[0] || new Batch();
-      const childJson = json.children[0];
+    if (this.isSampling) {
+      const child = data.children && data.children.length === 1 ? data.children[0] : new Batch();
+      const childJson = json.children && json.children[0] || {};
       // Convert measurements
       childJson.measurementValues = Object.assign({}, child.measurementValues, MeasurementValuesUtils.toEntityValues(childJson.measurementValues, this.samplingBatchPmfms));
 
@@ -150,11 +178,13 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       }
 
       child.fromObject(childJson);
-      this.data.children = [child];
+      data.children = [child];
     }
     else {
-      this.data.children = [];
+      data.children = [];
     }
+
+    //console.log('TODO batch Form getValue() = ', this.data)
 
     return this.data;
   }

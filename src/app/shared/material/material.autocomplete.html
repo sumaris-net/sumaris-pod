@@ -20,9 +20,6 @@
 
   <ng-content select="[matSuffix]"></ng-content>
 
-  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-  <mat-error *ngIf="formControl.hasError('entity')||formControl.hasError('object')" translate>ERROR.FIELD_INVALID</mat-error>
-
   <button mat-button matSuffix mat-icon-button tabindex="-1"
           type="button"
           *ngIf="clearable"
@@ -36,6 +33,9 @@
           [hidden]="formControl.disabled">
     <mat-icon>arrow_drop_down</mat-icon>
   </button>
+
+  <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  <mat-error *ngIf="formControl.hasError('entity')||formControl.hasError('object')" translate>ERROR.FIELD_INVALID</mat-error>
 
   <!-- combo -->
   <mat-autocomplete autoActiveFirstOption #autoCombo="matAutocomplete"

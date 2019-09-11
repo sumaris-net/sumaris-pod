@@ -55,7 +55,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {

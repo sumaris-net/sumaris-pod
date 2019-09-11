@@ -10,13 +10,13 @@
   </button>
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button small color="light" *ngIf="debug && !selection.hasValue()"
+  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()"
           [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
 
-  <ion-item *ngIf="error" hidden-xs hidden-sm lines="none">
+  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
@@ -26,7 +26,7 @@
   <!-- enable burst input -->
   <ion-button color="light"
               [title]="'TRIP.BATCH.TABLE.BTN_BURST_INPUT_HELP'|translate"
-              (click)="toggleForm()">
+              (click)="toggleForm()" hidden-xs hidden-sm hidden-mobile>
     <ion-label translate>TRIP.BATCH.TABLE.BTN_BURST_INPUT</ion-label>
   </ion-button>
 
@@ -281,10 +281,10 @@
   </ion-row>
 </ion-grid>
 
-<ion-fab vertical="bottom" horizontal="end"
-         *ngIf="enabled && mobile">
-  <ion-fab-button color="tertiary" (click)="addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+<!--<ion-fab vertical="bottom" horizontal="end"-->
+<!--         *ngIf="enabled && mobile">-->
+<!--  <ion-fab-button color="tertiary" (click)="addRow()">-->
+<!--    <ion-icon name="add"></ion-icon>-->
+<!--  </ion-fab-button>-->
+<!--</ion-fab>-->
 

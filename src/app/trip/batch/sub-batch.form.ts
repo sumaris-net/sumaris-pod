@@ -123,7 +123,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     protected platform: PlatformService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
-      validatorService.getRowValidator(), {
+      validatorService.getRowValidator(),
+      {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       });
 
@@ -150,7 +151,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
-    const parentControlControl = this.form.get('parent');
+    const parentControl = this.form.get('parent');
     const taxonNameControl = this.form.get('taxonName');
 
     // Parent combo
@@ -160,7 +161,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
           filter(event => !event.defaultPrevented),
           map((_) => '*')
         ),
-      parentControlControl.valueChanges
+      parentControl.valueChanges
         .pipe(
           debounceTime(250)
         )
@@ -185,7 +186,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     // Reset taxon name combo when parent changed
     this.registerSubscription(
-      parentControlControl.valueChanges
+      parentControl.valueChanges
         .pipe(
           debounceTime(250),
           filter(EntityUtils.isNotEmpty),
@@ -348,7 +349,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   parentToString(batch: Batch) {
-    // TODO: use options, to enable/disable code
+    // TODO: use attributes from settings ?
     return BatchUtils.parentToString(batch);
   }
 
