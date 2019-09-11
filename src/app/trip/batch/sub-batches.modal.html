@@ -103,10 +103,10 @@
 
           <!-- individualCount column -->
           <ng-container matColumnDef="individualCount">
-            <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+            <mat-header-cell *matHeaderCellDef [hidden]="!showIndividualCount">
               <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
             </mat-header-cell>
-            <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm">
+            <mat-cell *matCellDef="let row" [hidden]="!showIndividualCount">
               {{row.currentData?.individualCount}}
             </mat-cell>
           </ng-container>

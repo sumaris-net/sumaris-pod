@@ -30,7 +30,7 @@ import {
 import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, tap} from "rxjs/operators";
 import {getPmfmName, isNil, isNotNil, PmfmStrategy} from "../../referential/services/model";
 import {merge, Observable} from "rxjs";
-import {isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
+import {getPropertyByPath, isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
@@ -55,10 +55,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   protected _initialPmfms: PmfmStrategy[];
   protected _qvPmfm: PmfmStrategy;
-
-  $filteredParents: Observable<Batch[]>;
-  _availableParents: Batch[] = [];
-  onShowParentDropdown = new EventEmitter<UIEvent>(true);
+  protected _availableParents: Batch[] = [];
+  protected _parentAttributes: string[];
 
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
@@ -137,6 +135,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     this.enableIndividualCountControl = this.formBuilder.control(this.mobile, Validators.required);
     this.enableIndividualCountControl.setValue(false, {emitEvent: false});
 
+    // Get display attributes for parent
+    this._parentAttributes = this.settings.getFieldDisplayAttributes('taxonGroup').map(attr => 'taxonGroup.' + attr)
+      .concat(!this.showTaxonName ? this.settings.getFieldDisplayAttributes('taxonName').map(attr => 'taxonName.' + attr) : []);
+
     // For DEV only
     this.debug = !environment.production;
   }
@@ -144,6 +146,13 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   ngOnInit() {
     super.ngOnInit();
 
+    // Parent combo
+    this.registerAutocompleteConfig('parent', {
+      suggestFn: (value: any, options?: any) => this.suggestParents(value, options),
+      attributes: ['rankOrder'].concat(this._parentAttributes)
+    });
+
+    // Taxon combo
     this.registerAutocompleteConfig('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: true
@@ -154,35 +163,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     const parentControl = this.form.get('parent');
     const taxonNameControl = this.form.get('taxonName');
 
-    // Parent combo
-    this.$filteredParents = merge(
-      this.onShowParentDropdown
-        .pipe(
-          filter(event => !event.defaultPrevented),
-          map((_) => '*')
-        ),
-      parentControl.valueChanges
-        .pipe(
-          debounceTime(250)
-        )
-    )
-      .pipe(
-        map((value) => {
-          // Has select a valid parent: return the parent
-          if (EntityUtils.isNotEmpty(value)) return [value];
-          value = (typeof value === "string" && value !== "*") && value || undefined;
-          if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
-          if (isNil(value)) return this.availableParents; // All
-          const ucValueParts = value.trim().toUpperCase().split(" ", 1);
-          // Search on labels (taxonGroup or taxonName)
-          return this.availableParents.filter(p =>
-            (p.taxonGroup && startsWithUpperCase(p.taxonGroup.label, ucValueParts[0])) ||
-            (p.taxonName && startsWithUpperCase(p.taxonName.label, ucValueParts.length === 2 ? ucValueParts[1] : ucValueParts[0]))
-          );
-        }),
-        // Save implicit value
-        tap(res => this.updateImplicitValue('parent', res))
-      );
 
     // Reset taxon name combo when parent changed
     this.registerSubscription(
@@ -266,7 +246,49 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  /* -- protected methods -- */
+  setValue(data: Batch) {
+    // Replace parent with value of availableParents
+    this.linkToParent(data);
+
+    // Inherited method
+    super.setValue(data);
+  }
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
+    super.enable(opts);
+
+    if (!this.enableIndividualCount) {
+      this.form.get('individualCount').disable(opts);
+    }
+  }
+
+  parentToString(batch: Batch) {
+    // TODO: use attributes from settings ?
+    return BatchUtils.parentToString(batch);
+  }
+
+  referentialToString = referentialToString;
+  getPmfmName = getPmfmName;
+  selectInputContent = AppFormUtils.selectInputContent;
+  filterNumberInput = AppFormUtils.filterNumberInput;
+
+
+  /* -- protected method -- */
+
+  protected async suggestParents(value: any, options?: any): Promise<Batch[]> {
+    // Has select a valid parent: return the parent
+    if (EntityUtils.isNotEmpty(value)) return [value];
+    value = (typeof value === "string" && value !== "*") && value || undefined;
+    if (isNilOrBlank(value)) return this._availableParents; // All
+    const ucValueParts = value.trim().toUpperCase().split(" ", 1);
+    if (this.debug) console.debug(`[sub-batch-table] Searching parent {${value || '*'}}...`);
+    // Search on attributes
+    return this._availableParents.filter(parent => ucValueParts
+        .filter(valuePart => this._parentAttributes
+          .findIndex(attr => startsWithUpperCase(getPropertyByPath(parent, attr), valuePart.trim())) !== -1
+        ).length === ucValueParts.length
+    );
+  }
 
   protected suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
     const parent = this.form && this.form.get('parent').value;
@@ -292,14 +314,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
 
     return pmfms;
-  }
-
-  setValue(data: Batch) {
-    // Replace parent with value of availableParents
-    this.linkToParent(data);
-
-    // Inherited method
-    super.setValue(data);
   }
 
   protected getValue(): Batch {
@@ -338,28 +352,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       if (!this.loading) this.markForCheck();
     }
   }
-
-
-  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
-    super.enable(opts);
-
-    if (!this.enableIndividualCount) {
-      this.form.get('individualCount').disable(opts);
-    }
-  }
-
-  parentToString(batch: Batch) {
-    // TODO: use attributes from settings ?
-    return BatchUtils.parentToString(batch);
-  }
-
-  referentialToString = referentialToString;
-  getPmfmName = getPmfmName;
-  selectInputContent = AppFormUtils.selectInputContent;
-  filterNumberInput = AppFormUtils.filterNumberInput;
-
-
-  /* -- protected method -- */
 
   protected async updateTabIndex() {
     if (this.tabindex && this.tabindex !== -1) {

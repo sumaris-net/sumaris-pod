@@ -256,12 +256,12 @@ export class BatchGroupsTable extends BatchesTable {
     measurementValues = measurementValues || {};
     let i = qvIndex * 5;
 
-    // Column: individual count
-    measurementValues[i++] = isNotNil(data.individualCount) ? data.individualCount : null;
-
     // Column: total weight
     data.weight = this.getWeight(data.measurementValues) || undefined;
     measurementValues[i++] = data.weight && !data.weight.calculated && data.weight.value || null;
+
+    // Column: individual count
+    measurementValues[i++] = isNotNil(data.individualCount) ? data.individualCount : null;
 
     // Sampling batch
     if (data.children && data.children.length === 1) {
@@ -269,12 +269,12 @@ export class BatchGroupsTable extends BatchesTable {
       // Column: sampling ratio
       measurementValues[i++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio * 100 : null;
 
+      // Column: sampling weight
+      samplingChild.weight = this.getWeight(samplingChild.measurementValues);
+      measurementValues[i++] = samplingChild.weight && !samplingChild.weight.calculated && samplingChild.weight.value;
+
       // Column: sampling individual count
       measurementValues[i++] = isNotNil(samplingChild.individualCount) ? samplingChild.individualCount : null;
-      samplingChild.weight = this.getWeight(samplingChild.measurementValues);
-
-      // Column: sampling weight
-      measurementValues[i++] = samplingChild.weight && !samplingChild.weight.calculated && samplingChild.weight.value;
     }
     return measurementValues;
   }
@@ -312,22 +312,15 @@ export class BatchGroupsTable extends BatchesTable {
     }
 
     const translations = this.translate.instant([
-      'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT',
       'TRIP.BATCH.TABLE.TOTAL_WEIGHT',
+      'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT',
       'TRIP.BATCH.TABLE.SAMPLING_RATIO',
-      'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT',
-      'TRIP.BATCH.TABLE.SAMPLING_WEIGHT']);
+      'TRIP.BATCH.TABLE.SAMPLING_WEIGHT',
+      'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT']);
     const columnPmfms: PmfmStrategy[] = this.qvPmfm.qualitativeValues.reduce((res, qv, index) => {
       return res.concat(
         [
-          // Column on total (nb indiv, weight)
-          {
-            type: 'integer', label: qv.label + '_TOTAL_INDIVIDUAL_COUNT', id: index,
-            name: translations['TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'],
-            minValue: 0,
-            maxValue: 10000,
-            maximumNumberDecimals: 0
-          },
+          // Column on total (weight, nb indiv)
           Object.assign({}, this.defaultWeightPmfm, {
             type: 'double', label: qv.label + '_TOTAL_WEIGHT', id: index,
             name: translations['TRIP.BATCH.TABLE.TOTAL_WEIGHT'],
@@ -335,6 +328,14 @@ export class BatchGroupsTable extends BatchesTable {
             maxValue: 10000,
             maximumNumberDecimals: 1
           }),
+          {
+            type: 'integer', label: qv.label + '_TOTAL_INDIVIDUAL_COUNT', id: index,
+            name: translations['TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT'],
+            minValue: 0,
+            maxValue: 10000,
+            maximumNumberDecimals: 0
+          },
+
           // Column on sampling (ratio, nb indiv, weight)
           {
             type: 'integer', label: qv.label + '_SAMPLING_RATIO', id: index,
@@ -344,20 +345,20 @@ export class BatchGroupsTable extends BatchesTable {
             maxValue: 100,
             maximumNumberDecimals: 0
           },
-          {
-            type: 'integer', label: qv.label + '_SAMPLING_INDIVIDUAL_COUNT', id: index,
-            name: translations['TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT'],
-            minValue: 0,
-            maxValue: 1000,
-            maximumNumberDecimals: 0
-          },
           Object.assign({}, this.defaultWeightPmfm, {
             type: 'double', label: qv.label + '_SAMPLING_WEIGHT', id: index,
             name: translations['TRIP.BATCH.TABLE.SAMPLING_WEIGHT'],
             minValue: 0,
             maxValue: 1000,
             maximumNumberDecimals: 1
-          })
+          }),
+          {
+            type: 'integer', label: qv.label + '_SAMPLING_INDIVIDUAL_COUNT', id: index,
+            name: translations['TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT'],
+            minValue: 0,
+            maxValue: 1000,
+            maximumNumberDecimals: 0
+          }
         ]
       );
     }, [])
@@ -462,19 +463,21 @@ export class BatchGroupsTable extends BatchesTable {
   protected getDisplayColumns(userColumns?: string[]): string[] {
     userColumns = userColumns || this.getUserColumns();
 
-    const individualCountIndex = userColumns.findIndex(c => c === 'individualCount');
-    let weightIndex = userColumns.findIndex(c => c === 'weight');
-    weightIndex = (weightIndex !== -1 && individualCountIndex === -1 ? 1 : weightIndex);
+    const weightIndex = userColumns.findIndex(c => c === 'weight');
+
+    let individualCountIndex = userColumns.findIndex(c => c === 'individualCount');
+    individualCountIndex = (individualCountIndex !== -1 && weightIndex === -1 ? 0 : individualCountIndex);
 
     const pmfmColumns = (this.qvPmfm && this.qvPmfm.qualitativeValues || []).reduce((res, qv, index) => {
       let offset = index * 5;
 
       return res.concat([
-        individualCountIndex !== -1 ? (offset + individualCountIndex) : -1,
         weightIndex !== -1 ? (offset + weightIndex) : -1,
+        individualCountIndex !== -1 ? (offset + individualCountIndex) : -1,
         offset + 2,
-        individualCountIndex !== -1 ? (offset + 3 + individualCountIndex) : -1,
-        weightIndex !== -1 ? (offset + 3 + weightIndex) : -1]);
+        weightIndex !== -1 ? (offset + 3 + weightIndex) : -1,
+        individualCountIndex !== -1 ? (offset + 3 + individualCountIndex) : -1
+      ]);
     }, [])
       // Remove hidden column
       .filter(c => c !== -1)

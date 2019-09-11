@@ -9,48 +9,15 @@
 
   <ion-grid no-padding>
     <ion-row no-padding>
-      <ion-col no-padding >
-        <mat-form-field>
-          <input matInput #matInput
-                 formControlName="parent"
-                 [matAutocomplete]="autoParentBatch"
-                 [placeholder]="displayParentPmfm && getPmfmName(displayParentPmfm) || ('TRIP.BATCH.TABLE.PARENT' | translate)"
-                 [required]="showParent"
-                 (focus)="selectInputContent($event) && onShowParentDropdown.emit($event)"
-                 (click)="onShowParentDropdown.emit($event)">
-          <mat-error *ngIf="form.controls.parent.hasError('required')" translate>ERROR.FIELD_REQUIRED
-          </mat-error>
-          <mat-error *ngIf="form.controls.parent.hasError('object')" translate>ERROR.FIELD_INVALID</mat-error>
-
-          <button mat-button matSuffix mat-icon-button tabindex="-1"
-                  type="button"
-                  (click)="onShowParentDropdown.emit($event)"
-                  [hidden]="form.controls.parent.disabled">
-            <mat-icon>arrow_drop_down</mat-icon>
-          </button>
-
-          <mat-autocomplete #autoParentBatch="matAutocomplete"
-                            autoActiveFirstOption
-                            [displayWith]="parentToString">
-            <ion-row class="mat-autocomplete-header">
-              <ion-col size="1">
-                <ion-text>#</ion-text>
-              </ion-col>
-              <ion-col>
-                <ion-text translate>TRIP.BATCH.TABLE.PARENT</ion-text>
-              </ion-col>
-            </ion-row>
-            <mat-option *ngFor="let batch of $filteredParents | async" [value]="batch" no-padding>
-              <ion-row>
-                <ion-col size="1" [innerHTML]="batch.rankOrder"></ion-col>
-                <ion-col>
-                  <span
-                    [innerHTML]="parentToString(batch) | highlight: {search: form.controls.parent.value }"></span>
-                </ion-col>
-              </ion-row>
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
+      <ion-col no-padding>
+        <mat-autocomplete-field #matInput formControlName="parent"
+                                [appAutofocus]="enabled && showParent && !mobile"
+                                [placeholder]="'TRIP.BATCH.EDIT.PARENT'|translate"
+                                tabindex="1"
+                                [required]="showParent"
+                                [config]="autocompleteFields.parent"
+                                [displayWith]="parentToString">
+        </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto" no-padding *ngIf="onNewParentClick">
         <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate"

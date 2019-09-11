@@ -27,7 +27,7 @@ mat-table {
 
   .mat-header-cell.qv {
     display: none;
-    flex: 0;
+    visibility: hidden;
   }
   .mat-header-cell.qv.even {
     background-color: var(--ion-color-secondary) !important;
@@ -37,7 +37,8 @@ mat-table {
   }
   .mat-header-cell.qv.show {
     display: flex;
-    flex: 5 !important;
+    visibility: visible;
+    flex: 5;
 
     ion-label,
     mat-label {
@@ -56,6 +57,11 @@ mat-table {
 .mat-header-row,
 .mat-row {
 
+  .mat-header-cell.hide,
+  .mat-cel.hide {
+    display: none;
+    visibility: hidden;
+  }
 
   .mat-header-cell.total.even,
   .mat-cell.total.even {
@@ -104,5 +110,14 @@ mat-table {
 
   .mat-column-81 {
     max-width: 100px;
+  }
+}
+
+//  Resize on mobile device
+.plt-mobile {
+  .mat-header-row.first-header-row {
+    .mat-header-cell.qv.show {
+      flex: 1 !important;
+    }
   }
 }

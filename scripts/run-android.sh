@@ -17,3 +17,6 @@ cd ${PROJECT_DIR}
 # Run the build
 echo "Running Android application..."
 ionic cordova run android --warning-mode=none --color --device
+
+#ng run app:ionic-cordova-build --platform=android --aot
+#native-run android --app platforms/android/app/build/outputs/apk/debug/app-debug.apk --device

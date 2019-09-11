@@ -382,6 +382,7 @@
         "TITLE": "Lot {{label}}",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_NAME": "Espèce scientifique",
+        "PARENT": "Lot espèce",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "ESTIMATED_WEIGHT": "Poids estimé",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
@@ -598,10 +599,18 @@
     "DESCRIPTION": "Description",
     "COMMENTS": "Commentaires",
     "STATUS": "Etat",
-    "RANKORDER": "#",
+    "RANK_ORDER": "#",
     "EXTERIOR_MARKING": "Immatriculation",
     "BASE_PORT_LOCATION": {
       "LABEL": "Port d'attache",
+      "NAME": ""
+    },
+    "TAXON_GROUP": {
+      "LABEL": "Espèce commerciale",
+      "NAME": ""
+    },
+    "TAXON_NAME": {
+      "LABEL": "Espèce scientifique",
       "NAME": ""
     },
     "LIST": {
