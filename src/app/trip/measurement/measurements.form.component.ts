@@ -110,7 +110,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
       // Update measurements value
       //if (this.debug) console.debug(`${this.logPrefix} Updating form measurements...`);
       const json = this.form.value;
-      MeasurementValuesUtils.updateMeasurementValues(json, this.data, dirtyPmfms);
+      MeasurementUtils.setValuesByFormValues(this.data, json, dirtyPmfms);
       //if (this.debug) console.debug(`${this.logPrefix} Updating form measurements [OK]`, this.data);
     }
 
@@ -246,8 +246,9 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     if (this.debug) console.debug(`${this.logPrefix} Updating form, using pmfms:`, pmfms);
 
     this.measurementValidatorService.updateFormGroup(this.form, pmfms);
-    const json = MeasurementValuesUtils.toFormValues(this.data, pmfms);
     this.data = MeasurementUtils.initAllMeasurements(this.data, pmfms);
+
+    const json = MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(this.data), pmfms);
     this.form.patchValue(json, {
       onlySelf: true,
       emitEvent: false

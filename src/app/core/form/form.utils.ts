@@ -79,7 +79,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
           }
         }
       }
-      if (value[key] === undefined) {
+      else if (source[key] === undefined) {
         console.warn("Invalid form value. Expected array but found:", source[key]);
         value[key] = [];
       }
@@ -214,7 +214,7 @@ export function resizeArray(formBuilder: FormBuilder,
   // Or reduce
   else if (arrayControl.length > length) {
     while (arrayControl.length > length) {
-      arrayControl.at(arrayControl.length - 1);
+      arrayControl.removeAt(arrayControl.length - 1);
     }
   }
 
@@ -333,5 +333,13 @@ export class FormArrayHelper<T = Entity<T>> {
       this.removeAt(index);
       index = this.arrayControl.controls.findIndex(c => this.isEmpty(c.value));
     }
+  }
+
+  size(): number {
+    return this.arrayControl.length;
+  }
+
+  at(index: number): AbstractControl {
+    return this.arrayControl.at(index) as AbstractControl;
   }
 }

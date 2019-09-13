@@ -13,7 +13,6 @@
         <mat-autocomplete-field #matInput formControlName="parent"
                                 [appAutofocus]="enabled && showParent && !mobile"
                                 [placeholder]="'TRIP.BATCH.EDIT.PARENT'|translate"
-                                tabindex="1"
                                 [required]="showParent"
                                 [config]="autocompleteFields.parent"
                                 [displayWith]="parentToString">

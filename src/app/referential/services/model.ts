@@ -19,6 +19,7 @@ import {
 import {Moment} from "moment/moment";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {PropertiesMap} from "../../core/services/model";
+import {Measurement} from "../../trip/services/model/measurement.model";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
@@ -607,5 +608,23 @@ export class Strategy extends Entity<Strategy> {
         // Same program
         && ((!this.programId && !other.programId) || this.programId === other.programId)
       );
+  }
+}
+
+
+
+export class PmfmUtils {
+
+  static getFirstQualitativePmfm(pmfms: PmfmStrategy[]): PmfmStrategy {
+    let qvPmfm = pmfms.find(p => p.isQualitative
+      // exclude hidden pmfm (see batch modal)
+      && !p.hidden
+    );
+    // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
+    if (qvPmfm && qvPmfm.pmfmId === PmfmIds.DISCARD_OR_LANDING) {
+      qvPmfm = qvPmfm.clone(); // copy, to keep original array
+      qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
+    }
+    return qvPmfm;
   }
 }

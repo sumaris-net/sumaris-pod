@@ -65,7 +65,7 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.location = source.location && ReferentialRef.fromObject(source.location);
 
-    this.measurementValues = source.measurementValues || MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
+    this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.landings = source.landings && source.landings.map(Landing.fromObject) || [];
 

@@ -2,6 +2,7 @@ import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../shared/validator/validators";
+import {Batch, BatchWeight} from "./model/batch.model";
 
 @Injectable()
 export class BatchValidatorService implements ValidatorService {
@@ -14,11 +15,11 @@ export class BatchValidatorService implements ValidatorService {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: any): FormGroup {
+  getFormGroup(data?: Batch): FormGroup {
     return this.formBuilder.group(this.getFormGroupConfig(data));
   }
 
-  protected getFormGroupConfig(data?: any): { [key: string]: any } {
+  protected getFormGroupConfig(data?: Batch): { [key: string]: any } {
     return {
       id: [''],
       updateDate: [''],
@@ -31,7 +32,17 @@ export class BatchValidatorService implements ValidatorService {
       taxonName: ['', SharedValidators.entity],
       comments: [''],
       parent: ['', SharedValidators.entity],
-      measurementValues: this.formBuilder.group({})
+      measurementValues: this.formBuilder.group({}),
+      children: this.formBuilder.array([])
     };
+  }
+
+  getWeightFormGroup(data?: BatchWeight): FormGroup {
+    return this.formBuilder.group({
+      methodId: ['', SharedValidators.integer],
+      estimated: [''],
+      calculated: [''],
+      value: ['', SharedValidators.double]
+    });
   }
 }

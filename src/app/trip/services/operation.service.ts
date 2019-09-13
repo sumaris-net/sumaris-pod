@@ -240,7 +240,8 @@ export class OperationService extends BaseDataService implements TableDataServic
       variables: {
         id: id
       },
-      error: {code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR"}
+      error: {code: ErrorCodes.LOAD_OPERATION_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || undefined
     });
 
     const data = res && res.operation && Operation.fromObject(res.operation);

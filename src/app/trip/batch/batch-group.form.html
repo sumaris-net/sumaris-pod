@@ -1,0 +1,64 @@
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+
+  <!-- error -->
+  <ion-item *ngIf="error && showError" visible-xs visible-sm>
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <!-- Species batch  -->
+  <ion-grid no-padding *ngIf="qvPmfm && !loading">
+    <ion-row no-padding>
+      <ion-col no-padding>
+<!--        <app-batch-form [acquisitionLevel]="acquisitionLevel"-->
+<!--                        [form]="form"-->
+<!--                        [value]="data"-->
+<!--                        [pmfms]="$pmfms | async"-->
+<!--                        [showSampleBatch]="!!qvPmfm"-->
+<!--                        [showTaxonGroup]="showTaxonGroup"-->
+<!--                        [showTaxonName]="showTaxonName"-->
+<!--                        [showTotalIndividualCount]="showTotalIndividualCount"-->
+<!--                        [showIndividualCount]="showIndividualCount">-->
+<!--        </app-batch-form>-->
+        <app-batch-form [acquisitionLevel]="acquisitionLevel"
+                        [form]="form"
+                        [value]="data"
+                        [pmfms]="$pmfms | async"
+                        [showSampleBatch]="false"
+                        [showTaxonGroup]="showTaxonGroup"
+                        [showTaxonName]="showTaxonName"
+                        [showTotalIndividualCount]="false"
+                        [showIndividualCount]="false">
+        </app-batch-form>
+      </ion-col>
+    </ion-row>
+
+    <!-- QV children -->
+    <ion-row no-padding  >
+      <ion-col size="12" size-md="" *ngFor="let childForm of childrenFormArray?.controls; index as i;" no-padding>
+
+        <ion-card class="qv" [class.even]="i % 2 === 0" [class.odd]="i % 2 !== 0">
+
+          <ion-card-header>
+            <ion-card-title>{{ qvPmfm.qualitativeValues[i].name }}</ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            <app-batch-form [acquisitionLevel]="acquisitionLevel"
+                            [form]="childForm"
+                            [value]="data.children[i]"
+                            [pmfms]="$childrenPmfms | async"
+                            [showTaxonGroup]="false"
+                            [showTaxonName]="false"
+                            [showSampleBatch]="true"
+                            [showTotalIndividualCount]="showTotalIndividualCount"
+                            [showIndividualCount]="showIndividualCount"
+            ></app-batch-form>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+
+</form>

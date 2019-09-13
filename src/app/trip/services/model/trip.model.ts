@@ -13,7 +13,6 @@ import {Sale} from "./sale.model";
 import {Sample} from "./sample.model";
 import {Batch} from "./batch.model";
 import {MetierRef} from "../../../referential/services/model/taxon.model";
-import * as moment from "moment";
 
 
 /* -- Helper function -- */
@@ -145,7 +144,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
     super.fromObject(source);
     this.rankOrder = source.rankOrder;
     source.gear && this.gear.fromObject(source.gear);
-    this.measurementValues = source.measurementValues || MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
+    this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
     return this;
   }
 

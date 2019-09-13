@@ -1,7 +1,7 @@
-import {EntityUtils, fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
+import {fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
 import {ReferentialRef} from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
-import {DataEntity, DataRootEntity} from "./base.model";
+import {DataRootEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils} from "./measurement.model";
 
 
@@ -80,7 +80,7 @@ export class Sample extends DataRootEntity<Sample> implements IEntityWithMeasure
     this.parent = source.parent;
     this.batchId = source.batchId;
     this.operationId = source.operationId;
-    this.measurementValues = source.measurementValues || MeasurementUtils.measurementsValuesFromObjectArray(source.measurements);
+    this.measurementValues = source.measurementValues || MeasurementUtils.toMeasurementValues(source.measurements);
 
     return this;
   }

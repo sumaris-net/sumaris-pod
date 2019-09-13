@@ -23,6 +23,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   onDeckPmfms = new Subject<PmfmStrategy[]>();
   sortingPmfms = new Subject<PmfmStrategy[]>();
   weightPmfms = new Subject<PmfmStrategy[]>();
+  hasPmfms: boolean;
 
   @Input() showError = true;
 
@@ -50,6 +51,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
         this.onDeckPmfms.next(pmfms.filter(p => p.label.indexOf('ON_DECK_') === 0));
         this.sortingPmfms.next(pmfms.filter(p => p.label.indexOf('SORTING_') === 0));
         this.weightPmfms.next(pmfms.filter(p => p.label.indexOf('_WEIGHT') > 0));
+        this.hasPmfms = pmfms.length > 0;
       }));
 
     // Make sure to set the label
@@ -57,4 +59,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
       this._onValueChanged.subscribe((_) => this.data.label = this._acquisitionLevel)
     );
   }
+
+
 }

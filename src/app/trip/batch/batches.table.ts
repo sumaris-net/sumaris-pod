@@ -14,16 +14,17 @@ import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AcquisitionLevelCodes, environment, isNil, ReferentialRef} from "../../core/core.module";
 import {Batch, getPmfmName, Landing, Operation, PmfmStrategy, referentialToString} from "../services/trip.model";
-import {PmfmIds, PmfmLabelPatterns, ReferentialRefService} from "../../referential/referential.module";
+import {PmfmLabelPatterns, PmfmUtils, ReferentialRefService} from "../../referential/referential.module";
 import {isNotNil} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
-import {BatchModal} from "./batch.modal";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {BatchUtils} from "../services/model/batch.model";
 import {isNotEmptyArray} from "../../shared/functions";
+import {BatchModal} from "./batch.modal";
+import {ComponentRef} from "@ionic/core";
 
 
 export interface BatchFilter {
@@ -57,6 +58,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   qvPmfm: PmfmStrategy;
   defaultWeightPmfm: PmfmStrategy;
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
+  detailModal: ComponentRef;
 
   @Input()
   set value(data: Batch[]) {
@@ -125,6 +127,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.inlineEdition = !this.mobile;
+    this.detailModal = BatchModal;
 
     // Set default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -168,7 +171,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     if (!row) throw new Error("Could not add row t table");
 
     // Adapt measurement values to row
-    this.normalizeRowMeasurementValues(newBatch, row);
+    this.conformEntityToForm(newBatch, row);
 
     // Override rankOrder (keep computed value)
     newBatch.rankOrder = row.currentData.rankOrder;
@@ -187,12 +190,19 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   }
 
   protected async openRow(id: number, row: TableElement<Batch>): Promise<boolean> {
-    const gear = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
 
-    const updatedBatch = await this.openDetailModal(gear);
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit({id, row});
+      return true;
+    }
+
+    const batch = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
+    const updatedBatch = await this.openDetailModal(batch);
     if (updatedBatch) {
       // Adapt measurement values to row
-      this.normalizeRowMeasurementValues(updatedBatch, row);
+      this.conformEntityToForm(updatedBatch, row);
 
       // Update the row
       row.currentData = updatedBatch;
@@ -211,18 +221,28 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       batch = new Batch();
       await this.onNewEntity(batch);
     }
+    else {
+      // Do a copy, because edition can be cancelled
+      batch = batch.clone();
+
+      // Prepare entity measurement values
+      this.prepareEntityToSave(batch);
+    }
 
     const modal = await this.modalCtrl.create({
-      component: BatchModal,
+      component: this.detailModal,
       componentProps: {
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
-        value: batch.clone(), // Do a copy, because edition can be cancelled
+        value: batch,
         isNew: isNew,
+        qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
-        showIndividualCount: false // Not need on a root species batch (fill in sub-batches)
+        // Not need on a root species batch (fill in sub-batches)
+        showTotalIndividualCount: false,
+        showIndividualCount: false
       }, keyboardClose: true
     });
 
@@ -308,6 +328,10 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
   /* -- protected methods -- */
 
+  protected prepareEntityToSave(batch: Batch) {
+    // Override by subclasses
+  }
+
   /**
    * Allow to remove/Add some pmfms. Can be oerrive by subclasses
    * @param pmfms
@@ -328,14 +352,9 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       return res;
     }, {});
 
+
     // Find the first qualitative PMFM
-    let qvPmfm = pmfms.find(p => p.type === 'qualitative_value');
-    // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
-    if (qvPmfm && qvPmfm.pmfmId === PmfmIds.DISCARD_OR_LANDING) {
-      qvPmfm = qvPmfm.clone(); // copy, to keep original array
-      qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
-    }
-    this.qvPmfm = qvPmfm;
+    this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms);
 
     // Remove weight pmfms
     return pmfms.filter(p => !p.isWeight);

@@ -14,9 +14,9 @@
                size="12" size-md=""
                [hidden]="!showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
-                                [appAutofocus]="enabled && showTaxonGroup && !mobile"
+                                [appAutofocus]="enabled && !mobile && showTaxonGroup"
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
-                                tabindex="1"
+                                [tabindex]="tabindex"
                                 [required]="showTaxonGroup"
                                 [config]="autocompleteFields.taxonGroup">
         </mat-autocomplete-field>
@@ -26,11 +26,10 @@
       <ion-col no-padding padding-left no-padding-xs no-padding-sm
                size="12" size-md=""
                *ngIf="showTaxonName">
-        <mat-autocomplete-field floatLabel="never"
-                                formControlName="taxonName"
+        <mat-autocomplete-field formControlName="taxonName"
                                 [appAutofocus]="enabled && !mobile && !showTaxonGroup && showTaxonName"
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
-                                tabindex="2"
+                                [tabindex]="tabindex+1"
                                 [required]="showTaxonName"
                                 [config]="autocompleteFields.taxonName">
         </mat-autocomplete-field>
@@ -40,70 +39,77 @@
     <ion-spinner float-center *ngIf="loading"></ion-spinner>
 
     <!-- Measurements -->
+    <ion-row no-padding>
+      <ion-col no-padding *ngFor="let pmfm of $pmfms | async; index as i;" no-padding>
 
-    <ion-row no-padding
-             *ngFor="let pmfm of $pmfms | async; index as i;">
+        <!-- qualitative value (force 'button' style, on mobile)-->
+        <ng-container *ngIf="pmfm.isQualitative; else otherField">
+          <mat-form-field-measurement-qv #matInput
+                                         [hidden]="pmfm.hidden"
+                                         [pmfm]="pmfm"
+                                         [style]="mobile? 'button' : 'autocomplete'"
+                                         [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                         [compact]="compact"
+                                         [required]="true"
+                                         [tabindex]="tabindex+2 + i*2">
+          </mat-form-field-measurement-qv>
+        </ng-container>
 
-      <!-- qualitative value (force 'button' style, on mobile)-->
-      <ion-col no-padding *ngIf="pmfm.isQualitative; else otherField">
-        <mat-form-field-measurement-qv #matInput
-                                       [pmfm]="pmfm"
-                                       [style]="mobile? 'button' : 'autocomplete'"
-                                       [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
-                                       [floatLabel]="floatLabel"
-                                       [tabindex]="tabindex+10 + i*2"
-                                       [compact]="compact"
-                                       [required]="true">
-        </mat-form-field-measurement-qv>
-      </ion-col>
+        <!-- NOT qualitative value -->
+        <ng-template #otherField>
 
-      <!-- NOT qualitative value -->
-      <ng-template #otherField>
-        <ion-col no-padding>
           <mat-form-field-measurement #matInput
+                                      [hidden]="pmfm.hidden"
                                       [pmfm]="pmfm"
                                       [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
-                                      [placeholder]="(pmfm.isWeight && 'TRIP.BATCH.EDIT.TOTAL_WEIGHT')|translate"
                                       [compact]="compact"
-                                      [tabindex]="tabindex+10 + i*2"
                                       [required]="true"
-                                      [floatLabel]="floatLabel">
+                                      [tabindex]="tabindex+2 + i*2">
           </mat-form-field-measurement>
+        </ng-template>
 
-        </ion-col>
+      </ion-col>
+    </ion-row>
 
-        <!-- is estimated weight ?-->
-        <ion-col no-padding padding-left
-                 size="3"
-                 *ngIf="pmfm.isWeight">
+    <!-- Weight -->
+    <ion-row *ngIf="defaultWeightPmfm">
+      <ion-col no-padding>
+        <mat-form-field-measurement #matInput
+                                    [pmfm]="defaultWeightPmfm"
+                                    [formControl]="form.controls.weight.controls.value"
+                                    [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
+                                    [compact]="compact"
+                                    [tabindex]="tabindex+28"
+                                    [required]="true">
+        </mat-form-field-measurement>
 
-          <mat-form-field floatLabel="never">
-            <!-- fake input -->
-            <input matInput
-                   [formControl]="estimatedWeightControl"
-                   [required]="true"
-                   hidden
-                   tabindex="-1">
+      </ion-col>
 
-            <!-- add a empty label, to force height-->
-            <ion-label>&nbsp;</ion-label>
+      <!-- is estimated weight ?-->
+      <ion-col size="6" no-padding padding-left>
 
-            <!-- checkbox, when compact -->
-            <mat-checkbox matPrefix [formControl]="estimatedWeightControl"
-                          labelPosition="after"
-                          [tabindex]="tabindex+10 + i*2 + 1">
-              <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
-            </mat-checkbox>
-          </mat-form-field>
+        <mat-form-field floatLabel="never">
+          <!-- fake input -->
+          <input matInput hidden>
 
-        </ion-col>
-      </ng-template>
+          <ion-label>&nbsp;</ion-label>
+
+          <!-- checkbox, when compact -->
+          <mat-checkbox matPrefix
+                        [formControl]="form.controls.weight.controls.estimated"
+                        labelPosition="after"
+                        [tabindex]="tabindex+29">
+            <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
+          </mat-checkbox>
+        </mat-form-field>
+
+      </ion-col>
     </ion-row>
 
     <!-- Total NB individual  -->
-    <ion-row no-padding *ngIf="showIndividualCount">
+    <ion-row no-padding *ngIf="showTotalIndividualCount">
       <ion-col no-padding>
-        <mat-form-field floatLabel="never">
+        <mat-form-field>
           <input matInput
                  formControlName="individualCount"
                  autocomplete="off"
@@ -127,23 +133,23 @@
     <div [hidden]="!showSampleBatch" formArrayName="children">
       <ion-row no-padding>
         <ion-col no-padding>
-          <!-- checkbox, when compact -->
-          <mat-checkbox [checked]="isSampling"
-                        labelPosition="after"
-                        [tabindex]="tabindex+31"
-                        (change)="setIsSampling($event.checked)">
-            <ion-text>{{'TRIP.BATCH.EDIT.IS_SAMPLING'|translate}}</ion-text>
-          </mat-checkbox>
+            <!-- checkbox, when compact -->
+            <mat-checkbox [checked]="isSampling"
+                          labelPosition="after"
+                          [tabindex]="tabindex+31"
+                          (change)="setIsSampling($event.checked)">
+              <ion-text>{{'TRIP.BATCH.EDIT.IS_SAMPLING'|translate}}</ion-text>
+            </mat-checkbox>
         </ion-col>
       </ion-row>
 
       <ion-row no-padding
-        *ngFor="let sample of form.get('children')?.controls; let i=index"
+        *ngFor="let samplingBatchForm of form.get('children')?.controls; let i=index"
         [formGroupName]="i">
 
         <!-- Sampling ratio -->
-        <ion-col size="3" no-padding>
-          <mat-form-field floatLabel="never">
+        <ion-col size="4" no-padding>
+          <mat-form-field>
             <input matInput
                    formControlName="samplingRatio"
                    type="number"
@@ -151,13 +157,26 @@
                    pattern="[0-9]*"
                    (click)="selectInputContent($event)"
                    [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_RATIO'|translate"
-                   [tabindex]="tabindex + 32 + i*3">
+                   [tabindex]="tabindex + 32">
           </mat-form-field>
         </ion-col>
 
+        <!-- Sampling weight -->
+        <ion-col no-padding *ngIf="defaultWeightPmfm">
+
+          <mat-form-field-measurement #matInput
+                                      [pmfm]="defaultWeightPmfm"
+                                      [formControl]="samplingBatchForm.controls.weight.controls.value"
+                                      [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
+                                      [compact]="compact"
+                                      [tabindex]="tabindex+33"
+                                      [required]="true">
+          </mat-form-field-measurement>
+        </ion-col>
+
         <!-- Sampling individual count -->
-        <ion-col no-padding padding-left>
-          <mat-form-field floatLabel="never">
+        <ion-col size="4" no-padding *ngIf="showIndividualCount">
+          <mat-form-field>
             <input matInput
                    formControlName="individualCount"
                    type="number"
@@ -165,23 +184,13 @@
                    pattern="[0-9]*"
                    (click)="selectInputContent($event)"
                    [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_INDIVIDUAL_COUNT'|translate"
-                   [tabindex]="tabindex + 32 + i*3 + 1">
+                   [tabindex]="tabindex + 34">
           </mat-form-field>
-        </ion-col>
-
-        <!-- Sampling weight -->
-        <ion-col no-padding padding-left *ngIf="defaultWeightPmfm">
-          <mat-form-field-measurement [pmfm]="defaultWeightPmfm"
-                                      [formControl]="sample.controls.measurementValues.controls[defaultWeightPmfm.pmfmId]"
-                                      [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
-                                      [compact]="compact"
-                                      [tabindex]="tabindex + 32 + i*3 + 2"
-                                      [floatLabel]="floatLabel">
-          </mat-form-field-measurement>
         </ion-col>
       </ion-row>
     </div>
 
   </ion-grid>
+
 
 </form>

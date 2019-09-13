@@ -1,6 +1,7 @@
 <mat-toolbar>
-  <!-- TODO hidden-mobile -->
-  <button mat-icon-button *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+  <button mat-icon-button
+          hidden-xs hidden-sm hidden-mobile
+          *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>
   <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
@@ -30,7 +31,7 @@
 </ion-item>
 
 <!-- First header row -->
-<mat-table *ngIf="qvPmfm">
+<mat-table *ngIf="qvPmfm" [class.plt-mobile]="mobile">
   <ng-container matColumnDef="select">
     <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
@@ -54,13 +55,14 @@
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
     <mat-header-cell *matHeaderCellDef class="qv" [class.even]="pmfm.id % 2 === 0"
                      [class.odd]="pmfm.id % 2 !== 0"
+                     [class.hidden-mobile]="pmfm.pmfmId % 5 !== 0"
                      [class.show]="pmfm.pmfmId % 5 === 0">
       <mat-label float-center *ngIf="pmfm.pmfmId % 5 === 0">
         <span>{{qvPmfm.qualitativeValues[pmfm.id].name}}</span><br/>
         <mat-checkbox *ngIf="weightMethodForm"
                       [formControl]="weightMethodForm.controls[pmfm.id]"
                       labelPosition="before">
-          {{'TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION'|translate}}
+          <ion-text translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
         </mat-checkbox>
       </mat-label>
     </mat-header-cell>
@@ -68,7 +70,7 @@
 
   <!-- Comment column -->
   <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm"></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
   </ng-container>
 
   <!-- Actions buttons column -->
@@ -76,6 +78,7 @@
     <mat-header-cell *matHeaderCellDef>
       <!-- Options menu -->
       <button mat-icon-button
+              hidden-xs hidden-sm hidden-mobile
               [title]="'COMMON.OPTIONS'|translate"
               (click)="openSelectColumnsModal($event)">
         <mat-icon>more_vert</mat-icon>
@@ -87,7 +90,8 @@
 </mat-table>
 
 <mat-table [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
-  [trackBy]="trackByFn">
+           [trackBy]="trackByFn"
+           [class.plt-mobile]="mobile">
 
   <ng-container matColumnDef="select">
     <mat-header-cell  *matHeaderCellDef>
@@ -148,15 +152,22 @@
   <!-- Pmfm columns -->
   <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
 
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)"
-      [class.even]="isEven(pmfm)">
+    <mat-header-cell *matHeaderCellDef mat-sort-header
+                     [class.total]="pmfm.pmfmId % 5 < 2"
+                     [class.odd]="isOdd(pmfm)"
+                     [class.hidden-mobile]="pmfm.pmfmId % 5 !== 0"
+                     [class.even]="isEven(pmfm)">
       <mat-label float-center>
         <span>{{getPmfmColumnHeader(pmfm)}}</span>
         <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
       </mat-label>
     </mat-header-cell>
 
-    <mat-cell *matCellDef="let row" [class.total]="pmfm.pmfmId % 5 < 2" [class.odd]="isOdd(pmfm)" [class.even]="isEven(pmfm)">
+    <mat-cell *matCellDef="let row"
+              [class.total]="pmfm.pmfmId % 5 < 2"
+              [class.odd]="isOdd(pmfm)"
+              [class.even]="isEven(pmfm)"
+              [class.hidden-mobile]="pmfm.pmfmId % 5 !== 0">
       <mat-form-field-measurement
         [readonly]="!row.editing"
         [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
@@ -186,7 +197,7 @@
 
   <!-- Comment column -->
   <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+    <mat-header-cell *matHeaderCellDef >
       <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
@@ -219,22 +230,27 @@
         (click)="confirmAndAddRow($event, row)">
         <mat-icon>add</mat-icon>
       </button>
+
+      <!-- open batch modal
+      <button mat-icon-button
+              color="light" *ngIf="!row.editing"
+              [title]="'COMMON.BTN_EDIT'|translate"
+              (click)="$event.preventDefault() || this.openRow(row.currentData.id, row)">
+        <mat-icon>edit</mat-icon>
+      </button>-->
+
       <!-- open individual measures -->
-      <button mat-icon-button color="light" *ngIf="!row.editing"
+      <!-- TODO visible-xs visible-sm visible-mobile -->
+      <button mat-icon-button
+              color="light" *ngIf="!row.editing"
               [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
               (click)="onSubBatchesClick($event, row)">
 <!--        <mat-icon [matBadge]="row.currentData.individualCount"-->
 <!--                  matBadgePosition="above after">assessment</mat-icon>-->
         <mat-icon>assessment</mat-icon>
       </button>
-      <!-- open individual measures
-      <button mat-icon-button color="light"
-              *ngIf="!row.editing"
-              [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
-              (click)="openSubBatchesModal($event, row)">
-        <mat-icon [matBadge]="row.currentData.individualCount"
-                  matBadgePosition="above after">list</mat-icon>
-      </button> -->
+
+
     </mat-cell>
   </ng-container>
 

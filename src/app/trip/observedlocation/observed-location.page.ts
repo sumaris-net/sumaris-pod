@@ -35,6 +35,7 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> im
       dataService);
 
     this.defaultBackHref = "/observations";
+    this.idAttribute = 'observedLocationId';
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;

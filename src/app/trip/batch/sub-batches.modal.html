@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="accent">
 
     <ion-buttons slot="start">
       <ion-button (click)="close($event)"
@@ -107,30 +107,35 @@
               <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row" [hidden]="!showIndividualCount">
-              {{row.currentData?.individualCount}}
+              {{row.currentData.individualCount}}
             </mat-cell>
           </ng-container>
 
           <!-- Comment column -->
           <ng-container matColumnDef="comments">
-            <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
+            <mat-header-cell *matHeaderCellDef hidden-xs hidden-sm hidden-mobile>
               <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
             </mat-header-cell>
-            <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm">
-              {{measurementValueToString(row.currentData?.comments)}}
+            <mat-cell *matCellDef="let row" hidden-xs hidden-sm hidden-mobile>
+              {{measurementValueToString(row.currentData.comments)}}
             </mat-cell>
           </ng-container>
 
-          <!-- Actions buttons column -->
+          <!-- Actions column -->
           <ng-container matColumnDef="actions">
             <mat-header-cell *matHeaderCellDef>
-              <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+              <!-- select column modal -->
+              <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate"
+                      (click)="openSelectColumnsModal($event)"
+                      tabindex="-1">
                 <mat-icon>more_vert</mat-icon>
               </button>
             </mat-header-cell>
+
             <mat-cell *matCellDef="let row">
               <!-- delete  -->
-              <button mat-icon-button small color="light" [title]="'COMMON.BTN_DELETE'|translate"
+              <button mat-icon-button color="light" [title]="'COMMON.BTN_DELETE'|translate"
+                      tabindex="-1"
                       (click)="cancelOrDelete($event, row)">
                 <mat-icon>delete_outline</mat-icon>
               </button>

@@ -146,12 +146,6 @@
 
   <!-- other -->
   <div *ngSwitchDefault>
-<!--    <input matInput #matInput autocomplete="off"-->
-<!--           type="text"-->
-<!--           [placeholder]="placeholder"-->
-<!--           [formControl]="formControl"-->
-<!--           [required]="required"-->
-<!--           [tabindex]="tabindex">-->
     <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>
     <mat-error *ngIf="!type">Error on field for PMFM {{pmfm.pmfmId}}. Please report this error.</mat-error>
     <div matSuffix>

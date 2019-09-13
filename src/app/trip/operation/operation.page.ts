@@ -55,6 +55,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   usageMode: UsageMode;
   mobile: boolean;
+  idAttribute: string; // TODO remove if use EditorPage
 
   @ViewChild('matTabGroup') matTabGroup: MatTabGroup;
   @ViewChild('batchTabGroup') batchTabGroup: MatTabGroup;
@@ -85,6 +86,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   ) {
     super(route, router, alterCtrl, translate);
 
+    this.idAttribute= 'operationId';
+
     // Init mobile (WARN
     this.mobile = this.settings.mobile;
 
@@ -110,12 +113,12 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Read route
     this.route.params.pipe(first())
-      .subscribe(async ({tripId, id}) => {
+      .subscribe(async ({tripId, operationId}) => {
         if (isNil(tripId)) return; // skip
-        if (isNil(id) || id === "new") {
+        if (isNil(operationId) || operationId === "new") {
           await this.load(undefined, {tripId: tripId});
         } else {
-          await this.load(+id, {tripId: tripId});
+          await this.load(+operationId, {tripId: tripId});
         }
       });
 

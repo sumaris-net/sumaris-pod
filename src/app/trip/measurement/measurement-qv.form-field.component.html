@@ -119,15 +119,13 @@
            [placeholder]="pmfm.name">
     <ion-grid no-padding>
       <ion-row no-padding>
-        <ion-col no-padding *ngFor="let item of pmfm.qualitativeValues; index as i">
-          <ion-button (click)="formControl.setValue(item)"
-                      [tabIndex]="tabindex && (tabindex + i)"
-                      expand="block"
-                      [color]="!formControl.value ? 'medium' : (formControl.value?.id === item.id ? 'accent' : 'light')">
-            <ion-label>
-              {{entityToString(item, searchAttributes)}}
-            </ion-label>
-          </ion-button>
+        <ion-col *ngFor="let item of pmfm.qualitativeValues; index as i">
+          <button type="button" mat-raised-button style="width: 100%;"
+                  [tabindex]="tabindex && (tabindex + i)"
+                  (click)="formControl.setValue(item)"
+                  [color]="!formControl.value ? '' : (formControl.value?.id === item.id ? 'accent' : 'light')">
+            {{item.name || item.label}}
+          </button>
         </ion-col>
       </ion-row>
     </ion-grid>

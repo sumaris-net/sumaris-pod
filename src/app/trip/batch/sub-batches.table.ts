@@ -326,7 +326,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
       newBatch.taxonName = (!enableIndividualCount && this.showIndividualCount) ? previousBatch.taxonName : null;
     }
 
-    MeasurementValuesUtils.normalizeFormEntity(newBatch, this.$pmfms.getValue(), this.form.form);
+    MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.getValue(), this.form.form);
 
     if (this.form.disabled) {
       this.form.enable();
@@ -435,7 +435,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
 
     const pmfms = this.$pmfms.getValue() || [];
-    MeasurementValuesUtils.normalizeFormEntity(newBatch, pmfms);
+    MeasurementValuesUtils.normalizeEntityToForm(newBatch, pmfms);
 
     let row = undefined;
 

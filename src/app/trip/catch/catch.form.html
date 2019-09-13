@@ -10,7 +10,7 @@
 
     <!-- on deck  -->
     <ng-container *ngIf="onDeckPmfms | async;let pmfms"> <!-- loading -->
-      <ion-row *ngIf="pmfms.length">
+      <ion-row *ngIf="pmfms.length" no-padding>
         <ion-col size="12" size-md="3" align-self-end>
           <ion-label float-end translate>TRIP.CATCH.FORM.ON_DECK</ion-label>
         </ion-col>
@@ -26,7 +26,7 @@
 
     <!-- Sorting -->
     <ng-container *ngIf="sortingPmfms | async;let pmfms">
-      <ion-row *ngIf="pmfms.length">
+      <ion-row *ngIf="pmfms.length" no-padding>
         <ion-col size="12" size-md="3" align-self-end>
           <ion-label float-end translate>TRIP.CATCH.FORM.SORTING</ion-label>
         </ion-col>
@@ -42,7 +42,7 @@
     </ng-container>
 
     <!-- Landing weight -->
-    <ion-row *ngIf="!(weightPmfms | async)">
+    <ion-row *ngIf="!(weightPmfms | async)" no-padding>
       <ion-col size="12" size-md="3" align-self-end>
         <ion-label float-end translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
       </ion-col>
@@ -53,7 +53,7 @@
       </ion-col>
     </ion-row>
     <ng-container *ngIf="weightPmfms | async;let pmfms">
-      <ion-row *ngIf="pmfms.length">
+      <ion-row *ngIf="pmfms.length" no-padding>
         <ion-col size="12" size-md="3" align-self-end>
           <ion-label float-end translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
         </ion-col>

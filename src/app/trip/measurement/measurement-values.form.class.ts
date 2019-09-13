@@ -96,7 +96,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
                         protected programService: ProgramService,
                         protected settings: LocalSettingsService,
                         protected cd: ChangeDetectorRef,
-                        form: FormGroup,
+                        form?: FormGroup,
                         protected options?: MeasurementValuesFormOptions<T>
   ) {
     super(dateAdapter, form, settings);
@@ -144,7 +144,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (pmfms && this.form && this.form.controls['measurementValues']) {
       const pmfmForm = this.form.controls['measurementValues'] as FormGroup;
       pmfms.map(pmfm => pmfmForm.controls[pmfm.pmfmId])
-        .forEach(control => control.markAsTouched({onlySelf: true}));
+        .forEach(control => control && control.markAsTouched({onlySelf: true}));
     }
   }
 
@@ -211,7 +211,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     this.loadingControls = true;
-    this.$loadingControls.next(true);
+    if (this.$loadingControls.getValue() !== true) this.$loadingControls.next(true);
     this.loading = true;
 
     if (event) if (this.debug) console.debug(`${this.logPrefix} updateControls(${event})...`);
@@ -223,24 +223,22 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
         this.measurementValidatorService.updateFormGroup(formGroup, []);
         formGroup.reset({}, {onlySelf: true, emitEvent: false});
       }
-      this.loading = false;
-      this.loadingControls = false;
-      this.$loadingControls.next(false);
-      return true;
     }
 
-    if (this.debug) console.debug(`${this.logPrefix} Updating form, using pmfms:`, pmfms);
-
-    // Create measurementValues form group
-    if (!formGroup) {
-      formGroup = this.measurementValidatorService.getFormGroup(pmfms);
-      this.form.addControl('measurementValues', formGroup);
-      formGroup.disable({onlySelf: true, emitEvent: false});
-    }
-
-    // Or update if already exist
     else {
-      this.measurementValidatorService.updateFormGroup(formGroup as FormGroup, pmfms);
+      if (this.debug) console.debug(`${this.logPrefix} Updating form controls, using pmfms:`, pmfms);
+
+      // Create measurementValues form group
+      if (!formGroup) {
+        formGroup = this.measurementValidatorService.getFormGroup(pmfms);
+        this.form.addControl('measurementValues', formGroup);
+        formGroup.disable({onlySelf: true, emitEvent: false});
+      }
+
+      // Or update if already exist
+      else {
+        this.measurementValidatorService.updateFormGroup(formGroup as FormGroup, pmfms);
+      }
     }
 
     // Call options function
@@ -251,16 +249,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       }
     }
 
-    // if (this.enabled)
     this.loading = false;
     this.loadingControls = false;
     this.$loadingControls.next(false);
 
     if (this.debug) console.debug(`${this.logPrefix} Form controls updated`);
 
-    if (this.data) {
+    if (this.data && pmfms.length) {
       // Adapt measurement values to form
-      MeasurementValuesUtils.normalizeFormEntity(this.data, pmfms, this.form);
+      MeasurementValuesUtils.normalizeEntityToForm(this.data, pmfms, this.form);
 
       formGroup.patchValue(this.data.measurementValues, {
         onlySelf: true,
@@ -278,8 +275,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       formGroup.disable({onlySelf: true, emitEvent: false});
     }
 
-    this.markForCheck();
-
     return true;
   }
 
@@ -289,7 +284,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     // Adapt measurement values to form
-    MeasurementValuesUtils.normalizeFormEntity(data, this.$pmfms.getValue(), this.form);
+    MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
 
     super.setValue(data);
 
@@ -307,7 +302,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   public async onReady() {
     // Wait pmfms load, and controls load
-    if (this.$loadingControls.getValue()) {
+    if (this.$loadingControls.getValue() !== false) {
       //if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
       await this.$loadingControls
         .pipe(
@@ -343,7 +338,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       // Find dirty pmfms, to avoid full update
       const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => pmfmForm.controls[pmfm.pmfmId].dirty);
       if (dirtyPmfms.length) {
-        json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.toEntityValues(pmfmForm.value, dirtyPmfms));
+        json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(pmfmForm.value, dirtyPmfms));
       }
     }
 

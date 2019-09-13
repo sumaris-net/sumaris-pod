@@ -15,14 +15,11 @@ import {SpeciesBatchValidatorService} from "../services/validator/species-batch.
 import {PmfmStrategy} from "../../referential/services/model";
 
 @Component({
-  selector: 'app-batch-modal',
-  templateUrl: 'batch.modal.html',
-  providers: [
-    {provide: ValidatorService, useExisting: SpeciesBatchValidatorService}
-  ],
+  selector: 'app-batch-group-modal',
+  templateUrl: 'batch-group.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchModal {
+export class BatchGroupModal {
 
   debug = false;
   loading = false;
@@ -43,8 +40,6 @@ export class BatchModal {
   @Input() showTaxonName = true;
 
   @Input() showIndividualCount = false;
-
-  @Input() showTotalIndividualCount = false;
 
   @Input() qvPmfm: PmfmStrategy;
 

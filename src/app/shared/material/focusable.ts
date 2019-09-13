@@ -31,9 +31,3 @@ export function asInputElement(object: ElementRef): InputElement|undefined {
 export declare interface FocusableElement {
   focus();
 }
-export declare interface InputElement {
-  focus();
-  tabindex?: number;
-  tabIndex?: number;
-  value: any;
-}

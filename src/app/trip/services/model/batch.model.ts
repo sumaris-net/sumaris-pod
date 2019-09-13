@@ -1,8 +1,9 @@
-import {EntityUtils, isNil, isNotNil, referentialToString} from "../../../core/core.module";
+import {EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
 import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
 import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
+import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 
 export declare interface BatchWeight {
   methodId: number;
@@ -15,15 +16,15 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
 
   static SAMPLE_BATCH_SUFFIX = '.%';
 
-  static fromObject(source: any): Batch {
-    const res = new Batch();
-    res.fromObject(source);
-    return res;
+  static fromObject(source: any, opts?: { withChildren: boolean; }): Batch {
+    const target = new Batch();
+    target.fromObject(source, opts);
+    return target;
   }
 
   static fromObjectArrayAsTree(source: any[]): Batch {
     if (!source) return null;
-    const batches = (source || []).map(Batch.fromObject);
+    const batches = (source || []).map((json) => Batch.fromObject(json));
     const catchBatch = batches.find(b => isNil(b.parentId) && (isNilOrBlank(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
     if (catchBatch) {
       batches.forEach(s => {
@@ -43,6 +44,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     //console.debug("[trip-model] Operation.catchBatch as tree:", this.catchBatch);
     return catchBatch;
   }
+
 
   label: string;
   rankOrder: number;
@@ -114,7 +116,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     return target;
   }
 
-  fromObject(source: any): Batch {
+  fromObject(source: any, opts?: { withChildren: boolean; }): Batch {
     super.fromObject(source);
     this.label = source.label;
     this.rankOrder = +source.rankOrder;
@@ -139,6 +141,10 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
         if (value) map[m.pmfmId] = value;
         return map;
       }, {}) || undefined;
+    }
+
+    if (source.children && opts && opts.withChildren) {
+      this.children = source.children.map(child => Batch.fromObject(child, opts));
     }
 
     return this;
@@ -213,6 +219,12 @@ export class BatchUtils {
       && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
   }
 
+  public static getAcquisitionLevelFromLabal(batch: Batch): string|undefined {
+    if (!batch || !batch.label) return undefined;
+    const parts = batch.label.split('#');
+    return parts.length > 0 && parts[0];
+  }
+
   static getOrCreateSamplingChild(parent: Batch) {
     const samplingLabel = parent.label + Batch.SAMPLE_BATCH_SUFFIX;
 
@@ -241,7 +253,7 @@ export class BatchUtils {
   static prepareSubBatchesForTable(rootBatches: Batch[], subAcquisitionLevel: string, qvPmfm?: PmfmStrategy): Batch[] {
     if (qvPmfm) {
       return rootBatches.reduce((res, rootBatch) => {
-        return res.concat((rootBatch.children || []).reduce((res, qvBatch) => {
+        return res.concat((rootBatch.children || []).reduce((res, qvBatch) => {
           const children = BatchUtils.getChildrenByLevel(qvBatch, subAcquisitionLevel);
           return res.concat(children
             .map(child => {
@@ -294,24 +306,38 @@ export class BatchUtils {
     return rootBatches;
   }
 
-  static prepareBatchesForSimpleTable(rootBatches: Batch[], qvPmfm?: PmfmStrategy): Batch[] {
-    if (!qvPmfm) return rootBatches || [];
+  static normalizeEntityToForm(batch: Batch,
+                               pmfms: PmfmStrategy[],
+                               opts?: {
+                                 withChildren: boolean;
+                                 form: FormGroup;
+                                 formBuilder: FormBuilder;
+                                 createForm: (value?: Batch) => AbstractControl;
+                                 onlyExistingPmfms?: boolean;
+                               }) {
+    if (!batch) return;
 
-    return (rootBatches || []).reduce((res, rootBatch) => {
-        const children = qvPmfm.qualitativeValues.map((qv, index) => {
-          let child = (rootBatch.children || []).find(childBatch => childBatch.measurementValues[qvPmfm.pmfmId] == qv);
-          if (!child) {
-            console.log("Creating new batch");
-            child = new Batch();
-            child.parent = rootBatch;
-            child.rankOrder = index + 1;
-            child.measurementValues = {};
-            child.measurementValues[qvPmfm.pmfmId] = qv;
-          }
-          return child;
-        });
-        rootBatch.children = children;
-        return res.concat(children);
-      }, []);
+    MeasurementValuesUtils.normalizeEntityToForm(batch, pmfms, opts && opts.form, {
+      onlyExistingPmfms: opts && opts.onlyExistingPmfms
+    });
+
+    if (batch.children && opts && opts.withChildren) {
+      const childrenFormHelper = new FormArrayHelper<Batch>(
+        opts.formBuilder,
+        opts.form,
+        'children',
+        (value) => opts.createForm(),
+        (v1, v2) => false,
+        (value) => isNil(value),
+        {allowEmptyArray: true}
+      );
+      childrenFormHelper.resize(batch.children.length);
+
+      batch.children.forEach((child, index) => {
+        // Recursive call, on each children
+        BatchUtils.normalizeEntityToForm(child, pmfms,
+          Object.assign(opts, {form: childrenFormHelper.at(index) as FormGroup}));
+      });
+    }
   }
 }

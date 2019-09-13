@@ -17,14 +17,7 @@ export class SpeciesBatchValidatorService extends BatchValidatorService {
 
   getFormGroup(data?: any): FormGroup {
     return this.formBuilder.group(
-      Object.assign(
-        this.getFormGroupConfig(),
-        // Add children (with one sample batch)
-        {
-          children: this.formBuilder.array(
-            [this.formBuilder.group(this.getFormGroupConfig())]
-          )
-        }),
+      this.getFormGroupConfig(),
       {
         asyncValidators: this.requiredTaxon()
       }
@@ -38,7 +31,7 @@ export class SpeciesBatchValidatorService extends BatchValidatorService {
         const taxonGroup = control.get('taxonGroup');
         const taxonName = control.get('taxonName');
         if (EntityUtils.isEmpty(taxonGroup.value) && EntityUtils.isEmpty(taxonName.value)) {
-          console.warn("Missing taxon in form !");
+          //console.warn("Missing taxon in form !");
           return error;
         }
       }

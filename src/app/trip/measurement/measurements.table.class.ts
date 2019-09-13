@@ -250,7 +250,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     await this.onNewEntity(data);
 
     // Normalize measurement values
-    this.normalizeRowMeasurementValues(data, row);
+    this.conformEntityToForm(data, row);
 
     // Set row data
     row.currentData = data; // if validator enable, this will call a setter function
@@ -270,13 +270,13 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return super.getI18nColumnName(columnName);
   }
 
-  protected normalizeRowMeasurementValues(data: T, row: TableElement<T>) {
+  protected conformEntityToForm(data: T, row: TableElement<T>) {
     if (!data) return; // skip
 
     const pmfms = this.measurementsDataService.$pmfms.getValue() || [];
 
     // Adapt entity measurement values to reactive form
-    MeasurementValuesUtils.normalizeFormEntity(data, pmfms, row.validator);
+    MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator);
   }
 
   getPmfmColumnHeader = getPmfmName;

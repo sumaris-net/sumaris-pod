@@ -23,6 +23,7 @@ import {
   PmfmIds,
   PmfmLabelPatterns,
   PmfmStrategy,
+  PmfmUtils,
   QualitativeLabels,
   QualityFlagIds,
   qualityFlagToColor,
@@ -46,7 +47,7 @@ import {StrategiesTable} from "./program/strategies.table";
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
   Referential, ReferentialRef, EntityUtils, Department, Person,
-  VesselFeatures, PmfmStrategy, QualityFlagIds,
+  VesselFeatures, PmfmStrategy, PmfmUtils, QualityFlagIds,
   GearLevelIds, TaxonGroupIds, AcquisitionLevelCodes, StatusIds, PmfmIds, QualitativeLabels, TaxonomicLevelIds,
   ReferentialFragments, PmfmLabelPatterns,
   entityToString, referentialToString, qualityFlagToColor,

@@ -16,7 +16,7 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {AbstractControl, FormBuilder, Validators} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
@@ -123,7 +123,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
       validatorService.getRowValidator(),
       {
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        onUpdateControls: (form) => this.onUpdateControls(form)
       });
 
     this.mobile = platform.mobile;
@@ -223,7 +224,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         return undefined;
       })
       .filter(input => isNotNil(input) && isNilOrBlank(input.value))
-      // FIXME: this is not working (la finction d'après ne recupère rien)
+      // FIXME: this is not working (la fonction d'après ne recupère rien)
       //.sort(attributeComparator("tabindex")) // Order by tabindex
       .sort((a, b) => {
         const valueA = a.tabindex || a.tabIndex;
@@ -303,17 +304,36 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   protected mapPmfms(pmfms: PmfmStrategy[]) {
 
-    if (this.qvPmfm) {
+    if (this._qvPmfm) {
       // Remove QV pmfms
-      const index = pmfms.findIndex(pmfm => pmfm.pmfmId === this.qvPmfm.pmfmId);
+      const index = pmfms.findIndex(pmfm => pmfm.pmfmId === this._qvPmfm.pmfmId);
       if (index !== -1) {
-        const qvPmfm = this.qvPmfm.clone();
+        const qvPmfm = this._qvPmfm.clone();
         qvPmfm.hidden = true;
         pmfms[index] = qvPmfm;
       }
     }
 
     return pmfms;
+  }
+
+  protected onUpdateControls(form: FormGroup) {
+    if (this._qvPmfm) {
+      const measFormGroup = form.get('measurementValues') as FormGroup;
+      const qvControl = measFormGroup.get(this._qvPmfm.pmfmId.toString());
+
+      // Make sure QV is required
+      qvControl.setValidators(Validators.required);
+
+      this.registerSubscription(qvControl.valueChanges.subscribe((value) => {
+        if (!this.data) return;
+
+        console.log("TODO check QV value changes :", value);
+
+
+      }));
+    }
+
   }
 
   protected getValue(): Batch {
@@ -325,7 +345,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     if (pmfmForm) {
       json.measurementValues = Object.assign({},
         this.data.measurementValues || {}, // Keep additionnal PMFM values
-        MeasurementValuesUtils.toEntityValues(pmfmForm.value, this._initialPmfms || []));
+        MeasurementValuesUtils.normalizeValuesToModel(pmfmForm.value, this._initialPmfms || []));
     } else {
       json.measurementValues = {};
     }
@@ -359,7 +379,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         // Make sure form is ready
         await this.onReady();
 
-        let tabindex = this.tabindex+1;
+        let tabindex = this.tabindex;
         this.matInputs.forEach(input => {
           if (input instanceof MeasurementFormField
             || input instanceof MeasurementQVFormField
@@ -372,7 +392,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
           else {
             console.warn("Could not set tabindex on element: ", input);
           }
-          tabindex++;
+          tabindex = tabindex + 10;
         });
         this.markForCheck();
       });

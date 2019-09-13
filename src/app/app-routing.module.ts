@@ -21,6 +21,7 @@ import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-c
 import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
 import {IonicRouteStrategy} from "@ionic/angular";
 import {ProgramPage} from "./referential/program/program.page";
+import {BatchGroupPage} from "./trip/batch/batch-group.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -168,10 +169,10 @@ const routes: Routes = [
             runGuardsAndResolvers: 'pathParamsChange'
           },
           {
-            path: 'operations/:id',
+            path: 'operations/:operationId',
             runGuardsAndResolvers: 'pathParamsChange',
             data: {
-              pathIdParam: 'id'
+              pathIdParam: 'operationId'
             },
             children: [
               {
@@ -184,6 +185,14 @@ const routes: Routes = [
                 path: 'batches',
                 component: SubBatchesModal,
                 runGuardsAndResolvers: 'pathParamsChange'
+              },
+              {
+                path: 'batch/:batchId',
+                component: BatchGroupPage,
+                runGuardsAndResolvers: 'pathParamsChange',
+                data: {
+                  pathIdParam: 'batchId'
+                },
               }
             ]
           }
@@ -191,11 +200,12 @@ const routes: Routes = [
       },
 
       {
-        path: ':tripId/landing/:id',
+        path: ':tripId/landing/:landingId',
         component: LandingPage,
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          profile: 'USER'
+          profile: 'USER',
+          pathIdParam: 'landingId'
         }
       }
     ]
@@ -215,30 +225,54 @@ const routes: Routes = [
         }
       },
       {
-        path: ':id',
-        component: ObservedLocationPage,
+        path: ':observedLocationId',
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
-          profile: 'USER',
-          pathIdParam: 'id'
-        }
-      },
-      {
-        path: ':observedLocationId/landing/:id',
-        component: LandingPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'USER',
-          pathIdParam: 'id'
-        }
-      },
-      {
-        path: ':observedLocationId/control/:id',
-        component: AuctionControlLandingPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'USER'
-        }
+          pathIdParam: 'observedLocationId'
+        },
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            component: ObservedLocationPage,
+            runGuardsAndResolvers: 'pathParamsChange'
+          },
+          // {
+          //   path: 'batches',
+          //   component: SubBatchesModal,
+          //   runGuardsAndResolvers: 'pathParamsChange'
+          // },
+          {
+            path: 'landing/:landingId',
+            runGuardsAndResolvers: 'pathParamsChange',
+            data: {
+              pathIdParam: 'landingId'
+            },
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: LandingPage,
+                runGuardsAndResolvers: 'pathParamsChange'
+              }
+            ]
+          },
+          {
+            path: 'control/:landingId',
+            runGuardsAndResolvers: 'pathParamsChange',
+            data: {
+              pathIdParam: 'landingId'
+            },
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                component: AuctionControlLandingPage,
+                runGuardsAndResolvers: 'pathParamsChange'
+              }
+            ]
+          }
+        ]
       }
     ]
   },

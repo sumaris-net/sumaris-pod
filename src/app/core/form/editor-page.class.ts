@@ -27,7 +27,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   protected dateFormat: DateFormatPipe;
   protected cd: ChangeDetectorRef;
   protected settings: LocalSettingsService;
-  protected programService: ProgramService;
+  protected idAttribute: string = 'id';
 
   title = new Subject<string>();
   saving = false;
@@ -67,7 +67,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     this.route.params.pipe(first())
       .subscribe(async (params) => {
-        const id = params["id"];
+        const id = params[this.idAttribute];
         if (!id || id === "new") {
           await this.load(undefined, params);
         } else {
@@ -156,9 +156,11 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     }
 
     // Update route location
+    const forcedQueryParams = {};
+    forcedQueryParams[this.idAttribute] = data.id;
     await this.router.navigate(['.'], {
       relativeTo: this.route,
-      queryParams: Object.assign(this.queryParams, {id: data.id})
+      queryParams: Object.assign(this.queryParams, forcedQueryParams)
     });
 
     setTimeout(async () => {

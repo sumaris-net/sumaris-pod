@@ -65,7 +65,7 @@
       </ng-template>
 
       <!-- catch batch form -->
-      <div padding>
+      <div padding [hidden]="!catchBatchForm.hasPmfms">
         <form-catch-batch #catchBatchForm
                           (onSubmit)="save($event)" [showError]="false" [debug]="debug"
                           acquisitionLevel="CATCH_BATCH"
@@ -91,23 +91,23 @@
                       *ngIf="submitted && (batchGroupsTable.invalid || false)"></ion-icon>
           </ng-template>
 
-
-          <!-- Batches group (if NOT mobile) -->
-          <table-batch-groups #batchGroupsTable
-                              acquisitionLevel="SORTING_BATCH"
-                              [program]="programSubject | async"
-                              [usageMode]="usageMode"
-                              [debug]="debug"
-                              [showTaxonGroupColumn]="true"
-                              [showTaxonNameColumn]="true"
-                              [showCommentsColumn]="false"
-                              (onNewSubBatches)="subBatchesTable.add($event)">
-          </table-batch-groups>
+          <!-- Batches group -->
+          <app-batch-groups-table #batchGroupsTable
+                                  acquisitionLevel="SORTING_BATCH"
+                                  [program]="programSubject | async"
+                                  [usageMode]="usageMode"
+                                  [debug]="debug"
+                                  [showTaxonGroupColumn]="true"
+                                  [showTaxonNameColumn]="true"
+                                  [showCommentsColumn]="false"
+                                  (onNewSubBatches)="subBatchesTable.add($event)">
+          </app-batch-groups-table>
         </mat-tab>
 
         <!-- TAB: individual measure -->
         <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-                 [disabled]="!enableSubBatchesTable">
+                 [disabled]="!enableSubBatchesTable"
+                 [hidden]="mobile">
           <ng-template mat-tab-label>
             <mat-icon>assessment</mat-icon>
             <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>

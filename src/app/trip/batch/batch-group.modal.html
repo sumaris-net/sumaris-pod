@@ -27,17 +27,16 @@
 <ion-content padding>
 
 
-  <app-batch-form #form
+  <app-batch-group-form #form
                   [debug]="debug"
                   [acquisitionLevel]="acquisitionLevel"
                   [program]="program"
                   [showTaxonGroup]="showTaxonGroup"
                   [showTaxonName]="showTaxonName"
-                  [showSampleBatch]="true"
-                  [showIndividualCount]="showIndividualCount"
                   [showTotalIndividualCount]="showTotalIndividualCount"
+                  [showIndividualCount]="showIndividualCount"
                   (onSubmit)="close($event)"
-  ></app-batch-form>
+  ></app-batch-group-form>
 
 </ion-content>
 

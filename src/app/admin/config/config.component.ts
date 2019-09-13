@@ -73,7 +73,7 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
 
   async ngOnInit() {
 
-    this.propertiesFormHelper = new FormArrayHelper<{key: string; value: string}>(
+    this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
       this.formBuilder,
       this.form,
       'properties',

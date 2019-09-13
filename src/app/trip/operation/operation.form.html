@@ -8,7 +8,7 @@
 
   <ion-grid no-padding>
 
-    <ion-row>
+    <ion-row no-padding>
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label float-end translate>TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES</ion-label>
       </ion-col>
@@ -67,7 +67,7 @@
     </ion-row>
 
     <!-- Start -->
-    <ion-row>
+    <ion-row no-padding>
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label float-end translate>TRIP.OPERATION.EDIT.START</ion-label>
       </ion-col>
@@ -111,7 +111,7 @@
     </ion-row>
 
     <!-- End -->
-    <ion-row>
+    <ion-row no-padding>
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label float-end translate>TRIP.OPERATION.EDIT.END</ion-label>
       </ion-col>
@@ -156,7 +156,7 @@
     <ng-content></ng-content>
 
     <!-- Comments -->
-    <ion-row *ngIf="showComment">
+    <ion-row no-padding *ngIf="showComment">
       <ion-col>
         <mat-form-field appearance="outline">
           <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"

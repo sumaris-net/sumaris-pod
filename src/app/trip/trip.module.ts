@@ -27,7 +27,7 @@ import {EntityQualityFormComponent} from "./quality/entity-quality-form.componen
 import {ExtractionService, LandingService, OperationService, TripService} from './services/trip.services';
 
 import {
-  BatchGroupsValidatorService,
+  BatchGroupValidatorService,
   BatchValidatorService,
   MeasurementsValidatorService,
   OperationValidatorService,
@@ -62,6 +62,9 @@ import {PhysicalGearModal} from "./physicalgear/physicalgear.modal";
 import {BatchModal} from "./batch/batch.modal";
 import {BatchForm} from "./batch/batch.form";
 import {SpeciesBatchValidatorService} from "./services/validator/species-batch.validator";
+import {BatchGroupPage} from "./batch/batch-group.page";
+import {BatchGroupForm} from "./batch/batch-group.form";
+import {BatchGroupModal} from "./batch/batch-group.modal";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -103,6 +106,9 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       SubBatchesModal,
       BatchForm,
       BatchModal,
+      BatchGroupModal,
+      BatchGroupPage,
+      BatchGroupForm,
       IndividualMonitoringSubSamplesTable,
       AuctionControlLandingPage,
       AuctionControlSamplesTable,
@@ -134,7 +140,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LandingsTablesModal,
       AuctionControlLandingPage,
       SubBatchForm,
-      BatchForm
+      BatchForm,
+      BatchGroupPage
     ],
     entryComponents: [
       TripsPage,
@@ -153,7 +160,9 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       ExtractionMapPage,
       ExtractionSelectTypeModal,
       SubBatchesModal,
-      BatchModal
+      BatchModal,
+      BatchGroupModal,
+      BatchGroupPage
     ],
     providers: [
       TripService,
@@ -171,7 +180,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       MeasurementsValidatorService,
       BatchValidatorService,
       SubBatchValidatorService,
-      BatchGroupsValidatorService,
+      BatchGroupValidatorService,
       SpeciesBatchValidatorService,
       SampleValidatorService,
       SubSampleValidatorService,

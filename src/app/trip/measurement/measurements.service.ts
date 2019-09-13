@@ -99,7 +99,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
               map((res) => {
 
                 // Prepare measurement values for reactive form
-                (res && res.data || []).forEach(entity => MeasurementValuesUtils.normalizeFormEntity(entity, pmfms));
+                (res && res.data || []).forEach(entity => MeasurementValuesUtils.normalizeEntityToForm(entity, pmfms));
 
                 // Apply sort on pmfm
                 if (sortPmfm) {
@@ -129,7 +129,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F> imp
       // Adapt measurementValues to entity, but :
       // - keep the original JSON object measurementValues, because may be still used (e.g. in table without validator, in row.currentData)
       // - keep extra pmfm's values, because table can have filtered pmfms, to display only mandatory PMFM (e.g. physical gear table)
-      entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.toEntityValues(json.measurementValues, pmfms));
+      entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, pmfms));
       return entity;
     });
 

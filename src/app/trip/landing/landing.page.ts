@@ -56,6 +56,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingFilter> imple
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
+    this.idAttribute = 'landingId';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
