@@ -244,6 +244,15 @@ mat-expansion-panel {
   }
 }
 
+mat-checkbox {
+  .mat-checkbox-checkmark {
+    .mat-checkbox-checkmark-path {
+      // TODO: change to accent-contrast
+      stroke: white !important;
+    }
+  }
+}
+
 // --------------------------------------------------
 // Ion-select
 // --------------------------------------------------
