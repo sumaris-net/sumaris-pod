@@ -87,7 +87,7 @@ case "$1" in
       fi
 
       ###  Sending files
-      echo "Uploading files to ${upload_url}"
+      echo "Uploading files to ${upload_url} ..."
       dirname=$(pwd)
 
       ZIP_FILE="$dirname/www/${PROJECT_NAME}.zip"
