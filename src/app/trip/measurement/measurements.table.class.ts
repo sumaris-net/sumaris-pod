@@ -230,6 +230,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     }
   }
 
+  /**
+   * Use in ngFor, for trackBy
+   * @param index
+   * @param pmfm
+   */
+  trackPmfm(index: number, pmfm: PmfmStrategy) {
+    return pmfm && pmfm.pmfmId || null;
+  }
+
   /* -- protected methods -- */
 
   // Can be override by subclass

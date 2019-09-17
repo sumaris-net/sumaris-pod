@@ -26,6 +26,7 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {selectInputContent} from "../../core/form/form.utils";
+import {BatchModal} from "./batch.modal";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -179,8 +180,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     this.referentialRefService = injector.get(ReferentialRefService);
     this.memoryDataService = (this.dataService as InMemoryTableDataService<Batch, SubBatchFilter>);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
-    this.inlineEdition = true;
     this.tabindex = 1;
+    this.inlineEdition = !this.mobile;
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
@@ -286,6 +287,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     }
   }
 
+
   /* -- protected method -- */
 
   protected setValue(data: Batch[]) {
@@ -380,6 +382,11 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   }
 
   /* -- protected methods -- */
+
+  protected prepareEntityToSave(batch: Batch) {
+    // Override by subclasses
+  }
+
   protected async suggestParent(value: any): Promise<any[]> {
     if (EntityUtils.isNotEmpty(value)) {
       return [value];
@@ -426,6 +433,14 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     return pmfms
       // Exclude weight Pmfm
       .filter(p => !p.isWeight);
+  }
+
+  protected async openNewRowDetail(): Promise<boolean> {
+    const newBatch = await this.openDetailModal();
+    if (newBatch) {
+      await this.addBatchToTable(newBatch);
+    }
+    return true;
   }
 
   protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
@@ -476,6 +491,73 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     this.confirmEditCreate(null, row);
     this.markAsDirty();
     return row;
+  }
+
+  protected async openRow(id: number, row: TableElement<Batch>): Promise<boolean> {
+
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit({id, row});
+      return true;
+    }
+
+    const batch = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
+    const updatedBatch = await this.openDetailModal(batch);
+    if (updatedBatch) {
+      // Adapt measurement values to row
+      this.normalizeEntityToRow(updatedBatch, row);
+
+      // Update the row
+      row.currentData = updatedBatch;
+
+      this.markAsDirty();
+      this.markForCheck();
+      this.confirmEditCreate(null, row);
+    }
+    return true;
+  }
+
+  async openDetailModal(batch?: Batch): Promise<Batch | undefined> {
+
+    const isNew = !batch;
+    if (isNew) {
+      batch = new Batch();
+      await this.onNewEntity(batch);
+    }
+    else {
+      // Do a copy, because edition can be cancelled
+      batch = batch.clone();
+
+      // Prepare entity measurement values
+      this.prepareEntityToSave(batch);
+    }
+
+    const modal = await this.modalCtrl.create({
+      component: BatchModal,
+      componentProps: {
+        program: this.program,
+        acquisitionLevel: this.acquisitionLevel,
+        value: batch,
+        isNew: isNew,
+        disabled: this.disabled,
+        canEdit: !this.disabled,
+        qvPmfm: this.qvPmfm,
+        //showParent: this.showParentColumn,
+        showTaxonGroup: false,
+        showTaxonName: this.showTaxonNameColumn,
+        // Not need on a root species batch (fill in sub-batches)
+        showTotalIndividualCount: this.showIndividualCount
+      }, keyboardClose: true
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+    if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
+    return (data instanceof Batch) ? data : undefined;
   }
 
   protected async setAvailableParents(parents: Batch[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean; }) {

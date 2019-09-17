@@ -38,9 +38,6 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   hasValidate = false;
 
   @Input()
-  mobile: boolean;
-
-  @Input()
   defaultBackHref: string;
 
   @Input()
@@ -64,15 +61,12 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     private progressBarService: ProgressBarService,
     protected router: Router,
     public routerOutlet: IonRouterOutlet,
-    private cd: ChangeDetectorRef,
-    private platform: Platform
+    private cd: ChangeDetectorRef
   ) {
   }
 
-  async ngOnInit() {
-    //await this.platform.ready();
-    this.mobile = toBoolean(this.mobile, this.platform.is('mobile'));
-    this.hasValidate = toBoolean(this.hasValidate, this.onValidate.observers.length > 0) && this.mobile;
+  ngOnInit() {
+    this.hasValidate = toBoolean(this.hasValidate, this.onValidate.observers.length > 0);
     this._subscription = this.progressBarService.onProgressChanged
       .pipe(
         //debounceTime(100),
@@ -84,9 +78,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
           this.cd.detectChanges();
         }
       });
-    if (isNil(this.canGoBack)) {
-      this.canGoBack = this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref);
-    }
+    this.canGoBack = toBoolean(this.canGoBack,this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref));
   }
 
   ngOnDestroy(): void {

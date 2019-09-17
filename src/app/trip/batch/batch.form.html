@@ -1,7 +1,7 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm>
+  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
@@ -9,6 +9,7 @@
 
   <ion-grid no-padding>
     <ion-row no-padding>
+
       <!-- Taxon group -->
       <ion-col no-padding
                size="12" size-md=""
@@ -40,7 +41,8 @@
 
     <!-- Measurements -->
     <ion-row no-padding>
-      <ion-col no-padding *ngFor="let pmfm of $pmfms | async; index as i;" no-padding>
+      <ion-col *ngFor="let pmfm of $pmfms | async; index as i;"
+               size="12" no-padding>
 
         <!-- qualitative value (force 'button' style, on mobile)-->
         <ng-container *ngIf="pmfm.isQualitative; else otherField">
@@ -50,20 +52,17 @@
                                          [style]="mobile? 'button' : 'autocomplete'"
                                          [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
                                          [compact]="compact"
-                                         [required]="true"
                                          [tabindex]="tabindex+2 + i*2">
           </mat-form-field-measurement-qv>
         </ng-container>
 
         <!-- NOT qualitative value -->
         <ng-template #otherField>
-
           <mat-form-field-measurement #matInput
-                                      [hidden]="pmfm.hidden"
                                       [pmfm]="pmfm"
+                                      [hidden]="pmfm.hidden"
                                       [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
                                       [compact]="compact"
-                                      [required]="true"
                                       [tabindex]="tabindex+2 + i*2">
           </mat-form-field-measurement>
         </ng-template>
@@ -134,6 +133,7 @@
         <ion-col no-padding>
             <!-- checkbox, when compact -->
             <mat-checkbox [checked]="isSampling"
+                          [disabled]="disabled"
                           labelPosition="after"
                           [tabindex]="tabindex+31"
                           (change)="setIsSampling($event.checked)">

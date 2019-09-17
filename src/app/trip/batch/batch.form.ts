@@ -1,45 +1,27 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit
-} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
-import {Batch, BatchUtils, BatchWeight} from "../services/model/batch.model";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
+import {Batch, BatchUtils} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {
-  AcquisitionLevelCodes, EntityUtils,
+  AcquisitionLevelCodes,
+  EntityUtils,
   IReferentialRef,
-  ReferentialRef,
   referentialToString,
   UsageMode
 } from "../../core/services/model";
-import {debounceTime, filter, first, map, switchMap, tap, throttleTime} from "rxjs/operators";
-import {
-  isNil,
-  isNotNil,
-  MethodIds,
-  PmfmLabelPatterns,
-  PmfmStrategy, PmfmUtils,
-  TaxonGroupIds
-} from "../../referential/services/model";
-import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
+import {filter, first} from "rxjs/operators";
+import {isNil, isNotNil, MethodIds, PmfmLabelPatterns, PmfmStrategy} from "../../referential/services/model";
+import {BehaviorSubject} from "rxjs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {SpeciesBatchValidatorService} from "../services/validator/species-batch.validator";
 import {AppFormUtils, FormArrayHelper, PlatformService} from "../../core/core.module";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
-import {isNilOrBlank, isNotNilOrBlank, isNotNilOrNaN, toBoolean, toInt} from "../../shared/functions";
-import {FormFieldValue} from "../../shared/form/field.model";
+import {isNilOrBlank, isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../../shared/functions";
 import {BatchValidatorService} from "../services/batch.validator";
 
 @Component({
@@ -51,10 +33,12 @@ import {BatchValidatorService} from "../services/batch.validator";
 export class BatchForm extends MeasurementValuesForm<Batch>
   implements OnInit, OnDestroy {
 
+  protected $initialized = new BehaviorSubject<boolean>(false);
+
   defaultWeightPmfm: PmfmStrategy;
   weightPmfms: PmfmStrategy[];
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
-  isSampling: boolean;
+  isSampling: boolean = false;
   mobile: boolean;
   childrenFormHelper: FormArrayHelper<Batch>;
 
@@ -73,7 +57,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   @Input() showEstimatedWeight: boolean = false;
 
-  @Input() showSampleBatch: boolean = false;
+  @Input() showSampleBatch = false;
 
   @Input() showError = true;
 
@@ -85,6 +69,16 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
+    super.disable(opts);
+  }
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
+    super.enable(opts);
+
+    // Refresh sampling child form
+    if (!this.isSampling) this.setIsSampling(this.isSampling);
+  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -105,8 +99,8 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       });
     this.mobile = platform.mobile;
 
-      // Set default acquisition level
-    this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+    // Set default acquisition level
+    //this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this._enable = true;
 
     this.childrenFormHelper = this.getChildrenFormHelper(this.form);
@@ -122,6 +116,9 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
+    // This will cause update controls
+    this.$initialized.next(true);
+
     // Taxon group combo
     this.registerAutocompleteConfig('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
@@ -130,6 +127,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     this.registerAutocompleteConfig('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
     });
+
 
   }
 
@@ -261,12 +259,12 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     return this.data;
   }
 
-  setIsSampling(enable: boolean, form?: FormGroup) {
+  setIsSampling(enable: boolean) {
     this.isSampling = enable;
 
     if (!this.loading) this.form.markAsDirty();
 
-    const childrenArray = (form || this.form).get('children') as FormArray;
+    const childrenArray = this.form.get('children') as FormArray;
 
     if (childrenArray) {
       if (enable && childrenArray.disabled) {
@@ -280,6 +278,17 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   }
 
   /* -- protected methods -- */
+
+  protected async onInitialized(): Promise<void> {
+    // Wait end of ngInit()
+    if (this.$initialized.getValue() !== true) {
+      await this.$initialized
+        .pipe(
+          filter((initialized) => initialized === true),
+          first()
+        ).toPromise();
+    }
+  }
 
   // Wait form controls ready
   async onReady(): Promise<void> {
@@ -328,14 +337,17 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     this.weightPmfmsByMethod = {};
     this.weightPmfms.forEach(p => this.weightPmfmsByMethod[p.methodId] = p);
 
-    this.showSampleBatch = toBoolean(this.showSampleBatch, true);
+    this.showSampleBatch = toBoolean(this.showSampleBatch, isNotNil(this.defaultWeightPmfm));
     this.$allPmfms.next(pmfms);
 
     // Exclude hidden and weight PMFMs
     return pmfms.filter(p => !PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label) && !p.hidden);
   }
 
-  protected onUpdateControls(form: FormGroup) {
+  protected async onUpdateControls(form: FormGroup): Promise<void> {
+
+    // Wait end of ngInit()
+    await this.onInitialized();
 
     const childrenFormHelper = this.getChildrenFormHelper(form);
 

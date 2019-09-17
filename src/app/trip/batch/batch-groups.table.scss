@@ -113,11 +113,3 @@ mat-table {
   }
 }
 
-//  Resize on mobile device
-.plt-mobile {
-  .mat-header-row.first-header-row {
-    .mat-header-cell.qv.show {
-      flex: 1 !important;
-    }
-  }
-}

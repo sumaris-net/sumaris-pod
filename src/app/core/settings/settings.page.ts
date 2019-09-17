@@ -258,8 +258,11 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     }
   }
 
-  async showSelectPeerModal() {
-    const peer = await this.networkService.showSelectPeerModal();
+  async showSelectPeerModal(opts?: {
+    allowSelectDownPeer?: boolean,
+    canCancel?: boolean
+  }) {
+    const peer = await this.networkService.showSelectPeerModal(opts);
     if (peer && peer.url) {
       const control = this.form.get('peerUrl') as FormControl;
       control.setValue(peer.url, {emitEvent: true, onlySelf: false});

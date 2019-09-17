@@ -17,6 +17,7 @@ import {IReferentialRef} from "../../core/services/model";
 import {isNotNilOrNaN} from "../../shared/functions";
 import {BatchModal} from "./batch.modal";
 import {BatchGroupModal} from "./batch-group.modal";
+import {PlatformService} from "../../core/core.module";
 
 const DEFAULT_USER_COLUMNS =["weight", "individualCount"];
 

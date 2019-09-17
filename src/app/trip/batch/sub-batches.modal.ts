@@ -11,6 +11,7 @@ import {measurementValueToString} from "../services/model/measurement.model";
 import {AppFormUtils, EntityUtils, isNotNil} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {BatchValidatorService} from "../services/trip.validators";
+import {BatchModal} from "./batch.modal";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -85,14 +86,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   }
 
   async ngOnInit() {
-    await super.ngOnInit();
+    super.ngOnInit();
 
     await this.form.onReady();
 
+    // Update table content when changing parent
     this.registerSubscription(this.form.form.get('parent').valueChanges
-      .subscribe(parent => {
-        this.updateExistingSubBatches(parent);
-      }));
+      .subscribe(parent => this.updateExistingSubBatches(parent))
+    );
 
     this._existingSubBatches = ((await this.availableSubBatchesFn()) || [])
       .sort(EntityUtils.sortComparator('rankOrder', 'desc'));
@@ -131,11 +132,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.loading = true;
     this.error = undefined;
 
-    // Save content
     try {
-      await this.save();
-      const data = this.memoryDataService.value;
-      await this.viewCtrl.dismiss(data);
+      // Save changes
+      const saved = await this.save();
+      if (!saved) return; // Error
+
+      await this.viewCtrl.dismiss(this.getValue());
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
@@ -146,15 +148,23 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   /* -- protected methods -- */
 
   protected getValue(): Batch[] {
-    return (super.getValue() || [])
+    const addedRow = (super.getValue() || [])
+      .concat(this._existingSubBatches)
       .filter(b => b.rankOrder > this._existingMaxRankOrder);
+    //console.log("TODO getValue():", addedRow)
+    return addedRow;
   }
 
   protected async getMaxRankOrder(): Promise<number> {
     return Math.max(await super.getMaxRankOrder(), this._existingMaxRankOrder);
   }
 
-  protected updateExistingSubBatches(parent?: Batch) {
+  protected async updateExistingSubBatches(parent?: Batch) {
+    // Save changes
+    if (this._dirty) {
+      await this.save();
+    }
+    // Get new added
     const addedSubBatches = this.getValue();
 
     // Add new values, to remembers

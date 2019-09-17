@@ -561,7 +561,7 @@ export class ProgramService extends BaseDataService
         taxonomicLevelId: options.taxonomicLevelId,
         taxonomicLevelIds: options.taxonomicLevelIds,
         taxonGroupId: options.taxonGroupId,
-        searchAttribute: options.searchAttribute || 'name'
+        searchAttribute: options.searchAttribute
       });
 
     // If there result, use it
@@ -572,7 +572,7 @@ export class ProgramService extends BaseDataService
       return await this.referentialRefService.suggestTaxonNames(value, {
         taxonomicLevelId: options.taxonomicLevelId,
         taxonomicLevelIds: options.taxonomicLevelIds,
-        searchAttribute: options.searchAttribute || 'name'
+        searchAttribute: options.searchAttribute
       });
     }
 

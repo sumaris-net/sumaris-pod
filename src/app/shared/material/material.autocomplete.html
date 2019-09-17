@@ -1,7 +1,6 @@
 <mat-form-field [floatLabel]="floatLabel">
-  <div matPrefix>
-    <ng-content select="[matAutocompletePrefix]"></ng-content>
-  </div>
+
+  <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
 
   <input matInput #matInput type="text" [matAutocomplete]="autoCombo"
          [appAutofocus]="appAutofocus"

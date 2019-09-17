@@ -37,7 +37,7 @@ import {filter, first} from "rxjs/operators";
 export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy {
 
   mobile: boolean;
-  error : string;
+  error: string;
   loading = true;
 
   $childrenPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
@@ -118,22 +118,28 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     });
   }
 
-
   disable(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
   }) {
-    this.form.disable(opts);
+    this.batchForm.disable(opts);
     this.childrenForms && this.childrenForms.forEach(child => child.disable(opts));
+    if (this._enable || (opts && opts.emitEvent)) {
+      this._enable = false;
+      this.markForCheck();
+    }
   }
-
 
   enable(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
   }) {
-    this.form.enable(opts);
+    this.batchForm.enable(opts);
     this.childrenForms && this.childrenForms.forEach(child => child.enable(opts));
+    if (!this._enable || (opts && opts.emitEvent)) {
+      this._enable = true;
+      this.markForCheck();
+    }
   }
 
   constructor(
@@ -175,8 +181,6 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     );
   }
 
-
-
   setValue(data: Batch) {
     if (this.debug) console.debug("[batch-group-form] setValue() with value:", data);
 
@@ -203,10 +207,16 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
           first()
         )
         .subscribe(() => {
-          this.childrenForms.map((batchForm, index) => {
+          this.childrenForms.forEach((batchForm, index) => {
             batchForm.value = data.children[index];
+            if (this.enabled) {
+              batchForm.enable();
+            }
+            else {
+              batchForm.disable();
+            }
           });
-      })
+      });
     }
   }
 
@@ -218,8 +228,6 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   }
 
   createMapPmfmsFn() {
-
-    console.log("Calling getMapPmfmsFn")
     const self = this;
     return (pmfms: PmfmStrategy[]) => {
       self.qvPmfm = self.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);

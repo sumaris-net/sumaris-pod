@@ -14,8 +14,11 @@
     <ion-buttons slot="end" >
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <!-- [disabled]="invalid" -->
-      <ion-button *ngIf="!loading" (click)="close($event)"
+      <ion-button *ngIf="canEdit && disabled" (click)="edit()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="create"></ion-icon>
+      </ion-button>
+      <ion-button *ngIf="!loading && !disabled" (click)="close($event)"
 
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
@@ -39,6 +42,16 @@
                   (onSubmit)="close($event)"
   ></app-batch-group-form>
 
+  <!-- actions -->
+  <ion-buttons visible-xs visible-sm visible-mobile margin-top>
+
+    <!-- open individual modal -->
+    <ion-button color="tertiary" expand="full" size="large"
+                (click)="openSubBatchesModal($event)" >
+      <ion-icon slot="start"><mat-icon>assessment</mat-icon></ion-icon>
+      <ion-label translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</ion-label>
+    </ion-button>
+  </ion-buttons>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
@@ -52,6 +65,13 @@
       <ion-col size="auto">
         <ion-button fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button [fill]="invalid ? 'clear' : 'solid'"
+                    color="tertiary"
+                    [disabled]="loading || invalid"
+                    (click)="openSubBatchesModal($event)">
+          <ion-label translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</ion-label>
         </ion-button>
 
         <ion-button [fill]="invalid ? 'clear' : 'solid'"

@@ -46,7 +46,7 @@
 
         <!--  [disabled]="!form.valid" -->
         <button mat-raised-button color="primary" (click)="tripForm.doSubmit($event, tripForm.value)">
-          <span translate>COMMON.BTN_NEXT</span>
+          <ion-label translate>COMMON.BTN_NEXT</ion-label>
         </button>
       </ion-toolbar>
     </mat-step>
@@ -66,7 +66,7 @@
 
         <!--  [disabled]="!form.valid" -->
         <ion-button mat-raised-button color="primary" (click)="save($event)" *ngIf="!saving">
-          <span translate>COMMON.BTN_SAVE</span>
+          <ion-label translate>COMMON.BTN_SAVE</ion-label>
         </ion-button>
 
         <ion-spinner *ngIf="saving"></ion-spinner>

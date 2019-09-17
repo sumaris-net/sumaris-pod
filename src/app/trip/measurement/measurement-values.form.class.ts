@@ -29,7 +29,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   loadingControls = true; // Important, must be true
 
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-  $initialized = new BehaviorSubject<boolean>(false);
   $loadingControls = new BehaviorSubject<boolean>(true);
 
   @Input() compact = false;
@@ -111,14 +110,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     );
 
     this.registerSubscription(
-      this.$pmfms.pipe(
-        filter(isNotNil),
-        // Wait component has been fully initialized (end of ngInit)
-        mergeMap(async (pmfms) => {
-          await this.onInitialized();
-          return pmfms;
-        })
-      )
+      this.$pmfms.pipe(filter(isNotNil))
       .subscribe((pmfms) => this.updateControls('constructor', pmfms))
     );
   }
@@ -138,8 +130,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (this.data) {
       this._onValueChanged.emit(this.data);
     }
-
-    this.$initialized.next(true);
   }
 
   public markAsTouched() {
@@ -320,19 +310,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   /** -- protected methods  -- */
-
-  protected async onInitialized(): Promise<void> {
-    // Wait pmfms load, and controls load
-    if (this.$initialized.getValue() !== true) {
-      //if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
-      await this.$initialized
-        .pipe(
-          filter((initialized) => initialized === true),
-          throttleTime(100), // groups event
-          first()
-        ).toPromise();
-    }
-  }
 
   /**
    * Wait form is ready, before setting the value to form

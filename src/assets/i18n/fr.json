@@ -384,6 +384,7 @@
         "TAXON_NAME": "Espèce scientifique",
         "PARENT": "Lot espèce",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
+        "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
         "ESTIMATED_WEIGHT": "Poids estimé ?",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
         "TOTAL_WEIGHT": "Poids total (kg)",
@@ -417,7 +418,8 @@
         "INDIVIDUAL_COUNT": "Nombre individus",
         "WEIGHT": "Poids (kg)",
         "COMMENTS": "Commentaires",
-        "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?"
+        "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
+        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
       }
     },
     "SAMPLE": {

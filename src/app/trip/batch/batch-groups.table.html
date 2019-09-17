@@ -52,17 +52,19 @@
   </ng-container>
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
-    <mat-header-cell *matHeaderCellDef class="qv" [class.even]="pmfm.id % 2 === 0"
+  <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfm" [matColumnDef]="pmfm.pmfmId.toString()">
+    <mat-header-cell *matHeaderCellDef class="qv"
+                     [class.even]="pmfm.id % 2 === 0"
                      [class.odd]="pmfm.id % 2 !== 0"
                      [class.hidden-mobile]="pmfm.pmfmId % 5 !== 0"
                      [class.show]="pmfm.pmfmId % 5 === 0">
-      <mat-label float-center *ngIf="pmfm.pmfmId % 5 === 0">
+      <mat-label float-center text-wrap *ngIf="pmfm.pmfmId % 5 === 0">
         <span>{{qvPmfm.qualitativeValues[pmfm.id].name}}</span><br/>
         <mat-checkbox *ngIf="weightMethodForm"
                       [formControl]="weightMethodForm.controls[pmfm.id]"
                       labelPosition="before">
-          <ion-text translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
+          <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
+          <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
         </mat-checkbox>
       </mat-label>
     </mat-header-cell>
@@ -150,14 +152,15 @@
   </ng-container>
 
   <!-- Pmfm columns -->
-  <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
+  <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfm" [matColumnDef]="pmfm.pmfmId.toString()">
 
     <mat-header-cell *matHeaderCellDef mat-sort-header
                      [class.total]="pmfm.pmfmId % 5 < 2"
                      [class.odd]="isOdd(pmfm)"
-                     [class.hidden-mobile]="pmfm.pmfmId % 5 !== 0"
+                     [class.hidden-xs]="pmfm.pmfmId % 5 !== 0"
+                     [class.hidden-mobile]="pmfm.pmfmId % 5 !== 0 && pmfm.pmfmId % 5 !== 3"
                      [class.even]="isEven(pmfm)">
-      <mat-label float-center>
+      <mat-label float-center padding-left no-padding-xs no-padding-sm>
         <span>{{getPmfmColumnHeader(pmfm)}}</span>
         <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
       </mat-label>
@@ -167,31 +170,14 @@
               [class.total]="pmfm.pmfmId % 5 < 2"
               [class.odd]="isOdd(pmfm)"
               [class.even]="isEven(pmfm)"
-              [class.hidden-mobile]="pmfm.pmfmId % 5 !== 0">
+              [class.hidden-xs]="pmfm.pmfmId % 5 !== 0"
+              [class.hidden-mobile]="pmfm.pmfmId % 5 !== 0 && pmfm.pmfmId % 5 !== 3">
       <mat-form-field-measurement
+
         [readonly]="!row.editing"
-        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
+        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId.toString()]"
         [compact]="true" floatLabel="never">
       </mat-form-field-measurement>
-
-      <!-- open individual measures
-      FIXME: before activate this button, need to
-       - compute individualCount dynamically
-       - A click should open the measure tab, with a filter
-       <mat-form-field-measurement
-        *ngIf="pmfm.pmfmId % 5 !== 3"
-        [readonly]="!row.editing"
-        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.pmfmId]"
-        [compact]="true" floatLabel="never">
-
-      </mat-form-field-measurement>
-
-      <button mat-button mat-icon-button color="light" *ngIf="pmfm.pmfmId % 5 === 3"
-              [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
-              (click)="onSubBatchesClick($event, row, pmfm.id)">
-        {{row.validator.controls.measurementValues.controls[pmfm.pmfmId].value}}
-        <mat-icon>list</mat-icon>
-      </button> -->
     </mat-cell>
   </ng-container>
 
@@ -259,35 +245,3 @@
   <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid" class="left-padding"
     [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing" (click)="clickRow($event, row)"></mat-row>
 </mat-table>
-
-
-<!--<form *ngIf="!loading && weightMethodForm"-->
-      <!--[formGroup]="weightMethodForm"-->
-      <!--class="form-container" novalidate>-->
-  <!--<ng-container *ngFor="let qv of qvPmfm.qualitativeValues">-->
-
-    <!--<ion-row>-->
-      <!--<ion-col size="12" size-md="2" size-lg="3" align-self-end>-->
-        <!--<ion-label> {{'TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_FOR_DOTS'|translate: {label: qv.name} }}</ion-label>-->
-      <!--</ion-col>-->
-      <!--<ion-col no-padding>-->
-        <!--<mat-boolean-field [formControlName]="qv.label" [floatLabel]="never" [required]="true" [compact]="true"></mat-boolean-field>-->
-      <!--</ion-col>-->
-
-    <!--</ion-row>-->
-
-  <!--</ng-container>-->
-<!--</form>-->
-
-<!-- <ion-row>
-  <ion-col *ngFor="let pmfm of $pmfms | async">
-    {{pmfm.label}}
-  </ion-col>
-</ion-row> -->
-
-
-<!--<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>-->
-<!--  <ion-fab-button color="secondary" (click)="addRow()">-->
-<!--    <ion-icon name="add"></ion-icon>-->
-<!--  </ion-fab-button>-->
-<!--</ion-fab>-->

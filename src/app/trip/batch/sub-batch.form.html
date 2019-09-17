@@ -6,7 +6,6 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-
   <ion-grid no-padding>
     <ion-row no-padding>
       <ion-col no-padding>
@@ -26,85 +25,103 @@
         </button>
       </ion-col>
     </ion-row>
+
+    <!-- QV pmfm -->
+    <ion-row no-padding>
+      <ion-col no-padding>
+        <mat-form-field-measurement-qv *ngIf="!loadingControls && qvPmfm"
+                                       #matInput
+                                       [pmfm]="qvPmfm"
+                                       [style]="mobile? 'button' : 'autocomplete'"
+                                       [formControl]="form.controls.measurementValues.controls[qvPmfm.pmfmId.toString()]"
+                                       [floatLabel]="floatLabel"
+                                       [compact]="compact"
+                                       [required]="true">
+        </mat-form-field-measurement-qv>
+      </ion-col>
+    </ion-row>
+
+    <!-- Espèce scientifique -->
+    <ion-row no-padding>
+      <ion-col no-padding>
+        <mat-autocomplete-field #matInput
+          formControlName="taxonName"
+          [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
+          [required]="true"
+          [config]="autocompleteFields.taxonName">
+        </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+
+    <ion-spinner float-center *ngIf="loading"></ion-spinner>
+
+    <!-- pmfms -->
+    <ion-row no-padding>
+      <ion-col *ngFor="let pmfm of $pmfms | async; index as i; last as isLast"
+               size="12" no-padding>
+
+        <!-- qualitative value (force 'button' style, on mobile)-->
+        <ng-container *ngIf="pmfm.isQualitative; else otherField">
+          <mat-form-field-measurement-qv #matInput
+                                         [hidden]="pmfm.hidden"
+                                         [pmfm]="pmfm"
+                                         [style]="mobile? 'button' : 'autocomplete'"
+                                         [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                         [compact]="compact"
+                                         (keyup.enter)="isLast && doSubmitLastMeasurementField($event)">
+          </mat-form-field-measurement-qv>
+        </ng-container>
+
+        <!-- NOT qualitative value -->
+        <ng-template #otherField>
+          <mat-form-field-measurement #matInput
+                                      [pmfm]="pmfm"
+                                      [hidden]="pmfm.hidden"
+                                      [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
+                                      [compact]="compact"
+                                      (keyup.enter)="isLast && doSubmitLastMeasurementField($event)">
+          </mat-form-field-measurement>
+        </ng-template>
+      </ion-col>
+    </ion-row>
+
+
+    <ion-row no-padding>
+      <ion-col no-padding>
+
+        <!-- Individual count -->
+        <mat-form-field *ngIf="showIndividualCount">
+          <input matInput #matInput
+                 autocomplete="off"
+                 formControlName="individualCount"
+                 min="1"
+                 type="number"
+                 step="1"
+                 pattern="[0-9]*"
+                 (keyup.enter)="doSubmitIfEnter($event) && filterNumberInput($event, false)"
+                 (focus)="selectInputContent($event)"
+                 [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT'|translate"
+                 [required]="!enableIndividualCount">
+          <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED
+          </mat-error>
+          <mat-error *ngIf="form.controls.individualCount.hasError('min')">
+            {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') |
+            translate:form.controls.individualCount.errors['min'] }}
+          </mat-error>
+          <mat-error *ngIf="form.controls.individualCount.hasError('integer')">
+            {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}
+          </mat-error>
+
+          <!-- checkbox, when compact -->
+          <mat-checkbox matSuffix [formControl]="enableIndividualCountControl"
+                        labelPosition="after"
+                        tabindex="-1">
+            <ion-text><small>{{'TRIP.BATCH.EDIT.INDIVIDUAL.BTN_MANUAL_ENTRY'|translate}}</small></ion-text>
+          </mat-checkbox>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
   </ion-grid>
-
-  <!-- QV pmfm -->
-  <mat-form-field-measurement-qv *ngIf="!loadingControls && qvPmfm"
-                                 #matInput
-                                 [pmfm]="qvPmfm"
-                                 [style]="mobile? 'button' : 'autocomplete'"
-                                 [formControl]="form.controls.measurementValues.controls[qvPmfm.pmfmId.toString()]"
-                                 [floatLabel]="floatLabel"
-                                 [compact]="compact"
-                                 [required]="true">
-  </mat-form-field-measurement-qv>
-
-  <!-- Espèce scientifique -->
-  <mat-autocomplete-field #matInput
-    formControlName="taxonName"
-    [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
-    [required]="true"
-    [config]="autocompleteFields.taxonName">
-  </mat-autocomplete-field>
-
-  <!-- pmfms -->
-  <ng-container *ngFor="let pmfm of $pmfms | async; index as i; last as isLast">
-
-    <!-- qualitative value (force 'button' style, on mobile)-->
-    <ng-container *ngIf="pmfm.isQualitative; else otherField">
-      <mat-form-field-measurement-qv #matInput
-                                     [hidden]="pmfm.hidden"
-                                     [pmfm]="pmfm"
-                                     [style]="mobile? 'button' : 'autocomplete'"
-                                     [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
-                                     (keypress.enter)="isLast && doSubmitLastMeasurementField($event)"
-                                     [floatLabel]="floatLabel"
-                                     [compact]="compact">
-      </mat-form-field-measurement-qv>
-    </ng-container>
-
-    <!-- NOT qualitative value -->
-    <ng-template #otherField>
-      <mat-form-field-measurement #matInput
-                                  [pmfm]="pmfm"
-                                  [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId]"
-                                  (keypress.enter)="isLast && doSubmitLastMeasurementField($event)"
-                                  [floatLabel]="floatLabel"
-                                  [compact]="compact">
-      </mat-form-field-measurement>
-    </ng-template>
-  </ng-container>
-
-  <!-- Individual count -->
-  <mat-form-field *ngIf="showIndividualCount">
-    <input matInput #matInput
-           autocomplete="off"
-           formControlName="individualCount"
-           min="1"
-           type="number"
-           step="1"
-           pattern="[0-9]*"
-           (keypress)="doSubmitIfEnter($event) && filterNumberInput($event, false)"
-           (focus)="selectInputContent($event)"
-           [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT'|translate"
-           [required]="!enableIndividualCount">
-    <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED
-    </mat-error>
-    <mat-error *ngIf="form.controls.individualCount.hasError('min')">
-      {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') |
-      translate:form.controls.individualCount.errors['min'] }}
-    </mat-error>
-    <mat-error *ngIf="form.controls.individualCount.hasError('integer')">
-      {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}
-    </mat-error>
-
-    <!-- checkbox, when compact -->
-    <mat-checkbox matSuffix [formControl]="enableIndividualCountControl"
-                  labelPosition="after"
-                  tabindex="-1">
-      <ion-text><small>{{'TRIP.BATCH.EDIT.INDIVIDUAL.BTN_MANUAL_ENTRY'|translate}}</small></ion-text>
-    </mat-checkbox>
-  </mat-form-field>
 
   <ng-content></ng-content>
 </form>

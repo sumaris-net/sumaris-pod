@@ -236,9 +236,10 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       componentProps: {
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
-        disabled: this.disabled,
         value: batch,
         isNew: isNew,
+        disabled: !isNew,
+        canEdit: !this.disabled,
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,

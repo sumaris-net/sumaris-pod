@@ -216,7 +216,7 @@ export class NetworkService {
     }
   }
 
-  public async showSelectPeerModal(opts?: {allowSelectDownPeer?: boolean;}): Promise<Peer | undefined> {
+  public async showSelectPeerModal(opts?: {allowSelectDownPeer?: boolean; canCancel?: boolean}): Promise<Peer | undefined> {
 
     opts = opts || {};
 
@@ -226,7 +226,7 @@ export class NetworkService {
       component: SelectPeerModal,
       componentProps: {
         peers: $peers,
-        canCancel: false,
+        canCancel: toBoolean(opts.canCancel, true),
         allowSelectDownPeer: toBoolean(opts.allowSelectDownPeer, true)
       },
       keyboardClose: true,

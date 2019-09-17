@@ -1,8 +1,9 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button class="visible-xs visible-sm" (click)="cancel()">
-        {{'COMMON.BTN_CANCEL'|translate}}
+      <ion-button (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
 
@@ -11,7 +12,8 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button icon-only class="visible-xs visible-sm" *ngIf="!table.loading" (click)="close($event)">
+      <ion-button *ngIf="!table.loading" (click)="close($event)"
+                  visible-xs visible-sm visible-mobile>
         <ion-icon name="checkmark"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -20,7 +22,7 @@
 
 <ion-content no-padding>
   <!-- error -->
-  <ion-item *ngIf="table.error" visible-xs visible-sm>
+  <ion-item *ngIf="table.error" visible-xs visible-sm visible-mobile>
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="table.error|translate"></ion-label>
   </ion-item>

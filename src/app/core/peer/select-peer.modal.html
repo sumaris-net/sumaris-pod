@@ -1,8 +1,9 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button class="visible-xs visible-sm" (click)="cancel()" *ngIf="canCancel">
-        {{'COMMON.BTN_CANCEL'|translate}}
+      <ion-button (click)="cancel()" *ngIf="canCancel"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
 
@@ -81,7 +82,7 @@
 </ion-content>
 
 
-<ion-footer hidden-xs hidden-sm *ngIf="canCancel">
+<ion-footer *ngIf="canCancel" hidden-xs hidden-sm hidden-mobile>
 
   <ion-toolbar>
 

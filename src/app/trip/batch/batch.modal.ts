@@ -1,5 +1,4 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {AcquisitionLevelCodes} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -7,19 +6,14 @@ import {environment} from "../../../environments/environment";
 import {AppFormUtils, PlatformService} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {BatchForm} from "./batch.form";
-import {BatchValidatorService} from "../services/batch.validator";
-import {PhysicalGear} from "../services/model/trip.model";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {SpeciesBatchValidatorService} from "../services/validator/species-batch.validator";
 import {PmfmStrategy} from "../../referential/services/model";
+import {toBoolean} from "../../shared/functions";
 
 @Component({
   selector: 'app-batch-modal',
   templateUrl: 'batch.modal.html',
-  providers: [
-    {provide: ValidatorService, useExisting: SpeciesBatchValidatorService}
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchModal {
@@ -34,7 +28,9 @@ export class BatchModal {
 
   @Input() program: string;
 
-  @Input() disabled = false;
+  @Input() canEdit: boolean;
+
+  @Input() disabled: boolean;
 
   @Input() isNew = false;
 
@@ -47,6 +43,8 @@ export class BatchModal {
   @Input() showTotalIndividualCount = false;
 
   @Input() qvPmfm: PmfmStrategy;
+
+  @Input() showSampleBatch = false;
 
   @Input()
   set value(value: Batch) {
@@ -85,6 +83,9 @@ export class BatchModal {
 
 
   ngOnInit() {
+    this.canEdit = toBoolean(this.canEdit, !this.disabled);
+    this.disabled = !this.canEdit || toBoolean(this.disabled, true);
+
     if (this.disabled) {
       this.form.disable();
     }
@@ -111,6 +112,7 @@ export class BatchModal {
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
+      this.form.markAsTouched();
       return;
     }
 

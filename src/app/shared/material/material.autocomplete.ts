@@ -28,7 +28,7 @@ import {
   selectInputContent,
   isNotEmptyArray,
   getPropertyByPath,
-  isNil, setTabIndex, focusInput, changeCaseToUnderscore
+  isNil, setTabIndex, focusInput, changeCaseToUnderscore, isNotNil, isNotNilOrBlank
 } from "../functions";
 import {ReferentialRef} from "../../core/services/model";
 import {InputElement} from "./focusable";
@@ -200,8 +200,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
     this.onBlur.subscribe( (event: FocusEvent) => {
       // When leave component without object, use implicit value if stored
-      if (this._implicitValue && typeof this.formControl.value !== "object") {
+      if (this._implicitValue && isNotNilOrBlank(this.formControl.value) && typeof this.formControl.value !== "object") {
         this.writeValue(this._implicitValue);
+        this.formControl.setErrors(null);
       }
       this._implicitValue = null;
       this.checkIfTouched();
@@ -254,7 +255,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     // Store implicit value (will use it onBlur if not other value selected)
     if (res && res.length === 1) {
       this._implicitValue = res[0];
-      this.formControl.setErrors(null);
+      //this.formControl.setErrors(null);
     } else {
       this._implicitValue = undefined;
     }
