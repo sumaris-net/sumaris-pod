@@ -59,7 +59,7 @@
 
   <scm>
     <url>https://github.com/sumaris-net/sumaris-pod.git</url>
-    <connection>scm:git:https://github.com/sumaris-net/sumaris-pod.git</connection>
+    <connection>scm:git:[fetch=]https://github.com/sumaris-net/sumaris-pod.git[push=]ssh://git@github.com/sumaris-net/sumaris-pod.git</connection>
     <tag>HEAD</tag>
   </scm>
 
