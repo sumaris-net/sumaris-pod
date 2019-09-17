@@ -19,8 +19,8 @@ echo "Current version: $current"
 
 ### Get repo URL
 PROJECT_NAME=sumaris-pod
-REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/github.com\/|git@github.com:)[^ ]+"`
-REPO=`echo $REMOTE_URL | sed "s/https:\/\/github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
+REMOTE_URL=`git remote -v | grep -P "push" | grep -oP "(https:\/\/git@github.com\/|git@github.com:)[^ ]+"`
+REPO=`echo $REMOTE_URL | sed "s/https:\/\/git@github.com\///g" | sed "s/git@github.com://g" | sed "s/.git$//"`
 REPO_API_URL=https://api.github.com/repos/$REPO
 REPO_PUBLIC_URL=https://github.com/$REPO
 
@@ -41,7 +41,7 @@ case "$1" in
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+"  | grep -oP "$REPO_API_URL/releases/\d+"`
     if [[ $release_url != "" ]]; then
         echo "Deleting existing release..."
-        curl -H 'Authorization: token $GITHUB_TOKEN'  -XDELETE $release_url
+        curl -H  ''"$GITHUT_AUTH"'' -XDELETE $release_url
     fi
   ;;
 
@@ -58,6 +58,7 @@ case "$1" in
         description="Release v$current"
     fi
 
+    #echo "curl -s -H '$GITHUT_AUTH' "$REPO_API_URL/releases/tags/v$current""
     result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/v$current"`
     release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
     if [[ "_$release_url" != "_" ]]; then
@@ -65,7 +66,7 @@ case "$1" in
         result=`curl -H ''"$GITHUT_AUTH"'' -s -XDELETE $release_url`
         if [[ "_$result" != "_" ]]; then
             error_message=`echo "$result" | grep -P "\"message\": \"[^\"]+" | grep -oP ": \"[^\"]+\""`
-            echo "Delete existing release failed with error$error_message"
+            echo "Delete existing release failed with error $error_message"
             exit 1
         fi
     else
@@ -75,6 +76,7 @@ case "$1" in
     echo "Creating new release..."
     echo " - tag: v$current"
     echo " - description: $description"
+    #echo "curl -H '$GITHUT_AUTH' -s $REPO_API_URL/releases -d '{\"tag_name\": \"v$current\",\"target_commitish\": \"master\",\"name\": \"v$current\",\"body\": \"$description\",\"draft\": false,\"prerelease\": $prerelease}'"
     result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "v'"$current"'","target_commitish": "master","name": "v'"$current"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
     upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
