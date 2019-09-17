@@ -41,6 +41,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   loading = true;
 
   $childrenPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  mapPmfmsFn:  (pmfms: PmfmStrategy[]) => PmfmStrategy[];
 
   @Input() debug = false;
 
@@ -147,6 +148,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   ) {
     super(dateAdapter, null, settings);
     this.mobile = platform.mobile;
+    this.mapPmfmsFn = this.createMapPmfmsFn();
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -215,6 +217,29 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     });
   }
 
+  createMapPmfmsFn() {
+
+    console.log("Calling getMapPmfmsFn")
+    const self = this;
+    return (pmfms: PmfmStrategy[]) => {
+      self.qvPmfm = self.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
+      if (self.qvPmfm) {
+        self.qvPmfm = this.qvPmfm.clone();
+        self.qvPmfm.hidden = true;
+
+        // Replace in the list
+        self.$childrenPmfms.next(pmfms.map(p => p.pmfmId === this.qvPmfm.pmfmId ? this.qvPmfm : p));
+
+        self.loading = false;
+        // Do not display PMFM in the root batch
+        return [];
+      }
+
+      self.loading = false;
+      return pmfms;
+    }
+  }
+
   /* -- protected methods -- */
 
   protected getValue(): Batch {
@@ -238,25 +263,5 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     return data;
   }
 
-  protected mapPmfmsFn() {
 
-    const self = this;
-    return (pmfms: PmfmStrategy[]) => {
-      self.qvPmfm = self.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
-      if (self.qvPmfm) {
-        self.qvPmfm = this.qvPmfm.clone();
-        self.qvPmfm.hidden = true;
-
-        // Replace in the list
-        self.$childrenPmfms.next(pmfms.map(p => p.pmfmId === this.qvPmfm.pmfmId ? this.qvPmfm : p));
-
-        self.loading = false;
-        // Do not display PMFM in the root batch
-        return [];
-      }
-
-      self.loading = false;
-      return pmfms;
-    }
-  }
 }
