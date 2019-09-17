@@ -75,4 +75,5 @@ export abstract class BaseDataService<T = any> {
   }, propertyName: string, idsToRemove: number[]) {
     return this.graphql.removeToQueryCacheByIds(opts, propertyName, idsToRemove);
   }
+
 }

@@ -25,6 +25,7 @@ import {BatchUtils} from "../services/model/batch.model";
 import {isNotEmptyArray} from "../../shared/functions";
 import {BatchModal} from "./batch.modal";
 import {ComponentRef} from "@ionic/core";
+import {LocalEntitiesService} from "../../core/services/local-entities.service";
 
 
 export interface BatchFilter {
@@ -54,6 +55,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   protected _initialPmfms: PmfmStrategy[];
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
+  protected localEntitiesService: LocalEntitiesService;
 
   qvPmfm: PmfmStrategy;
   defaultWeightPmfm: PmfmStrategy;
@@ -171,7 +173,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     if (!row) throw new Error("Could not add row t table");
 
     // Adapt measurement values to row
-    this.conformEntityToForm(newBatch, row);
+    this.normalizeEntityToRow(newBatch, row);
 
     // Override rankOrder (keep computed value)
     newBatch.rankOrder = row.currentData.rankOrder;
@@ -202,7 +204,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     const updatedBatch = await this.openDetailModal(batch);
     if (updatedBatch) {
       // Adapt measurement values to row
-      this.conformEntityToForm(updatedBatch, row);
+      this.normalizeEntityToRow(updatedBatch, row);
 
       // Update the row
       row.currentData = updatedBatch;

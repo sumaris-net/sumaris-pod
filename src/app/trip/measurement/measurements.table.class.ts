@@ -250,7 +250,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     await this.onNewEntity(data);
 
     // Normalize measurement values
-    this.conformEntityToForm(data, row);
+    this.normalizeEntityToRow(data, row);
 
     // Set row data
     row.currentData = data; // if validator enable, this will call a setter function
@@ -270,7 +270,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return super.getI18nColumnName(columnName);
   }
 
-  protected conformEntityToForm(data: T, row: TableElement<T>) {
+  protected normalizeEntityToRow(data: T, row: TableElement<T>) {
     if (!data) return; // skip
 
     const pmfms = this.measurementsDataService.$pmfms.getValue() || [];

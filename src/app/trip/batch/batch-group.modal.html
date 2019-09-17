@@ -14,8 +14,9 @@
     <ion-buttons slot="end" >
       <ion-spinner *ngIf="loading"></ion-spinner>
 
+      <!-- [disabled]="invalid" -->
       <ion-button *ngIf="!loading" (click)="close($event)"
-                  [disabled]="invalid"
+
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>

@@ -56,6 +56,8 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
   isSampling: boolean;
   mobile: boolean;
+  childrenFormHelper: FormArrayHelper<Batch>;
+
 
   @Input() tabindex: number;
 
@@ -69,15 +71,20 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   @Input() showIndividualCount = false;
 
+  @Input() showEstimatedWeight: boolean = false;
+
   @Input() showSampleBatch: boolean = false;
 
   @Input() showError = true;
+
+  @Input() mapPmfmFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
 
   $allPmfms = new BehaviorSubject<PmfmStrategy[]>(null);
 
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
+
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -91,7 +98,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     protected settings: LocalSettingsService
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
-      null, // Allow to be set by parent component
+      validatorService.getFormGroup(null, {withWeight: true}), // Allow to be set by parent component
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateControls: (form) => this.onUpdateControls(form)
@@ -102,16 +109,16 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this._enable = true;
 
+    this.childrenFormHelper = this.getChildrenFormHelper(this.form);
+
     // for DEV only
     this.debug = !environment.production;
   }
 
   ngOnInit() {
-    this.form = this.form || this.validatorService.getFormGroup();
-
     super.ngOnInit();
 
-    console.debug("[batch-form] Init form");
+    if (this.debug) console.debug("[batch-form] Init form");
 
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
@@ -123,6 +130,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     this.registerAutocompleteConfig('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
     });
+
   }
 
   public setValue(data: Batch) {
@@ -136,7 +144,6 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         estimated: weightPmfm && weightPmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
         value : weightPmfm && data.measurementValues[weightPmfm.pmfmId.toString()],
       };
-      console.log("TODO check weight=" + data.weight)
 
       // Make sure the weight is fill only in the default weight pmfm
       this.weightPmfms.forEach(p => {
@@ -144,26 +151,20 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         this.form.removeControl(p.pmfmId.toString());
       });
     }
+    else {
+      this.form.get('weight').disable({onlySelf: true, emitEvent: false});
+    }
 
     // Adapt measurement values to form
     MeasurementValuesUtils.normalizeEntityToForm(data, this.$allPmfms.getValue(), this.form);
 
-    const childrenFormHelper = this.getChildrenFormHelper(this.form);
-
     if (this.showSampleBatch) {
+
+      this.childrenFormHelper.resize(1);
+      const samplingFormGroup = this.childrenFormHelper.at(0) as FormGroup;
 
       const samplingBatch = BatchUtils.getOrCreateSamplingChild(data);
       this.setIsSampling(BatchUtils.isSampleNotEmpty(samplingBatch));
-
-      childrenFormHelper.resize(1);
-      const samplingFormGroup = childrenFormHelper.at(0) as FormGroup;
-
-      // Adapt measurement values to form
-      MeasurementValuesUtils.normalizeEntityToForm(samplingBatch, [], samplingFormGroup);
-
-      if (!samplingFormGroup.get('weight')) {
-        samplingFormGroup.addControl('weight', this.validatorService.getWeightFormGroup());
-      }
 
       // Read child weight (use the first one)
       if (this.defaultWeightPmfm) {
@@ -174,45 +175,66 @@ export class BatchForm extends MeasurementValuesForm<Batch>
           estimated: samplingWeightPmfm && samplingWeightPmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
           value: samplingWeightPmfm && samplingBatch.measurementValues[samplingWeightPmfm.pmfmId.toString()],
         };
-        console.log("TODO check weight=" + samplingBatch.weight)
+
+        // Adapt measurement values to form
+        MeasurementValuesUtils.normalizeEntityToForm(samplingBatch, [], samplingFormGroup);
       }
+
+      // Convert sampling ratio
+      if (isNotNil(samplingBatch.samplingRatio)) {
+        samplingBatch.samplingRatio = samplingBatch.samplingRatio * 100;
+      }
+
+      this.validatorService.setAsyncValidators(this.form, {withSampleBatch: true});
+    }
+    else {
+      this.childrenFormHelper.resize((data.children || []).length);
     }
 
-    console.log(data.label + " TODO Check setValue()", data)
+    if (this.debug) console.debug(data.label + " setValue() with data:", data);
 
     super.setValue(data);
   }
 
   protected getValue(): Batch {
-    if (!this.dirty) return this.data;
-
     const json = this.form.value;
 
     // Convert weight into measurement
-    if (this.defaultWeightPmfm && json.weight && isNotNil(json.weight.value)) {
+    const totalWeight = this.defaultWeightPmfm && json.weight && json.weight.value;
+    if (isNotNil(totalWeight)) {
       const weightPmfm = this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
-      json.measurementValues[weightPmfm.pmfmId.toString()] = json.weight.value;
+      json.measurementValues[weightPmfm.pmfmId.toString()] = totalWeight;
     }
+    json.weight = undefined;
 
     // Convert measurements
     json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this.$allPmfms.getValue()));
-    this.data.fromObject(json);
 
     if (this.showSampleBatch) {
-      const child = BatchUtils.getOrCreateSamplingChild(this.data);
-      this.setIsSampling(BatchUtils.isSampleNotEmpty(child));
 
       if (this.isSampling) {
+        const child = BatchUtils.getOrCreateSamplingChild(this.data);
         const childJson = json.children && json.children[0] || {};
 
+        childJson.rankOrder = 1;
+        childJson.label = json.label && (json.label  + Batch.SAMPLE_BATCH_SUFFIX) || undefined;
+
+        childJson.measurementValues = childJson.measurementValues || {};
+
         // Convert weight into measurement
-        if (childJson.weight && isNotNil(childJson.weight.value)) {
+        if (isNotNil(childJson.weight.value)) {
           const childWeightPmfm = childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
           childJson.measurementValues[childWeightPmfm.pmfmId.toString()] = childJson.weight.value;
         }
+        else if (isNotNilOrNaN(childJson.samplingRatio) && json){
+
+        }
+        childJson.weight = undefined;
 
         // Convert measurements
-        childJson.measurementValues = Object.assign({}, child.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(childJson.measurementValues, this.weightPmfms));
+        childJson.measurementValues = Object.assign({},
+          child.measurementValues,  // Keep existing extra measurements
+          MeasurementValuesUtils.normalizeValuesToModel(childJson.measurementValues, this.weightPmfms));
 
         // Convert sampling ratio
         if (isNotNilOrBlank(childJson.samplingRatio)) {
@@ -220,15 +242,21 @@ export class BatchForm extends MeasurementValuesForm<Batch>
           childJson.samplingRatio = +childJson.samplingRatio / 100;
         }
 
-        child.fromObject(childJson);
-        this.data.children = [child];
+        json.children = [childJson];
       }
       else {
-        this.data.children = [];
+        json.children = [];
       }
+
+      // Update data
+      this.data.fromObject(json, {withChildren: true});
+    }
+    else {
+     // Keep existing children
+      this.data.fromObject(json);
     }
 
-    console.log('TODO batch Form getValue() = ', this.data)
+    if (this.debug) console.debug(this.data.label + " getValue() with data:", this.data);
 
     return this.data;
   }
@@ -236,13 +264,17 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   setIsSampling(enable: boolean, form?: FormGroup) {
     this.isSampling = enable;
 
+    if (!this.loading) this.form.markAsDirty();
+
     const childrenArray = (form || this.form).get('children') as FormArray;
 
     if (childrenArray) {
       if (enable && childrenArray.disabled) {
         childrenArray.enable({emitEvent: false});
+        this.markForCheck();
       } else if (!enable && childrenArray.enabled) {
         childrenArray.disable({emitEvent: false});
+        this.markForCheck();
       }
     }
   }
@@ -286,6 +318,10 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   protected mapPmfms(pmfms: PmfmStrategy[]) {
 
+    if (this.mapPmfmFn) {
+      pmfms = this.mapPmfmFn(pmfms);
+    }
+
     // Read weight PMFMs
     this.weightPmfms = pmfms.filter(p => PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label));
     this.defaultWeightPmfm = this.weightPmfms.length && this.weightPmfms[0] || undefined;
@@ -303,18 +339,6 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
     const childrenFormHelper = this.getChildrenFormHelper(form);
 
-    // Create weight sub form (if need)
-    let weightForm = form.get('weight');
-    if (this.defaultWeightPmfm) {
-      if (!weightForm) {
-        weightForm = this.validatorService.getWeightFormGroup();
-        form.addControl('weight', weightForm);
-      }
-    }
-    else if (weightForm) {
-      this.form.removeControl('weight');
-    }
-
     // Add pmfms to form
     let measFormGroup = form.get('measurementValues') as FormGroup;
     if (measFormGroup) {
@@ -329,24 +353,24 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       childrenFormHelper.resize(1);
       const samplingForm = childrenFormHelper.at(0) as FormGroup;
 
-      // Create sampling weight sub form (if need)
-      let samplingWeightForm = samplingForm.get('weight');
-      if (this.defaultWeightPmfm) {
-        // Create weight form
-        if (!samplingWeightForm) {
-          samplingWeightForm = this.validatorService.getWeightFormGroup();
-          samplingForm.addControl('weight', samplingWeightForm);
-        }
-      }
-      else if (samplingWeightForm) {
-        samplingForm.removeControl('weight');
-      }
-
       // Reset measurementValues (if exists)
       let samplingMeasFormGroup = samplingForm.get('measurementValues');
       if (samplingMeasFormGroup) {
         this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, []);
       }
+
+      // Reset weight.calculated when value change
+      // const weightForm = samplingForm.get('weight');
+      // const weightValueControl = weightForm.get('value');
+      // const weightCalculatedControl = weightForm.get('calculated');
+      // weightValueControl.valueChanges
+      //   .pipe(
+      //     throttleTime(300),
+      //     filter((_) => weightCalculatedControl.value == true)
+      //   )
+      //   .subscribe(() => {
+      //     weightCalculatedControl.patchValue(false, {emitEvent: false})
+      //   });
 
       // Adapt exists sampling child, if any
       if (this.data) {
@@ -354,13 +378,6 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
         this.setIsSampling(BatchUtils.isSampleNotEmpty(samplingChildBatch));
 
-        // Adapt measurement values to reactive form
-        // MeasurementValuesUtils.normalizeEntityToForm(samplingChildBatch, [], samplingFormGroup);
-        //
-        // samplingMeasFormGroup.patchValue(samplingChildBatch.measurementValues, {
-        //   onlySelf: true,
-        //   emitEvent: false
-        // });
       } else {
         // No data: disable sampling
         this.setIsSampling(false);
@@ -384,7 +401,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       this.formBuilder,
       form,
       'children',
-      (value) => this.validatorService.getFormGroup(),
+      (value) => this.validatorService.getFormGroup(value, {withWeight: true}),
       (v1, v2) => EntityUtils.equals(v1, v2),
       (value) => isNil(value),
       {allowEmptyArray: true}

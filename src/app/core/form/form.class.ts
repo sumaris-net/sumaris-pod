@@ -37,23 +37,23 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
   get invalid(): boolean {
-    return this.form.invalid;
+    return !this.form || this.form.invalid;
   }
 
   get pending(): boolean {
-    return this.form.pending;
+    return !this.form || this.form.pending;
   }
 
   get valid(): boolean {
-    return this.form.valid;
+    return this.form && this.form.valid;
   }
 
   get empty(): boolean {
-    return !this.form.dirty && !this.form.touched;
+    return !this.form || (!this.form.dirty && !this.form.touched);
   }
 
   get untouched(): boolean {
-    return this.form.untouched;
+    return !this.form || this.form.untouched;
   }
 
   get enabled(): boolean {

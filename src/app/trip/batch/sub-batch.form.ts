@@ -39,7 +39,7 @@ import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
 import {MeasurementQVFormField} from "../measurement/measurement-qv.form-field.component";
 import {MatAutocompleteField} from "../../shared/material/material.autocomplete";
-import {InputElement, isInputElement} from "../../shared/material/focusable";
+import {InputElement, isInputElement, tabindexComparator} from "../../shared/material/focusable";
 
 
 @Component({
@@ -224,13 +224,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         return undefined;
       })
       .filter(input => isNotNil(input) && isNilOrBlank(input.value))
-      // FIXME: this is not working (la fonction d'après ne recupère rien)
-      //.sort(attributeComparator("tabindex")) // Order by tabindex
-      .sort((a, b) => {
-        const valueA = a.tabindex || a.tabIndex;
-        const valueB = b.tabindex || b.tabIndex;
-        return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
-      })
+      .sort(tabindexComparator)// Order by tabindex
       .find(input => {
         input.focus();
         return true; // stop
@@ -324,16 +318,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
       // Make sure QV is required
       qvControl.setValidators(Validators.required);
-
-      this.registerSubscription(qvControl.valueChanges.subscribe((value) => {
-        if (!this.data) return;
-
-        console.log("TODO check QV value changes :", value);
-
-
-      }));
     }
-
   }
 
   protected getValue(): Batch {

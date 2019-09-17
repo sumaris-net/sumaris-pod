@@ -180,26 +180,28 @@ export class BatchGroupsTable extends BatchesTable {
       });
   }
 
-  protected conformEntityToForm(data: Batch, row: TableElement<Batch>) {
+  protected normalizeEntityToRow(data: Batch, row: TableElement<Batch>) {
     // When batch has the QV value
     if (this.qvPmfm) {
-      console.log("TODO: check normalizeRowMeasurementValues", data)
 
       const measurementValues = Object.assign({}, row.currentData.measurementValues);
       // For each group (one by qualitative value)
       this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
-        const child = (data.children || []).find(c => c.label === `${data.label}.${qv.label}`);
+        const child = (data.children || []).find(c => c.label === `${data.label}.${qv.label}` || c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
         if (child) {
 
           // Replace measurement values inside a new map, based on fake pmfms
           this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
+        }
+        else {
+          console.warn("Unable to find child for QV value: " + (qv.label || qv.name));
         }
       });
       data.measurementValues = measurementValues;
     }
 
     // Inherited method
-    super.conformEntityToForm(data, row);
+    super.normalizeEntityToRow(data, row);
 
   }
 
@@ -239,7 +241,6 @@ export class BatchGroupsTable extends BatchesTable {
   }
 
   protected prepareEntityToSave(batch: Batch) {
-    console.log("TODO prepare batch row save:", batch);
     const groupColumnValues = batch.measurementValues;
     batch.measurementValues = {};
 
@@ -274,7 +275,7 @@ export class BatchGroupsTable extends BatchesTable {
         samplingChild.samplingRatio = isNotNil(samplingRatio) ? samplingRatio / 100 : undefined;
         samplingChild.samplingRatioText = isNotNil(samplingRatio) ? `${samplingRatio}%` : undefined;
         samplingChild.measurementValues = {};
-        samplingChild.measurementValues[weightPmfmId.toString()] = isNotNilOrNaN(samplingWeight) ? weight : undefined;;
+        samplingChild.measurementValues[weightPmfmId.toString()] = isNotNilOrNaN(samplingWeight) ? samplingWeight : undefined;
         samplingChild.individualCount = samplingIndividualCount;
         child.children = [samplingChild];
       }

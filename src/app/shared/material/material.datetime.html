@@ -9,7 +9,7 @@
 
   <mat-label>{{placeholder}}</mat-label>
 
-  <input matInput autocomplete="off" type="text"
+  <input matInput #matInput autocomplete="off" type="text"
          [textMask]="{mask: dayMask, keepCharPositions: true, placeholderChar: placeholderChar}"
          formControlName="day"
          [placeholder]="'COMMON.DATE_PLACEHOLDER'|translate"
@@ -41,7 +41,7 @@
 
         <mat-label>{{placeholder}}</mat-label>
 
-        <input matInput autocomplete="off" type="text"
+        <input matInput #matInput autocomplete="off" type="text"
                *ngIf="!mobile"
                formControlName="day"
                [textMask]="{mask: dayMask, keepCharPositions: true, placeholderChar: placeholderChar}"
@@ -51,7 +51,7 @@
                (keyup.escape)="preventEvent($event)"
                [required]="required"
                [tabindex]="tabindex">
-        <input matInput autocomplete="off" type="text"
+        <input matInput #matInput autocomplete="off" type="text"
                *ngIf="mobile"
                formControlName="day"
                (click)="openDatePickerIfMobile($event, datePicker2)"
@@ -99,7 +99,7 @@
     <ion-col no-padding class="hour">
       <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-invalid]="formControl.touched && form.controls.hour.invalid">
         <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.TIME</mat-label>
-        <input matInput type="text"
+        <input matInput #matInput type="text"
                autocomplete="off"
                min="0" max="23"
                *ngIf="!mobile"
@@ -112,7 +112,7 @@
                (blur)="checkIfTouched()"
                [tabindex]="tabindex !== undefined ? tabindex+1 : undefined">
 
-        <input matInput type="text"
+        <input matInput #matInput type="text"
                formControlName="hour"
                [hidden]="!mobile"
                [ngxTimepicker]="timePicker"

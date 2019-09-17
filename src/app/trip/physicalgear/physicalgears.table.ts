@@ -124,7 +124,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
     }
 
     // Adapt measurement values to row
-    this.conformEntityToForm(gear, row);
+    this.normalizeEntityToRow(gear, row);
 
     // Affect new row
     if (row.validator) {

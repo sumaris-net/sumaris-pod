@@ -79,14 +79,13 @@
                                     [formControl]="form.controls.weight.controls.value"
                                     [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                                     [compact]="compact"
-                                    [tabindex]="tabindex+28"
-                                    [required]="true">
+                                    [tabindex]="tabindex+28">
         </mat-form-field-measurement>
 
       </ion-col>
 
       <!-- is estimated weight ?-->
-      <ion-col size="6" no-padding padding-left>
+      <ion-col size="6" no-padding padding-left *ngIf="showEstimatedWeight">
 
         <mat-form-field floatLabel="never">
           <!-- fake input -->
@@ -154,10 +153,19 @@
                    formControlName="samplingRatio"
                    type="number"
                    step="1"
-                   pattern="[0-9]*"
+                   pattern="[0-9]{1,3}"
                    (click)="selectInputContent($event)"
                    [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_RATIO'|translate"
                    [tabindex]="tabindex + 32">
+            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('min')">
+              {{'ERROR.FIELD_MIN' | translate:samplingBatchForm.controls.samplingRatio.errors['min'] }}</mat-error>
+            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('max')">
+              {{'ERROR.FIELD_MAX' | translate:samplingBatchForm.controls.samplingRatio.errors['max'] }}</mat-error>
+            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('pattern')">
+              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('integer')">
+              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
           </mat-form-field>
         </ion-col>
 
@@ -165,12 +173,12 @@
         <ion-col no-padding *ngIf="defaultWeightPmfm">
 
           <mat-form-field-measurement #matInput
+                                      [class.computed]="samplingBatchForm.controls.weight.controls.calculated.value"
                                       [pmfm]="defaultWeightPmfm"
                                       [formControl]="samplingBatchForm.controls.weight.controls.value"
                                       [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                                       [compact]="compact"
-                                      [tabindex]="tabindex+33"
-                                      [required]="true">
+                                      [tabindex]="tabindex+33">
           </mat-form-field-measurement>
         </ion-col>
 

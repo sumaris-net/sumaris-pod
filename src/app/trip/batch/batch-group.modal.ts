@@ -13,6 +13,7 @@ import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {SpeciesBatchValidatorService} from "../services/validator/species-batch.validator";
 import {PmfmStrategy} from "../../referential/services/model";
+import {BatchGroupForm} from "./batch-group.form";
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -41,6 +42,8 @@ export class BatchGroupModal {
 
   @Input() showIndividualCount = false;
 
+  @Input() showTotalIndividualCount = false;
+
   @Input() qvPmfm: PmfmStrategy;
 
   @Input()
@@ -48,7 +51,7 @@ export class BatchGroupModal {
     this.data = value;
   }
 
-  @ViewChild('form') form: BatchForm;
+  @ViewChild('form') form: BatchGroupForm;
 
   get dirty(): boolean {
     return this.form.dirty;
@@ -104,8 +107,9 @@ export class BatchGroupModal {
     if (this.loading) return; // avoid many call
 
     if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
+      if (this.debug) this.form.logErrors("[batch-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
+      this.form.markAsTouched();
       return;
     }
 
@@ -116,7 +120,6 @@ export class BatchGroupModal {
 
     await this.viewCtrl.dismiss(data);
   }
-
   /* -- protected methods -- */
 
   protected markForCheck() {

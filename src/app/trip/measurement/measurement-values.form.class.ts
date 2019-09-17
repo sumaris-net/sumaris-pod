@@ -7,7 +7,7 @@ import {AppForm, LocalSettingsService} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {filter, first, throttleTime} from "rxjs/operators";
+import {filter, first, mergeMap, takeWhile, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
@@ -29,6 +29,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   loadingControls = true; // Important, must be true
 
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+  $initialized = new BehaviorSubject<boolean>(false);
   $loadingControls = new BehaviorSubject<boolean>(true);
 
   @Input() compact = false;
@@ -111,9 +112,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     this.registerSubscription(
       this.$pmfms.pipe(
-        filter(isNotNil)
+        filter(isNotNil),
+        // Wait component has been fully initialized (end of ngInit)
+        mergeMap(async (pmfms) => {
+          await this.onInitialized();
+          return pmfms;
+        })
       )
-        .subscribe((pmfms) => this.updateControls('constructor', pmfms))
+      .subscribe((pmfms) => this.updateControls('constructor', pmfms))
     );
   }
 
@@ -123,17 +129,17 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     // Listen form changes
     this.registerSubscription(
       this.form.valueChanges
-        .takeWhile(() => !this.loading)
-        .subscribe((_) => {
-          if (!this.loading && !this.loadingPmfms && this.valueChanges.observers.length) {
-            this.valueChanges.emit(this.value);
-          }
-        })
+        .pipe(
+          takeWhile(() => !this.loading && !this.loadingPmfms && this.valueChanges.observers.length > 0)
+        )
+        .subscribe((_) => this.valueChanges.emit(this.value))
     );
 
     if (this.data) {
       this._onValueChanged.emit(this.data);
     }
+
+    this.$initialized.next(true);
   }
 
   public markAsTouched() {
@@ -192,13 +198,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     //if (isNil(this.data)) return; // not ready
     pmfms = pmfms || this.$pmfms.getValue();
 
-    let formGroup = this.form.get('measurementValues');
-    if (formGroup && formGroup.enabled) {
-      formGroup.disable({onlySelf: true, emitEvent: false});
-    }
-
     // Waiting end of pmfm load
-    if (!pmfms || this.loadingPmfms) {
+    if (!pmfms || this.loadingPmfms || !this.form) {
       if (this.debug) console.debug(`${this.logPrefix} updateControls(${event}): waiting pmfms...`);
       this.$pmfms
         .pipe(
@@ -210,6 +211,11 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       return;
     }
 
+    let measFormGroup = this.form.get('measurementValues');
+    if (measFormGroup && measFormGroup.enabled) {
+      measFormGroup.disable({onlySelf: true, emitEvent: false});
+    }
+
     this.loadingControls = true;
     if (this.$loadingControls.getValue() !== true) this.$loadingControls.next(true);
     this.loading = true;
@@ -219,9 +225,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     // No pmfms (= empty form)
     if (!pmfms.length) {
       // Reset form
-      if (formGroup && formGroup instanceof FormGroup) {
-        this.measurementValidatorService.updateFormGroup(formGroup, []);
-        formGroup.reset({}, {onlySelf: true, emitEvent: false});
+      if (measFormGroup && measFormGroup instanceof FormGroup) {
+        this.measurementValidatorService.updateFormGroup(measFormGroup, []);
+        measFormGroup.reset({}, {onlySelf: true, emitEvent: false});
       }
     }
 
@@ -229,15 +235,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       if (this.debug) console.debug(`${this.logPrefix} Updating form controls, using pmfms:`, pmfms);
 
       // Create measurementValues form group
-      if (!formGroup) {
-        formGroup = this.measurementValidatorService.getFormGroup(pmfms);
-        this.form.addControl('measurementValues', formGroup);
-        formGroup.disable({onlySelf: true, emitEvent: false});
+      if (!measFormGroup) {
+        measFormGroup = this.measurementValidatorService.getFormGroup(pmfms);
+        this.form.addControl('measurementValues', measFormGroup);
+        measFormGroup.disable({onlySelf: true, emitEvent: false});
       }
 
       // Or update if already exist
       else {
-        this.measurementValidatorService.updateFormGroup(formGroup as FormGroup, pmfms);
+        this.measurementValidatorService.updateFormGroup(measFormGroup as FormGroup, pmfms);
       }
     }
 
@@ -259,7 +265,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       // Adapt measurement values to form
       MeasurementValuesUtils.normalizeEntityToForm(this.data, pmfms, this.form);
 
-      formGroup.patchValue(this.data.measurementValues, {
+      measFormGroup.patchValue(this.data.measurementValues, {
         onlySelf: true,
         emitEvent: false
       });
@@ -270,9 +276,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     // Restore enable state (because form.setValue() can change it !)
     if (this._enable) {
-      formGroup.enable({onlySelf: true, emitEvent: false});
-    } else if (formGroup.enabled) {
-      formGroup.disable({onlySelf: true, emitEvent: false});
+      measFormGroup.enable({onlySelf: true, emitEvent: false});
+    } else if (measFormGroup.enabled) {
+      measFormGroup.disable({onlySelf: true, emitEvent: false});
     }
 
     return true;
@@ -314,6 +320,19 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   /** -- protected methods  -- */
+
+  protected async onInitialized(): Promise<void> {
+    // Wait pmfms load, and controls load
+    if (this.$initialized.getValue() !== true) {
+      //if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
+      await this.$initialized
+        .pipe(
+          filter((initialized) => initialized === true),
+          throttleTime(100), // groups event
+          first()
+        ).toPromise();
+    }
+  }
 
   /**
    * Wait form is ready, before setting the value to form

@@ -96,19 +96,29 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
   return value;
 }
 
-export function logFormErrors(form: FormGroup, logPrefix?: string, path?: string) {
-  if (form.valid) return;
+export function logFormErrors(control: AbstractControl, logPrefix?: string, path?: string) {
+  if (control.valid) return;
   logPrefix = logPrefix || "";
-  const value = {};
-  if (!path) console.warn(`${logPrefix} Form errors:`);
-  for (let key in form.controls) {
-    let keyPath = (path ? `${path}/${key}` : key);
-    if (form.controls[key] instanceof FormGroup) {
-      logFormErrors(form.controls[key] as FormGroup, logPrefix, keyPath);
-    } else if (form.controls[key]) {
-      for (let error in form.controls[key].errors) {
-        console.warn(` -> '${keyPath}' (${error})`);
-      }
+  // Form group
+  if (control instanceof FormGroup) {
+    if (!path) console.warn(`${logPrefix} Form errors:`);
+    for (let error in control.errors) {
+      console.warn(`'${logPrefix} -> ${path||''} (${error})`);
+    }
+    for (let key in control.controls) {
+      logFormErrors(control.controls[key], logPrefix, (path ? `${path}/${key}` : key)); // Recursive call
+    }
+  }
+  // Form array
+  else if (control instanceof FormArray) {
+    control.controls.forEach((child, index) => {
+      logFormErrors(child, logPrefix, (path ? `${path}#${index}` : `#${index}`)); // Recursive call
+    });
+  }
+  // Other control
+  else {
+    for (let error in control.errors) {
+      console.warn(`'${logPrefix} -> ${path||''} (${error})`);
     }
   }
 }

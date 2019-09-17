@@ -494,7 +494,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       // No ID defined: unable to open details
       if (isNil(row.currentData.id)) {
         console.warn("[table] Opening row details, but missing currentData.id!");
-        return false;
+        //return false;
       }
 
       this.loading = true;

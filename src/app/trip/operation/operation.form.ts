@@ -181,7 +181,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return new Promise<{ latitude: number; longitude: number; }>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
         (position: Position) => {
-          console.log('TODO check geo loc result:', position);
           resolve({
             latitude: position.coords.latitude,
             longitude: position.coords.longitude

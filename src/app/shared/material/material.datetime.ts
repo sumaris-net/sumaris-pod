@@ -1,12 +1,12 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component,
+  Component, ElementRef,
   forwardRef,
   Input,
   OnInit,
-  Optional,
-  ViewChild
+  Optional, QueryList,
+  ViewChild, ViewChildren
 } from '@angular/core';
 import {Platform} from '@ionic/angular';
 import {DateAdapter, FloatLabelType, MatDatepicker, MatDatepickerInputEvent} from '@angular/material';
@@ -23,10 +23,11 @@ import {TranslateService} from "@ngx-translate/core";
 import {Moment} from "moment/moment";
 import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR} from '../constants';
 import {SharedValidators} from '../validator/validators';
-import {isNilOrBlank, toBoolean} from "../functions";
+import {isNil, isNilOrBlank, setTabIndex, toBoolean, toDateISOString} from "../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {first} from "rxjs/operators";
 import {fadeInAnimation} from "./material.animations";
+import {InputElement, isFocusableElement} from "./focusable";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -64,7 +65,7 @@ declare interface NgxTimePicker {
     fadeInAnimation
   ]
 })
-export class MatDateTime implements OnInit, ControlValueAccessor {
+export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
   protected writing = true;
@@ -74,7 +75,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   form: FormGroup;
   displayPattern: string;
   dayPattern: string;
-  date: Moment;
+  _value: Moment;
   locale: string;
   dayMask = DAY_MASK;
   hourMask = HOUR_MASK;
@@ -106,6 +107,12 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
   @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
   @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
   @ViewChild('timePicker') timePicker: NgxTimePicker;
+
+  @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
+
+  get value(): any {
+    return toDateISOString(this._value);
+  }
 
   constructor(
     platform: Platform,
@@ -170,14 +177,14 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
       } else {
         this.form.patchValue({day: null}, {emitEvent: false});
       }
-      this.date = undefined;
+      this._value = undefined;
       this.writing = false;
       this.markForCheck();
       return;
     }
 
-    this.date = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
-    if (!this.date) return; // invalid date
+    this._value = this.dateAdapter.parse(obj, DATE_ISO_PATTERN);
+    if (!this._value) return; // invalid date
 
     this.writing = true;
 
@@ -185,14 +192,14 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     if (this.displayTime) {
 
       // Format hh
-      let hour: number | string = this.date.hour();
+      let hour: number | string = this._value.hour();
       hour = hour < 10 ? ('0' + hour) : hour;
       // Format mm
-      let minutes: number | string = this.date.minutes();
+      let minutes: number | string = this._value.minutes();
       minutes = minutes < 10 ? ('0' + minutes) : minutes;
       // Set form value
       this.form.patchValue({
-        day: this.date.clone().startOf('day').format(this.dayPattern),
+        day: this._value.clone().startOf('day').format(this.dayPattern),
         hour: `${hour}:${minutes}`
       }, {emitEvent: false});
     }
@@ -202,7 +209,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
       //console.log("call writeValue()", this.date, this.formControl);
       // Set form value
       this.form.patchValue({
-        day: this.date.clone().startOf('day').format(this.dayPattern)
+        day: this._value.clone().startOf('day').format(this.dayPattern)
       }, {emitEvent: false});
     }
     this.writing = false;
@@ -285,7 +292,7 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     }
 
     // update date picker
-    this.date = date && this.dateAdapter.parse(date.clone(), DATE_ISO_PATTERN);
+    this._value = date && this.dateAdapter.parse(date.clone(), DATE_ISO_PATTERN);
 
     // Get the model value
     const dateStr = date && date.isValid() && date.format(DATE_ISO_PATTERN).replace('+00:00', 'Z') || date;
@@ -430,7 +437,30 @@ export class MatDateTime implements OnInit, ControlValueAccessor {
     event.returnValue = false;
   }
 
+  focus() {
+    if (!this.matInputs.length) return;
+
+    setTimeout(() => {
+      const elementRef = this.matInputs[0]; // get the first element
+      if (isFocusableElement(elementRef)) {
+        elementRef.focus();
+      }
+    });
+  }
+
   /* -- protected method -- */
+
+  protected updateTabIndex() {
+    if (isNil(this.tabindex) || this.tabindex === -1) return; // skip
+
+    // Focus to first input
+    setTimeout(() => {
+      this.matInputs.forEach((elementRef, index) => {
+        setTabIndex(elementRef, this.tabindex + index);
+      });
+      this.markForCheck();
+    });
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -153,6 +153,13 @@ form.form-container {
     word-wrap: normal;
     white-space: normal;
   }
+
+  .computed mat-form-field,
+  mat-form-field .computed,
+  mat-form-field.computed {
+    color: var(--ion-color-primary-tint);
+    font-style: italic;
+  }
 }
 
 

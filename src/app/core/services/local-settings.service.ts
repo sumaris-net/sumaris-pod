@@ -13,7 +13,6 @@ import {FormFieldDefinition} from "../../shared/form/field.model";
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
 
-let OBJ_ID = 0;
 @Injectable({providedIn: 'root'})
 export class LocalSettingsService {
 
@@ -69,8 +68,6 @@ export class LocalSettingsService {
     private storage: Storage
   ) {
 
-    this._id = OBJ_ID++;
-    console.log("Creating LocalSettingsService", this._id);
     // Register default options
     //this.registerFields(Object.getOwnPropertyNames(CoreOptions).map(key => CoreOptions[key]));
 

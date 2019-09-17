@@ -1,21 +1,32 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from "@angular/core";
-import {Batch, BatchUtils} from "../services/model/batch.model";
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  QueryList,
+  ViewChild,
+  ViewChildren
+} from "@angular/core";
+import {Batch} from "../services/model/batch.model";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
-import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {FormBuilder} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {EntityUtils, referentialToString, UsageMode} from "../../core/services/model";
-import {filter, first} from "rxjs/operators";
-import {isNil, isNotNil, PmfmStrategy, PmfmUtils} from "../../referential/services/model";
+import {AcquisitionLevelCodes, UsageMode} from "../../core/services/model";
+import {PmfmStrategy, PmfmUtils} from "../../referential/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {AppFormUtils, FormArrayHelper, PlatformService} from "../../core/core.module";
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
+import {AppForm, AppFormUtils, PlatformService} from "../../core/core.module";
 import {BatchGroupValidatorService} from "../services/batch-groups.validator";
-import {BehaviorSubject, Subject} from "rxjs";
+import {BehaviorSubject} from "rxjs";
+import {BatchForm} from "./batch.form";
+import {isNotEmptyArray} from "../../shared/functions";
+import {filter, first} from "rxjs/operators";
 
 @Component({
   selector: 'app-batch-group-form',
@@ -23,13 +34,15 @@ import {BehaviorSubject, Subject} from "rxjs";
   styleUrls: ['batch-group.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupForm extends MeasurementValuesForm<Batch>
-  implements OnInit, OnDestroy {
+export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy {
 
   mobile: boolean;
+  error : string;
+  loading = true;
 
-  childrenFormHelper: FormArrayHelper<Batch>;
   $childrenPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
+
+  @Input() debug = false;
 
   @Input() tabindex: number;
 
@@ -47,18 +60,83 @@ export class BatchGroupForm extends MeasurementValuesForm<Batch>
 
   @Input() qvPmfm: PmfmStrategy;
 
+  @Input() acquisitionLevel: string;
+
+  @Input() program: string;
+
+  @Output()
+  valueChanges: EventEmitter<any> = new EventEmitter<any>();
+
+  @ViewChild('batchForm') batchForm: BatchForm;
+  @ViewChildren('childForm') childrenForms !: QueryList<BatchForm>;
 
   get isOnFieldMode(): boolean {
     return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
   }
 
-  get childrenFormArray(): FormArray {
-    return this.form && this.form.get('children') as FormArray;
+  get value(): Batch {
+    return this.getValue();
+  }
+
+  set value(data: Batch) {
+    this.batchForm.onReady().then(() => {
+      this.setValue(data);
+    })
+  }
+
+  get invalid(): boolean {
+    return this.batchForm.invalid || (this.childrenForms && this.childrenForms.find(child => child.invalid) && true) || false;
+  }
+
+  get valid(): boolean {
+    return this.batchForm.valid && (!this.childrenForms || !this.childrenForms.find(child => child.invalid));
+  }
+
+  get dirty(): boolean {
+    return this.batchForm.dirty || (this.childrenForms && this.childrenForms.find(child => child.dirty) && true) || false;
+  }
+
+  markAsTouched() {
+    this.batchForm.markAsTouched();
+    this.childrenForms && this.childrenForms.forEach(child => {
+      child.markAsTouched();
+    });
+  }
+
+  markAsPristine() {
+    this.batchForm.markAsPristine();
+    this.childrenForms && this.childrenForms.forEach(child => {
+      child.markAsPristine();
+    });
+  }
+
+  markAsDirty() {
+    this.batchForm.markAsDirty();
+    this.childrenForms && this.childrenForms.forEach(child => {
+      child.markAsDirty();
+    });
+  }
+
+
+  disable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    this.form.disable(opts);
+    this.childrenForms && this.childrenForms.forEach(child => child.disable(opts));
+  }
+
+
+  enable(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }) {
+    this.form.enable(opts);
+    this.childrenForms && this.childrenForms.forEach(child => child.enable(opts));
   }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programService: ProgramService,
     protected platform: PlatformService,
@@ -67,104 +145,118 @@ export class BatchGroupForm extends MeasurementValuesForm<Batch>
     protected referentialRefService: ReferentialRefService,
     protected settings: LocalSettingsService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programService, settings, cd,
-      null,
-      {
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onUpdateControls: (form) => this.onUpdateControls(form)
-      });
+    super(dateAdapter, null, settings);
     this.mobile = platform.mobile;
+
+    // Default value
+    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
     // for DEV only
     this.debug = !environment.production;
   }
 
-  ngOnInit() {
-    this.form = this.form || this.validatorService.getFormGroup();
+  async ngOnInit() {
 
-    this.childrenFormHelper = new FormArrayHelper<Batch>(
-      this.formBuilder,
-      this.form,
-      'children',
-      (value) => this.validatorService.getFormGroup(),
-      (v1, v2) => EntityUtils.equals(v1, v2),
-      (value) => isNil(value),
-      {allowEmptyArray: true}
-    );
+    this.form = this.batchForm.form;
 
     super.ngOnInit();
 
-    this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
+    // Listen form changes
+    this.registerSubscription(
+      this.batchForm.form.valueChanges
+        .takeWhile(() => !this.loading)
+        .subscribe((_) => {
+          if (!this.loading && this.valueChanges.observers.length) {
+            this.valueChanges.emit(this.value);
+          }
+        })
+    );
   }
 
-  public setValue(data: Batch) {
-    console.log("TODO check setValue group form", data)
 
-    if (this.qvPmfm) {
+
+  setValue(data: Batch) {
+    if (this.debug) console.debug("[batch-group-form] setValue() with value:", data);
+
+    if (!this.qvPmfm) {
+      this.batchForm.value = data;
+    }
+    else {
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
         let child = (data.children || []).find(c => c.measurementValues[this.qvPmfm.pmfmId] == qv.id);
         if (!child) {
           child = new Batch();
+          child.label = `${data.label}.${qv.label}`;
           child.measurementValues[this.qvPmfm.pmfmId] = qv;
+          child.rankOrder = index + 1;
         }
         return child;
       });
-    }
 
-    // Resize form to children length
-    this.childrenFormHelper.resize(data.children.length);
+      this.batchForm.value = data;
+
+      this.childrenForms.changes
+        .pipe(
+          filter(() => this.childrenForms.length > 0),
+          first()
+        )
+        .subscribe(() => {
+          this.childrenForms.map((batchForm, index) => {
+            batchForm.value = data.children[index];
+          });
+      })
+    }
   }
 
-  protected getValue(): Batch {
-    const data = super.getValue();
-
-
-    console.log("TODO check getValue group form", data)
-
-    return data;
+  logErrors(logPrefix: string) {
+    AppFormUtils.logFormErrors(this.batchForm.form, logPrefix);
+    this.childrenForms.forEach((childForm, index) => {
+      AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);
+    });
   }
 
   /* -- protected methods -- */
 
-  protected mapPmfms(pmfms: PmfmStrategy[]) {
+  protected getValue(): Batch {
+    const data = this.batchForm.value;
 
-    this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
+    // If has children form
     if (this.qvPmfm) {
-      this.qvPmfm = this.qvPmfm.clone();
-      this.qvPmfm.hidden = true;
-
-      // Replace in the list
-      this.$childrenPmfms.next(pmfms.map(p => p.pmfmId === this.qvPmfm.pmfmId ? this.qvPmfm : p));
-
-      // Do not display PMFM in the root batch
-      return [];
+      data.children = this.childrenForms.map((form, index) => {
+        const qv = this.qvPmfm.qualitativeValues[index];
+        const child = form.value;
+        child.rankOrder = index + 1;
+        child.label = `${data.label}.${qv.label}`;
+        child.measurementValues = child.measurementValues || {};
+        child.measurementValues[this.qvPmfm.pmfmId.toString()] = '' + qv.id;
+        return child;
+      });
     }
 
-    return pmfms;
+    if (this.debug) console.debug("[batch-group-form] getValue():", data);
+
+    return data;
   }
 
-  protected onUpdateControls(form: FormGroup) {
+  protected mapPmfmsFn() {
 
-    const childrenFormHelper = this.getChildrenFormHelper(form);
+    const self = this;
+    return (pmfms: PmfmStrategy[]) => {
+      self.qvPmfm = self.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
+      if (self.qvPmfm) {
+        self.qvPmfm = this.qvPmfm.clone();
+        self.qvPmfm.hidden = true;
 
-    if (this.qvPmfm) {
-      childrenFormHelper.resize(this.qvPmfm.qualitativeValues.length);
+        // Replace in the list
+        self.$childrenPmfms.next(pmfms.map(p => p.pmfmId === this.qvPmfm.pmfmId ? this.qvPmfm : p));
+
+        self.loading = false;
+        // Do not display PMFM in the root batch
+        return [];
+      }
+
+      self.loading = false;
+      return pmfms;
     }
   }
-
-
-  protected getChildrenFormHelper(form: FormGroup): FormArrayHelper<Batch> {
-    return new FormArrayHelper<Batch>(
-      this.formBuilder,
-      form,
-      'children',
-      (value) => this.validatorService.getFormGroup(),
-      (v1, v2) => EntityUtils.equals(v1, v2),
-      (value) => isNil(value),
-      {allowEmptyArray: true}
-    );
-  }
-
-  referentialToString = referentialToString;
-  selectInputContent = AppFormUtils.selectInputContent;
 }

@@ -189,6 +189,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
   protected updateTabIndex() {
     if (isNil(this.tabindex) || this.tabindex === -1) return;
     setTimeout(() => {
+      if(!this.matInput) return;
       setTabIndex(this.matInput, this.tabindex);
       this.cd.markForCheck();
     });

@@ -9,7 +9,7 @@ export declare interface BatchWeight {
   methodId: number;
   estimated: boolean;
   calculated: boolean;
-  value: any;
+  value: number;
 }
 
 export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<Batch> {
@@ -130,6 +130,8 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     this.operationId = source.operationId;
     this.parentId = source.parentId;
     this.parent = source.parent;
+
+    this.weight = source.weight || undefined;
 
     if (source.measurementValues) {
       this.measurementValues = source.measurementValues;
