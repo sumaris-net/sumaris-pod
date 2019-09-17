@@ -40,7 +40,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication(
         scanBasePackages = {
@@ -133,5 +136,20 @@ public class Application extends SpringBootServletInitializer {
         executor.initialize();
         return executor;
     }
+
+//    @Bean
+//    public FilterRegistrationBean corsFilter(SumarisConfiguration appConfig) {
+//        //if (!config.enableCors()) return null;
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        CorsConfiguration corsConfig = new CorsConfiguration();
+//        corsConfig.setAllowCredentials(true);
+//        corsConfig.addAllowedOrigin("/**");
+//        corsConfig.addAllowedHeader("*");
+//        corsConfig.addAllowedMethod("*");
+//        source.registerCorsConfiguration("/**", corsConfig);
+//        FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
+//        bean.setOrder(0);
+//        return bean;
+//    }
 
 }

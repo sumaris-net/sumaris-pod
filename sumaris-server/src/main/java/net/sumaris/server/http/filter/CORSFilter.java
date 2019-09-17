@@ -22,11 +22,16 @@ package net.sumaris.server.http.filter;
  * #L%
  */
 
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@Component
+@Order(0)
 public class CORSFilter implements Filter {
 
     @Override
