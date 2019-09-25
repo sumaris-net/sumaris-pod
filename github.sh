@@ -88,16 +88,20 @@ case "$1" in
     fi
 
     ###  Sending files
-    echo "Uploading files... to $upload_url"
+    echo "Uploading files to $upload_url ..."
     dirname=`pwd`
 
-    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "$dirname/sumaris-server/target/sumaris-server-$current.jar" "$upload_url?name=sumaris-pod-$current.jar"`
+    JAR_FILE="$dirname/sumaris-server/target/sumaris-server-$current.jar"
+    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${JAR_FILE}" "$upload_url?name=sumaris-pod-$current.jar"`
     browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
-    echo " - $browser_download_url"
+    JAR_SHA256=$(sha256sum "${JAR_FILE}")
+    echo " - $browser_download_url  | SHA256 Checksum: ${JAR_SHA256}"
 
-    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "$dirname/sumaris-core/target/sumaris-db-$current.zip" "$upload_url?name=sumaris-db-$current.zip"`
+    DB_FILE="$dirname/sumaris-core/target/sumaris-db-$current.zip"
+    result=`curl -s -H ''"$GITHUT_AUTH"'' -H 'Content-Type: application/zip' -T "${DB_FILE}" "$upload_url?name=sumaris-db-$current.zip"`
     browser_download_url=`echo "$result" | grep -P "\"browser_download_url\":[ ]?\"[^\"]+" | grep -oP "\"browser_download_url\":[ ]?\"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
-    echo " - $browser_download_url"
+    DB_SHA256=$(sha256sum "${DB_FILE}")
+    echo " - $browser_download_url  | SHA256 Checksum: ${DB_SHA256}"
 
     echo "-----------------------------------------"
     echo "Successfully uploading files !"
