@@ -99,6 +99,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.dbunit</groupId>
       <artifactId>dbunit</artifactId>
       <scope>compile</scope>

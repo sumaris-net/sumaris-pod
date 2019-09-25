@@ -118,6 +118,7 @@
     <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
+      <scope>compile</scope>
     </dependency>
 
     <!-- Cryptography -->
