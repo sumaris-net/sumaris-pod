@@ -104,7 +104,7 @@ echo "----------------------------------"
 echo "- Creating web artifact..."
 echo "----------------------------------"
 cd $DIRNAME/www
-test -e "${PROJECT_NAME}.zip" || rm ${PROJECT_NAME}.zip
+test -e "${PROJECT_NAME}.zip" || rm ${PROJECT_NAME}.zip
 zip -q -r ${PROJECT_NAME}.zip .
 if [[ $? -ne 0 ]]; then
     exit 1
@@ -117,7 +117,7 @@ echo "----------------------------------"
 rm ${DIRNAME}/platforms/android/app/build/outputs/apk/release/*.apk
 # Launch the build script
 PROJECT_DIR=${DIRNAME}
-cd ${DIRNAME}/scripts
+cd ${DIRNAME}/scripts || exit 1
 ./release-android.sh
 if [[ $? -ne 0 ]]; then
     exit 1
