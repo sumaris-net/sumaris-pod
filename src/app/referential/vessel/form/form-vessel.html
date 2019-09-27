@@ -40,7 +40,7 @@
         <mat-autocomplete-field
           [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate"
           formControlName="basePortLocation"
-          [config]="autocompleteHelper.get('location')"
+          [config]="autocompleteFields.location"
           [required]="true">
           <ion-icon matPrefix name="pin"></ion-icon>
         </mat-autocomplete-field>

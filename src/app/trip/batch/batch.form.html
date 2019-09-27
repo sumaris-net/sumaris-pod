@@ -19,7 +19,7 @@
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
                                 [tabindex]="tabindex"
                                 [required]="showTaxonGroup"
-                                [config]="autocompleteHelper.taxonGroup">
+                                [config]="autocompleteFields.taxonGroup">
         </mat-autocomplete-field>
       </ion-col>
 
@@ -32,7 +32,7 @@
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                                 [tabindex]="tabindex+1"
                                 [required]="showTaxonName"
-                                [config]="autocompleteHelper.taxonName">
+                                [config]="autocompleteFields.taxonName">
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>

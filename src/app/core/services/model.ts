@@ -1,6 +1,6 @@
 import {Moment} from "moment/moment";
 import {
-  attributeComparator,
+  propertyComparator,
   fromDateISOString,
   isNil,
   isNilOrBlank,
@@ -14,7 +14,7 @@ import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.mo
 
 export {
   joinPropertiesPath,
-  attributeComparator,
+  propertyComparator,
   sort
 };
 

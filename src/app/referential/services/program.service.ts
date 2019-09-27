@@ -177,22 +177,25 @@ const ProgramFragments = {
   }`,
   taxonGroupStrategy: gql`
     fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
-      id
-      label   
-      name
-      priorityLevel
-      taxonNames {
-        ...TaxonNameFragment
+      taxonGroup {
+          id
+          label
+          name
+          entityName
+          taxonNames {
+              ...TaxonNameFragment
+          }
       }
+      priorityLevel
       __typename
     }
   `,
   taxonNameStrategy: gql`
     fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
-      id
-      label   
-      name
       priorityLevel
+      taxonName {
+          ...TaxonNameFragment
+      }
       __typename
     }
   `
@@ -254,9 +257,9 @@ const SaveQuery: any = gql`
 `;
 
 const ProgramCacheKeys = {
-  GROUP: 'program',
+  CACHE_GROUP: 'program',
 
-  BY_LABEL: 'programByLabel',
+  PROGRAM_BY_LABEL: 'programByLabel',
   PMFMS: 'programPmfms',
   GEARS: 'programGears',
   TAXON_GROUPS: 'programTaxonGroups',
@@ -347,7 +350,7 @@ export class ProgramService extends BaseDataService
 
     //if (this._debug) console.debug(`[program-service] Watch program {${label}}...`);
 
-    const cacheKey = `${ProgramCacheKeys.BY_LABEL}|${label}`;
+    const cacheKey = `${ProgramCacheKeys.PROGRAM_BY_LABEL}:${label}`;
     return this.cache.loadFromObservable(cacheKey,
       this.graphql.watchQuery<{ program: any }>({
         query: LoadRefQuery,
@@ -356,7 +359,7 @@ export class ProgramService extends BaseDataService
         },
         error: {code: ErrorCodes.LOAD_PROGRAM_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAM_ERROR"}
       }).pipe(filter(isNotNil)),
-      ProgramCacheKeys.GROUP
+      ProgramCacheKeys.CACHE_GROUP
     )
       .pipe(
         map(({program}) => {
@@ -424,7 +427,7 @@ export class ProgramService extends BaseDataService
               // TODO: translate name/label using translate service ?
               return res;
             }
-          )), ProgramCacheKeys.GROUP)
+          )), ProgramCacheKeys.CACHE_GROUP)
       .pipe(
         map(res => res && res.map(PmfmStrategy.fromObject))
       );
@@ -461,7 +464,7 @@ export class ProgramService extends BaseDataService
             if (this._debug) console.debug(`[program-service] Gears for program ${program}: `, res);
             return res;
           })
-        ), ProgramCacheKeys.GROUP)
+        ), ProgramCacheKeys.CACHE_GROUP)
     // Convert into model (after cache)
       .pipe(map(res => res.map(ReferentialRef.fromObject)));
   }
@@ -484,7 +487,8 @@ export class ProgramService extends BaseDataService
     return this.watchByLabel(programLabel, false)
       .pipe(
         map(program => {
-          // TODO: select valid strategy (from date and location)
+          // TODO: select the valid strategy (from date and location)
+          // For now: select the first one
           const strategy = program && program.strategies && program.strategies[0];
           const res = (strategy && strategy.taxonGroups || []);
           if (this._debug) console.debug(`[program-service] Taxon groups for program ${program}: `, res);
@@ -504,7 +508,7 @@ export class ProgramService extends BaseDataService
       () => this.watchTaxonGroups(programLabel)
             .pipe(filter(isNotNil), first())
             .toPromise(),
-      ProgramCacheKeys.GROUP);
+      ProgramCacheKeys.CACHE_GROUP);
   }
 
   /**
@@ -593,7 +597,7 @@ export class ProgramService extends BaseDataService
           }
           return res;
         }, {});
-      }, ProgramCacheKeys.GROUP);
+      }, ProgramCacheKeys.CACHE_GROUP);
   }
 
   async load(id: number, options?: EditorDataServiceLoadOptions): Promise<Program> {
@@ -620,7 +624,7 @@ export class ProgramService extends BaseDataService
     if (!data) return data;
 
     // Clean cache
-    await this.cache.clearGroup(ProgramCacheKeys.GROUP);
+    await this.cache.clearGroup(ProgramCacheKeys.CACHE_GROUP);
 
     // Fill default properties
     this.fillDefaultProperties(data);

@@ -1,10 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
-import {isNotNil, PhysicalGear} from "../services/trip.model";
-import {Moment} from 'moment/moment'
+import {isNil, isNotNil, PhysicalGear} from "../services/trip.model";
+import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {merge, Observable, Subject} from 'rxjs';
-import {debounceTime, distinct, filter, map, tap} from 'rxjs/operators';
+import {Subject} from 'rxjs';
+import {distinctUntilChanged, filter} from 'rxjs/operators';
 import {AcquisitionLevelCodes, LocalSettingsService, PlatformService} from '../../core/core.module';
 import {
   EntityUtils,
@@ -18,6 +26,7 @@ import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormBuilder} from "@angular/forms";
 import {selectInputContent} from "../../core/form/form.utils";
 import {suggestFromArray} from "../../shared/functions";
+import {InputElement} from "../../shared/material/focusable";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -29,11 +38,9 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   private _gears: ReferentialRef[] = [];
 
-  $gears: Observable<ReferentialRef[]>;
   programSubject = new Subject<string>();
-  onShowGearDropdown = new Subject<any>();
-
   mobile: boolean;
+  applyAutofocus = false;
 
   @Input() showComment = true;
 
@@ -43,6 +50,8 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   set program(value: string) {
     this.programSubject.next(value);
   }
+
+  @ViewChild("firstInput") firstInputField: InputElement;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -67,10 +76,10 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       this.programSubject
         .pipe(
           filter(isNotNil),
-          distinct()
+          distinctUntilChanged()
         )
         .subscribe(async (value) => {
-          if (this._program !== value && isNotNil(value)) {
+          if (this._program !== value) {
             this._gears = await this.programService.loadGears(value);
             this._program = value;
             if (!this.loading) this._onRefreshPmfms.emit();
@@ -87,7 +96,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     // Combo: gears
     this.registerAutocompleteConfig('gear', {
       suggestFn: async (value, options) => suggestFromArray<ReferentialRef>(this._gears, value, options),
-      showAllOnFocus: true
+      showAllOnFocus: false
     });
 
     this.form.controls['gear'].valueChanges
@@ -100,11 +109,16 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       });
   }
 
-  public setValue(data: PhysicalGear) {
+  public setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    console.log('TODO set value')
     if (data && EntityUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }
-    super.setValue(data);
+    super.setValue(data, opts);
+  }
+
+  focusFirstInput() {
+    this.firstInputField.focus();
   }
 
   /* -- protected methods -- */

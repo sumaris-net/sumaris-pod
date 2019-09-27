@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnInit,
+  ViewChild
+} from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
 import {AcquisitionLevelCodes} from "../../referential/services/model";
 import {PhysicalGear} from "../services/trip.model";
@@ -12,7 +20,7 @@ import {PlatformService} from "../../core/services/platform.service";
   templateUrl: './physicalgear.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PhysicalGearModal implements OnInit {
+export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   loading = false;
   originalData: PhysicalGear;
@@ -57,6 +65,13 @@ export class PhysicalGearModal implements OnInit {
     // Compute the title
     this.computeTitle();
 
+  }
+
+  ngAfterViewInit(): void {
+    // Focus on the first field, is not in mobile
+    if (this.isNew && !this.mobile) {
+      setTimeout(() => this.form.focusFirstInput(), 400);
+    }
   }
 
 

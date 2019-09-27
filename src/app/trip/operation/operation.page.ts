@@ -494,7 +494,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Not valid
     if (!this.valid) {
-      this.markAsTouched();
+      this.markAsTouched({emitEvent: true});
 
       this.logFormErrors();
 

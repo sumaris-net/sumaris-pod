@@ -30,23 +30,19 @@ AppWebSocket.OPEN = NativeWebSocket.OPEN;
  * @param object
  */
 function dataIdFromObjectProduction(object: Object): string {
-  switch (object['__typename']) {
-
-    // For generic VO: add entityName in the cache key (to distinguish by entity)
-    case 'ReferentialVO':
-    case 'MetierVO':
-    case 'PmfmVO':
-    case 'TaxonNameVO':
-    case 'TaxonNameStrategyVO':
-    case 'TaxonGroupVO':
-    case 'TaxonGroupStrategyVO':
-    case 'MeasurementVO':
-      return (object['entityName'] || object['__typename']) + ':' + object['id'];
-
-    // Fallback to default cache key
-    default:
-      return defaultDataIdFromObject(object);
+  if (object['entityName']) {
+    switch (object['__typename']) {
+      // For generic VO: add entityName in the cache key (to distinguish by entity)
+      case 'ReferentialVO':
+      case 'MetierVO':
+      case 'PmfmVO':
+      case 'TaxonNameVO':
+      case 'TaxonGroupVO':
+      case 'MeasurementVO':
+        return object['entityName'] + ':' + object['id'];
+    }
   }
+  return defaultDataIdFromObject(object);
 }
 
 function dataIdFromObjectDebug (object: Object): string {
@@ -58,13 +54,11 @@ function dataIdFromObjectDebug (object: Object): string {
     case 'PmfmVO':
     case 'TaxonGroupVO':
     case 'TaxonNameVO':
-    case 'TaxonNameStrategyVO':
-    case 'TaxonGroupStrategyVO':
     case 'MeasurementVO':
       if (!object['entityName']) {
         console.warn("WARN: no entityName found on entity: cache can be corrupted !", object);
       }
-      return object['entityName'] + ':' + object['id'];
+      return (object['entityName'] || object['__typename']) + ':' + object['id'];
 
     // Fallback to default cache key
     default:

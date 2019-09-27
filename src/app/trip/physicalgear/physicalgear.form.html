@@ -10,10 +10,10 @@
     <ion-row no-padding>
 
       <ion-col no-padding>
-        <mat-autocomplete-field formControlName="gear"
-                                [appAutofocus]="enabled && untouched && !mobile" autofocusDelay="400"
+        <mat-autocomplete-field #firstInput
+                                formControlName="gear"
                                 [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate"
-                                [config]="autocompleteHelper.gear"
+                                [config]="autocompleteFields.gear"
                                 [tabindex]="tabindex"
                                 required>
         </mat-autocomplete-field>

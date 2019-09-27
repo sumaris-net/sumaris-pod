@@ -185,7 +185,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
         });
       }
 
-      this.markAsTouched();
+      this.markAsTouched({emitEvent: true});
       this.logFormErrors();
       this.openFirstInvalidTab();
 

@@ -145,7 +145,74 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
+  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    if (this.$loadingControls.getValue()) {
+      throw Error("Form not ready yet. Please use safeSetValue() instead!");
+    }
+
+    // Adapt measurement values to form
+    MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
+
+    super.setValue(data, opts);
+
+    this.markAsUntouched();
+    this.markAsPristine();
+
+    // Restore enable state (because form.setValue() can change it !)
+    const measFormGroup = this.form.get('measurementValues');
+    if (this._enable) {
+      measFormGroup.enable({onlySelf: true, emitEvent: false});
+    } else if (measFormGroup.enabled) {
+      measFormGroup.disable({onlySelf: true, emitEvent: false});
+    }
+  }
+
+  async onReady() {
+    // Wait pmfms load, and controls load
+    if (this.$loadingControls.getValue() !== false) {
+      //if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
+      await this.$loadingControls
+        .pipe(
+          filter((loadingControls) => loadingControls === false),
+          throttleTime(100), // groups event, if many updates in few duration
+          first()
+        ).toPromise();
+    }
+  }
+
   /* -- protected methods -- */
+
+  /**
+   * Wait form is ready, before setting the value to form
+   * @param data
+   */
+  protected async safeSetValue(data: T) {
+    if (this.data === data) return; // skip if same
+    this.data = data;
+    this._onValueChanged.emit(data);
+
+    // Wait form controls ready
+    await this.onReady();
+
+    this.setValue(this.data, {emitEvent: true});
+  }
+
+  protected getValue(): T {
+    const json = this.form.value;
+
+    const pmfmForm = this.form.get('measurementValues');
+    if (pmfmForm && pmfmForm instanceof FormGroup) {
+      // Find dirty pmfms, to avoid full update
+      const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => pmfmForm.controls[pmfm.pmfmId].dirty);
+      if (dirtyPmfms.length) {
+        json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(pmfmForm.value, dirtyPmfms));
+      }
+    }
+
+    this.data.fromObject(json);
+
+    return this.data;
+  }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
     // Skip if missing: program, acquisition (or gear, if required)
@@ -181,7 +248,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return pmfms;
   }
 
-  public async updateControls(event?: string, pmfms?: PmfmStrategy[]) {
+  protected async updateControls(event?: string, pmfms?: PmfmStrategy[]) {
     //if (isNil(this.data)) return; // not ready
     pmfms = pmfms || this.$pmfms.getValue();
 
@@ -271,75 +338,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     return true;
-  }
-
-  public setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
-    if (this.$loadingControls.getValue()) {
-      throw Error("Form not ready yet. Please use safeSetValue() instead!");
-    }
-
-    // Adapt measurement values to form
-    MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
-
-    super.setValue(data, opts);
-
-    this.markAsUntouched();
-    this.markAsPristine();
-
-    // Restore enable state (because form.setValue() can change it !)
-    const measFormGroup = this.form.get('measurementValues');
-    if (this._enable) {
-      measFormGroup.enable({onlySelf: true, emitEvent: false});
-    } else if (measFormGroup.enabled) {
-      measFormGroup.disable({onlySelf: true, emitEvent: false});
-    }
-  }
-
-  public async onReady() {
-    // Wait pmfms load, and controls load
-    if (this.$loadingControls.getValue() !== false) {
-      //if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
-      await this.$loadingControls
-        .pipe(
-          filter((loadingControls) => loadingControls === false),
-          throttleTime(100), // groups event, if many updates in few duration
-          first()
-        ).toPromise();
-    }
-  }
-
-  /** -- protected methods  -- */
-
-  /**
-   * Wait form is ready, before setting the value to form
-   * @param data
-   */
-  protected async safeSetValue(data: T) {
-    if (this.data === data) return; // skip if same
-    this.data = data;
-    this._onValueChanged.emit(data);
-
-    // Wait form controls ready
-    await this.onReady();
-
-    this.setValue(this.data, {emitEvent: true});
-  }
-
-  protected getValue(): T {
-    const json = this.form.value;
-
-    const pmfmForm = this.form.get('measurementValues');
-    if (pmfmForm && pmfmForm instanceof FormGroup) {
-      // Find dirty pmfms, to avoid full update
-      const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => pmfmForm.controls[pmfm.pmfmId].dirty);
-      if (dirtyPmfms.length) {
-        json.measurementValues = Object.assign({}, this.data.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(pmfmForm.value, dirtyPmfms));
-      }
-    }
-
-    this.data.fromObject(json);
-
-    return this.data;
   }
 
   async setPmfms(pmfms: PmfmStrategy[] | Observable<PmfmStrategy[]>): Promise<PmfmStrategy[]> {

@@ -18,8 +18,9 @@ import {
 } from "../../core/core.module";
 import {Moment} from "moment/moment";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {PropertiesMap} from "../../core/services/model";
+import {propertyComparator, PropertiesMap} from "../../core/services/model";
 import {Measurement} from "../../trip/services/model/measurement.model";
+import {TaxonNameRef} from "./model/taxon.model";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
@@ -594,8 +595,18 @@ export class Strategy extends Entity<Strategy> {
     this.creationDate = fromDateISOString(source.creationDate);
     this.pmfmStrategies = source.pmfmStrategies && source.pmfmStrategies.map(PmfmStrategy.fromObject) || [];
     this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
-    this.taxonGroups = source.taxonGroups && source.taxonGroups.map(ReferentialRef.fromObject) || [];
-    this.taxonNames = source.taxonNames && source.taxonNames.map(ReferentialRef.fromObject) || [];
+    // Taxon groups, sorted by priority level
+    this.taxonGroups = source.taxonGroups && (source.taxonGroups as { priorityLevel: number; taxonGroup: any; }[])
+        .sort(propertyComparator('priorityLevel'))
+        .map(item => item.taxonGroup)
+        .map(ReferentialRef.fromObject)
+        .filter(isNotNil) || [];
+    // Taxon names, sorted by priority level
+    this.taxonNames = source.taxonNames && (source.taxonNames as { priorityLevel: number; taxonName: any; }[])
+      .sort(propertyComparator('priorityLevel'))
+      .map(item => item.taxonName)
+      .map(TaxonNameRef.fromObject)
+      .filter(isNotNil) || [];
     return this;
   }
 

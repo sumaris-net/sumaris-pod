@@ -123,10 +123,18 @@ export function joinProperties<T = any, K  extends keyof T = any>(obj: T, keys: 
     .join(separator || " - ");
 }
 
-export function attributeComparator<T>(attribute: string): (a: T, b: T) => number {
+export function propertyPathComparator<T = any>(path: string): (a: T, b: T) => number {
   return (a: T, b: T) => {
-    const valueA = a[attribute];
-    const valueB = b[attribute];
+    const valueA = getPropertyByPath(a, path);
+    const valueB = getPropertyByPath(b, path);
+    return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
+  };
+}
+
+export function propertyComparator<T = any, K extends keyof T = any>(key: K): (a: T, b: T) => number {
+  return (a: T, b: T) => {
+    const valueA = a[key];
+    const valueB = b[key];
     return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
   };
 }

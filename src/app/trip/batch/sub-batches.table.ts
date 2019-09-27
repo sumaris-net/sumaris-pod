@@ -193,7 +193,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     this.showCommentsColumn = true;
 
     //this.debug = false;
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {

@@ -1,5 +1,7 @@
 <mat-toolbar>
-  <button mat-icon-button *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate"
+  <button mat-icon-button
+          hidden-xs hidden-sm hidden-mobile
+          *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate"
           (click)="addRow()">
     <mat-icon>add</mat-icon>
   </button>

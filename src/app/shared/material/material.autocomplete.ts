@@ -14,7 +14,17 @@ import {
 } from "@angular/core";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {merge, Observable} from "rxjs";
-import {debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap, throttleTime} from "rxjs/operators";
+import {
+  debounceTime,
+  distinct,
+  distinctUntilChanged,
+  filter,
+  map,
+  switchMap,
+  takeUntil,
+  tap,
+  throttleTime
+} from "rxjs/operators";
 import {SuggestionDataService} from "../services/data-service.class";
 import {
   changeCaseToUnderscore,

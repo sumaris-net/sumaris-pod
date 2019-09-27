@@ -17,7 +17,7 @@
       <ion-col size="12" size-md="">
         <mat-autocomplete-field formControlName="physicalGear"
                                 [placeholder]="'TRIP.OPERATION.LIST.PHYSICAL_GEAR'|translate"
-                                [config]="autocompleteHelper.physicalGear"
+                                [config]="autocompleteFields.physicalGear"
                                 [tabindex]="tabindex"
                                 required>
         </mat-autocomplete-field>
@@ -28,7 +28,7 @@
       <ion-col size="12" size-md="">
         <mat-autocomplete-field formControlName="metier"
                                 [placeholder]="'TRIP.OPERATION.LIST.TARGET_SPECIES'|translate"
-                                [config]="autocompleteHelper.taxonGroup"
+                                [config]="autocompleteFields.taxonGroup"
                                 [tabindex]="tabindex+1"
                                 required>
         </mat-autocomplete-field>

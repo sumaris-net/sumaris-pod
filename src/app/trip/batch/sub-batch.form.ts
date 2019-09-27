@@ -22,7 +22,8 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {AcquisitionLevelCodes, EntityUtils, UsageMode} from "../../core/services/model";
 import {
   debounceTime,
-  distinctUntilChanged,
+  distinct,
+  distinctUntilChanged, distinctUntilKeyChanged,
   filter,
   map,
   mergeMap,
@@ -35,7 +36,6 @@ import {isNil, isNotNil, PmfmIds, PmfmStrategy, QualitativeLabels} from "../../r
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
 import {getPropertyByPath, isNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {environment} from "../../../environments/environment";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
@@ -174,7 +174,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       .concat(!this.showTaxonName ? this.settings.getFieldDisplayAttributes('taxonName').map(attr => 'taxonName.' + attr) : []);
 
     // For DEV only
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -264,11 +264,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
             // Warn: skip the first trigger (ignore set value)
             skip(1),
             filter(parent => EntityUtils.isNotEmpty(parent) && this.form.enabled),
-            map(parent => parent.label),
-            distinctUntilChanged()
+            distinctUntilKeyChanged('label')
           )
-          .subscribe((value) => {
-            console.log('TODO Reset taxonName')
+          .subscribe((parent) => {
+            console.log('TODO Reset taxonName, because parent changed to: ', parent);
             taxonNameControl.patchValue(null, {emitEVent: false});
             taxonNameControl.markAsPristine({onlySelf: true});
           }));
@@ -276,7 +275,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     this.registerSubscription(
       this.enableIndividualCountControl.valueChanges
-        .pipe(startWith(this.enableIndividualCountControl.value))
+        .pipe(startWith(() => this.enableIndividualCountControl.value))
         .subscribe((enable) => {
           if (enable) {
             this.form.get('individualCount').enable();

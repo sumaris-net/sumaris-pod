@@ -5,14 +5,12 @@ import {DateAdapter} from "@angular/material";
 import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {AppFormUtils} from "./form.utils";
-import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {
-  DisplayFn,
-  MatAutocompleteFieldConfig, MatAutocompleteFieldAddOptions,
-  MatAutocompleteConfigHolder
+  MatAutocompleteConfigHolder,
+  MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig
 } from "../../shared/material/material.autocomplete";
 import {LocalSettingsService} from "../services/local-settings.service";
-import {joinPropertiesPath} from "../../shared/functions";
 
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
@@ -170,8 +168,8 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     this.markForCheck();
   }
 
-  markAsTouched() {
-    AppFormUtils.markAsTouched(this.form);
+  markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    AppFormUtils.markAsTouched(this.form, opts);
     this.markForCheck();
   }
 

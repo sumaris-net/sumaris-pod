@@ -31,7 +31,7 @@ import {
   TableDataService
 } from "./services/data-service.class";
 import {
-  attributeComparator,
+  propertyComparator,
   changeCaseToUnderscore,
   filterNumberInput,
   fromDateISOString,
@@ -63,7 +63,7 @@ export {
   toBoolean, toFloat, toInt,
   toDateISOString, fromDateISOString, filterNumberInput,
   startsWithUpperCase,
-  attributeComparator, joinPropertiesPath, sort, selectInputContent,
+  propertyComparator, joinPropertiesPath, sort, selectInputContent,
   fadeInAnimation, fadeInOutAnimation, changeCaseToUnderscore,
   DateFormatPipe, ToolbarComponent,
   Color, ColorScale, InputElement

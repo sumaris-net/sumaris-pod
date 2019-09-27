@@ -80,15 +80,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.enableGeolocation = (this.usageMode === 'FIELD') &&
       (this.platform.is('mobile') || this.platform.is('mobileweb'));
 
-    // Taxon group combo
-    this.registerAutocompleteConfig('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTargetSpecies(value, options)
-    });
-
     // Combo: physicalGears
     this.registerAutocompleteConfig('physicalGear', {
       suggestFn: (value: any, options?: any) => this.suggestPhysicalGear(value, options),
       attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key))
+    });
+
+    // Taxon group combo
+    this.registerAutocompleteConfig('taxonGroup', {
+      suggestFn: (value: any, options?: any) => this.suggestTargetSpecies(value, options)
     });
   }
 

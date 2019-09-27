@@ -14,7 +14,7 @@
         <mat-autocomplete-field *ngIf="!mobile; else parentMobile"
                                 formControlName="parent"
                                 [placeholder]="'TRIP.BATCH.EDIT.PARENT'|translate"
-                                [config]="autocompleteHelper.parent"
+                                [config]="autocompleteFields.parent"
                                 [tabindex]="tabindex"
                                 [required]="true">
         </mat-autocomplete-field>
@@ -60,7 +60,7 @@
                             *ngIf="!mobile; else taxonNameMobile"
                             formControlName="taxonName"
                             [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
-                            [config]="autocompleteHelper.taxonName"
+                            [config]="autocompleteFields.taxonName"
                             [required]="true">
     </mat-autocomplete-field>
 

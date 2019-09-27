@@ -88,7 +88,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     this.showIndividualCount = !this.mobile; // Hide individual count on mobile device
 
     // TODO: for DEV only ---
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
 
   }
 

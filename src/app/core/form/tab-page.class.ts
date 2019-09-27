@@ -149,15 +149,15 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     this.markForCheck();
   }
 
-  public markAsUntouched() {
+  public markAsUntouched(opts?: {emitEvent?: boolean; }) {
     this._forms && this._forms.forEach(form => form.markAsUntouched());
-    this._tables && this._tables.forEach(table => table.markAsUntouched());
+    this._tables && this._tables.forEach(table => table.markAsUntouched(opts));
     this.markForCheck();
   }
 
-  public markAsTouched() {
-    this._forms && this._forms.forEach(form => form.markAsTouched());
-    this._tables && this._tables.forEach(table => table.markAsTouched());
+  public markAsTouched(opts?: {emitEvent?: boolean; }) {
+    this._forms && this._forms.forEach(form => form.markAsTouched(opts));
+    this._tables && this._tables.forEach(table => table.markAsTouched(opts));
     this.markForCheck();
   }
 

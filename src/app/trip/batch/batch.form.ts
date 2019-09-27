@@ -188,8 +188,6 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       this.childrenFormHelper.resize((data.children || []).length);
     }
 
-    if (this.debug) console.debug(data.label + " setValue() with data:", data);
-
     super.setValue(data);
   }
 

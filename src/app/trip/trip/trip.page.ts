@@ -239,7 +239,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     // Not valid
     if (!this.valid) {
-      this.markAsTouched();
+      this.markAsTouched({emitEvent: true});
       this.logFormErrors();
       this.openFirstInvalidTab();
 

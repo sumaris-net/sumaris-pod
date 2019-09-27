@@ -270,7 +270,7 @@ export function clearValueInArray(form: FormGroup,
 
 export function markAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
   if (!form) return;
-  form.markAsTouched();
+  form.markAsTouched(opts);
   Object.getOwnPropertyNames(form.controls)
     .forEach(key => {
       const control = form.get(key);

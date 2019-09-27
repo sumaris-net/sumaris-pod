@@ -7,6 +7,7 @@ import {StatusBar} from "@ionic-native/status-bar/ngx";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {LocalSettingsService} from "./local-settings.service";
 import {CacheService} from "ionic-cache";
+import {environment} from "../../../environments/environment.prod";
 
 
 @Injectable({providedIn: 'root'})
@@ -64,7 +65,7 @@ export class PlatformService {
       this.cache.ready()
         .then(() => {
           this.cache.setDefaultTTL(60 * 60); // 1 hour
-          this.cache.setOfflineInvalidate(false);
+          this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
         }),
       this.settings.ready(),
       this.networkService.ready()
