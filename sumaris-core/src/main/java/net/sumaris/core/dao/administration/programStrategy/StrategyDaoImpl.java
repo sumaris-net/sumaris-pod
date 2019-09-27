@@ -37,10 +37,12 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,12 +190,12 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
     }
 
     @Override
-    public List<TaxonGroupStrategyVO> getTaxonGroups(int strategyId) {
+    public List<TaxonGroupStrategyVO> getTaxonGroupStrategies(int strategyId) {
         return getTaxonGroups(load(Strategy.class, strategyId));
     }
 
     @Override
-    public List<TaxonNameStrategyVO> getTaxonNames(int strategyId) {
+    public List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId) {
         return getTaxonNames(load(Strategy.class, strategyId));
     }
 
@@ -477,10 +479,12 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                         item.getReferenceTaxon().getId().intValue()))
                 .map(item -> {
                     TaxonNameStrategyVO target = new TaxonNameStrategyVO();
-                    Beans.copyProperties(taxonNameDao.getTaxonNameReferent(item.getReferenceTaxon().getId()), target);
 
                     // Priority level
                     target.setPriorityLevel(item.getPriorityLevel());
+
+                    // Taxon name
+                    target.setTaxonName(taxonNameDao.getTaxonNameReferent(item.getReferenceTaxon().getId()));
                     return target;
                 })
                 .collect(Collectors.toList());
@@ -496,13 +500,16 @@ public class StrategyDaoImpl extends HibernateDaoSupport implements StrategyDao 
                         item.getTaxonGroup().getId().intValue()))
                 .map(item -> {
                     TaxonGroupStrategyVO target = new TaxonGroupStrategyVO();
-                    Beans.copyProperties(item.getTaxonGroup(), target);
 
-                    // Status
-                    target.setStatusId(item.getTaxonGroup().getStatus().getId());
+                    // Taxon group
+                    TaxonGroupVO tg = new TaxonGroupVO();
+                    Beans.copyProperties(item.getTaxonGroup(), tg);
+                    tg.setStatusId(item.getTaxonGroup().getStatus().getId());
+                    target.setTaxonGroup(tg);
 
                     // Priority level
                     target.setPriorityLevel(item.getPriorityLevel());
+
                     return target;
                 })
                 .collect(Collectors.toList());

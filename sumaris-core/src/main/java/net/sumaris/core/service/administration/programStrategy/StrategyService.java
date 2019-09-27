@@ -53,10 +53,10 @@ public interface StrategyService {
 	List<ReferentialVO> getGears(int strategyId);
 
 	@Transactional(readOnly = true)
-	List<TaxonGroupStrategyVO> getTaxonGroups(int strategyId);
+	List<TaxonGroupStrategyVO> getTaxonGroupStrategies(int strategyId);
 
 	@Transactional(readOnly = true)
-	List<TaxonNameStrategyVO> getTaxonNames(int strategyId);
+	List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
 
 	List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);
 

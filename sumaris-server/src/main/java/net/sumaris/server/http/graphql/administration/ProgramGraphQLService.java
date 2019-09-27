@@ -133,14 +133,6 @@ public class ProgramGraphQLService {
     }
 
     @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
-    public List<TaxonNameVO> getTaxonGroupStrategyTaxonNames(@GraphQLContext TaxonGroupStrategyVO taxonGroup) {
-        if (taxonGroup.getId() != null) {
-            return taxonNameService.getAllByTaxonGroup(taxonGroup.getId());
-        }
-        return null;
-    }
-
-    @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
     public List<TaxonNameVO> getTaxonGroupTaxonNames(@GraphQLContext TaxonGroupVO taxonGroup) {
         if (taxonGroup.getId() != null) {
             return taxonNameService.getAllByTaxonGroup(taxonGroup.getId());

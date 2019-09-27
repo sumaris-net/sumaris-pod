@@ -23,29 +23,19 @@ package net.sumaris.core.vo.administration.programStrategy;
  */
 
 import lombok.Data;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import lombok.EqualsAndHashCode;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 
+import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 @Data
-public class TaxonGroupStrategyVO implements IReferentialVO {
-
-    private Integer id;
-    private String label;
-    private String name;
-    private String description;
-    private String comments;
-    private Date updateDate;
-    private Date creationDate;
-
-    private Integer statusId;
-    private Integer levelId;
+@EqualsAndHashCode
+public class TaxonGroupStrategyVO implements Serializable {
 
     Integer priorityLevel;
+    TaxonGroupVO taxonGroup;
 
 }

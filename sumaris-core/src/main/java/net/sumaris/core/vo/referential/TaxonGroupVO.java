@@ -23,17 +23,19 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TaxonGroupVO extends ReferentialVO {
 
     // Fill using TaxonGroup2TaxonHierarchy (filled from TaxonGroupHistoricalRecord)
     List<TaxonNameVO> taxonNames;
 
     public TaxonGroupVO() {
-        this.setEntityName(TaxonGroup.class.getSimpleName());
+        this.setEntityName(TaxonGroup.class.getSimpleName()); // Need by client (e.f. GraphQL cache)
     }
 }

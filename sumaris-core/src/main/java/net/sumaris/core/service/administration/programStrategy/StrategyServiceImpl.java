@@ -62,13 +62,13 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public List<TaxonGroupStrategyVO> getTaxonGroups(int strategyId) {
-		return strategyDao.getTaxonGroups(strategyId);
+	public List<TaxonGroupStrategyVO> getTaxonGroupStrategies(int strategyId) {
+		return strategyDao.getTaxonGroupStrategies(strategyId);
 	}
 
 	@Override
-	public List<TaxonNameStrategyVO> getTaxonNames(int strategyId) {
-		return strategyDao.getTaxonNames(strategyId);
+	public List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId) {
+		return strategyDao.getTaxonNameStrategies(strategyId);
 	}
 
 	@Override

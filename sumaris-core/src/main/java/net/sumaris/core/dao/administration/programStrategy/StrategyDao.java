@@ -41,9 +41,9 @@ public interface StrategyDao {
 
     List<ReferentialVO> getGears(int strategyId);
 
-    List<TaxonGroupStrategyVO> getTaxonGroups(int strategyId);
+    List<TaxonGroupStrategyVO> getTaxonGroupStrategies(int strategyId);
 
-    List<TaxonNameStrategyVO> getTaxonNames(int strategyId);
+    List<TaxonNameStrategyVO> getTaxonNameStrategies(int strategyId);
 
     PmfmStrategyVO toPmfmStrategyVO(PmfmStrategy source, boolean copyPmfmValue);
 

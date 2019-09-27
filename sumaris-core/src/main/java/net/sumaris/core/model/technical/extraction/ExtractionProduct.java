@@ -45,7 +45,7 @@ public class ExtractionProduct implements IItemReferentialEntity,
         IWithRecorderDepartmentEntity<Integer, Department> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "EXTRACTION_PRODUCT_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_SEQ", sequenceName="EXTRACTION_PRODUCT_SEQ")
     private Integer id;
 

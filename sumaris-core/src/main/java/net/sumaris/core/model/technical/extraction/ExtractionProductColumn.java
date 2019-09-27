@@ -43,7 +43,7 @@ public class ExtractionProductColumn implements IEntity<Integer> {
     public static final String PROPERTY_RANK_ORDER = "rankOrder";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "EXTRACTION_PRODUCT_COLUMN_SEQ")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_COLUMN_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_COLUMN_SEQ", sequenceName="EXTRACTION_PRODUCT_COLUMN_SEQ")
     private Integer id;
 

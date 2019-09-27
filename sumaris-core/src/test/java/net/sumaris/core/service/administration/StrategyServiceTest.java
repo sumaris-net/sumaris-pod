@@ -55,11 +55,11 @@ public class StrategyServiceTest extends AbstractServiceTest{
     }
 
     @Test
-    public void getTaxonGroups() {
+    public void getTaxonGroupStrategies() {
 
         ProgramVO program =  dbResource.getFixtures().getAuctionProgram();
 
-        List<TaxonGroupStrategyVO> results = service.getTaxonGroups(program.getId());
+        List<TaxonGroupStrategyVO> results = service.getTaxonGroupStrategies(program.getId());
         Assert.assertNotNull(results);
         Assert.assertTrue(results.size() > 0);
     }
