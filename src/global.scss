@@ -154,14 +154,7 @@ form.form-container {
     }
   }
 
-  ion-col > ion-label {
-    color: var(--ion-color-primary100);
-  }
-
-  ion-col > ion-label[text-wrap] {
-    word-wrap: normal;
-    white-space: normal;
-  }
+  /* -- Computed field -- */
 
   .computed mat-form-field,
   mat-form-field .computed,
@@ -169,6 +162,33 @@ form.form-container {
     color: var(--ion-color-primary-tint);
     font-style: italic;
   }
+
+  > ion-grid {
+    padding: 0;
+
+    ion-row {
+      // No between grid rows
+      padding: 0;
+
+      ion-col > ion-label {
+        color: var(--ion-color-primary100);
+      }
+
+      ion-col > ion-label[text-wrap] {
+        word-wrap: normal;
+        white-space: normal;
+      }
+    }
+    ion-row > ion-col {
+
+      // No top/bottom padding between grid cell
+      padding-bottom: 0;
+      padding-top: 0;
+
+    }
+  }
+
+
 }
 
 

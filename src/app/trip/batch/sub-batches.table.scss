@@ -30,3 +30,11 @@
   }
 }
 
+.table-container {
+  height: calc(100vh - var(--toolbar-min-height, 56px));
+  overflow-y: auto;
+
+  mat-table {
+    overflow-y: visible;
+  }
+}

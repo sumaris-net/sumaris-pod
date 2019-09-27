@@ -259,6 +259,7 @@
     "TITLE": "Marée",
     "PROGRAM": "Programme de collecte",
     "VESSEL": "Navire",
+    "BTN_ADD_VESSEL": "Ajouter un navire",
     "DEPARTURE": "Départ :",
     "DEPARTURE_DATE_TIME": "Date de départ",
     "DEPARTURE_LOCATION": "Port de départ",
@@ -276,7 +277,7 @@
     },
     "EDIT": {
       "TITLE": "{{vessel}} - Marée du {{departureDateTime}}",
-      "OTHER_FEATURES": "Autres caractéristiques :"
+      "OTHER_FEATURES": "Caractéristiques :"
     },
     "TABLE": {
       "TITLE": "Marées",
@@ -346,7 +347,7 @@
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
-        "OTHER_FEATURES": "Autres caractéristiques :"
+        "OTHER_FEATURES": "Caractéristiques :"
       },
       "LIST": {
         "PHYSICAL_GEAR": "Engin utilisé",

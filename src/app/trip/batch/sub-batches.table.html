@@ -48,13 +48,12 @@
 
 <ion-grid no-padding>
   <ion-row no-padding>
-    <ion-col size="12" size-md="" no-padding>
+    <ion-col size="12" size-md="" no-padding class="table-container">
 
       <mat-table [dataSource]="dataSource" class="table-sub-batches" matSort matSortActive="rankOrder"
                  matSortDirection="asc"
                  matSortDisableClear
-                 [trackBy]="trackByFn"
-                 style="overflow: auto;">
+                 [trackBy]="trackByFn">
 
         <ng-container matColumnDef="select">
           <mat-header-cell *matHeaderCellDef>
@@ -217,7 +216,7 @@
     </ion-col>
 
     <!-- form -->
-    <ion-col size="12" size-md="3" padding [hidden]="!showForm">
+    <ion-col size="12" size-md="3" padding [hidden]="!showForm" cdkTrapFocus>
       <ion-label color="primary" padding-bottom>
         <span translate>TRIP.BATCH.EDIT.INDIVIDUAL.BURST_FORM_TITLE</span>
       </ion-label>

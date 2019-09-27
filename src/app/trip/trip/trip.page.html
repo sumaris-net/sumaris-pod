@@ -34,7 +34,7 @@
       <ion-grid no-padding>
 
         <ion-row no-padding>
-          <ion-col no-padding padding-top>
+          <ion-col padding>
             <!-- trip -->
             <form-trip #tripForm (onSubmit)="save($event)" [showError]="false">
 
@@ -60,7 +60,7 @@
 
             </form-trip>
           </ion-col>
-          <ion-col no-padding size="12" size-xl="3">
+          <ion-col size="12" size-xl="3" no-padding>
             <entity-metadata [value]="data">
               <entity-quality-form #qualityForm (onChange)="updateView(data)" (onControl)="onControl($event)">
               </entity-quality-form>
