@@ -20,7 +20,8 @@ import {Moment} from "moment/moment";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
 import {propertyComparator, PropertiesMap} from "../../core/services/model";
 import {Measurement} from "../../trip/services/model/measurement.model";
-import {TaxonNameRef} from "./model/taxon.model";
+import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
+import {propertyPathComparator} from "../../shared/functions";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
@@ -597,16 +598,17 @@ export class Strategy extends Entity<Strategy> {
     this.gears = source.gears && source.gears.map(ReferentialRef.fromObject) || [];
     // Taxon groups, sorted by priority level
     this.taxonGroups = source.taxonGroups && (source.taxonGroups as { priorityLevel: number; taxonGroup: any; }[])
-        .sort(propertyComparator('priorityLevel'))
-        .map(item => item.taxonGroup)
-        .map(ReferentialRef.fromObject)
-        .filter(isNotNil) || [];
+      // FIXME: priority Level is not always set, in the DB
+      //.sort(propertyComparator('priorityLevel'))
+      //.sort(propertyPathComparator('taxonGroup.label'))
+        .map(item => TaxonGroupRef.fromObject(item.taxonGroup))  || [];
     // Taxon names, sorted by priority level
     this.taxonNames = source.taxonNames && (source.taxonNames as { priorityLevel: number; taxonName: any; }[])
-      .sort(propertyComparator('priorityLevel'))
-      .map(item => item.taxonName)
-      .map(TaxonNameRef.fromObject)
-      .filter(isNotNil) || [];
+      // FIXME: priority Level is not always set, in the DB
+      //.sort(propertyComparator('priorityLevel'))
+      //.sort(propertyPathComparator('taxonName.name'))
+      .map(item => TaxonNameRef.fromObject(item.taxonName)) || [];
+    console.log('TODO check not empty strat taxon: ', this.taxonGroups, this.taxonNames)
     return this;
   }
 

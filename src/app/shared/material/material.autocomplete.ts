@@ -14,24 +14,14 @@ import {
 } from "@angular/core";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {merge, Observable} from "rxjs";
-import {
-  debounceTime,
-  distinct,
-  distinctUntilChanged,
-  filter,
-  map,
-  switchMap,
-  takeUntil,
-  tap,
-  throttleTime
-} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, map, tap, switchMap, takeUntil, throttleTime} from "rxjs/operators";
 import {SuggestionDataService} from "../services/data-service.class";
 import {
   changeCaseToUnderscore,
   focusInput,
   getPropertyByPath,
   isNil,
-  isNilOrBlank,
+  isNilOrBlank, isNotNilOrBlank,
   joinPropertiesPath,
   selectInputContent,
   setTabIndex,
@@ -263,8 +253,7 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         ),
       this.formControl.valueChanges
         .pipe(
-          debounceTime(this.debounceTime),
-          distinctUntilChanged()
+          debounceTime(this.debounceTime)
         )
     )
         .pipe(
@@ -274,7 +263,10 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
     if (this.service) {
       this.$items = updateEvents$
         .pipe(
+          distinctUntilChanged(),
+          tap<any>(() => console.log('TODO: updateEvents$ emit')),
           throttleTime(100),
+          tap<any>(() => console.log('TODO: updateEvents$ after throttleTime')),
           switchMap((value) => this.service.suggest(value, this.filter)),
           // Store implicit value (will use it onBlur if not other value selected)
           tap(res =>  this.updateImplicitValue(res))

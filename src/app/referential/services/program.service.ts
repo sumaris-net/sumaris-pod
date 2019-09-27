@@ -16,9 +16,10 @@ import {ReferentialFragments} from "../services/referential.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {TaxonGroupIds, TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {isNilOrBlank, isNotEmptyArray, suggestFromArray} from "../../shared/functions";
+import {isNilOrBlank, isNotEmptyArray, propertyComparator, suggestFromArray} from "../../shared/functions";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefService} from "./referential-ref.service";
+import {firstNotNilPromise} from "../../shared/observables";
 
 export declare class ProgramFilter {
   searchText?: string;
@@ -263,6 +264,7 @@ const ProgramCacheKeys = {
   PMFMS: 'programPmfms',
   GEARS: 'programGears',
   TAXON_GROUPS: 'programTaxonGroups',
+  TAXON_GROUP_ENTITIES: 'programTaxonGroupEntities',
   TAXON_NAME_BY_GROUP: 'programTaxonNameByGroup',
   TAXON_NAMES: 'taxonNameByGroup'
 };
@@ -349,8 +351,7 @@ export class ProgramService extends BaseDataService
   watchByLabel(label: string, toEntity: boolean): Observable<Program> {
 
     //if (this._debug) console.debug(`[program-service] Watch program {${label}}...`);
-
-    const cacheKey = `${ProgramCacheKeys.PROGRAM_BY_LABEL}:${label}`;
+    const cacheKey = [ProgramCacheKeys.PROGRAM_BY_LABEL, label].join('|');
     return this.cache.loadFromObservable(cacheKey,
       this.graphql.watchQuery<{ program: any }>({
         query: LoadRefQuery,
@@ -465,7 +466,7 @@ export class ProgramService extends BaseDataService
             return res;
           })
         ), ProgramCacheKeys.CACHE_GROUP)
-    // Convert into model (after cache)
+      // Convert into model (after cache)
       .pipe(map(res => res.map(ReferentialRef.fromObject)));
   }
 
@@ -473,28 +474,32 @@ export class ProgramService extends BaseDataService
    * Load program gears
    */
   loadGears(programLabel: string): Promise<ReferentialRef[]> {
-    // Load the program
-    return this.watchGears(programLabel)
-      .pipe(filter(isNotNil), first())
-      .toPromise();
+    return firstNotNilPromise(this.watchGears(programLabel));
   }
 
   /**
    * Watch program taxon groups
    */
   watchTaxonGroups(programLabel: string): Observable<TaxonGroupRef[]> {
+    const cacheKey = [ProgramCacheKeys.TAXON_GROUPS, programLabel].join('|');
+    return this.cache.loadFromObservable(cacheKey,
+      this.watchByLabel(programLabel, false)
+        .pipe(
+          map(program => {
+            // TODO: select the valid strategy (from date and location)
+            // For now: select the first one
+            const strategy = program && program.strategies && program.strategies[0];
 
-    return this.watchByLabel(programLabel, false)
-      .pipe(
-        map(program => {
-          // TODO: select the valid strategy (from date and location)
-          // For now: select the first one
-          const strategy = program && program.strategies && program.strategies[0];
-          const res = (strategy && strategy.taxonGroups || []);
-          if (this._debug) console.debug(`[program-service] Taxon groups for program ${program}: `, res);
-          return res;
-        })
-      )
+            const res = (strategy && strategy.taxonGroups || [])
+              // FIXME Priority level not always set in DB
+              //.sort(propertyComparator('priorityLevel'))
+              .map(v => v.taxonGroup);
+            if (this._debug) console.debug(`[program-service] Taxon groups for program ${program}: `, res);
+            return res;
+          })
+        ),
+      ProgramCacheKeys.CACHE_GROUP
+    )
       // Convert into model (after cache)
       .pipe(map(res => res.map(TaxonGroupRef.fromObject)));
   }
@@ -503,11 +508,9 @@ export class ProgramService extends BaseDataService
    * Load program taxon groups
    */
   loadTaxonGroups(programLabel: string): Promise<TaxonGroupRef[]> {
-    const mapCacheKey = [ProgramCacheKeys.TAXON_GROUPS, programLabel].join('|');
+    const mapCacheKey = [ProgramCacheKeys.TAXON_GROUP_ENTITIES, programLabel].join('|');
     return this.cache.getOrSetItem(mapCacheKey,
-      () => this.watchTaxonGroups(programLabel)
-            .pipe(filter(isNotNil), first())
-            .toPromise(),
+      () => firstNotNilPromise(this.watchTaxonGroups(programLabel)),
       ProgramCacheKeys.CACHE_GROUP);
   }
 
@@ -518,6 +521,7 @@ export class ProgramService extends BaseDataService
     program?: string;
     searchAttribute?: string;
   }): Promise<IReferentialRef[]> {
+    console.log("TODO: check suggestTaxonGroups")
     // Search on program's taxon groups
     if (isNotNil(options.program)) {
       const values = await this.loadTaxonGroups(options.program);

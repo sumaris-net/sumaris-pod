@@ -205,22 +205,23 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
 
       this.batchForm.value = data;
 
-      this.childrenForms.changes
-        .pipe(
-          filter(() => this.childrenForms.length > 0),
-          first()
-        )
-        .subscribe(() => {
-          this.childrenForms.forEach((batchForm, index) => {
-            batchForm.value = data.children[index];
-            if (this.enabled) {
-              batchForm.enable();
-            }
-            else {
-              batchForm.disable();
-            }
-          });
-      });
+      this.registerSubscription(
+        this.childrenForms.changes
+          .pipe(
+            filter(() => this.childrenForms.length > 0),
+            first()
+          )
+          .subscribe(() => {
+            this.childrenForms.forEach((batchForm, index) => {
+              batchForm.value = data.children[index];
+              if (this.enabled) {
+                batchForm.enable();
+              }
+              else {
+                batchForm.disable();
+              }
+            });
+        }));
     }
   }
 

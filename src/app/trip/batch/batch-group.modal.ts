@@ -1,11 +1,11 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, EventEmitter,
+  Component,
   Injector,
   Input,
+  OnDestroy,
   OnInit,
-  Output,
   ViewChild
 } from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
@@ -14,19 +14,21 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {PlatformService} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {PmfmStrategy} from "../../referential/services/model";
 import {BatchGroupForm} from "./batch-group.form";
 import {toBoolean} from "../../shared/functions";
-import {filter, first, throttleTime} from "rxjs/operators";
+import {filter, finalize, first, throttleTime} from "rxjs/operators";
 
 @Component({
   selector: 'app-batch-group-modal',
   templateUrl: 'batch-group.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupModal implements OnInit {
+export class BatchGroupModal implements OnInit, OnDestroy {
+
+  private _subscriptions: Subscription[] = [];
 
   debug = false;
   loading = false;
@@ -94,9 +96,8 @@ export class BatchGroupModal implements OnInit {
     this.mobile = platform.mobile;
 
     // TODO: for DEV only
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
-
 
   ngOnInit() {
     this.form.value = this.data || new Batch();
@@ -115,12 +116,23 @@ export class BatchGroupModal implements OnInit {
 
     if (!this.isNew) {
       // Update title each time value changes
-      this.form.valueChanges
-        .pipe(throttleTime(500))
-        .subscribe(batch => this.computeTitle(batch));
+      this._subscriptions.push(
+        this.form.valueChanges
+          .pipe(
+            throttleTime(500)
+          )
+          .subscribe(batch => this.computeTitle(batch))
+      );
     }
-
   }
+
+  ngOnDestroy(): void {
+    if (this._subscriptions.length) {
+      this._subscriptions.forEach(s => s.unsubscribe());
+      this._subscriptions = [];
+    }
+  }
+
 
   async cancel() {
     await this.viewCtrl.dismiss();
