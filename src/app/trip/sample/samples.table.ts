@@ -2,11 +2,11 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {Observable} from 'rxjs';
 import {debounceTime, switchMap, tap} from "rxjs/operators";
 import {ValidatorService} from "angular4-material-table";
-import {environment, ReferentialRef} from "../../core/core.module";
+import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {getPmfmName, Landing, Operation, referentialToString, Sample, TaxonGroupIds} from "../services/trip.model";
 import {ReferentialRefService, TaxonomicLevelIds} from "../../referential/referential.module";
 import {SampleValidatorService} from "../services/sample.validator";
-import {isNotNil} from "../../shared/shared.module";
+import {isNilOrBlank, isNotNil} from "../../shared/shared.module";
 import {UsageMode} from "../../core/services/model";
 import * as moment from "moment";
 import {Moment} from "moment";
@@ -36,9 +36,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryTableDataService<Sample, SampleFilter>;
-
-  $taxonGroups: Observable<ReferentialRef[]>;
-  $taxonNames: Observable<ReferentialRef[]>;
 
   @Input()
   set value(data: Sample[]) {
@@ -86,7 +83,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   ) {
     super(injector,
       Sample,
-      new InMemoryTableDataService<Sample, SampleFilter>(Sample),
+      new InMemoryTableDataService<Sample, SampleFilter>(Sample, {
+        equals: Sample.equals
+      }),
       injector.get(ValidatorService),
       {
         prependNewElements: false,
@@ -113,44 +112,42 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.setShowColumn('comments', this.showCommentsColumn);
 
     // Taxon group combo
-    this.$taxonGroups = this.registerCellValueChanges('taxonGroup')
-      .pipe(
-        debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value, {
-          entityName: 'TaxonGroup',
-          levelId: TaxonGroupIds.FAO,
-          searchAttribute: 'label'
-        })),
-        // Remember implicit value
-        tap(res => this.updateImplicitValue('taxonGroup', res))
-      );
+    this.registerAutocompleteField('taxonGroup', {
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
+      showAllOnFocus: true
+    });
 
     // Taxon name combo
-    this.$taxonNames = this.registerCellValueChanges('taxonName')
-      .pipe(
-        debounceTime(250),
-        switchMap((value) => this.referentialRefService.suggest(value, {
-          entityName: 'TaxonName',
-          levelId: TaxonomicLevelIds.SPECIES,
-          searchAttribute: 'label'
-        })),
-        // Remember implicit value
-        tap(res => this.updateImplicitValue('taxonName', res))
-      );
-  }
-
-
-  setParent(data: Operation | Landing) {
-    if (!data) {
-      this.setFilter({});
-    } else if (data instanceof Operation) {
-      this.setFilter({operationId: data.id});
-    } else if (data instanceof Landing) {
-      this.setFilter({landingId: data.id});
-    }
+    this.registerAutocompleteField('taxonName', {
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
+      showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
+    });
   }
 
   /* -- protected methods -- */
+
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+    //if (isNilOrBlank(value)) return [];
+    return this.programService.suggestTaxonGroups(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute
+      });
+  }
+
+  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+    const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
+
+    // IF taxonGroup column exists: taxon group must be filled first
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return [];
+
+    return this.programService.suggestTaxonNames(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute,
+        taxonGroupId: taxonGroup && taxonGroup.id || undefined
+      });
+  }
 
   protected async onNewEntity(data: Sample): Promise<void> {
     console.debug("[sample-table] Initializing new row data...");

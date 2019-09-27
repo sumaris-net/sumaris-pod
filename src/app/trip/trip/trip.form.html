@@ -11,37 +11,44 @@
     <!-- PROGRAM -->
     <ion-row no-padding>
       <ion-col>
-        <mat-form-field>
-          <ion-icon margin-right name="contract" matPrefix></ion-icon>
-          <input matInput [placeholder]="'TRIP.PROGRAM'|translate"
-                 formControlName="program"
-                 [matAutocomplete]="autoProgram"
-                 (blur)="applyImplicitValue('program')"
-                 required>
-          <mat-error *ngIf="form.controls.program.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls.program.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-        </mat-form-field>
+        <mat-autocomplete-field
+          [placeholder]="'TRIP.PROGRAM'|translate"
+          formControlName="program"
+          [config]="autocompleteHelper.get('program')">
+          <ion-icon matPrefix name="contract"></ion-icon>
+        </mat-autocomplete-field>
 
-        <!-- Program combo -->
-        <mat-autocomplete autoActiveFirstOption #autoProgram="matAutocomplete" [displayWith]="programToString">
+<!--        <mat-form-field>-->
+<!--          <ion-icon margin-right name="contract" matPrefix></ion-icon>-->
+<!--          <input matInput [placeholder]="'TRIP.PROGRAM'|translate"-->
+<!--                 formControlName="program"-->
+<!--                 [matAutocomplete]="autoProgram"-->
+<!--                 (blur)="applyImplicitValue('program')"-->
+<!--                 required>-->
+<!--          <mat-error *ngIf="form.controls.program.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>-->
+<!--          <mat-error *ngIf="form.controls.program.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>-->
+<!--        </mat-form-field>-->
 
-          <ion-row class="mat-autocomplete-header">
-            <ion-col size="3">
-              <ion-text translate>REFERENTIAL.LABEL</ion-text>
-            </ion-col>
-            <ion-col>
-              <ion-text translate>REFERENTIAL.NAME</ion-text>
-            </ion-col>
-          </ion-row>
+<!--        &lt;!&ndash; Program combo &ndash;&gt;-->
+<!--        <mat-autocomplete autoActiveFirstOption #autoProgram="matAutocomplete" [displayWith]="programToString">-->
 
-          <mat-option *ngFor="let item of $programs | async" [value]="item" no-padding>
-            <ion-row>
-              <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls.program.value }"></ion-col>
-              <ion-col [innerHTML]="item.name | highlight: {search: form.controls.program.value }"
-                       [title]="item.name"></ion-col>
-            </ion-row>
-          </mat-option>
-        </mat-autocomplete>
+<!--          <ion-row class="mat-autocomplete-header">-->
+<!--            <ion-col size="3">-->
+<!--              <ion-text translate>REFERENTIAL.LABEL</ion-text>-->
+<!--            </ion-col>-->
+<!--            <ion-col>-->
+<!--              <ion-text translate>REFERENTIAL.NAME</ion-text>-->
+<!--            </ion-col>-->
+<!--          </ion-row>-->
+
+<!--          <mat-option *ngFor="let item of $programs | async" [value]="item" no-padding>-->
+<!--            <ion-row>-->
+<!--              <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls.program.value }"></ion-col>-->
+<!--              <ion-col [innerHTML]="item.name | highlight: {search: form.controls.program.value }"-->
+<!--                       [title]="item.name"></ion-col>-->
+<!--            </ion-row>-->
+<!--          </mat-option>-->
+<!--        </mat-autocomplete>-->
       </ion-col>
 
     </ion-row>
@@ -52,7 +59,7 @@
         <mat-autocomplete-field
           [placeholder]="'TRIP.VESSEL'|translate"
           formControlName="vesselFeatures"
-          [config]="getAutocompleteConfig('vesselFeatures')"
+          [config]="autocompleteHelper.get('vesselFeatures')"
           [displayWith]="vesselFeaturesToString">
           <ion-icon matPrefix name="boat"></ion-icon>
         </mat-autocomplete-field>
@@ -74,7 +81,7 @@
         <mat-autocomplete-field
           [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
           formControlName="departureLocation"
-          [config]="getAutocompleteConfig('location')">
+          [config]="autocompleteHelper.get('location')">
           <ion-icon matPrefix name="pin"></ion-icon>
         </mat-autocomplete-field>
 
@@ -94,7 +101,7 @@
         <mat-autocomplete-field
           [placeholder]="'TRIP.RETURN_LOCATION'|translate"
           formControlName="returnLocation"
-          [config]="getAutocompleteConfig('location')">
+          [config]="autocompleteHelper.get('location')">
           <ion-icon matPrefix name="pin"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>

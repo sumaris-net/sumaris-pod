@@ -34,7 +34,9 @@ export class AutofocusDirective implements AfterContentInit, OnChanges, OnDestro
     this.timer = null;
     this.timerDelay = BASE_TIMER_DELAY;
 
-    this.touchUi = platform.is('mobile') || platform.is('tablet');
+    platform.ready().then(() => {
+      this.touchUi = platform.is('mobile') || platform.is('tablet');
+    });
   }
 
   // ---

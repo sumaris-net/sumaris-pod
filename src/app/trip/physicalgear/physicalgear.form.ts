@@ -17,6 +17,7 @@ import {MeasurementValuesForm} from "../measurement/measurement-values.form.clas
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormBuilder} from "@angular/forms";
 import {selectInputContent} from "../../core/form/form.utils";
+import {suggestFromArray} from "../../shared/functions";
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -78,35 +79,21 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     );
   }
 
-  async ngOnInit() {
+  ngOnInit() {
+    super.ngOnInit();
+
+    this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
     // Combo: gears
-    this.$gears = merge(
-      this.onShowGearDropdown
-        .pipe(map((_) => "*")),
-      this.form.controls['gear'].valueChanges
-        .pipe(debounceTime(250))
-    )
-      .pipe(
-        map((value: any) => {
-          if (EntityUtils.isNotEmpty(value)) {
-            return [value];
-          }
-          value = (typeof value === "string" && value !== '*') && value || undefined;
-          if (!value) return this._gears; // all gears
-          // Search on label or name
-          const ucValue = value.toUpperCase();
-          return this._gears.filter(g =>
-            (g.label && g.label.toUpperCase().indexOf(ucValue) === 0)
-            || (g.name && g.name.toUpperCase().indexOf(ucValue) !== -1)
-          );
-        }),
-        // Save implicit value
-        tap(res => this.updateImplicitValue('gear', res))
-      );
+    this.registerAutocompleteConfig('gear', {
+      suggestFn: async (value, options) => suggestFromArray<ReferentialRef>(this._gears, value, options),
+      showAllOnFocus: true
+    });
 
     this.form.controls['gear'].valueChanges
-      .filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
+      .pipe(
+        filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
+      )
       .subscribe(value => {
         this.data.gear = value;
         this.gear = value.label;

@@ -3,6 +3,6 @@ ion-col>ion-label {
   white-space: normal;
 }
 
-mat-tab-group.hidden {
+mat-tab-group[hidden] {
   display: none
 }

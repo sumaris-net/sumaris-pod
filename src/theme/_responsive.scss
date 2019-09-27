@@ -356,6 +356,49 @@ html.plt-mobile {
 }
 
 // --------------------------------------------------
+// Modals
+// --------------------------------------------------
+
+// Display modal in full screen, on small screen
+@media screen and (max-width: $screen-sm-max) {
+  .mat-dialog-modal {
+    max-width: none !important;
+    height: 100%;
+
+    mat-dialog-container {
+      padding: 0;
+      max-width: 100vw;
+      max-height: 100vh;
+      height: 100%;
+      width: 100%;
+
+      mat-dialog-content {
+        max-height: 100vh;
+        height: 100%;
+      }
+    }
+  }
+}
+
+.mat-dialog-modal-mobile {
+  max-width: none !important;
+  height: 100%;
+
+  mat-dialog-container {
+    padding: 0;
+    max-width: 100vw;
+    max-height: 100vh;
+    height: 100%;
+    width: 100%;
+
+    mat-dialog-content {
+      max-height: 100vh;
+      height: 100%;
+    }
+  }
+}
+
+// --------------------------------------------------
 // Custom useful CSS style
 // --------------------------------------------------
 [hidden] {

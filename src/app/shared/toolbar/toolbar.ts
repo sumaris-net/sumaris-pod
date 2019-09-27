@@ -44,7 +44,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   hasSearch = false;
 
   @Input()
-  canGoBack = false;
+  canGoBack;
 
   @Output()
   onValidate: EventEmitter<Event> = new EventEmitter<Event>();
@@ -78,7 +78,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
           this.cd.detectChanges();
         }
       });
-    this.canGoBack = toBoolean(this.canGoBack,this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref));
+    this.canGoBack = toBoolean(this.canGoBack, this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref));
   }
 
   ngOnDestroy(): void {

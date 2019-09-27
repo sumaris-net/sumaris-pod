@@ -22,10 +22,11 @@ import {FloatLabelType, MatSelect} from "@angular/material";
 
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
-import {focusInput, isNotEmptyArray, joinProperties, suggestFromArray, toBoolean} from "../../shared/functions";
+import {focusInput, isNotEmptyArray, joinPropertiesPath, suggestFromArray, toBoolean} from "../../shared/functions";
 import {AppFormUtils, LocalSettingsService} from "../../core/core.module";
 import {sort} from "../../core/services/model";
 import {asInputElement, InputElement} from "../../shared/material/focusable";
+import {markDirty} from "@angular/core/src/render3";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',
@@ -52,6 +53,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   items: Observable<ReferentialRef[]>;
   onShowDropdown = new EventEmitter<UIEvent>(true);
   mobile = false;
+  selectedIndex: number;
 
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
@@ -79,8 +81,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   @Input() style: 'autocomplete' | 'select' | 'button';
 
   @Input() searchAttributes: string[];
-
-  @Input() displayAttributes: string[];
 
   @Input() sortAttribute: string;
 
@@ -168,6 +168,14 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
       this.formControl.patchValue(obj, {emitEvent: false});
       this._onChangeCallback(obj);
     }
+
+    if (this.style === 'button') {
+      const index = obj && isNotNil(obj.id) && this.pmfm.qualitativeValues.findIndex(qv => qv.id === obj.id);
+      if (index !== this.selectedIndex) {
+        this.selectedIndex = index;
+        this.markForCheck();
+      }
+    }
   }
 
   registerOnChange(fn: any): void {
@@ -188,6 +196,11 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   }
 
   _onBlur(event: FocusEvent) {
+    if (event.relatedTarget instanceof HTMLElement && event.relatedTarget.tagName === 'MAT-OPTION') {
+      event.preventDefault();
+      return;
+    }
+
     // When leave component without object, use implicit value if stored
     if (this._implicitValue && typeof this.formControl.value !== "object") {
       this.writeValue(this._implicitValue);
@@ -204,6 +217,13 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   focus() {
     focusInput(this.matInput);
+  }
+
+  onButtonClick(event, index: number) {
+    this.selectedIndex = index;
+    this.formControl.patchValue(this.pmfm.qualitativeValues[index], {emitEvent: false});
+    this.formControl.markAsDirty();
+    this.markForCheck();
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

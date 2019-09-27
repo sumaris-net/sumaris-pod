@@ -1,23 +1,12 @@
-import {defaultDataIdFromObject, NormalizedCacheObject} from "apollo-cache-inmemory";
+import {defaultDataIdFromObject} from "apollo-cache-inmemory";
 import {ApolloLink} from "apollo-link";
-import uuidv4 from 'uuid/v4';
+import * as uuidv4 from "uuid/v4";
 import {EventEmitter} from "@angular/core";
-import {
-  debounceTime,
-  filter,
-  map,
-  mergeMap,
-  skipUntil,
-  skipWhile, switchMap,
-  takeUntil,
-  takeWhile,
-  tap,
-  throttleTime
-} from "rxjs/operators";
+import {debounceTime, filter, switchMap} from "rxjs/operators";
 import {PersistedData, PersistentStorage} from "apollo-cache-persist/types";
 import {BehaviorSubject, Observable} from "rxjs";
 import {ApolloClient} from "apollo-client";
-import {Apollo} from "apollo-angular";
+import {environment} from "../../../environments/environment";
 
 declare let window: any;
 const _global = typeof global !== 'undefined' ? global : (typeof window !== 'undefined' ? window : {});
@@ -40,8 +29,29 @@ AppWebSocket.OPEN = NativeWebSocket.OPEN;
  * Custom ID generation, for the GraphQL cache
  * @param object
  */
-export const dataIdFromObject = function (object: Object): string {
+function dataIdFromObjectProduction(object: Object): string {
   switch (object['__typename']) {
+
+    // For generic VO: add entityName in the cache key (to distinguish by entity)
+    case 'ReferentialVO':
+    case 'MetierVO':
+    case 'PmfmVO':
+    case 'TaxonNameVO':
+    case 'TaxonNameStrategyVO':
+    case 'TaxonGroupVO':
+    case 'TaxonGroupStrategyVO':
+    case 'MeasurementVO':
+      return (object['entityName'] || object['__typename']) + ':' + object['id'];
+
+    // Fallback to default cache key
+    default:
+      return defaultDataIdFromObject(object);
+  }
+}
+
+function dataIdFromObjectDebug (object: Object): string {
+  switch (object['__typename']) {
+
     // For generic VO: add entityName in the cache key (to distinguish by entity)
     case 'ReferentialVO':
     case 'MetierVO':
@@ -51,12 +61,18 @@ export const dataIdFromObject = function (object: Object): string {
     case 'TaxonNameStrategyVO':
     case 'TaxonGroupStrategyVO':
     case 'MeasurementVO':
-      return object['entityName'] + ':' + object['id'];
+      if (!object['entityName']) {
+        console.warn("WARN: no entityName found on entity: cache can be corrupted !", object);
+      }
+      return object['entityName'] + ':' + object['id'];
+
     // Fallback to default cache key
     default:
       return defaultDataIdFromObject(object);
   }
-};
+}
+
+export const dataIdFromObject = environment.production ? dataIdFromObjectProduction : dataIdFromObjectDebug;
 
 export interface TrackedQuery {
   id: string;
@@ -146,7 +162,7 @@ export async function restoreTrackedQueries(opts: {
       optimisticResponse: context.optimisticResponse,
       //update: updateHandlerByName[trackedQuery.name],
       variables,
-    })
+    });
   });
 
   return Promise.all(promises);

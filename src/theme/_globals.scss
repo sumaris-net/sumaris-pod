@@ -74,7 +74,7 @@ $colors: (
   /* secondary */
   secondary: (base: $secondary, contrast: #fff, shade: get-color-shade($secondary), tint: get-color-tint($secondary)),
   /* secondary100 */
-  secondary100: (base: $secondary100, contrast: #fff, shade: get-color-shade($secondary100), tint: get-color-tint($secondary100)),
+  secondary100: (base: $secondary100, contrast: $dark, shade: get-color-shade($secondary100), tint: get-color-tint($secondary100)),
   /* secondary900 */
   secondary900: (base: $secondary900, contrast: #fff, shade: get-color-shade($secondary900), tint: get-color-tint($secondary900)),
   /* tertiary */

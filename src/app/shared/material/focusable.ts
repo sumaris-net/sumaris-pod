@@ -31,7 +31,6 @@ export function asInputElement(object: ElementRef): InputElement|undefined {
 export function tabindexComparator(a, b) {
   const valueA = a.tabindex || a.tabIndex;
   const valueB = b.tabindex || b.tabIndex;
-  console.log(`TODO check comparator ${valueA} ${valueB}`)
   return valueA === valueB ? 0 : (valueA > valueB ? 1 : -1);
 }
 

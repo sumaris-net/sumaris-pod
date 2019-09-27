@@ -9,6 +9,7 @@ import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {filter, first, mergeMap, takeWhile, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
+import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;
@@ -110,8 +111,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     );
 
     this.registerSubscription(
-      this.$pmfms.pipe(filter(isNotNil))
-      .subscribe((pmfms) => this.updateControls('constructor', pmfms))
+      filterNotNil(this.$pmfms)
+        .subscribe((pmfms) => this.updateControls('constructor', pmfms))
     );
   }
 
@@ -122,7 +123,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.registerSubscription(
       this.form.valueChanges
         .pipe(
-          takeWhile(() => !this.loading && !this.loadingPmfms && this.valueChanges.observers.length > 0)
+          filter(() => !this.loading && !this.loadingPmfms && this.valueChanges.observers.length > 0)
         )
         .subscribe((_) => this.valueChanges.emit(this.value))
     );
@@ -145,10 +146,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   /* -- protected methods -- */
-
-  protected async asyncPmfms(): Promise<PmfmStrategy[]> {
-    return this.$pmfms.getValue() || (await this.$pmfms.pipe(filter(isNotNil), first()).toPromise());
-  }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
     // Skip if missing: program, acquisition (or gear, if required)
@@ -251,7 +248,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     if (this.debug) console.debug(`${this.logPrefix} Form controls updated`);
 
-    if (this.data && pmfms.length) {
+    if (this.data && pmfms.length && this.form) {
       // Adapt measurement values to form
       MeasurementValuesUtils.normalizeEntityToForm(this.data, pmfms, this.form);
 
@@ -265,16 +262,18 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.markAsPristine();
 
     // Restore enable state (because form.setValue() can change it !)
-    if (this._enable) {
-      measFormGroup.enable({onlySelf: true, emitEvent: false});
-    } else if (measFormGroup.enabled) {
-      measFormGroup.disable({onlySelf: true, emitEvent: false});
+    if (measFormGroup) {
+      if (this._enable) {
+        measFormGroup.enable({onlySelf: true, emitEvent: false});
+      } else if (measFormGroup.enabled) {
+        measFormGroup.disable({onlySelf: true, emitEvent: false});
+      }
     }
 
     return true;
   }
 
-  public setValue(data: T) {
+  public setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     if (this.$loadingControls.getValue()) {
       throw Error("Form not ready yet. Please use safeSetValue() instead!");
     }
@@ -282,7 +281,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     // Adapt measurement values to form
     MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
 
-    super.setValue(data);
+    super.setValue(data, opts);
 
     this.markAsUntouched();
     this.markAsPristine();
@@ -323,7 +322,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     // Wait form controls ready
     await this.onReady();
 
-    this.setValue(this.data);
+    this.setValue(this.data, {emitEvent: true});
   }
 
   protected getValue(): T {

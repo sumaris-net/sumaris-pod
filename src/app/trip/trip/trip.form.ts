@@ -26,11 +26,6 @@ import {UsageMode} from "../../core/services/model";
 })
 export class TripForm extends AppForm<Trip> implements OnInit {
 
-  returnLocationDefinition: FormFieldDefinition;
-  $programs: Observable<ReferentialRef[]>;
-  $vessels: Observable<VesselFeatures[]>;
-  $locations: Observable<ReferentialRef[]>;
-
   @Input() showComment = true;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
@@ -62,7 +57,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, validatorService.getFormGroup());
+    super(dateAdapter, validatorService.getFormGroup(), settings);
   }
 
   ngOnInit() {
@@ -71,30 +66,18 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     // Combo: programs
-    this.$programs = this.form.controls['program']
-      .valueChanges
-      .pipe(
-        startWith('*'),
-        debounceTime(250),
-        switchMap(value => this.referentialRefService.suggest(value, {
-          entityName: 'Program'
-        })),
-        tap(res => this.updateImplicitValue('program', res))
-      );
+    this.registerAutocompleteConfig('program', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Program'
+      }
+    });
 
     // Combo: vessels
     this.registerAutocompleteConfig('vesselFeatures', {
       service: this.vesselService,
       attributes: ['exteriorMarking', 'name', 'basePortLocation.label', 'basePortLocation.name']/*.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))*/
     });
-
-    this.$vessels = this.form.controls['vesselFeatures']
-      .valueChanges
-      .pipe(
-        debounceTime(250),
-        switchMap(value => this.vesselService.suggest(value)),
-        tap(res => this.updateImplicitValue('vesselFeatures', res))
-      );
 
     // Combo location
     this.registerAutocompleteConfig('location', {

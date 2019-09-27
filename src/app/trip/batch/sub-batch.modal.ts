@@ -1,32 +1,23 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component, EventEmitter,
-  Injector,
-  Input,
-  OnInit,
-  Output,
-  ViewChild
-} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {AcquisitionLevelCodes} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {PlatformService} from "../../core/core.module";
+import {AppFormUtils, PlatformService} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BatchForm} from "./batch.form";
+import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {PmfmStrategy} from "../../referential/services/model";
-import {BatchGroupForm} from "./batch-group.form";
 import {toBoolean} from "../../shared/functions";
-import {filter, first, throttleTime} from "rxjs/operators";
+import {SubBatchForm} from "./sub-batch.form";
 
 @Component({
-  selector: 'app-batch-group-modal',
-  templateUrl: 'batch-group.modal.html',
+  selector: 'app-sub-batch-modal',
+  templateUrl: 'sub-batch.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupModal implements OnInit {
+export class SubBatchModal implements OnInit{
 
   debug = false;
   loading = false;
@@ -38,28 +29,30 @@ export class BatchGroupModal implements OnInit {
 
   @Input() program: string;
 
+  @Input() canEdit: boolean;
+
   @Input() disabled: boolean;
 
-  @Input() isNew = false;
+  @Input() isNew: boolean;
 
-  @Input() showTaxonGroup = true;
+  @Input() showParent = true;
 
   @Input() showTaxonName = true;
 
   @Input() showIndividualCount = false;
 
-  @Input() showTotalIndividualCount = false;
-
   @Input() qvPmfm: PmfmStrategy;
+
+  @Input() showSampleBatch = false;
+
+  @Input() availableParents: Batch[];
 
   @Input()
   set value(value: Batch) {
     this.data = value;
   }
 
-  @Input() showSubBatchesCallback: (batch) => void;
-
-  @ViewChild('form') form: BatchGroupForm;
+  @ViewChild('form') form: SubBatchForm;
 
   get dirty(): boolean {
     return this.form.dirty;
@@ -71,14 +64,6 @@ export class BatchGroupModal implements OnInit {
 
   get valid(): boolean {
     return this.form.valid;
-  }
-
-  get pending(): boolean {
-    return this.form.pending;
-  }
-
-  get enabled(): boolean {
-    return !this.disabled;
   }
 
   constructor(
@@ -98,26 +83,28 @@ export class BatchGroupModal implements OnInit {
   }
 
 
-  ngOnInit() {
-    this.form.value = this.data || new Batch();
+  async ngOnInit() {
+    this.canEdit = toBoolean(this.canEdit, !this.disabled);
+    this.disabled = !this.canEdit || toBoolean(this.disabled, true);
+    this.isNew = toBoolean(this.isNew, false);
 
-    this.disabled = toBoolean(this.disabled, false);
-
-    if (this.disabled) {
-      this.form.disable();
-    }
-    else {
-      this.form.enable();
-    }
+    this.data = this.data || new Batch();
 
     // Compute the title
     this.computeTitle();
 
+    await this.form.onReady();
+    this.form.value = this.data;
+
     if (!this.isNew) {
       // Update title each time value changes
-      this.form.valueChanges
-        .pipe(throttleTime(500))
-        .subscribe(batch => this.computeTitle(batch));
+      this.form.valueChanges.subscribe(batch => this.computeTitle(batch));
+    }
+
+    if (!this.disabled) {
+      //setTimeout(() => {
+        this.form.enable({emitEvent: false});
+      //}, 500);
     }
 
   }
@@ -126,48 +113,22 @@ export class BatchGroupModal implements OnInit {
     await this.viewCtrl.dismiss();
   }
 
-  async close(event?: UIEvent): Promise<Batch | undefined> {
+  async close(event?: UIEvent) {
     if (this.loading) return; // avoid many call
 
-    this.loading = true;
-
-    // Wait end of async validation
-    if (this.pending) {
-      await Observable.timer(100)
-        .pipe(
-          filter(() => this.pending),
-          first()
-        ).toPromise();
-    }
-
-    // Force enable form, before use value
-    if (!this.enabled) this.form.enable({emitEvent: false});
-
-    if (!this.valid) { // invalid OR pending
-      if (this.debug) this.form.logErrors("[batch-group-modal] ");
+    if (this.invalid) {
+      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
       this.form.markAsTouched();
-      this.loading = false;
       return;
     }
+
+    this.loading = true;
 
     // Save table content
     const data = this.form.value;
 
     await this.viewCtrl.dismiss(data);
-
-    return data;
-  }
-
-  async onShowSubBatchesButtonClick(event: UIEvent) {
-
-    // Close
-    const batch = await this.close(event);
-
-    // If closed succeed, execute the callback
-    if (batch && this.showSubBatchesCallback) {
-      this.showSubBatchesCallback(batch);
-    }
   }
 
   /* -- protected methods -- */
@@ -179,11 +140,11 @@ export class BatchGroupModal implements OnInit {
   protected async computeTitle(data?: Batch) {
     data = data || this.data;
     if (this.isNew || !data) {
-      this.$title.next(await this.translate.get('TRIP.BATCH.NEW.TITLE').toPromise());
+      this.$title.next(await this.translate.get('TRIP.SUB_BATCH.NEW.TITLE').toPromise());
     }
     else {
       const label = BatchUtils.parentToString(data);
-      this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
+      this.$title.next(await this.translate.get('TRIP.SUB_BATCH.EDIT.TITLE', {label}).toPromise());
     }
   }
 }

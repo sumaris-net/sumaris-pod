@@ -64,6 +64,9 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
 
   @Input() tabindex: number;
 
+  // When async validator (e.g. BatchForm), force update when error detected
+  @Input() listenStatusChanges: boolean;
+
   @Output('keypress.enter')
   onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
 
@@ -95,6 +98,10 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement>.");
 
     this.formControl.setValidators(this.measurementValidatorService.getValidator(this.pmfm));
+
+    if (this.listenStatusChanges) {
+      this.formControl.statusChanges.subscribe((status) => this.cd.markForCheck());
+    }
     this.placeholder = this.placeholder || getPmfmName(this.pmfm, {withUnit: !this.compact});
     this.required = toBoolean(this.required, this.pmfm.required);
 

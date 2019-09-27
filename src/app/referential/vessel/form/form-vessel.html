@@ -37,26 +37,13 @@
     <!-- Base port location -->
     <ion-row>
       <ion-col>
-        <mat-form-field>
-          <ion-icon name="pin" matPrefix></ion-icon>
-          <input matInput [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate" [matAutocomplete]="autoLocation"
-            formControlName="basePortLocation" required>
-          <mat-error *ngIf="form.controls['basePortLocation'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls['basePortLocation'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-        </mat-form-field>
-        <mat-autocomplete autoActiveFirstOption #autoLocation="matAutocomplete" [displayWith]="referentialToString">
-          <ion-row class="mat-autocomplete-header">
-            <ion-col size="2" translate>REFERENTIAL.LABEL</ion-col>
-            <ion-col translate>REFERENTIAL.NAME</ion-col>
-          </ion-row>
-
-          <mat-option *ngFor="let location of $locations | async" [value]="location">
-            <ion-row>
-              <ion-col size="2" [innerHTML]="location.label | highlight: {search: form.controls['basePortLocation'].value }"></ion-col>
-              <ion-col [innerHTML]="location.name | highlight: {search: form.controls['basePortLocation'].value }"></ion-col>
-            </ion-row>
-          </mat-option>
-        </mat-autocomplete>
+        <mat-autocomplete-field
+          [placeholder]="'VESSEL.BASE_PORT_LOCATION'|translate"
+          formControlName="basePortLocation"
+          [config]="autocompleteHelper.get('location')"
+          [required]="true">
+          <ion-icon matPrefix name="pin"></ion-icon>
+        </mat-autocomplete-field>
       </ion-col>
     </ion-row>
 

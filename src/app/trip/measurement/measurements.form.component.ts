@@ -13,7 +13,7 @@ import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject, merge} from 'rxjs';
 import {filter, first, startWith, throttleTime} from "rxjs/operators";
-import {AppForm} from '../../core/core.module';
+import {AppForm, LocalSettingsService} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
@@ -122,9 +122,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
               protected formBuilder: FormBuilder,
               protected programService: ProgramService,
               protected translate: TranslateService,
-              protected cd: ChangeDetectorRef
+              protected cd: ChangeDetectorRef,
+              protected settings: LocalSettingsService
   ) {
-    super(dateAdapter, formBuilder.group({}));
+    super(dateAdapter, formBuilder.group({}), settings);
 
     // TODO: DEV only
     //this.debug = true;

@@ -1,19 +1,16 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
-import {Department, EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
+import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService, environment, NetworkService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
-
 import {ErrorCodes} from "./trip.errors";
 import {AccountService} from "../../core/services/account.service";
 import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
-
-import uuidv4 from 'uuid/v4';
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {

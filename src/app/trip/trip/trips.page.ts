@@ -91,6 +91,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       'location': [null]
     });
     this.inlineEdition = false;
+    this.confirmBeforeDelete = true;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -150,39 +151,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     // if new trip added, refresh the table
     modal.onDidDismiss().then(res => res && this.onRefresh.emit());
     return modal.present();
-  }
-
-  async deleteSelection(confirm?: boolean) {
-    if (this.loading) return;
-
-    if (!confirm) {
-      const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE', 'CONFIRM.ALERT_HEADER']);
-      const alert = await this.alertCtrl.create({
-        header: translations['CONFIRM.ALERT_HEADER'],
-        message: translations['CONFIRM.DELETE'],
-        buttons: [
-          {
-            text: translations['COMMON.NO'],
-            role: 'cancel',
-            cssClass: 'secondary',
-            handler: () => {
-            }
-          },
-          {
-            text: translations['COMMON.YES'],
-            handler: () => {
-              confirm = true; // update upper value
-            }
-          }
-        ]
-      });
-      await alert.present();
-      await alert.onDidDismiss();
-    }
-
-    if (confirm) {
-      await super.deleteSelection();
-    }
   }
 
   vesselFeaturesToString = vesselFeaturesToString;

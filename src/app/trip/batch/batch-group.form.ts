@@ -93,6 +93,10 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     return this.batchForm.valid && (!this.childrenForms || !this.childrenForms.find(child => child.invalid));
   }
 
+  get pending(): boolean {
+    return this.batchForm.pending || (this.childrenForms && this.childrenForms.find(child => child.pending) && true) || false;
+  }
+
   get dirty(): boolean {
     return this.batchForm.dirty || (this.childrenForms && this.childrenForms.find(child => child.dirty) && true) || false;
   }
@@ -232,8 +236,13 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     return (pmfms: PmfmStrategy[]) => {
       self.qvPmfm = self.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
       if (self.qvPmfm) {
+
+        // Create a copy, to keep original pmfm unchanged
         self.qvPmfm = this.qvPmfm.clone();
+
+        // Hide for children form, and change it as required
         self.qvPmfm.hidden = true;
+        self.qvPmfm.isMandatory = true;
 
         // Replace in the list
         self.$childrenPmfms.next(pmfms.map(p => p.pmfmId === this.qvPmfm.pmfmId ? this.qvPmfm : p));

@@ -541,7 +541,7 @@ export class ProgramService extends BaseDataService
     taxonomicLevelIds?: number[]
     searchAttribute?: string;
     taxonGroupId?: number;
-  }): Promise<ReferentialRef[]> {
+  }): Promise<TaxonNameRef[]> {
 
     // Search on taxon group's taxon'
     if (isNotNil(options.program) && isNotNil(options.taxonGroupId)) {
@@ -550,7 +550,7 @@ export class ProgramService extends BaseDataService
       const taxonNamesByTaxonGroupId = this.loadProgramTaxonNamesByTaxonGroupId(options.program);
       const values = taxonNamesByTaxonGroupId[options.taxonGroupId];
       if (isNotEmptyArray(values)) {
-        return suggestFromArray(values, value, {
+        return suggestFromArray<TaxonNameRef>(values, value, {
           searchAttribute: options.searchAttribute
         });
       }

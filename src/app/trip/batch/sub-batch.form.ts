@@ -3,7 +3,6 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  EventEmitter,
   Input,
   OnDestroy,
   OnInit,
@@ -11,26 +10,30 @@ import {
   ViewChildren
 } from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {Batch, BatchUtils} from "../services/model/batch.model";
+import {Batch} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
-import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
+import {AcquisitionLevelCodes, EntityUtils, UsageMode} from "../../core/services/model";
 import {
-  AcquisitionLevelCodes, attributeComparator,
-  EntityUtils,
-  IReferentialRef,
-  referentialToString,
-  UsageMode
-} from "../../core/services/model";
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, tap} from "rxjs/operators";
-import {getPmfmName, isNil, isNotNil, PmfmStrategy} from "../../referential/services/model";
-import {merge, Observable} from "rxjs";
-import {getPropertyByPath, isNilOrBlank, startsWithUpperCase} from "../../shared/functions";
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  mergeMap,
+  skip,
+  startWith,
+  switchMap,
+  tap
+} from "rxjs/operators";
+import {isNil, isNotNil, PmfmIds, PmfmStrategy, QualitativeLabels} from "../../referential/services/model";
+import {BehaviorSubject, combineLatest, Observable} from "rxjs";
+import {getPropertyByPath, isNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
@@ -39,11 +42,14 @@ import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
 import {MeasurementQVFormField} from "../measurement/measurement-qv.form-field.component";
 import {MatAutocompleteField} from "../../shared/material/material.autocomplete";
-import {InputElement, isInputElement, tabindexComparator} from "../../shared/material/focusable";
+import {isInputElement, tabindexComparator} from "../../shared/material/focusable";
+import {SharedValidators} from "../../shared/validator/validators";
+import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 
 
 @Component({
   selector: 'app-sub-batch-form',
+  styleUrls: ['sub-batch.form.scss'],
   templateUrl: 'sub-batch.form.html',
   providers: [
     {provide: ValidatorService, useExisting: SubBatchValidatorService}
@@ -53,13 +59,15 @@ import {InputElement, isInputElement, tabindexComparator} from "../../shared/mat
 export class SubBatchForm extends MeasurementValuesForm<Batch>
   implements OnInit, OnDestroy {
 
-  protected _initialPmfms: PmfmStrategy[];
   protected _qvPmfm: PmfmStrategy;
   protected _availableParents: Batch[] = [];
   protected _parentAttributes: string[];
+  protected _showTaxonName: boolean;
 
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
+  $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
+  selectedTaxonNameIndex: number;
 
   @Input() tabindex: number;
 
@@ -67,7 +75,26 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @Input() showParent = true;
 
-  @Input() showTaxonName = true;
+  @Input() set showTaxonName(show) {
+    this._showTaxonName = show;
+    const taxonNameControl = this.form && this.form.get('taxonName');
+    if (taxonNameControl) {
+      if (show) {
+        taxonNameControl.setValidators(Validators.compose([SharedValidators.entity, Validators.required]));
+      }
+      else {
+        taxonNameControl.setValidators([]);
+      }
+    }
+  }
+
+  get showTaxonName() : boolean {
+    return this._showTaxonName;
+  }
+
+  get taxonNames(): TaxonNameRef[] {
+    return this.$taxonNames.getValue();
+  }
 
   @Input() showIndividualCount = true;
 
@@ -76,6 +103,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   @Input() onNewParentClick: () => Promise<Batch | undefined>;
 
   @Input() showError = true;
+
+  @Input() showSubmitButton = true;
+
+  @Input() isNew: boolean;
 
   @Input() set qvPmfm(value: PmfmStrategy) {
     this._qvPmfm = value;
@@ -108,6 +139,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @ViewChildren(MeasurementFormField) measurementFormFields: QueryList<MeasurementFormField>;
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
+  @ViewChildren('matInputToReset') matInputsToReset: QueryList<ElementRef>;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -128,6 +160,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       });
 
     this.mobile = platform.mobile;
+    this._enable = false;
 
     // Set default values
     this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
@@ -147,37 +180,99 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   ngOnInit() {
     super.ngOnInit();
 
+    this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
+    this.isNew = toBoolean(this.isNew, false);
+
     // Parent combo
     this.registerAutocompleteConfig('parent', {
       suggestFn: (value: any, options?: any) => this.suggestParents(value, options),
-      attributes: ['rankOrder'].concat(this._parentAttributes)
-    });
-
-    // Taxon combo
-    this.registerAutocompleteConfig('taxonName', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
+      attributes: ['rankOrder'].concat(this._parentAttributes),
       showAllOnFocus: true
     });
 
-    this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
+    // Add required validator on TaxonName
+    const taxonNameControl = this.form.get('taxonName');
+    if (this.showTaxonName) {
+      taxonNameControl.setValidators(Validators.compose([SharedValidators.entity, Validators.required]));
+    }
 
     const parentControl = this.form.get('parent');
-    const taxonNameControl = this.form.get('taxonName');
+    const parentChanges = parentControl.valueChanges
+      .pipe(debounceTime(250));
 
+    // Mobile
+    if (this.mobile) {
 
-    // Reset taxon name combo when parent changed
-    this.registerSubscription(
-      parentControl.valueChanges
+      // Compute taxon names when parent has changed
+      let currentParenLabel;
+      Observable.fromPromise(this.onReady())
         .pipe(
-          debounceTime(250),
-          filter(EntityUtils.isNotEmpty),
-          map(parent => parent.label),
-          distinctUntilChanged()
+          switchMap(() => parentControl.valueChanges)
         )
-        .subscribe((value) => {
-          taxonNameControl.patchValue(null, {emitEVent: false});
-          taxonNameControl.markAsPristine({onlySelf: true});
-        }));
+        .pipe(
+          filter(parent => EntityUtils.isNotEmpty(parent) && currentParenLabel !== parent.label),
+          tap(parent => currentParenLabel = parent.label),
+          mergeMap((_) => this.suggestTaxonNames('*'))
+        )
+        .subscribe(items => this.$taxonNames.next(items));
+
+      this.registerSubscription(
+        combineLatest([
+          this.$taxonNames,
+          Observable.fromPromise(this.onReady()).pipe(switchMap(() => taxonNameControl.valueChanges))
+        ])
+          .pipe(
+            filter(([items, value]) => isNotNil(items))
+          )
+          .subscribe(([items, value]) => {
+            let newValue: TaxonNameRef;
+            let index = -1;
+            // Compute index in list, and get value
+            if (items && items.length === 1) {
+              index = 0;
+            }
+            else if (EntityUtils.isNotEmpty(value)) {
+              index = items.findIndex(v => TaxonNameRef.equalsOrSameReferenceTaxon(v, value));
+            }
+            newValue = (index !== -1) ? items[index] : null;
+
+            // Apply to form, if need
+            if (!EntityUtils.equals(value, newValue)) {
+              taxonNameControl.setValue(newValue, {emitEvent: false});
+              this.markAsDirty();
+            }
+
+            // Apply to button index, if need
+            if (this.selectedTaxonNameIndex !== index) {
+              this.selectedTaxonNameIndex = index;
+              this.markForCheck();
+            }
+          }));
+    }
+
+    // Desktop
+    else {
+      this.registerAutocompleteConfig('taxonName', {
+        suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
+        showAllOnFocus: true
+      });
+
+      // Reset taxon name combo when parent changed
+      this.registerSubscription(
+        parentChanges
+          .pipe(
+            // Warn: skip the first trigger (ignore set value)
+            skip(1),
+            filter(parent => EntityUtils.isNotEmpty(parent) && this.form.enabled),
+            map(parent => parent.label),
+            distinctUntilChanged()
+          )
+          .subscribe((value) => {
+            console.log('TODO Reset taxonName')
+            taxonNameControl.patchValue(null, {emitEVent: false});
+            taxonNameControl.markAsPristine({onlySelf: true});
+          }));
+    }
 
     this.registerSubscription(
       this.enableIndividualCountControl.valueChanges
@@ -192,6 +287,8 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
           }
         }));
 
+    this.ngInitExtension();
+
     this.updateTabIndex();
   }
 
@@ -205,7 +302,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   doSubmitIfEnter(event: KeyboardEvent): boolean{
-    if (event.keyCode == 13) {
+    if (event.keyCode === 13) {
       this.doSubmit(event);
       return false;
     }
@@ -213,6 +310,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   focusFirstEmpty(event?: UIEvent) {
+    console.log("TODO check focusFirstEmpty()");
     // Focus to first input
     this.matInputs
       .map((input) => {
@@ -223,9 +321,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         }
         return undefined;
       })
-      .filter(input => isNotNil(input) && isNilOrBlank(input.value))
+      .filter(input => isNotNil(input) && isNilOrBlank(input.value) && !(this.mobile && input instanceof MeasurementQVFormField))
       .sort(tabindexComparator)// Order by tabindex
       .find(input => {
+        console.log('Will focus on:', input)
         input.focus();
         return true; // stop
       });
@@ -241,12 +340,12 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  setValue(data: Batch) {
+  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     // Replace parent with value of availableParents
     this.linkToParent(data);
 
     // Inherited method
-    super.setValue(data);
+    super.setValue(data, opts);
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
@@ -257,18 +356,37 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  parentToString(batch: Batch) {
-    // TODO: use attributes from settings ?
-    return BatchUtils.parentToString(batch);
-  }
-
-  referentialToString = referentialToString;
-  getPmfmName = getPmfmName;
   selectInputContent = AppFormUtils.selectInputContent;
   filterNumberInput = AppFormUtils.filterNumberInput;
 
-
   /* -- protected method -- */
+
+  protected async ngInitExtension() {
+
+    await this.onReady();
+
+    const discardOrLandingControl = this.form.get(`measurementValues.${PmfmIds.DISCARD_OR_LANDING}`);
+    const discardReasonControl = this.form.get(`measurementValues.${PmfmIds.DISCARD_REASON}`);
+
+    // Manage DISCARD_REASON validator
+    if (discardOrLandingControl && discardReasonControl) {
+    this.registerSubscription(
+      discardOrLandingControl.valueChanges
+        .subscribe((value) => {
+          if (EntityUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+            if (this.form.enabled) {
+              discardReasonControl.enable();
+            }
+            discardReasonControl.setValidators(Validators.required);
+            discardReasonControl.updateValueAndValidity({onlySelf: true});
+          } else {
+            discardReasonControl.disable();
+            discardReasonControl.setValue(null);
+            discardReasonControl.setValidators([]);
+          }
+        }));
+    }
+  }
 
   protected async suggestParents(value: any, options?: any): Promise<Batch[]> {
     // Has select a valid parent: return the parent
@@ -285,7 +403,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     );
   }
 
-  protected suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+  protected suggestTaxonNames(value: any, options?: any): Promise<TaxonNameRef[]> {
     const parent = this.form && this.form.get('parent').value;
     if (isNilOrBlank(value) && isNil(parent)) return Promise.resolve([]);
     return this.programService.suggestTaxonNames(value,
@@ -304,6 +422,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       if (index !== -1) {
         const qvPmfm = this._qvPmfm.clone();
         qvPmfm.hidden = true;
+        qvPmfm.isMandatory = true;
         pmfms[index] = qvPmfm;
       }
     }
@@ -322,15 +441,22 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   protected getValue(): Batch {
+    if (!this.form.dirty) return this.data;
 
     const json = this.form.value;
+
+    // Read the individual count (if has been disable)
+    if (!this.enableIndividualCountControl.value) {
+      json.individualCount = this.form.get('individualCount').value || 1;
+    }
+
     const pmfmForm = this.form.get('measurementValues');
 
     // Adapt measurement values for entity
     if (pmfmForm) {
       json.measurementValues = Object.assign({},
         this.data.measurementValues || {}, // Keep additionnal PMFM values
-        MeasurementValuesUtils.normalizeValuesToModel(pmfmForm.value, this._initialPmfms || []));
+        MeasurementValuesUtils.normalizeValuesToModel(pmfmForm.value, this.$pmfms.getValue() || []));
     } else {
       json.measurementValues = {};
     }
@@ -343,45 +469,40 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   protected linkToParent(value: Batch) {
     // Find the parent
-    const entityParent = value.parent || (value.parentId && {id: value.parentId});
-    if (!entityParent) return; // no parent = nothing to link
+    const parentInfo = value.parent || (value.parentId && {id: value.parentId});
+    if (!parentInfo) return; // no parent = nothing to link
 
-    let formParent = this._availableParents.find(p => (p.label === value.parent.label) || (p.id === value.parentId));
+    value.parent = this._availableParents.find(p => Batch.equals(p, parentInfo));
 
-    if (!formParent.hasTaxonNameOrGroup && formParent.parent && formParent.parent.hasTaxonNameOrGroup) {
-      formParent = formParent.parent;
-    }
-
-    if (formParent !== entityParent) {
-      this.form.get('parent').patchValue(formParent, {emitEvent: !this.loading});
-      if (!this.loading) this.markForCheck();
+    // Get the parent of the praent (e.g. if parent is a sample batch)
+    if (!value.parent.hasTaxonNameOrGroup && value.parent.parent && value.parent.parent.hasTaxonNameOrGroup) {
+      value.parent = value.parent.parent;
     }
   }
 
   protected async updateTabIndex() {
-    if (this.tabindex && this.tabindex !== -1) {
-      setTimeout(async () => {
-        // Make sure form is ready
-        await this.onReady();
+    if (isNil(this.tabindex) || this.tabindex !== -1) return;
+    setTimeout(async () => {
+      // Make sure form is ready
+      await this.onReady();
 
-        let tabindex = this.tabindex;
-        this.matInputs.forEach(input => {
-          if (input instanceof MeasurementFormField
-            || input instanceof MeasurementQVFormField
-            || input instanceof MatAutocompleteField) {
-            input.tabindex = tabindex;
-          }
-          else if (input.nativeElement instanceof HTMLInputElement){
-            input.nativeElement.setAttribute('tabindex', tabindex.toString());
-          }
-          else {
-            console.warn("Could not set tabindex on element: ", input);
-          }
-          tabindex = tabindex + 10;
-        });
-        this.markForCheck();
+      let tabindex = this.tabindex;
+      this.matInputs.forEach(input => {
+        if (input instanceof MeasurementFormField
+          || input instanceof MeasurementQVFormField
+          || input instanceof MatAutocompleteField) {
+          input.tabindex = tabindex;
+        }
+        else if (input.nativeElement instanceof HTMLInputElement){
+          input.nativeElement.setAttribute('tabindex', tabindex.toString());
+        }
+        else {
+          console.warn("Could not set tabindex on element: ", input);
+        }
+        tabindex = tabindex + (this.mobile ? 10/*= QV field use buttons*/ : 1);
       });
-    }
+      this.markForCheck();
+    });
   }
 
 }

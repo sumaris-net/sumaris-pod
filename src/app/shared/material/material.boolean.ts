@@ -36,8 +36,8 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
   private _value: boolean;
-  protected disabling = false;
-  protected writing = false;
+  private _writing = false;
+  private _tabindex: number;
 
   showRadio = false;
 
@@ -57,7 +57,16 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
 
   @Input() compact = false;
 
-  @Input() tabindex: number;
+  @Input() set tabindex(value: number) {
+    if (this._tabindex !== value) {
+      this._tabindex = value;
+      setTimeout(() => this.updateTabIndex());
+    }
+  }
+
+  get tabindex(): number {
+    return this._tabindex;
+  }
 
   @Output()
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
@@ -75,6 +84,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
   }
 
   @ViewChild('yesButton') yesButton: MatRadioButton;
+  @ViewChild('noButton') noButton: MatRadioButton;
 
   @ViewChild('checkboxButton') checkboxButton: MatCheckbox;
 
@@ -90,12 +100,14 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
   ngOnInit() {
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-boolean-field>.");
+
+    this.updateTabIndex();
   }
 
   writeValue(value: any): void {
-    if (this.writing) return;
+    if (this._writing) return;
 
-    this.writing = true;
+    this._writing = true;
     if (value !== this._value) {
       this._value = value;
       this.showRadio = isNotNil(this._value);
@@ -103,7 +115,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
         setTimeout(() => this.updateTabIndex());
       }
     }
-    this.writing = false;
+    this._writing = false;
 
     this.markForCheck();
   }
@@ -120,7 +132,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     this.disabled = isDisabled;
   }
 
-  checkIfTouched() {
+  protected checkIfTouched() {
     if (this.formControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
@@ -162,7 +174,7 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
 
 
   private updateTabIndex() {
-    if (isNil(this.tabindex) || this.tabindex === -1) return;
+    if (isNil(this._tabindex) || this._tabindex === -1) return;
 
     if (this.fakeInput) {
       if (this.showRadio) {
@@ -170,34 +182,35 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
         this.fakeInput.nativeElement.tabIndex = -1;
       } else {
         this.fakeInput.nativeElement.classList.remove('hidden');
-        this.fakeInput.nativeElement.tabIndex = this.tabindex;
+        this.fakeInput.nativeElement.tabIndex = this._tabindex;
       }
     }
     if (this.yesButton) {
-      this.yesButton._inputElement.nativeElement.tabIndex = this.showRadio ? this.tabindex : -1;
+      this.yesButton._inputElement.nativeElement.tabIndex = this.showRadio ? this._tabindex : -1;
+      this.noButton._inputElement.nativeElement.tabIndex = this.showRadio ? this._tabindex + 1 : -1;
     } else if (this.checkboxButton) {
-      this.checkboxButton._inputElement.nativeElement.tabIndex = this.showRadio ? this.tabindex : -1;
+      this.checkboxButton._inputElement.nativeElement.tabIndex = this.showRadio ? this._tabindex : -1;
     }
     this.markForCheck();
 
   }
 
   private onRadioValueChanged(event: MatRadioChange): void {
-    if (this.writing) return; // Skip if call by self
-    this.writing = true;
+    if (this._writing) return; // Skip if call by self
+    this._writing = true;
     this._value = event.value;
     this.checkIfTouched();
     this._onChangeCallback(event.value);
-    this.writing = false;
+    this._writing = false;
   }
 
   private onCheckboxValueChanged(event: MatCheckboxChange): void {
-    if (this.writing) return; // Skip if call by self
-    this.writing = true;
+    if (this._writing) return; // Skip if call by self
+    this._writing = true;
     this._value = event.checked;
     this.checkIfTouched();
     this._onChangeCallback(event.checked);
-    this.writing = false;
+    this._writing = false;
   }
 
   private markForCheck() {

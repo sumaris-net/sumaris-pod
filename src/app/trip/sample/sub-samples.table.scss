@@ -1,3 +1,6 @@
+:host {
+  width: 100%;
+}
 .mat-header-row,
 .mat-row {
 
@@ -13,19 +16,19 @@
     max-width: inherit; // Override default limitation
   }
 
-  // Boolean field 
+  // Boolean field
   // 94 ->Dead? Y/N
   .mat-column-94 {
     min-width: 50px;
   }
 
-  // Boolean field 
+  // Boolean field
   // 102 -> kept vertebral ?
   .mat-column-102 {
     min-width: 75px;
   }
 
-  // Monitoring 
+  // Monitoring
   .mat-column-94,
   .mat-column-100,
   .mat-column-102,

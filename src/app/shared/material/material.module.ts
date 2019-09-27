@@ -23,7 +23,7 @@ import {
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
-  MatSlideToggleModule
+  MatSlideToggleModule, MatRippleModule
 } from "@angular/material";
 import {CdkTableModule} from "@angular/cdk/table";
 import {MatDatepickerModule} from '@angular/material/datepicker';
@@ -31,6 +31,10 @@ import {MatMomentDateModule} from '@angular/material-moment-adapter';
 
 import {fadeInAnimation, slideInOutAnimation} from './material.animations';
 import {InputElement} from './focusable';
+import {A11yModule} from "@angular/cdk/a11y";
+import {OverlayModule} from "@angular/cdk/overlay";
+import {ScrollingModule} from "@angular/cdk/scrolling";
+import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 
 export { fadeInAnimation, slideInOutAnimation, InputElement };
 
@@ -62,7 +66,13 @@ const modules: any[] = [
   MatProgressBarModule,
   MatRadioModule,
   MatBadgeModule,
-  MatSlideToggleModule
+  MatSlideToggleModule,
+  MatDialogModule,
+  A11yModule, // Used for focus trap
+  OverlayModule,
+  ScrollingModule,
+  MatRippleModule,
+  NgxMaterialTimepickerModule
 ];
 
 @NgModule({

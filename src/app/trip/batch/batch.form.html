@@ -19,7 +19,7 @@
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
                                 [tabindex]="tabindex"
                                 [required]="showTaxonGroup"
-                                [config]="autocompleteFields.taxonGroup">
+                                [config]="autocompleteHelper.taxonGroup">
         </mat-autocomplete-field>
       </ion-col>
 
@@ -32,7 +32,7 @@
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                                 [tabindex]="tabindex+1"
                                 [required]="showTaxonName"
-                                [config]="autocompleteFields.taxonName">
+                                [config]="autocompleteHelper.taxonName">
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
@@ -78,7 +78,8 @@
                                     [formControl]="form.controls.weight.controls.value"
                                     [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                                     [compact]="compact"
-                                    [tabindex]="tabindex+28">
+                                    [tabindex]="tabindex+28"
+                                    [listenStatusChanges]="true">
         </mat-form-field-measurement>
 
       </ion-col>
@@ -159,9 +160,9 @@
                    [tabindex]="tabindex + 32">
             <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
             <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('min')">
-              {{'ERROR.FIELD_MIN' | translate:samplingBatchForm.controls.samplingRatio.errors['min'] }}</mat-error>
+              {{'ERROR.FIELD_MIN' | translate: samplingBatchForm.controls.samplingRatio.errors['min'] }}</mat-error>
             <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('max')">
-              {{'ERROR.FIELD_MAX' | translate:samplingBatchForm.controls.samplingRatio.errors['max'] }}</mat-error>
+              {{'ERROR.FIELD_MAX' | translate: samplingBatchForm.controls.samplingRatio.errors['max'] }}</mat-error>
             <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('pattern')">
               {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
             <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('integer')">
@@ -178,7 +179,8 @@
                                       [formControl]="samplingBatchForm.controls.weight.controls.value"
                                       [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                                       [compact]="compact"
-                                      [tabindex]="tabindex+33">
+                                      [tabindex]="tabindex+33"
+                                      [listenStatusChanges]="true">
           </mat-form-field-measurement>
         </ion-col>
 

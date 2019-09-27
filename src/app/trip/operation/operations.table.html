@@ -54,7 +54,7 @@
       <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{row.currentData?.rankOrderOnPeriod}}</ion-text>
+      <ion-text>{{row.currentData.rankOrderOnPeriod}}</ion-text>
     </mat-cell>
   </ng-container>
 
@@ -64,7 +64,7 @@
       <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData?.metier.gear, displayAttributes.gear)}}</ion-label>
+      <ion-label>{{referentialToString(row.currentData.physicalGear?.gear || row.currentData.metier?.gear, displayAttributes.gear)}}</ion-label>
     </mat-cell>
   </ng-container>
 
@@ -74,7 +74,7 @@
       <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData?.metier, displayAttributes.taxonGroup)}}</ion-label>
+      <ion-label>{{referentialToString(row.currentData.metier, displayAttributes.taxonGroup)}}</ion-label>
     </mat-cell>
   </ng-container>
 

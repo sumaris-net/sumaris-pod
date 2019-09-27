@@ -2,6 +2,7 @@
   "APP_NAME": "SUMARiS",
   "COMMON": {
     "BTN_CANCEL": "Annuler",
+    "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abandonner les modifications",
     "BTN_RESET": "Réinitialiser",
     "BTN_ADD": "Ajouter",
@@ -20,6 +21,7 @@
     "BTN_NEXT": "Suivant",
     "BTN_BACK": "Retour",
     "BTN_SEND": "Envoyer",
+    "BTN_OPTIONS": "Options",
     "BTN_UNDO": "Annuler les modifications",
     "BTN_TABLE_EDIT": "Editer dans le tableau",
     "BTN_TABLE_OPEN": "Editer dans un formulaire",
@@ -396,11 +398,13 @@
           "TITLE": "Mesures individuelles",
           "INDIVIDUAL_COUNT": "Nb individus",
           "BURST_FORM_TITLE": "Saisie rafale :",
+          "ADD_MEASURE_DOTS": "Ajouter une mesure :",
+          "EDIT_MEASURE_DOTS": "Modifier une mesure :",
           "BTN_MANUAL_ENTRY": "Saisie manuelle"
         }
       },
       "TABLE": {
-        "BTN_INDIVIDUAL_MEASURE": "Mesures",
+        "BTN_INDIVIDUAL_MEASURE": "Mesures individuelles",
         "BTN_BURST_INPUT": "Mode rafale",
         "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
         "LABEL": "Libellé",
@@ -422,6 +426,14 @@
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
       }
     },
+    "SUB_BATCH": {
+      "NEW": {
+        "TITLE": "Nouvel individu"
+      },
+      "EDIT": {
+        "TITLE": "Individu {{label}}"
+      }
+    },
     "SAMPLE": {
       "TABLE": {
         "LABEL": "Lot",
@@ -431,7 +443,7 @@
         "TAXON_NAME": "Espèce scientifique (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Code espèce",
         "SAMPLE_DATE": "Date/Heure de la mesure",
-        "PARENT_SAMPLE": "Echantillon parent",
+        "PARENT": "Echantillon parent",
         "COMMENTS": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement"
       }
@@ -604,16 +616,20 @@
     "RANK_ORDER": "#",
     "EXTERIOR_MARKING": "Immatriculation",
     "BASE_PORT_LOCATION": {
-      "LABEL": "Port d'attache",
-      "NAME": ""
+      "LABEL": "Code port d'attache",
+      "NAME": "Libellé port d'attache"
     },
     "TAXON_GROUP": {
-      "LABEL": "Espèce commerciale",
-      "NAME": ""
+      "LABEL": "Code espèce commerciale",
+      "NAME": "Libellé espèce commerciale"
     },
     "TAXON_NAME": {
-      "LABEL": "Espèce scientifique",
-      "NAME": ""
+      "LABEL": "Code espèce scientifique",
+      "NAME": "Libellé espèce scientifique"
+    },
+    "GEAR": {
+      "LABEL": "Code engin",
+      "NAME": "Libellé engin"
     },
     "LIST": {
       "TITLE": "Listes",
@@ -897,6 +913,8 @@
     "SAVE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
     "SAVE_BEFORE_CLOSE": "Des mofifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
-    "DELETE": "Cette opération est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?"
+    "DELETE_IMMEDIATE": "Cette opération est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
+    "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
+    "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?"
   }
 }

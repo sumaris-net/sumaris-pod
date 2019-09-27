@@ -65,6 +65,8 @@ import {SpeciesBatchValidatorService} from "./services/validator/species-batch.v
 import {BatchGroupPage} from "./batch/batch-group.page";
 import {BatchGroupForm} from "./batch/batch-group.form";
 import {BatchGroupModal} from "./batch/batch-group.modal";
+import {SubBatchModal} from "./batch/sub-batch.modal";
+import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -109,6 +111,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       BatchGroupModal,
       BatchGroupPage,
       BatchGroupForm,
+      SubBatchModal,
       IndividualMonitoringSubSamplesTable,
       AuctionControlLandingPage,
       AuctionControlSamplesTable,
@@ -139,9 +142,10 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LandingPage,
       LandingsTablesModal,
       AuctionControlLandingPage,
-      SubBatchForm,
       BatchForm,
-      BatchGroupPage
+      BatchGroupPage,
+      SubBatchForm,
+      SubBatchModal
     ],
     entryComponents: [
       TripsPage,
@@ -162,7 +166,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       SubBatchesModal,
       BatchModal,
       BatchGroupModal,
-      BatchGroupPage
+      BatchGroupPage,
+      SubBatchModal
     ],
     providers: [
       TripService,
@@ -184,7 +189,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       SpeciesBatchValidatorService,
       SampleValidatorService,
       SubSampleValidatorService,
-      ExtractionService
+      ExtractionService,
+      {provide: OverlayContainer, useClass: FullscreenOverlayContainer}
     ]
 })
 export class TripModule {

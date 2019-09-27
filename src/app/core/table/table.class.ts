@@ -1,4 +1,4 @@
-import {EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
+import {AfterViewInit, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatColumnDef, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
 import {Observable, of, Subject} from 'rxjs';
@@ -6,7 +6,7 @@ import {catchError, filter, mergeMap, startWith, switchMap, takeUntil} from "rxj
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
-import {Entity} from "../services/model";
+import {Entity, joinPropertiesPath} from "../services/model";
 import {Subscription} from "rxjs-compat";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -18,7 +18,11 @@ import {isNil, isNotNil} from "../../shared/shared.module";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
-import {DisplayFn, MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
+import {
+  DisplayFn,
+  MatAutocompleteFieldConfig,
+  MatAutocompleteFieldAddOptions, MatAutocompleteConfigHolder
+} from "../../shared/material/material.autocomplete";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
@@ -26,7 +30,7 @@ export const DEFAULT_PAGE_SIZE = 20;
 export const RESERVED_START_COLUMNS = ['select', 'id'];
 export const RESERVED_END_COLUMNS = ['actions'];
 
-export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
+export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, OnDestroy, AfterViewInit {
 
   private _initialized = false;
   private _subscriptions: Subscription[] = [];
@@ -37,9 +41,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       formPath?: string;
     }
   } = {};
-  protected autocompleteFields: {
-    [key: string]: MatAutocompleteFieldConfig
-  } = {};
+  protected autocompleteHelper: MatAutocompleteConfigHolder;
+  protected autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
 
   // TODO: change this to private:
   protected _implicitValues: { [key: string]: any } = {};
@@ -135,26 +138,33 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     return !this._enable;
   }
 
-  markAsDirty() {
+  markAsDirty(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
     this._dirty = true;
-    this.markForCheck();
-  }
-
-  markAsPristine() {
-    this._dirty = false;
-    this.markForCheck();
-  }
-
-  markAsUntouched() {
-    this._dirty = false;
-    this.markForCheck();
-  }
-
-  markAsTouched() {
-    if (this.editedRow && this.editedRow.editing) {
-      this.editedRow.validator.markAsTouched();
-      this.editedRow.validator.updateValueAndValidity();
+    if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
+    }
+  }
+
+  markAsPristine(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    this._dirty = false;
+    if (!opts || opts.emitEvent !== false) {
+      this.markForCheck();
+    }
+  }
+
+  markAsUntouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    this._dirty = false;
+    if (!opts || opts.emitEvent !== false) {
+      this.markForCheck();
+    }
+  }
+
+  markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    if (this.editedRow && this.editedRow.editing) {
+      AppFormUtils.markAsTouched(this.editedRow.validator, opts);
+      if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
     }
   }
 
@@ -174,13 +184,15 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     this.inlineEdition = false;
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
+    this.autocompleteHelper = new MatAutocompleteConfigHolder({
+      getUserAttributes: (a,b) => settings.getFieldDisplayAttributes(a, b)
+    });
+    this.autocompleteFields = this.autocompleteHelper.fields;
   }
 
   ngOnInit() {
     if (this._initialized) return; // Init only once
     this._initialized = true;
-
-    if (!this.table) console.warn("[table] Missing <mat-table> in the HTML template!");
 
     // Defined unique id for settings
     this.settingsId = this.generateTableId();
@@ -255,6 +267,12 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     if (this.dataSource) this.listenDatasource(this.dataSource);
   }
 
+  ngAfterViewInit() {
+
+    if (!this.table) console.warn(`[table] Missing <mat-table> in the HTML template! Component: ${this.constructor.name}`);
+
+  }
+
   ngOnDestroy() {
     if (this._subscriptions.length) {
       //if (this.debug) console.debug(`[table] Deleting ${this._subscriptions.length} subscriptions ${this.constructor.name}#*`);
@@ -296,15 +314,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       this.listChange.emit(data);
       // NOT NEED this.markForCheck();
     }));
-  }
-
-  addColumnDef(columnDef: MatColumnDef, options?: { skipIfExists: boolean; }) {
-    const existingColumnDef = this.table._contentColumnDefs.find((item, index, array) => item.name === columnDef.name);
-    if (existingColumnDef) {
-      if (options && options.skipIfExists) return; // skip
-      this.table.removeColumnDef(existingColumnDef);
-    }
-    this.table.addColumnDef(columnDef);
   }
 
   confirmAndAddRow(event?: any, row?: TableElement<T>): boolean {
@@ -390,7 +399,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
   }
 
-  cancel() {
+  cancel(event?: UIEvent) {
     this.onRefresh.emit();
   }
 
@@ -415,10 +424,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     if (this.loading || this.selection.isEmpty()) return;
 
     if (this.confirmBeforeDelete && !confirm) {
-      const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE', 'CONFIRM.ALERT_HEADER']);
+      const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE_IMMEDIATE', 'CONFIRM.ALERT_HEADER']);
       const alert = await this.alertCtrl.create({
         header: translations['CONFIRM.ALERT_HEADER'],
-        message: translations['CONFIRM.DELETE'],
+        message: translations['CONFIRM.DELETE_IMMEDIATE'],
         buttons: [
           {
             text: translations['COMMON.NO'],
@@ -537,20 +546,28 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     });
   }
 
+  protected getUserColumns(): string[] {
+    return this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
+  }
+
   protected getDisplayColumns(): string[] {
-    let userColumns = this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
+    let userColumns = this.getUserColumns();
+
     // No user override: use defaults
     if (!userColumns) return this.columns;
 
     // Get fixed start columns
-    const fixedStartColumns = this.columns.filter(value => RESERVED_START_COLUMNS.includes(value));
+    const fixedStartColumns = this.columns.filter(c => RESERVED_START_COLUMNS.includes(c));
 
     // Remove end columns
-    const fixedEndColumns = this.columns.filter(value => RESERVED_END_COLUMNS.includes(value));
+    const fixedEndColumns = this.columns.filter(c => RESERVED_END_COLUMNS.includes(c));
 
     // Remove fixed columns from user columns
-    userColumns = userColumns.filter(value => (!fixedStartColumns.includes(value) && !fixedEndColumns.includes(value) && this.columns.includes(value)));
-    return fixedStartColumns.concat(userColumns).concat(fixedEndColumns);
+    userColumns = userColumns.filter(c => (!fixedStartColumns.includes(c) && !fixedEndColumns.includes(c) && this.columns.includes(c)));
+
+    return fixedStartColumns
+      .concat(userColumns)
+      .concat(fixedEndColumns);
   }
 
   public async openSelectColumnsModal(event: any): Promise<any> {
@@ -574,20 +591,20 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       componentProps: {columns: columns}
     });
 
+    // Open the modal
+    await modal.present();
+
     // On dismiss
-    modal.onDidDismiss()
-      .then(async res => {
-        if (!res) return; // CANCELLED
+    const res = await modal.onDidDismiss()
+    if (!res) return; // CANCELLED
 
-        // Apply columns
-        const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
-        this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
-        this.markForCheck();
+    // Apply columns
+    const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+    this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
+    this.markForCheck();
 
-        // Update user settings
-        await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
-      });
-    return modal.present();
+    // Update user settings
+    await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
   }
 
   public trackByFn(index: number, row: TableElement<T>) {
@@ -601,35 +618,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     //if (this.debug) console.debug(`[table] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
   }
 
-  protected registerAutocompleteField(fieldName: string, options?: {
-    defaultAttributes?: string[];
-    service?: SuggestionDataService<any>;
-    filter?: any;
-    displayWith?: DisplayFn;
-    suggestFn?: (value: any, options?: any) => Promise<any[]>;
-    showAllOnFocus?: boolean
-  }) : MatAutocompleteFieldConfig {
-    options = options || {};
-    if (this.debug) console.debug(`[table] Registering a autocomplete field ${this.constructor.name} ${fieldName}`);
-
-    const service: SuggestionDataService<any> = options.service || (options.suggestFn && {
-      suggest: (value: any, filter?: any) => options.suggestFn(value, filter)
-    }) || undefined;
-    const attributes = this.settings.getFieldDisplayAttributes(fieldName, options.defaultAttributes);
-    const attributesOrFn = attributes.map((a, index) => a === "function" && options.defaultAttributes[index] || a);
-    const filter =   Object.assign({
-      searchAttribute: attributes.length === 1 ? attributes[0] : undefined
-    }, options.filter || {});
-
-    const config = {
-      attributes: attributesOrFn,
-      service,
-      filter,
-      displayWith: options.displayWith,
-      showAllOnFocus: options.showAllOnFocus
-    };
-    this.autocompleteFields[fieldName] = config;
-    return config;
+  protected registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
+    return this.autocompleteHelper.add(fieldName, options);
   }
 
   protected getI18nColumnName(columnName: string) {
@@ -641,7 +631,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     //if (this.debug) console.debug("[table] id = " + id);
     return id;
   }
-
 
   protected async addRowToTable(): Promise<TableElement<T>> {
     this.focusFirstColumn = true;
@@ -678,7 +667,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
    * Can be overwrite by subclasses
    **/
   protected startListenRow(row: TableElement<T>) {
-
+    // Can be overwrite by subclasses
   }
 
   protected registerCellValueChanges(name: string, formPath?: string): Observable<any> {
@@ -690,11 +679,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       formPath: formPath
     };
 
-    return this._cellValueChangesDefs[name].eventEmitter
-      //.pipe(
-      //  distinctUntilChanged()
-      //)
-      ;
+    return this._cellValueChangesDefs[name].eventEmitter;
   }
 
   protected startCellValueChanges(name: string, row: TableElement<T>) {
@@ -712,9 +697,9 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
 
     // Listen value changes, and redirect to event emitter
-    const control = AppFormUtils.getControlFromPath(row.validator, def.formPath);
+    const control = row.validator && AppFormUtils.getControlFromPath(row.validator, def.formPath);
     if (!control) {
-      console.warn(`[table] Trying to listen cell changes, on an invalid row path {${def.formPath}}`);
+      console.warn(`[table] Could not listen cell changes: no validator or invalid form path {${def.formPath}}`);
     } else {
       def.subscription = control.valueChanges
         .subscribe((value) => {
@@ -734,32 +719,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       def.subscription = null;
     }
   }
-
-  public updateImplicitValue(name: string, res: any[]) {
-    this._implicitValues[name] = res && res.length === 1 ? res[0] : undefined;
-  }
-
-  public applyImplicitValue(columnName: string, row: TableElement<any>) {
-    this.stopCellValueChanges(columnName);
-    const control = row.validator && row.validator.controls[columnName];
-    const value = control && this._implicitValues[name];
-    // Apply last implicit value
-    if (control && value !== undefined && value !== null) {
-      control.patchValue(this._implicitValues[columnName], {emitEvent: false});
-      control.markAsDirty();
-      this._implicitValues[name] = null;
-    }
-  }
-
-  onCellFocus(event: any, row: TableElement<T>, columnName: string) {
-    this.startCellValueChanges(columnName, row);
-  }
-
-  onCellBlur(event: FocusEvent, row: TableElement<T>, columnName: string) {
-    this.stopCellValueChanges(columnName);
-    this.applyImplicitValue(columnName, row);
-  }
-
 
   setShowColumn(columnName: string, show: boolean) {
     if (!this.excludesColumns.includes(columnName) !== show) {

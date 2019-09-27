@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
@@ -27,6 +27,7 @@ import {SamplesTable} from "../sample/samples.table";
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
+import {AppTableUtils} from "../../core/core.module";
 
 @Component({
   selector: 'page-operation',
@@ -82,7 +83,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     protected operationService: OperationService,
     protected tripService: TripService,
     protected programService: ProgramService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected zone: NgZone,
   ) {
     super(route, router, alterCtrl, translate);
 
@@ -95,10 +97,10 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.debug = !environment.production;
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     super.ngOnInit();
 
-    await this.settings.ready();
+    //await this.settings.ready();
 
     // Listen route parameters
     this.route.queryParams.pipe(first())
@@ -121,8 +123,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           await this.load(+operationId, {tripId: tripId});
         }
       });
-
-    this.mobile = this.settings.mobile;
 
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchBatchForm])
@@ -391,6 +391,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                       this.showSampleTables = false;
                       this.showBatchTables = false;
                   }
+                  if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+                  if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
                   this.markForCheck();
                 })
             );
@@ -422,6 +424,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                     this.showSampleTables = false;
                     this.showBatchTables = false;
                   }
+                  if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+                  if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
                   this.markForCheck();
                 })
             );
@@ -432,6 +436,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
             if (this.debug) console.debug("[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)");
             this.showSampleTables = false;
             this.showBatchTables = true;
+            if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+            if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+            this.markForCheck();
           }
 
           // Abnormal trip => Set comment as required
@@ -453,7 +460,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
                   } else {
                     commentControl.setValidators([]);
                   }
-                  commentControl.updateValueAndValidity({emitEvent: false});
+                  commentControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
                 })
             );
           }
@@ -617,6 +624,16 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Emit the title
     this.title.next(title);
 
+  }
+
+  async onSubBatchesChanges(subbatches: Batch[]) {
+    if (isNil(subbatches)) return; // user cancelled
+
+    // TODO: for mobile, hide sub-batches tables, and store data else where ?
+    this.subBatchesTable.value = subbatches;
+    await AppTableUtils.waitLoaded(this.subBatchesTable);
+
+    this.subBatchesTable.markAsDirty();
   }
 
 

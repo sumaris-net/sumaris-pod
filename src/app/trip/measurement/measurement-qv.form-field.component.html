@@ -92,7 +92,7 @@
       </mat-option>
 
       <!-- options -->
-      <mat-option *ngFor="let item of pmfm.qualitativeValues" [value]="item" no-padding>
+      <mat-option *ngFor="let item of pmfm.qualitativeValues" [value]="item" no-padding >
         <ion-row no-padding>
           <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
             <ng-container *ngSwitchCase="'label'">
@@ -117,18 +117,22 @@
     <input matInput type="text" hidden
            [formControl]="formControl"
            [placeholder]="pmfm.name">
-    <ion-grid no-padding>
+    <ion-grid no-padding *ngIf="formControl.enabled; else emptyLabel">
       <ion-row no-padding>
         <ion-col *ngFor="let item of pmfm.qualitativeValues; index as i">
-          <button type="button" mat-raised-button style="width: 100%;"
+          <ion-button style="width: 100%;"
+                      class="mat-form-field-button"
                   [tabindex]="tabindex && (tabindex + i)"
                   (click)="formControl.setValue(item)"
-                  [color]="!formControl.value ? '' : (formControl.value?.id === item.id ? 'accent' : 'light')">
+                  [color]="selectedIndex === i && 'accent' || 'light'">
             {{item.name || item.label}}
-          </button>
+          </ion-button>
         </ion-col>
       </ion-row>
     </ion-grid>
+    <ng-template #emptyLabel>
+      <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
+    </ng-template>
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   </mat-form-field>
 </ng-container>

@@ -1,7 +1,8 @@
 <ion-header>
   <ion-toolbar color="accent">
     <ion-buttons slot="start">
-      <ion-button class="back-button" (click)="cancel($event)" visible-xs visible-sm visible-mobile>
+      <ion-button (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -10,11 +11,11 @@
       {{$title | async}}
     </ion-title>
 
-    <ion-buttons slot="end">
+    <ion-buttons slot="end" >
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button class="back-button" (click)="save($event)"
-                  *ngIf="!loading && form.valid"
+      <ion-button *ngIf="!loading" (click)="close($event)"
+                  [disabled]="invalid"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
@@ -22,21 +23,23 @@
   </ion-toolbar>
 </ion-header>
 
+
 <ion-content padding >
 
-  <!-- error -->
-  <ion-item *ngIf="form.error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="form.error|translate"></ion-label>
-  </ion-item>
 
-  <app-physical-gear-form #form
-                          [program]="program"
-                          [acquisitionLevel]="acquisitionLevel"
-  ></app-physical-gear-form>
+  <app-sub-batch-form #form
+                    [debug]="debug"
+                    [acquisitionLevel]="acquisitionLevel"
+                    [availableParents]="availableParents"
+                    [program]="program"
+                    [showParent]="showParent"
+                    [showTaxonName]="showTaxonName"
+                    [showIndividualCount]="showIndividualCount"
+                    [showSubmitButton]="false"
+                    (onSubmit)="close($event)"
+  ></app-sub-batch-form>
 
 </ion-content>
-
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
@@ -47,14 +50,14 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="cancel($event)">
+        <ion-button fill="clear" color="dark" (click)="cancel()">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="form.invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || form.invalid"
-                    (keyup.enter)="save($event)"
-                    (click)="save($event)" color="tertiary">
+        <ion-button [fill]="invalid ? 'clear' : 'solid'"
+                    [disabled]="loading || invalid"
+                    (keyup.enter)="close($event)"
+                    (click)="close($event)" color="tertiary">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>

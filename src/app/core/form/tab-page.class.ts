@@ -161,13 +161,14 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     this.markForCheck();
   }
 
-  public onTabChange(event: MatTabChangeEvent) {
-    if (!this.queryParams || +this.queryParams.tab !== event.index) {
+  public onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
+    queryParamName = queryParamName || 'tab'
+    if (!this.queryParams || +this.queryParams[queryParamName] !== event.index) {
 
       this.queryParams = this.queryParams || {};
-      Object.assign(this.queryParams, {tab: event.index});
+      this.queryParams[queryParamName] = event.index;
 
-      if (isNotNil(this.queryParams.subtab)) {
+      if (queryParamName === 'tab' && isNotNil(this.queryParams.subtab)) {
         delete this.queryParams.subtab; // clean subtab
       }
       this.router.navigate(['.'], {
@@ -175,20 +176,13 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
         queryParams: this.queryParams,
         replaceUrl: true
       });
+      return true;
     }
+    return false;
   }
 
   public onSubTabChange(event: MatTabChangeEvent) {
-    if (!this.queryParams || +this.queryParams.subtab !== event.index) {
-      this.queryParams = this.queryParams || {};
-      Object.assign(this.queryParams, {subtab: event.index});
-
-      this.router.navigate(['.'], {
-        relativeTo: this.route,
-        queryParams: this.queryParams,
-        replaceUrl: true
-      });
-    }
+    this.onTabChange(event, 'subtab');
   }
 
   public async cancel() {

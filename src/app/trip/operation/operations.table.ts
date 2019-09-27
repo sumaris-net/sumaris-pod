@@ -78,10 +78,13 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false;
     this.inlineEdition = false;
-    this.latLongPattern = settings.settings.latLongFormat;
+    this.confirmBeforeDelete = true;
     this.pageSize = 1000; // Do not use paginator
-  };
 
+    settings.ready().then(() => {
+      this.latLongPattern = this.settings.latLongFormat;
+    });
+  }
 
   ngOnInit() {
     super.ngOnInit();
@@ -116,39 +119,6 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.dataSource.serviceOptions.tripId = id;
     if (isNotNil(id)) {
       this.onRefresh.emit();
-    }
-  }
-
-  async deleteSelection(confirm?: boolean): Promise<void> {
-    if (this.loading) return;
-
-    if (!confirm) {
-      const translations = this.translate.instant(['COMMON.YES', 'COMMON.NO', 'CONFIRM.DELETE', 'CONFIRM.ALERT_HEADER']);
-      const alert = await this.alertCtrl.create({
-        header: translations['CONFIRM.ALERT_HEADER'],
-        message: translations['CONFIRM.DELETE'],
-        buttons: [
-          {
-            text: translations['COMMON.NO'],
-            role: 'cancel',
-            cssClass: 'secondary',
-            handler: () => {
-            }
-          },
-          {
-            text: translations['COMMON.YES'],
-            handler: () => {
-              confirm = true; // update upper value
-            }
-          }
-        ]
-      });
-      await alert.present();
-      await alert.onDidDismiss();
-    }
-
-    if (confirm) {
-      await super.deleteSelection();
     }
   }
 

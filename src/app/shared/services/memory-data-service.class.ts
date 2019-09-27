@@ -1,21 +1,24 @@
-import {BehaviorSubject, Observable} from "rxjs-compat";
-import {Entity, LoadResult, TableDataService} from "../../core/core.module";
+import {BehaviorSubject, Observable, Subject} from "rxjs-compat";
+import {Entity, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
 import {EntityUtils} from "../../core/services/model";
-import {mergeMap} from "rxjs/operators";
+import {filter, mergeMap} from "rxjs/operators";
 
 export interface InMemoryTableDataServiceOptions<T> {
   onSort?: (data: T[], sortBy?: string, sortDirection?: string) => T[];
   onLoad?: (data: T[]) => T[] | Promise<T[]>;
   onSave?: (data: T[]) => T[] | Promise<T[]>;
+  equals?: (d1: T, d2: T) => boolean;
 }
 
 export class InMemoryTableDataService<T extends Entity<T>, F = any> implements TableDataService<T, F> {
 
+  private _onDataChange = new Subject();
   private _dataSubject = new BehaviorSubject<LoadResult<T>>(undefined);
 
   private readonly _sortFn: (data: T[], sortBy?: string, sortDirection?: string) => T[];
   private readonly _onLoad: (data: T[]) => T[] | Promise<T[]>;
   private readonly _onSaveFn: (data: T[]) => T[] | Promise<T[]>;
+  private readonly _equalsFn: (d1: T, d2: T) => boolean;
 
   protected data: T[];
 
@@ -45,6 +48,7 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
     this._sortFn = options && options.onSort || this.sort;
     this._onLoad = options && options.onLoad || null;
     this._onSaveFn = options && options.onSave || null;
+    this._equalsFn = options && options.equals || this.equals;
 
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
@@ -55,28 +59,30 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
     size: number,
     sortBy?: string,
     sortDirection?: string,
-    filter?: F,
+    filterData?: F,
     options?: any
   ): Observable<LoadResult<T>> {
 
     if (!this.data) {
       console.warn("[memory-data-service] Waiting value to be set...");
     } else {
-      // /!\ Always create a copy of the original array
+      // /!\ If already observed, then always create a copy of the original array
       // Because datasource will only update if the array changed
       this.data = this.data.slice(0);
-
       this._dataSubject.next({
         data: this.data,
         total: this.data.length
       });
     }
 
+
     return this._dataSubject
       .pipe(
+        filter(isNotNil),
         mergeMap(async (res) => {
+
           // Apply sort
-          let data = this._sortFn(res && res.data || [], sortBy, sortDirection) ;
+          let data = this._sortFn(res.data || [], sortBy, sortDirection) ;
 
           if (this._onLoad) {
             const promiseOrData = this._onLoad(data);
@@ -109,7 +115,7 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
 
     // Remove deleted item, from data
     this.data = this.data.reduce((res, item) => {
-      const keep = data.findIndex(i => item.equals(i)) === -1;
+      const keep = data.findIndex(i => this._equalsFn(i, item)) === -1;
       return keep ? res.concat(item) : res;
     }, []);
     this.dirty = true;
@@ -125,6 +131,10 @@ export class InMemoryTableDataService<T extends Entity<T>, F = any> implements T
 
   connect(): Observable<LoadResult<T>> {
     return this._dataSubject.asObservable();
+  }
+
+  protected equals(d1: T, d2: T): boolean {
+    return d1 && d1.equals ? d1.equals(d2) : EntityUtils.equals(d1, d2);
   }
 }
 

@@ -3,7 +3,9 @@
   <span>{{(formControl.value ? 'COMMON.YES' : 'COMMON.NO') | translate }}</span>
 </mat-form-field>
 
-<mat-form-field *ngIf="!readonly && !compact" [floatLabel]="showRadio && (!floatLabel || floatLabel == 'auto') ? 'always': floatLabel" >
+<mat-form-field *ngIf="!readonly && !compact"
+                class="mat-boolean-field mat-boolean-field-radio"
+                [floatLabel]="showRadio && (!floatLabel || floatLabel == 'auto') ? 'always': floatLabel">
   <mat-label *ngIf="placeholder">
     {{placeholder}}
     <span [hidden]="showRadio">({{'COMMON.YES'|translate}}/{{'COMMON.NO'|translate}})</span>
@@ -20,11 +22,10 @@
   <mat-radio-group [hidden]="!showRadio"
                    [formControl]="formControl"
                    (change)="onRadioValueChanged($event)">
-    <mat-radio-button #yesButton
-                      [value]="true">
+    <mat-radio-button #yesButton [value]="true">
       <span translate>COMMON.YES</span>
     </mat-radio-button>&nbsp;
-    <mat-radio-button [value]="false">
+    <mat-radio-button #noButton [value]="false">
       <span translate>COMMON.NO</span>
     </mat-radio-button>
   </mat-radio-group>
@@ -34,7 +35,8 @@
 
 <!-- compact mode -->
 <mat-form-field *ngIf="!readonly && compact"
-                [floatLabel]="floatLabel" class="compact">
+                class="mat-boolean-field mat-boolean-field-checkbox"
+                [floatLabel]="floatLabel">
   <mat-label *ngIf="placeholder && !showRadio">
     {{placeholder}}
   </mat-label>
@@ -46,13 +48,13 @@
          [class.hidden]="showRadio"
          [tabindex]="tabindex">
 
-  <ion-label></ion-label>
+  <ion-label>&nbsp;</ion-label>
 
   <!-- checkbox, when compact -->
-  <mat-checkbox [formControl]="formControl"
-                #checkboxButton
+  <mat-checkbox #checkboxButton
+                [formControl]="formControl"
                 (change)="onCheckboxValueChanged($event)"
-                [indeterminate]="value==undefined"
+                [indeterminate]="value===undefined"
                 [hidden]="!showRadio"
                 [tabindex]="tabindex">
   </mat-checkbox>

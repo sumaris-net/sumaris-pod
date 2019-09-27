@@ -1,4 +1,4 @@
-import {fromDateISOString, toDateISOString} from "../../../core/core.module";
+import {EntityUtils, fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
 import {Moment} from "moment/moment";
 import {
   DataEntity,
@@ -76,7 +76,11 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.departureLocation = source.departureLocation && ReferentialRef.fromObject(source.departureLocation);
     this.returnLocation = source.returnLocation && ReferentialRef.fromObject(source.returnLocation);
     this.sale = source.sale && Sale.fromObject(source.sale) || undefined;
-    this.gears = source.gears && source.gears.filter(g => !!g).map(PhysicalGear.fromObject) || undefined;
+
+    this.gears = source.gears && source.gears.filter(isNotNil).map(PhysicalGear.fromObject)
+      // Sort by rankOrder (useful for gears combo, in the operation form)
+      .sort(EntityUtils.sortComparator('rankOrder')) || undefined;
+
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
 
@@ -84,6 +88,8 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     if (this.returnDateTime && this.returnDateTime.isSameOrBefore(this.departureDateTime)) {
       this.returnDateTime = undefined;
     }
+
+
     return this;
   }
 

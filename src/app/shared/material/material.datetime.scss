@@ -1,4 +1,8 @@
 :host {
+  display: inline-block;
+  width: 100%;
+  position: relative;
+
   [no-padding] {
     --ion-grid-column-padding: 0;
   }

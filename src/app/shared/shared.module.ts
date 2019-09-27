@@ -40,7 +40,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  joinProperties,
+  joinPropertiesPath,
   nullIfUndefined,
   selectInputContent,
   sort,
@@ -52,7 +52,6 @@ import {
 } from "./functions";
 import {fadeInAnimation, fadeInOutAnimation} from "./material/material.animations";
 import {InputElement} from "./material/focusable";
-import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
@@ -64,7 +63,7 @@ export {
   toBoolean, toFloat, toInt,
   toDateISOString, fromDateISOString, filterNumberInput,
   startsWithUpperCase,
-  attributeComparator, joinProperties, sort, selectInputContent,
+  attributeComparator, joinPropertiesPath, sort, selectInputContent,
   fadeInAnimation, fadeInOutAnimation, changeCaseToUnderscore,
   DateFormatPipe, ToolbarComponent,
   Color, ColorScale, InputElement
@@ -79,7 +78,6 @@ export {
     TextMaskModule,
     IonicModule,
     TranslateModule.forChild(),
-    NgxMaterialTimepickerModule.forRoot(),
     ColorPickerModule
   ],
   declarations: [

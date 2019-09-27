@@ -13,6 +13,7 @@ import {TranslateService} from "@ngx-translate/core";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import {subscribe} from "graphql";
 import {throttleTime} from "rxjs/operators";
+import {LocalSettingsService} from "../services/local-settings.service";
 
 @Component({
   selector: 'page-account',
@@ -44,16 +45,15 @@ export class AccountPage extends AppForm<Account> implements OnDestroy {
     public accountService: AccountService,
     protected validatorService: AccountValidatorService,
     protected settingsValidatorService: UserSettingsValidatorService,
-    protected translate: TranslateService
+    protected translate: TranslateService,
+    protected settings: LocalSettingsService
   ) {
-    super(dateAdapter, validatorService.getFormGroup(accountService.account));
+    super(dateAdapter, validatorService.getFormGroup(accountService.account), settings);
 
     // Add settings fo form
     this.settingsForm = settingsValidatorService.getFormGroup(accountService.account && accountService.account.settings);
     this.settingsContentForm = (this.settingsForm.controls['content'] as FormGroup);
     this.form.addControl('settings', this.settingsForm);
-
-      ;
 
     // By default, disable the form
     this.disable();

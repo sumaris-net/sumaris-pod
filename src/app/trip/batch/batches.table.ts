@@ -12,21 +12,19 @@ import {
 import {Observable, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AcquisitionLevelCodes, environment, isNil, ReferentialRef} from "../../core/core.module";
+import {AcquisitionLevelCodes, environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {Batch, getPmfmName, Landing, Operation, PmfmStrategy, referentialToString} from "../services/trip.model";
 import {PmfmLabelPatterns, PmfmUtils, ReferentialRefService} from "../../referential/referential.module";
-import {isNotNil} from "../../shared/shared.module";
+import {isNilOrBlank, isNotNil} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {measurementValueToString} from "../services/model/measurement.model";
-import {BatchUtils} from "../services/model/batch.model";
-import {isNotEmptyArray} from "../../shared/functions";
 import {BatchModal} from "./batch.modal";
-import {ComponentRef} from "@ionic/core";
 import {LocalEntitiesService} from "../../core/services/local-entities.service";
-
+import {MatDialog} from '@angular/material/dialog';
+import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 
 export interface BatchFilter {
   operationId?: number;
@@ -44,7 +42,9 @@ export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
     {provide: ValidatorService, useValue: null},  // important: do NOT use validator, to be sure to keep all PMFMS, and not only displayed pmfms
     {
       provide: InMemoryTableDataService,
-      useFactory: () => new InMemoryTableDataService<Batch, BatchFilter>(Batch, {})
+      useFactory: () => new InMemoryTableDataService<Batch, BatchFilter>(Batch, {
+        equals: Batch.equals
+      })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -60,7 +60,6 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   qvPmfm: PmfmStrategy;
   defaultWeightPmfm: PmfmStrategy;
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
-  detailModal: ComponentRef;
 
   @Input()
   set value(data: Batch[]) {
@@ -100,18 +99,20 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   }
 
   @Input()
-  availableSubBatchesFn: (defaultBatch: Batch) => Promise<Batch[]>;
+  availableSubBatchesFn: () => Promise<Batch[]>;
 
   @Input() defaultTaxonGroup: ReferentialRef;
-  @Input() defaultTaxonName: ReferentialRef;
+  @Input() defaultTaxonName: TaxonNameRef;
 
   @Output()
-  onNewSubBatches = new EventEmitter<Batch[]>();
+  onSubBatchesChanges = new EventEmitter<Batch[]>();
+
+  private matDialog: MatDialog;
 
   constructor(
     injector: Injector,
     protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryTableDataService<Batch, BatchFilter>
+    protected memoryDataService: InMemoryTableDataService<Batch, BatchFilter>,
   ) {
     super(injector,
       Batch,
@@ -129,9 +130,10 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.inlineEdition = !this.mobile;
-    this.detailModal = BatchModal;
+    this.matDialog = injector.get(MatDialog);
 
     // Set default value
+    this.showCommentsColumn = false;
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
     //this.debug = false;
@@ -141,11 +143,15 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   ngOnInit() {
     super.ngOnInit();
 
-    this.setShowColumn('comments', this.showCommentsColumn);
+    // Taxon group combo
+    this.registerAutocompleteField('taxonGroup', {
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+    });
 
-    // Configuration autocomplete fields
-    this.registerAutocompleteField('taxonGroup');
-    this.registerAutocompleteField('taxonName');
+    // Taxon name combo
+    this.registerAutocompleteField('taxonName', {
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
+    });
   }
 
   setParent(data: Operation | Landing) {
@@ -159,9 +165,12 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
-    const newBatch = await this.openDetailModal();
-    if (newBatch) {
-      await this.addBatchToTable(newBatch);
+    const batch = new Batch();
+    await this.onNewEntity(batch);
+
+    const res = await this.openDetailModal(batch, {isNew: true});
+    if (res) {
+      await this.addBatchToTable(res);
     }
     return true;
   }
@@ -188,6 +197,10 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
 
     this.confirmEditCreate(null, row);
     this.markAsDirty();
+
+    // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
+    this.editedRow = row;
+
     return row;
   }
 
@@ -200,7 +213,11 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       return true;
     }
 
-    const batch = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
+    const batch = row.validator ? Batch.fromObject(row.currentData) : row.currentData.clone();
+
+    // Prepare entity measurement values
+    this.prepareEntityToSave(batch);
+
     const updatedBatch = await this.openDetailModal(batch);
     if (updatedBatch) {
       // Adapt measurement values to row
@@ -212,41 +229,33 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
       this.markAsDirty();
       this.markForCheck();
       this.confirmEditCreate(null, row);
+
+      // restore the edited row, to be able to use it in modal callback (see BatchGroupTable)
+      this.editedRow = row;
+    }
+    else {
+      this.editedRow = null;
     }
     return true;
   }
 
-  async openDetailModal(batch?: Batch): Promise<Batch | undefined> {
-
-    const isNew = !batch;
-    if (isNew) {
-      batch = new Batch();
-      await this.onNewEntity(batch);
-    }
-    else {
-      // Do a copy, because edition can be cancelled
-      batch = batch.clone();
-
-      // Prepare entity measurement values
-      this.prepareEntityToSave(batch);
-    }
-
+  async openDetailModal(batch?: Batch, opts?: {isNew?: boolean}): Promise<Batch | undefined> {
     const modal = await this.modalCtrl.create({
-      component: this.detailModal,
+      component: BatchModal,
       componentProps: {
         program: this.program,
         acquisitionLevel: this.acquisitionLevel,
         value: batch,
-        isNew: isNew,
-        disabled: !isNew,
-        canEdit: !this.disabled,
+        isNew: opts && opts.isNew || false,
+        disabled: this.disabled,
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
         // Not need on a root species batch (fill in sub-batches)
         showTotalIndividualCount: false,
         showIndividualCount: false
-      }, keyboardClose: true
+      },
+      keyboardClose: true
     });
 
     // Open the modal
@@ -258,21 +267,16 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
     return (data instanceof Batch) ? data : undefined;
   }
 
-  async onSubBatchesClick(event: UIEvent, row: TableElement<Batch>) {
+  async onSubBatchesClick(event: UIEvent, row: TableElement<Batch>): Promise<void> {
     if (event) event.preventDefault();
 
-    let parentBatch = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
-
-    // Use sampling batch (if exists)
-    parentBatch = BatchUtils.getSamplingChild(parentBatch) || parentBatch;
-
-    const defaultBatch = new Batch();
-    defaultBatch.parent = parentBatch;
-
-    await this.openSubBatchesModal(defaultBatch);
+    const selectedParent = row.validator ? Batch.fromObject(row.currentData) : row.currentData;
+    await this.openSubBatchesModal(selectedParent);
   }
 
-  async openSubBatchesModal(defaultValue?: Batch): Promise<Batch[]> {
+  async openSubBatchesModal(selectedParent?: Batch) {
+
+    if (this.debug) console.debug("[batches-table] Open individual measures modal...");
 
     // Define a function to add new parent
     const onNewParentClick = this.mobile ? async () => {
@@ -300,36 +304,60 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
         program: this.program,
         acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
         usageMode: this.usageMode,
-        defaultValue: defaultValue,
+        selectedParent: selectedParent,
         qvPmfm: this.qvPmfm,
         // Scientific species is required, if not set in root batches
         showTaxonNameColumn: !this.showTaxonNameColumn,
         availableParents: availableParents,
         availableSubBatchesFn: this.availableSubBatchesFn,
         onNewParentClick: onNewParentClick
-      }, keyboardClose: true
+      },
+      keyboardClose: true,
+      cssClass: 'app-sub-batches-modal'
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const data = (await modal.onDidDismiss()).data;
+
     onModalDismiss.next(); // disconnect to service
 
-    console.debug("[batches-table] Sub-batches modal result: ", data);
-
-    if (isNotEmptyArray(data)) {
-
-      //if (data && this.debug) console.debug("[batches-table] Sub-batches modal result: ", data);
-
-      this.onNewSubBatches.emit(data);
+    // User cancelled
+    if (isNil(data)) {
+      if (this.debug) console.debug("[batches-table] Sub-batches modal: user cancelled");
     }
-
-    return data;
+    else {
+      if (this.debug) console.debug("[batches-table] Sub-batches modal result: ", data);
+      this.onSubBatchesChanges.emit(data);
+    }
   }
 
   /* -- protected methods -- */
+
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<IReferentialRef[]> {
+    //if (isNilOrBlank(value)) return [];
+    return this.programService.suggestTaxonGroups(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute
+      });
+  }
+
+  protected async suggestTaxonNames(value: any, options?: any): Promise<IReferentialRef[]> {
+    const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
+
+    // IF taxonGroup column exists: taxon group must be filled first
+    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return [];
+
+    return this.programService.suggestTaxonNames(value,
+      {
+        program: this.program,
+        searchAttribute: options && options.searchAttribute,
+        taxonGroupId: taxonGroup && taxonGroup.id || undefined
+      });
+  }
 
   protected prepareEntityToSave(batch: Batch) {
     // Override by subclasses

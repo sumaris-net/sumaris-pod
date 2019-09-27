@@ -31,11 +31,16 @@ export const OperationFragments = {
     fishingStartDateTime
     fishingEndDateTime
     rankOrderOnPeriod
-    physicalGearId
     tripId
     comments
     hasCatch
     updateDate
+    physicalGearId
+    physicalGear {
+        gear {
+            ...ReferentialFragment
+        }
+    }
     metier {
       ...MetierFragment
     }
@@ -48,6 +53,7 @@ export const OperationFragments = {
   }
   ${ReferentialFragments.recorderDepartment}
   ${ReferentialFragments.metier}
+  ${ReferentialFragments.referential}
   ${Fragments.position}
   `,
   operation: gql`fragment OperationFragment on OperationVO {

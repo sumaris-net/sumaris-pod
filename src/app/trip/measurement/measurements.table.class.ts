@@ -4,9 +4,7 @@ import {filter, first} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource,
-  environment,
-  isNil,
+  AppTableDataSource, isNil,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -24,6 +22,7 @@ import {isNotNil} from "../../shared/shared.module";
 import {IEntityWithMeasurement, MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurement.model";
 import {MeasurementsDataService} from "./measurements.service";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
+import {firstNotNilPromise} from "../../shared/observables";
 
 
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
@@ -150,12 +149,21 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
         .pipe(filter(isNotNil))
         .subscribe(pmfms => {
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
-          this.updateColumns(pmfms);
+
+          // Update the settings id, as program could have changed
+          this.settingsId = this.generateTableId();
+
+          // Add pmfm columns
+          this.updateColumns();
 
           // Load the table
           this.onRefresh.emit();
         }));
 
+    // Make sure to copy acquisition level to the data service
+    if (this._acquisitionLevel && !this.measurementsDataService.acquisitionLevel) {
+      this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
+    }
   }
 
   getRowValidator(): FormGroup {
@@ -171,62 +179,59 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return formGroup;
   }
 
-  setFilter(filter: F, opts?: { emitEvent: boolean }) {
+  setFilter(filterData: F, opts?: { emitEvent: boolean }) {
     opts = opts || {emitEvent: !this.loading};
-    super.setFilter(filter, opts);
+    super.setFilter(filterData, opts);
   }
-
-  // addRow(): boolean {
-  //   if (this.debug) console.debug("[meas-table] Calling addRow()");
-  //
-  //   // Create new row
-  //   const result = super.addRow();
-  //   if (!result) return result;
-  //
-  //   const row = this.dataSource.getRow(-1);
-  //   const obj = new this.dataType() as T;
-  //   obj.fromObject(row.currentData);
-  //   this.data.push(obj);
-  //   this.editedRow = row;
-  //   return true;
-  // }
 
   public trackByFn(index: number, row: TableElement<T>) {
     return this.hasRankOrder ? row.currentData.rankOrder : row.currentData.id;
   }
 
-  public updateColumns(pmfms?: PmfmStrategy[]) {
+  protected generateTableId(): string {
+    // Append the program, if any
+    return super.generateTableId() + (isNotNil(this._program) ? ('-' + this._program) : '');
+  }
 
-    pmfms = pmfms || this.$pmfms.getValue();
-    if (!pmfms) return;
+  protected getDisplayColumns(): string[] {
 
-    const pmfmColumnNames = pmfms.map(p => p.pmfmId.toString());
+    const pmfms = this.$pmfms.getValue();
+    if (!pmfms) return this.columns;
 
-    this.displayedColumns = RESERVED_START_COLUMNS
-      .concat(this.options && this.options.reservedStartColumns || [])
+    const userColumns = this.getUserColumns();
+
+    const pmfmColumnNames = pmfms
+      //.filter(p => p.isMandatory || !userColumns || userColumns.includes(p.pmfmId.toString()))
+      .map(p => p.pmfmId.toString());
+
+    const startColumns = (this.options && this.options.reservedStartColumns || []).filter(c => !userColumns || userColumns.includes(c));
+    const endColumns = (this.options && this.options.reservedEndColumns || []).filter(c => !userColumns || userColumns.includes(c));
+
+    return RESERVED_START_COLUMNS
+      .concat(startColumns)
       .concat(pmfmColumnNames)
-      .concat(this.options && this.options.reservedEndColumns || [])
+      .concat(endColumns)
       .concat(RESERVED_END_COLUMNS)
       // Remove columns to hide
       .filter(column => !this.excludesColumns.includes(column));
 
-    if (!this.loading) this.markForCheck();
+    //console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
+    //if (!this.loading) this.markForCheck();
   }
 
-  public setShowColumn(columnName: string, show: boolean) {
+
+  setShowColumn(columnName: string, show: boolean) {
     super.setShowColumn(columnName, show);
 
-    if (!this.loading) this.updateColumns();
+    if (!this.loading) {
+      this.updateColumns();
+    }
   }
 
   public async onReady() {
     // Wait pmfms load, and controls load
     if (isNil(this.$pmfms.getValue())) {
-      await this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          first()
-        ).toPromise();
+      await firstNotNilPromise(this.$pmfms);
     }
   }
 
@@ -241,9 +246,16 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   /* -- protected methods -- */
 
+  protected updateColumns() {
+    if (!this.$pmfms.getValue()) return; // skip
+    this.displayedColumns = this.getDisplayColumns();
+    if (!this.loading) this.markForCheck();
+  }
+
+
   // Can be override by subclass
   protected async onNewEntity(data: T): Promise<void> {
-    if (this.hasRankOrder) {
+    if (this.hasRankOrder && isNil(data.rankOrder)) {
       data.rankOrder = (await this.getMaxRankOrder()) + 1;
     }
   }

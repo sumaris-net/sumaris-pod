@@ -183,7 +183,7 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-  <form-buttons-bar (onCancel)="cancel() " (onSave)="save() " [disabled]="!dirty || loading " [disabledCancel]="!dirty || loading"></form-buttons-bar>
+  <form-buttons-bar (onCancel)="cancel($event) " (onSave)="save() " [disabled]="!dirty || loading " [disabledCancel]="!dirty || loading"></form-buttons-bar>
 </ion-footer>
 
 <!-- Add Button  -->

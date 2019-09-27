@@ -8,7 +8,7 @@ import {ExtractionFilter, ExtractionFilterCriterion, ExtractionService} from "..
 import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {trimEmptyToNull} from "../../shared/functions";
 import {first, map} from "rxjs/operators";
-import {AccountService, AppForm} from "../../core/core.module";
+import {AccountService, AppForm, LocalSettingsService} from "../../core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 
@@ -61,7 +61,7 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
     protected injector: Injector,
     form?: FormGroup
   ) {
-    super(injector.get(DateFormatPipe), form);
+    super(injector.get(DateFormatPipe), form, injector.get(LocalSettingsService));
     this.formBuilder = injector.get(FormBuilder);
     this.route = injector.get(ActivatedRoute);
     this.router = injector.get(Router);

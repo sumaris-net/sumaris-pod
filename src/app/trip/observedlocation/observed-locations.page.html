@@ -216,7 +216,7 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile *ngIf="inlineEdition">
-  <form-buttons-bar (onCancel)="cancel()" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
+  <form-buttons-bar (onCancel)="cancel($event)" (onSave)="save()" [disabled]="loading || !dirty"></form-buttons-bar>
 </ion-footer>
 
 <!-- Add Button  -->

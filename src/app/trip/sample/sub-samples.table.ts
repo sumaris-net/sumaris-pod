@@ -1,15 +1,17 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {Observable} from 'rxjs';
 import {filter, map, tap} from "rxjs/operators";
-import {ValidatorService} from "angular4-material-table";
+import {TableElement, ValidatorService} from "angular4-material-table";
 import {EntityUtils, environment, referentialToString} from "../../core/core.module";
 import {PmfmStrategy, Sample} from "../services/trip.model";
 import {PmfmIds} from "../../referential/referential.module";
 import {SubSampleValidatorService} from "../services/sub-sample.validator";
-import {isNil, isNotNil} from "../../shared/shared.module";
+import {isNil, isNotNil, startsWithUpperCase} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
+import {BatchUtils} from "../services/model/batch.model";
+import {SampleUtils} from "../services/model/sample.model";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -40,8 +42,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
   protected memoryDataService: InMemoryTableDataService<Sample, SubSampleFilter>;
 
   displayParentPmfm: PmfmStrategy;
-
-  $filteredParents: Observable<Sample[]>;
 
   @Input()
   set availableParents(parents: Sample[]) {
@@ -92,7 +92,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
         onLoad: (data) => {
           this.linkDataToParent(data);
           return data;
-        }
+        },
+        equals: Sample.equals
       }),
       injector.get(ValidatorService),
       {
@@ -120,57 +121,70 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     this.setShowColumn(PmfmIds.TAG_ID.toString(), false);
 
     // Parent combo
-    this.$filteredParents = this.registerCellValueChanges('parent')
-      .pipe(
-        //debounceTime(250),
-        map((value) => {
-          if (EntityUtils.isNotEmpty(value)) return [value];
-
-          value = (typeof value === "string") && (value as string).toUpperCase() || undefined;
-          if (!value || value === '*') return this._availableSortedParents; // All
-          if (this.debug) console.debug(`[sub-sample-table] Searching parent {${value}...`);
-          if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
-            return this._availableSortedParents.filter(p => this.startsWithUpperCase(p.measurementValues[this.displayParentPmfm.pmfmId], value));
-          }
-          // Search on rankOrder
-          return this._availableSortedParents.filter(p => p.rankOrder.toString().startsWith(value));
-        }),
-        // Save implicit value
-        tap(res => this.updateImplicitValue('parent', res))
-      );
+    this.registerAutocompleteField('parent', {
+      suggestFn: (value: any, options?: any) => this.suggestParent(value),
+      showAllOnFocus: true
+    });
 
     // Check if there a tag id in pmfms
     this.registerSubscription(
-      this.measurementsDataService.$pmfms
+      this.$pmfms
         .pipe(filter(isNotNil))
         .subscribe((pmfms) => {
           this.displayParentPmfm = pmfms.find(p => p.pmfmId === PmfmIds.TAG_ID);
+          const displayAttributes = this.settings.getFieldDisplayAttributes('taxonName')
+            .map(key => 'taxonName.' + key);
+          if (this.displayParentPmfm) {
+            this.autocompleteFields.parent.attributes = ['measurementValues.' + this.displayParentPmfm.pmfmId].concat(displayAttributes);
+            this.autocompleteFields.parent.columnSizes = [4].concat(displayAttributes.map(attr =>
+              // If label then col size = 2
+              attr.endsWith('label') ? 2 : undefined));
+            this.autocompleteFields.parent.columnNames = [this.getPmfmColumnHeader(this.displayParentPmfm)];
+          } else {
+            this.autocompleteFields.parent.attributes = displayAttributes;
+            this.autocompleteFields.parent.columnSizes = undefined; // use defaults
+            this.autocompleteFields.parent.columnNames = undefined; // use defaults
+          }
           this.markForCheck();
         }));
   }
 
   async autoFillTable() {
-    if (this.loading) return;
+    if (this.loading || this.disabled) return;
     if (!this.confirmEditCreate()) return;
 
-    const rows = await this.dataSource.getRows();
-    const data = rows.map(r => r.currentData);
-    const startRowCount = data.length;
+    this.disable();
 
-    let rankOrder = await this.getMaxRankOrder();
-    await this._availableParents
-      .filter(p => !data.find(s => s.parent && s.parent.id === p.id))
-      .map(async p => {
-        const sample = new Sample();
-        sample.parent = p;
-        sample.rankOrder = ++rankOrder;
-        await this.onNewEntity(sample);
-        data.push(sample);
-      });
+    try {
+      const rows = await this.dataSource.getRows();
+      const existingSamples = rows.map(r => r.currentData);
 
-    if (data.length > startRowCount) {
-      this.value = data;
-      //this.markForCheck();
+      let rankOrder = await this.getMaxRankOrder();
+      const newSamples = await Promise.all(this._availableParents
+        .filter(p => !existingSamples.find(s => s.parent && s.parent.id === p.id))
+        .map(async p => {
+          const sample = new Sample();
+
+          // Set default value
+          sample.parent = p;
+          sample.rankOrder = ++rankOrder;
+
+          // Make sure the entity is well initialized
+          await this.onNewEntity(sample);
+
+          return sample;
+        }));
+
+      for (const sample of newSamples) {
+        await this.addSampleToTable(sample);
+      }
+
+    } catch(err) {
+      console.error(err && err.message || err);
+      this.error = err && err.message || err;
+    }
+    finally {
+      this.enable();
     }
   }
 
@@ -261,24 +275,45 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
     return this.memoryDataService.sort(data, sortBy, sortDirection);
   }
 
+  protected async addSampleToTable(newSample: Sample,): Promise<TableElement<Sample>> {
+    console.debug("[sub-sample-table] Adding new sample", newSample);
 
-  parentToString(parent: Sample) {
-    if (!parent) return null;
-    if (parent.measurementValues && parent.measurementValues[PmfmIds.TAG_ID]) {
-      return parent.measurementValues[PmfmIds.TAG_ID];
+    const row = await this.addRowToTable();
+    if (!row) throw new Error("Could not add row to table");
+
+    // Override rankOrder (keep computed value)
+    newSample.rankOrder = row.currentData.rankOrder;
+
+    this.normalizeEntityToRow(newSample, row);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(newSample, {emitEvent: false});
+      this.confirmEditCreate(null, row);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = newSample;
+      this.confirmEditCreate(null, row);
     }
-    const hasTaxonGroup = EntityUtils.isNotEmpty(parent.taxonGroup) ;
-    const hasTaxonName = EntityUtils.isNotEmpty(parent.taxonName);
-    if (hasTaxonName && (!hasTaxonGroup || parent.taxonGroup.label === parent.taxonName.label)) {
-      return `${parent.taxonName.label} - ${parent.taxonName.name}`;
+
+    this.markAsDirty();
+
+    return row;
+  }
+
+  protected async suggestParent(value: any): Promise<any[]> {
+    if (EntityUtils.isNotEmpty(value)) {
+      return [value];
     }
-    if (hasTaxonName && hasTaxonGroup) {
-      return `${parent.taxonGroup.label} / ${parent.taxonName.label} - ${parent.taxonName.name}`;
+    value = (typeof value === "string" && value !== "*") && value || undefined;
+    if (isNil(value)) return this._availableSortedParents; // All
+
+    if (this.debug) console.debug(`[sub-sample-table] Searching parent {${value || '*'}}...`);
+    if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
+      return this._availableSortedParents.filter(p => this.startsWithUpperCase(p.measurementValues[this.displayParentPmfm.pmfmId], value));
     }
-    if (hasTaxonGroup) {
-      return `${parent.taxonGroup.label} - ${parent.taxonGroup.name}`;
-    }
-    return `#${parent.rankOrder}`;
+    // Search on rankOrder
+    return this._availableSortedParents.filter(p => p.rankOrder.toString().startsWith(value));
   }
 
   referentialToString = referentialToString;

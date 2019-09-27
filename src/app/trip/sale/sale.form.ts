@@ -11,7 +11,7 @@ import {
   vesselFeaturesToString
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {AppForm} from '../../core/core.module';
+import {AppForm, LocalSettingsService} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
 import {debounceTime, mergeMap, switchMap} from 'rxjs/operators';
@@ -52,9 +52,10 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     protected dateAdapter: DateAdapter<Moment>,
     protected saleValidatorService: SaleValidatorService,
     protected vesselService: VesselService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    protected settings: LocalSettingsService
   ) {
-    super(dateAdapter, saleValidatorService.getFormGroup());
+    super(dateAdapter, saleValidatorService.getFormGroup(), settings);
   }
 
   ngOnInit() {

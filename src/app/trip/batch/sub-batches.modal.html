@@ -2,7 +2,7 @@
   <ion-toolbar color="accent">
 
     <ion-buttons slot="start">
-      <ion-button (click)="close($event)"
+      <ion-button (click)="cancel($event)"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
@@ -13,10 +13,9 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-spinner *ngIf="loading"></ion-spinner>
+      <ion-spinner *ngIf="loading" color="light"></ion-spinner>
 
-      <ion-button *ngIf="!loading" (click)="doSubmitForm($event)"
-                  [disabled]="form.invalid"
+      <ion-button *ngIf="!loading" (click)="close($event)"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
@@ -24,31 +23,55 @@
   </ion-toolbar>
 </ion-header>
 
+<!-- Row actions menu -->
+<mat-menu #rowActionsMenu="matMenu" xPosition="before" classList="">
+  <button mat-menu-item (click)="onEditRow($event, this.editedRow)">
+    <mat-icon>edit</mat-icon>
+    <ion-label translate>COMMON.BTN_EDIT</ion-label>
+  </button>
+  <button mat-menu-item (click)="deleteSelection()">
+    <mat-icon>delete_outline</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  </button>
+</mat-menu>
 
-<ion-content>
+<ion-content cdkTrapFocus>
 
   <!-- sub batch form -->
-  <ion-grid no-padding>
+  <ion-grid >
     <ion-row no-padding>
       <!-- form -->
-      <ion-col size="12" size-md="" padding>
+      <ion-col size="12" push="" size-md="4" push-md="8" size-lg="3" push-lg="9" padding>
+
+        <ion-label color="primary" padding-bottom>
+          <span *ngIf="!editedRow" translate>TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS</span>
+          <span *ngIf="editedRow" translate>TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS</span>
+        </ion-label>
         <app-sub-batch-form #form
                             [debug]="debug"
+                            [program]="program"
                             [acquisitionLevel]="acquisitionLevel"
                             [pmfms]="$pmfms|async"
                             [qvPmfm]="qvPmfm"
-                            [showParent]="showParentColumn"
+                            [showParent]="true"
                             [showTaxonName]="showTaxonNameColumn"
                             [displayParentPmfm]="displayParentPmfm"
                             [onNewParentClick]="onNewParentClick"
-                            (onSubmit)="doSubmitForm($event)"
+                            [showIndividualCount]="showIndividualCount"
+                            (onSubmit)="doSubmitForm($event, editedRow)"
+                            [isNew]="!editedRow"
                             [tabindex]="1">
         </app-sub-batch-form>
       </ion-col>
 
       <!-- table -->
-      <ion-col size="12" size-md="" no-padding>
-        <mat-table [dataSource]="dataSource" class="table-sub-batches"  [trackBy]="trackByFn">
+      <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3"
+               no-padding
+               class="table-container">
+        <mat-table [dataSource]="dataSource" class="table-sub-batches" [trackBy]="trackByFn"
+                   matSort matSortActive="id" matSortDirection="desc"
+                   matSortDisableClear
+                   >
 
           <ng-container matColumnDef="select">
             <mat-header-cell  *matHeaderCellDef hidden>
@@ -74,7 +97,19 @@
                   'TRIP.BATCH.TABLE.PARENT') | translate }}</ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row">
-              {{ parentToString(row.currentData.parent) }}
+              {{ autocompleteFields.parent.displayWith(row.currentData.parent) }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- QV Pmfm columns -->
+          <ng-container *ngIf="qvPmfm" [matColumnDef]="qvPmfm.pmfmId.toString()">
+            <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="qvPmfm.isDate">
+              <ion-label>{{getPmfmColumnHeader(qvPmfm)}}
+                <small *ngIf="qvPmfm.hasUnit"><br />({{qvPmfm.unit}})</small>
+              </ion-label>
+            </mat-header-cell>
+            <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="qvPmfm.isDate">
+              <span [innerHTML]="measurementValueToString(row.currentData.measurementValues[qvPmfm.pmfmId], qvPmfm)"></span>
             </mat-cell>
           </ng-container>
 
@@ -84,21 +119,22 @@
               <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row">
-              {{referentialToString(row.currentData.taxonName)}}
+              {{autocompleteFields.taxonName?.displayWith(row.currentData.taxonName) }}
             </mat-cell>
-
           </ng-container>
 
           <!-- Pmfms columns -->
-          <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.pmfmId.toString()">
-            <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm.isDate">
-              <ion-label>{{getPmfmColumnHeader(pmfm)}}
-                <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
-              </ion-label>
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
-              {{measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm) }}
-            </mat-cell>
+          <ng-container *ngFor="let pmfm of $pmfms | async">
+            <ng-container *ngIf="pmfm.pmfmId !== qvPmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
+              <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm.isDate" >
+                <ion-label>{{getPmfmColumnHeader(pmfm)}}
+                  <small *ngIf="pmfm.hasUnit"><br />({{pmfm.unit}})</small>
+                </ion-label>
+              </mat-header-cell>
+              <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm.isDate">
+                <span [innerHTML]="measurementValueToString(row.currentData.measurementValues[pmfm.pmfmId], pmfm)"></span>
+              </mat-cell>
+            </ng-container>
           </ng-container>
 
           <!-- individualCount column -->
@@ -117,7 +153,7 @@
               <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
             </mat-header-cell>
             <mat-cell *matCellDef="let row" hidden-xs hidden-sm hidden-mobile>
-              {{measurementValueToString(row.currentData.comments)}}
+              <ion-icon color="medium" name="chatboxes" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>
             </mat-cell>
           </ng-container>
 
@@ -133,17 +169,30 @@
             </mat-header-cell>
 
             <mat-cell *matCellDef="let row">
-              <!-- delete  -->
-              <button mat-icon-button color="light" [title]="'COMMON.BTN_DELETE'|translate"
+              <!-- Show options -->
+              <button mat-icon-button  [title]="'COMMON.BTN_OPTIONS'|translate"
                       tabindex="-1"
-                      (click)="cancelOrDelete($event, row)">
-                <mat-icon>delete_outline</mat-icon>
+                      [matMenuTriggerFor]="rowActionsMenu"
+                      (click)="clickRow($event, row)">
+                <mat-icon></mat-icon>
               </button>
+
+              <!--  <button mat-menu-item (click)="editSelectedRow()">-->
+              <!--    <mat-icon>edit</mat-icon>-->
+              <!--    <ion-label translate>COMMON.BTN_EDIT</ion-label>-->
+              <!--  </button>-->
             </mat-cell>
           </ng-container>
 
-          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+          <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+
+          <mat-row *matRowDef="let row; columns: displayedColumns;"
+                   class="mat-row-small mat-small"
+                   [class.mat-row-dirty]="isNewRow(row)"
+                   [class.mat-row-selected]="this.selection.isSelected(row)"
+                   [matMenuTriggerFor]="rowActionsMenu"
+                   (click)="selectRow($event, row)"
+          ></mat-row>
         </mat-table>
       </ion-col>
     </ion-row>
@@ -159,16 +208,14 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="close($event)">
-          <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+        <ion-button fill="clear" color="dark" (click)="cancel($event)">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="form.valid ? 'solid' : 'clear'"
-                    [disabled]="loading || !dirty"
-                    (keyup.enter)="doSubmitForm($event)"
-                    (click)="doSubmitForm($event)"
+        <ion-button (keyup.enter)="close($event)"
+                    (click)="close($event)"
                     color="tertiary">
-          <ion-label translate>COMMON.BTN_ADD</ion-label>
+          <ion-label translate>COMMON.BTN_APPLY</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>

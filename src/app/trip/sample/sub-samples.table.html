@@ -6,7 +6,7 @@
     (click)="deleteSelection()">
     <mat-icon>delete</mat-icon>
   </button>
-  <button mat-icon-button small color="light" *ngIf="!selection.hasValue() && enabled" [title]="'TRIP.SUB_SAMPLE.TABLE.BTN_AUTO_FILL'|translate"
+  <button mat-icon-button small color="light" *ngIf="!selection.hasValue() && enabled" [title]="'TRIP.SAMPLE.TABLE.BTN_AUTO_FILL'|translate"
     (click)="autoFillTable()">
     <mat-icon>control_point_duplicate</mat-icon>
   </button>
@@ -24,7 +24,7 @@
 
   <span class="toolbar-spacer"></span>
 
-  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+  <button mat-icon-button [title]="'COMMON.OPTIONS'|translate" (click)="openSelectColumnsModal($event)">
     <mat-icon>more_vert</mat-icon>
   </button>
 </mat-toolbar>
@@ -63,34 +63,16 @@
   <ng-container matColumnDef="parent">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label>{{ (displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) ||
-        'TRIP.SAMPLE.TABLE.PARENT_SAMPLE') | translate }}</ion-label>
+        'TRIP.SAMPLE.TABLE.PARENT') | translate }}</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['parent']" [matAutocomplete]="autoParent"
-               [appAutofocus]="row.id == -1 && row.editing"
-               [placeholder]="displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || ('TRIP.SAMPLE.TABLE.PARENT_SAMPLE' | translate)"
-               (focus)="onCellFocus($event, row, 'parent')" (blur)="onCellBlur($event, row, 'parent')"
-               (click)="$event.target.select()" required>
-        <mat-error *ngIf="row.validator.controls['parent'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-
-      <mat-autocomplete autoActiveFirstOption #autoParent="matAutocomplete" [displayWith]="parentToString" class="min-width-large">
-        <ion-row class="mat-autocomplete-header">
-          <ion-col size="3">
-            <ion-text>{{displayParentPmfm && getPmfmColumnHeader(displayParentPmfm) || '#'}}</ion-text>
-          </ion-col>
-          <ion-col>
-            <ion-text translate>TRIP.SAMPLE.TABLE.TAXON_NAME</ion-text>
-          </ion-col>
-        </ion-row>
-        <mat-option *ngFor="let sample of $filteredParents | async" [value]="sample" no-padding>
-          <ion-row>
-            <ion-col size="3" [innerHTML]="(displayParentPmfm && sample.measurementValues[displayParentPmfm.pmfmId] || sample.rankOrder) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
-            <ion-col [innerHTML]="referentialToString(sample.taxonName) | highlight: {search: row.validator.controls['parent'].value }"></ion-col>
-          </ion-row>
-        </mat-option>
-      </mat-autocomplete>
+      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+                              [appAutofocus]="row.id === -1 && row.editing"
+                              [formControl]="row.validator.controls.parent"
+                              [placeholder]="'TRIP.SAMPLE.TABLE.PARENT'|translate"
+                              [required]="true"
+                              [config]="autocompleteFields.parent">
+      </mat-autocomplete-field>
     </mat-cell>
 
   </ng-container>
@@ -148,12 +130,15 @@
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;" [class.mat-row-error]="row.validator.invalid"
-    [class.mat-row-dirty]="row.validator.dirty" [class.mat-row-disabled]="!row.editing" (click)="clickRow($event, row)"></mat-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"
+           [class.mat-row-error]="row.validator.invalid"
+           [class.mat-row-dirty]="row.validator.dirty"
+           [class.mat-row-disabled]="!row.editing"
+           (click)="clickRow($event, row)"></mat-row>
 </mat-table>
 
-<ion-fab right bottom visible-xs visible-sm visible-mobile>
-  <button ion-fab color="light" (click)="addRow()">
-    <ion-icon name="md-add"></ion-icon>
-  </button>
-</ion-fab>
+<!--<ion-fab right bottom visible-xs visible-sm visible-mobile>-->
+<!--  <button ion-fab color="light" (click)="addRow()">-->
+<!--    <ion-icon name="md-add"></ion-icon>-->
+<!--  </button>-->
+<!--</ion-fab>-->

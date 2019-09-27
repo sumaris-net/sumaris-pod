@@ -1,24 +1,16 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {OperationValidatorService} from "../services/operation.validator";
 import {fromDateISOString, Operation, PhysicalGear, Trip} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {Observable} from 'rxjs';
-import {debounceTime, map, mergeMap, tap} from 'rxjs/operators';
-import {merge} from "rxjs/observable/merge";
 import {AccountService, AppForm, IReferentialRef, PlatformService} from '../../core/core.module';
-import {
-  EntityUtils,
-  ReferentialRef,
-  ReferentialRefService,
-  referentialToString
-} from '../../referential/referential.module';
+import {EntityUtils, ReferentialRefService} from '../../referential/referential.module';
 import {UsageMode} from "../../core/services/model";
 import {FormGroup} from "@angular/forms";
 import * as moment from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
-import {isNilOrBlank} from "../../shared/functions";
+import {isNilOrBlank, suggestFromArray} from "../../shared/functions";
 
 @Component({
   selector: 'form-operation',
@@ -30,11 +22,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   private _trip: Trip;
 
-  metiers: Observable<ReferentialRef[]>;
-  physicalGears: Observable<PhysicalGear[]>;
-
-  onFocusPhysicalGear: EventEmitter<any> = new EventEmitter<any>();
-  onFocusMetier: EventEmitter<any> = new EventEmitter<any>();
   enableGeolocation: boolean;
   latLongFormat: string;
 
@@ -99,59 +86,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     });
 
     // Combo: physicalGears
-    this.physicalGears =
-      merge(
-        this.form.get('physicalGear').valueChanges.pipe(debounceTime(300)),
-        this.onFocusPhysicalGear.pipe(map((_) => this.form.get('physicalGear').value))
-      )
-        .pipe(
-          map(value => {
-            // Display the selected object
-            if (EntityUtils.isNotEmpty(value)) {
-              if (this.form.enabled) this.form.controls["metier"].enable();
-              else this.form.controls["metier"].disable();
-              return [value];
-            }
-            // Skip if no trip (or no physical gears)
-            if (!this.trip || !this.trip.gears || !this.trip.gears.length) {
-              this.form.controls["metier"].disable();
-              return [];
-            }
-            value = (typeof value === "string" && value !== "*") && value || undefined;
-            // Display all trip gears
-            if (!value) return this.trip.gears;
-            // Search on label or name
-            const ucValue = value.toUpperCase();
-            return this.trip.gears.filter(g => g.gear &&
-              (g.gear.label && g.gear.label.toUpperCase().indexOf(ucValue) != -1)
-              || (g.gear.name && g.gear.name.toUpperCase().indexOf(ucValue) != -1)
-            );
-          }),
-          tap(res => this.updateImplicitValue('physicalGear', res))
-        );
-
-    // Combo: metiers
-    this.metiers = merge(
-      this.form.get('metier').valueChanges.pipe(debounceTime(300)),
-      this.onFocusMetier.pipe(map((_) => this.form.get('metier').value))
-    )
-      .pipe(
-        mergeMap(async (value) => {
-          const physicalGear = this.form.get('physicalGear').value;
-          if (!physicalGear || !physicalGear.gear) return [];
-          return this.referentialRefService.suggest(value, {
-              entityName: 'Metier',
-              levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null
-            });
-        }),
-        tap(res => this.updateImplicitValue('metier', res))
-      );
-  }
-
-
-
-  physicalGearToString(physicalGear: PhysicalGear) {
-    return physicalGear && physicalGear.id ? ("#" + physicalGear.rankOrder + " - " + referentialToString(physicalGear.gear)) : undefined;
+    this.registerAutocompleteConfig('physicalGear', {
+      suggestFn: (value: any, options?: any) => this.suggestPhysicalGear(value, options),
+      attributes: ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key))
+    });
   }
 
   /**
@@ -206,12 +144,22 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.markAsDirty();
   }
 
-  referentialToString = referentialToString;
-
   /* -- protected methods -- */
 
-  protected markForCheck() {
-    this.cd.markForCheck();
+  protected async suggestPhysicalGear(value: any, options?: any): Promise<PhysicalGear[]> {
+    // Display the selected object
+    if (EntityUtils.isNotEmpty(value)) {
+      if (this.form.enabled) this.form.controls["metier"].enable();
+      else this.form.controls["metier"].disable();
+      return [value];
+    }
+    // Skip if no trip (or no physical gears)
+    if (!this._trip || !this._trip.gears || !this._trip.gears.length) {
+      this.form.controls["metier"].disable();
+      return [];
+    }
+
+    return suggestFromArray<PhysicalGear>(this._trip.gears, value, options);
   }
 
   protected async suggestTargetSpecies(value: any, options?: any): Promise<IReferentialRef[]> {
@@ -228,4 +176,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || undefined
       });
   }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
 }

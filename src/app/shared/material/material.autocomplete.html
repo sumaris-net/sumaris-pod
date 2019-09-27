@@ -1,22 +1,24 @@
+
 <mat-form-field [floatLabel]="floatLabel">
 
   <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
 
-  <input matInput #matInput type="text" [matAutocomplete]="autoCombo"
-         [appAutofocus]="appAutofocus"
+  <!--
+    NOTE :
+     - "selectInputContent($event) || onFocus.emit($event)" : call onFocus only when to the input is empty (nothing to select)
+  -->
+  <input matInput #matInput type="text"
+         [matAutocomplete]="autoCombo"
          [formControl]="formControl"
          [placeholder]="placeholder"
+         [appAutofocus]="appAutofocus"
+         [tabindex]="tabindex"
          [readonly]="readonly"
          [required]="required"
-         [tabindex]="tabindex"
          (click)="onClick.emit($event)"
-         (focus)="selectInputContent($event) && onFocus.emit($event)"
-         (blur)="onBlur.emit($event)">
-  <!--
-    If enable, then
-    (keyup.arrowdown)="autoCombo.opened && onShowDropdown.emit($event)"
-  -->
-
+         (blur)="onBlur.emit($event)"
+         (focus)="_onFocus($event)"
+         (keyup.arrowdown)="formControl.enabled && !autoCombo.showPanel && onDropButtonClick.emit($event)">
   <ng-content select="[matSuffix]"></ng-content>
 
   <button mat-button matSuffix mat-icon-button tabindex="-1"
@@ -40,13 +42,13 @@
   <mat-autocomplete autoActiveFirstOption #autoCombo="matAutocomplete"
                     [displayWith]="displayWith"
                     [class]="classList">
-    <ion-row class="mat-autocomplete-header" no-padding>
-      <ion-col *ngFor="let attr of displayAttributes; index as i;"  [size]="displayColumnSizes[i]" >
-        <ion-text>{{ (i18nPrefix + changeCaseToUnderscore(attr).toUpperCase()) | translate }}</ion-text>
+    <ion-row class="mat-autocomplete-header" no-padding *ngIf="($items | async)?.length">
+      <ion-col *ngFor="let attr of displayAttributes; index as i;" [size]="displayColumnSizes[i]" >
+        <ion-text [innerHTML]="displayColumnNames[i] | translate"></ion-text>
       </ion-col>
     </ion-row>
 
-    <mat-option *ngFor="let item of items | async" [value]="item" no-padding>
+    <mat-option *ngFor="let item of $items | async" [value]="item" no-padding>
       <ion-row>
         <ion-col *ngFor="let attr of displayAttributes; index as i;"
                  [size]="displayColumnSizes[i]">

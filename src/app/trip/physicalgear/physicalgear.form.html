@@ -6,48 +6,17 @@
   </ion-item>
 
   <ion-grid no-padding>
-
     <!-- GEAR -->
     <ion-row no-padding>
 
       <ion-col no-padding>
-        <mat-form-field>
-          <input matInput [appAutofocus]="enabled && untouched && !mobile" autofocusDelay="400" [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate" [matAutocomplete]="autoGear"
-                 formControlName="gear"
-                 (click)="onShowGearDropdown.next('*')"
-                 (blur)="applyImplicitValue('gear')"
-                 (keyup.arrowdown)="onShowGearDropdown.next('*')"
-                 [tabindex]="tabindex"
-                 required>
-          <mat-error *ngIf="form.controls.gear.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls.gear.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-
-          <button mat-button matSuffix mat-icon-button tabindex="-1"
-                  type="button"
-                  (click)="onShowGearDropdown.next()"
-                  [hidden]="form.disabled">
-            <mat-icon>arrow_drop_down</mat-icon>
-          </button>
-        </mat-form-field>
-
-        <!-- Gear combo -->
-        <mat-autocomplete autoActiveFirstOption #autoGear="matAutocomplete" [displayWith]="referentialToString">
-          <ion-row class="mat-autocomplete-header">
-            <ion-col size="3">
-              <ion-text translate>REFERENTIAL.LABEL</ion-text>
-            </ion-col>
-            <ion-col>
-              <ion-text translate>REFERENTIAL.NAME</ion-text>
-            </ion-col>
-          </ion-row>
-
-          <mat-option *ngFor="let gear of $gears | async" [value]="gear" no-padding>
-            <ion-row>
-              <ion-col size="3" [innerHTML]="gear.label | highlight: {search: form.controls['gear'].value }"></ion-col>
-              <ion-col [innerHTML]="gear.name | highlight: {search: form.controls['gear'].value }"></ion-col>
-            </ion-row>
-          </mat-option>
-        </mat-autocomplete>
+        <mat-autocomplete-field formControlName="gear"
+                                [appAutofocus]="enabled && untouched && !mobile" autofocusDelay="400"
+                                [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate"
+                                [config]="autocompleteHelper.gear"
+                                [tabindex]="tabindex"
+                                required>
+        </mat-autocomplete-field>
       </ion-col>
     </ion-row>
 

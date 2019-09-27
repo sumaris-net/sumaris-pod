@@ -21,6 +21,7 @@ export class PhysicalGearValidatorService implements ValidatorService {
       rankOrder: ['', Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
       creationDate: [''],
       gear: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      measurementValues: this.formBuilder.group({}),
       comments: ['', Validators.maxLength(2000)]
     });
   }

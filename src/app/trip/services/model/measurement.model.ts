@@ -259,7 +259,7 @@ export class MeasurementValuesUtils {
   static normalizeValueToForm(value: any, pmfm: PmfmStrategy): MeasurementFormValue {
     if (!pmfm) return value;
     // If empty, apply the pmfm default value
-    if (isNil(value) && pmfm.defaultValue) value = pmfm.defaultValue;
+    if (isNil(value) && isNotNil(pmfm.defaultValue)) value = pmfm.defaultValue;
     switch (pmfm.type) {
       case "qualitative_value":
         if (isNotNil(value)) {
@@ -360,8 +360,8 @@ export function measurementValueToString(value: any, pmfm: PmfmStrategy, propert
     case "date":
       return value || null;
     case "boolean":
-      return (value === "true" || value === true || value === 1) ? 'COMMON.YES' :
-        ((value === "false" || value === false || value === 0) ? 'COMMON.NO' : null);
+      return (value === "true" || value === true || value === 1) ? 	'&#x2714;' /*checkmark*/ :
+        ((value === "false" || value === false || value === 0) ? '' : null); /*empty*/
     default:
       throw new Error("Unknown pmfm.type: " + pmfm.type);
   }

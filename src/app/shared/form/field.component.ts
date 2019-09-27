@@ -17,7 +17,7 @@ import {
   filterNumberInput,
   fromDateISOString,
   isNotNil,
-  joinProperties,
+  joinPropertiesPath,
   selectInputContent
 } from "../../shared/functions";
 import {FormFieldDefinition} from "./field.model";
@@ -176,8 +176,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
       return (value: any) => definition.autocomplete.displayWith(value);
     }
     const attributes = definition.autocomplete && definition.autocomplete.attributes || ['label', 'name'];
-    return (value: any) => joinProperties(value, attributes);
-  };
+    return (value: any) => joinPropertiesPath(value, attributes);
+  }
 
   /* -- protected method -- */
 

@@ -1,5 +1,11 @@
-import {fromDateISOString, isNotNil, toDateISOString} from "../../../core/core.module";
-import {ReferentialRef} from "../../../referential/referential.module";
+import {
+  EntityUtils,
+  fromDateISOString,
+  isNotNil,
+  referentialToString,
+  toDateISOString
+} from "../../../core/core.module";
+import {PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {Moment} from "moment/moment";
 import {DataRootEntity} from "./base.model";
 import {IEntityWithMeasurement, MeasurementUtils} from "./measurement.model";
@@ -11,6 +17,17 @@ export class Sample extends DataRootEntity<Sample> implements IEntityWithMeasure
     const res = new Sample();
     res.fromObject(source);
     return res;
+  }
+
+  static equals(s1: Sample | any, s2: Sample | any): boolean {
+    return s1 && s2 && s1.id === s2.id
+      || (s1.rankOrder === s2.rankOrder
+        // same operation
+        && ((!s1.operationId && !s2.operationId) || s1.operationId === s2.operationId)
+        // same label
+        && ((!s1.label && !s2.label) || s1.label === s2.label)
+        // Warn: compare using the parent ID is too complicated
+      );
   }
 
   label: string;
@@ -94,5 +111,39 @@ export class Sample extends DataRootEntity<Sample> implements IEntityWithMeasure
         && ((!this.label && !other.label) || this.label === other.label)
         // Warn: compare using the parent ID is too complicated
       );
+  }
+}
+
+export class SampleUtils {
+
+  static parentToString(parent: Sample, opts?: {
+    pmfm?: PmfmStrategy,
+    taxonGroupAttributes: string[];
+    taxonNameAttributes: string[];
+  }) {
+    if (!parent) return null;
+    opts = opts || {taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name']};
+    if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.pmfmId])) {
+      return parent.measurementValues[opts.pmfm.pmfmId];
+    }
+
+    const hasTaxonGroup = EntityUtils.isNotEmpty(parent.taxonGroup) ;
+    const hasTaxonName = EntityUtils.isNotEmpty(parent.taxonName);
+    // Display only taxon name, if no taxon group or same label
+    if (hasTaxonName && (!hasTaxonGroup || parent.taxonGroup.label === parent.taxonName.label)) {
+      return referentialToString(parent.taxonName, opts.taxonNameAttributes);
+    }
+    // Display both, if both exists
+    if (hasTaxonName && hasTaxonGroup) {
+      return referentialToString(parent.taxonGroup, opts.taxonGroupAttributes) + ' / '
+        + referentialToString(parent.taxonName, opts.taxonNameAttributes);
+    }
+    // Display only taxon group
+    if (hasTaxonGroup) {
+      return referentialToString(parent.taxonGroup, opts.taxonGroupAttributes);
+    }
+
+    // Display rankOrder only (should never occur)
+    return `#${parent.rankOrder}`;
   }
 }

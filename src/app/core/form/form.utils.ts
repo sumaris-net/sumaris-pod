@@ -16,6 +16,7 @@ export class AppFormUtils {
   static disableControls = disableControls;
   static selectInputContent = selectInputContent;
   static markAsTouched = markAsTouched;
+  static markAsPristine = markAsPristine;
 
   // ArrayForm
   static addValueInArray = addValueInArray;
@@ -267,18 +268,34 @@ export function clearValueInArray(form: FormGroup,
   return true;
 }
 
-export function markAsTouched(form: FormGroup) {
+export function markAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
   if (!form) return;
   form.markAsTouched();
   Object.getOwnPropertyNames(form.controls)
     .forEach(key => {
       const control = form.get(key);
       if (control instanceof FormGroup) {
-        markAsTouched(control); // recursive call
+        markAsTouched(control, opts); // recursive call
       }
       else {
-        control.markAsTouched({onlySelf: true});
-        control.updateValueAndValidity({onlySelf: true});
+        control.markAsTouched(opts || {onlySelf: true});
+        control.updateValueAndValidity(opts || {onlySelf: true, emitEvent: false});
+      }
+    });
+}
+
+export function markAsPristine(form: FormGroup, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+  if (!form) return;
+  form.markAsPristine();
+  Object.getOwnPropertyNames(form.controls)
+    .forEach(key => {
+      const control = form.get(key);
+      if (control instanceof FormGroup) {
+        markAsPristine(control, opts); // recursive call
+      }
+      else {
+        control.markAsPristine(opts || {onlySelf: true});
+        control.updateValueAndValidity(opts || {onlySelf: true, emitEvent: false});
       }
     });
 }

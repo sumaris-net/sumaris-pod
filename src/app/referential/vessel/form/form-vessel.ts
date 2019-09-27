@@ -5,7 +5,7 @@ import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Observable} from 'rxjs';
 import {debounceTime, switchMap} from 'rxjs/operators';
-import {AppForm, AppFormUtils} from '../../../core/core.module';
+import {AppForm, AppFormUtils, LocalSettingsService} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 
 
@@ -18,32 +18,29 @@ import {ReferentialRefService} from '../../services/referential-ref.service';
 export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
 
   data: VesselFeatures;
-  $locations: Observable<ReferentialRef[]>;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected vesselValidatorService: VesselValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    protected settings: LocalSettingsService
   ) {
 
-    super(dateAdapter, vesselValidatorService.getFormGroup());
+    super(dateAdapter, vesselValidatorService.getFormGroup(), settings);
   }
 
   ngOnInit() {
     super.ngOnInit();
 
-    this.$locations = this.form.controls['basePortLocation']
-      .valueChanges
-      .pipe(
-        debounceTime(250),
-        switchMap(value => this.referentialRefService.suggest(value, {
-            entityName: 'Location',
-            levelId: LocationLevelIds.PORT
-          }
-        ))
-      )
-    ;
+    // Combo location
+    this.registerAutocompleteConfig('location', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.PORT
+      }
+    });
 
     this.form.reset();
   }

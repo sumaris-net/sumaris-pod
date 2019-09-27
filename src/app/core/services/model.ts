@@ -5,7 +5,7 @@ import {
   isNil,
   isNilOrBlank,
   isNotNil,
-  joinProperties,
+  joinPropertiesPath,
   sort,
   toDateISOString
 } from "../../shared/shared.module";
@@ -13,7 +13,7 @@ import {noTrailingSlash} from "../../shared/functions";
 import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 
 export {
-  joinProperties,
+  joinPropertiesPath,
   attributeComparator,
   sort
 };
@@ -165,13 +165,12 @@ export declare interface Cloneable<T> {
   clone(): T;
 }
 
-
-export function entityToString(obj: Entity<any> | any, properties?: String[]): string | undefined {
-  return obj && obj.id && joinProperties(obj, properties || ['name']) || undefined;
+export function entityToString(obj: Entity<any> | any, properties?: string[]): string | undefined {
+  return obj && obj.id && joinPropertiesPath(obj, properties || ['name']) || undefined;
 }
 
-export function referentialToString(obj: Referential | any | any, properties?: String[]): string | undefined {
-  return obj && obj.id && joinProperties(obj, properties || ['label', 'name']) || undefined;
+export function referentialToString(obj: Referential | any | any, properties?: string[]): string | undefined {
+  return obj && obj.id && joinPropertiesPath(obj, properties || ['label', 'name']) || undefined;
 }
 
 export function personToString(obj: Person): string {

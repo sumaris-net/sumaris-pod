@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {AcquisitionLevelCodes} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
@@ -16,7 +16,7 @@ import {toBoolean} from "../../shared/functions";
   templateUrl: 'batch.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchModal {
+export class BatchModal implements OnInit {
 
   debug = false;
   loading = false;

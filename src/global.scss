@@ -144,8 +144,15 @@ form.form-container {
       margin-left: 5px;
       margin-right: 5px;
     }
-  }
 
+    // When field use choice button, reduce the font size, and optimize layout
+    button.mat-form-field-button,
+    ion-button.mat-form-field-button {
+      font-size: 12px !important;
+      margin: 0;
+      white-space: normal;
+    }
+  }
 
   ion-col > ion-label {
     color: var(--ion-color-primary100);
@@ -205,9 +212,11 @@ mat-option:not(:last-child) {
 .mat-autocomplete-panel {
   min-width: 200px !important;
 }
+.min-width-medium .mat-autocomplete-panel,
 .mat-autocomplete-panel.min-width-medium {
   min-width: 250px !important;
 }
+.min-width-large .mat-autocomplete-panel,
 .mat-autocomplete-panel.min-width-large {
   min-width: 350px !important;
 }
@@ -222,6 +231,11 @@ mat-option:not(:last-child) {
     height: 20px;
     line-height: 20px;
     border-bottom: 1px solid $lightBorder;
+
+    ion-col {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
   }
 
   ion-row {
@@ -309,7 +323,7 @@ mat-table {
 
   .mat-header-row,
   .mat-row {
-    border-left: 1px solid transparent;
+    border-left: 2px solid transparent;
     max-height: 52px;
     z-index: 999;
     padding: 0 !important;
@@ -424,6 +438,23 @@ mat-table {
     .mat-form-field-subscript-wrapper {
       margin-top: -0.1rem !important;
     }
+
+    .mat-boolean-field-radio.mat-form-field-appearance-legacy .mat-form-field-infix,
+    .mat-boolean-field-radio .mat-form-field-infix {
+      // Reduce top border (because of radio height)
+      border-top: 0.5em solid transparent !important;
+    }
+
+    .mat-boolean-field-checkbox.mat-form-field-appearance-legacy .mat-form-field-infix,
+    .mat-boolean-field-checkbox .mat-form-field-infix {
+      // Increase top border (because of checkbox height)
+      padding-top: 0.4em;
+    }
+
+    .mat-cell {
+      // Need by mat-boolean-field, for checkbox ripple effect
+      //overflow: visible;
+    }
   }
 
   /* Special case if cell need left padding */
@@ -436,6 +467,17 @@ mat-table {
     .mat-form-field-infix {
       padding-left: 5px;
     }
+  }
+
+  /* Special case to have small row */
+  .mat-row-small {
+    min-height: inherit;
+    max-height: 33px !important;
+  }
+  .mat-row.mat-small .mat-cell,
+  .mat-row .mat-cell.mat-small{
+    line-height: 15px;
+    font-size: 12px;
   }
 
   mat-cell .avatar {
@@ -459,6 +501,18 @@ mat-table {
 
   .mat-row.mat-row-disabled:hover {
     background-color: var(--ion-color-secondary100);
+
+    .mat-cell{
+      color: var(--ion-color-secondary100-contrast);
+    }
+  }
+
+  .mat-row.mat-row-selected {
+    background-color: var(--ion-color-secondary100);
+
+    .mat-cell{
+      color: var(--ion-color-secondary100-contrast);
+    }
   }
 
   .mat-row.mat-row-dirty {
@@ -470,6 +524,7 @@ mat-table {
     border: 2px dashed var(--ion-color-danger);
   }
 }
+
 
 @media screen and (max-width: $screen-sm-max) {
   mat-table {
@@ -546,6 +601,24 @@ mat-button-toggle.mat-button-toggle-checked.mat-button-toggle-disabled {
 }
 
 // --------------------------------------------------
+// Material menu
+// --------------------------------------------------
+
+// Small menu (e.g. for actions on a table row)
+.mat-menu-panel.mat-menu-small {
+
+  .mat-menu-content {
+    padding: 0;
+
+    .mat-menu-item {
+      padding: 0 8px;
+      height: 35px;
+      line-height: 35px;
+    }
+  }
+}
+
+// --------------------------------------------------
 // Alert
 // --------------------------------------------------
 
@@ -601,6 +674,17 @@ ion-item {
     line-break: normal;
     overflow: visible;
     white-space: normal;
+  }
+}
+
+// --------------------------------------------------
+// Modal
+// --------------------------------------------------
+
+.app-sub-batches-modal {
+  .modal-wrapper {
+    min-width: calc(100% - 100px);
+    min-height: calc(100% - 50px);
   }
 }
 

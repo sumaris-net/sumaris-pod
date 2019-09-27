@@ -100,7 +100,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     this.mobile = platform.mobile;
 
     // Set default acquisition level
-    //this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+    this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this._enable = true;
 
     this.childrenFormHelper = this.getChildrenFormHelper(this.form);
@@ -111,8 +111,6 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   ngOnInit() {
     super.ngOnInit();
-
-    if (this.debug) console.debug("[batch-form] Init form");
 
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
@@ -184,6 +182,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       }
 
       this.validatorService.setAsyncValidators(this.form, {withSampleBatch: true});
+      this.form.statusChanges.subscribe(() => this.markForCheck());
     }
     else {
       this.childrenFormHelper.resize((data.children || []).length);
@@ -418,5 +417,9 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       (value) => isNil(value),
       {allowEmptyArray: true}
     );
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

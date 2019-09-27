@@ -11,6 +11,7 @@ import {Subject} from 'rxjs';
 import {BatchValidatorService} from '../services/batch.validator';
 import {filter} from "rxjs/operators";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {firstNotNil, firstNotNilPromise} from "../../shared/observables";
 
 @Component({
   selector: 'form-catch-batch',
@@ -20,9 +21,9 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 })
 export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnInit {
 
-  onDeckPmfms = new Subject<PmfmStrategy[]>();
-  sortingPmfms = new Subject<PmfmStrategy[]>();
-  weightPmfms = new Subject<PmfmStrategy[]>();
+  $onDeckPmfms = new Subject<PmfmStrategy[]>();
+  $sortingPmfms = new Subject<PmfmStrategy[]>();
+  $weightAndOtherPmfms = new Subject<PmfmStrategy[]>();
   hasPmfms: boolean;
 
   @Input() showError = true;
@@ -43,16 +44,17 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   ngOnInit() {
     super.ngOnInit();
 
-    // pmfm
-    this.registerSubscription(
-      this.$pmfms
-        .pipe(filter(isNotNil))
-        .subscribe(pmfms => {
-        this.onDeckPmfms.next(pmfms.filter(p => p.label.indexOf('ON_DECK_') === 0));
-        this.sortingPmfms.next(pmfms.filter(p => p.label.indexOf('SORTING_') === 0));
-        this.weightPmfms.next(pmfms.filter(p => p.label.indexOf('_WEIGHT') > 0));
+    // Dispatch pmfms by category, using label
+    firstNotNilPromise(this.$pmfms)
+      .then(pmfms => {
+        this.$onDeckPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('ON_DECK_') === 0));
+        this.$sortingPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('SORTING_') === 0));
+        this.$weightAndOtherPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('_WEIGHT') > 0
+        || (p.label.indexOf('ON_DECK_') === -1
+            && p.label.indexOf('SORTING_') === -1)));
+
         this.hasPmfms = pmfms.length > 0;
-      }));
+      });
 
     // Make sure to set the label
     this.registerSubscription(

@@ -6,8 +6,13 @@ import {Subscription} from 'rxjs';
 import {DateFormatPipe} from "../../shared/pipes/date-format.pipe";
 import {AppFormUtils} from "./form.utils";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
-import {MatAutocompleteFieldConfig} from "../../shared/material/material.autocomplete";
+import {
+  DisplayFn,
+  MatAutocompleteFieldConfig, MatAutocompleteFieldAddOptions,
+  MatAutocompleteConfigHolder
+} from "../../shared/material/material.autocomplete";
 import {LocalSettingsService} from "../services/local-settings.service";
+import {joinPropertiesPath} from "../../shared/functions";
 
 export abstract class AppForm<T> implements OnInit, OnDestroy {
 
@@ -15,9 +20,8 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   protected _enable = false;
   protected _implicitValues: { [key: string]: any } = {};
 
-  autocompleteFields: {
-    [key: string]: MatAutocompleteFieldConfig
-  } = {};
+  autocompleteHelper: MatAutocompleteConfigHolder;
+  autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
   error: string = null;
 
   @Input() debug = false;
@@ -101,6 +105,10 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     protected settings?: LocalSettingsService
   ) {
     this.form = form || this.form;
+    this.autocompleteHelper = new MatAutocompleteConfigHolder(settings && {
+      getUserAttributes: (a, b) => settings.getFieldDisplayAttributes(a, b)
+    });
+    this.autocompleteFields = this.autocompleteHelper.fields;
   }
 
   ngOnInit() {
@@ -122,62 +130,67 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     this._implicitValues = {};
   }
 
-  public cancel() {
+  cancel() {
     this.onCancel.emit();
   }
 
-  public doSubmit(event: any) {
-    if (!this.form && this.form.invalid) return;
+  doSubmit(event: any) {
+    if (!this.form && this.form.invalid) {
+      return;
+    }
     this.onSubmit.emit(event);
   }
 
-  public setForm(form: FormGroup) {
+  setForm(form: FormGroup) {
     this.form = form;
   }
 
-  public setValue(data: T) {
+  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     if (!data) return;
 
     // Convert object to json
     if (this.debug) console.debug("[form] Updating form (using entity)", data);
 
+    opts = opts || {};
+    if (opts.emitEvent === undefined) opts.emitEvent = false; // default opts value
+
     // Apply to form
-    AppFormUtils.copyEntity2Form(data, this.form, {emitEvent: false});
+    AppFormUtils.copyEntity2Form(data, this.form, opts);
 
     this.markForCheck();
   }
 
-  protected registerSubscription(sub: Subscription) {
-    this._subscriptions = this._subscriptions || [];
-    this._subscriptions.push(sub);
-    if (this.debug) console.debug(`[form] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
-  }
-
-  public markAsPristine() {
-    this.form.markAsPristine();
+  markAsPristine(opts?: {onlySelf?: boolean}) {
+    AppFormUtils.markAsPristine(this.form, opts);
     this.markForCheck();
   }
 
-  public markAsUntouched() {
-    this.form.markAsUntouched();
+  markAsUntouched(opts?: {onlySelf?: boolean}) {
+    this.form.markAsUntouched(opts);
     this.markForCheck();
   }
 
-  public markAsTouched() {
+  markAsTouched() {
     AppFormUtils.markAsTouched(this.form);
     this.markForCheck();
   }
 
-  public markAsDirty() {
+  markAsDirty() {
     this.form.markAsDirty();
     this.markForCheck();
   }
 
-  public updateImplicitValue(name: string, res: any[]) {
+  /**
+   * @deprecated Use autocomplete field instead
+   */
+  updateImplicitValue(name: string, res: any[]) {
     this._implicitValues[name] = res && res.length === 1 ? res[0] : undefined;
   }
 
-  public applyImplicitValue(name: string, control?: AbstractControl) {
+  /**
+   * @deprecated Use autocomplete field instead
+   */
+  applyImplicitValue(name: string, control?: AbstractControl) {
     control = control || this.form.get(name);
     const value = control && this._implicitValues[name];
     if (control && value !== undefined && value !== null) {
@@ -187,34 +200,16 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     }
   }
 
-  protected registerAutocompleteConfig(fieldName: string, options?: {
-    attributes?: string[];
-    service?: SuggestionDataService<any>;
-    filter?: any;
-    suggestFn?: (value: any, options?: any) => Promise<any[]>;
-    showAllOnFocus?: boolean;
-  }) {
-    options = options || {};
-    const service: SuggestionDataService<any> = options.service || (options.suggestFn && {
-      suggest: (value: any, filter?: any) => options.suggestFn(value, filter)
-    }) || undefined;
-    const attributes = this.settings.getFieldDisplayAttributes(fieldName, options.attributes);
+  /* -- protected methods -- */
 
-    const config = {
-      attributes,
-      service,
-      filter: Object.assign(options.filter || {}, {
-        searchAttribute: attributes.length === 1 ? attributes[0] : undefined
-      }),
-      showAllOnFocus: options.showAllOnFocus
-    };
-    this.autocompleteFields[fieldName] = config;
-
-    return config;
+  protected registerSubscription(sub: Subscription) {
+    this._subscriptions = this._subscriptions || [];
+    this._subscriptions.push(sub);
+    if (this.debug) console.debug(`[form] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
   }
 
-  public getAutocompleteConfig(fieldName: string): MatAutocompleteFieldConfig {
-    return this.autocompleteFields[fieldName] || this.registerAutocompleteConfig(fieldName);
+  protected registerAutocompleteConfig(fieldName: string, options?: MatAutocompleteFieldAddOptions) {
+    return this.autocompleteHelper.add(fieldName, options);
   }
 
   protected markForCheck() {

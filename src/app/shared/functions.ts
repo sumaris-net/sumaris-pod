@@ -60,13 +60,10 @@ export const toDateISOString = function (value): string | undefined {
 
 export function fromDateISOString(value): Moment | undefined {
   return value && moment(value, DATE_ISO_PATTERN) || undefined;
-
 }
-
 export function startsWithUpperCase(input: string, search: string): boolean {
   return input && input.toUpperCase().startsWith(search);
 }
-
 export function matchUpperCase(input: string, regexp: string): boolean {
   return input && !!input.toUpperCase().match(regexp);
 }
@@ -91,10 +88,10 @@ export function changeCaseToUnderscore(value: string): string {
   return value.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase();
 }
 
-export function suggestFromArray(items: any[], value: any, options?: {
+export function suggestFromArray<T=any>(items: T[], value: any, options?: {
   searchAttribute?: string
   searchAttributes?: string[]
-}): any[] {
+}): T[] {
   if (isNotNil(value) && typeof value === "object") return [value];
   value = (typeof value === "string" && value !== '*') && value.toUpperCase() || undefined;
   if (isNilOrBlank(value)) return items;
@@ -110,9 +107,20 @@ export function suggestFromArray(items: any[], value: any, options?: {
   return items.filter(v => keys.findIndex(key => startsWithUpperCase(v[key], value)) !== -1);
 }
 
-export function joinProperties(obj: any, properties: String[], separator?: string): string | undefined {
-  if (!obj) throw "Could not display an undefined entity.";
-  return properties.map((key: string) => obj[key]).filter(isNotNilOrBlank).join(separator || " - ");
+export function joinPropertiesPath<T = any>(obj: T, properties: string[], separator?: string): string | undefined {
+  if (!obj) throw new Error("Could not display an undefined entity.");
+  return properties
+    .map(path => getPropertyByPath(obj, path))
+    .filter(isNotNilOrBlank)
+    .join(separator || " - ");
+}
+
+export function joinProperties<T = any, K  extends keyof T = any>(obj: T, keys: K[], separator?: string): string | undefined {
+  if (!obj) throw new Error("Could not display an undefined entity.");
+  return keys
+    .map(key => getProperty(obj, key))
+    .filter(isNotNilOrBlank)
+    .join(separator || " - ");
 }
 
 export function attributeComparator<T>(attribute: string): (a: T, b: T) => number {
@@ -137,10 +145,12 @@ export function selectInputContent(event: UIEvent) {
   if (event.defaultPrevented) return false;
   const input = (event.target as any);
   if (input && typeof input.select === "function") {
+
+    // Nothing to select
+    if (isNilOrBlank(input.value)) return false;
+
     try {
       input.select();
-      //event.preventDefault();
-      //event.stopPropagation();
     } catch (err) {
       console.error("Could not select input content", err);
       return false;
@@ -185,6 +195,11 @@ export function getPropertyByPath(obj: any, path: string): any {
     return getPropertyByPath(obj[key], path.substring(i + 1));
   }
   throw new Error(`Invalid property path: '${key}' is not an valid object.`);
+}
+
+export function getProperty<T = any, K extends keyof T = any>(obj: T, key: K): T[K] {
+  if (isNil(obj)) return undefined;
+  return obj[key]; // Inferred type is T[K]
 }
 
 export function focusInput(element: ElementRef) {

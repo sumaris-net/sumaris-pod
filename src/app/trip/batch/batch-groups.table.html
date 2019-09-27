@@ -91,7 +91,8 @@
   <mat-header-row class="first-header-row" *matHeaderRowDef="displayedColumns"></mat-header-row>
 </mat-table>
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
+<mat-table #mainTable
+           [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
            [trackBy]="trackByFn"
            [class.plt-mobile]="mobile">
 

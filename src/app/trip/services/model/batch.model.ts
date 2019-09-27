@@ -1,9 +1,15 @@
 import {EntityUtils, FormArrayHelper, isNil, isNotNil, referentialToString} from "../../../core/core.module";
 import {AcquisitionLevelCodes, PmfmStrategy, ReferentialRef} from "../../../referential/referential.module";
 import {DataEntity} from "./base.model";
-import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from "./measurement.model";
+import {
+  IEntityWithMeasurement,
+  MeasurementUtils,
+  MeasurementValuesUtils,
+  measurementValueToString
+} from "./measurement.model";
 import {isNilOrBlank, isNotNilOrBlank} from "../../../shared/functions";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
+import {TaxonGroupRef, TaxonNameRef} from "../../../referential/services/model/taxon.model";
 
 export declare interface BatchWeight {
   methodId: number;
@@ -45,6 +51,17 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     return catchBatch;
   }
 
+  public static equals(b1: Batch | any, b2: Batch | any): boolean {
+    return b1 && b2 && ((isNotNil(b1.id) && b1.id === b2.id)
+      // Or by functional attributes
+      || (b1.rankOrder === b2.rankOrder
+        // same operation
+        && ((!b1.operationId && !b2.operationId) || b1.operationId === b2.operationId)
+        // same label
+        && ((!b1.label && !b2.label) || b1.label === b2.label)
+        // Warn: compare using the parent ID is too complicated
+      ));
+  }
 
   label: string;
   rankOrder: number;
@@ -53,7 +70,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
   samplingRatioText: string;
   individualCount: number;
   taxonGroup: ReferentialRef;
-  taxonName: ReferentialRef;
+  taxonName: TaxonNameRef;
   comments: string;
   measurementValues: { [key: number]: any };
   weight: BatchWeight;
@@ -125,7 +142,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
     this.samplingRatioText = source.samplingRatioText;
     this.individualCount = isNotNilOrBlank(source.individualCount) ? parseInt(source.individualCount) : null;
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
-    this.taxonName = source.taxonName && ReferentialRef.fromObject(source.taxonName) || undefined;
+    this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
     this.comments = source.comments;
     this.operationId = source.operationId;
     this.parentId = source.parentId;
@@ -172,35 +189,34 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
 
 export class BatchUtils {
 
-  static parentToString(batch: Batch, opts?: {
+  static parentToString(parent: Batch, opts?: {
     pmfm?: PmfmStrategy,
     taxonGroupAttributes: string[];
     taxonNameAttributes: string[];
   }): string {
-    if (!batch) return null;
+    if (!parent) return null;
     opts = opts || {taxonGroupAttributes: ['label', 'name'], taxonNameAttributes: ['label', 'name']};
-    if (opts.pmfm) {
-      console.log("TODO: check parent pmfm", opts.pmfm);
+    if (opts.pmfm && parent.measurementValues && isNotNil(parent.measurementValues[opts.pmfm.pmfmId])) {
+      return measurementValueToString(parent.measurementValues[opts.pmfm.pmfmId], opts.pmfm);
     }
-
-    const hasTaxonGroup = EntityUtils.isNotEmpty(batch.taxonGroup);
-    const hasTaxonName = EntityUtils.isNotEmpty(batch.taxonName);
+    const hasTaxonGroup = EntityUtils.isNotEmpty(parent.taxonGroup);
+    const hasTaxonName = EntityUtils.isNotEmpty(parent.taxonName);
     // Display only taxon name, if no taxon group or same label
-    if (hasTaxonName && (!hasTaxonGroup || batch.taxonGroup.label === batch.taxonName.label)) {
-      return referentialToString(batch.taxonName, opts.taxonNameAttributes);
+    if (hasTaxonName && (!hasTaxonGroup || parent.taxonGroup.label === parent.taxonName.label)) {
+      return referentialToString(parent.taxonName, opts.taxonNameAttributes);
     }
     // Display both, if both exists
     if (hasTaxonName && hasTaxonGroup) {
-      return referentialToString(batch.taxonGroup, opts.taxonGroupAttributes) + ' / '
-        + referentialToString(batch.taxonName, opts.taxonNameAttributes);
+      return referentialToString(parent.taxonGroup, opts.taxonGroupAttributes) + ' / '
+        + referentialToString(parent.taxonName, opts.taxonNameAttributes);
     }
     // Display only taxon group
     if (hasTaxonGroup) {
-      return referentialToString(batch.taxonGroup, opts.taxonGroupAttributes);
+      return referentialToString(parent.taxonGroup, opts.taxonGroupAttributes);
     }
 
     // Display rankOrder only (should never occur)
-    return `#${batch.rankOrder}`;
+    return `#${parent.rankOrder}`;
   }
 
   static isSampleBatch(batch: Batch) {

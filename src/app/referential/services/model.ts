@@ -8,7 +8,7 @@ import {
   fromDateISOString,
   isNil,
   isNotNil,
-  joinProperties,
+  joinPropertiesPath,
   Person,
   Referential,
   ReferentialRef,
@@ -106,12 +106,12 @@ const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 export {
   EntityUtils, StatusIds, AcquisitionLevelCodes,
   Cloneable, Entity, Department, Person, Referential, ReferentialRef,
-  toDateISOString, fromDateISOString, joinProperties, isNotNil, isNil,
+  toDateISOString, fromDateISOString, joinPropertiesPath, isNotNil, isNil,
   entityToString, referentialToString
 };
 
 export function vesselFeaturesToString(obj: VesselFeatures | any): string | undefined {
-  return obj && obj.vesselId && joinProperties(obj, ['exteriorMarking', 'name']) || undefined;
+  return obj && obj.vesselId && joinPropertiesPath(obj, ['exteriorMarking', 'name']) || undefined;
 }
 
 export function getPmfmName(pmfm: PmfmStrategy, opts?: {
@@ -443,7 +443,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   gears: string[];
   taxonGroupIds: number[];
   referenceTaxonIds: number[];
-  qualitativeValues: any[];
+  qualitativeValues: ReferentialRef[];
 
   hidden?: boolean;
 
@@ -481,7 +481,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;
     this.maximumNumberDecimals = source.maximumNumberDecimals;
-    this.defaultValue = source.default;
+    this.defaultValue = source.defaultValue;
     this.acquisitionNumber = source.acquisitionNumber;
     this.isMandatory = source.isMandatory;
     this.rankOrder = source.rankOrder;

@@ -1,4 +1,4 @@
-import {Entity, isNil, ReferentialRef, IReferentialRef, toDateISOString} from "../../../core/core.module";
+import {Entity, isNil, ReferentialRef, IReferentialRef, toDateISOString, EntityUtils} from "../../../core/core.module";
 import {MeasurementUtils} from "../../../trip/services/model/measurement.model";
 
 
@@ -24,6 +24,10 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
     const res = new TaxonNameRef();
     res.fromObject(source);
     return res;
+  }
+
+  static equalsOrSameReferenceTaxon(v1: TaxonNameRef, v2: TaxonNameRef): boolean {
+    return EntityUtils.equals(v1, v2) || (v1 && v2 && v1.referenceTaxonId === v2.referenceTaxonId);
   }
 
   label: string;
@@ -58,7 +62,7 @@ export class TaxonNameRef extends Entity<TaxonNameRef> implements IReferentialRe
     this.label = source.label;
     this.name = source.name;
     this.statusId = source.statusId;
-    this.entityName = source.entityName;
+    this.entityName = source.entityName || 'TaxonName';
     this.referenceTaxonId = source.referenceTaxonId;
     return this;
   }

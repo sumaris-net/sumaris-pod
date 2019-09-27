@@ -47,6 +47,8 @@ import {AppGraphQLModule} from './graphql/graphql.module';
 import {DateAdapter} from "@angular/material";
 import * as moment from "moment/moment";
 import {AppFormUtils, FormArrayHelper} from './form/form.utils';
+import {AppTableUtils} from './table/table.utils';
+
 
 import {environment} from '../../environments/environment';
 import {
@@ -57,7 +59,7 @@ import {
   entityToString,
   EntityUtils,
   IReferentialRef,
-  joinProperties,
+  joinPropertiesPath,
   LocationLevelIds,
   Person,
   personsToString,
@@ -118,7 +120,7 @@ export {
   LocalSettingsService,
   toDateISOString,
   fromDateISOString,
-  joinProperties,
+  joinPropertiesPath,
   isNil,
   isNotNil,
   nullIfUndefined,
@@ -126,7 +128,8 @@ export {
   referentialToString,
   personToString,
   personsToString,
-  FormArrayHelper
+  FormArrayHelper,
+  AppTableUtils
 };
 
 export function HttpLoaderFactory(http: HttpClient) {

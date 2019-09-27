@@ -97,7 +97,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
         disabled: this.disabled,
         value: gear.clone(), // Do a copy, because edition can be cancelled
         isNew: isNew
-      }, keyboardClose: true
+      },
+      keyboardClose: true
     });
 
     // Open the modal

@@ -91,8 +91,6 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
     this.propertyDefinitions = this.settings.additionalFields.slice(); // copy options
     this.propertyDefinitions.forEach(o => this.propertyDefinitionsByKey[o.key] = o); // fill map
-    console.log('TODO check settings:', this.propertyDefinitions);
-
 
     // Load settings
     await this.load();

@@ -1,6 +1,6 @@
 import {Component, Inject} from '@angular/core';
 import {MenuItem} from './core/menu/menu.component';
-import {AccountService, isNotNil, joinProperties, LocalSettingsService} from './core/core.module';
+import {AccountService, isNotNil, joinPropertiesPath, LocalSettingsService} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
 import {ConfigService} from './core/services/config.service';
 import {DOCUMENT} from "@angular/common";
@@ -148,7 +148,7 @@ export class AppComponent {
       autocomplete: {
         service: this.referentialRefService,
         filter: {entityName: 'Department'},
-        displayWith: (value) => joinProperties(value, attributes),
+        displayWith: (value) => joinPropertiesPath(value, attributes),
         attributes: attributes
       },
       extra: {
@@ -171,7 +171,7 @@ export class AppComponent {
       .subscribe(() => {
         // Update the display fn
         const attributes = this.settings.getFieldDisplayAttributes('department');
-        departmentDefinition.autocomplete.displayWith = (value) => joinProperties(value, attributes);
+        departmentDefinition.autocomplete.displayWith = (value) => joinPropertiesPath(value, attributes);
         departmentDefinition.autocomplete.attributes = attributes;
       });
   }

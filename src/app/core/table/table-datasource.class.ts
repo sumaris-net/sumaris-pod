@@ -169,17 +169,21 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   }
 
   confirmCreate(row: TableElement<T>) {
-    if (row.validator && row.validator.valid && row.validator.dirty) {
-      row.validator.patchValue({dirty: true});
+    if (!super.confirmCreate(row)) return false;
+    if (row.editing && row.validator) {
+      console.warn('[table-datasource] Row has editing=true after confirmCreate! Force set to false');
+      row.validator.disable({onlySelf: true, emitEvent: false});
     }
-    return super.confirmCreate(row);
+    return true;
   }
 
-  confirmEdit(row: TableElement<T>) {
-    if (row.validator && row.validator.valid && row.validator.dirty) {
-      row.validator.patchValue({dirty: true});
+  confirmEdit(row: TableElement<T>): boolean {
+    if (!super.confirmEdit(row)) return false;
+    if (row.editing && row.validator) {
+      console.warn('[table-datasource] Row has editing=true after confirmCreate! Force set to false');
+      row.validator.disable({onlySelf: true, emitEvent: false});
     }
-    return super.confirmEdit(row);
+    return true;
   }
 
   startEdit(row: TableElement<T>) {

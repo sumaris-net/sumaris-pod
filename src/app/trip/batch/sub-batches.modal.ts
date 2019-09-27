@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "angular4-material-table";
-import {Batch} from "../services/model/batch.model";
+import {TableElement, ValidatorService} from "angular4-material-table";
+import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {SubBatchForm} from "./sub-batch.form";
 import {environment} from "../../../environments/environment";
@@ -8,10 +8,12 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchesTable, SubBatchesTableOptions} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {measurementValueToString} from "../services/model/measurement.model";
-import {AppFormUtils, EntityUtils, isNotNil} from "../../core/core.module";
+import {AppFormUtils, EntityUtils, isNil, isNotNil} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {BatchValidatorService} from "../services/trip.validators";
-import {BatchModal} from "./batch.modal";
+import {pipe} from "rxjs";
+import {startWith} from "rxjs/operators";
+import {isNotNilOrBlank} from "../../shared/functions";
+import {AppPageUtils} from "../../core/form/page.utils";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -19,6 +21,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
 
 @Component({
   selector: 'app-sub-batches-modal',
+  styleUrls: ['sub-batches.modal.scss'],
   templateUrl: 'sub-batches.modal.html',
   providers: [
     {provide: ValidatorService, useExisting: SubBatchValidatorService},
@@ -38,10 +41,10 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
 })
 export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
-  private _defaultValue: Batch;
-  private _existingMaxRankOrder: number;
-  private _existingSubBatches: Batch[];
-
+  private _initialMaxRankOrder: number;
+  private _previousMaxRankOrder: number;
+  private _selectedParent: Batch;
+  private _hiddenData: Batch[];
 
   @Input() onNewParentClick: () => Promise<Batch | undefined>;
 
@@ -62,8 +65,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     return this.form.invalid;
   }
 
-  set defaultValue(value: Batch) {
-    this._defaultValue = value;
+  set selectedParent(parent: Batch) {
+    this._selectedParent = parent;
   }
 
   constructor(
@@ -76,13 +79,17 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       null/*no validator = not editable*/,
       options);
     this.inlineEdition = false; // Disable row edition (readonly)
+    this.confirmBeforeDelete = true; // Ask confirmation before delete
     this.allowRowDetail = false; // Disable click on a row
+
+    // default values
     this.showCommentsColumn = false;
+    this.showParentColumn = false;
+    this.showIndividualCount = !this.mobile; // Hide individual count on mobile device
 
     // TODO: for DEV only ---
     this.debug = !environment.production;
 
-    this.showIndividualCount = false;
   }
 
   async ngOnInit() {
@@ -90,34 +97,51 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     await this.form.onReady();
 
-    // Update table content when changing parent
-    this.registerSubscription(this.form.form.get('parent').valueChanges
-      .subscribe(parent => this.updateExistingSubBatches(parent))
-    );
-
-    this._existingSubBatches = ((await this.availableSubBatchesFn()) || [])
+    const data = (this.availableSubBatchesFn && (await this.availableSubBatchesFn()) || [])
       .sort(EntityUtils.sortComparator('rankOrder', 'desc'));
 
     // Compute the first rankOrder to save
-    this._existingMaxRankOrder = this._existingSubBatches.length > 0 && this._existingSubBatches[0].rankOrder || 0;
+    this._initialMaxRankOrder = data.length && data[0].rankOrder || 0;
 
-    if (this._defaultValue) {
-      // Init the form
-      const initBatch = (this._defaultValue instanceof Batch) ? this._defaultValue.clone() : Batch.fromObject(this._defaultValue);
-      initBatch.parent = this._defaultValue.parent;
-      await this.resetForm(initBatch);
-    }
-    else {
-      // Reset the form
-      await this.resetForm();
+    let defaultBatch: Batch;
+    if (this._selectedParent) {
+      defaultBatch = new Batch();
+      defaultBatch.parent = this._selectedParent;
     }
 
-    // Init table with existing values
-    this.value = this._existingSubBatches
-      // Filter on individual count = 1
-      .filter(b => b.individualCount === 1
-        // AND same parent (if default batch exists)
-        && (!this._defaultValue || EntityUtils.equals(b.parent, this._defaultValue.parent)));
+    // Reset the form, using default value
+    await this.resetForm(defaultBatch);
+
+    // Update table content when changing parent
+    this.registerSubscription(
+      this.form.form.get('parent').valueChanges
+        // Init table with existing values
+        //.pipe(startWith(() => this._defaultValue && this._defaultValue.parent))
+        .subscribe(parent => this.onParentChange(parent))
+    );
+
+    // Apply data to table
+    this.value = data;
+  }
+
+  async cancel(event?: UIEvent) {
+
+    if (this.dirty) {
+      const saveBeforeLeave = await AppPageUtils.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
+
+      // User cancelled
+      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
+        return;
+      }
+
+      // Is user confirm: close normally
+      if (saveBeforeLeave === true) {
+        this.close(event);
+        return;
+      }
+    }
+
+    await this.viewCtrl.dismiss();
   }
 
   async close(event?: UIEvent) {
@@ -145,38 +169,116 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     }
   }
 
+  isNewRow(row: TableElement<Batch>): boolean {
+    return row.currentData.rankOrder > this._initialMaxRankOrder;
+  }
+
+  onEditRow(event: MouseEvent, row?: TableElement<Batch>): boolean {
+
+    row = row || (!this.selection.isEmpty() && this.selection.selected[0]);
+    if (!row) throw new Error ("Missing row argument, or a row selection.");
+
+    // Confirm last edited row
+    if (this.editedRow) {
+      this.confirmEditCreate();
+    }
+
+    // Copy the row into the form
+    this.form.setValue(row.validator ? Batch.fromObject(row.currentData) : row.currentData, {emitEvent: true});
+    this.markForCheck();
+
+    // Then remove the row
+    row.startEdit();
+    this.editedRow = row;
+    return true;
+  }
+
+  selectRow(event: MouseEvent|null, row: TableElement<Batch>) {
+    if (event && event.defaultPrevented || !row) return;
+    if (event) event.preventDefault();
+
+    this.selection.clear();
+    this.selection.toggle(row);
+  }
+
   /* -- protected methods -- */
 
-  protected getValue(): Batch[] {
-    const addedRow = (super.getValue() || [])
-      .concat(this._existingSubBatches)
-      .filter(b => b.rankOrder > this._existingMaxRankOrder);
-    //console.log("TODO getValue():", addedRow)
-    return addedRow;
+  protected async onParentChange(parent?: Batch) {
+    // Skip if same parent
+    if (Batch.equals(this._selectedParent, parent)) return;
+
+    // Store the new parent, in order apply filter in onLoadData()
+    this._selectedParent = isNotNilOrBlank(parent) ? parent : undefined;
+
+    // If pending changes, save new rows
+    if (this._dirty) {
+      const saved = await this.save();
+      if (!saved) {
+        console.error('Could not save the table');
+        this.form.error = 'ERROR.SAVE_DATA_ERROR';
+        return;
+      }
+    }
+
+    // Call refresh on datasource, to force a data reload (will apply filter calling onLoadData())
+    this.onRefresh.emit();
+  }
+
+  protected onLoadData(data: Batch[]): Batch[] {
+
+    // Filter by parent
+    if (data && this._selectedParent) {
+      const showIndividualCount = this.showIndividualCount; // Read once the getter value
+      const filteredData = [];
+      const hiddenData = [];
+      let maxRankOrder = this._previousMaxRankOrder || this._initialMaxRankOrder;
+      data.forEach(b => {
+        // Filter on individual count = 1 (if individual count is hide)
+        // AND same parent
+        if ( (showIndividualCount || b.individualCount === 1)
+          && Batch.equals(this._selectedParent, b.parent)) {
+          filteredData.push(b);
+        }
+        else {
+          hiddenData.push(b);
+        }
+        maxRankOrder = Math.max(maxRankOrder, b.rankOrder || 0);
+      });
+      this._hiddenData = hiddenData;
+      this._previousMaxRankOrder = maxRankOrder;
+      return super.onLoadData(filteredData);
+    }
+    // Not filtered
+    else {
+      this._hiddenData = [];
+      return super.onLoadData(data);
+    }
+  }
+
+  protected onSaveData(data: Batch[]): Batch[] {
+    // Append hidden data to the list, then save
+    return super.onSaveData(data.concat(this._hiddenData || []));
   }
 
   protected async getMaxRankOrder(): Promise<number> {
-    return Math.max(await super.getMaxRankOrder(), this._existingMaxRankOrder);
+    return Math.max(await super.getMaxRankOrder(), this._previousMaxRankOrder || this._initialMaxRankOrder);
   }
 
-  protected async updateExistingSubBatches(parent?: Batch) {
-    // Save changes
-    if (this._dirty) {
-      await this.save();
+  protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
+    const row = await super.addBatchToTable(newBatch);
+    if (row) {
+      this.selectRow(null, row);
+
+      setTimeout(() => {
+        if (this.selection.isSelected(row)) {
+          this.selection.toggle(row);
+          this.markForCheck();
+        }
+      }, 1000);
     }
-    // Get new added
-    const addedSubBatches = this.getValue();
-
-    // Add new values, to remembers
-    this._existingSubBatches = (this._existingSubBatches || []).concat(addedSubBatches);
-
-    // Init table with existing values
-    this.value = this._existingSubBatches
-    // Filter on individual count = 1
-      .filter(b => b.individualCount === 1
-        // AND same parent (if exists)
-        && (!parent || EntityUtils.equals(b.parent, parent)));
+    return row;
   }
+
 
   measurementValueToString = measurementValueToString;
 
