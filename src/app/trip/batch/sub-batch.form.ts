@@ -426,7 +426,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       if (index !== -1) {
         const qvPmfm = this._qvPmfm.clone();
         qvPmfm.hidden = true;
-        qvPmfm.isMandatory = true;
+        qvPmfm.required = true;
         pmfms[index] = qvPmfm;
       }
     }
