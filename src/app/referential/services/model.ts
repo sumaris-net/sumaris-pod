@@ -496,6 +496,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   get required(): boolean {
     return this.isMandatory;
   }
+  set required(value: boolean) {
+    this.isMandatory = value;
+  }
 
   get isNumeric(): boolean {
     return isNotNil(this.type) && (this.type === 'integer' || this.type === 'double');
@@ -524,6 +527,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   get isWeight(): boolean {
     return isNotNil(this.label) && this.label.endsWith("WEIGHT");
   }
+
 }
 
 

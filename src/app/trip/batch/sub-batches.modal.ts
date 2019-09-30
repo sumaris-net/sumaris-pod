@@ -266,19 +266,30 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   protected async addBatchToTable(newBatch: Batch): Promise<TableElement<Batch>> {
     const row = await super.addBatchToTable(newBatch);
-    if (row) {
-      this.selectRow(null, row);
 
-      setTimeout(() => {
-        if (this.selection.isSelected(row)) {
-          this.selection.toggle(row);
-          this.markForCheck();
-        }
-      }, 1000);
-    }
+    // Highlight the row, few seconds
+    this.highlightRow(row);
+
     return row;
   }
 
+  /**
+   * Will highlight the row few seconds
+   * @param row
+   */
+  protected highlightRow(row: TableElement<Batch>, timeout?: number) {
+
+    // Unselect previous selected rows
+    this.selection.clear();
+
+    // Selection the row (this will apply CSS class mat-row-selected)
+    this.selection.select(row);
+
+    setTimeout(() => {
+      // If row is still selected: unselect it
+      if (this.selection.isSelected(row)) this.selection.toggle(row);
+    }, timeout || 2500);
+  }
 
   measurementValueToString = measurementValueToString;
 

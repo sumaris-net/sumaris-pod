@@ -10,7 +10,7 @@ import {
   ViewChildren
 } from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {Batch} from "../services/model/batch.model";
+import {Batch, BatchUtils} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
@@ -34,7 +34,7 @@ import {
 } from "rxjs/operators";
 import {isNil, isNotNil, PmfmIds, PmfmStrategy, QualitativeLabels} from "../../referential/services/model";
 import {BehaviorSubject, combineLatest, Observable} from "rxjs";
-import {getPropertyByPath, isNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
+import {getPropertyByPath, isNilOrBlank, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {PlatformService} from "../../core/services/platform.service";
@@ -203,51 +203,57 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     // Mobile
     if (this.mobile) {
 
-      // Compute taxon names when parent has changed
-      let currentParenLabel;
-      Observable.fromPromise(this.onReady())
-        .pipe(
-          switchMap(() => parentControl.valueChanges)
-        )
-        .pipe(
-          filter(parent => EntityUtils.isNotEmpty(parent) && currentParenLabel !== parent.label),
-          tap(parent => currentParenLabel = parent.label),
-          mergeMap((_) => this.suggestTaxonNames('*'))
-        )
-        .subscribe(items => this.$taxonNames.next(items));
+      this.onReady().then(() => {
+        let currentParenLabel;
 
-      this.registerSubscription(
-        combineLatest([
-          this.$taxonNames,
-          Observable.fromPromise(this.onReady()).pipe(switchMap(() => taxonNameControl.valueChanges))
-        ])
+        // Compute taxon names when parent has changed
+        parentControl.valueChanges
+        // Compute taxon names when parent has changed
           .pipe(
-            filter(([items, value]) => isNotNil(items))
+            filter(parent => isNotNilOrBlank(parent) && isNotNilOrBlank(parent.label) && currentParenLabel !== parent.label),
+            tap(parent => currentParenLabel = parent.label),
+            mergeMap((_) => this.suggestTaxonNames('*'))
           )
-          .subscribe(([items, value]) => {
-            let newValue: TaxonNameRef;
-            let index = -1;
-            // Compute index in list, and get value
-            if (items && items.length === 1) {
-              index = 0;
-            }
-            else if (EntityUtils.isNotEmpty(value)) {
-              index = items.findIndex(v => TaxonNameRef.equalsOrSameReferenceTaxon(v, value));
-            }
-            newValue = (index !== -1) ? items[index] : null;
+          .subscribe(items => this.$taxonNames.next(items));
 
-            // Apply to form, if need
-            if (!EntityUtils.equals(value, newValue)) {
-              taxonNameControl.setValue(newValue, {emitEvent: false});
-              this.markAsDirty();
-            }
+        // Update taxonName when need
+        let lastTaxonName: TaxonNameRef;
+        this.registerSubscription(
+          combineLatest([
+            this.$taxonNames,
+            taxonNameControl.valueChanges.pipe(
+              tap(v => lastTaxonName = v)
+            )
+          ])
+            .pipe(
+              filter(([items, value]) => isNotNil(items))
+            )
+            .subscribe(([items, value]) => {
+              let newTaxonName: TaxonNameRef;
+              let index = -1;
+              // Compute index in list, and get value
+              if (items && items.length === 1) {
+                index = 0;
+              }
+              else if (EntityUtils.isNotEmpty(lastTaxonName)) {
+                index = items.findIndex(v => TaxonNameRef.equalsOrSameReferenceTaxon(v, lastTaxonName));
+              }
+              newTaxonName = (index !== -1) ? items[index] : null;
 
-            // Apply to button index, if need
-            if (this.selectedTaxonNameIndex !== index) {
-              this.selectedTaxonNameIndex = index;
-              this.markForCheck();
-            }
-          }));
+              // Apply to form, if need
+              if (!EntityUtils.equals(lastTaxonName, newTaxonName)) {
+                taxonNameControl.setValue(newTaxonName, {emitEvent: false});
+                lastTaxonName = newTaxonName;
+                this.markAsDirty();
+              }
+
+              // Apply to button index, if need
+              if (this.selectedTaxonNameIndex !== index) {
+                this.selectedTaxonNameIndex = index;
+                this.markForCheck();
+              }
+            }));
+      })
     }
 
     // Desktop
@@ -309,7 +315,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   focusFirstEmpty(event?: UIEvent) {
-    console.log("TODO check focusFirstEmpty()");
     // Focus to first input
     this.matInputs
       .map((input) => {
@@ -340,7 +345,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   }
 
   setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
-    // Replace parent with value of availableParents
+    // Replace parent with value from availableParents
     this.linkToParent(data);
 
     // Inherited method

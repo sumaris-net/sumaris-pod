@@ -325,6 +325,8 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     await this.onReady();
 
+    console.log("TODO reseting form")
+
     this.form.availableParents = this._availableSortedParents;
     const enableIndividualCount = this.form.enableIndividualCount;
 
@@ -450,6 +452,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
         // Replace original pmfm by a copy, with hidden=true
         const qvPmfm = this.qvPmfm.clone();
         qvPmfm.hidden = true;
+        qvPmfm.required = true;
 
         pmfms[index] = qvPmfm;
       }

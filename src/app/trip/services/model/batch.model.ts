@@ -189,6 +189,10 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
 
 export class BatchUtils {
 
+  static isNotEmpty(batch: Batch): boolean {
+    return isNotNilOrBlank(batch) && isNotNilOrBlank(batch.label);
+  }
+
   static parentToString(parent: Batch, opts?: {
     pmfm?: PmfmStrategy,
     taxonGroupAttributes: string[];
