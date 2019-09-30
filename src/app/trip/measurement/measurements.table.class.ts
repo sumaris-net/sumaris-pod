@@ -22,7 +22,7 @@ import {isNotNil} from "../../shared/shared.module";
 import {IEntityWithMeasurement, MeasurementValuesUtils, PMFM_ID_REGEXP} from "../services/model/measurement.model";
 import {MeasurementsDataService} from "./measurements.service";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
-import {firstNotNilPromise} from "../../shared/observables";
+import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 
 
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
@@ -120,6 +120,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.pageSize = 10000; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
     this.autoLoad = false; // must wait pmfms to be load
+    this.loading = false;
 
     this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, options && {
       mapPmfms: options.mapPmfms
@@ -128,15 +129,13 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
     // Default options
-    options = options || {prependNewElements: false, suppressErrors: true};
-    if (!options.onRowCreated) {
-      options.onRowCreated = (row) => this.onRowCreated(row);
+    this.options = this.options || {prependNewElements: false, suppressErrors: true};
+    if (!this.options.onRowCreated) {
+      this.options.onRowCreated = (row) => this.onRowCreated(row);
     }
 
     const encapsulatedValidator = this.validatorService ? this : null;
-    this.setDatasource(new AppTableDataSource(dataType, this.measurementsDataService, encapsulatedValidator, options));
-
-    this.markAsLoaded();
+    this.setDatasource(new AppTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, this.options));
 
     // For DEV only
     //this.debug = !environment.production;
@@ -146,10 +145,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     super.ngOnInit();
 
     this.registerSubscription(
-      this.$pmfms
-        .pipe(filter(isNotNil))
+      filterNotNil(this.$pmfms)
         .subscribe(pmfms => {
           this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
+
 
           // Update the settings id, as program could have changed
           this.settingsId = this.generateTableId();
@@ -174,8 +173,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
         formGroup.removeControl('measurementValues');
       }
       formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
-    } else {
-      console.warn('NO measurementValuesFormGroupConfig !');
     }
     return formGroup;
   }
