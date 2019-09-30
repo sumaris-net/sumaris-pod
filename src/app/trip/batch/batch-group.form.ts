@@ -101,25 +101,21 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     return this.batchForm.dirty || (this.childrenForms && this.childrenForms.find(child => child.dirty) && true) || false;
   }
 
-  markAsTouched() {
-    this.batchForm.markAsTouched();
-    this.childrenForms && this.childrenForms.forEach(child => {
-      child.markAsTouched();
-    });
+  markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+    this.batchForm.markAsTouched(opts);
+    (this.childrenForms || []).forEach(child => child.markAsTouched(opts));
   }
 
-  markAsPristine() {
-    this.batchForm.markAsPristine();
-    this.childrenForms && this.childrenForms.forEach(child => {
-      child.markAsPristine();
-    });
+  markAsPristine(opts?: {onlySelf?: boolean; }) {
+    this.batchForm.markAsPristine(opts);
+    (this.childrenForms || []).forEach(child => child.markAsPristine(opts));
   }
 
-  markAsDirty() {
-    this.batchForm.markAsDirty();
-    this.childrenForms && this.childrenForms.forEach(child => {
-      child.markAsDirty();
-    });
+  markAsDirty(opts?: {
+    onlySelf?: boolean;
+  }) {
+    this.batchForm.markAsDirty(opts);
+    (this.childrenForms && []).forEach(child => child.markAsDirty(opts));
   }
 
   disable(opts?: {
@@ -127,7 +123,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     emitEvent?: boolean;
   }) {
     this.batchForm.disable(opts);
-    this.childrenForms && this.childrenForms.forEach(child => child.disable(opts));
+    (this.childrenForms || []).forEach(child => child.disable(opts));
     if (this._enable || (opts && opts.emitEvent)) {
       this._enable = false;
       this.markForCheck();

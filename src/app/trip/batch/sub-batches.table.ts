@@ -258,7 +258,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     if (row !== this.editedRow && !this.confirmEditCreate()) return;
 
     if (this.form.invalid) {
-      this.form.markAsTouched();
+      this.form.markAsTouched({emitEvent: true});
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-table] ");
       return;
     }
@@ -324,8 +324,6 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   protected async resetForm(previousBatch?: Batch, options?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
 
     await this.onReady();
-
-    console.log("TODO reseting form")
 
     this.form.availableParents = this._availableSortedParents;
     const enableIndividualCount = this.form.enableIndividualCount;
@@ -610,11 +608,11 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
 
     this._availableParents = parents;
 
-    // Sort parents by by Tag-ID
+    // Sort parents by Tag-ID, or rankOrder
     if (this.displayParentPmfm) {
       this._availableSortedParents = this.sortData(parents.slice(), this.displayParentPmfm.pmfmId.toString());
     } else {
-      this._availableSortedParents = this.sortData(parents.slice(), 'parent');
+      this._availableSortedParents = this.sortData(parents.slice(), 'rankOrder');
     }
 
     await this.onReady();

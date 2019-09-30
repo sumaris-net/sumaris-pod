@@ -112,7 +112,7 @@ export class BatchModal implements OnInit {
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
-      this.form.markAsTouched();
+      this.form.markAsTouched({emitEvent: true});
       return;
     }
 

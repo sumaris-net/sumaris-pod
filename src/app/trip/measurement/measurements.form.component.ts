@@ -163,15 +163,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     );
   }
 
-  public markAsTouched() {
-    // Force each sub-controls
-    (this.pmfms.getValue() || []).forEach(p => {
-      const control = this.form.get(p.pmfmId.toString());
-      if (control) control.markAsTouched();
-    });
-    super.markAsTouched();
-  }
-
   /* -- protected methods -- */
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {

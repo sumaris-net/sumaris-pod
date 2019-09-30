@@ -154,7 +154,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     if (!this.valid) { // invalid OR pending
       if (this.debug) this.form.logErrors("[batch-group-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
-      this.form.markAsTouched();
+      this.form.markAsTouched({emitEvent: true});
       this.loading = false;
       return;
     }

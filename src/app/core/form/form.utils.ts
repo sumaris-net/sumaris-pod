@@ -271,9 +271,10 @@ export function clearValueInArray(form: FormGroup,
 export function markAsTouched(form: FormGroup, opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
   if (!form) return;
   form.markAsTouched(opts);
-  Object.getOwnPropertyNames(form.controls)
-    .forEach(key => {
-      const control = form.get(key);
+  Object.keys(form.controls)
+    .map(key => form.controls[key])
+    .filter(control => control.enabled)
+    .forEach(control => {
       if (control instanceof FormGroup) {
         markAsTouched(control, opts); // recursive call
       }

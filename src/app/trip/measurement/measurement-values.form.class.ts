@@ -133,18 +133,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  public markAsTouched() {
-    super.markAsTouched();
-
-    // Propage to pmfms control
-    const pmfms = this.$pmfms.getValue();
-    if (pmfms && this.form && this.form.controls['measurementValues']) {
-      const pmfmForm = this.form.controls['measurementValues'] as FormGroup;
-      pmfms.map(pmfm => pmfmForm.controls[pmfm.pmfmId])
-        .forEach(control => control && control.markAsTouched({onlySelf: true}));
-    }
-  }
-
   setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     if (this.$loadingControls.getValue()) {
       throw Error("Form not ready yet. Please use safeSetValue() instead!");

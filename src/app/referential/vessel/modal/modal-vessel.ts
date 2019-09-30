@@ -41,11 +41,11 @@ export class VesselModal implements OnInit {
 
     console.debug("[vessel-modal] Saving new vessel...");
 
-    // Avoid multiple call    
+    // Avoid multiple call
     if (this.disabled) return;
 
     if (this.formVessel.invalid) {
-      this.formVessel.markAsTouched();
+      this.formVessel.markAsTouched({emitEvent: true});
 
       AppFormUtils.logFormErrors(this.formVessel.form);
       return;

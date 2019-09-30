@@ -130,6 +130,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
 
   doSubmit(event: any) {
     if (!this.form && this.form.invalid) {
+      this.markAsTouched({emitEvent: true});
       return;
     }
     this.onSubmit.emit(event);
@@ -169,7 +170,9 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     this.markForCheck();
   }
 
-  markAsDirty() {
+  markAsDirty(opts?: {
+    onlySelf?: boolean;
+  }) {
     this.form.markAsDirty();
     this.markForCheck();
   }

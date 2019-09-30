@@ -264,9 +264,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.$items = updateEvents$
         .pipe(
           distinctUntilChanged(),
-          tap<any>(() => console.log('TODO: updateEvents$ emit')),
+          // DEBUG tap<any>(() => console.log('TODO: updateEvents$ emit')),
           throttleTime(100),
-          tap<any>(() => console.log('TODO: updateEvents$ after throttleTime')),
+          // DEBUG tap<any>(() => console.log('TODO: updateEvents$ after throttleTime')),
           switchMap((value) => this.service.suggest(value, this.filter)),
           // Store implicit value (will use it onBlur if not other value selected)
           tap(res =>  this.updateImplicitValue(res))

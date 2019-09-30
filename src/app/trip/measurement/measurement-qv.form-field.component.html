@@ -116,7 +116,8 @@
                   [floatLabel]="floatLabel === 'never' ? 'never' : 'always'">
     <input matInput type="text" hidden
            [formControl]="formControl"
-           [placeholder]="pmfm.name">
+           [placeholder]="pmfm.name"
+           [required]="required">
     <ion-grid no-padding *ngIf="formControl.enabled; else emptyLabel">
       <ion-row no-padding>
         <ion-col *ngFor="let item of pmfm.qualitativeValues; index as i">

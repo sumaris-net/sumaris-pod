@@ -14,7 +14,7 @@
       <ion-spinner *ngIf="loading"></ion-spinner>
 
       <ion-button  visible-xs visible-sm visible-mobile
-                   *ngIf="!loading && stepper.selectedIndex === 0" (click)="tripForm.doSubmit($event, tripForm.value)">
+                   *ngIf="!loading && stepper.selectedIndex === 0" (click)="tripForm.doSubmit($event)">
         <ion-icon slot="icon-only" name="arrow-forward"></ion-icon>
       </ion-button>
 
