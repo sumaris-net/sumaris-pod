@@ -28,7 +28,7 @@ import {filter, finalize, first, throttleTime} from "rxjs/operators";
 })
 export class BatchGroupModal implements OnInit, OnDestroy {
 
-  private _subscriptions: Subscription[] = [];
+  private _subscription = new Subscription();
 
   debug = false;
   loading = false;
@@ -116,7 +116,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
     if (!this.isNew) {
       // Update title each time value changes
-      this._subscriptions.push(
+      this._subscription.add(
         this.form.valueChanges
           .pipe(
             throttleTime(500)
@@ -127,12 +127,8 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this._subscriptions.length) {
-      this._subscriptions.forEach(s => s.unsubscribe());
-      this._subscriptions = [];
-    }
+    this._subscription.unsubscribe();
   }
-
 
   async cancel() {
     await this.viewCtrl.dismiss();

@@ -387,7 +387,7 @@
         "TAXON_NAME": "Espèce scientifique",
         "PARENT": "Lot espèce",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
-        "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
+        "BTN_INDIVIDUAL_MEASURE": "Mesures individuelles",
         "ESTIMATED_WEIGHT": "Poids estimé ?",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
         "TOTAL_WEIGHT": "Poids total (kg)",

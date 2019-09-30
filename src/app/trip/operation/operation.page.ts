@@ -5,7 +5,7 @@ import {OperationForm} from './operation.form';
 import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppFormUtils, AppTabPage, environment, LocalSettingsService} from '../../core/core.module';
+import {AppFormUtils, AppTableUtils, AppTabPage, environment, LocalSettingsService} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
 import {AlertController} from "@ionic/angular";
 import {TranslateService} from '@ngx-translate/core';
@@ -27,7 +27,7 @@ import {SamplesTable} from "../sample/samples.table";
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
-import {AppTableUtils} from "../../core/core.module";
+import {filterNotNil} from "../../shared/observables";
 
 @Component({
   selector: 'page-operation',
@@ -146,12 +146,18 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Update available parent on sub-sample table, when samples changes
     this.registerSubscription(
-      this.samplesTable.listChange
-        .pipe(debounceTime(400))
+      this.samplesTable.dataSource.datasourceSubject
+        .pipe(
+          debounceTime(400),
+          // skip if loading
+          filter(() => !this.loading)
+        )
         .subscribe(samples => {
           if (this.loading) return; // skip during loading
+          // Get parents with a TAG_ID
           const availableParents = (samples || [])
-            .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
+            .filter(s => isNotNil(s.measurementValues[PmfmIds.TAG_ID.toString()]));
+
           // Will refresh the tables (inside the setter):
           this.individualMonitoringTable.availableParents = availableParents;
           this.individualReleaseTable.availableParents = availableParents;
@@ -159,27 +165,28 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Update available parent on individual batch table, when batch group changes
     this.registerSubscription(
-      this.batchGroupsTable.listChange
-        .pipe(debounceTime(400))
-        .subscribe(rootBatches => {
-          if (this.loading || !this.enableSubBatchesTable) return; // skip during loading
-          // Will refresh the tables (inside the setter):
-          this.subBatchesTable.availableParents = (rootBatches || []);
-        })
+      this.batchGroupsTable.dataSource.datasourceSubject
+        .pipe(
+          debounceTime(400),
+          // skip if loading
+          filter(() => !this.loading && this.enableSubBatchesTable)
+        )
+        // Will refresh the tables (inside the setter):
+        .subscribe(rootBatches => this.subBatchesTable.availableParents = (rootBatches || []))
     );
 
 
     // Enable sub batches when table pmfms ready
-    this.subBatchesTable.$pmfms
-      .pipe(filter(isNotNil), first())
-      .subscribe(pmfms => {
-        if (!this.enableSubBatchesTable && pmfms.length > 0) {
-          this.enableSubBatchesTable = true;
-          this.markForCheck();
-        }
-      });
+    this.registerSubscription(
+      filterNotNil(this.subBatchesTable.$pmfms)
+        .subscribe(pmfms => {
+          if (!this.enableSubBatchesTable && pmfms.length > 0) {
+            this.enableSubBatchesTable = true;
+            this.markForCheck();
+          }
+        }));
 
-    // Link greoup table to individual
+    // Link group table to individual
     this.batchGroupsTable.availableSubBatchesFn = async () => {
       if (this.subBatchesTable.dirty) await this.subBatchesTable.save();
       return this.subBatchesTable.value;

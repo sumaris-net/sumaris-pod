@@ -86,7 +86,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   @Input() set pmfms(pmfms: Observable<PmfmStrategy[]> | PmfmStrategy[]) {
-    this.loading = true;
+    this.markAsLoading();
     this.measurementsDataService.pmfms = pmfms;
   }
 
@@ -120,7 +120,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.pageSize = 10000; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
     this.autoLoad = false; // must wait pmfms to be load
-    this.loading = false;
 
     this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, options && {
       mapPmfms: options.mapPmfms
@@ -136,6 +135,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     const encapsulatedValidator = this.validatorService ? this : null;
     this.setDatasource(new AppTableDataSource(dataType, this.measurementsDataService, encapsulatedValidator, options));
+
+    this.markAsLoaded();
 
     // For DEV only
     //this.debug = !environment.production;

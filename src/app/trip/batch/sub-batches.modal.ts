@@ -153,7 +153,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
       // Continue
     }
 
-    this.loading = true;
+    this.markAsLoading();
     this.error = undefined;
 
     try {
@@ -165,7 +165,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
-      this.loading = false;
+      this.markAsLoaded();
     }
   }
 

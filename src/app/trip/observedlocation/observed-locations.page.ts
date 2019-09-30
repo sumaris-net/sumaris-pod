@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {AppTable, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
 import {
@@ -32,7 +32,7 @@ import {qualityFlagToColor} from "../../referential/services/model";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLocationFilter> {
+export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
   canEdit: boolean;
   canDelete: boolean;
@@ -93,7 +93,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();
@@ -138,11 +138,11 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
       this.filterForm.markAsPristine();
     });
 
-    // TODO: remove this
-    setTimeout(() => {
-      this.loading = false;
-      this.markForCheck();
-    }, 1000);
+    // // TODO: remove this
+    // setTimeout(() => {
+    //   this.loading = false;
+    //   this.markForCheck();
+    // }, 1000);
   }
 
   protected openRow(id: number): Promise<boolean> {

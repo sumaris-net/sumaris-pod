@@ -1,7 +1,7 @@
 import {AfterViewInit, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatColumnDef, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
-import {Observable, of, Subject} from 'rxjs';
+import {Observable, of, Subject, Subscriber} from 'rxjs';
 import {catchError, filter, mergeMap, startWith, switchMap, takeUntil} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
@@ -33,7 +33,9 @@ export const RESERVED_END_COLUMNS = ['actions'];
 export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, OnDestroy, AfterViewInit {
 
   private _initialized = false;
-  private _subscriptions: Subscription[] = [];
+  private _subscription = new Subscription();
+  private _dataSourceSubscription: Subscription;
+
   private _cellValueChangesDefs: {
     [key: string]: {
       eventEmitter: EventEmitter<any>;
@@ -59,7 +61,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   loading = true;
   focusFirstColumn = false;
   error: string;
-  showFilter = false;
   isRateLimitReached = false;
   selection = new SelectionModel<TableElement<T>>(true, []);
   editedRow: TableElement<T> = undefined;
@@ -89,13 +90,14 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   @ViewChild(MatSort) sort: MatSort;
 
   @Output()
-  listChange = new EventEmitter<T[]>();
-
-  @Output()
   onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>(true);
 
   @Output()
   onNewRow: EventEmitter<void> = new EventEmitter<void>(true);
+
+  get $loading(): Observable<boolean> {
+    return this.dataSource.loadingSubject;
+  }
 
   @Output()
   get dirty(): boolean {
@@ -274,11 +276,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   ngOnDestroy() {
-    if (this._subscriptions.length) {
-      //if (this.debug) console.debug(`[table] Deleting ${this._subscriptions.length} subscriptions ${this.constructor.name}#*`);
-      this._subscriptions.forEach(s => s.unsubscribe());
-      this._subscriptions = [];
-    }
+    this._subscription.unsubscribe();
 
     // Unsubscribe column value changes
     Object.getOwnPropertyNames(this._cellValueChangesDefs)
@@ -304,16 +302,22 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
 
   protected listenDatasource(dataSource: AppTableDataSource<T, F>) {
     if (!dataSource) throw new Error("[table] dataSource not set !");
-    if (this._subscriptions.length) console.warn("Too many call of listenDatasource!", new Error());
-    this.registerSubscription(dataSource.onLoading.subscribe(loading => {
+
+    // Cleaning previous subscription on datasource
+    if (isNotNil(this._dataSourceSubscription)) {
+      //if (this.debug)
+      console.debug("[table] Many call to listenDatasource(): Cleaning previous subscriptions...");
+      this._dataSourceSubscription.unsubscribe();
+      this._subscription.remove(this._dataSourceSubscription);
+    }
+
+    this._dataSourceSubscription = new Subscription();
+    this._dataSourceSubscription.add(dataSource.loadingSubject.subscribe(loading => {
       this.loading = loading;
       this.markForCheck();
     }));
-    this.registerSubscription(dataSource.datasourceSubject.subscribe(data => {
-      this.error = undefined;
-      this.listChange.emit(data);
-      // NOT NEED this.markForCheck();
-    }));
+
+    this._subscription.add(this._dataSourceSubscription);
   }
 
   confirmAndAddRow(event?: any, row?: TableElement<T>): boolean {
@@ -506,11 +510,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
         //return false;
       }
 
-      this.loading = true;
+      this.markAsLoading();
       setTimeout(async () => {
         await this.openRow(row.currentData.id, row);
-        this.loading = false;
-        this.markForCheck();
+        this.markAsLoaded();
       });
 
       return true;
@@ -614,8 +617,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   /* -- protected method -- */
 
   protected registerSubscription(sub: Subscription) {
-    this._subscriptions.push(sub);
-    //if (this.debug) console.debug(`[table] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
+    this._subscription.add(sub);
   }
 
   protected registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
@@ -743,5 +745,24 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     // Should be override by subclasses, depending on ChangeDetectionStrategy
   }
 
+  protected markAsLoading() {
+    if (this.dataSource) {
+      this.dataSource.loadingSubject.next(true);
+    }
+    else {
+      this.loading = true;
+      this.markForCheck();
+    }
+  }
+
+  protected markAsLoaded() {
+    if (this.dataSource) {
+      this.dataSource.loadingSubject.next(false);
+    }
+    else {
+      this.loading = false;
+      this.markForCheck();
+    }
+  }
 }
 

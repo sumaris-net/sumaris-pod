@@ -10,10 +10,10 @@ export class AppTableUtils {
       throw Error("Invalid table. Missing table or table.dataSource")
     }
 
-    await table.dataSource.onLoading
+    await table.dataSource.loadingSubject
       .pipe(
         debounceTime(100), // if not started yet, wait
-        filter(loading => !loading),
+        filter(loading => loading === false),
         first()
       ).toPromise();
 

@@ -232,23 +232,10 @@
          *ngIf="showBatchTables && selectedTabIndex === 1" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
 
-  <ion-fab-button color="tertiary">
-    <ion-icon name="add"></ion-icon>
+  <ion-fab-button color="tertiary" (click)="batchGroupsTable.addRow($event)">
+    <ion-icon name="add" ></ion-icon>
   </ion-fab-button>
 
-  <ion-fab-list side="top">
-
-    <!-- add batch -->
-    <ion-fab-button color="tertiary" (click)="batchGroupsTable.addRow($event)">
-      <ion-icon name="cube" ></ion-icon>
-    </ion-fab-button>
-
-    <!-- add sub-batch -->
-    <ion-fab-button color="tertiary" (click)="batchGroupsTable.openSubBatchesModal()">
-      <mat-icon>assessment</mat-icon>
-    </ion-fab-button>
-
-  </ion-fab-list>
 </ion-fab>
 
 <!-- FAB button: add sub-batch

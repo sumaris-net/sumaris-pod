@@ -29,7 +29,7 @@ export class NetworkService {
   private _peer: Peer;
   private _startPromise: Promise<any>;
   private _started = false;
-  private _subscriptions: Subscription[] = [];
+  private _subscription = new Subscription();
   private _connectionType: string;
 
   onStart = new Subject<Peer>();
@@ -117,8 +117,8 @@ export class NetworkService {
       .then(() => this.setConnectionType(this.network.type));
 
     // Listen for network changes
-    this._subscriptions.push(this.network.onDisconnect().subscribe(() => this.setConnectionType('none')));
-    this._subscriptions.push(this.network.onConnect().subscribe(() => this.setConnectionType(this.network.type)));
+    this._subscription.add(this.network.onDisconnect().subscribe(() => this.setConnectionType('none')));
+    this._subscription.add(this.network.onConnect().subscribe(() => this.setConnectionType(this.network.type)));
 
 
     return this._startPromise;
@@ -134,8 +134,8 @@ export class NetworkService {
     this._started = false;
     this._startPromise = undefined;
 
-    this._subscriptions.forEach(s => s.unsubscribe());
-    this._subscriptions = [];
+    this._subscription.unsubscribe();
+    this._subscription = new Subscription();
   }
 
   /**

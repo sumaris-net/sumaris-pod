@@ -16,7 +16,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
   private _forms: AppForm<any>[];
   private _tables: AppTable<any, any>[];
-  private _subscriptions: Subscription[] = [];
+  private _subscription = new Subscription();
 
   debug = false;
   data: T;
@@ -92,11 +92,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   }
 
   ngOnDestroy() {
-    if (this._subscriptions.length) {
-      if (this.debug) console.debug(`[page] Deleting ${this._subscriptions.length} subscriptions ${this.constructor.name}#*`);
-      this._subscriptions.forEach(s => s.unsubscribe());
-      this._subscriptions = [];
-    }
+    this._subscription.unsubscribe();
   }
 
   abstract async load(id?: number, options?: F);
@@ -333,8 +329,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   }
 
   protected registerSubscription(sub: Subscription) {
-    this._subscriptions.push(sub);
-    if (this.debug) console.debug(`[page] Registering a new subscription ${this.constructor.name}#${this._subscriptions.length}`);
+    this._subscription.add(sub);
   }
 
   protected async saveIfDirtyAndConfirm(): Promise<boolean> {

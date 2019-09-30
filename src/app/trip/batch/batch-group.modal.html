@@ -23,8 +23,7 @@
 </ion-header>
 
 
-<ion-content padding>
-
+<ion-content padding cdkTrapFocus>
 
   <app-batch-group-form #form
                   [debug]="debug"
@@ -38,13 +37,16 @@
   ></app-batch-group-form>
 
   <!-- actions -->
-  <ion-buttons visible-xs visible-sm visible-mobile margin-top>
+  <ion-buttons visible-xs visible-sm visible-mobile margin-top >
 
     <!-- open individual modal -->
-    <ion-button color="tertiary" expand="full" size="large"
+    <ion-button mat-raised-button float-end
+                *ngIf="!!showSubBatchesCallback"
+                color="tertiary"
                 (click)="onShowSubBatchesButtonClick($event)" >
-      <ion-icon slot="start"><mat-icon>assessment</mat-icon></ion-icon>
+      <mat-icon>assessment</mat-icon>
       <ion-label translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</ion-label>
+      <ion-icon slot="end" name="arrow-forward"></ion-icon>
     </ion-button>
   </ion-buttons>
 </ion-content>

@@ -1,16 +1,15 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="secondary">
     <ion-buttons slot="start">
       <ion-button (click)="cancel()"
                   visible-xs visible-sm visible-mobile>
-        {{'COMMON.BTN_CANCEL'|translate}}
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
 
-    <!-- <ion-title>
-      {{(!!data?.id ? 'VESSEL.EDIT.TITLE' : 'VESSEL.NEW.TITLE') |translate}}
-    </ion-title> -->
-    <ion-title translate>VESSEL.NEW.TITLE</ion-title>
+    <ion-title>
+      {{'VESSEL.NEW.TITLE'|translate}}
+    </ion-title>
 
     <ion-buttons slot="end">
       <ion-spinner *ngIf="loading"></ion-spinner>
