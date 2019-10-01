@@ -11,11 +11,15 @@ import {
   ViewChild
 } from "@angular/core";
 import {Observable, Subscription} from 'rxjs';
-import {debounceTime, mergeMap, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AcquisitionLevelCodes, AppFormUtils, EntityUtils, environment, IReferentialRef} from "../../core/core.module";
+import {AppFormUtils, EntityUtils, IReferentialRef} from "../../core/core.module";
 import {Batch, PmfmStrategy, referentialToString} from "../services/trip.model";
-import {PmfmIds, QualitativeLabels, ReferentialRefService} from "../../referential/referential.module";
+import {
+  AcquisitionLevelCodes,
+  PmfmIds,
+  QualitativeLabels,
+  ReferentialRefService
+} from "../../referential/referential.module";
 import {FormGroup, Validators} from "@angular/forms";
 import {isNil, isNilOrBlank, isNotNil, startsWithUpperCase, toBoolean} from "../../shared/shared.module";
 import {UsageMode} from "../../core/services/model";
@@ -26,7 +30,6 @@ import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchForm} from "./sub-batch.form";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {selectInputContent} from "../../core/form/form.utils";
-import {BatchModal} from "./batch.modal";
 import {SubBatchModal} from "./sub-batch.modal";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];

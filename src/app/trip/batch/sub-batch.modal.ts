@@ -1,14 +1,11 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
-import {AcquisitionLevelCodes} from "../../core/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {environment} from "../../../environments/environment";
 import {AppFormUtils, PlatformService} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {BatchForm} from "./batch.form";
 import {BehaviorSubject} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
-import {PmfmStrategy} from "../../referential/services/model";
+import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
 import {toBoolean} from "../../shared/functions";
 import {SubBatchForm} from "./sub-batch.form";
 

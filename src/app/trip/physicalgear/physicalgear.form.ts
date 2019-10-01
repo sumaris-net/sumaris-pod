@@ -1,20 +1,13 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnInit,
-  ViewChild
-} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
-import {isNil, isNotNil, PhysicalGear} from "../services/trip.model";
+import {isNotNil, PhysicalGear} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Subject} from 'rxjs';
 import {distinctUntilChanged, filter} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocalSettingsService, PlatformService} from '../../core/core.module';
+import {LocalSettingsService, PlatformService} from '../../core/core.module';
 import {
+  AcquisitionLevelCodes,
   EntityUtils,
   ProgramService,
   ReferentialRef,

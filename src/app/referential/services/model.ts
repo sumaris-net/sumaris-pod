@@ -1,5 +1,4 @@
 import {
-  AcquisitionLevelCodes,
   Cloneable,
   Department,
   Entity,
@@ -18,10 +17,8 @@ import {
 } from "../../core/core.module";
 import {Moment} from "moment/moment";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {propertyComparator, PropertiesMap} from "../../core/services/model";
-import {Measurement} from "../../trip/services/model/measurement.model";
+import {PropertiesMap} from "../../core/services/model";
 import {TaxonGroupRef, TaxonNameRef} from "./model/taxon.model";
-import {propertyPathComparator} from "../../shared/functions";
 
 export const LocationLevelIds = {
   COUNTRY: 1,
@@ -106,7 +103,7 @@ export const QualityFlagIds = {
 const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/]+)[/]\s*(.*)$/);
 
 export {
-  EntityUtils, StatusIds, AcquisitionLevelCodes,
+  EntityUtils, StatusIds,
   Cloneable, Entity, Department, Person, Referential, ReferentialRef,
   toDateISOString, fromDateISOString, joinPropertiesPath, isNotNil, isNil,
   entityToString, referentialToString
@@ -416,7 +413,26 @@ export class Program extends Entity<Program> {
   }
 }
 
-export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING';
+export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
+  | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
+  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' ;
+
+export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
+  TRIP: 'TRIP',
+  PHYSICAL_GEAR: 'PHYSICAL_GEAR',
+  OPERATION: 'OPERATION',
+  CATCH_BATCH: 'CATCH_BATCH',
+  SORTING_BATCH: 'SORTING_BATCH',
+  SORTING_BATCH_INDIVIDUAL: 'SORTING_BATCH_INDIVIDUAL',
+  SAMPLE: 'SAMPLE',
+  SURVIVAL_TEST: 'SURVIVAL_TEST',
+  INDIVIDUAL_MONITORING: 'INDIVIDUAL_MONITORING',
+  INDIVIDUAL_RELEASE: 'INDIVIDUAL_RELEASE',
+  LANDING: 'LANDING',
+  SALE: 'SALE',
+  OBSERVED_LOCATION: 'OBSERVED_LOCATION',
+  OBSERVED_VESSEL: 'OBSERVED_VESSEL'
+};
 
 export declare type PmfmType = 'integer' | 'double' | 'string' | 'qualitative_value' | 'date' | 'boolean' ;
 
@@ -498,6 +514,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   get required(): boolean {
     return this.isMandatory;
   }
+
   set required(value: boolean) {
     this.isMandatory = value;
   }

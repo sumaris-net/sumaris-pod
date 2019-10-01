@@ -4,8 +4,7 @@ import {isNotNil, referentialToString} from "../../../core/core.module";
 import {Sample} from "../../services/trip.model";
 import {SubSampleValidatorService} from "../../services/sub-sample.validator";
 import {FormGroup, Validators} from "@angular/forms";
-import {AcquisitionLevelCodes} from "../../../core/services/model";
-import {PmfmIds} from "../../../referential/services/model";
+import {AcquisitionLevelCodes, PmfmIds} from "../../../referential/services/model";
 import {filter} from "rxjs/operators";
 import {SubSamplesTable} from "../sub-samples.table";
 

@@ -11,6 +11,8 @@ import {
 } from "../../shared/shared.module";
 import {noTrailingSlash} from "../../shared/functions";
 import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {key} from "ionicons/icons";
+import {AcquisitionLevelType} from "../../referential/services/model";
 
 export {
   joinPropertiesPath,
@@ -34,22 +36,6 @@ export const LocationLevelIds = {
   AUCTION: 3
 };
 
-export const AcquisitionLevelCodes = {
-  TRIP: 'TRIP',
-  PHYSICAL_GEAR: 'PHYSICAL_GEAR',
-  OPERATION: 'OPERATION',
-  CATCH_BATCH: 'CATCH_BATCH',
-  SORTING_BATCH: 'SORTING_BATCH',
-  SORTING_BATCH_INDIVIDUAL: 'SORTING_BATCH_INDIVIDUAL',
-  SAMPLE: 'SAMPLE',
-  SURVIVAL_TEST: 'SURVIVAL_TEST',
-  INDIVIDUAL_MONITORING: 'INDIVIDUAL_MONITORING',
-  INDIVIDUAL_RELEASE: 'INDIVIDUAL_RELEASE',
-  LANDING: 'LANDING',
-  SALE: 'SALE',
-  OBSERVED_LOCATION: 'OBSERVED_LOCATION',
-  OBSERVED_VESSEL: 'OBSERVED_VESSEL'
-};
 
 export const Locales: LocaleConfig[] = [
   {

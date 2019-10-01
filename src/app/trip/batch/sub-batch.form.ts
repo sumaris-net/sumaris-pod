@@ -10,7 +10,7 @@ import {
   ViewChildren
 } from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {Batch, BatchUtils} from "../services/model/batch.model";
+import {Batch} from "../services/model/batch.model";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
@@ -19,21 +19,17 @@ import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/form
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {AcquisitionLevelCodes, EntityUtils, UsageMode} from "../../core/services/model";
+import {EntityUtils, UsageMode} from "../../core/services/model";
+import {debounceTime, distinctUntilKeyChanged, filter, mergeMap, skip, startWith, tap} from "rxjs/operators";
 import {
-  debounceTime,
-  distinct,
-  distinctUntilChanged, distinctUntilKeyChanged,
-  filter,
-  map,
-  mergeMap,
-  skip,
-  startWith,
-  switchMap,
-  tap
-} from "rxjs/operators";
-import {isNil, isNotNil, PmfmIds, PmfmStrategy, QualitativeLabels} from "../../referential/services/model";
-import {BehaviorSubject, combineLatest, Observable} from "rxjs";
+  AcquisitionLevelCodes,
+  isNil,
+  isNotNil,
+  PmfmIds,
+  PmfmStrategy,
+  QualitativeLabels
+} from "../../referential/services/model";
+import {BehaviorSubject, combineLatest} from "rxjs";
 import {getPropertyByPath, isNilOrBlank, isNotNilOrBlank, startsWithUpperCase, toBoolean} from "../../shared/functions";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {MeasurementValuesUtils} from "../services/model/measurement.model";

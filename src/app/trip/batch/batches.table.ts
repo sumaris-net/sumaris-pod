@@ -12,9 +12,9 @@ import {
 import {Observable, Subject} from 'rxjs';
 import {map, takeUntil} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AcquisitionLevelCodes, environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
+import {environment, IReferentialRef, isNil, ReferentialRef} from "../../core/core.module";
 import {Batch, getPmfmName, Landing, Operation, PmfmStrategy, referentialToString} from "../services/trip.model";
-import {PmfmLabelPatterns, PmfmUtils, ReferentialRefService} from "../../referential/referential.module";
+import {PmfmLabelPatterns, AcquisitionLevelCodes, PmfmUtils, ReferentialRefService} from "../../referential/referential.module";
 import {isNilOrBlank, isNotNil} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";

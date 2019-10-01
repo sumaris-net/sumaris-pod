@@ -64,14 +64,14 @@
           <ion-label color="danger" class="error" [innerHTML]="landingsTable.error|translate"></ion-label>
         </ion-item>
 
-<!--        <app-landing-table #landingsTable-->
-<!--                           acquisitionLevel="LANDING"-->
-<!--                           [program]="programSubject|async"-->
-<!--                           [showObserversColumn]="false"-->
-<!--                           [showDateTimeColumn]="false"-->
-<!--                           (onOpenRow)="onOpenLanding($event)"-->
-<!--                           (onNewRow)="onNewLanding($event)">-->
-<!--        </app-landing-table>-->
+        <app-landing-table #landingsTable
+                           acquisitionLevel="LANDING"
+                           [program]="programSubject|async"
+                           [showObserversColumn]="false"
+                           [showDateTimeColumn]="false"
+                           (onOpenRow)="onOpenLanding($event)"
+                           (onNewRow)="onNewLanding($event)">
+        </app-landing-table>
 
       </div>
     </mat-tab>

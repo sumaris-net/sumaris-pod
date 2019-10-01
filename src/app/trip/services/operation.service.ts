@@ -15,13 +15,13 @@ import {
 } from "./trip.model";
 import {map} from "rxjs/operators";
 import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {AccountService, AcquisitionLevelCodes, BaseDataService, environment} from "../../core/core.module";
+import {AccountService, BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {isNilOrBlank} from "../../shared/functions";
-import {ReferentialFragments} from "../../referential/referential.module";
+import {AcquisitionLevelCodes, ReferentialFragments} from "../../referential/referential.module";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {

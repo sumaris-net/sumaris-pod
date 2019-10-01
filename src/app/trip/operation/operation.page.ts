@@ -9,9 +9,9 @@ import {AppFormUtils, AppTableUtils, AppTabPage, environment, LocalSettingsServi
 import {CatchBatchForm} from '../catch/catch.form';
 import {AlertController} from "@ionic/angular";
 import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes, UsageMode} from '../../core/services/model';
+import {UsageMode} from '../../core/services/model';
 import {fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
-import {PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
+import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
 import {Subject} from 'rxjs';
 import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
@@ -88,7 +88,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   ) {
     super(route, router, alterCtrl, translate);
 
-    this.idAttribute= 'operationId';
+    this.idAttribute = 'operationId';
 
     // Init mobile (WARN
     this.mobile = this.settings.mobile;

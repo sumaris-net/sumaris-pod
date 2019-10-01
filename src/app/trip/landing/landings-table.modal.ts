@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Vi
 import {LandingsTable} from "./landings.table";
 import {ModalController} from "@ionic/angular";
 import {LandingFilter} from "../services/landing.service";
-import {AcquisitionLevelType} from "../../referential/services/model";
+import {AcquisitionLevelCodes, AcquisitionLevelType} from "../../referential/services/model";
 import {Landing} from "../services/trip.model";
 
 @Component({
@@ -23,7 +23,9 @@ export class LandingsTablesModal implements OnInit {
     protected viewCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {
-    this.acquisitionLevel = 'LANDING'; // default value
+
+    // default value
+    this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
   }
 
   ngOnInit() {

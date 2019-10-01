@@ -12,10 +12,10 @@ import {
   StatusIds
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {AcquisitionLevelCodes, FormArrayHelper, LocalSettingsService} from '../../core/core.module';
+import {FormArrayHelper, LocalSettingsService} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
-import {ProgramService, ReferentialRefService} from '../../referential/referential.module';
+import {AcquisitionLevelCodes, ProgramService, ReferentialRefService} from '../../referential/referential.module';
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
@@ -32,7 +32,7 @@ import {UserProfileLabel} from "../../core/services/model";
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation> implements OnInit {
 
   observersHelper: FormArrayHelper<Person>;
-  observerFocusIndex: number = -1;
+  observerFocusIndex = -1;
   mobile: boolean;
 
   @Input() required = true;

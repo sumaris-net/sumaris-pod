@@ -46,8 +46,6 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   protected autocompleteHelper: MatAutocompleteConfigHolder;
   protected autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
 
-  // TODO: change this to private:
-  protected _implicitValues: { [key: string]: any } = {};
   protected _enable = true;
   protected _dirty = false;
   protected allowRowDetail = true;

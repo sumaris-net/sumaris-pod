@@ -1,10 +1,10 @@
 import {Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {filter, first} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource, isNil,
+  AppTableDataSource,
+  isNil,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -23,6 +23,7 @@ import {IEntityWithMeasurement, MeasurementValuesUtils, PMFM_ID_REGEXP} from "..
 import {MeasurementsDataService} from "./measurements.service";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
+import {AcquisitionLevelType} from "../../referential/services/model";
 
 
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {
@@ -36,7 +37,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   private _program: string;
 
-  protected _acquisitionLevel: string;
+  protected _acquisitionLevel: AcquisitionLevelType;
 
   protected measurementsDataService: MeasurementsDataService<T, F>;
   protected measurementsValidatorService: MeasurementsValidatorService;
@@ -61,14 +62,14 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   @Input()
-  set acquisitionLevel(value: string) {
+  set acquisitionLevel(value: AcquisitionLevelType) {
     this._acquisitionLevel = value;
     if (this.measurementsDataService) {
       this.measurementsDataService.acquisitionLevel = value;
     }
   }
 
-  get acquisitionLevel(): string {
+  get acquisitionLevel(): AcquisitionLevelType {
     return this._acquisitionLevel;
   }
 

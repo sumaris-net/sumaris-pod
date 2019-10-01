@@ -1,12 +1,13 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AcquisitionLevelCodes, environment} from "../../core/core.module";
+import {environment} from "../../core/core.module";
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
 import {PhysicalGear, referentialToString} from "../services/trip.model";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {PhysicalGearModal} from "./physicalgear.modal";
+import {AcquisitionLevelCodes} from "../services/model/base.model";
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -36,7 +37,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
   constructor(
     injector: Injector
   ) {
-    super(injector, PhysicalGear,
+    super(injector,
+      PhysicalGear,
       new InMemoryTableDataService<PhysicalGear, any>(PhysicalGear),
       null, // No validator = no inline edition
       {
@@ -44,14 +46,14 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
         suppressErrors: true,
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => pmfms.filter(p => p.isMandatory)
+        mapPmfms: (pmfms) => pmfms.filter(p => p.required)
       });
     this.cd = injector.get(ChangeDetectorRef);
     this.memoryDataService = (this.dataService as InMemoryTableDataService<PhysicalGear, any>);
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = false;
 
-    // Default acquisition level
+    // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
 
     // FOR DEV ONLY ----
@@ -146,7 +148,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, any> i
   measurementValueToString = measurementValueToString;
 
   /* -- protected methods -- */
-
 
   protected markForCheck() {
     this.cd.markForCheck();

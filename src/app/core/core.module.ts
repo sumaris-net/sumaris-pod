@@ -52,7 +52,6 @@ import {AppTableUtils} from './table/table.utils';
 
 import {environment} from '../../environments/environment';
 import {
-  AcquisitionLevelCodes,
   Cloneable,
   Department,
   Entity,
@@ -105,7 +104,6 @@ export {
   Entity,
   Cloneable,
   EntityUtils,
-  AcquisitionLevelCodes,
   StatusIds,
   GraphqlService,
   LocationLevelIds,
@@ -263,9 +261,9 @@ export class CoreModule {
       }
     });
 
-    settings.onChange.subscribe(settings => {
-      if (settings && settings.locale && settings.locale !== translate.currentLang) {
-        translate.use(settings.locale);
+    settings.onChange.subscribe(data => {
+      if (data && data.locale && data.locale !== translate.currentLang) {
+        translate.use(data.locale);
       }
     });
 

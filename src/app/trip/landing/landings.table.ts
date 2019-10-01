@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AcquisitionLevelCodes, environment} from "../../core/core.module";
+import {environment} from "../../core/core.module";
 import {
   Landing,
   ObservedLocation,
@@ -13,9 +13,10 @@ import {LandingFilter, LandingService} from "../services/landing.service";
 import {LandingValidatorService} from "../services/landing.validator";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {measurementValueToString} from "../services/model/measurement.model";
+import {AcquisitionLevelCodes} from "../../referential/referential.module";
 
-const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'dateTime', 'observers'];
-const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
+export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'dateTime', 'observers'];
+export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
   selector: 'app-landing-table',
@@ -61,15 +62,16 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
         prependNewElements: false,
         suppressErrors: false,
         reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
-        reservedEndColumns: LANDING_RESERVED_END_COLUMNS
-      }
-    );
+        reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
+        mapPmfms: (pmfms) => pmfms.filter(p => p.required)
+      });
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'LANDING.TABLE.';
-    this.autoLoad = false; // waiting parent to load
+    this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = false;
+    this._enable = this.canEdit;
 
-    // Set default acquisition Level
+    // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
     // FOR DEV ONLY ----
@@ -94,6 +96,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   vesselFeaturesToString = vesselFeaturesToString;
   personsToString = personsToString;
   measurementValueToString = measurementValueToString;
+
+  /* -- protected methods -- */
 
   protected markForCheck() {
     this.cd.markForCheck();

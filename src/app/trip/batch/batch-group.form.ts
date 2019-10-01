@@ -17,15 +17,14 @@ import {Moment} from "moment";
 import {FormBuilder} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {AcquisitionLevelCodes, UsageMode} from "../../core/services/model";
-import {PmfmStrategy, PmfmUtils} from "../../referential/services/model";
+import {UsageMode} from "../../core/services/model";
+import {AcquisitionLevelCodes, PmfmStrategy, PmfmUtils} from "../../referential/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
 import {AppForm, AppFormUtils, PlatformService} from "../../core/core.module";
 import {BatchGroupValidatorService} from "../services/batch-groups.validator";
 import {BehaviorSubject} from "rxjs";
 import {BatchForm} from "./batch.form";
-import {isNotEmptyArray} from "../../shared/functions";
 import {filter, first} from "rxjs/operators";
 
 @Component({
@@ -82,7 +81,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   set value(data: Batch) {
     this.batchForm.onReady().then(() => {
       this.setValue(data);
-    })
+    });
   }
 
   get invalid(): boolean {

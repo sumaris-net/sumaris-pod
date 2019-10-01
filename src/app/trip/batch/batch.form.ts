@@ -8,14 +8,20 @@ import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {ProgramService} from "../../referential/services/program.service";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {
-  AcquisitionLevelCodes,
   EntityUtils,
   IReferentialRef,
   referentialToString,
   UsageMode
 } from "../../core/services/model";
 import {filter, first} from "rxjs/operators";
-import {isNil, isNotNil, MethodIds, PmfmLabelPatterns, PmfmStrategy} from "../../referential/services/model";
+import {
+  AcquisitionLevelCodes,
+  isNil,
+  isNotNil,
+  MethodIds,
+  PmfmLabelPatterns,
+  PmfmStrategy
+} from "../../referential/services/model";
 import {BehaviorSubject} from "rxjs";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
@@ -38,7 +44,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   defaultWeightPmfm: PmfmStrategy;
   weightPmfms: PmfmStrategy[];
   weightPmfmsByMethod: { [key: string]: PmfmStrategy };
-  isSampling: boolean = false;
+  isSampling = false;
   mobile: boolean;
   childrenFormHelper: FormArrayHelper<Batch>;
 
@@ -55,7 +61,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   @Input() showIndividualCount = false;
 
-  @Input() showEstimatedWeight: boolean = false;
+  @Input() showEstimatedWeight = false;
 
   @Input() showSampleBatch = false;
 
@@ -349,7 +355,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     const childrenFormHelper = this.getChildrenFormHelper(form);
 
     // Add pmfms to form
-    let measFormGroup = form.get('measurementValues') as FormGroup;
+    const measFormGroup = form.get('measurementValues') as FormGroup;
     if (measFormGroup) {
       this.measurementValidatorService.updateFormGroup(measFormGroup, this.$allPmfms.getValue());
     }
