@@ -24,7 +24,7 @@ import {ObservedLocationValidatorService} from "../services/observed-location.va
 import {qualityFlagToColor} from "../../referential/services/model";
 
 @Component({
-  selector: 'page-observed-locations',
+  selector: 'app-observed-locations-page',
   templateUrl: 'observed-locations.page.html',
   styleUrls: ['observed-locations.page.scss'],
   providers: [

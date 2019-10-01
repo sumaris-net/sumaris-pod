@@ -65,15 +65,17 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     this.disable();
 
-    this.route.params.pipe(first())
-      .subscribe(async (params) => {
-        const id = params[this.idAttribute];
-        if (!id || id === "new") {
-          await this.load(undefined, params);
-        } else {
-          await this.load(+id, params);
-        }
-      });
+    this.registerSubscription(
+      this.route.params.pipe(first())
+        .subscribe(async (params) => {
+          console.log("TODO check params:" , params)
+          const id = params[this.idAttribute];
+          if (!id || id === "new") {
+            await this.load(undefined, params);
+          } else {
+            await this.load(+id, params);
+          }
+        }));
   }
 
   async load(id?: number, options?: EditorDataServiceLoadOptions) {

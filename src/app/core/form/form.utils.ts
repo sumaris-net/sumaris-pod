@@ -1,4 +1,4 @@
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
 import {isNil, nullIfUndefined, selectInputContent, toBoolean, filterNumberInput} from "../../shared/shared.module";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
@@ -73,10 +73,15 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
         const control = form.controls[key] as FormArray;
         if (control.length > 0) {
           // Use the first form group, as model
-          const itemControl = control.at(0) as FormGroup;
-          value[key] = (source[key] || []).map(item => getFormValueFromEntity(item || {}, itemControl));
-          if (value[key].length != control.length) {
-            console.warn("TODO: implement form array add/remove, using control", itemControl);
+          const itemControl = control.at(0);
+          if (itemControl instanceof FormGroup) {
+            value[key] = (source[key] || []).map(item => getFormValueFromEntity(item || {}, itemControl));
+            if (value[key].length !== control.length) {
+              console.warn(`WARN: please resize the FormArray '${key}' to the same length of the input array`);
+            }
+          }
+          else if (itemControl instanceof FormControl){
+            value[key] = (source[key] || []);
           }
         }
       }

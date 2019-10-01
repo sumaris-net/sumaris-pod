@@ -52,9 +52,9 @@ export declare interface  MatAutocompleteFieldConfig<T = any> {
 }
 
 export declare interface  MatAutocompleteFieldAddOptions<T = any> {
-  attributes?: string[];
   service?: SuggestionDataService<any>;
   filter?: any;
+  attributes?: string[];
   displayWith?: DisplayFn;
   suggestFn?: (value: any, options?: any) => Promise<any[]>;
   showAllOnFocus?: boolean;

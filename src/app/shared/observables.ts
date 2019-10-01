@@ -7,7 +7,7 @@ export function filterNotNil<T = any>(obs: Observable<T>): Observable<T> {
   return obs.pipe(filter(isNotNil));
 }
 export function firstNotNil<T = any>(obs: Observable<T>): Observable<T> {
-  return obs.pipe(filter(isNotNil), first());
+  return obs.pipe(first(isNotNil));
 }
 
 export function firstNotNilPromise<T = any>(obs: Observable<T>): Promise<T> {

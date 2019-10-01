@@ -24,7 +24,7 @@ import {isNilOrBlank, isNotNilOrBlank} from "../../shared/functions";
 import {UsageMode} from "../../core/services/model";
 
 @Component({
-  selector: 'page-trip',
+  selector: 'app-trip-page',
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],

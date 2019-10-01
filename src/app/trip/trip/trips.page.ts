@@ -28,7 +28,7 @@ import {debounceTime, startWith, switchMap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 
 @Component({
-  selector: 'page-trips',
+  selector: 'app-trips-page',
   templateUrl: 'trips.page.html',
   providers: [
     {provide: ValidatorService, useExisting: TripValidatorService}

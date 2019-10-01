@@ -5,21 +5,23 @@ import {ObservedLocationForm} from "./observed-location.form";
 import {EntityUtils, Landing, ObservedLocation} from "../services/trip.model";
 import {ObservedLocationService} from "../services/observed-location.service";
 import {LandingsTable} from "../landing/landings.table";
-import {LocationLevelIds, ProgramProperties} from "../../referential/services/model";
+import {LandingEditor, ProgramProperties} from "../../referential/services/model";
 import {AppDataEditorPage} from "../form/data-editor-page.class";
 import {FormGroup} from "@angular/forms";
 import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {ModalController} from "@ionic/angular";
 import {LandingsTablesModal} from "../landing/landings-table.modal";
+import {environment} from "../../core/core.module";
 
 @Component({
-  selector: 'page-observed-location',
+  selector: 'app-observed-location-page',
   templateUrl: './observed-location.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> implements OnInit {
 
-  landingEditor = 'landing';
+
+  landingEditor: LandingEditor;
 
   @ViewChild('observedLocationForm') observedLocationForm: ObservedLocationForm;
 
@@ -37,8 +39,11 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> im
     this.defaultBackHref = "/observations";
     this.idAttribute = 'observedLocationId';
 
+    // Default value
+    this.landingEditor = 'landing';
+
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -51,7 +56,7 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> im
         this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
         this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
 
-        const landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
+        const landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
         this.landingEditor = (landingEditor === 'landing' || landingEditor === 'control') ? landingEditor : 'landing';
       });
   }
@@ -81,10 +86,17 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> im
     this.observedLocationForm.value = data;
 
     if (data && isNotNil(data.id)) {
-      console.debug("[observed-location] Sending program to landings table");
-      this.landingsTable.setParent(data);
-      this.landingsTable.program = data.program.label;
-      //this.landingsTable.value = data.landings || [];
+
+      // Propagate program to form
+      this.observedLocationForm.program = data.program.label;
+
+      // Propagate program to table
+      if (this.landingsTable) {
+        console.debug("[observed-location] Sending program to landings table");
+        this.landingsTable.setParent(data);
+        this.landingsTable.program = data.program.label;
+        //this.landingsTable.value = data.landings || [];
+      }
     }
   }
 
@@ -103,7 +115,7 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> im
 
   protected getFirstInvalidTabIndex(): number {
     return this.observedLocationForm.invalid ? 0
-      : (this.landingsTable.invalid ? 1
+      : (this.landingsTable && this.landingsTable.invalid ? 1
         : -1);
   }
 

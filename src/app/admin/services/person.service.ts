@@ -49,8 +49,7 @@ export declare class PersonFilter {
   pubkey?: string;
   searchText?: string;
   statusIds?: number[];
-  userProfileId?: number;
-  //profileLabels?: string[];
+  userProfiles?: string[];
 }
 
 const SavePersons: any = gql`
@@ -150,7 +149,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
 
   async suggest(value: any, options?: {
     statusIds?: number[],
-    userProfileId?: number;
+    userProfiles?: string[];
   }): Promise<Person[]> {
     if (EntityUtils.isNotEmpty(value)) return [value];
     value = (typeof value === "string" && value !== '*') && value || undefined;
@@ -158,7 +157,7 @@ export class PersonService extends BaseDataService implements TableDataService<P
       {
         searchText: value as string,
         statusIds: options && options.statusIds || [StatusIds.ENABLE],
-        userProfileId: options && options.userProfileId
+        userProfiles: options && options.userProfiles
       });
     return res.data;
   }

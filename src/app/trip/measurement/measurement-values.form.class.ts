@@ -158,13 +158,12 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   async onReady() {
     // Wait pmfms load, and controls load
     if (this.$loadingControls.getValue() !== false) {
-      //if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
-      await this.$loadingControls
+      if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
+      await firstNotNilPromise(this.$loadingControls
         .pipe(
           filter((loadingControls) => loadingControls === false),
           throttleTime(100), // groups event, if many updates in few duration
-          first()
-        ).toPromise();
+        ));
     }
   }
 

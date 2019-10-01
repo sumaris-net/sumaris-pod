@@ -240,7 +240,10 @@
     "PASSWORD": "Mot de passe",
     "FIRST_NAME": "Prénom",
     "LAST_NAME": "Nom",
-    "DEPARTMENT": "Organisme",
+    "DEPARTMENT": {
+      "LABEL": "Code organisme",
+      "NAME": "Libellé organisme"
+    },
     "STATUS": "Etat",
     "PUBKEY": "Clé publique",
     "PROFILE": "Profil",

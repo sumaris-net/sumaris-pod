@@ -332,6 +332,8 @@ export const ProgramProperties: FormFieldDefinitionMap = {
 
 };
 
+export type LandingEditor = 'landing' | 'control';
+
 export class Program extends Entity<Program> {
 
   static fromObject(source: any): Program {
@@ -409,7 +411,7 @@ export class Program extends Entity<Program> {
     return value && value.split(',').map(parseInt) || undefined;
   }
 
-  getProperty(definition: FormFieldDefinition): string {
+  getProperty<T = string>(definition: FormFieldDefinition): T {
     return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
   }
 }

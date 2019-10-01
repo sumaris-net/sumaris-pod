@@ -53,7 +53,7 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
     target.location = this.location && this.location.asObject(false/*keep it for table*/) || undefined;
     target.measurementValues = MeasurementUtils.measurementValuesAsObjectMap(this.measurementValues, minify);
     target.landings = this.landings && this.landings.map(s => s.asObject(minify)) || undefined;
-    target.observers = this.observers && this.observers.map(o => o.asObject(minify)) || undefined;
+    target.observers = this.observers && this.observers.map(o => o.asObject(false/*keep it for table*/)) || undefined;
 
     return target;
   }

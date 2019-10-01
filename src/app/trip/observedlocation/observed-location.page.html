@@ -31,7 +31,8 @@
             <form-observed-location #observedLocationForm
                                     [showError]="false"
                                     [showEndDateTime]="false"
-                                    (onSubmit)="save($event)">
+                                    (onSubmit)="save($event)"
+                                    [debug]="debug">
 
             </form-observed-location>
           </ion-col>
@@ -52,25 +53,25 @@
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>
         </mat-icon>
         <ion-label translate>OBSERVED_LOCATION.TAB_VESSELS</ion-label>
-        <ion-icon slot="end" name="alert" color="danger" *ngIf="landingsTable.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert" color="danger" *ngIf="landingsTable?.invalid"></ion-icon>
       </ng-template>
 
       <div no-padding>
 
         <!-- error -->
-        <ion-item *ngIf="landingsTable.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="landingsTable?.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="landingsTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-landing-table #landingsTable
-                           acquisitionLevel="LANDING"
-                           [program]="programSubject|async"
-                           [showObserversColumn]="false"
-                           [showDateTimeColumn]="false"
-                           (onOpenRow)="onOpenLanding($event)"
-                           (onNewRow)="onNewLanding($event)">
-        </app-landing-table>
+<!--        <app-landing-table #landingsTable-->
+<!--                           acquisitionLevel="LANDING"-->
+<!--                           [program]="programSubject|async"-->
+<!--                           [showObserversColumn]="false"-->
+<!--                           [showDateTimeColumn]="false"-->
+<!--                           (onOpenRow)="onOpenLanding($event)"-->
+<!--                           (onNewRow)="onNewLanding($event)">-->
+<!--        </app-landing-table>-->
 
       </div>
     </mat-tab>
