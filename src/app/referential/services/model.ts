@@ -614,7 +614,7 @@ export class Strategy extends Entity<Strategy> {
       //.sort(propertyComparator('priorityLevel'))
       //.sort(propertyPathComparator('taxonName.name'))
       .map(item => TaxonNameRef.fromObject(item.taxonName)) || [];
-    console.log('TODO check not empty strat taxon: ', this.taxonGroups, this.taxonNames)
+    //console.log('TODO check not empty strat taxon: ', this.taxonGroups, this.taxonNames)
     return this;
   }
 

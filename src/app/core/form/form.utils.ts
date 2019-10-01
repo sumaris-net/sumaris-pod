@@ -81,7 +81,14 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
             }
           }
           else if (itemControl instanceof FormControl){
-            value[key] = (source[key] || []);
+            value[key] = (source[key] || []).slice(); // copy input values
+            // Add empty values if need
+            if (value[key].length < control.length) {
+              console.warn(`WARN: Adding null value to array values`);
+              for (let i = value[key].length; i++; i < control.length) {
+                value[key].push(null);
+              }
+            }
           }
         }
       }

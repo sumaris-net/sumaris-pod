@@ -83,21 +83,26 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> im
   }
 
   protected setValue(data: ObservedLocation) {
-    this.observedLocationForm.value = data;
 
     if (data && isNotNil(data.id)) {
 
       // Propagate program to form
       this.observedLocationForm.program = data.program.label;
 
+
       // Propagate program to table
       if (this.landingsTable) {
-        console.debug("[observed-location] Sending program to landings table");
+        if (this.debug) console.debug("[observed-location] Sending program to landings table");
         this.landingsTable.setParent(data);
         this.landingsTable.program = data.program.label;
+
+        if (this.debug) console.debug("[observed-location] Settings landings table values", data.landings);
         //this.landingsTable.value = data.landings || [];
       }
     }
+
+    // Set data to form
+    this.observedLocationForm.value = data;
   }
 
   protected async computeTitle(data: ObservedLocation): Promise<string> {

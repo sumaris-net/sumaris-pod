@@ -8,15 +8,13 @@ import {
   ObservedLocation,
   Person,
   personToString,
-  Referential,
   referentialToString,
   StatusIds
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {AcquisitionLevelCodes, FormArrayHelper, LocalSettingsService} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
-import {BehaviorSubject, Observable} from 'rxjs';
-import {filter} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, pluck} from 'rxjs/operators';
 import {ProgramService, ReferentialRefService} from '../../referential/referential.module';
 import {ObservedLocationValidatorService} from "../services/observed-location.validator";
 import {PersonService} from "../../admin/services/person.service";
@@ -34,7 +32,7 @@ import {UserProfileLabel} from "../../core/services/model";
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation> implements OnInit {
 
   observersHelper: FormArrayHelper<Person>;
-  observerFocusIndex: number;
+  observerFocusIndex: number = -1;
   mobile: boolean;
 
   @Input() required = true;
@@ -89,6 +87,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
 
+    // Create at least one observer
+    this.observersHelper.resize(1);
+
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
   }
@@ -111,9 +112,15 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     });
 
     // Propagate program
-    this.form.controls['program'].valueChanges
-      .pipe(filter(EntityUtils.isNotEmpty))
-      .subscribe(({label}) => this.program = label);
+    this.registerSubscription(
+      this.form.get('program').valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(EntityUtils.isNotEmpty),
+          pluck('label'),
+          distinctUntilChanged()
+        )
+      .subscribe(programLabel => this.program = programLabel));
 
     // Combo location
     this.registerAutocompleteConfig('location', {
@@ -144,8 +151,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     value.observers = value.observers && value.observers.length ? value.observers : [null];
 
     // Resize observers array
-    console.log("TODO check: resizing observers to " + value.observers.length)
-    this.observersHelper.resize(value.observers.length);
+    this.observersHelper.resize(Math.min(1, value.observers.length));
 
     // Propagate the program
     if (value.program && value.program.label) {
