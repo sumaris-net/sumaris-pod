@@ -495,6 +495,7 @@
     "START": "Début :",
     "END": "Fin :",
     "LOCATION": "Criée",
+    "LOCATION_AND_DATE": "Lieu / Date :",
     "TAB_GENERAL": "Détails",
     "TAB_VESSELS": "Navires observés",
     "OBSERVER_PLACEHOLDER": "Observateur #",
@@ -504,7 +505,7 @@
     },
     "EDIT": {
       "TITLE": "{{location}} - {{dateTime}}",
-      "OTHER_FEATURES": "Autres caractéristiques :"
+      "OTHER_FEATURES": "Caractéristiques :"
     },
     "TABLE": {
       "TITLE": "Contrôles en criée",
