@@ -16,6 +16,9 @@ import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
 import {StatusBar} from '@ionic-native/status-bar/ngx';
 import {Keyboard} from '@ionic-native/keyboard/ngx';
+import {NativeAudio} from "@ionic-native/native-audio/ngx";
+import {Vibration} from '@ionic-native/vibration/ngx';
+
 // App modules
 import {AppComponent} from "./app.component";
 import {AppRoutingModule} from "./app-routing.module";
@@ -32,6 +35,7 @@ import {Camera} from "@ionic-native/camera/ngx";
 import {CacheModule} from "ionic-cache";
 import {Network} from "@ionic-native/network/ngx";
 import {CloseScrollStrategy, Overlay} from "@angular/cdk/overlay";
+import {AudioManagement} from "@ionic-native/audio-management/ngx";
 
 export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
   return () => overlay.scrollStrategies.close();
@@ -63,6 +67,9 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
     Camera,
     HTTP,
     Network,
+    NativeAudio,
+    Vibration,
+    AudioManagement,
     {provide: APP_BASE_HREF, useValue: (environment.baseUrl || '/')},
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     {provide: MAT_DATE_LOCALE, useValue: 'en'},

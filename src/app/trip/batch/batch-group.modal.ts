@@ -139,7 +139,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
     // Wait end of async validation
     if (this.pending) {
-      await Observable.timer(100)
+      await Observable.timer(100, 250)
         .pipe(
           filter(() => this.pending),
           first()

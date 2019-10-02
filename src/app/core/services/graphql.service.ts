@@ -108,8 +108,8 @@ export class GraphqlService {
       notifyOnNetworkStatusChange: true
     })
       .valueChanges
-      .catch(error => this.onApolloError<T>(error))
       .pipe(
+        catchError(error => this.onApolloError<T>(error)),
         map(({data, errors}) => {
           if (errors) {
             const error = errors[0] as any;
@@ -148,8 +148,6 @@ export class GraphqlService {
           catchError(error => this.onApolloError<T>(error)),
           first()
         )
-        //.catch(error => this.onApolloError<T>(error))
-        //.first()
         .subscribe(({data, errors}) => {
           if (errors) {
             const error = errors[0] as any;
@@ -184,8 +182,8 @@ export class GraphqlService {
     }, {
       useZone: true
     })
-      .catch(error => this.onApolloError<T>(error))
       .pipe(
+        catchError(error => this.onApolloError<T>(error)),
         map(({data, errors}) => {
           if (errors) {
             const error = errors[0];

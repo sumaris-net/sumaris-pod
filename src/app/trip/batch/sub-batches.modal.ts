@@ -1,19 +1,17 @@
 import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {Batch, BatchUtils} from "../services/model/batch.model";
+import {Batch} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {SubBatchForm} from "./sub-batch.form";
-import {environment} from "../../../environments/environment";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
 import {SubBatchesTable, SubBatchesTableOptions} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {measurementValueToString} from "../services/model/measurement.model";
-import {AppFormUtils, EntityUtils, isNil, isNotNil} from "../../core/core.module";
+import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {pipe} from "rxjs";
-import {startWith} from "rxjs/operators";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {AppPageUtils} from "../../core/form/page.utils";
+import {AudioProvider} from "../../shared/audio/audio";
 
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'];
@@ -30,7 +28,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
       useFactory: () => {
         return {
           prependNewElements: true,
-          suppressErrors: false,
+          suppressErrors: true,
           reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
           reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS
         };
@@ -73,6 +71,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     protected injector: Injector,
     protected viewCtrl: ModalController,
     protected settings: LocalSettingsService,
+    protected audio: AudioProvider,
     @Inject(SubBatchesTableOptions) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector,
@@ -268,16 +267,30 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     const row = await super.addBatchToTable(newBatch);
 
     // Highlight the row, few seconds
-    this.highlightRow(row);
+    this.onRowConfirmed(row);
 
     return row;
   }
 
+  protected onInvalidForm() {
+
+    // Play a error beep, if on field
+    if (this.isOnFieldMode) this.audio.playBeepError();
+
+    super.onInvalidForm();
+  }
+
   /**
-   * Will highlight the row few seconds
+   * When a row has been edited, play a beep and highlight the row (during few seconds)
    * @param row
+   * @pram times duration of hightligh
    */
-  protected highlightRow(row: TableElement<Batch>, timeout?: number) {
+  protected onRowConfirmed(row: TableElement<Batch>) {
+
+    // Play a beep, if on field
+    if (this.isOnFieldMode) {
+      this.audio.playBeepConfirm();
+    }
 
     // Unselect previous selected rows
     this.selection.clear();
@@ -285,10 +298,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     // Selection the row (this will apply CSS class mat-row-selected)
     this.selection.select(row);
 
+
     setTimeout(() => {
       // If row is still selected: unselect it
       if (this.selection.isSelected(row)) this.selection.toggle(row);
-    }, timeout || 2500);
+      this.markForCheck();
+    }, 1500);
   }
 
   measurementValueToString = measurementValueToString;

@@ -261,8 +261,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     if (row !== this.editedRow && !this.confirmEditCreate()) return;
 
     if (this.form.invalid) {
-      this.form.markAsTouched({emitEvent: true});
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-table] ");
+      this.onInvalidForm();
       return;
     }
 
@@ -648,6 +647,11 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     if (!this.showIndividualCount) {
       data.individualCount = isNotNil(data.individualCount) ? data.individualCount : 1;
     }
+  }
+
+  protected onInvalidForm() {
+    this.form.markAsTouched({emitEvent: true});
+    if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-table] ");
   }
 
   protected getI18nColumnName(columnName: string): string {

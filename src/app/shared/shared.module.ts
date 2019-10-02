@@ -31,7 +31,6 @@ import {
   TableDataService
 } from "./services/data-service.class";
 import {
-  propertyComparator,
   changeCaseToUnderscore,
   filterNumberInput,
   fromDateISOString,
@@ -42,6 +41,7 @@ import {
   isNotNilOrBlank,
   joinPropertiesPath,
   nullIfUndefined,
+  propertyComparator,
   selectInputContent,
   sort,
   startsWithUpperCase,
@@ -55,6 +55,8 @@ import {InputElement} from "./material/focusable";
 import {Color, ColorScale} from "./graph/graph-colors";
 import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
+import {NumpadComponent} from "./numpad/numpad";
+import {AudioProvider} from "./audio/audio";
 
 export {
   DataService, SuggestionDataService, TableDataService, LoadResult,
@@ -83,6 +85,7 @@ export {
   declarations: [
     AutofocusDirective,
     ToolbarComponent,
+    NumpadComponent,
     DateFormatPipe,
     DateDiffDurationPipe,
     LatLongFormatPipe,
@@ -101,6 +104,7 @@ export {
     IonicModule,
     AutofocusDirective,
     ToolbarComponent,
+    NumpadComponent,
     DateFormatPipe,
     DateDiffDurationPipe,
     LatLongFormatPipe,
@@ -122,6 +126,7 @@ export {
     HighlightPipe,
     NumberFormatPipe,
     ProgressBarService,
+    AudioProvider,
     {provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [ProgressBarService]},
     {
       provide: MatPaginatorIntl,

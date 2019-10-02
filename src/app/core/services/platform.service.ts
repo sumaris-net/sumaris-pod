@@ -1,4 +1,4 @@
-import {EventEmitter, Injectable} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Platform} from "@ionic/angular";
 import {NetworkService} from "./network.service";
 import {Platforms} from "@ionic/core";
@@ -7,7 +7,7 @@ import {StatusBar} from "@ionic-native/status-bar/ngx";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
 import {LocalSettingsService} from "./local-settings.service";
 import {CacheService} from "ionic-cache";
-import {environment} from "../../../environments/environment.prod";
+import {AudioProvider} from "../../shared/audio/audio";
 
 
 @Injectable({providedIn: 'root'})
@@ -31,7 +31,8 @@ export class PlatformService {
     private keyboard: Keyboard,
     private settings: LocalSettingsService,
     private networkService: NetworkService,
-    private cache: CacheService
+    private cache: CacheService,
+    private audioProvider: AudioProvider
   ) {
 
     this.start();
@@ -68,16 +69,20 @@ export class PlatformService {
           this.cache.setOfflineInvalidate(false); // Do not invalidate cache when offline
         }),
       this.settings.ready(),
-      this.networkService.ready()
+      this.networkService.ready(),
+      this.audioProvider.ready()
     ])
       .then(() => {
         this._started = true;
         this._startPromise = undefined;
         console.info(`[platform] Platform started: mobile=${this.mobile} touchUi=${this.touchUi}`);
 
-        // Wait 1 more seconds, before hiding the splash screen
+            // Wait 1 more seconds, before hiding the splash screen
         setTimeout(() => {
           this.splashScreen.hide();
+
+          // Play startup sound
+          this.audioProvider.playStartupSound();
         }, 1000);
       });
     return this._startPromise;

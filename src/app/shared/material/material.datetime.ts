@@ -25,9 +25,10 @@ import {DATE_ISO_PATTERN, DEFAULT_PLACEHOLDER_CHAR} from '../constants';
 import {SharedValidators} from '../validator/validators';
 import {isNil, isNilOrBlank, setTabIndex, toBoolean, toDateISOString} from "../functions";
 import {Keyboard} from "@ionic-native/keyboard/ngx";
-import {first} from "rxjs/operators";
+import {delay, first} from "rxjs/operators";
 import {fadeInAnimation} from "./material.animations";
 import {InputElement, isFocusableElement} from "./focusable";
+import {firstNotNilPromise} from "../observables";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -356,9 +357,9 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
     if (this.keyboard.isVisible) {
       this.keyboard.hide();
-      this.keyboard.onKeyboardHide().pipe(first()).subscribe(() => {
-        this.openDatePicker(event, datePicker);
-      });
+      this.keyboard.onKeyboardHide()
+        .pipe(first(), delay(200))
+        .subscribe(() => this.openDatePicker(event, datePicker));
       return;
     }
 
@@ -383,9 +384,11 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
     if (this.keyboard.isVisible) {
       this.keyboard.hide();
-      this.keyboard.onKeyboardHide().pipe(first()).subscribe(() => {
-        this.openTimePicker(event);
-      });
+      this.keyboard.onKeyboardHide()
+        .pipe(first(), delay(200))
+        .subscribe(() => {
+          this.openTimePicker(event);
+        });
       return;
     }
 
