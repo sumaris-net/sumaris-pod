@@ -125,6 +125,8 @@ export class AppFormField implements OnInit, ControlValueAccessor {
       this.formControl.patchValue(obj, {emitEvent: false});
       this._onChangeCallback(obj);
     }
+
+    this.cd.markForCheck();
   }
 
   registerOnChange(fn: any): void {
