@@ -3,12 +3,14 @@ import {ModalController} from '@ionic/angular';
 import {RegisterModal} from '../register/modal/modal-register';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {AccountService} from '../services/account.service';
-import {Account, Configuration, Department} from '../services/model';
+import {Account, Configuration, Department, HistoryPageReference} from '../services/model';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfigService} from '../services/config.service';
 import {fadeInAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
+import {start} from "repl";
+import {debounceTime, distinctUntilChanged, filter, map} from "rxjs/operators";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -29,13 +31,14 @@ export class HomePage implements OnDestroy {
   showSpinner = true;
   displayName: String = '';
   isLogin: boolean;
-  subscriptions: Subscription[] = [];
+  subscription = new Subscription();
   partners = new BehaviorSubject<Department[]>(null);
   loadingBanner = true;
   logo: String;
   description: String;
   appName: string;
   contentStyle = {};
+  pageHistory: HistoryPageReference[] = [];
 
   get currentLocaleCode(): string {
     return (this.translate.currentLang || this.translate.defaultLang).substr(0,2);
@@ -46,39 +49,78 @@ export class HomePage implements OnDestroy {
     private modalCtrl: ModalController,
     private translate: TranslateService,
     private configService: ConfigService,
-    private settings: LocalSettingsService,
-    public  platform: PlatformService,
+    public localSettingsService: LocalSettingsService,
+    public platform: PlatformService,
     private cd: ChangeDetectorRef
   ) {
 
     this.showSpinner = !this.platform.started;
-
-    this.platform.ready().then(() => {
-      this.isLogin = accountService.isLogin();
-      if (this.isLogin) {
-        this.onLogin(this.accountService.account);
-      }
-      // Subscriptions
-      this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
-      this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
-      this.subscriptions.push(this.configService.config.subscribe(config => {
-        this.onConfigChanged(config);
-        this.markForCheck();
-
-        setTimeout(() => {
-          this.loading = false;
-          this.markForCheck();
-        }, 500);
-      }));
-    });
-  };
-
-  ngOnDestroy() {
-    this.subscriptions.forEach(s => s.unsubscribe());
-    this.subscriptions = [];
+    this.platform.ready().then(() => this.start());
   }
 
-  onConfigChanged(config: Configuration) {
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
+
+  async register() {
+    const modal = await this.modalCtrl.create({component: RegisterModal});
+    return modal.present();
+  }
+
+  logout(event: any) {
+    this.accountService.logout();
+  }
+
+  changeLanguage(locale: string) {
+    this.localSettingsService.saveLocalSettings({locale: locale})
+      .then(() => {
+        this.markForCheck();
+      });
+  }
+
+  getPagePath(page: HistoryPageReference) {
+    return page && page.path;
+  }
+
+  /* -- protected method  -- */
+
+  protected async start() {
+    this.isLogin = this.accountService.isLogin();
+    if (this.isLogin) {
+      this.onLogin(this.accountService.account);
+    }
+
+    // Listen login/logout events
+    this.subscription.add(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
+    this.subscription.add(this.accountService.onLogout.subscribe(() => this.onLogout()));
+
+    // Listen remote config changes
+    this.subscription.add(this.configService.config.subscribe(config => {
+      this.onConfigChanged(config);
+      this.markForCheck();
+
+      setTimeout(() => {
+        this.loading = false;
+        this.markForCheck();
+      }, 500);
+    }));
+
+    // Listen settings changes
+    const settings = await this.localSettingsService.ready();
+    this.pageHistory = settings && settings.pageHistory || [];
+    this.subscription.add(
+      this.localSettingsService.onChange
+        .pipe(
+          // Add a delay, to avoid to apply changes to often
+          debounceTime(3000)
+        )
+        .subscribe(history => {
+          console.debug("[home] Page history has been updated");
+          this.markForCheck();
+        }));
+  }
+
+  protected onConfigChanged(config: Configuration) {
     console.debug("[home] Configuration changed:", config);
 
     this.appName = config.label;
@@ -98,7 +140,7 @@ export class HomePage implements OnDestroy {
     }
   }
 
-  onLogin(account: Account) {
+  protected onLogin(account: Account) {
     //console.debug('[home] Logged account: ', account);
     this.isLogin = true;
     this.displayName = account &&
@@ -107,28 +149,11 @@ export class HomePage implements OnDestroy {
     this.markForCheck();
   }
 
-  onLogout() {
+  protected onLogout() {
     //console.log('[home] Logout');
     this.isLogin = false;
     this.displayName = "";
     this.markForCheck();
-  }
-
-  async register() {
-    const modal = await this.modalCtrl.create({component: RegisterModal});
-    return modal.present();
-  }
-
-  logout(event: any) {
-    this.accountService.logout();
-  }
-
-  changeLanguage(locale: string) {
-
-    this.settings.saveLocalSettings({locale: locale})
-      .then(() => {
-        this.markForCheck();
-      });
   }
 
   protected markForCheck() {

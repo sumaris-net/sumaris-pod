@@ -4,7 +4,7 @@ import {AlertController} from "@ionic/angular";
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
-import {EntityUtils, Trip} from '../services/trip.model';
+import {EntityUtils, Operation, Trip} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
@@ -356,24 +356,18 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
    * Compute the title
    * @param data
    */
-  async updateTitle(data?: Trip) {
-    data = data || this.data;
+  protected async computeTitle(data: Trip) {
 
-    let title;
     // new data
     if (!data || isNil(data.id)) {
-      title = await this.translate.get('TRIP.NEW.TITLE').toPromise();
-    }
-    // Existing data
-    else {
-      title = await this.translate.get('TRIP.EDIT.TITLE', {
-        vessel: data.vesselFeatures && (data.vesselFeatures.exteriorMarking || data.vesselFeatures.name),
-        departureDateTime: data.departureDateTime && this.dateFormat.transform(data.departureDateTime) as string
-      }).toPromise();
+      return await this.translate.get('TRIP.NEW.TITLE').toPromise();
     }
 
-    // Emit the title
-    this.title.next(title);
+    // Existing data
+    return await this.translate.get('TRIP.EDIT.TITLE', {
+      vessel: data.vesselFeatures && (data.vesselFeatures.exteriorMarking || data.vesselFeatures.name),
+      departureDateTime: data.departureDateTime && this.dateFormat.transform(data.departureDateTime) as string
+    }).toPromise();
   }
 
   protected logFormErrors() {
@@ -435,6 +429,25 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   }
 
   /* -- protected methods -- */
+
+  /**
+   * Compute the title
+   * @param data
+   */
+  protected async updateTitle(data?: Trip) {
+    data = data || this.data;
+    const title = await this.computeTitle(data);
+    this.title.next(title);
+
+    if (!this.isNewData) {
+      // Add to page history
+      this.settings.addToPageHistory({
+        title: title,
+        subtitle: data.program && data.program.label,
+        path: this.router.url
+      });
+    }
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

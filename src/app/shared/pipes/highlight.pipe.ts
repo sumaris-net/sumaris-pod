@@ -3,7 +3,7 @@ import { Pipe, Injectable, PipeTransform } from '@angular/core';
 @Pipe({
     name: 'highlight'
 })
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class HighlightPipe implements PipeTransform {
 
     transform(value: string | any, args?: any): string | Promise<string> {

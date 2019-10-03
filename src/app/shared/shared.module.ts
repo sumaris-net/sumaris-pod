@@ -17,7 +17,7 @@ import {MatBooleanField} from "./material/material.boolean";
 import {MatAutocompleteField} from "./material/material.autocomplete";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {TextMaskModule} from "angular2-text-mask";
-import {MatPaginatorIntl} from "@angular/material";
+import {MAT_AUTOCOMPLETE_SCROLL_STRATEGY, MatPaginatorIntl} from "@angular/material";
 import {MatPaginatorI18n} from "./material/material.paginator-i18n";
 import {ProgressBarService} from "./services/progress-bar.service";
 import {HTTP_INTERCEPTORS} from "@angular/common/http";
@@ -57,6 +57,12 @@ import {ColorPickerModule} from 'ngx-color-picker';
 import {AppFormField} from "./form/field.component";
 import {NumpadComponent} from "./numpad/numpad";
 import {AudioProvider} from "./audio/audio";
+import {CloseScrollStrategy, Overlay} from '@angular/cdk/overlay';
+
+
+export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
+  return () => overlay.scrollStrategies.close();
+}
 
 export {
   DataService, SuggestionDataService, TableDataService, LoadResult,
@@ -136,7 +142,11 @@ export {
         return service;
       },
       deps: [TranslateService]
-    }
+    },
+
+    // FIXME: try to force a custom overlay for autocomplete, because of there is a bug when using inside an ionic modal
+    //{ provide: Overlay, useClass: Overlay},
+    { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] },
   ]
 })
 export class SharedModule {

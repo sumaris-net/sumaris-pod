@@ -103,7 +103,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   }
 
   public setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
-    console.log('TODO set value')
     if (data && EntityUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }

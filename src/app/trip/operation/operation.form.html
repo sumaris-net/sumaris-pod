@@ -47,7 +47,8 @@
             <ion-col size="12" size-lg="4">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate"
                              formControlName="startDateTime" [required]="true"
-                             [tabindex]="tabindex+2">
+                             [tabindex]="tabindex+2"
+                             [startDate]="trip?.departureDateTime">
               </mat-date-time>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['startPosition']">
@@ -95,7 +96,8 @@
             <ion-col size="12" size-lg="4">
               <mat-date-time formControlName="endDateTime"
                              [placeholder]="'COMMON.DATE'|translate"
-                             [tabindex]="tabindex+6">
+                             [tabindex]="tabindex+6"
+                             [startDate]="form.controls.startDateTime.value">
 
                 <mat-error *ngIf="form.controls.endDateTime.hasError('invalid')" translate>TRIP.OPERATION.ERROR.FIELD_DATE_OUTSIDE_TRIP</mat-error>
                 <mat-hint align="end" *ngIf="form.controls.endDateTime.value">

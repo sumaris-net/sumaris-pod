@@ -62,6 +62,7 @@ export class NetworkService {
   }
 
   constructor(
+    @Inject(DOCUMENT) private _document: HTMLDocument,
     private translate: TranslateService,
     private modalCtrl: ModalController,
     private cryptoService: CryptoService,
@@ -70,7 +71,6 @@ export class NetworkService {
     private splashScreen: SplashScreen,
     private settings: LocalSettingsService,
     private network: Network,
-    @Inject(DOCUMENT) private document: Document
   ) {
     this.resetData();
 
@@ -157,10 +157,10 @@ export class NetworkService {
     }
 
     // Else, if App is hosted, try the web site as a peer
-    const location = this.document && this.document.location;
+    const location = this._document && this._document.location;
     if (location && location.protocol && location.protocol.startsWith("http")) {
-      const hostname = this.document.location.host;
-      const detectedPeer = Peer.parseUrl(`${this.document.location.protocol}${hostname}${environment.baseUrl}`);
+      const hostname = this._document.location.host;
+      const detectedPeer = Peer.parseUrl(`${this._document.location.protocol}${hostname}${environment.baseUrl}`);
       if (await this.checkPeerAlive(detectedPeer)) {
         return detectedPeer;
       }

@@ -36,10 +36,9 @@ import {CacheModule} from "ionic-cache";
 import {Network} from "@ionic-native/network/ngx";
 import {CloseScrollStrategy, Overlay} from "@angular/cdk/overlay";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
+import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
+import {LocalSettings} from "./core/services/model";
 
-export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
-  return () => overlay.scrollStrategies.close();
-}
 
 
 @NgModule({
@@ -91,7 +90,12 @@ export function scrollFactory(overlay: Overlay): () => CloseScrollStrategy {
         autoActiveFirstOption: true
       }
     },
-    { provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY, useFactory: scrollFactory, deps: [Overlay] }
+    { provide: APP_LOCAL_SETTINGS_OPTIONS,
+      useValue: {
+        pageHistoryMaxSize: 3
+      } as LocalSettings
+    }
+
   ]
 })
 export class AppModule {

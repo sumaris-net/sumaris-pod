@@ -6,7 +6,7 @@ import { DATE_ISO_PATTERN } from '../constants';
 @Pipe({
     name: 'dateFormat'
 })
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class DateFormatPipe implements PipeTransform {
 
     constructor(

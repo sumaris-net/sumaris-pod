@@ -521,7 +521,6 @@ export class ProgramService extends BaseDataService
     program?: string;
     searchAttribute?: string;
   }): Promise<IReferentialRef[]> {
-    console.log("TODO: check suggestTaxonGroups")
     // Search on program's taxon groups
     if (isNotNil(options.program)) {
       const values = await this.loadTaxonGroups(options.program);

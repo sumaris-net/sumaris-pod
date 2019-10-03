@@ -1,5 +1,5 @@
-import {Injectable} from "@angular/core";
-import {LocalSettings, Peer, UsageMode} from "./model";
+import {Inject, Injectable, InjectionToken, Optional} from "@angular/core";
+import {HistoryPageReference, LocalSettings, Peer, UsageMode} from "./model";
 import {TranslateService} from "@ngx-translate/core";
 import {Storage} from '@ionic/storage';
 
@@ -9,17 +9,25 @@ import {Subject} from "rxjs";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {Platform} from "@ionic/angular";
 import {FormFieldDefinition} from "../../shared/form/field.model";
-
+import * as moment from "moment";
+import {debounceTime, filter, throttleTime} from "rxjs/operators";
 export const SETTINGS_STORAGE_KEY = "settings";
 export const SETTINGS_TRANSIENT_PROPERTIES = ["mobile", "touchUi"];
 
-@Injectable({providedIn: 'root'})
+
+export const APP_LOCAL_SETTINGS_OPTIONS = new InjectionToken<LocalSettings>('LocalSettingsOptions');
+
+@Injectable({
+  providedIn: 'root',
+  deps: [APP_LOCAL_SETTINGS_OPTIONS]
+})
 export class LocalSettingsService {
 
   private _debug = false;
   private _startPromise: Promise<any>;
   private _started = false;
   private _additionalFields: FormFieldDefinition[] = [];
+  private _delayedSaveSubject: Subject<any>;
 
   private data: LocalSettings;
 
@@ -61,12 +69,23 @@ export class LocalSettingsService {
     return (this.data && this.data.defaultPrograms || []);
   }
 
+  get pageHistory(): HistoryPageReference[] {
+    return (this.data && this.data.pageHistory || []);
+  }
+
   private _id: number;
   constructor(
     private translate: TranslateService,
     private platform: Platform,
-    private storage: Storage
+    private storage: Storage,
+    @Inject(APP_LOCAL_SETTINGS_OPTIONS) private defaultSettings: LocalSettings
   ) {
+
+    this.defaultSettings = Object.assign({
+      pageHistoryMaxSize: 3,
+      accountInheritance: true,
+      latLongFormat: environment.defaultLatLongFormat || 'DDMM'
+    }, this.defaultSettings || {});
 
     // Register default options
     //this.registerFields(Object.getOwnPropertyNames(CoreOptions).map(key => CoreOptions[key]));
@@ -79,22 +98,8 @@ export class LocalSettingsService {
     //this._debug = !environment.production;
   }
 
-  private resetData() {
-    this.data = this.data || {};
 
-    this.data.locale = this.translate.currentLang || this.translate.defaultLang;
-    this.data.latLongFormat = environment.defaultLatLongFormat || 'DDMM';
-    this.data.accountInheritance = true;
-    this.data.mobile = undefined;
-    this.data.usageMode = undefined;
-
-    const defaultPeer = environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
-    this.data.peerUrl = defaultPeer && defaultPeer.url || undefined;
-
-    if (this._started) this.onChange.next(this.data);
-  }
-
-  async start() {
+  async start(): Promise<LocalSettings> {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;
 
@@ -114,25 +119,24 @@ export class LocalSettingsService {
     return this._startPromise;
   }
 
-  public isStarted(): boolean {
+  get started(): boolean {
     return this._started;
   }
 
-  public ready(): Promise<void> {
-    if (this._started) return Promise.resolve();
+  ready(): Promise<LocalSettings> {
+    if (this._started) return Promise.resolve(this.data);
     return this.start();
   }
 
-
-  public isUsageMode(mode: UsageMode): boolean {
+  isUsageMode(mode: UsageMode): boolean {
     return this.usageMode === mode;
   }
 
-  public isFieldUsageMode(): boolean {
+  isFieldUsageMode(): boolean {
     return this.usageMode === 'FIELD';
   }
 
-  public async restoreLocally(): Promise<LocalSettings | undefined> {
+  async restoreLocally(): Promise<LocalSettings | undefined> {
 
     // Restore from storage
     const settingsStr = await this.storage.get(SETTINGS_STORAGE_KEY);
@@ -165,12 +169,11 @@ export class LocalSettingsService {
     Object.assign(this.data, settings || {});
 
     // Save locally
-    await this.saveLocally();
+    this.saveLocally();
 
     // Emit event
     this.onChange.next(this.data);
   }
-
 
   async setLocalSetting(propertyName: string, value: any) {
     const data = {};
@@ -178,13 +181,13 @@ export class LocalSettingsService {
     await this.saveLocalSettings(data);
   }
 
-  public getPageSettings(pageId: string, propertyName?: string): string[] {
+  getPageSettings(pageId: string, propertyName?: string): string[] {
     const key = pageId.replace(/[/]/g, '__');
     return this.data && this.data.pages
       && this.data.pages[key] && (propertyName && this.data.pages[key][propertyName] || this.data.pages[key]);
   }
 
-  public async savePageSetting(pageId: string, value: any, propertyName?: string) {
+  async savePageSetting(pageId: string, value: any, propertyName?: string) {
     const key = pageId.replace(/[/]/g, '__');
 
     this.data = this.data || {};
@@ -198,10 +201,10 @@ export class LocalSettingsService {
     }
 
     // Update local settings
-    await this.saveLocally();
+    this.saveLocally();
   }
 
-  public getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
+  getFieldDisplayAttributes(fieldName: string, defaultAttributes?: string[]): string[] {
     const value = this.data && this.data.properties &&  this.data.properties[`sumaris.field.${fieldName}.attributes`];
     // Nothing found in settings: return defaults
     if (!value) return defaultAttributes || ['label','name'];
@@ -225,18 +228,136 @@ export class LocalSettingsService {
     (defs || []).forEach(def => this.registerAdditionalField(def));
   }
 
-  /* -- Protected methods -- */
+  async addToPageHistory(page: HistoryPageReference,
+                         pageHistory?: HistoryPageReference[] // used for recursive call to children
+  ) {
+    // If not inside recursive call: clean the page object
+    if (!pageHistory) this.cleanPageHistory(page);
 
-  private saveLocally(): Promise<any> {
-    if (!this.data) {
-      console.debug("[settings] Removing local settings fro storage");
-      return this.storage.remove(SETTINGS_STORAGE_KEY);
+    pageHistory = pageHistory || this.data.pageHistory;
+
+    const index = pageHistory.findIndex(p => (
+      // same path
+      p.path === page.path
+      // or sub-path
+      || page.path.startsWith(p.path + '/'))
+    );
+
+    // New page: insert it
+    if (index === -1) {
+      //if (this._debug)
+      console.debug("[settings] Adding page to history: ", page);
+
+      // Prepend to list
+      pageHistory.splice(0, 0, page);
     }
+
     else {
-      console.debug("[settings] Store local settings", this.data);
-      return this.storage.set(SETTINGS_STORAGE_KEY, JSON.stringify(this.data));
+      const existingPage = pageHistory[index];
+
+      // Duplicate page: replace old
+      if (existingPage.path === page.path) {
+        //if (this._debug)
+        console.debug("[settings] Updating existing page in history: ", page);
+        pageHistory.splice(index, 1);
+
+        // Copy exiting children
+        page.children = existingPage.children || [];
+
+        // Prepend to list
+        pageHistory.splice(0, 0, page);
+      }
+
+      // Existing page is a parent
+      else {
+        existingPage.children = existingPage.children || [];
+        this.addToPageHistory(page, existingPage.children); // recursive call
+      }
+    }
+
+    // Save locally (ONLY when not inside the recursive call)
+    if (pageHistory === this.data.pageHistory) {
+      // If max has been reached, remove some pages
+      if (pageHistory.length > this.data.pageHistoryMaxSize) {
+        const removedPages = pageHistory.splice(this.data.pageHistoryMaxSize, pageHistory.length - this.data.pageHistoryMaxSize);
+        console.debug("[settings] Vacuum history page: ", removedPages);
+      }
+
+      this.saveLocalSettings({pageHistory});
     }
   }
 
+  async removeHistory(path: string) {
+    const index = this.data.pageHistory.findIndex(p => p.path === path);
+    if (index === -1) return; // skip if not found
 
+    this.data.pageHistory.splice(index, 1);
+
+    // Save locally
+    this.saveLocally();
+  }
+
+  /* -- Protected methods -- */
+
+  private resetData() {
+    this.data = this.data || {};
+
+    this.data.locale = this.translate.currentLang || this.translate.defaultLang;
+    this.data.mobile = undefined;
+    this.data.usageMode = undefined;
+    this.data.pageHistory = [];
+
+    const defaultPeer = environment.defaultPeer && Peer.fromObject(environment.defaultPeer);
+    this.data.peerUrl = defaultPeer && defaultPeer.url || undefined;
+
+    Object.assign(this.data, this.defaultSettings);
+
+    if (this._started) this.onChange.next(this.data);
+  }
+
+  private saveLocally(immediate?: boolean): Promise<any> {
+
+    // Execute immediate
+    if (immediate) {
+      if (!this.data) {
+        console.debug("[settings] Removing local settings from storage");
+        return this.storage.remove(SETTINGS_STORAGE_KEY);
+      }
+      else {
+        console.debug("[settings] Store local settings", this.data);
+        return this.storage.set(SETTINGS_STORAGE_KEY, JSON.stringify(this.data));
+      }
+    }
+
+    // Execute with delay
+    else {
+
+      // Create the save subject
+      if (!this._delayedSaveSubject) {
+        this._delayedSaveSubject = new Subject<any>();
+        this._delayedSaveSubject
+          .pipe(
+            debounceTime(1000),
+            filter(() => this._started)
+          )
+          .subscribe(() => this.saveLocally(true));
+      }
+
+      this._delayedSaveSubject.next();
+    }
+  }
+
+  private cleanPageHistory(page: HistoryPageReference): HistoryPageReference {
+    // Set time
+    page.time = page.time || moment();
+
+    // Clean the title (remove <small> tags)
+    page.title = page.title.replace(/<small[^<]+<\/small>/g, '');
+    page.title = page.title.replace(/[ ]*class='hidden-xs hidden-sm'/g, '');
+
+    // Remove
+    page.path = page.path.replace(/[?].*$/, '');
+
+    return page;
+  }
 }

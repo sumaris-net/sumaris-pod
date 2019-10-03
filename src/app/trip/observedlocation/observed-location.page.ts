@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {isNil, isNotNil} from '../../shared/shared.module';
+import {fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import * as moment from "moment";
 import {ObservedLocationForm} from "./observed-location.form";
 import {EntityUtils, Landing, ObservedLocation} from "../services/trip.model";
@@ -16,6 +16,7 @@ import {environment} from "../../core/core.module";
 @Component({
   selector: 'app-observed-location-page',
   templateUrl: './observed-location.page.html',
+  animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> implements OnInit {
@@ -107,15 +108,17 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> im
 
   protected async computeTitle(data: ObservedLocation): Promise<string> {
     // new data
-    if (!data || isNil(data.id)) {
+    if (this.isNewData) {
       return await this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
     }
 
     // Existing data
-    return await this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
+    const title = await this.translate.get('OBSERVED_LOCATION.EDIT.TITLE', {
       location: data.location && (data.location.name || data.location.label),
       dateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime) as string
     }).toPromise();
+
+    return title;
   }
 
   protected getFirstInvalidTabIndex(): number {

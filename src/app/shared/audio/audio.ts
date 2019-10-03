@@ -170,14 +170,14 @@ export class AudioProvider {
 
 
     this._startPromise = this.platform.ready()
-      .then(() => {
+      .then(async () => {
         const isCordova = this.platform.is('cordova');
         this._audioType = isCordova && this.nativeAudio ? 'native' : 'html5';
         console.info(`[audio] Starting audio provider {${this._audioType}}...`);
 
         // Listen audio mode changed
         if (isCordova && this.audioman) {
-          this.listenAudioMode;
+          await this.readAudioMode();
         }
       })
 
@@ -205,20 +205,10 @@ export class AudioProvider {
     return this._startPromise;
   }
 
-  protected listenAudioMode(): Subscription {
-    this._audioMode = AudioManagement.AudioMode.NORMAL;
-
-    return Observable.timer(0,4000)
-      .pipe(
-        tap(() => console.log("[audio] Checking audio mode...")),
-        mergeMap(() => this.audioman.getAudioMode()),
-        tap((value) => console.log("[audio] Checking received: " + (value && value.label))),
-        filter(value => value && value.audioMode !== this._audioMode)
-      )
-      .subscribe(value => {
-        this._audioMode = value && value.audioMode || AudioManagement.AudioMode.NORMAL;
-        console.debug(`[audio] Detected device audio mode {${value.label}} (${this._audioMode})`);
-      });
+  protected async readAudioMode() {
+    const value = await this.audioman.getAudioMode();
+    this._audioMode = value && value.audioMode || AudioManagement.AudioMode.NORMAL;
+    console.debug(`[audio] Detected device audio mode {${value.label}} (${this._audioMode})`);
   }
 
 }

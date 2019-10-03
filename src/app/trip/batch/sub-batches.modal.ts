@@ -4,7 +4,7 @@ import {Batch} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {SubBatchForm} from "./sub-batch.form";
 import {SubBatchValidatorService} from "../services/sub-batch.validator";
-import {SubBatchesTable, SubBatchesTableOptions} from "./sub-batches.table";
+import {SubBatchesTable, SUB_BATCHES_TABLE_OPTIONS} from "./sub-batches.table";
 import {AppMeasurementsTableOptions} from "../measurement/measurements.table.class";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
@@ -24,7 +24,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
   providers: [
     {provide: ValidatorService, useExisting: SubBatchValidatorService},
     {
-      provide: SubBatchesTableOptions,
+      provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => {
         return {
           prependNewElements: true,
@@ -72,7 +72,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     protected viewCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected audio: AudioProvider,
-    @Inject(SubBatchesTableOptions) options: AppMeasurementsTableOptions<Batch>
+    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector,
       null/*no validator = not editable*/,

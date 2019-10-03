@@ -76,7 +76,7 @@ import {SelectPeerModal} from "./peer/select-peer.modal";
 import {SettingsPage} from "./settings/settings.page";
 import {LocalSettingsValidatorService} from "./services/local-settings.validator";
 import {GraphqlService} from "./services/graphql.service";
-import {LocalSettingsService} from "./services/local-settings.service";
+import {LocalSettingsService, APP_LOCAL_SETTINGS_OPTIONS} from "./services/local-settings.service";
 import {AppEditorPage} from "./form/editor-page.class";
 import {LocalEntitiesService} from "./services/local-entities.service";
 

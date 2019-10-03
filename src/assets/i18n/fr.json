@@ -141,7 +141,8 @@
     "NOT_THIS_ACCOUNT_QUESTION": "Vous n'êtes pas <b>{{displayName}}</b> ?",
     "BTN_DISCONNECT": "Déconnecter ce compte",
     "BTN_MY_ACCOUNT": "Mon compte",
-    "BTN_REGISTER": "S'inscrire"
+    "BTN_REGISTER": "S'inscrire",
+    "SHOW_AT": "Consulté le "
   },
   "AUTH": {
     "TITLE": "Authentification",

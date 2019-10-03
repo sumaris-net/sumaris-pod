@@ -21,9 +21,7 @@
 </mat-menu>
 
 <ion-content [ngStyle]="contentStyle"
-             class="no-padding-xs"
-             align-self-center
-             >
+             no-padding-xs>
     <!-- loading spinner -->
     <div class="loading-page" [class.hidden]="!loading">
       <div class="spinner" *ngIf="loading && showSpinner">
@@ -35,6 +33,7 @@
       </div>
     </div>
 
+    <!-- Desktop: translucent top toolbar -->
     <div hidden-xs hidden-sm hidden-mobile>
       <ion-toolbar translucent>
         <ion-buttons slot="start">
@@ -55,21 +54,25 @@
       </ion-toolbar>
     </div>
 
-    <ion-card @fadeInAnimation *ngIf="!loading">
-      <ion-card-content>
-        <h1 [innerHTML]="'HOME.WELCOME'|translate: {appName: appName}"></h1>
+    <!-- Welcome card -->
+    <ion-card @fadeInAnimation *ngIf="!loading" align-self-center text-center padding class="welcome">
+      <ion-card-header>
+        <ion-card-title [innerHTML]="'HOME.WELCOME'|translate: {appName: appName}" text-center>
+        </ion-card-title>
+        <ion-card-subtitle [innerHTML]="description">
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content no-padding>
         <ion-text color="primary">
           <img class="logo" src="{{ logo }}"/>
+        </ion-text>
+        <ion-text *ngIf="!isLogin">
           <br/>
-          <span [innerHTML]="description"></span>
+          <span translate>HOME.REGISTER_HELP</span>
         </ion-text>
       </ion-card-content>
 
-      <ion-footer>
-        <ion-label *ngIf="!isLogin">
-          <br/>
-          <span translate>HOME.REGISTER_HELP</span>
-        </ion-label>
+      <ion-footer padding-top>
 
         <ion-button expand="block" color="primary" *ngIf="!isLogin" (click)="register()">
           <span translate>HOME.BTN_REGISTER</span>
@@ -84,24 +87,76 @@
           <span translate>HOME.BTN_MY_ACCOUNT</span>
         </ion-button>
 
-        <p *ngIf="isLogin" ion-text color="primary" hidden-xs hidden-sm hidden-mobile>
-          <span [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></span>
+        <p *ngIf="isLogin" hidden-xs hidden-sm hidden-mobile>
+          <ion-text [innerHTML]="'HOME.NOT_THIS_ACCOUNT_QUESTION' | translate: {displayName: displayName}"></ion-text>
           <br/>
-          <a ion-text color="danger" href="#" (click)="logout($event)">
-            <span translate>HOME.BTN_DISCONNECT</span>
-          </a>
+          <ion-text>
+            <a href="#" (click)="logout($event)">
+              <span translate>HOME.BTN_DISCONNECT</span>
+            </a>
+          </ion-text>
         </p>
       </ion-footer>
     </ion-card>
 
-<!--    <p class="hidden-xs">&nbsp;</p>-->
-<!--    <div class="visible-sm" style="width: 100%; display: block !important; height: 1px; ">&nbsp;</div>-->
+  <ion-grid *ngIf="!loading && pageHistory.length; else bottomBanner"
+            class="history-container" align-self-center>
+    <ion-row>
+      <ion-col size="12" size-xl="" *ngFor="let page of pageHistory; trackBy: getPagePath"
+               text-center>
+        <ion-card text-start align-self-start @fadeInAnimation>
+          <ion-card-header no-padding>
+            <!-- top bar -->
+            <ion-card-subtitle>
+              <button type="button" tabindex="-1"
+                      (click)="localSettingsService.removeHistory(page.path)"
+                      mat-icon-button float-start no-margin>
+                <mat-icon>close</mat-icon>
+              </button>
+              <ion-label [innerHTML]="page.subtitle"></ion-label>
+              <ion-label float-end>
+                <ion-icon name="time"></ion-icon>
+                <span hidden-xxs translate>HOME.SHOW_AT</span>
+                {{ page.time|dateFormat:{time: true} }}
+              </ion-label>
+            </ion-card-subtitle>
+
+            <!-- main page -->
+            <ion-card-title no-margin>
+              <ion-item  detail="true"
+                         tappable class="text-1x"
+                         [routerLink]="page.path"
+                         routerDirection="forward" lines="none">
+                <ion-label [innerHTML]="page.title"></ion-label>
+              </ion-item>
+            </ion-card-title>
+          </ion-card-header>
+
+          <!-- children pages -->
+          <ion-card-content no-padding padding-start *ngIf="page.children?.length">
+            <ion-list no-padding>
+              <ion-item  detail="true"
+                         *ngFor="let childPage of page.children"
+                         tappable class="text-1x"
+                        [routerLink]="childPage.path"
+                        routerDirection="forward">
+                <ion-label [innerHTML]="childPage.title"></ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 
   <!-- Display configured Departments logos -->
-  <div class="bottom-banner" *ngIf="!loadingBanner" @fadeInAnimation>
-    <a href="{{ item.siteUrl }}" *ngFor="let item of partners | async ">
-      <img class="logo" src="{{ item.logo }}" alt="{{item.label}}"  [title]="item.label" />
-    </a>
-  </div>
+  <ng-template #bottomBanner>
+    <div class="bottom-banner" *ngIf="!loadingBanner" @fadeInAnimation
+      text-center padding>
+      <a href="{{ item.siteUrl }}" *ngFor="let item of partners | async ">
+        <img class="logo" src="{{ item.logo }}" alt="{{item.label}}"  [title]="item.label" />
+      </a>
+    </div>
+  </ng-template>
 
 </ion-content>

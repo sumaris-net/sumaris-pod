@@ -20,7 +20,6 @@ import {toDateISOString} from "../../shared/shared.module";
 import {BaseDataService} from "./base.data-service.class";
 import {ErrorCodes, ServerErrorCodes} from "./errors";
 import {environment} from "../../../environments/environment";
-import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "./graphql.service";
 import {LocalSettingsService} from "./local-settings.service";
 import {FormFieldDefinition} from "../../shared/form/field.model";

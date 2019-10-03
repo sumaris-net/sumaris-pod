@@ -3,15 +3,16 @@ import {Moment} from "moment/moment";
 import {DateAdapter} from "@angular/material";
 import {DATE_ISO_PATTERN} from '../constants';
 import {TranslateService} from "@ngx-translate/core";
+import {first} from "rxjs/operators";
 import {firstNotNilPromise} from "../observables";
 
 let moment = require('moment');
 
 @Pipe({
-  name: 'dateDiffDuration'
+  name: 'dateFromNow'
 })
 @Injectable({providedIn: 'root'})
-export class DateDiffDurationPipe implements PipeTransform {
+export class DateFromNowPipe implements PipeTransform {
 
   private dayUnit: string;
 

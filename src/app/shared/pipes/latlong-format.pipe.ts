@@ -154,7 +154,7 @@ export { DEFAULT_PLACEHOLDER_CHAR, DEFAULT_MAX_DECIMALS, parseLatitudeOrLongitud
 @Pipe({
     name: 'latLongFormat'
 })
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class LatLongFormatPipe implements PipeTransform {
 
     transform(value: number, args?: any): string | Promise<string> {

@@ -36,7 +36,7 @@ export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonName'
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
 
 
-export const SubBatchesTableOptions = new InjectionToken<AppMeasurementsTableOptions<Batch>>('options');
+export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<AppMeasurementsTableOptions<Batch>>('SubBatchesTableOptions');
 
 export interface SubBatchFilter {
   parentId?: number;
@@ -51,7 +51,7 @@ export interface SubBatchFilter {
   providers: [
     {provide: ValidatorService, useExisting: SubBatchValidatorService},
     {
-      provide: SubBatchesTableOptions,
+      provide: SUB_BATCHES_TABLE_OPTIONS,
       useValue: {
         prependNewElements: false,
         suppressErrors: false,
@@ -169,7 +169,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
   constructor(
     protected injector: Injector,
     protected validatorService: ValidatorService,
-    @Inject(SubBatchesTableOptions) options: AppMeasurementsTableOptions<Batch>
+    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector,
       Batch,

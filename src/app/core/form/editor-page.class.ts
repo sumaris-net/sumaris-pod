@@ -15,11 +15,9 @@ import {
 import {Moment} from "moment";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {filter, first} from "rxjs/operators";
-import {ProgramService} from "../../referential/services/program.service";
 import {Entity, UsageMode} from "../services/model";
 import {FormGroup} from "@angular/forms";
 import {AppTabPage} from "./tab-page.class";
-
 
 export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 
@@ -65,17 +63,13 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     this.disable();
 
-    this.registerSubscription(
-      this.route.params.pipe(first())
-        .subscribe(async (params) => {
-          console.log("TODO check params:" , params)
-          const id = params[this.idAttribute];
-          if (!id || id === "new") {
-            await this.load(undefined, params);
-          } else {
-            await this.load(+id, params);
-          }
-        }));
+    const params = this.route.snapshot.params;
+    const id = params[this.idAttribute];
+    if (!id || id === "new") {
+      this.load(undefined, params);
+    } else {
+      this.load(+id, params);
+    }
   }
 
   async load(id?: number, options?: EditorDataServiceLoadOptions) {
@@ -283,8 +277,18 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
    * @param data
    */
   protected async updateTitle(data?: T) {
-    const title = await this.computeTitle(data || this.data);
+    data = data || this.data;
+    const title = await this.computeTitle(data);
     this.title.next(title);
+
+    // If NOT data, then add to page history
+    if (!this.isNewData) {
+      this.settings.addToPageHistory({
+        title: title,
+        subtitle: (data as any).program && (data as any).program.label || undefined,
+        path: this.router.url
+      });
+    }
   }
 
   /**

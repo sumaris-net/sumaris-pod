@@ -64,24 +64,25 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     protected alertCtrl: AlertController,
     protected translate: TranslateService
   ) {
-    // Listen route parameters
-    this.route.queryParams.pipe(first())
-      .subscribe(queryParams => {
-        // Copy original queryParams, for reuse in onTabChange()
-        this.queryParams = Object.assign({}, queryParams);
 
-        // Parse tab
-        const tabIndex = queryParams["tab"];
-        this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
-
-        if (isNotNil(this.queryParams.tab)) {
-          this.selectedTabIndex = this.queryParams.tab;
-          this.markForCheck();
-        }
-      });
   }
 
   ngOnInit() {
+    // Listen route parameters
+
+    const queryParams = this.route.snapshot.queryParams;
+
+    // Copy original queryParams, for reuse in onTabChange()
+    this.queryParams = Object.assign({}, queryParams);
+
+    // Parse tab
+    const tabIndex = queryParams["tab"];
+    this.queryParams.tab = tabIndex && parseInt(tabIndex) || undefined;
+
+    if (isNotNil(this.queryParams.tab)) {
+      this.selectedTabIndex = this.queryParams.tab;
+    }
+
     // Catch back click events
     if (this.appToolbar) {
       this.registerSubscription(this.appToolbar.onBackClick.subscribe(event => this.onBackClick(event)));

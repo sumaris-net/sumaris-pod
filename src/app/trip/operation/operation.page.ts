@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, V
 import {ActivatedRoute, Router} from "@angular/router";
 import {OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
-import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
+import {Batch, EntityUtils, ObservedLocation, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {AppFormUtils, AppTableUtils, AppTabPage, environment, LocalSettingsService} from '../../core/core.module';
@@ -12,7 +12,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {UsageMode} from '../../core/services/model';
 import {fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {AcquisitionLevelCodes, PmfmIds, ProgramService, QualitativeLabels} from '../../referential/referential.module';
-import {Subject} from 'rxjs';
+import {BehaviorSubject, Subject} from 'rxjs';
 import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
 import {MatTabChangeEvent, MatTabGroup} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, first, map, startWith, switchMap} from "rxjs/operators";
@@ -42,7 +42,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   title = new Subject<string>();
   trip: Trip;
-  programSubject = new Subject<string>();
+  programSubject = new BehaviorSubject<string>(undefined);
   saving = false;
   rankOrder: number;
   selectedBatchTabIndex = 0;
@@ -101,28 +101,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     super.ngOnInit();
 
     //await this.settings.ready();
-
-    // Listen route parameters
-    this.route.queryParams.pipe(first())
-      .subscribe(queryParams => {
-        const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
-        this.selectedBatchTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
-        this.selectedSampleTabIndex = subTabIndex;
-        if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
-        if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
-        this.markForCheck();
-      });
-
-    // Read route
-    this.route.params.pipe(first())
-      .subscribe(async ({tripId, operationId}) => {
-        if (isNil(tripId)) return; // skip
-        if (isNil(operationId) || operationId === "new") {
-          await this.load(undefined, {tripId: tripId});
-        } else {
-          await this.load(+operationId, {tripId: tripId});
-        }
-      });
 
     // Register sub forms & table
     this.registerForms([this.opeForm, this.measurementsForm, this.catchBatchForm])
@@ -193,6 +171,23 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     };
 
     this.ngInitExtension();
+
+    // Listen route query parameters
+    const queryParams = this.route.snapshot.queryParams;
+    const subTabIndex = queryParams["subtab"] && parseInt(queryParams["subtab"]) || 0;
+    this.selectedBatchTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
+    this.selectedSampleTabIndex = subTabIndex;
+    if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+    if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+
+    // Read route params
+    const {tripId, operationId} = this.route.snapshot.params;
+    if (isNil(tripId)) return; // skip
+    if (isNil(operationId) || operationId === "new") {
+      this.load(undefined, {tripId: tripId});
+    } else {
+      this.load(+operationId, {tripId: tripId});
+    }
   }
 
 
@@ -218,7 +213,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       }
 
       // Use the default gear, if only one
-      if (trip.gears.length == 1) {
+      if (trip.gears.length === 1) {
         data.physicalGear = Object.assign({}, trip.gears[0]);
       }
 
@@ -321,7 +316,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + "#"));
 
     // Set batches table (with root batches)
-    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));;
+    this.batchGroupsTable.value = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
 
     // make sure PMFMs are loaded (need the QV pmfm)
     this.batchGroupsTable.$pmfms
@@ -331,7 +326,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       });
 
     // Update title
-    await this.updateTitle();
+    this.updateTitle();
 
     // Compute the default back href
     if (data && isNotNil(data.tripId)) {
@@ -518,7 +513,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     if (this.debug) console.debug("[page-operation] Saving...");
 
     // Update entity from JSON
-    let json = this.opeForm.value;
+    const json = this.opeForm.value;
     json.measurements = this.measurementsForm.value;
     this.data.fromObject(json);
     this.data.tripId = this.trip.id;
@@ -611,26 +606,21 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
    * Compute the title
    * @param data
    */
-  async updateTitle(data?: Operation) {
-    data = data || this.data;
+  protected async computeTitle(data: Operation): Promise<string> {
 
     // new ope
-    let title;
     if (!data || isNil(data.id)) {
-      title = await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise();
+      return await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise();
     }
+
     // Existing ope
-    else {
-      title = await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
-        vessel: this.trip && this.trip.vesselFeatures && (this.trip.vesselFeatures.exteriorMarking || this.trip.vesselFeatures.name) || '',
-        departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || '',
-        startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
-      }).toPromise();
-    }
+    const title = (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
+      vessel: this.trip && this.trip.vesselFeatures && (this.trip.vesselFeatures.exteriorMarking || this.trip.vesselFeatures.name) || '',
+      departureDateTime: this.trip && this.trip.departureDateTime && this.dateFormat.transform(this.trip.departureDateTime) as string || '',
+      startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
+    }).toPromise()) as string;
 
-    // Emit the title
-    this.title.next(title);
-
+    return title;
   }
 
   async onSubBatchesChanges(subbatches: Batch[]) {
@@ -649,6 +639,16 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       if (child.label && child.label.startsWith(acquisitionLevel + "#")) return res.concat(child);
       return res.concat(this.getBatchChildrenByLevel(child, acquisitionLevel)); // recursive call
     }, []);
+  }
+
+  onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
+    const changed = super.onTabChange(event, queryParamName);
+    if (changed && this.selectedTabIndex === 1) {
+      if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
+      if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+      this.markForCheck();
+    }
+    return changed;
   }
 
   public onBatchTabChange(event: MatTabChangeEvent) {
@@ -732,7 +732,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     const tab1Invalid = this.catchBatchForm.invalid || subTab0Invalid || subTab1Invalid || subTab2Invalid;
 
     // Open the first invalid tab
-    let invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : this.selectedTabIndex);
+    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : this.selectedTabIndex);
     if (this.selectedTabIndex === 0 && !tab0Invalid) {
       this.selectedTabIndex = invalidTabIndex;
     } else if (this.selectedTabIndex === 1 && !tab1Invalid) {
@@ -740,7 +740,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     }
 
     // If tab 1, open the invalid sub tab
-    if (invalidTabIndex == 1) {
+    if (invalidTabIndex === 1) {
       if (this.showBatchTables) {
         const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedBatchTabIndex));
         if (this.selectedBatchTabIndex === 0 && !subTab0Invalid) {
@@ -767,6 +767,23 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     return this.settings.isUsageMode('FIELD')
     && isNotNil(trip && trip.departureDateTime)
     && trip.departureDateTime.diff(moment(), "day") < 15 ? 'FIELD' : 'DESK';
+  }
+
+  /**
+   * Compute the title
+   * @param data
+   */
+  protected async updateTitle(data?: Operation) {
+    const title = await this.computeTitle(data || this.data);
+    this.title.next(title);
+
+    if (!this.isNewData) {
+      // Add to page history
+      this.settings.addToPageHistory({
+        title: title,
+        path: this.router.url
+      });
+    }
   }
 
   protected markForCheck() {

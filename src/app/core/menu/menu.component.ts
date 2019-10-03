@@ -183,7 +183,7 @@ export class MenuComponent implements OnInit {
     this.cd.markForCheck();
   }
 
-  trackByFn(index, item) {
+  getItemTitle(index, item) {
     return item.title;
   }
 

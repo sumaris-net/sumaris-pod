@@ -779,5 +779,16 @@ export declare interface LocalSettings {
   mobile?: boolean;
   touchUi?: boolean;
   properties?: PropertiesMap;
+  pageHistory?: HistoryPageReference[];
+  pageHistoryMaxSize?: number;
 }
 
+
+export interface HistoryPageReference {
+  title: string;
+  subtitle?: string;
+  path: string;
+  time?: Moment|string;
+
+  children?: HistoryPageReference[];
+}
