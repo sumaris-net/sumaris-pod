@@ -72,7 +72,7 @@ export class HomePage implements OnDestroy {
   }
 
   changeLanguage(locale: string) {
-    this.localSettingsService.saveLocalSettings({locale: locale})
+    this.localSettingsService.apply({locale: locale})
       .then(() => {
         this.markForCheck();
       });

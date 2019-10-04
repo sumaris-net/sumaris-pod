@@ -163,7 +163,7 @@ export class LocalSettingsService {
     return this.data && isNotNil(this.data[key]) && this.data[key] || defaultValue;
   }
 
-  async saveLocalSettings(settings: LocalSettings) {
+  async apply(settings: LocalSettings) {
     this.data = this.data || {};
 
     Object.assign(this.data, settings || {});
@@ -175,10 +175,10 @@ export class LocalSettingsService {
     this.onChange.next(this.data);
   }
 
-  async setLocalSetting(propertyName: string, value: any) {
-    const data = {};
-    data[propertyName] = value;
-    await this.saveLocalSettings(data);
+  async applyProperty(key: keyof LocalSettings, value: any) {
+    const changes = {};
+    changes[key] = value;
+    await this.apply(changes);
   }
 
   getPageSettings(pageId: string, propertyName?: string): string[] {
@@ -255,8 +255,8 @@ export class LocalSettingsService {
     else {
       const existingPage = pageHistory[index];
 
-      // Duplicate page: replace old
-      if (existingPage.path === page.path) {
+      // Same path: replace existing page
+      if (pageHistory[index].path === page.path) {
         //if (this._debug)
         console.debug("[settings] Updating existing page in history: ", page);
         pageHistory.splice(index, 1);
@@ -268,22 +268,30 @@ export class LocalSettingsService {
         pageHistory.splice(0, 0, page);
       }
 
-      // Existing page is a parent
+      // Not same path (should be a parent page)
       else {
+        // Create parent's children array, if not exists
         existingPage.children = existingPage.children || [];
-        this.addToPageHistory(page, existingPage.children); // recursive call
+
+        // Update the parent time
+        existingPage.time = page.time;
+
+        // Add page as parent's children (recursive call)
+        this.addToPageHistory(page, existingPage.children);
       }
     }
 
-    // Save locally (ONLY when not inside the recursive call)
-    if (pageHistory === this.data.pageHistory) {
-      // If max has been reached, remove some pages
-      if (pageHistory.length > this.data.pageHistoryMaxSize) {
+    // Save locally (only if not a recursive execution)
+    if (pageHistory === this.data.pageHistory) {
+
+      // If max has been reached, remove old pages
+      if (this.data.pageHistory.length > this.data.pageHistoryMaxSize) {
         const removedPages = pageHistory.splice(this.data.pageHistoryMaxSize, pageHistory.length - this.data.pageHistoryMaxSize);
-        console.debug("[settings] Vacuum history page: ", removedPages);
+        console.debug("[settings] Pages removed from history: ", removedPages);
       }
 
-      this.saveLocalSettings({pageHistory});
+      // Apply new value
+      this.applyProperty('pageHistory', pageHistory);
     }
   }
 

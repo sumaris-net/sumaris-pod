@@ -114,10 +114,8 @@
                 <mat-icon>close</mat-icon>
               </button>
               <ion-label [innerHTML]="page.subtitle"></ion-label>
-              <ion-label float-end>
-                <ion-icon name="time"></ion-icon>
-                <span hidden-xxs translate>HOME.SHOW_AT</span>
-                {{ page.time|dateFormat:{time: true} }}
+              <ion-label float-end [title]="page.time|dateFormat:{time: true}">
+                <ion-icon name="time"></ion-icon> {{ page.time|dateFromNow }}
               </ion-label>
             </ion-card-subtitle>
 
@@ -127,7 +125,8 @@
                          tappable class="text-1x"
                          [routerLink]="page.path"
                          routerDirection="forward" lines="none">
-                <ion-label [innerHTML]="page.title"></ion-label>
+                <ion-icon color="primary" [name]="page.icon" slot="start"></ion-icon>
+                <ion-label color="primary" [innerHTML]="page.title"></ion-label>
               </ion-item>
             </ion-card-title>
           </ion-card-header>
@@ -140,7 +139,8 @@
                          tappable class="text-1x"
                         [routerLink]="childPage.path"
                         routerDirection="forward">
-                <ion-label [innerHTML]="childPage.title"></ion-label>
+                <ion-icon [name]="childPage.icon" slot="start"></ion-icon>
+                <ion-label color="dark" [innerHTML]="childPage.title"></ion-label>
               </ion-item>
             </ion-list>
           </ion-card-content>

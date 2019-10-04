@@ -192,7 +192,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     try {
       this.disable();
 
-      await this.settings.saveLocalSettings(json);
+      await this.settings.apply(json);
       this.data = json;
       this.markAsPristine();
 

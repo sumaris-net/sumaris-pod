@@ -113,7 +113,7 @@ export class NetworkService {
 
       // Wait settings starts, then save peer in settings
       .then(() => this.settings.ready())
-      .then(() => this.settings.saveLocalSettings({peerUrl: this._peer.url}))
+      .then(() => this.settings.apply({peerUrl: this._peer.url}))
       .then(() => this.setConnectionType(this.network.type));
 
     // Listen for network changes

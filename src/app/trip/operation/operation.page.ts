@@ -781,7 +781,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       // Add to page history
       this.settings.addToPageHistory({
         title: title,
-        path: this.router.url
+        path: this.router.url,
+        icon: 'locate'
       });
     }
   }

@@ -7,6 +7,7 @@ import {IonicModule} from "@ionic/angular";
 import {AutofocusDirective} from "./directives/autofocus.directive";
 import {DateFormatPipe} from "./pipes/date-format.pipe";
 import {DateDiffDurationPipe} from "./pipes/date-diff-duration.pipe";
+import {DateFromNowPipe} from "./pipes/date-from-now.pipe";
 import {LatLongFormatPipe} from "./pipes/latlong-format.pipe";
 import {NumberFormatPipe} from "./pipes/number-format.pipe";
 import {HighlightPipe} from "./pipes/highlight.pipe";
@@ -73,7 +74,8 @@ export {
   startsWithUpperCase,
   propertyComparator, joinPropertiesPath, sort, selectInputContent,
   fadeInAnimation, fadeInOutAnimation, changeCaseToUnderscore,
-  DateFormatPipe, ToolbarComponent,
+  DateFormatPipe, DateFromNowPipe,
+  ToolbarComponent,
   Color, ColorScale, InputElement
 };
 
@@ -94,6 +96,7 @@ export {
     NumpadComponent,
     DateFormatPipe,
     DateDiffDurationPipe,
+    DateFromNowPipe,
     LatLongFormatPipe,
     HighlightPipe,
     NumberFormatPipe,
@@ -112,6 +115,7 @@ export {
     ToolbarComponent,
     NumpadComponent,
     DateFormatPipe,
+    DateFromNowPipe,
     DateDiffDurationPipe,
     LatLongFormatPipe,
     HighlightPipe,
@@ -127,6 +131,7 @@ export {
   ],
   providers: [
     DateFormatPipe,
+    DateFromNowPipe,
     DateDiffDurationPipe,
     LatLongFormatPipe,
     HighlightPipe,

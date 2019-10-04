@@ -789,6 +789,8 @@ export interface HistoryPageReference {
   subtitle?: string;
   path: string;
   time?: Moment|string;
+  icon?: string;
+  matIcon?: string;
 
   children?: HistoryPageReference[];
 }

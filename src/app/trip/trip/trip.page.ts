@@ -444,7 +444,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       this.settings.addToPageHistory({
         title: title,
         subtitle: data.program && data.program.label,
-        path: this.router.url
+        path: this.router.url,
+        icon: 'pin'
       });
     }
   }

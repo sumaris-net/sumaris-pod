@@ -67,10 +67,10 @@
           </ion-item>
 
           <!-- action -->
-          <ion-item @fadeInAnimation
-                    *ngIf="!loading && item.action"
+          <ion-item *ngIf="!loading && item.action"
+                    @fadeInAnimation
                     tappable class="text-1x"
-                    (click)="menu.close() && doAction(item.action)">
+                    (click)="menu.close() && doAction(item.action, $event)">
             <ion-icon slot="start" *ngIf="item.icon" [name]="item.icon"></ion-icon>
             <mat-icon slot="start" *ngIf="item.matIcon">{{item.matIcon}}</mat-icon>
             <ion-label translate>{{item.title}}</ion-label>
