@@ -12,6 +12,9 @@ ion-menu {
   --ion-item-text-color-selected: var(--ion-color-secondary-contrast);
   --ion-item-icon-color-selected: var(--ion-color-secondary-contrast);
 
+  --ion-item-text-color-disable: var(--ion-color-medium);
+  --ion-item-icon-color-disable: var(--ion-color-medium);
+
   ion-header {
 
     ion-text {
@@ -112,6 +115,11 @@ ion-menu {
         ion-label {
           color: var(--ion-item-text-color-selected) !important;
         }
+      }
+
+      ion-item.selected:hover {
+        --ion-item-icon-color-selected: var(--ion-item-icon-color-disable) !important;
+        --ion-item-text-color-selected: var(--ion-item-text-color-disable) !important;
       }
 
     }
