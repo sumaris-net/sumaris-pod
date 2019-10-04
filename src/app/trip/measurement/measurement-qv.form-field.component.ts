@@ -105,8 +105,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   @ViewChild('matInput') matInput: ElementRef;
 
-  @ViewChild('autoCombo') matAutocomplete: MatAutocomplete;
-
   constructor(
     private platform: PlatformService,
     private settings: LocalSettingsService,
@@ -167,22 +165,9 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
       }
     }
 
-    // If autocomplete style
-    if (this.matAutocomplete) {
-      combineLatest([
-        this.matAutocomplete.optionSelected,
-        this.matAutocomplete.optionSelected
-      ])
-      .pipe(
-        takeUntil(this._onDestroy)
-      )
-        .subscribe(([optionSelectEvent, other]) => {
-          console.log("TODO arguments", optionSelectEvent, other);
-        });
 
-    }
     // If button, listen enable/disable changes (hack using statusChanges)
-    else if (this.style === 'button') {
+    if (this.style === 'button') {
 
       this.formControl.statusChanges
         .pipe(
@@ -263,12 +248,6 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   getQvId(item: ReferentialRef) {
     return item.id;
-  }
-
-  onKeyupEnter(event: KeyboardEvent) {
-
-    if (this.matAutocomplete && this.matAutocomplete.opened) return; // skip if enter inside the autocomplete pannel
-    this.onKeypressEnter.emit(event);
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
