@@ -15,7 +15,7 @@ import {
 import {Moment} from "moment";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {filter, first} from "rxjs/operators";
-import {Entity, UsageMode} from "../services/model";
+import {Entity, HistoryPageReference, UsageMode} from "../services/model";
 import {FormGroup} from "@angular/forms";
 import {AppTabPage} from "./tab-page.class";
 
@@ -283,12 +283,18 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
     // If NOT data, then add to page history
     if (!this.isNewData) {
-      this.settings.addToPageHistory({
-        title: title,
-        subtitle: (data as any).program && (data as any).program.label || undefined,
+      this.addToPageHistory({
+        title,
         path: this.router.url
       });
     }
+  }
+
+  protected addToPageHistory(page: HistoryPageReference) {
+    this.settings.addToPageHistory(page, {
+      removePathQueryParams: true,
+      removeTitleSmallTag: true
+    });
   }
 
   /**
@@ -304,4 +310,6 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+
 }

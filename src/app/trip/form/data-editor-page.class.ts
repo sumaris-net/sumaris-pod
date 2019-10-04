@@ -11,6 +11,7 @@ import {ProgramService} from "../../referential/services/program.service";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {EditorDataService, EditorDataServiceLoadOptions} from "../../shared/services/data-service.class";
 import {AppEditorPage} from "../../core/form/editor-page.class";
+import {HistoryPageReference} from "../../core/services/model";
 
 
 export abstract class AppDataEditorPage<T extends DataRootEntity<T>, F = any> extends AppEditorPage<T, F> implements OnInit {
@@ -126,6 +127,15 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, F = any> ex
   }
 
   /* -- protected methods -- */
+
+  /**
+   * Override default function, to add the entity program as subtitle)
+   * @param data
+   */
+  protected addToPageHistory(page: HistoryPageReference) {
+    page.subtitle = page.subtitle || this.data.program.label;
+    super.addToPageHistory(page);
+  }
 
   protected async updateRoute(data: T, queryParams: any): Promise<boolean> {
     return await this.router.navigateByUrl(`${this.defaultBackHref}/${data.id}`, {

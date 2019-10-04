@@ -12,6 +12,7 @@ import {EditorDataServiceLoadOptions} from "../../shared/services/data-service.c
 import {ModalController} from "@ionic/angular";
 import {LandingsTablesModal} from "../landing/landings-table.modal";
 import {environment} from "../../core/core.module";
+import {HistoryPageReference} from "../../core/services/model";
 
 @Component({
   selector: 'app-observed-location-page',
@@ -176,5 +177,11 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> im
     } else {
       console.debug("[observed-location] No vessel added (user cancelled)");
     }
+  }
+
+  protected addToPageHistory(page: HistoryPageReference) {
+    // Add entity icon
+    page.matIcon = 'verified_user';
+    super.addToPageHistory(page);
   }
 }

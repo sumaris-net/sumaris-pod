@@ -229,10 +229,11 @@ export class LocalSettingsService {
   }
 
   async addToPageHistory(page: HistoryPageReference,
+                         opts?: {removePathQueryParams?: boolean; removeTitleSmallTag?: boolean; },
                          pageHistory?: HistoryPageReference[] // used for recursive call to children
   ) {
     // If not inside recursive call: clean the page object
-    if (!pageHistory) this.cleanPageHistory(page);
+    if (!pageHistory) this.cleanPageHistory(page, opts);
 
     pageHistory = pageHistory || this.data.pageHistory;
 
@@ -277,7 +278,7 @@ export class LocalSettingsService {
         existingPage.time = page.time;
 
         // Add page as parent's children (recursive call)
-        this.addToPageHistory(page, existingPage.children);
+        this.addToPageHistory(page, opts, existingPage.children);
       }
     }
 
@@ -355,16 +356,23 @@ export class LocalSettingsService {
     }
   }
 
-  private cleanPageHistory(page: HistoryPageReference): HistoryPageReference {
+  private cleanPageHistory(page: HistoryPageReference, opts?: {
+      removePathQueryParams?: boolean;
+    removeTitleSmallTag?: boolean;
+  }): HistoryPageReference {
     // Set time
     page.time = page.time || moment();
 
     // Clean the title (remove <small> tags)
-    page.title = page.title.replace(/<small[^<]+<\/small>/g, '');
-    page.title = page.title.replace(/[ ]*class='hidden-xs hidden-sm'/g, '');
+    if (!opts || opts.removeTitleSmallTag !== false) {
+      page.title = page.title.replace(/<small[^<]+<\/small>/g, '');
+      page.title = page.title.replace(/[ ]*class='hidden-xs hidden-sm'/g, '');
+    }
 
-    // Remove
-    page.path = page.path.replace(/[?].*$/, '');
+    // Remove query params
+    if (!opts || opts.removePathQueryParams !== false) {
+      page.path = page.path.replace(/[?].*$/, '');
+    }
 
     return page;
   }
