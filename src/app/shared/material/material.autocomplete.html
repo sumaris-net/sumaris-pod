@@ -12,7 +12,7 @@
          [formControl]="formControl"
          [placeholder]="placeholder"
          [appAutofocus]="appAutofocus"
-         [tabindex]="tabindex"
+         [tabindex]="_tabindex"
          [readonly]="readonly"
          [required]="required"
          (click)="onClick.emit($event)"
@@ -39,7 +39,8 @@
   <mat-error *ngIf="formControl.hasError('entity')||formControl.hasError('object')" translate>ERROR.FIELD_INVALID</mat-error>
 
   <!-- combo -->
-  <mat-autocomplete autoActiveFirstOption #autoCombo="matAutocomplete"
+  <mat-autocomplete #autoCombo="matAutocomplete"
+                    autoActiveFirstOption
                     [displayWith]="displayWith"
                     [class]="classList">
     <ion-row class="mat-autocomplete-header" no-padding *ngIf="($items | async)?.length">

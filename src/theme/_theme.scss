@@ -75,3 +75,15 @@ $candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-
 // Import material icons
 // --------------------------------------------------
 @import '~material-design-icons/iconfont/material-icons.css';
+
+// --------------------------------------------------
+// Force material to use ionic color
+// --------------------------------------------------
+
+.mat-tab-group.mat-primary .mat-ink-bar, .mat-tab-nav-bar.mat-primary .mat-ink-bar {
+  background-color: var(--ion-color-primary, $primary);
+}
+
+.mat-progress-bar-buffer {
+  background-color: var(--ion-color-primary-tint, mix(#fff, $primary, 10%));
+}

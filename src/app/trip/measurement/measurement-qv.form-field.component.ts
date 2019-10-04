@@ -13,11 +13,11 @@ import {
   ViewChild
 } from '@angular/core';
 import {entityToString, isNil, isNotNil, PmfmStrategy, Referential} from "../services/trip.model";
-import {merge, Observable} from 'rxjs';
-import {filter, map, takeUntil, tap} from 'rxjs/operators';
+import {combineLatest, merge, Observable} from 'rxjs';
+import {filter, map, takeUntil, tap, throttleTime} from 'rxjs/operators';
 import {EntityUtils, ReferentialRef, referentialToString} from '../../referential/referential.module';
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
-import {FloatLabelType, MatSelect} from "@angular/material";
+import {FloatLabelType, MatAutocomplete, MatSelect} from "@angular/material";
 
 
 import {SharedValidators} from '../../shared/validator/validators';
@@ -53,7 +53,13 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   items: Observable<ReferentialRef[]>;
   onShowDropdown = new EventEmitter<UIEvent>(true);
   mobile = false;
-  selectedIndex: number;
+  selectedIndex = -1;
+  disabled: boolean;
+  _tabindex: number;
+
+  get nativeElement(): any {
+    return this.matInput && this.matInput.nativeElement;
+  }
 
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
@@ -76,13 +82,20 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
   @Input() clearable = false;
 
-  @Input() tabindex: number;
-
   @Input() style: 'autocomplete' | 'select' | 'button';
 
   @Input() searchAttributes: string[];
 
   @Input() sortAttribute: string;
+
+  @Input() set tabindex(value: number) {
+    this._tabindex = value;
+    this.markForCheck();
+  }
+
+  get tabindex(): number {
+    return this._tabindex;
+  }
 
   @Output('keypress.enter')
   onKeypressEnter: EventEmitter<any> = new EventEmitter<any>();
@@ -91,6 +104,8 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
   @ViewChild('matInput') matInput: ElementRef;
+
+  @ViewChild('autoCombo') matAutocomplete: MatAutocomplete;
 
   constructor(
     private platform: PlatformService,
@@ -108,6 +123,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
 
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <mat-form-field-measurement-qv>.");
+    this.disabled = !this.formControl.enabled;
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
     this.pmfm.qualitativeValues = this.pmfm.qualitativeValues || [];
@@ -123,7 +139,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     // Sort values
     this._sortedQualitativeValues = sort(this.pmfm.qualitativeValues, this.sortAttribute);
 
-    this.placeholder = this.placeholder || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
+    this.placeholder = this.placeholder || this.pmfm.name || this.computePlaceholder(this.pmfm, this._sortedQualitativeValues);
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
@@ -151,9 +167,35 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
       }
     }
 
-    this.updateTabIndex();
-  }
+    // If autocomplete style
+    if (this.matAutocomplete) {
+      combineLatest([
+        this.matAutocomplete.optionSelected,
+        this.matAutocomplete.optionSelected
+      ])
+      .pipe(
+        takeUntil(this._onDestroy)
+      )
+        .subscribe(([optionSelectEvent, other]) => {
+          console.log("TODO arguments", optionSelectEvent, other);
+        });
 
+    }
+    // If button, listen enable/disable changes (hack using statusChanges)
+    else if (this.style === 'button') {
+
+      this.formControl.statusChanges
+        .pipe(
+          takeUntil(this._onDestroy)
+        )
+        .subscribe(() => {
+          if (this.disabled !== this.formControl.disabled) {
+            this.disabled = !this.disabled;
+            this.markForCheck();
+          }
+        });
+    }
+  }
 
   ngOnDestroy(): void {
     this._onDestroy.emit();
@@ -170,8 +212,8 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     }
 
     if (this.style === 'button') {
-      const index = obj && isNotNil(obj.id) && this.pmfm.qualitativeValues.findIndex(qv => qv.id === obj.id);
-      if (index !== this.selectedIndex) {
+      const index = (obj && isNotNil(obj.id)) ? this.pmfm.qualitativeValues.findIndex(qv => qv.id === obj.id) : -1;
+      if (this.selectedIndex !== index) {
         this.selectedIndex = index;
         this.markForCheck();
       }
@@ -219,11 +261,14 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     focusInput(this.matInput);
   }
 
-  onButtonClick(event, index: number) {
-    this.selectedIndex = index;
-    this.formControl.patchValue(this.pmfm.qualitativeValues[index], {emitEvent: false});
-    this.formControl.markAsDirty();
-    this.markForCheck();
+  getQvId(item: ReferentialRef) {
+    return item.id;
+  }
+
+  onKeyupEnter(event: KeyboardEvent) {
+
+    if (this.matAutocomplete && this.matAutocomplete.opened) return; // skip if enter inside the autocomplete pannel
+    this.onKeypressEnter.emit(event);
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
@@ -260,15 +305,4 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
     return input && input.toUpperCase().startsWith(search);
   }
 
-  protected updateTabIndex() {
-    if (isNil(this.tabindex) || this.tabindex === -1) return;
-
-    setTimeout(() => {
-      const inputElement = asInputElement(this.matInput);
-      if (inputElement) {
-        inputElement.tabindex = this.tabindex;
-        this.markForCheck();
-      }
-    });
-  }
 }

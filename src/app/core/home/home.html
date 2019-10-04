@@ -126,8 +126,8 @@
                          [routerLink]="page.path"
                          routerDirection="forward" lines="none">
                 <!-- page icon-->
-                <ion-icon *ngIf="page.icon"    slot="start" color="primary" [name]="page.icon"></ion-icon>
-                <mat-icon *ngIf="page.matIcon" slot="start" color="primary">{{page.matIcon}}</mat-icon>
+                <ion-icon *ngIf="page.icon"    slot="start" [name]="page.icon"></ion-icon>
+                <mat-icon *ngIf="page.matIcon" slot="start">{{page.matIcon}}</mat-icon>
 
                 <ion-label color="primary" [innerHTML]="page.title"></ion-label>
               </ion-item>

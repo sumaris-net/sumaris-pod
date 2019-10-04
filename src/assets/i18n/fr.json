@@ -101,7 +101,12 @@
       "COLORS": {
         "PRIMARY": "Thème > Couleur principale",
         "SECONDARY": "Thème > Couleur secondaire",
-        "TERTIARY": "Thème > Couleur tertiaire"
+        "TERTIARY": "Thème > Couleur tertiaire",
+        "SUCCESS": "Thème > Couleur succès",
+        "WARNING": "Thème > Couleur avertissement",
+        "ACCENT": "Thème > Couleur mise en avant",
+        "DANGER": "Thème > Couleur danger"
+
       }
     }
   },

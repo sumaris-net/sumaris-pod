@@ -122,6 +122,26 @@ export const ConfigOptions: FormFieldDefinitionMap = {
     key: 'sumaris.color.tertiary',
     label: 'CONFIGURATION.OPTIONS.COLORS.TERTIARY',
     type: 'color'
+  },
+  COLOR_SUCCESS: {
+    key: 'sumaris.color.success',
+    label: 'CONFIGURATION.OPTIONS.COLORS.SUCCESS',
+    type: 'color'
+  },
+  COLOR_WARNING: {
+    key: 'sumaris.color.warning',
+    label: 'CONFIGURATION.OPTIONS.COLORS.WARNING',
+    type: 'color'
+  },
+  COLOR_ACCENT: {
+    key: 'sumaris.color.accent',
+    label: 'CONFIGURATION.OPTIONS.COLORS.ACCENT',
+    type: 'color'
+  },
+  COLOR_DANGER: {
+    key: 'sumaris.color.danger',
+    label: 'CONFIGURATION.OPTIONS.COLORS.DANGER',
+    type: 'color'
   }
 };
 

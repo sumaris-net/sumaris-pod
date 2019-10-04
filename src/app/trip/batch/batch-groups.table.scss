@@ -30,7 +30,7 @@ mat-table {
     visibility: hidden;
   }
   .mat-header-cell.qv.even {
-    background-color: var(--ion-color-secondary) !important;
+    background-color: var(--ion-color-medium) !important;
   }
   .mat-header-cell.qv.odd {
     background-color: var(--ion-color-light-shade, lightgray) !important;
@@ -63,14 +63,13 @@ mat-table {
     visibility: hidden;
   }
 
-  .mat-header-cell.total.even,
-  .mat-cell.total.even {
-    background-color: var(--ion-color-secondary100) !important;
+  .mat-header-cell.total {
+    background-color: var(--ion-color-light, whitesmoke) !important;
   }
 
-  .mat-header-cell.total.odd,
-  .mat-cell.total.odd {
+  .mat-cell.total {
     background-color: var(--ion-color-light, whitesmoke) !important;
+    color: var(--ion-color-light-contrast, black) !important;
   }
 
   .mat-column-id {

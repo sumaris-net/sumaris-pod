@@ -11,20 +11,20 @@
     <ion-row no-padding>
       <ion-col no-padding>
         <!-- parent, if desktop -->
-        <mat-autocomplete-field *ngIf="!mobile; else parentMobile"
+        <mat-autocomplete-field #matInput *ngIf="!mobile; else parentMobile"
                                 formControlName="parent"
                                 [placeholder]="'TRIP.BATCH.EDIT.PARENT'|translate"
                                 [config]="autocompleteFields.parent"
-                                [tabindex]="tabindex"
-                                [required]="true">
+                                [required]="true"
+                                [tabindex]="tabindex">
         </mat-autocomplete-field>
 
-        <!-- parent, if mobile -->
+        <!-- parent, if mobile (use a mat-select)  -->
         <ng-template #parentMobile>
           <mat-form-field>
-            <mat-select formControlName="parent"
-                        [tabindex]="tabindex"
+            <mat-select #matInput formControlName="parent"
                         [placeholder]="'TRIP.BATCH.EDIT.PARENT'|translate"
+                        [tabindex]="tabindex"
                         required>
               <mat-option *ngFor="let item of availableParents" [value]="item">
                 {{autocompleteFields.parent.displayWith(item)}}
@@ -51,7 +51,8 @@
                                  [style]="mobile? 'button' : 'autocomplete'"
                                  [formControl]="form.controls.measurementValues.controls[qvPmfm.pmfmId.toString()]"
                                  [floatLabel]="floatLabel"
-                                 [compact]="compact">
+                                 [compact]="compact"
+                                 [tabindex]="tabindex+1">
   </mat-form-field-measurement-qv>
 
   <!-- Espèce scientifique -->
@@ -61,6 +62,7 @@
                             formControlName="taxonName"
                             [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                             [config]="autocompleteFields.taxonName"
+                            [tabindex]="tabindex+2"
                             [required]="true">
     </mat-autocomplete-field>
 
@@ -79,8 +81,10 @@
               <ion-button #matInput
                           style="width: 100%;"
                           class="mat-form-field-button"
-                          [color]="selectedTaxonNameIndex === i ? 'accent' : 'light'"
-                          (click)="form.controls.taxonName.setValue(item)">
+                          [color]="selectedTaxonNameIndex === -1 ? 'danger' : (selectedTaxonNameIndex === i ? 'accent' : 'light')"
+                          (click)="form.controls.taxonName.setValue(item)"
+                          (keyup.enter)="form.controls.taxonName.setValue(item)"
+                          [tabindex]="tabindex + 3 + i">
                 {{item.name || item.label}}
               </ion-button>
             </ion-col>
@@ -106,9 +110,11 @@
                                      [hidden]="pmfm.hidden"
                                      [pmfm]="pmfm"
                                      [style]="mobile? 'button' : 'autocomplete'"
+                                     [sortAttribute]="mobile ? ['name'] : undefined"
                                      [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId.toString()]"
                                      [compact]="compact"
-                                     (keyup.enter)="last && doSubmitLastMeasurementField($event)">
+                                     (keyup.enter)="last && doSubmitLastMeasurementField($event)"
+                                     [tabindex]="tabindex + 20 + i">
       </mat-form-field-measurement-qv>
 
       <!-- NOT qualitative value -->
@@ -118,7 +124,8 @@
                                     [hidden]="pmfm.hidden"
                                     [formControl]="form.controls.measurementValues.controls[pmfm.pmfmId.toString()]"
                                     [compact]="compact"
-                                    (keyup.enter)="last && doSubmitLastMeasurementField($event)">
+                                    (keyup.enter)="last && doSubmitLastMeasurementField($event)"
+                                    [tabindex]="tabindex + 20 + i">
         </mat-form-field-measurement>
       </ng-template>
     </ng-container>
@@ -138,10 +145,11 @@
                  step="1"
                  pattern="[0-9]*"
                  (keypress)="filterNumberInput($event, false)"
-                 (keyup.enter)="doSubmitIfEnter($event)"
+                 (keyup.enter)="doSubmit($event)"
                  (focus)="selectInputContent($event)"
                  [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT'|translate"
-                 [required]="!enableIndividualCount">
+                 [required]="!enableIndividualCount"
+                 [tabindex]="tabindex + 100">
           <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED
           </mat-error>
           <mat-error *ngIf="form.controls.individualCount.hasError('min')">

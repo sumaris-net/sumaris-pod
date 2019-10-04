@@ -9,7 +9,7 @@ import {AppMeasurementsTableOptions} from "../measurement/measurements.table.cla
 import {measurementValueToString} from "../services/model/measurement.model";
 import {AppFormUtils, EntityUtils, isNil} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {isNotNilOrBlank} from "../../shared/functions";
+import {isNotNilOrBlank, toBoolean} from "../../shared/functions";
 import {AppPageUtils} from "../../core/form/page.utils";
 import {AudioProvider} from "../../shared/audio/audio";
 
@@ -84,7 +84,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     // default values
     this.showCommentsColumn = false;
     this.showParentColumn = false;
-    this.showIndividualCount = !this.mobile; // Hide individual count on mobile device
+    this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
 
     // TODO: for DEV only ---
     //this.debug = !environment.production;
@@ -93,6 +93,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   async ngOnInit() {
     super.ngOnInit();
+
 
     await this.form.onReady();
 
@@ -267,9 +268,18 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     const row = await super.addBatchToTable(newBatch);
 
     // Highlight the row, few seconds
-    this.onRowConfirmed(row);
+    this.onRowChanged(row);
 
     return row;
+  }
+
+  protected updateRowFromBatch(updatedBatch: Batch, row: TableElement<Batch>): boolean {
+    const res = super.updateRowFromBatch(updatedBatch, row);
+
+    // Highlight the row, few seconds
+    this.onRowChanged(row);
+
+    return res;
   }
 
   protected onInvalidForm() {
@@ -285,7 +295,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
    * @param row
    * @pram times duration of hightligh
    */
-  protected onRowConfirmed(row: TableElement<Batch>) {
+  protected onRowChanged(row: TableElement<Batch>) {
 
     // Play a beep, if on field
     if (this.isOnFieldMode) {

@@ -37,7 +37,6 @@ import {PlatformService} from "../../core/services/platform.service";
 import {AppFormUtils} from "../../core/core.module";
 import {MeasurementFormField} from "../measurement/measurement.form-field.component";
 import {MeasurementQVFormField} from "../measurement/measurement-qv.form-field.component";
-import {MatAutocompleteField} from "../../shared/material/material.autocomplete";
 import {isInputElement, tabindexComparator} from "../../shared/material/focusable";
 import {SharedValidators} from "../../shared/validator/validators";
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
@@ -63,7 +62,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
   mobile: boolean;
   enableIndividualCountControl: AbstractControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
-  selectedTaxonNameIndex: number;
+  selectedTaxonNameIndex = -1;
 
   @Input() tabindex: number;
 
@@ -135,7 +134,6 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   @ViewChildren(MeasurementFormField) measurementFormFields: QueryList<MeasurementFormField>;
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
-  @ViewChildren('matInputToReset') matInputsToReset: QueryList<ElementRef>;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -246,7 +244,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
               // Apply to button index, if need
               if (this.selectedTaxonNameIndex !== index) {
                 this.selectedTaxonNameIndex = index;
-                this.markForCheck();
+                //this.updateTabIndex(); // will apply the markForCheck
               }
             }));
       })
@@ -269,7 +267,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
             distinctUntilKeyChanged('label')
           )
           .subscribe((parent) => {
-            console.log('TODO Reset taxonName, because parent changed to: ', parent);
+            console.log("TODO Reset taxonName, because parent changed to: ", parent);
             taxonNameControl.patchValue(null, {emitEVent: false});
             taxonNameControl.markAsPristine({onlySelf: true});
           }));
@@ -290,7 +288,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
     this.ngInitExtension();
 
-    this.updateTabIndex();
+    //this.updateTabIndex();
   }
 
   async doNewParentClick(event: UIEvent) {
@@ -302,18 +300,12 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     }
   }
 
-  doSubmitIfEnter(event: KeyboardEvent): boolean{
-    if (event.keyCode === 13) {
-      this.doSubmit(event);
-      return false;
-    }
-    return true;
-  }
 
   focusFirstEmpty(event?: UIEvent) {
     // Focus to first input
     this.matInputs
-      .map((input) => {
+      .map((input, index) => {
+        if (this.showParent && index === 0) return; // Skip parent
         if (isInputElement(input)) {
           return input;
         } else if (isInputElement(input.nativeElement)) {
@@ -321,10 +313,12 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
         }
         return undefined;
       })
-      .filter(input => isNotNil(input) && isNilOrBlank(input.value) && !(this.mobile && input instanceof MeasurementQVFormField))
-      .sort(tabindexComparator)// Order by tabindex
+      .filter(input => isNotNil(input) && isNilOrBlank(input.value)
+        // Exclude QV with buttons
+        && !(this.mobile && input instanceof MeasurementQVFormField))
+      // Order by tabindex
+      .sort(tabindexComparator)
       .find(input => {
-        console.log('Will focus on:', input)
         input.focus();
         return true; // stop
       });
@@ -372,6 +366,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     if (discardOrLandingControl && discardReasonControl) {
     this.registerSubscription(
       discardOrLandingControl.valueChanges
+        //.pipe(debounceTime(100))
         .subscribe((value) => {
           if (EntityUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (this.form.enabled) {
@@ -380,9 +375,10 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
             discardReasonControl.setValidators(Validators.required);
             discardReasonControl.updateValueAndValidity({onlySelf: true});
           } else {
-            discardReasonControl.disable();
             discardReasonControl.setValue(null);
             discardReasonControl.setValidators([]);
+            discardReasonControl.disable();
+            //discardReasonControl.updateValueAndValidity({onlySelf: true});
           }
         }));
     }
@@ -479,30 +475,4 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
       value.parent = value.parent.parent;
     }
   }
-
-  protected async updateTabIndex() {
-    if (isNil(this.tabindex) || this.tabindex !== -1) return;
-    setTimeout(async () => {
-      // Make sure form is ready
-      await this.onReady();
-
-      let tabindex = this.tabindex;
-      this.matInputs.forEach(input => {
-        if (input instanceof MeasurementFormField
-          || input instanceof MeasurementQVFormField
-          || input instanceof MatAutocompleteField) {
-          input.tabindex = tabindex;
-        }
-        else if (input.nativeElement instanceof HTMLInputElement){
-          input.nativeElement.setAttribute('tabindex', tabindex.toString());
-        }
-        else {
-          console.warn("Could not set tabindex on element: ", input);
-        }
-        tabindex = tabindex + (this.mobile ? 10/*= QV field use buttons*/ : 1);
-      });
-      this.markForCheck();
-    });
-  }
-
 }

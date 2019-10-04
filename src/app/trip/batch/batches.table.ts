@@ -310,9 +310,8 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
         // Scientific species is required, if not set in root batches
         showTaxonNameColumn: !this.showTaxonNameColumn,
 
-        // On mobile: use individualCount=1 on each sub-batches
-
-        showIndividualCount: !this.mobile,
+        // If on field mode: use individualCount=1 on each sub-batches
+        showIndividualCount: !this.isOnFieldMode,
         availableParents: availableParents,
         availableSubBatchesFn: this.availableSubBatchesFn,
         onNewParentClick: onNewParentClick

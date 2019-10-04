@@ -11,13 +11,13 @@
     <mat-form-field [floatLabel]="floatLabel">
 
       <input matInput #matInput type="text" [placeholder]="pmfm.name" [formControl]="formControl"
-             [matAutocomplete]="autoQualitativeValue"
+             [matAutocomplete]="autoCombo"
              (click)="selectInputContent($event) && onShowDropdown.emit($event)"
              (focus)="onShowDropdown.next($event)"
              (blur)="_onBlur($event)"
              [required]="required"
-             [tabindex]="tabindex"
-             (keyup.enter)="onKeypressEnter.emit($event)">
+             [tabindex]="_tabindex"
+             (keyup.enter)="onKeyupEnter($event)">
 
       <button mat-button matSuffix mat-icon-button tabindex="-1"
               type="button"
@@ -38,7 +38,7 @@
     </mat-form-field>
 
     <!-- combo -->
-    <mat-autocomplete #autoQualitativeValue="matAutocomplete"
+    <mat-autocomplete #autoCombo="matAutocomplete"
                       autoActiveFirstOption
                       [displayWith]="displayWith">
       <ion-row class="mat-autocomplete-header" no-padding>
@@ -65,7 +65,7 @@
                 [placeholder]="pmfm.name"
                 [formControl]="formControl"
                 (blur)="_onBlur($event)"
-                [tabindex]="tabindex">
+                [tabindex]="_tabindex">
       <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
       <!-- header -->
@@ -116,22 +116,23 @@
                   [floatLabel]="floatLabel === 'never' ? 'never' : 'always'">
     <input matInput type="text" hidden
            [formControl]="formControl"
-           [placeholder]="pmfm.name"
+           [placeholder]="placeholder"
            [required]="required">
-    <ion-grid no-padding *ngIf="formControl.enabled; else emptyLabel">
+    <ion-grid no-padding *ngIf="!disabled; else disabledLabel">
       <ion-row no-padding>
-        <ion-col *ngFor="let item of pmfm.qualitativeValues; index as i">
+        <ion-col *ngFor="let item of pmfm.qualitativeValues; index as i; trackBy: getQvId">
           <ion-button style="width: 100%;"
                       class="mat-form-field-button"
-                  [tabindex]="tabindex && (tabindex + i)"
-                  (click)="formControl.setValue(item)"
-                  [color]="selectedIndex === i && 'accent' || 'light'">
+                      [tabindex]="_tabindex !== undefined ? (_tabindex + i) : undefined"
+                      (click)="writeValue(item)"
+                      (keyup.enter)="writeValue(item)"
+                      [color]="selectedIndex === -1 ? 'danger': (selectedIndex === i ? 'accent' : 'light')">
             {{item.name || item.label}}
           </ion-button>
         </ion-col>
       </ion-row>
     </ion-grid>
-    <ng-template #emptyLabel>
+    <ng-template #disabledLabel>
       <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
     </ng-template>
     <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

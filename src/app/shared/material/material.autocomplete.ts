@@ -14,17 +14,15 @@ import {
 } from "@angular/core";
 import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
 import {merge, Observable} from "rxjs";
-import {debounceTime, distinctUntilChanged, filter, map, tap, switchMap, takeUntil, throttleTime} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap, throttleTime} from "rxjs/operators";
 import {SuggestionDataService} from "../services/data-service.class";
 import {
   changeCaseToUnderscore,
   focusInput,
   getPropertyByPath,
-  isNil,
-  isNilOrBlank, isNotNilOrBlank,
+  isNilOrBlank,
   joinPropertiesPath,
   selectInputContent,
-  setTabIndex,
   suggestFromArray,
   toBoolean
 } from "../functions";
@@ -89,7 +87,7 @@ export class MatAutocompleteConfigHolder {
     }) || undefined;
     const attributes = this.getUserAttributes(fieldName, options.attributes) || ['label', 'name'];
     const attributesOrFn = attributes.map((a, index) => a === "function" && options.attributes[index] || a);
-    const filter = Object.assign({
+    const filterData = Object.assign({
       searchAttribute: attributes.length === 1 ? attributes[0] : undefined
     }, options.filter || {});
     const displayWith = options.displayWith || ((obj) => obj && joinPropertiesPath(obj, attributesOrFn));
@@ -97,7 +95,7 @@ export class MatAutocompleteConfigHolder {
     const config: MatAutocompleteFieldConfig = {
       attributes: attributesOrFn,
       service,
-      filter,
+      filter: filterData,
       displayWith,
       showAllOnFocus: options.showAllOnFocus,
       showPanelOnFocus: options.showPanelOnFocus
@@ -134,9 +132,8 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   private _implicitValue: any;
   private _onDestroy = new EventEmitter(true);
 
-  //loading = false;
+  _tabindex: number;
   $items: Observable<any[]>;
-
   onDropButtonClick = new EventEmitter<UIEvent>(true);
 
   @Input() formControl: FormControl;
@@ -173,8 +170,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Input() showPanelOnFocus: boolean;
 
-  @Input() tabindex: number;
-
   @Input() appAutofocus: boolean;
 
   @Input() config: MatAutocompleteFieldConfig;
@@ -182,6 +177,15 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
   @Input() i18nPrefix = 'REFERENTIAL.';
 
   @Input('class') classList: string;
+
+  @Input() set tabindex(value: number) {
+    this._tabindex = value;
+    this.markForCheck();
+  }
+
+  get tabindex(): number {
+    return this._tabindex;
+  }
 
   @Output('click') onClick = new EventEmitter<MouseEvent>();
 
@@ -314,9 +318,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
         this._implicitValue = null; // reset the implicit value
         this.checkIfTouched();
       });
-
-    // Update tab index
-    this.updateTabIndex();
   }
 
   ngOnDestroy(): void {
@@ -389,15 +390,6 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
       this.markForCheck();
       this._onTouchedCallback();
     }
-  }
-
-  private updateTabIndex() {
-    if (isNil(this.tabindex) || this.tabindex === -1) return; // skip
-
-    setTimeout(() => {
-      setTabIndex(this.matInput, this.tabindex);
-      this.markForCheck();
-    });
   }
 
   private markForCheck() {

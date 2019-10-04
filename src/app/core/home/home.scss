@@ -105,15 +105,22 @@ ion-content {
       ion-card-title {
         ion-item {
           --ion-item-background: $transparent;
+          --ion-item-icon-color: var(--ion-color-primary);
+          --ion-item-text-color: var(--ion-color-primary);
 
-          ion-icon[slot="start"], mat-icon[slot="start"] {
+          ion-icon[slot="start"],
+          mat-icon[slot="start"] {
             margin-right: unset;
             margin-inline-end: 16px !important;
+            color: var(--ion-item-icon-color) !important;
+            fill: currentColor;
+            stroke: currentColor;
           }
 
-          // Maximize the font size
-          ion-text, ion-label {
-            //font-weight: bold;
+          ion-text,
+          ion-label {
+            color: var(--ion-item-text-color) !important;
+            // Maximize the font size
             -webkit-text-size-adjust: 100%;
             -moz-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
@@ -126,11 +133,23 @@ ion-content {
         ion-list {
           --ion-item-background: $transparent;
           ion-item {
+            --ion-item-icon-color: var(--ion-color-dark);
+            --ion-item-text-color: var(--ion-color-dark);
 
-            // Reduce space after icon
-            ion-icon[slot="start"], mat-icon[slot="start"] {
+            ion-icon[slot="start"],
+            mat-icon[slot="start"] {
+              color: var(--ion-item-icon-color) !important;
+              fill: currentColor;
+              stroke: currentColor;
+
+              // Reduce space after icon
               margin-right: unset;
               margin-inline-end: 16px !important;
+            }
+
+            ion-text,
+            ion-label {
+              color: var(--ion-item-text-color) !important;
             }
           }
         }

@@ -17,7 +17,10 @@ export function isFocusableElement(object: any): object is FocusableElement {
 
 export function isInputElement(object: any): object is InputElement {
   if (!object) return false;
-  return (('focus' in object) && ('tabindex' in object || 'tabIndex' in object));
+  return  (('focus' in object)
+    && ('value' in object
+      // has value is not always set (neither tabindex) check on 2 properties with a logical OR
+      || ('tabindex' in object || 'tabIndex' in object)));
 }
 
 export function asInputElement(object: ElementRef): InputElement|undefined {
@@ -36,4 +39,19 @@ export function tabindexComparator(a, b) {
 
 export declare interface FocusableElement {
   focus();
+}
+
+export function setTabIndex(input: any, tabindex: number) {
+  if (input instanceof HTMLInputElement) {
+    input.setAttribute('tabindex', tabindex.toString());
+  }
+  else if (isInputElement(input)) {
+    input.tabindex = tabindex;
+  }
+  else if (isInputElement(input.nativeElement)) {
+    setTabIndex(input.nativeElement, tabindex); // loop
+  }
+  else {
+    console.warn("Trying to change tabindex on this element:", input);
+  }
 }

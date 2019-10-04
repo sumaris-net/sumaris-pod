@@ -7,8 +7,16 @@ import {DOCUMENT} from "@angular/common";
 import {Configuration} from "./core/services/model";
 import {PlatformService} from "./core/services/platform.service";
 import {throttleTime} from "rxjs/operators";
-import {changeCaseToUnderscore} from "./shared/shared.module";
+import {changeCaseToUnderscore, ColorScale} from "./shared/shared.module";
 import {FormFieldDefinition} from "./shared/form/field.model";
+import {
+  getColorContrast,
+  getColorShade,
+  getColorTint,
+  hexToRgbArray,
+  mixHex,
+  rgbToHex
+} from "./shared/graph/colors.utils";
 
 
 @Component({
@@ -106,7 +114,11 @@ export class AppComponent {
         colors: {
           primary: config.properties["sumaris.color.primary"],
           secondary: config.properties["sumaris.color.secondary"],
-          tertiary: config.properties["sumaris.color.tertiary"]
+          tertiary: config.properties["sumaris.color.tertiary"],
+          success: config.properties["sumaris.color.success"],
+          warning: config.properties["sumaris.color.warning"],
+          accent: config.properties["sumaris.color.accent"],
+          danger: config.properties["sumaris.color.danger"]
         }
       });
     }
@@ -114,27 +126,56 @@ export class AppComponent {
   }
 
 
-  protected updateTheme(options: { colors?: { primary?: string; secondary?: string; tertiary?: string; } }) {
+  protected updateTheme(options: { colors?: { [color: string]: string; } }) {
     if (!options) return;
 
-    console.info("[app] Changing theme colors ", options);
 
     // Settings colors
     if (options.colors) {
+      console.info("[app] Changing theme colors ", options);
+
+      const style =   document.documentElement.style;
+
+      // Add 100 & 900 color for primary and secondary color
+      ['primary', 'secondary'].forEach(colorName => {
+        const color = options.colors[colorName];
+        options.colors[colorName + '100'] = color && mixHex('#ffffff', color, 10) || undefined;
+        options.colors[colorName + '900'] = color && mixHex('#000000', color, 12) || undefined;
+      });
+
       Object.getOwnPropertyNames(options.colors).forEach(colorName => {
 
         // Remove existing value
-        document.documentElement.style.removeProperty(`--ion-color-${colorName}`);
+        style.removeProperty(`--ion-color-${colorName}`);
+        style.removeProperty(`--ion-color-${colorName}-rgb`);
+        style.removeProperty(`--ion-color-${colorName}-contrast`);
+        style.removeProperty(`--ion-color-${colorName}-contrast-rgb`);
+        style.removeProperty(`--ion-color-${colorName}-shade`);
+        style.removeProperty(`--ion-color-${colorName}-tint`);
 
         // Set new value, if any
         const color = options.colors[colorName];
         if (isNotNil(color)) {
-          document.documentElement.style.setProperty(`--ion-color-${colorName}`, color);
-          // TODO compute shade, hint, ...
+          // Base color
+          style.setProperty(`--ion-color-${colorName}`, color);
+          style.setProperty(`--ion-color-${colorName}-rgb`, hexToRgbArray(color).join(', '));
+
+          // Contrast color
+          const contrastColor = getColorContrast(color, true);
+          style.setProperty(`--ion-color-${colorName}-contrast`, contrastColor);
+          style.setProperty(`--ion-color-${colorName}-contrast-rgb`, hexToRgbArray(contrastColor).join(', '));
+
+          // Shade color
+          style.setProperty(`--ion-color-${colorName}-shade`, getColorShade(color));
+
+          // Tint color
+          style.setProperty(`--ion-color-${colorName}-tint`, getColorTint(color));
         }
       });
     }
   }
+
+
 
   protected addAccountFields() {
 
