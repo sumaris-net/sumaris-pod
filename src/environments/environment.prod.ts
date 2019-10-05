@@ -30,6 +30,10 @@ export const environment: Environment = {
     {
       host: 'adap.pecheursdebretagne.eu',
       port: 443
+    },
+    {
+      host: 'test.sumaris.net',
+      port: 443
     }
   ]
 };
