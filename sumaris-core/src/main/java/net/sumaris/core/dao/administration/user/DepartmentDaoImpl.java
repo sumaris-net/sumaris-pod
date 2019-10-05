@@ -44,6 +44,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -74,13 +75,17 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
         Join<Department, ImageAttachment> logoJoin = root.join(Department.PROPERTY_LOGO, JoinType.LEFT);
 
         ParameterExpression<Boolean> hasStatusIdsParam = builder.parameter(Boolean.class);
+        ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
         ParameterExpression<Boolean> withLogoParam = builder.parameter(Boolean.class);
 
         query.select(root)
                 .where(
                         builder.and(
                                 // status Id
-                                CollectionUtils.isEmpty(filter.getStatusIds()) ? builder.isFalse(hasStatusIdsParam) : builder.in(statusJoin.get(IReferentialEntity.PROPERTY_ID)).value(filter.getStatusIds()),
+                                builder.or(
+                                    builder.isFalse(hasStatusIdsParam),
+                                    builder.in(statusJoin.get(IReferentialEntity.PROPERTY_ID)).value(statusIdsParam)
+                                ),
                                 // with logo
                                 builder.or(
                                         builder.isNull(withLogoParam),
@@ -98,6 +103,7 @@ public class DepartmentDaoImpl extends HibernateDaoSupport implements Department
 
         return entityManager.createQuery(query)
                 .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
+                .setParameter(statusIdsParam, statusIds)
                 .setParameter(withLogoParam, isTrueOrNull(filter.getWithLogo()))
                 .setFirstResult(offset)
                 .setMaxResults(size)

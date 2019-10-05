@@ -25,12 +25,15 @@ package net.sumaris.core.dao.administration.user;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.ImageAttachmentDao;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.*;
+import net.sumaris.core.model.referential.IReferentialEntity;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.UserProfile;
+import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -52,6 +55,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.*;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -84,29 +88,53 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Person> query = builder.createQuery(Person.class);
         Root<Person> root = query.from(Person.class);
-
         Join<Person, UserProfile> upJ = root.join(Person.PROPERTY_USER_PROFILES, JoinType.LEFT);
 
-        ParameterExpression<Integer> userProfileIdParam = builder.parameter(Integer.class);
-        ParameterExpression<String> pubkeyParam = builder.parameter(String.class);
+        ParameterExpression<Boolean> hasUserProfileIdsParam = builder.parameter(Boolean.class);
+        ParameterExpression<Collection> userProfileIdsParam = builder.parameter(Collection.class);
+        ParameterExpression<Boolean> hasStatusIdsParam = builder.parameter(Boolean.class);
         ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
+        ParameterExpression<String> pubkeyParam = builder.parameter(String.class);
         ParameterExpression<String> firstNameParam = builder.parameter(String.class);
         ParameterExpression<String> lastNameParam = builder.parameter(String.class);
         ParameterExpression<String> emailParam = builder.parameter(String.class);
         ParameterExpression<String> searchTextParam = builder.parameter(String.class);
 
+        // Prepare status ids
+        Collection<Integer> statusIds = ArrayUtils.isEmpty(filter.getStatusIds()) ?
+                null : ImmutableList.copyOf(filter.getStatusIds());
+
+        // Prepare user profile ids
+        Collection<Integer> userProfileIds;
+        if (ArrayUtils.isNotEmpty(filter.getUserProfiles())) {
+            userProfileIds = Arrays.stream(filter.getUserProfiles())
+                    .map(label -> UserProfileEnum.valueOf(label))
+                    .filter(Objects::nonNull)
+                    .map(profile -> Integer.valueOf(profile.id))
+                    .collect(Collectors.toList());
+        }
+        else if (ArrayUtils.isNotEmpty(filter.getUserProfileIds())) {
+            userProfileIds = ImmutableList.copyOf(filter.getUserProfileIds());
+        }
+        else if (filter.getUserProfileId() != null) {
+            userProfileIds = ImmutableList.of(filter.getUserProfileId());
+        }
+        else {
+            userProfileIds = null;
+        }
+
         query.select(root).distinct(true)
              .where(
                 builder.and(
-                    // user profile Id
+                    // user profile Ids
                     builder.or(
-                            builder.isNull(userProfileIdParam),
-                            builder.equal(upJ.get(IReferentialEntity.PROPERTY_ID), userProfileIdParam)
+                            builder.isFalse(hasUserProfileIdsParam),
+                            upJ.get(IReferentialEntity.PROPERTY_ID).in(userProfileIdsParam)
                     ),
-                    // status Id
+                    // status Ids
                     builder.or(
-                            builder.isNull(statusIdsParam),
-                            root.get(Person.PROPERTY_STATUS).get(IReferentialEntity.PROPERTY_ID).in(statusIdsParam)
+                        builder.isFalse(hasStatusIdsParam),
+                        root.get(Person.PROPERTY_STATUS).get(IReferentialEntity.PROPERTY_ID).in(statusIdsParam)
                     ),
                     // pubkey
                     builder.or(
@@ -154,11 +182,11 @@ public class PersonDaoImpl extends HibernateDaoSupport implements PersonDao {
             searchTextAnyMatch = searchTextAnyMatch.replaceAll("[*]", "%"); // replace asterix
         }
 
-        List<Integer> statusIds = ArrayUtils.isEmpty(filter.getStatusIds()) ?
-                null : ImmutableList.copyOf(filter.getStatusIds());
 
         return entityManager.createQuery(query)
-                .setParameter(userProfileIdParam, filter.getUserProfileId())
+                .setParameter(hasUserProfileIdsParam, CollectionUtils.isNotEmpty(userProfileIds))
+                .setParameter(userProfileIdsParam,  userProfileIds)
+                .setParameter(hasStatusIdsParam, CollectionUtils.isNotEmpty(statusIds))
                 .setParameter(statusIdsParam, statusIds)
                 .setParameter(pubkeyParam, filter.getPubkey())
                 .setParameter(emailParam, filter.getEmail())

@@ -34,6 +34,8 @@ import java.util.List;
 public class PersonFilterVO {
 
     private Integer userProfileId;
+    private Integer[] userProfileIds;
+    private String[] userProfiles;
 
     private String email;
 

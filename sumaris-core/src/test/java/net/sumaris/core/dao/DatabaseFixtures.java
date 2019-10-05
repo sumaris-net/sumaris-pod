@@ -47,6 +47,10 @@ public class DatabaseFixtures {
 		return 2;
 	}
 
+	public int getUserProfileSupervisor() {
+		return 3;
+	}
+
 	public String getPersonEmail(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
