@@ -168,15 +168,15 @@ export class AudioProvider {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;
 
-
+    let cordova: boolean;
     this._startPromise = this.platform.ready()
       .then(async () => {
-        const isCordova = this.platform.is('cordova');
-        this._audioType = isCordova && this.nativeAudio ? 'native' : 'html5';
+        cordova = this.platform.is('cordova');
+        this._audioType = cordova && this.nativeAudio ? 'native' : 'html5';
         console.info(`[audio] Starting audio provider {${this._audioType}}...`);
 
         // Listen audio mode changed
-        if (isCordova && this.audioman) {
+        if (cordova && this.audioman) {
           await this.readAudioMode();
         }
       })
@@ -184,7 +184,11 @@ export class AudioProvider {
       // Pre-loading system sounds
       .then(() => {
         console.debug('[audio] Preloading audio sounds...');
-        return Promise.all(SYSTEM_SOUNDS.map(s => this.preload(s)));
+        return Promise.all(SYSTEM_SOUNDS.map(s => {
+          // Disable vibration is cordova not enabled
+          if (!cordova) s.vibration = undefined;
+          return this.preload(s);
+        }));
       })
 
       .then(() => {
