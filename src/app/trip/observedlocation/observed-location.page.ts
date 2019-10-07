@@ -20,7 +20,7 @@ import {HistoryPageReference} from "../../core/services/model";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation> implements OnInit {
+export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, ObservedLocationService> implements OnInit {
 
 
   landingEditor: LandingEditor;

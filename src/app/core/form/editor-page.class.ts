@@ -25,7 +25,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   protected dateFormat: DateFormatPipe;
   protected cd: ChangeDetectorRef;
   protected settings: LocalSettingsService;
-  protected idAttribute: string = 'id';
+  protected idAttribute = 'id';
 
   title = new Subject<string>();
   saving = false;
@@ -263,13 +263,17 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     return this.settings.isUsageMode('FIELD') ? 'FIELD' : 'DESK';
   }
 
-  protected getValue(): Promise<T> {
-    const json = this.form.value;
+  protected async getValue(): Promise<T> {
+    const json = await this.getJsonForm();
 
     const res = new this.dataType();
     res.fromObject(json);
 
-    return Promise.resolve(res);
+    return res;
+  }
+
+  protected getJsonForm(): Promise<any> {
+    return this.form.value;
   }
 
   /**

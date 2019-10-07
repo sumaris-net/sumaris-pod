@@ -23,7 +23,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
   templateUrl: './landing.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingPage extends AppDataEditorPage<Landing, LandingFilter> implements OnInit {
+export class LandingPage extends AppDataEditorPage<Landing, LandingService> implements OnInit {
 
   protected parent: Trip | ObservedLocation;
   protected dataService: LandingService;
@@ -33,17 +33,6 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingFilter> imple
 
   @ViewChild('landingForm') landingForm: LandingForm;
   @ViewChild('samplesTable') samplesTable: SamplesTable;
-
-  protected async getValue(): Promise<Landing> {
-    const data = await super.getValue();
-
-    if (this.samplesTable.dirty) {
-      await this.samplesTable.save();
-    }
-    data.samples = this.samplesTable.value;
-
-    return data;
-  }
 
   get pmfms(): Observable<PmfmStrategy[]> {
     return this.landingForm.$pmfms.pipe(filter(isNotNil));
@@ -147,6 +136,17 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingFilter> imple
       this.landingForm.showObservers = isEmptyArray(data.observers);
     }
     this.parent = parent;
+  }
+
+  protected async getValue(): Promise<Landing> {
+    const data = await super.getValue();
+
+    if (this.samplesTable.dirty) {
+      await this.samplesTable.save();
+    }
+    data.samples = this.samplesTable.value;
+
+    return data;
   }
 
   protected async setValue(data: Landing): Promise<void> {

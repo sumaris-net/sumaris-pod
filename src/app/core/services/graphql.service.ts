@@ -23,6 +23,7 @@ import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
 import {EntityUtils} from "./model";
+import {LocalEntitiesRepository} from "./local-entities-repository.service";
 
 @Injectable({providedIn: 'root'})
 export class GraphqlService {
@@ -45,7 +46,8 @@ export class GraphqlService {
     private apollo: Apollo,
     private httpLink: HttpLink,
     private networkService: NetworkService,
-    private storage: Storage
+    private storage: Storage,
+    private entities: LocalEntitiesRepository
   ) {
 
     // Start
@@ -68,7 +70,7 @@ export class GraphqlService {
     }
   }
 
-  public async query<T, V = R>(opts: {
+  async query<T, V = R>(opts: {
     query: any,
     variables: V,
     error?: ServiceError,
@@ -95,7 +97,7 @@ export class GraphqlService {
     return res.data;
   }
 
-  public watchQuery<T, V = R>(opts: {
+  watchQuery<T, V = R>(opts: {
     query: any,
     variables: V,
     error?: ServiceError,
@@ -124,7 +126,7 @@ export class GraphqlService {
       );
   }
 
-  public mutate<T, V = R>(opts: {
+  mutate<T, V = R>(opts: {
     mutation: any,
     variables: V,
     error?: ServiceError,
@@ -170,7 +172,7 @@ export class GraphqlService {
     });
   }
 
-  public subscribe<T, V = R>(opts: {
+  subscribe<T, V = R>(opts: {
     query: any,
     variables: V,
     error?: ServiceError
@@ -198,7 +200,7 @@ export class GraphqlService {
       );
   }
 
-  public addToQueryCache<V = R>(opts: {
+  addToQueryCache<V = R>(opts: {
     query: any,
     variables: V
   }, propertyName: string, newValue: any) {
@@ -223,7 +225,7 @@ export class GraphqlService {
     if (this._debug) console.debug("[data-service] Unable to add entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  public addManyToQueryCache<V = R>(opts: {
+  addManyToQueryCache<V = R>(opts: {
     query: any,
     variables: V
   }, propertyName: string, newValues: any[]) {
@@ -256,7 +258,7 @@ export class GraphqlService {
     if (this._debug) console.debug("[data-service] Unable to add entities to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  public removeToQueryCacheById<V = R>(opts: {
+  removeToQueryCacheById<V = R>(opts: {
     query: any,
     variables: V
   }, propertyName: string, idToRemove: number) {
@@ -282,7 +284,7 @@ export class GraphqlService {
     console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  public removeToQueryCacheByIds<V = R>(opts: {
+  removeToQueryCacheByIds<V = R>(opts: {
     query: any,
     variables: V
   }, propertyName: string, idsToRemove: number[]) {
@@ -310,7 +312,7 @@ export class GraphqlService {
     console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  public updateToQueryCache<V = R>(opts: {
+  updateToQueryCache<V = R>(opts: {
     query: any,
     variables: V
   }, propertyName: string, newValue: any) {
@@ -339,6 +341,10 @@ export class GraphqlService {
       // read in cache is not guaranteed to return a result. see https://github.com/apollographql/react-apollo/issues/1776#issuecomment-372237940
     }
     if (this._debug) console.debug("[data-service] Unable to update entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
+  }
+
+  async getTemporaryId(entityName: string): Promise<number> {
+    return await this.entities.nextValue(entityName);
   }
 
   /* -- protected methods -- */

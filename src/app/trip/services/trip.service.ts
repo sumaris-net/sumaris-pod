@@ -1,9 +1,9 @@
-import {Injectable} from "@angular/core";
+import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
 import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
-import {isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
-import {BaseDataService, environment, NetworkService} from "../../core/core.module";
+import {EditorDataService, isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
+import {environment, NetworkService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
@@ -12,6 +12,8 @@ import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
+import {RootDataService} from "./root-data-service.class";
+import {DataRootEntityUtils} from "./model/base.model";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -207,16 +209,17 @@ const UpdateSubscription = gql`
 `;
 
 @Injectable({providedIn: 'root'})
-export class TripService extends BaseDataService implements TableDataService<Trip, TripFilter>{
+export class TripService extends RootDataService<Trip, TripFilter> implements TableDataService<Trip, TripFilter>, EditorDataService<Trip, TripFilter> {
 
   protected loading = false;
 
   constructor(
+    injector: Injector,
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected accountService: AccountService
   ) {
-    super(graphql);
+    super(injector);
 
     // FOR DEV ONLY
     this._debug = !environment.production;
@@ -297,7 +300,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
   }
 
   public listenChanges(id: number): Observable<Trip> {
-    if (!id && id !== 0) throw "Missing argument 'id' ";
+    if (isNil(id)) throw new Error("Missing argument 'id' ");
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
@@ -374,7 +377,11 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     if (this._debug) console.debug("[trip-service] Saving trip...", json);
 
     if (isNew) {
-      entity.id = -1;
+      console.log("TODO: generate new temp ID for TRIP")
+      entity.id = await this.graphql.getTemporaryId('Trip');
+    }
+    else {
+      json.controlDate = undefined; // reset control date
     }
 
     await this.graphql.mutate<{ saveTrips: any }>({
@@ -390,7 +397,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
       update: (proxy, {data}) => {
         const savedEntity = data && data.saveTrips && data.saveTrips[0];
-        if (savedEntity && savedEntity != entity) {
+        if (savedEntity && savedEntity !== entity) {
           this.copyIdAndUpdateDate(savedEntity, entity);
           if (this._debug) console.debug(`[trip-service] Trip saved in ${Date.now() - now}ms`, entity);
         }
@@ -537,6 +544,10 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     return entity;
   }
 
+  async delete(data: Trip): Promise<any> {
+    await this.deleteAll([data]);
+  }
+
   /**
    * Save many trips
    * @param entities
@@ -634,6 +645,7 @@ export class TripService extends BaseDataService implements TableDataService<Tri
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {
     if (!source) return;
+    super.copyIdAndUpdateDate(source, target);
 
     // Update (id and updateDate)
     EntityUtils.copyIdAndUpdateDate(source, target);
@@ -641,19 +653,21 @@ export class TripService extends BaseDataService implements TableDataService<Tri
     // Update sale
     if (target.sale && source.sale) {
       EntityUtils.copyIdAndUpdateDate(source.sale, target.sale);
+      DataRootEntityUtils.copyControlAndValidationDate(source.sale, target.sale);
     }
 
     // Update gears
     if (target.gears && source.gears) {
-      target.gears.forEach(entity => {
-        const savedGear = source.gears.find(json => entity.equals(json));
-        EntityUtils.copyIdAndUpdateDate(savedGear, entity);
+      target.gears.forEach(targetGear => {
+        const sourceGear = source.gears.find(json => targetGear.equals(json));
+        EntityUtils.copyIdAndUpdateDate(sourceGear, targetGear);
+        DataRootEntityUtils.copyControlAndValidationDate(sourceGear, targetGear);
 
         // Update measurements
-        if (savedGear && entity.measurements && savedGear.measurements) {
-          entity.measurements.forEach(entity => {
-            const savedMeasurement = savedGear.measurements.find(m => entity.equals(m));
-            EntityUtils.copyIdAndUpdateDate(savedMeasurement, entity);
+        if (sourceGear && targetGear.measurements && sourceGear.measurements) {
+          targetGear.measurements.forEach(targetMeasurement => {
+            const savedMeasurement = sourceGear.measurements.find(m => targetMeasurement.equals(m));
+            EntityUtils.copyIdAndUpdateDate(savedMeasurement, targetMeasurement);
           });
         }
       });

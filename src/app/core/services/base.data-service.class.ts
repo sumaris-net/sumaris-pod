@@ -17,7 +17,7 @@ export abstract class BaseDataService<T = any> {
   ) {
 
     // for DEV only
-    this._debug = !environment.production;
+   // this._debug = !environment.production;
   }
 
   /**

@@ -78,7 +78,7 @@ import {LocalSettingsValidatorService} from "./services/local-settings.validator
 import {GraphqlService} from "./services/graphql.service";
 import {LocalSettingsService, APP_LOCAL_SETTINGS_OPTIONS} from "./services/local-settings.service";
 import {AppEditorPage} from "./form/editor-page.class";
-import {LocalEntitiesService} from "./services/local-entities.service";
+import {LocalEntitiesRepository} from "./services/local-entities-repository.service";
 
 export {
   environment,
@@ -222,7 +222,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     LocalSettingsValidatorService,
     ConfigService,
     ConfigValidatorService,
-    LocalEntitiesService
+    LocalEntitiesRepository
   ]
 })
 export class CoreModule {

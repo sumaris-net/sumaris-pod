@@ -1,17 +1,17 @@
 <app-toolbar [title]="title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
-  [defaultBackHref]="defaultBackHref">
+  [defaultBackHref]="defaultBackHref" [canGoBack]="true">
   <ion-spinner *ngIf="loading"></ion-spinner>
 
   <!-- DEV -->
-  <ion-button slot="end" (click)="network.setConnectionType('ethernet')" *ngIf="network.offline">
+  <ion-button slot="end" (click)="network.setConnectionType('ethernet')" *ngIf="debug && network.offline">
     <ion-icon slot="icon-only" name="wifi" color="tertiary" ></ion-icon>
   </ion-button>
-  <ion-button slot="end" (click)="network.setConnectionType('none')" *ngIf="network.online">
+  <ion-button slot="end" (click)="network.setConnectionType('none')" *ngIf="debug && network.online">
     <ion-icon slot="icon-only" name="wifi" color="secondary" ></ion-icon>
   </ion-button>
 </app-toolbar>
 
-<ion-content [fullscreen]="true">
+<ion-content>
 
   <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 

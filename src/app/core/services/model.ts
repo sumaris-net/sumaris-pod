@@ -1,18 +1,16 @@
 import {Moment} from "moment/moment";
 import {
-  propertyComparator,
   fromDateISOString,
   isNil,
   isNilOrBlank,
   isNotNil,
   joinPropertiesPath,
+  propertyComparator,
   sort,
   toDateISOString
 } from "../../shared/shared.module";
 import {noTrailingSlash} from "../../shared/functions";
 import {FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
-import {key} from "ionicons/icons";
-import {AcquisitionLevelType} from "../../referential/services/model";
 
 export {
   joinPropertiesPath,

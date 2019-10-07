@@ -14,7 +14,7 @@ import {AppEditorPage} from "../../core/form/editor-page.class";
 import {HistoryPageReference} from "../../core/services/model";
 
 
-export abstract class AppDataEditorPage<T extends DataRootEntity<T>, F = any> extends AppEditorPage<T, F> implements OnInit {
+export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends EditorDataService<T>> extends AppEditorPage<T> implements OnInit {
 
   protected programService: ProgramService;
 
@@ -26,7 +26,7 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, F = any> ex
   protected constructor(
     injector: Injector,
     protected dataType: new() => T,
-    protected dataService: EditorDataService<T, F>
+    protected dataService: S
   ) {
     super(injector,
       dataType,
@@ -61,22 +61,6 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, F = any> ex
     }
   }
 
-  protected startListenProgramChanges() {
-
-    // If new entity
-    if (this.isNewData) {
-
-      // Listen program changes (only if new data)
-      this.registerSubscription(this.form.controls['program'].valueChanges
-        .subscribe(program => {
-          if (EntityUtils.isNotEmpty(program)) {
-            console.debug("[root-data-editor] Propagate program change: " + program.label);
-            this.programSubject.next(program.label);
-          }
-        })
-      );
-    }
-  }
 
   updateViewState(data: T) {
     // Quality metadata
@@ -108,14 +92,14 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, F = any> ex
     // Stop if data is not valid
     if (!this.valid) {
       // Stop the control
-      event && event.preventDefault();
+      if (event) event.preventDefault();
 
       // Open the first tab in error
       this.openFirstInvalidTab();
     } else if (this.dirty) {
 
       // Stop the control
-      event && event.preventDefault();
+      if (event) event.preventDefault();
 
       console.debug("[root-data-editor] Saving data, before control...");
       const saved = await this.save(new Event('save'));
@@ -127,6 +111,24 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, F = any> ex
   }
 
   /* -- protected methods -- */
+
+
+  protected startListenProgramChanges() {
+
+    // If new entity
+    if (this.isNewData) {
+
+      // Listen program changes (only if new data)
+      this.registerSubscription(this.form.controls['program'].valueChanges
+        .subscribe(program => {
+          if (EntityUtils.isNotEmpty(program)) {
+            console.debug("[root-data-editor] Propagate program change: " + program.label);
+            this.programSubject.next(program.label);
+          }
+        })
+      );
+    }
+  }
 
   /**
    * Override default function, to add the entity program as subtitle)

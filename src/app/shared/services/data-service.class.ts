@@ -29,7 +29,7 @@ export interface EditorDataServiceLoadOptions {
   [key: string]: any;
 }
 
-export declare interface EditorDataService<T, F, O = EditorDataServiceLoadOptions> {
+export declare interface EditorDataService<T, F = any, O = EditorDataServiceLoadOptions> {
 
   load(
     id: number,

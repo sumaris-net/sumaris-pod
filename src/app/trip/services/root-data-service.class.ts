@@ -1,12 +1,15 @@
-import {DataRootEntity, Department, Entity, EntityUtils, Person} from "../../trip/services/model/base.model";
+import {
+  DataRootEntity,
+  DataRootEntityUtils,
+  Department,
+  EntityUtils,
+  Person
+} from "../../trip/services/model/base.model";
 import {Injector} from "@angular/core";
 import {AccountService, BaseDataService, GraphqlService} from "../../core/core.module";
-import {EditorDataService} from "../../shared/services/data-service.class";
-import {ObservedLocation} from "./model/observed-location.model";
 
-export abstract class RootDataService<T extends DataRootEntity<T>, F = any> extends BaseDataService
-  //implements TableDataService<T, F>, EditorDataService<T, F>
-    {
+export abstract class RootDataService<T extends DataRootEntity<T>, F = any> extends BaseDataService {
+
   protected accountService: AccountService;
 
   protected constructor(
@@ -16,10 +19,6 @@ export abstract class RootDataService<T extends DataRootEntity<T>, F = any> exte
 
     this.accountService = injector && injector.get(AccountService) || undefined;
   }
-  //
-  // load(id: number, options?: any): Promise<T> {
-  //
-  // }
 
   protected asObject(entity: T): any {
     const copy: any = entity.asObject(true/*minify*/);
@@ -50,6 +49,11 @@ export abstract class RootDataService<T extends DataRootEntity<T>, F = any> exte
   }
 
   protected copyIdAndUpdateDate(source: T | undefined, target: T) {
+
     EntityUtils.copyIdAndUpdateDate(source, target);
+
+    // Copy control and validation date
+    DataRootEntityUtils.copyControlAndValidationDate(source, target);
+
   }
 }

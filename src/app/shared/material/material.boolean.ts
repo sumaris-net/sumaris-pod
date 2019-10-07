@@ -132,12 +132,6 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     this.disabled = isDisabled;
   }
 
-  protected checkIfTouched() {
-    if (this.formControl.touched) {
-      this.markForCheck();
-      this._onTouchedCallback();
-    }
-  }
 
   _onBlur(event: FocusEvent) {
     this.checkIfTouched();
@@ -170,9 +164,19 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
     });
     this.markForCheck();
   }
-  /* -- protected method -- */
 
+  /* -- private method -- */
 
+  private checkIfTouched() {
+    if (this.formControl.touched) {
+      this.markForCheck();
+      this._onTouchedCallback();
+    }
+  }
+
+  /**
+   * This is a special case, because, this component has a temporary component displayed before the first focus event
+   */
   private updateTabIndex() {
     if (isNil(this._tabindex) || this._tabindex === -1) return;
 
@@ -192,7 +196,6 @@ export class MatBooleanField implements OnInit, ControlValueAccessor, InputEleme
       this.checkboxButton._inputElement.nativeElement.tabIndex = this.showRadio ? this._tabindex : -1;
     }
     this.markForCheck();
-
   }
 
   private onRadioValueChanged(event: MatRadioChange): void {

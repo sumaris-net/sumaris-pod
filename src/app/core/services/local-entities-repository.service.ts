@@ -8,9 +8,10 @@ import {environment} from "../../../environments/environment";
 export const SEQUENCE_STORAGE_KEY = "sequence";
 
 @Injectable({providedIn: 'root'})
-export class LocalEntitiesService {
+export class LocalEntitiesRepository {
 
   private _started = false;
+  private _startPromise: Promise<void>;
   private _sequences: { [key: string]: number } = {};
 
   public onStart = new Subject<void>();
@@ -28,22 +29,45 @@ export class LocalEntitiesService {
     this._debug = !environment.production;
   }
 
-  nextValue(entityName: string): number {
-    return this._sequences[entityName] = (this._sequences[entityName] || 0) + 1;
+  async nextValue(entityName: string): Promise<number> {
+
+    await this.ready();
+
+    const nextValue = (this._sequences[entityName] || 0) - 1;
+    this._sequences[entityName] = nextValue;
+    return nextValue;
+  }
+
+  async currentValue(entityName: string): Promise<number> {
+
+    await this.ready();
+
+    return (this._sequences[entityName] || 0);
   }
 
   /* -- protected methods -- */
 
+  protected async ready() {
+    if (this._started) return;
+    return this.start();
+  }
+
   protected async start() {
+    if (this._startPromise) return this._startPromise;
+    if (this._started) return;
+
     console.info("[local-entities] Starting...");
 
     // Restore sequences
-    await this.restoreSequences();
+    this._startPromise = this.restoreSequences()
+      .then(() => {
+        this._started = true;
+        this._startPromise = undefined;
+        // Emit event
+        this.onStart.next();
+      });
 
-    this._started = true;
-
-    // Emit event
-    this.onStart.next();
+    return this._startPromise;
   }
 
   protected async stop() {

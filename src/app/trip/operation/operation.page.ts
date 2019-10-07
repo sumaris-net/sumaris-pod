@@ -295,7 +295,6 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // Set measurements
     this.measurementsForm.gear = gearLabel;
     this.measurementsForm.value = data && data.measurements || [];
-    this.measurementsForm.updateControls();
 
     // Set catch batch
     this.catchBatchForm.gear = gearLabel;
@@ -351,7 +350,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
    */
   protected ngInitExtension() {
     if (this.measurementsForm) {
-      this.measurementsForm.pmfms
+      this.measurementsForm.$pmfms
         .pipe(
           filter(isNotNil),
           debounceTime(400),

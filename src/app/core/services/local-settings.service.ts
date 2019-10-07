@@ -232,8 +232,8 @@ export class LocalSettingsService {
                          opts?: {removePathQueryParams?: boolean; removeTitleSmallTag?: boolean; },
                          pageHistory?: HistoryPageReference[] // used for recursive call to children
   ) {
-    // If not inside recursive call: clean the page object
-    if (!pageHistory) this.cleanPageHistory(page, opts);
+    // If not inside recursive call: fill page history defaults
+    if (!pageHistory) this.fillPageHistoryDefaults(page, opts);
 
     pageHistory = pageHistory || this.data.pageHistory;
 
@@ -361,7 +361,7 @@ export class LocalSettingsService {
     }
   }
 
-  private cleanPageHistory(page: HistoryPageReference, opts?: {
+  private fillPageHistoryDefaults(page: HistoryPageReference, opts?: {
       removePathQueryParams?: boolean;
     removeTitleSmallTag?: boolean;
   }): HistoryPageReference {

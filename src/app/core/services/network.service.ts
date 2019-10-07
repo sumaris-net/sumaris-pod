@@ -124,7 +124,7 @@ export class NetworkService {
     return this._startPromise;
   }
 
-  ready(): Promise<any> {
+  ready(): Promise<void> {
     if (this._started) return Promise.resolve();
     return this.start();
   }

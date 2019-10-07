@@ -161,3 +161,19 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implemen
     return this;
   }
 }
+
+export class DataRootEntityUtils {
+
+  static copyControlAndValidationDate(source: DataRootEntity<any> | undefined, target: DataRootEntity<any>) {
+    if (!source) return;
+
+    // Update (id and updateDate)
+    target.controlDate = source.controlDate;
+    target.validationDate = fromDateISOString(source.validationDate);
+
+    // Update creation Date, if exists
+    if (source['creationDate']) {
+      target['creationDate'] = fromDateISOString(source['creationDate']);
+    }
+  }
+}

@@ -1,27 +1,19 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from "@angular/router";
-import {AlertController} from "@ionic/angular";
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
-import {EntityUtils, Operation, Trip} from '../services/trip.model';
+import {Trip} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppFormUtils, AppTabPage, environment, NetworkService} from '../../core/core.module';
+import {NetworkService} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
-import {TranslateService} from '@ngx-translate/core';
-import {Subject} from 'rxjs';
-import {DateFormatPipe, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
+import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
 import * as moment from "moment";
-import {Moment} from "moment";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {filter, first, switchMap} from "rxjs/operators";
 import {ProgramProperties} from "../../referential/services/model";
-import {ProgramService} from "../../referential/services/program.service";
-import {isNilOrBlank, isNotNilOrBlank} from "../../shared/functions";
-import {UsageMode} from "../../core/services/model";
+import {AppDataEditorPage} from "../form/data-editor-page.class";
+import {FormGroup} from "@angular/forms";
 
 @Component({
   selector: 'app-trip-page',
@@ -30,16 +22,8 @@ import {UsageMode} from "../../core/services/model";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripPage extends AppTabPage<Trip> implements OnInit {
+export class TripPage extends AppDataEditorPage<Trip, TripService> implements OnInit {
 
-  protected _enableListenChanges = (environment.listenRemoteChanges === true);
-
-  programSubject = new Subject<string>();
-  title = new Subject<string>();
-  saving: boolean = false;
-  defaultBackHref = "/trips";
-  onRefresh = new EventEmitter<any>();
-  usageMode: UsageMode;
 
   showSaleForm = false;
   showGearTable = false;
@@ -57,25 +41,15 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
 
-  get isOnFieldMode(): boolean {
-    return this.usageMode ? this.usageMode === 'FIELD' : this.settings.isUsageMode('FIELD');
-  }
-
   constructor(
-    route: ActivatedRoute,
-    router: Router,
-    alertCtrl: AlertController,
-    translate: TranslateService,
-    public network: NetworkService,
-    protected dateFormat: DateFormatPipe,
-    protected dataService: TripService,
-    protected settings: LocalSettingsService,
-    protected programService: ProgramService,
-    protected cd: ChangeDetectorRef
+    injector: Injector,
+    public network: NetworkService // Used for DEV (to debug OFFLINE mode)
   ) {
-    super(route, router, alertCtrl, translate);
-
-    this.usageMode = this.settings.usageMode;
+    super(injector,
+      Trip,
+      injector.get(TripService));
+    this.idAttribute = 'tripId';
+    this.defaultBackHref = "/trips";
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -84,30 +58,9 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-    // Register forms & tables
-    this.registerForms([this.tripForm, this.saleForm, this.measurementsForm])
-      .registerTables([this.physicalGearTable, this.operationTable]);
-
-    this.disable();
-
-    // Listen route path
-    this.route.params.pipe(first())
-      .subscribe(async ({tripId}) => {
-        if (isNilOrBlank(tripId) || tripId === "new") {
-          await this.load();
-        }
-        else {
-          await this.load(parseInt(tripId));
-        }
-      });
-
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.programSubject.asObservable()
-        .pipe(
-          filter(isNotNilOrBlank),
-          switchMap(programLabel => this.programService.watchByLabel(programLabel, true))
-        )
+      this.onProgramChanged
         .subscribe(program => {
           if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
           this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
@@ -115,225 +68,72 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     );
   }
 
-  async load(id?: number, options?: any) {
-    this.error = null;
+  protected registerFormsAndTables() {
+    this.registerForms([this.tripForm, this.saleForm, this.measurementsForm])
+      .registerTables([this.physicalGearTable, this.operationTable]);
+  }
 
-    // New data
-    if (isNil(id)) {
+  protected async onNewEntity(data: Trip, options?: EditorDataServiceLoadOptions): Promise<void> {
+    if (this.isOnFieldMode) {
+      data.departureDateTime = moment();
 
-      // Create using default values
-      const data = new Trip();
+      // TODO : get the default program from local settings ?
+      //data.program = ...
+    }
 
-      // If is on field mode, fill default values
-      if (this.isOnFieldMode) {
-        data.departureDateTime = moment();
-        // TODO : get the default program from local settings ?
-        //data.program = ...
-      }
+    this.showGearTable = false;
+    this.showOperationTable = false;
 
-      this.updateView(data, true);
-      this.loading = false;
+  }
+
+  updateViewState(data: Trip) {
+    super.updateViewState(data);
+
+    if (this.isNewData) {
       this.showGearTable = false;
       this.showOperationTable = false;
-      this.startListenProgramChanges();
     }
-
-    // Load existing data
     else {
-      const data = await this.dataService.load(id);
-      this.updateView(data, true);
-      this.loading = false;
       this.showGearTable = true;
       this.showOperationTable = true;
-      this.startListenRemoteChanges();
     }
   }
 
-  startListenProgramChanges() {
+  protected async setValue(data: Trip): Promise<void> {
 
-    // If new trip
-    if (isNil(this.data.id)) {
-
-      // Listen program changes (only if new data)
-      if (this.tripForm && this.tripForm.form) {
-        this.registerSubscription(this.tripForm.form.controls['program'].valueChanges
-          .subscribe(program => {
-            if (EntityUtils.isNotEmpty(program)) {
-              console.debug("[trip] Propagate program change: " + program.label);
-              this.programSubject.next(program.label);
-            }
-          })
-        );
-      }
-    }
-  }
-
-  startListenRemoteChanges() {
-
-    // Listen for changes on server
-    if (isNotNil(this.data.id) && this._enableListenChanges) {
-      const subscription = this.dataService.listenChanges(this.data.id)
-          .subscribe((data: Trip | undefined) => {
-            const newUpdateDate = data && (data.updateDate as Moment) || undefined;
-            if (isNotNil(newUpdateDate) && newUpdateDate.isAfter(this.data.updateDate)) {
-              if (this.debug) console.debug("[trip] Changes detected on server, at:", newUpdateDate);
-              if (!this.dirty) {
-                this.updateView(data, true);
-              }
-            }
-          });
-
-      // Add log when closing
-      if (this.debug) subscription.add(() => console.debug('[trip] [WS] Stop to listen changes'));
-
-      this.registerSubscription(subscription);
-    }
-  }
-
-  updateView(data: Trip | null, updateOperations?: boolean) {
-    this.data = data;
     this.tripForm.value = data;
-    const isSaved = isNotNil(data.id);
-    if (isSaved) {
-      this.tripForm.form.controls['program'].disable();
+    const isNew = isNil(data.id);
+    if (!isNew) {
       this.programSubject.next(data.program.label);
     }
     this.saleForm.value = data && data.sale;
     this.measurementsForm.value = data && data.measurements || [];
-    this.measurementsForm.updateControls();
+    //this.measurementsForm.updateControls();
 
     // Physical gear table
     this.physicalGearTable.value = data && data.gears || [];
-    this.showGearTable = isSaved;
 
     // Operations table
-    this.showOperationTable = isSaved;
-    if (updateOperations && this.operationTable) {
+    if (!isNew && this.operationTable) {
       this.operationTable.setTrip(data);
     }
-
-    // Quality metadata
-    this.qualityForm.value = data;
-
-    this.updateTitle();
-
-    this.markAsPristine();
-    this.markAsUntouched();
-
-    if (isNotNil(this.data.validationDate)) {
-      this.disable();
-    } else {
-      this.enable();
-    }
-
-    this.onRefresh.emit();
   }
 
-  async save(event): Promise<boolean> {
-    if (this.loading || this.saving) return false;
-
-    // Copy vessel features, before trying to validate saleForm
-    if (this.tripForm.valid && !this.saleForm.empty) {
-      this.saleForm.form.controls['vesselFeatures'].setValue(this.tripForm.form.controls['vesselFeatures'].value);
-    }
-
-    // Not valid
-    if (!this.valid) {
-      this.markAsTouched({emitEvent: true});
-      this.logFormErrors();
-      this.openFirstInvalidTab();
-
-      this.submitted = true;
-      return false;
-    }
-    this.saving = true;
-    this.error = undefined;
-
-    if (this.debug) console.debug("[page-trip] Saving trip...");
-
-    // Update Trip from JSON
-    let json = this.tripForm.value;
-    json.sale = !this.saleForm.empty ? this.saleForm.value : null;
-    json.measurements = this.measurementsForm.value;
-
-    this.data.fromObject(json);
-
-    const formDirty = this.dirty;
-    const isNew = this.isNewData;
-
-    // Update gears, from table
-    await this.physicalGearTable.save();
-    this.data.gears = this.physicalGearTable.value;
-
-    this.disable();
-
-    try {
-      // Save trip form (with sale)
-      const updatedData = formDirty ? await this.dataService.save(this.data) : this.data;
-      if (formDirty) {
-        this.markAsPristine();
-        this.markAsUntouched();
-      }
-
-      // Save operations
-      // const isOperationSaved = !this.operationTable || await this.operationTable.save();
-      // if (isOperationSaved && this.operationTable) {
-      //   this.operationTable.markAsPristine();
-      // }
-
-      // Update the view (e.g metadata)
-      this.updateView(updatedData, isNew/*will update tripId in filter*/);
-
-      // Is first save
-      if (isNew) {
-
-        // Open the gear tab
-        this.selectedTabIndex = 1;
-        this.queryParams = Object.assign(this.queryParams || {}, {tab: this.selectedTabIndex});
-
-        // Update route location
-        await this.router.navigate(['.'], {
-          relativeTo: this.route,
-          queryParams: Object.assign(this.queryParams, {tripId: updatedData.id})
-        });
-
-        setTimeout(async () => {
-          await this.router.navigateByUrl(`/trips/${updatedData.id}`, {
-            replaceUrl: true,
-            queryParams: this.queryParams,
-          });
-        }, 100);
-
-        // Subscription to remote changes
-        this.startListenRemoteChanges();
-      }
-
-      this.submitted = false;
-      return true;
-    }
-    catch (err) {
-      console.error(err);
-      this.submitted = true;
-      this.error = err && err.message || err;
-      this.enable();
-      return false;
-    }
-    finally {
-      this.saving = false;
-    }
-  }
 
   enable() {
     if (!this.data || isNotNil(this.data.validationDate)) return false;
+    const isNew = this.isNewData;
     // If not a new data, check user can write
-    if (isNotNil(this.data.id) && !this.dataService.canUserWrite(this.data)) {
+    if (!isNew && !this.dataService.canUserWrite(this.data)) {
       if (this.debug) console.warn("[trip] Leave form disable (User has NO write access)");
       return;
     }
     if (this.debug) console.debug("[trip] Enabling form (User has write access)");
+
     super.enable();
+
     // Leave program disable once saved
-    if (isNotNil(this.data.id)) {
+    if (!isNew) {
       this.tripForm.form.controls['program'].disable();
     }
   }
@@ -350,6 +150,12 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     if (savedOrContinue) {
       await this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
     }
+  }
+
+  /* -- protected methods -- */
+
+  protected get form(): FormGroup {
+    return this.tripForm.form;
   }
 
   /**
@@ -370,84 +176,37 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     }).toPromise();
   }
 
-  protected logFormErrors() {
-    if (this.debug) console.debug("[page-trip] Form not valid. Detecting where...");
-    if (this.tripForm.invalid) {
-      AppFormUtils.logFormErrors(this.tripForm.form, "[page-trip] ");
+  protected async getValue(): Promise<Trip> {
+    const data = await super.getValue();
+
+    // Update gears, from table
+    if (this.physicalGearTable.dirty) {
+      await this.physicalGearTable.save();
     }
-    if (!this.saleForm.empty && this.saleForm.invalid) {
-      AppFormUtils.logFormErrors(this.saleForm.form, "[page-trip] [sale-form] ");
-    }
-    if (this.measurementsForm.invalid) {
-      AppFormUtils.logFormErrors(this.measurementsForm.form, "[page-trip] [measurementsForm-form] ");
-    }
+    data.gears = this.physicalGearTable.value;
+
+    return data;
+  }
+
+
+  protected async getJsonForm(): Promise<any> {
+    const json = await super.getJsonForm();
+
+    json.sale = !this.saleForm.empty ? this.saleForm.value : null;
+    json.measurements = this.measurementsForm.value;
+
+    return json;
   }
 
   /**
-   * Open the first tab that is invalid
+   * Get the first invalid tab
    */
-  protected openFirstInvalidTab() {
+  protected getFirstInvalidTabIndex(): number {
     const tab0Invalid = this.tripForm.invalid || this.measurementsForm.invalid;
-    const tab1Invalid = this.physicalGearTable.invalid;
-    const tab2Invalid = this.operationTable.invalid;
+    const tab1Invalid = !tab0Invalid && this.physicalGearTable.invalid;
+    const tab2Invalid = !tab1Invalid && this.operationTable.invalid;
 
-    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
-    if (this.selectedTabIndex === 0 && !tab0Invalid) {
-      this.selectedTabIndex = invalidTabIndex;
-    }
-    else if (this.selectedTabIndex === 1 && !tab1Invalid) {
-      this.selectedTabIndex = invalidTabIndex;
-    }
-    else if (this.selectedTabIndex === 2 && !tab2Invalid) {
-      this.selectedTabIndex = invalidTabIndex;
-    }
-  }
-
-  public async onControl(event: Event) {
-    // Stop if data is not valid
-    if (!this.valid) {
-      console.warn("[trip] Unable to control: invalid form");
-      // Stop the control
-      event && event.preventDefault();
-
-      // Open the first tab in error
-      this.openFirstInvalidTab();
-    }
-    else if (this.dirty) {
-
-      // Stop the control
-      event && event.preventDefault();
-
-      console.debug("[trip] Saving data, before control...");
-      const saved = await this.save(new Event('save'));
-      if (saved) {
-        // Loop
-        this.qualityForm.control(new Event('control'));
-      }
-
-    }
-  }
-
-  /* -- protected methods -- */
-
-  /**
-   * Compute the title
-   * @param data
-   */
-  protected async updateTitle(data?: Trip) {
-    data = data || this.data;
-    const title = await this.computeTitle(data);
-    this.title.next(title);
-
-    if (!this.isNewData) {
-      // Add to page history
-      this.settings.addToPageHistory({
-        title: title,
-        subtitle: data.program && data.program.label,
-        path: this.router.url,
-        icon: 'pin'
-      });
-    }
+    return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
   }
 
   protected markForCheck() {

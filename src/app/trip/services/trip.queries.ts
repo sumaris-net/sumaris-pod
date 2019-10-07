@@ -6,8 +6,8 @@ export const Fragments = {
   department: ReferentialFragments.department,
   recorderDepartment: ReferentialFragments.recorderDepartment,
   recorderPerson: ReferentialFragments.recorderPerson,
-  location:ReferentialFragments.location,
-  metier:ReferentialFragments.metier,
+  location: ReferentialFragments.location,
+  metier: ReferentialFragments.metier,
   lightPerson: gql`fragment LightPersonFragment on PersonVO {
     id
     firstName

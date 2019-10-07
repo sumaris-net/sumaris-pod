@@ -17,6 +17,7 @@ import {RootDataService} from "./root-data-service.class";
 import {TripFilter} from "./trip.service";
 import {Sample} from "./model/sample.model";
 import {EntityUtils} from "../../core/services/model";
+import {DataRootEntityUtils} from "./model/base.model";
 
 
 export class LandingFilter extends TripFilter {
@@ -397,10 +398,11 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
       targets.forEach(target => {
         const source = sources.find(json => target.equals(json));
         EntityUtils.copyIdAndUpdateDate(source, target);
+        DataRootEntityUtils.copyControlAndValidationDate(source, target);
 
         // Apply to children
         if (target.children && target.children.length) {
-          this.copyIdAndUpdateDateOnSamples(sources, target.children);
+          this.copyIdAndUpdateDateOnSamples(sources, target.children); // recursive call
         }
       });
     }
