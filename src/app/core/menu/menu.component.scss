@@ -102,7 +102,8 @@ ion-menu {
       }
 
       ion-item.selected {
-        background-color: var(--ion-item-background-selected);
+        background-color: var(--ion-item-background-selected) !important;
+        --color-hover:  var(--ion-item-background-selected) !important;
 
         mat-icon,
         ion-icon {
@@ -118,8 +119,9 @@ ion-menu {
       }
 
       ion-item.selected:hover {
-        --ion-item-icon-color-selected: var(--ion-item-icon-color-disable) !important;
-        --ion-item-text-color-selected: var(--ion-item-text-color-disable) !important;
+        --color-hover:  var(--ion-item-background-selected) !important;
+        --ion-item-icon-color-selected: var(--ion-item-icon-color) !important;
+        --ion-item-text-color-selected: var(--ion-item-text-color) !important;
       }
 
     }
