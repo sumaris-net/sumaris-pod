@@ -623,11 +623,15 @@ export class AccountService extends BaseDataService {
       this.storage.remove(SECKEY_STORAGE_KEY)
     ]);
 
+    // Clean page history, in local settings
+    await this.settings.clearPageHistory();
+
     // Notify observers
     this.onLogout.next();
     if (tokenRemoved) {
       this.onAuthTokenChange.next(undefined);
     }
+
 
   }
 

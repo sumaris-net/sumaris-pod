@@ -306,6 +306,11 @@ export class LocalSettingsService {
     this.saveLocally();
   }
 
+  async clearPageHistory() {
+    // Reset all page history
+    await this.applyProperty('pageHistory', []);
+  }
+
   /* -- Protected methods -- */
 
   private resetData() {
