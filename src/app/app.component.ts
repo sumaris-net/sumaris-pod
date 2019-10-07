@@ -212,8 +212,8 @@ export class AppComponent {
       .subscribe(() => {
         // Update the display fn
         const attributes = this.settings.getFieldDisplayAttributes('department');
-        departmentDefinition.autocomplete.displayWith = (value) => joinPropertiesPath(value, attributes);
         departmentDefinition.autocomplete.attributes = attributes;
+        departmentDefinition.autocomplete.displayWith = (value) => value && joinPropertiesPath(value, attributes) || undefined;
       });
   }
 

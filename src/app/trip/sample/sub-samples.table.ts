@@ -1,17 +1,15 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {Observable} from 'rxjs';
-import {filter, map, tap} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {EntityUtils, environment, referentialToString} from "../../core/core.module";
+import {EntityUtils, environment, joinPropertiesPath, referentialToString} from "../../core/core.module";
 import {PmfmStrategy, Sample} from "../services/trip.model";
 import {PmfmIds} from "../../referential/referential.module";
 import {SubSampleValidatorService} from "../services/sub-sample.validator";
-import {isNil, isNotNil, startsWithUpperCase} from "../../shared/shared.module";
+import {isNil, isNotNil} from "../../shared/shared.module";
 import {AppMeasurementsTable} from "../measurement/measurements.table.class";
 import {InMemoryTableDataService} from "../../shared/services/memory-data-service.class";
 import {UsageMode} from "../../core/services/model";
-import {BatchUtils} from "../services/model/batch.model";
-import {SampleUtils} from "../services/model/sample.model";
+import {filterNotNil} from "../../shared/observables";
+import {MeasurementValuesUtils} from "../services/model/measurement.model";
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -128,22 +126,26 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SubSampleFilte
 
     // Check if there a tag id in pmfms
     this.registerSubscription(
-      this.$pmfms
-        .pipe(filter(isNotNil))
+      filterNotNil(this.$pmfms)
         .subscribe((pmfms) => {
           this.displayParentPmfm = pmfms.find(p => p.pmfmId === PmfmIds.TAG_ID);
           const displayAttributes = this.settings.getFieldDisplayAttributes('taxonName')
             .map(key => 'taxonName.' + key);
           if (this.displayParentPmfm) {
-            this.autocompleteFields.parent.attributes = ['measurementValues.' + this.displayParentPmfm.pmfmId].concat(displayAttributes);
+            this.autocompleteFields.parent.attributes = [`measurementValues.${this.displayParentPmfm.pmfmId}`].concat(displayAttributes);
             this.autocompleteFields.parent.columnSizes = [4].concat(displayAttributes.map(attr =>
               // If label then col size = 2
               attr.endsWith('label') ? 2 : undefined));
             this.autocompleteFields.parent.columnNames = [this.getPmfmColumnHeader(this.displayParentPmfm)];
+            this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
+              && MeasurementValuesUtils.valueToString(
+                obj.measurementValues[this.displayParentPmfm.pmfmId],
+                this.displayParentPmfm) || undefined;
           } else {
             this.autocompleteFields.parent.attributes = displayAttributes;
             this.autocompleteFields.parent.columnSizes = undefined; // use defaults
             this.autocompleteFields.parent.columnNames = undefined; // use defaults
+            this.autocompleteFields.parent.displayWith = (obj) => obj && joinPropertiesPath(obj, displayAttributes) || undefined;
           }
           this.markForCheck();
         }));
