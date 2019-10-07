@@ -113,13 +113,11 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
 
   setTripId(id: number) {
     this.tripId = id;
-    this.filter = this.filter || {};
-    this.filter.tripId = id;
+    const filter = this.filter || {};
+    filter.tripId = id;
     this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
     this.dataSource.serviceOptions.tripId = id;
-    if (isNotNil(id)) {
-      this.onRefresh.emit();
-    }
+    this.setFilter(filter, {emitEvent: isNotNil(id)});
   }
 
   referentialToString = referentialToString;
