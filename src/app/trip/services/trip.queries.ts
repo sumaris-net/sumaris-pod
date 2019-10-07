@@ -45,6 +45,8 @@ export const Fragments = {
     qualitativeValue {
       id
       label
+      name
+      entityName
       __typename
     }
     digitCount
