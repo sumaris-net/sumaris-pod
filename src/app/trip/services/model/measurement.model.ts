@@ -190,8 +190,8 @@ export class MeasurementUtils {
 
   static toMeasurementValues(measurements: Measurement[]): { [key: number]: any } {
     return measurements && measurements.reduce((map, m) => {
-      const value = m && m.pmfmId && (m.alphanumericalValue || m.numericalValue || (m.qualitativeValue && m.qualitativeValue.id));
-      if (value) map[m.pmfmId] = value;
+      const value = m && m.pmfmId && [m.alphanumericalValue, m.numericalValue, m.qualitativeValue && m.qualitativeValue.id].find(isNotNil);
+      map[m.pmfmId] = isNotNil(value) ? value : null;
       return map;
     }, {}) || undefined;
   }
