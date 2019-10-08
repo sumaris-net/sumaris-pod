@@ -74,8 +74,6 @@ export class PersonService extends BaseDataService implements TableDataService<P
   ) {
     super(graphql);
 
-    console.debug('::: PersonService constructor');
-
     // for DEV only -----
     //this._debug = !environment.production;
   }

@@ -7,24 +7,24 @@ import {
   OnInit,
   ViewChild
 } from "@angular/core";
-import {PlatformService} from "../../core/services/platform.service";
-import {AggregationTypeFilter, ExtractionFilter} from "../services/extraction.service";
+import {PlatformService} from "../core/services/platform.service";
+import {AggregationTypeFilter, ExtractionFilter} from "../trip/services/extraction.service";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNil, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {isNil, isNotNil, isNotNilOrBlank} from "../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionType} from "../services/extraction.model";
+import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionType} from "../trip/services/extraction.model";
 import {Location} from "@angular/common";
 import {MatExpansionPanel} from "@angular/material";
 import {ExtractionForm} from "./extraction-filter.form";
-import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../../shared/shared.module";
-import {ColorScaleLegendItem} from "../../shared/graph/graph-colors";
+import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../shared/shared.module";
+import {ColorScaleLegendItem} from "../shared/graph/graph-colors";
 import * as L from 'leaflet';
 import {CRS, LayerGroup} from 'leaflet';
 import {Feature} from "geojson";
 import {map, throttleTime} from "rxjs/operators";
 import {ModalController} from "@ionic/angular";
 import {ExtractionSelectTypeModal} from "./extraction-list-modal.component";
-import {AccountService} from "../../core/services/account.service";
+import {AccountService} from "../core/services/account.service";
 
 
 const SPACE_STRATA_COLUMNS: string[] = ['area', 'rect', 'statistical_rectangle', 'square'];
@@ -161,7 +161,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
         sheets: formBuilder.group({})
       }));
 
-    this.routePath = 'map';
+    // this.routePath = 'map';
     this._enable = true; // enable the form
 
     // If supervisor, allow to see all aggregations types

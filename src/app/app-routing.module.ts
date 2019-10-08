@@ -59,25 +59,6 @@ const routes: Routes = [
     loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
   },
 
-  // old {
-  //   path: 'admin/users',
-  //   pathMatch: 'full',
-  //   component: UsersPage,
-  //   canActivate: [AuthGuardService],
-  //   data: {
-  //     profile: 'ADMIN'
-  //   }
-  // },
-  // {
-  //   path: 'admin/config',
-  //   pathMatch: 'full',
-  //   component: SoftwarePage,
-  //   canActivate: [AuthGuardService],
-  //   data: {
-  //     profile: 'ADMIN'
-  //   }
-  // },
-
   // Referential path
   {
     path: 'referential',
@@ -279,37 +260,10 @@ const routes: Routes = [
     ]
   },
 
-  // {
-  //   path: 'extraction',
-  //   canActivate: [AuthGuardService],
-  //   children: [
-  //     {
-  //       path: '',
-  //       pathMatch: 'full',
-  //       component: ExtractionTablePage,
-  //       runGuardsAndResolvers: 'pathParamsChange',
-  //       data: {
-  //         profile: 'SUPERVISOR'
-  //       }
-  //     }
-  //   ]
-  // },
-
-  // {
-  //   path: 'map',
-  //   canActivate: [AuthGuardService],
-  //   children: [
-  //     {
-  //       path: '',
-  //       //pathMatch: 'full',
-  //       component: ExtractionMapPage,
-  //       runGuardsAndResolvers: 'pathParamsChange',
-  //       data: {
-  //         profile: 'USER'
-  //       }
-  //     }
-  //   ]
-  // },
+  {
+    path: 'output',
+    loadChildren: () => import('./output/output.module').then(m => m.OutputModule)
+  },
 
   {
     path: "**",
