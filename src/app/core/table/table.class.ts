@@ -82,7 +82,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     return this._filter;
   }
 
-  @ViewChild(MatTable) table: MatTable<T>;
+  @ViewChild(MatTable, {static: true}) table: MatTable<T>;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
