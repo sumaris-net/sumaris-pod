@@ -102,8 +102,6 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
 
     this.additionalFields = this.accountService.additionalFields;
 
-    console.debug('::: UsersPage contructor');
-
     // For DEV only --
     //this.debug = !environment.production;
   }

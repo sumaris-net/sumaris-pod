@@ -8,7 +8,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {isNil, isNotNil} from '../../shared/shared.module';
+import {isNil, isNotNil} from '../shared/shared.module';
 import {TableDataSource} from "angular4-material-table";
 import {
   AggregationType,
@@ -16,17 +16,17 @@ import {
   ExtractionResult,
   ExtractionRow,
   ExtractionType
-} from "../services/extraction.model";
+} from "../trip/services/extraction.model";
 import {FormBuilder, Validators} from "@angular/forms";
 import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
-import {TableSelectColumnsComponent} from "../../core/table/table-select-columns.component";
-import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
+import {TableSelectColumnsComponent} from "../core/table/table-select-columns.component";
+import {SETTINGS_DISPLAY_COLUMNS} from "../core/table/table.class";
 import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {ExtractionForm} from "./extraction-filter.form";
 import {map, tap} from "rxjs/operators";
-import {LocalSettingsService} from "../../core/services/local-settings.service";
+import {LocalSettingsService} from "../core/services/local-settings.service";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
