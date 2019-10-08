@@ -16,7 +16,6 @@ import {MatDateTime} from "./material/material.datetime";
 import {MatLatLong} from "./material/material.latlong";
 import {MatBooleanField} from "./material/material.boolean";
 import {MatAutocompleteField} from "./material/material.autocomplete";
-import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {TextMaskModule} from "angular2-text-mask";
 import {MAT_AUTOCOMPLETE_SCROLL_STRATEGY, MatPaginatorIntl} from "@angular/material";
 import {MatPaginatorI18n} from "./material/material.paginator-i18n";
@@ -83,7 +82,6 @@ export {
   imports: [
     CommonModule,
     MaterialModule,
-    BrowserAnimationsModule,
     ReactiveFormsModule,
     TextMaskModule,
     IonicModule,
@@ -108,7 +106,6 @@ export {
   ],
   exports: [
     MaterialModule,
-    BrowserAnimationsModule,
     ReactiveFormsModule,
     IonicModule,
     AutofocusDirective,

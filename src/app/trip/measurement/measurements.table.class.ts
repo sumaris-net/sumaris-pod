@@ -5,7 +5,6 @@ import {
   AppTable,
   AppTableDataSource,
   isNil,
-  LocalSettingsService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   TableDataService
@@ -24,6 +23,7 @@ import {MeasurementsDataService} from "./measurements.service";
 import {AppTableDataSourceOptions} from "../../core/table/table-datasource.class";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 import {AcquisitionLevelType} from "../../referential/services/model";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T> {

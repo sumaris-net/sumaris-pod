@@ -12,7 +12,6 @@ import {
   referentialToString, vesselFeaturesToString, VesselFeatures
 } from "../services/trip.model";
 import {Moment} from 'moment/moment';
-import {LocalSettingsService} from '../../core/core.module';
 import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
@@ -27,6 +26,7 @@ import {PersonService} from "../../admin/services/person.service";
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/measurement.validator";
 import {FormArray, FormBuilder, FormControl} from "@angular/forms";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-landing-form',

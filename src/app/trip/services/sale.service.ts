@@ -5,12 +5,13 @@ import {Observable} from "rxjs-compat";
 import {Department, EntityUtils, Person, Sale, Sample} from "./trip.model";
 import {map} from "rxjs/operators";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
-import {AccountService, BaseDataService, environment} from "../../core/core.module";
+import {BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {WatchQueryFetchPolicy} from "apollo-client";
 import {OperationFilter} from "./operation.service";
+import {AccountService} from "../../core/services/account.service";
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment on SaleVO {
@@ -75,7 +76,7 @@ export const SaleFragments = {
 
 export declare class SaleFilter {
   observedLocationId?: number;
-  tripId?: number
+  tripId?: number;
 }
 const LoadAllQuery: any = gql`
   query Sales($filter: SaleFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){

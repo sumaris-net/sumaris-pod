@@ -2,7 +2,6 @@ import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} 
 import {ValidatorService} from "angular4-material-table";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {
-  AccountService,
   AppEditorPage,
   EntityUtils,
   environment,
@@ -18,6 +17,7 @@ import {StrategiesTable} from "./strategies.table";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {fadeInOutAnimation} from "../../shared/shared.module";
 import {MatTabChangeEvent} from "@angular/material";
+import {AccountService} from "../../core/services/account.service";
 
 @Component({
   selector: 'app-program',

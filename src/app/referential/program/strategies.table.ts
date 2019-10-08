@@ -1,10 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
 import {
-  AccountService,
   AppTable,
   AppTableDataSource,
-  environment, isNotNil, LocalSettingsService, referentialToString,
+  environment, isNotNil, referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS, StatusIds
 } from "../../core/core.module";
@@ -15,6 +14,8 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {isEmptyArray} from "../../shared/functions";
+import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 export declare interface StrategyFilter {
 }

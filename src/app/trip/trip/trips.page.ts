@@ -2,19 +2,16 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit
 import {Observable} from 'rxjs';
 import {ValidatorService} from "angular4-material-table";
 import {
-  AccountService,
   AppTable,
   AppTableDataSource,
-  LocalSettingsService,
   personsToString,
-  PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
 import {LocationLevelIds, ReferentialRef, Trip, VesselFeatures} from "../services/trip.model";
-import {AlertController, ModalController} from "@ionic/angular";
+import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
@@ -26,6 +23,9 @@ import {
 } from "../../referential/referential.module";
 import {debounceTime, startWith, switchMap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
+import {AccountService} from "../../core/services/account.service";
+import {PlatformService} from "../../core/services/platform.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'app-trips-page',
@@ -95,7 +95,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
-  };
+  }
 
   ngOnInit() {
     super.ngOnInit();

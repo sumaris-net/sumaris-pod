@@ -21,11 +21,12 @@ import {UsageMode} from "../../core/services/model";
 import {AcquisitionLevelCodes, PmfmStrategy, PmfmUtils} from "../../referential/services/model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {environment} from "../../../environments/environment";
-import {AppForm, AppFormUtils, PlatformService} from "../../core/core.module";
+import {AppForm, AppFormUtils} from "../../core/core.module";
 import {BatchGroupValidatorService} from "../services/batch-groups.validator";
 import {BehaviorSubject} from "rxjs";
 import {BatchForm} from "./batch.form";
 import {filter, first} from "rxjs/operators";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-batch-group-form',

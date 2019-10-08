@@ -3,25 +3,22 @@ import {ActivatedRouteSnapshot, ExtraOptions, RouteReuseStrategy, RouterModule, 
 import {HomePage} from './core/home/home';
 import {RegisterConfirmPage} from './core/register/confirm/confirm';
 import {AccountPage} from './core/account/account';
-import {AuthGuardService, environment} from './core/core.module';
-import {UsersPage} from './admin/users/list/users';
 import {VesselsPage} from './referential/vessel/list/vessels';
 import {VesselPage} from './referential/vessel/page/page-vessel';
 import {ReferentialsPage} from './referential/list/referentials';
 import {TripPage, TripsPage} from './trip/trip.module';
 import {OperationPage} from './trip/operation/operation.page';
-import {ExtractionTablePage} from "./trip/extraction/extraction-table-page.component";
-import {RemoteConfigPage} from './admin/config/config.component';
+import {SoftwarePage} from './referential/software/software.page';
 import {ObservedLocationPage} from "./trip/observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.page";
 import {SettingsPage} from "./core/settings/settings.page";
-import {ExtractionMapPage} from "./trip/extraction/extraction-map-page.component";
 import {LandingPage} from "./trip/landing/landing.page";
 import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-control-landing.page";
 import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
 import {IonicRouteStrategy} from "@ionic/angular";
 import {ProgramPage} from "./referential/program/program.page";
 import {BatchGroupPage} from "./trip/batch/batch-group.page";
+import {AuthGuardService} from "./core/services/auth-guard.service";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -58,23 +55,28 @@ const routes: Routes = [
 
   // Admin
   {
-    path: 'admin/users',
-    pathMatch: 'full',
-    component: UsersPage,
-    canActivate: [AuthGuardService],
-    data: {
-      profile: 'ADMIN'
-    }
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
   },
-  {
-    path: 'admin/config',
-    pathMatch: 'full',
-    component: RemoteConfigPage,
-    canActivate: [AuthGuardService],
-    data: {
-      profile: 'ADMIN'
-    }
-  },
+
+  // old {
+  //   path: 'admin/users',
+  //   pathMatch: 'full',
+  //   component: UsersPage,
+  //   canActivate: [AuthGuardService],
+  //   data: {
+  //     profile: 'ADMIN'
+  //   }
+  // },
+  // {
+  //   path: 'admin/config',
+  //   pathMatch: 'full',
+  //   component: SoftwarePage,
+  //   canActivate: [AuthGuardService],
+  //   data: {
+  //     profile: 'ADMIN'
+  //   }
+  // },
 
   // Referential path
   {
@@ -132,7 +134,7 @@ const routes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            component: RemoteConfigPage,
+            component: SoftwarePage,
             data: {
               profile: 'ADMIN'
             }
@@ -277,37 +279,37 @@ const routes: Routes = [
     ]
   },
 
-  {
-    path: 'extraction',
-    canActivate: [AuthGuardService],
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        component: ExtractionTablePage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'SUPERVISOR'
-        }
-      }
-    ]
-  },
+  // {
+  //   path: 'extraction',
+  //   canActivate: [AuthGuardService],
+  //   children: [
+  //     {
+  //       path: '',
+  //       pathMatch: 'full',
+  //       component: ExtractionTablePage,
+  //       runGuardsAndResolvers: 'pathParamsChange',
+  //       data: {
+  //         profile: 'SUPERVISOR'
+  //       }
+  //     }
+  //   ]
+  // },
 
-  {
-    path: 'map',
-    canActivate: [AuthGuardService],
-    children: [
-      {
-        path: '',
-        //pathMatch: 'full',
-        component: ExtractionMapPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          profile: 'USER'
-        }
-      }
-    ]
-  },
+  // {
+  //   path: 'map',
+  //   canActivate: [AuthGuardService],
+  //   children: [
+  //     {
+  //       path: '',
+  //       //pathMatch: 'full',
+  //       component: ExtractionMapPage,
+  //       runGuardsAndResolvers: 'pathParamsChange',
+  //       data: {
+  //         profile: 'USER'
+  //       }
+  //     }
+  //   ]
+  // },
 
   {
     path: "**",

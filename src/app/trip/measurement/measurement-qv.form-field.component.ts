@@ -23,10 +23,11 @@ import {FloatLabelType, MatAutocomplete, MatSelect} from "@angular/material";
 import {SharedValidators} from '../../shared/validator/validators';
 import {PlatformService} from "../../core/services/platform.service";
 import {focusInput, isNotEmptyArray, joinPropertiesPath, suggestFromArray, toBoolean} from "../../shared/functions";
-import {AppFormUtils, LocalSettingsService} from "../../core/core.module";
-import {sort} from "../../core/services/model";
+import {AppFormUtils} from "../../core/core.module";
+import {sort} from "../../shared/functions";
 import {asInputElement, InputElement} from "../../shared/material/focusable";
 import {markDirty} from "@angular/core/src/render3";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'mat-form-field-measurement-qv',

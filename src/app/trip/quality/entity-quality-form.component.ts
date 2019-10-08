@@ -2,8 +2,8 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inp
 import {DataRootEntity, isNil, isNotNil, Trip} from '../services/trip.model';
 // import fade in animation
 import {fadeInAnimation} from '../../shared/shared.module';
-import {AccountService} from "../../core/core.module";
 import {TripService} from "../services/trip.service";
+import {AccountService} from "../../core/services/account.service";
 
 @Component({
   selector: 'entity-quality-form',

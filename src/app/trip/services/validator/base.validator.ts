@@ -1,40 +1,10 @@
 import {
-  Cloneable,
-  Entity,
-  entityToString,
-  fromDateISOString,
-  isNil,
-  isNotNil, LocalSettingsService,
-  LocationLevelIds,
-  personsToString,
-  personToString,
-  referentialToString,
-  StatusIds,
-  toDateISOString
-} from "../../../core/core.module";
-import {
-  Department,
-  EntityUtils,
-  GearLevelIds,
-  getPmfmName,
   Person,
-  PmfmStrategy,
-  QualityFlagIds,
-  Referential,
-  ReferentialRef,
-  TaxonGroupIds,
-  AcquisitionLevelCodes,
-  VesselFeatures,
-  vesselFeaturesToString
-} from "../../../referential/referential.module";
-import {Moment} from "moment/moment";
-import {IWithProgramEntity} from "../../../referential/services/model";
+} from "../../../core/services/model";
 import {ValidatorService} from "angular4-material-table";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "../../../shared/validator/validators";
 import {DataEntity, DataRootEntity, DataRootVesselEntity, IWithObserversEntity} from "../model/base.model";
-import {Operation} from "../model/trip.model";
-
 
 export abstract class DataEntityValidatorService<T extends DataEntity<T>> implements ValidatorService {
 

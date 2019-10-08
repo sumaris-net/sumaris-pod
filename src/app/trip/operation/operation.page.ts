@@ -13,7 +13,7 @@ import {OperationForm} from './operation.form';
 import {Batch, EntityUtils, ObservedLocation, Operation, PhysicalGear, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AppFormUtils, AppTableUtils, AppTabPage, environment, LocalSettingsService} from '../../core/core.module';
+import {AppFormUtils, AppTableUtils, AppTabPage, environment} from '../../core/core.module';
 import {CatchBatchForm} from '../catch/catch.form';
 import {AlertController} from "@ionic/angular";
 import {TranslateService} from '@ngx-translate/core';
@@ -36,6 +36,7 @@ import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {BatchUtils} from "../services/model/batch.model";
 import {isNotNilOrBlank} from "../../shared/functions";
 import {filterNotNil} from "../../shared/observables";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'page-operation',

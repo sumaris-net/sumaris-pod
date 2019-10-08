@@ -3,13 +3,14 @@ import {isNil, isNotNil, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject, Observable} from 'rxjs';
-import {AppForm, LocalSettingsService} from '../../core/core.module';
+import {AppForm} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {filter, first, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: PmfmStrategy[]) => PmfmStrategy[] | Promise<PmfmStrategy[]>;

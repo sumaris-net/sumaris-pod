@@ -1,22 +1,14 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
-
-import {PlatformService} from './services/platform.service';
-import {NetworkService} from './services/network.service';
 import {AccountService} from './services/account.service';
-import {ConfigService} from './services/config.service';
-
 import {AccountValidatorService} from './services/account.validator';
 import {UserSettingsValidatorService} from './services/user-settings.validator';
 import {ConfigValidatorService} from './services/config.validator';
-import {AuthGuardService} from './services/auth-guard.service';
-import {CryptoService} from './services/crypto.service';
 import {BaseDataService} from './services/base.data-service.class';
 import {AuthForm} from './auth/form/form-auth';
 import {AuthModal} from './auth/modal/modal-auth';
 import {AboutModal} from './about/modal-about';
-
 import {RegisterConfirmPage} from "./register/confirm/confirm";
 import {AccountPage} from "./account/account";
 import {
@@ -75,8 +67,7 @@ import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {SelectPeerModal} from "./peer/select-peer.modal";
 import {SettingsPage} from "./settings/settings.page";
 import {LocalSettingsValidatorService} from "./services/local-settings.validator";
-import {GraphqlService} from "./services/graphql.service";
-import {LocalSettingsService, APP_LOCAL_SETTINGS_OPTIONS} from "./services/local-settings.service";
+import {LocalSettingsService} from "./services/local-settings.service";
 import {AppEditorPage} from "./form/editor-page.class";
 import {EntityStorage} from "./services/local-entities-repository.service";
 
@@ -89,14 +80,10 @@ export {
   AppTableDataSource,
   AppEditorPage,
   TableSelectColumnsComponent,
-  PlatformService,
-  AccountService,
-  NetworkService,
   BaseDataService,
   AccountValidatorService,
   UserSettingsValidatorService,
   ConfigValidatorService,
-  AuthGuardService,
   EntityMetadataComponent,
   FormButtonsBarComponent,
   RESERVED_START_COLUMNS,
@@ -105,7 +92,6 @@ export {
   Cloneable,
   EntityUtils,
   StatusIds,
-  GraphqlService,
   LocationLevelIds,
   Referential,
   ReferentialRef,
@@ -115,7 +101,6 @@ export {
   DataService,
   TableDataService,
   LoadResult,
-  LocalSettingsService,
   toDateISOString,
   fromDateISOString,
   joinPropertiesPath,
@@ -211,16 +196,9 @@ export function HttpLoaderFactory(http: HttpClient) {
   ],
   providers: [
     LocalSettingsService,
-    NetworkService,
-    PlatformService,
-    GraphqlService,
-    AccountService,
-    AuthGuardService,
-    CryptoService,
     AccountValidatorService,
     UserSettingsValidatorService,
     LocalSettingsValidatorService,
-    ConfigService,
     ConfigValidatorService,
     EntityStorage
   ]

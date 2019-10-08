@@ -66,6 +66,8 @@ import {BatchGroupForm} from "./batch/batch-group.form";
 import {BatchGroupModal} from "./batch/batch-group.modal";
 import {SubBatchModal} from "./batch/sub-batch.modal";
 import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
+import {AdminModule} from "../admin/admin.module";
+import {ReferentialModule} from "../referential/referential.module";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -73,6 +75,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     imports: [
       CommonModule,
       CoreModule,
+      AdminModule,
+      ReferentialModule,
       LeafletModule
     ],
     declarations: [
@@ -186,7 +190,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       SampleValidatorService,
       SubSampleValidatorService,
       ExtractionService,
-      {provide: OverlayContainer, useClass: FullscreenOverlayContainer}
+      {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
     ]
 })
 export class TripModule {
