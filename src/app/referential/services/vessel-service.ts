@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable} from "rxjs-compat";
+import {Observable} from "rxjs";
 import {EntityUtils, Person, VesselFeatures} from "./model";
 import {LoadResult, TableDataService} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";

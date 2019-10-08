@@ -1,6 +1,6 @@
 import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable} from "rxjs-compat";
+import {Observable} from "rxjs";
 import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {EditorDataService, isNotNil, LoadResult, TableDataService, toBoolean} from "../../shared/shared.module";
 import {environment, NetworkService} from "../../core/core.module";

@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
-import {Observable} from "rxjs-compat";
+import {Observable} from "rxjs";
 import {Department, EntityUtils, Person, Sale, Sample} from "./trip.model";
 import {map} from "rxjs/operators";
 import {TableDataService, LoadResult} from "../../shared/shared.module";
