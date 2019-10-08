@@ -4,7 +4,7 @@ import {isNotNil, PhysicalGear} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
 import {Subject} from 'rxjs';
-import {distinctUntilChanged, filter} from 'rxjs/operators';
+import {distinctUntilChanged, filter, mergeMap, tap} from 'rxjs/operators';
 import {LocalSettingsService, PlatformService} from '../../core/core.module';
 import {
   AcquisitionLevelCodes,
@@ -33,7 +33,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   programSubject = new Subject<string>();
   mobile: boolean;
-  applyAutofocus = false;
 
   @Input() showComment = true;
 
@@ -69,7 +68,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       this.programSubject
         .pipe(
           filter(isNotNil),
-          distinctUntilChanged()
+          distinctUntilChanged(),
         )
         .subscribe(async (value) => {
           if (this._program !== value) {
@@ -102,7 +101,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       });
   }
 
-  public setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     if (data && EntityUtils.isNotEmpty(data.gear)) {
       this.gear = data.gear.label;
     }

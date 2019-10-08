@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, V
 import {ActivatedRoute, Router} from "@angular/router";
 import {OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
-import {Batch, EntityUtils, ObservedLocation, Operation, Trip} from '../services/trip.model';
+import {Batch, EntityUtils, ObservedLocation, Operation, PhysicalGear, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {AppFormUtils, AppTableUtils, AppTabPage, environment, LocalSettingsService} from '../../core/core.module';
@@ -116,10 +116,13 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.disable();
 
     this.registerSubscription(
-      this.opeForm.form.controls['physicalGear'].valueChanges.subscribe((res) => {
-        if (this.loading) return; // SKip during loading
-        this.catchBatchForm.gear = res && res.gear && res.gear.label || null;
-      })
+      this.opeForm.form.controls['physicalGear'].valueChanges
+        .subscribe((res) => {
+          if (this.loading) return; // SKip during loading
+          const gearLabel = res && res.gear && res.gear.label || null;
+          this.measurementsForm.gear = gearLabel;
+          this.catchBatchForm.gear = gearLabel;
+        })
     );
 
     // Update available parent on sub-sample table, when samples changes
@@ -238,6 +241,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       const trip = await this.tripService.load(data.tripId);
       this.usageMode = this.computeUsageMode(trip);
 
+      // Replace physical gear by the real entity
+      data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear)) || data.physicalGear;
+
       await this.updateView(data, trip);
       this.loading = false;
       this.startListenRemoteChanges();
@@ -281,18 +287,19 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       // Set program
       const program = trip && trip.program && trip.program.label;
       this.programSubject.next(program);
-
       this.batchGroupsTable.program = program;
       if (this.subBatchesTable) this.subBatchesTable.program = program;
+
     }
 
-    const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label;
+    const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label || null;
 
     // Get all batches (and children), and samples
     const batches = (data && data.catchBatch && data.catchBatch.children) || [];
     const samples = (data && data.samples || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), []);
 
     // Set measurements
+    console.log("Updating operation gear=" + gearLabel)
     this.measurementsForm.gear = gearLabel;
     this.measurementsForm.value = data && data.measurements || [];
 

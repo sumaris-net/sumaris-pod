@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {isNil, isNotNil, PmfmStrategy} from "../services/trip.model";
+import {isNil, isNotNil, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject, Observable} from 'rxjs';
@@ -110,6 +110,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
         .subscribe(() => this.refreshPmfms('constructor'))
     );
 
+    // Auto update the view, when pmfms are filled
     this.registerSubscription(
       filterNotNil(this.$pmfms)
         .subscribe((pmfms) => this.updateControls('constructor', pmfms))
@@ -143,26 +144,21 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     super.setValue(data, opts);
 
-    this.markAsUntouched();
-    this.markAsPristine();
+    this.markAsUntouched(opts);
+    this.markAsPristine(opts);
 
-    // Restore enable state (because form.setValue() can change it !)
-    const measFormGroup = this.form.get('measurementValues');
-    if (this._enable) {
-      measFormGroup.enable({onlySelf: true, emitEvent: false});
-    } else if (measFormGroup.enabled) {
-      measFormGroup.disable({onlySelf: true, emitEvent: false});
-    }
+    // Restore form status
+    this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
   }
 
   async onReady() {
     // Wait pmfms load, and controls load
-    if (this.$loadingControls.getValue() !== false) {
+    if (this.loadingControls !== false || this.loadingPmfms !== false) {
       if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
       await firstNotNilPromise(this.$loadingControls
         .pipe(
-          filter((loadingControls) => loadingControls === false),
-          throttleTime(100), // groups event, if many updates in few duration
+          filter((loadingControls) => loadingControls === false && this.loadingPmfms === false),
+          //throttleTime(100), // groups event, if many updates in few duration
         ));
     }
   }
@@ -242,17 +238,13 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     // Waiting end of pmfm load
     if (!pmfms || this.loadingPmfms || !this.form) {
       if (this.debug) console.debug(`${this.logPrefix} updateControls(${event}): waiting pmfms...`);
-      this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          throttleTime(100), // groups pmfms updates event, if many updates in few duration
-          first()
-        )
-        .subscribe((pmfms) => this.updateControls(event, pmfms));
-      return;
+      pmfms = await firstNotNilPromise(
+        // groups pmfms updates event, if many updates in few duration
+        this.$pmfms.pipe(throttleTime(100))
+      );
     }
 
-    let measFormGroup = this.form.get('measurementValues');
+    let measFormGroup = this.form.controls['measurementValues'];
     if (measFormGroup && measFormGroup.enabled) {
       measFormGroup.disable({onlySelf: true, emitEvent: false});
     }
@@ -302,26 +294,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     if (this.debug) console.debug(`${this.logPrefix} Form controls updated`);
 
+    // If data has been set, apply it again
     if (this.data && pmfms.length && this.form) {
-      // Adapt measurement values to form
-      MeasurementValuesUtils.normalizeEntityToForm(this.data, pmfms, this.form);
-
-      measFormGroup.patchValue(this.data.measurementValues, {
-        onlySelf: true,
-        emitEvent: false
-      });
+      this.setValue(this.data, {onlySelf: true, emitEvent: false});
     }
 
-    this.markAsUntouched();
-    this.markAsPristine();
-
-    // Restore enable state (because form.setValue() can change it !)
-    if (measFormGroup) {
-      if (this._enable) {
-        measFormGroup.enable({onlySelf: true, emitEvent: false});
-      } else if (measFormGroup.enabled) {
-        measFormGroup.disable({onlySelf: true, emitEvent: false});
-      }
+    else {
+      // Restore enable state (because form.setValue() can change it !)
+      this.restoreFormStatus({onlySelf: true, emitEvent: false});
     }
 
     return true;
@@ -350,6 +330,16 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     return pmfms;
+  }
+
+  protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    const measFormGroup = this.form.get('measurementValues');
+    // Restore enable state (because form.setValue() can change it !)
+    if (this._enable) {
+      measFormGroup.enable(opts);
+    } else if (measFormGroup.enabled) {
+      measFormGroup.disable(opts);
+    }
   }
 
   protected get logPrefix(): string {

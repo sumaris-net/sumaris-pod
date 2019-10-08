@@ -6,15 +6,15 @@ import {
   AppTable,
   AppTableDataSource,
   LocalSettingsService,
-  personsToString, PlatformService,
+  personsToString,
+  PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
-import {TripModal} from "./trip.modal";
 import {LocationLevelIds, ReferentialRef, Trip, VesselFeatures} from "../services/trip.model";
-import {AlertController, ModalController, Platform} from "@ionic/angular";
+import {AlertController, ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
@@ -141,16 +141,6 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       this.filterForm.markAsPristine();
       this.markForCheck();
     });
-  }
-
-  // Not USED - remane in onAddRowDetail() if need)
-  async onAddRowDetailUsingModal(): Promise<any> {
-    if (this.loading) return Promise.resolve();
-
-    const modal = await this.modalCtrl.create({component: TripModal});
-    // if new trip added, refresh the table
-    modal.onDidDismiss().then(res => res && this.onRefresh.emit());
-    return modal.present();
   }
 
   vesselFeaturesToString = vesselFeaturesToString;

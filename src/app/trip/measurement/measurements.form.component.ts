@@ -10,13 +10,12 @@ import {
 import {Measurement, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
-import {BehaviorSubject, merge} from 'rxjs';
-import {filter, first, startWith, throttleTime} from "rxjs/operators";
+import {BehaviorSubject} from 'rxjs';
+import {filter, first, throttleTime} from "rxjs/operators";
 import {AppForm, LocalSettingsService} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {TranslateService} from '@ngx-translate/core';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
@@ -29,7 +28,6 @@ import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 })
 export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
-  private _onValueChanged = new EventEmitter<any>();
   private _onRefreshPmfms = new EventEmitter<any>();
   private _program: string;
   private _gear: string;
@@ -103,9 +101,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
               protected measurementValidatorService: MeasurementsValidatorService,
               protected formBuilder: FormBuilder,
               protected programService: ProgramService,
-              protected translate: TranslateService,
-              protected cd: ChangeDetectorRef,
-              protected settings: LocalSettingsService
+              protected settings: LocalSettingsService,
+              protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, formBuilder.group({}), settings);
 
@@ -118,13 +115,13 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
     this.registerSubscription(
       this._onRefreshPmfms
-        .subscribe(() => this.refreshPmfms('ngOnInit'))
+        .subscribe(() => this.refreshPmfms('constructor'))
     );
 
     // Auto update the view, when pmfms are filled
     this.registerSubscription(
       filterNotNil(this.$pmfms)
-      .subscribe((_) => this.updateControls('merge', this.$pmfms.getValue()))
+        .subscribe((pmfms) => this.updateControls('constructor', pmfms))
     );
 
     // Listen form changes
@@ -137,16 +134,39 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     );
   }
 
-  public markAsTouched() {
-    // Force each sub-controls
-    (this.$pmfms.getValue() || []).forEach(p => {
-      const control = this.form.get(p.pmfmId.toString());
-      if (control) control.markAsTouched();
-    });
-    super.markAsTouched();
+  setValue(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    if (this.$loadingControls.getValue()) {
+      throw Error("Form not ready yet. Please use safeSetValue() instead!");
+    }
+
+    const pmfms = this.$pmfms.getValue();
+    this.data = MeasurementUtils.initAllMeasurements(data, pmfms);
+
+    const json = MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(this.data), pmfms);
+
+    this.form.patchValue(json, opts);
+
+    this.markAsUntouched();
+    this.markAsPristine();
+
+    // Restore form status
+    this.restoreFormStatus({onlySelf: true, emitEvent: false});
+  }
+
+  async onReady() {
+    // Wait pmfms load, and controls load
+    if (this.$loadingControls.getValue() !== false || this.loadingPmfms !== false) {
+      if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
+      await firstNotNilPromise(this.$loadingControls
+        .pipe(
+          filter((_) => this.loadingControls === false && this.loadingPmfms === false)
+          //throttleTime(100), // groups event, if many updates in few duration
+        ));
+    }
   }
 
   /* -- protected methods -- */
+
   /**
    * Wait form is ready, before setting the value to form
    * @param data
@@ -154,20 +174,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   protected async safeSetValue(data: Measurement[]) {
     if (this.data === data) return; // skip if same
 
-    this.data = data;
-    this._onValueChanged.emit(data);
-
     // Wait form controls ready
     await this.onReady();
 
-    const pmfms = this.$pmfms.getValue();
-    this.data = MeasurementUtils.initAllMeasurements(this.data, pmfms);
-
-    const json = MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(this.data), pmfms);
-
-    this.form.patchValue(json, {emitEvent: true});
-    //this.markForCheck();
-    //this.setValue(json, {emitEvent: true});
+    this.setValue(data, {emitEvent: true});
   }
 
   protected getValue(): Measurement[] {
@@ -189,6 +199,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   protected async refreshPmfms(event?: any): Promise<PmfmStrategy[]> {
+    // Skip if missing: program, acquisition (or gear, if required)
     if (isNil(this._program) || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gear))) {
       return undefined;
     }
@@ -223,7 +234,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     return pmfms;
   }
 
-  public updateControls(event?: string, pmfms?: PmfmStrategy[]) {
+  protected async updateControls(event?: string, pmfms?: PmfmStrategy[]) {
     //if (isNil(this.data)) return; // not ready
     pmfms = pmfms || this.$pmfms.getValue();
 
@@ -234,16 +245,14 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     // Waiting end of pmfm load
     if (!pmfms || this.loadingPmfms || !this.form) {
       if (this.debug) console.debug(`${this.logPrefix} updateControls(${event}): waiting pmfms...`);
-      this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          throttleTime(100), // groups pmfms updates event, if many updates in few duration
-          first()
-        )
-        .subscribe((pmfms) => this.updateControls(event, pmfms));
-      return;
+      pmfms = await firstNotNilPromise(
+        // groups pmfms updates event, if many updates in few duration
+        this.$pmfms.pipe(throttleTime(100))
+      );
     }
 
+    this.loadingControls = true;
+    if (this.$loadingControls.getValue() !== true) this.$loadingControls.next(true);
     this.loading = true;
 
     if (event) if (this.debug) console.debug(`${this.logPrefix} updateControls(${event})...`);
@@ -268,32 +277,26 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
     if (this.debug) console.debug(`${this.logPrefix} Form controls updated in ${Date.now() - now}ms`);
 
-    this.markAsUntouched();
-    this.markAsPristine();
-
-    // Restore enable state (because form.setValue() can change it !)
-    if (this._enable) {
-      this.enable({onlySelf: true, emitEvent: false});
-    } else if (this.form.enabled) {
-      this.disable({onlySelf: true, emitEvent: false});
+    // If data has been set, apply it again
+    if (this.data && pmfms.length && this.form) {
+      this.setValue(this.data, {emitEvent: false});
+    }
+    // No data defined yet: just restore the form status
+    else {
+      this.restoreFormStatus({onlySelf: true, emitEvent: false});
     }
 
     return true;
   }
 
-  async onReady() {
-    // Wait pmfms load, and controls load
-    if (this.$loadingControls.getValue() !== false) {
-      if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
-      await firstNotNilPromise(this.$loadingControls
-        .pipe(
-          filter((loadingControls) => loadingControls === false),
-          throttleTime(100), // groups event, if many updates in few duration
-        ));
+  protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+    // Restore enable state (because form.setValue() can change it !)
+    if (this._enable) {
+      this.form.enable(opts);
+    } else if (this.form.enabled) {
+      this.form.disable(opts);
     }
   }
-
-  /** -- protected methods  -- */
 
   protected get logPrefix(): string {
     const acquisitionLevel = this._acquisitionLevel && this._acquisitionLevel.toLowerCase().replace(/[_]/g, '-') || '?';

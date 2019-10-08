@@ -19,7 +19,7 @@ import {ValidatorService} from "angular4-material-table";
 import {FormFieldDefinition} from "../../../shared/form/field.model";
 
 @Component({
-  selector: 'page-configuration',
+  selector: 'app-users-table',
   templateUrl: 'users.html',
   styleUrls: ['./users.scss'],
   providers: [

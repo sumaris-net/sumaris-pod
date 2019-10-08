@@ -14,7 +14,6 @@ import {CatchBatchForm} from './catch/catch.form';
 import {PhysicalGearForm} from './physicalgear/physicalgear.form';
 import {PhysicalGearTable} from './physicalgear/physicalgears.table';
 import {OperationTable} from './operation/operations.table';
-import {TripModal} from './trip/trip.modal';
 import {SamplesTable} from './sample/samples.table';
 import {SubSamplesTable} from './sample/sub-samples.table';
 import {BatchGroupsTable} from './batch/batch-groups.table';
@@ -80,7 +79,6 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       TripsPage,
       TripPage,
       TripForm,
-      TripModal,
       PhysicalGearModal,
       SaleForm,
       PhysicalGearForm,
@@ -124,7 +122,6 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       TripsPage,
       TripPage,
       TripForm,
-      TripModal,
       PhysicalGearModal,
       SaleForm,
       PhysicalGearForm,
@@ -150,7 +147,6 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     entryComponents: [
       TripsPage,
       TripPage,
-      TripModal,
       PhysicalGearModal,
       PhysicalGearTable,
       OperationTable,
