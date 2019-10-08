@@ -8,9 +8,11 @@ import {ExtractionFilter, ExtractionFilterCriterion, ExtractionService} from "..
 import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {trimEmptyToNull} from "../../shared/functions";
 import {first, map} from "rxjs/operators";
-import {AccountService, AppForm, LocalSettingsService} from "../../core/core.module";
+import {AppForm} from "../../core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
+import {AccountService} from "../../core/services/account.service";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';

@@ -43,6 +43,7 @@ import {ProgramPage} from "./program/program.page";
 import {ProgramValidatorService} from "./services/validator/program.validator";
 import {StrategyValidatorService} from "./services/validator/strategy.validator";
 import {StrategiesTable} from "./program/strategies.table";
+import {SoftwarePage} from "./software/software.page";
 
 export {
   VesselModal, VesselService, ReferentialService, ProgramService, ReferentialRefService,
@@ -67,7 +68,8 @@ export {
     VesselForm,
     VesselModal,
     ProgramPage,
-    StrategiesTable
+    StrategiesTable,
+    SoftwarePage
   ],
   exports: [
     ReferentialsPage,
@@ -75,7 +77,8 @@ export {
     VesselsPage,
     VesselPage,
     VesselForm,
-    ProgramPage
+    ProgramPage,
+    SoftwarePage
   ],
   entryComponents: [
     VesselModal

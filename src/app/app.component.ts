@@ -1,6 +1,6 @@
 import {Component, Inject} from '@angular/core';
 import {MenuItem} from './core/menu/menu.component';
-import {AccountService, isNotNil, joinPropertiesPath, LocalSettingsService} from './core/core.module';
+import {isNotNil, joinPropertiesPath} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
 import {ConfigService} from './core/services/config.service';
 import {DOCUMENT} from "@angular/common";
@@ -17,6 +17,8 @@ import {
   mixHex,
   rgbToHex
 } from "./shared/graph/colors.utils";
+import {AccountService} from "./core/services/account.service";
+import {LocalSettingsService} from "./core/services/local-settings.service";
 
 
 @Component({
@@ -85,7 +87,7 @@ export class AppComponent {
     // Make sure to scroll on top before changing state
     // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
     const scrollToTop = window.setInterval(() => {
-      let pos = window.pageYOffset;
+      const pos = window.pageYOffset;
       if (pos > 0) {
         window.scrollTo(0, pos - 20); // how far to scroll on each step
       } else {

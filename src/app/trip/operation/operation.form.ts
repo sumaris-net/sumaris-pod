@@ -3,7 +3,7 @@ import {OperationValidatorService} from "../services/operation.validator";
 import {fromDateISOString, Operation, PhysicalGear, Trip} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {AccountService, AppForm, IReferentialRef, PlatformService} from '../../core/core.module';
+import {AppForm, IReferentialRef} from '../../core/core.module';
 import {EntityUtils, ReferentialRefService} from '../../referential/referential.module';
 import {UsageMode} from "../../core/services/model";
 import {FormGroup} from "@angular/forms";
@@ -11,6 +11,8 @@ import * as moment from "moment";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {isNilOrBlank, suggestFromArray} from "../../shared/functions";
+import {AccountService} from "../../core/services/account.service";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'form-operation',

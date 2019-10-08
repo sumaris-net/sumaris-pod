@@ -4,21 +4,22 @@ import {BehaviorSubject} from 'rxjs';
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {ConfigOptions, Configuration, Department, EntityUtils, StatusIds} from '../../core/services/model';
 import {ConfigService} from "src/app/core/services/config.service";
-import {AppForm, AppFormUtils, ConfigValidatorService, isNil, PlatformService} from "src/app/core/core.module";
+import {AppForm, AppFormUtils, ConfigValidatorService, isNil} from "src/app/core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
 import {FormArrayHelper} from "../../core/form/form.utils";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
+import {PlatformService} from "../../core/services/platform.service";
 
 
 @Component({
   moduleId: module.id.toString(),
   selector: 'app-remote-config-page',
-  templateUrl: 'config.component.html',
-  styleUrls: ['./config.component.scss'],
+  templateUrl: 'software.page.html',
+  styleUrls: ['./software.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
+export class SoftwarePage extends AppForm<Configuration> implements OnInit {
 
 
   saving = false;
@@ -69,7 +70,7 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
     // Fill statusById
     this.statusById = {};
     this.statusList.forEach((status) => this.statusById[status.id] = status);
-  };
+  }
 
   async ngOnInit() {
 
@@ -97,7 +98,7 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
     try {
       data = await this.service.load({fetchPolicy: "network-only"});
     }
-    catch(err) {
+    catch (err) {
       this.error = err && err.message || err;
       console.error(err);
       return;
@@ -149,7 +150,7 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
       this.form.markAsUntouched();
 
     }
-    catch(err) {
+    catch (err) {
       this.error = err && err.message || err;
     }
     finally {

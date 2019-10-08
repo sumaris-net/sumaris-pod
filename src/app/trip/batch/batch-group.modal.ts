@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {AppFormUtils, PlatformService} from "../../core/core.module";
+import {AppFormUtils} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
@@ -18,6 +18,7 @@ import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/mo
 import {BatchGroupForm} from "./batch-group.form";
 import {toBoolean} from "../../shared/functions";
 import {filter, first, throttleTime} from "rxjs/operators";
+import {PlatformService} from "../../core/services/platform.service";
 
 @Component({
   selector: 'app-batch-group-modal',

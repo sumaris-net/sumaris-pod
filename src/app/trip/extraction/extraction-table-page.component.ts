@@ -25,8 +25,8 @@ import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {ExtractionForm} from "./extraction-filter.form";
-import {LocalSettingsService} from "../../core/core.module";
 import {map, tap} from "rxjs/operators";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -309,7 +309,7 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
     try {
       await this.service.deleteAggregations([this.type as AggregationType]);
     }
-    catch(err) {
+    catch (err) {
       console.error(err);
       this.error = err && err.message || err;
       this.markAsDirty();

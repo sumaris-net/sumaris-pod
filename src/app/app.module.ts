@@ -16,10 +16,7 @@ import {Vibration} from '@ionic-native/vibration/ngx';
 import {AppComponent} from "./app.component";
 import {AppRoutingModule} from "./app-routing.module";
 import {CoreModule} from "./core/core.module";
-import {AdminModule} from "./admin/admin.module";
 
-import {ReferentialModule} from "./referential/referential.module";
-import {TripModule} from "./trip/trip.module";
 import {environment} from "../environments/environment";
 import {HttpClientModule} from "@angular/common/http";
 import {HTTP} from "@ionic-native/http/ngx";
@@ -28,8 +25,11 @@ import {Camera} from "@ionic-native/camera/ngx";
 import {CacheModule} from "ionic-cache";
 import {Network} from "@ionic-native/network/ngx";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
-import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
+import {APP_LOCAL_SETTINGS_OPTIONS, LocalSettingsService} from "./core/services/local-settings.service";
 import {LocalSettings} from "./core/services/model";
+import {ReferentialModule} from "./referential/referential.module";
+import {TripModule} from "./trip/trip.module";
+import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 
 
 @NgModule({
@@ -39,13 +39,13 @@ import {LocalSettings} from "./core/services/model";
   imports: [
     AppRoutingModule,
     BrowserModule,
+    BrowserAnimationsModule,
     HttpClientModule,
     IonicModule.forRoot(),
     CacheModule.forRoot(),
     LeafletModule.forRoot(),
     // functional modules
     CoreModule,
-    AdminModule,
     ReferentialModule,
     TripModule
   ],

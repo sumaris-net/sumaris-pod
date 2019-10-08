@@ -4,7 +4,6 @@ import {Observable, Subject} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {EntityUtils, isNil, isNotNil, IWithProgramEntity, PmfmStrategy, Program, StatusIds} from "./model";
 import {
-  AccountService,
   BaseDataService,
   environment, IReferentialRef,
   LoadResult, NetworkService,
@@ -20,6 +19,7 @@ import {isNilOrBlank, isNotEmptyArray, propertyComparator, suggestFromArray} fro
 import {CacheService} from "ionic-cache";
 import {ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
+import {AccountService} from "../../core/services/account.service";
 
 export declare class ProgramFilter {
   searchText?: string;

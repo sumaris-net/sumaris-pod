@@ -1,11 +1,11 @@
-import { Component, EventEmitter, OnInit, Output, ViewChild, OnDestroy } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import {
   AppTableDataSource,
   AppTable,
   AppFormUtils,
   RESERVED_START_COLUMNS,
-  RESERVED_END_COLUMNS, LocalSettingsService
+  RESERVED_END_COLUMNS
 } from "../../../core/core.module";
 import { VesselValidatorService } from "../../services/vessel.validator";
 import { VesselService, VesselFilter } from "../../services/vessel-service";
@@ -17,6 +17,7 @@ import { AccountService } from "../../../core/services/account.service";
 import { Location } from '@angular/common';
 import { Observable } from 'rxjs';
 import { FormGroup, FormBuilder } from "@angular/forms";
+import {LocalSettingsService} from "../../../core/services/local-settings.service";
 
 @Component({
   selector: 'page-vessels',
@@ -64,7 +65,7 @@ export class VesselsPage extends AppTable<VesselFeatures, VesselFilter> implemen
       'date': [null],
       'searchText': [null]
     });
-  };
+  }
 
   ngOnInit() {
 

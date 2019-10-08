@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from "@angular/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AppTable, AppTableDataSource, isNil, isNotNil, LocalSettingsService} from "../../core/core.module";
+import {AppTable, AppTableDataSource, isNil, isNotNil} from "../../core/core.module";
 import {ReferentialValidatorService} from "../services/referential.validator";
 import {ReferentialFilter, ReferentialService} from "../services/referential.service";
 import {Referential, ReferentialRef, StatusIds} from "../services/model";
@@ -13,7 +13,8 @@ import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {TranslateService} from "@ngx-translate/core";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {sort} from "../../core/services/model";
+import {sort} from "../../shared/functions";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 
 const DEFAULT_ENTITY_NAME = "Location";
@@ -133,7 +134,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // FOR DEV ONLY
     this.debug = true;
-  };
+  }
 
   ngOnInit() {
 

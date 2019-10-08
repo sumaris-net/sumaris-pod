@@ -4,19 +4,15 @@ import {LocationLevelIds, Referential, Trip, VesselFeatures, vesselFeaturesToStr
 import {ModalController} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {Observable} from 'rxjs';
-import {debounceTime, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
-import {merge} from "rxjs/observable/merge";
-import {AppForm, LocalSettingsService} from '../../core/core.module';
+import {AppForm} from '../../core/core.module';
 import {
-  ReferentialRef,
   ReferentialRefService,
   referentialToString,
   VesselModal,
   VesselService
 } from "../../referential/referential.module";
-import {FormFieldDefinition} from "../../shared/form/field.model";
 import {UsageMode} from "../../core/services/model";
+import {LocalSettingsService} from "../../core/services/local-settings.service";
 
 @Component({
   selector: 'form-trip',
