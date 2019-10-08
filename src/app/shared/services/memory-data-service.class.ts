@@ -1,4 +1,4 @@
-import {BehaviorSubject, Observable, Subject} from "rxjs-compat";
+import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Entity, isNotNil, LoadResult, TableDataService} from "../../core/core.module";
 import {EntityUtils} from "../../core/services/model";
 import {filter, mergeMap} from "rxjs/operators";

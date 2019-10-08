@@ -1,4 +1,4 @@
-import {Observable} from "rxjs-compat";
+import {Observable} from "rxjs";
 import {FetchPolicy} from "apollo-client";
 
 export declare interface LoadResult<T> {
