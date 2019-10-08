@@ -15,7 +15,7 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionType} from "../trip/services/extraction.model";
 import {Location} from "@angular/common";
 import {MatExpansionPanel} from "@angular/material";
-import {ExtractionForm} from "./extraction-filter.form";
+import {OutputFilterForm} from "./output-filter.form";
 import {Color, ColorScale, fadeInAnimation, fadeInOutAnimation} from "../shared/shared.module";
 import {ColorScaleLegendItem} from "../shared/graph/graph-colors";
 import * as L from 'leaflet';
@@ -23,7 +23,7 @@ import {CRS, LayerGroup} from 'leaflet';
 import {Feature} from "geojson";
 import {map, throttleTime} from "rxjs/operators";
 import {ModalController} from "@ionic/angular";
-import {ExtractionSelectTypeModal} from "./extraction-list-modal.component";
+import {OutputSelectTypeModal} from "./output-list-modal.component";
 import {AccountService} from "../core/services/account.service";
 
 
@@ -32,12 +32,12 @@ const TIME_STRATA_COLUMNS: string[] = ['year', 'quarter', 'month'];
 
 @Component({
   selector: 'app-extraction-map-page',
-  templateUrl: './extraction-map-page.component.html',
-  styleUrls: ['./extraction-map-page.component.scss'],
+  templateUrl: './output-map-page.component.html',
+  styleUrls: ['./output-map-page.component.scss'],
   animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionMapPage extends ExtractionForm<AggregationType> implements OnInit {
+export class OutputMapPage extends OutputFilterForm<AggregationType> implements OnInit {
 
 
   // -- Map Layers --
@@ -517,7 +517,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       isSpatial: true
     };
     const modal = await this.modalCtrl.create({
-      component: ExtractionSelectTypeModal,
+      component: OutputSelectTypeModal,
       componentProps: {
         filter: filter
       }, keyboardClose: true

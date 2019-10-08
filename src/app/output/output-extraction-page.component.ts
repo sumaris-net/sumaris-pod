@@ -8,7 +8,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {isNil, isNotNil} from '../shared/shared.module';
+import {isNil, isNotNil} from '../shared/functions';
 import {TableDataSource} from "angular4-material-table";
 import {
   AggregationType,
@@ -24,7 +24,7 @@ import {TableSelectColumnsComponent} from "../core/table/table-select-columns.co
 import {SETTINGS_DISPLAY_COLUMNS} from "../core/table/table.class";
 import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
-import {ExtractionForm} from "./extraction-filter.form";
+import {OutputFilterForm} from "./output-filter.form";
 import {map, tap} from "rxjs/operators";
 import {LocalSettingsService} from "../core/services/local-settings.service";
 
@@ -33,11 +33,11 @@ export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
   selector: 'app-extraction-table',
-  templateUrl: './extraction-table-page.component.html',
-  styleUrls: ['./extraction-table-page.component.scss'],
+  templateUrl: './output-extraction-page.component.html',
+  styleUrls: ['./output-extraction-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionTablePage extends ExtractionForm<ExtractionType> implements OnInit {
+export class OutputExtractionPage extends OutputFilterForm<ExtractionType> implements OnInit {
 
   data: ExtractionResult;
   $title = new Subject<string>();
