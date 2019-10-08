@@ -101,10 +101,10 @@
     "tar": "^4.4.8"
   },
   "devDependencies": {
-    "@angular-devkit/architect": "~0.13.9",
-    "@angular-devkit/build-angular": "~0.13.7",
-    "@angular-devkit/core": "~7.3.9",
-    "@angular-devkit/schematics": "~7.3.9",
+    "@angular-devkit/architect": "^0.803.8",
+    "@angular-devkit/build-angular": "^0.803.8",
+    "@angular-devkit/core": "^8.3.8",
+    "@angular-devkit/schematics": "^8.3.8",
     "@angular/compiler": "~8.2.9",
     "@angular/compiler-cli": "~8.2.9",
     "@angular/language-service": "~8.2.9",
