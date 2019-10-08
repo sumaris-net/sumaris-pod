@@ -69,7 +69,7 @@ export const ExtractionFragments = {
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   `
-}
+};
 
 export declare class ExtractionFilter {
   searchText?: string;
