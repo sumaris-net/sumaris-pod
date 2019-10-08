@@ -40,7 +40,7 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
 
   @Input() mobile: boolean;
 
-  @ViewChild('form') form: PhysicalGearForm;
+  @ViewChild('form', {static: true}) form: PhysicalGearForm;
 
   constructor(
     protected alertCtrl: AlertController,
