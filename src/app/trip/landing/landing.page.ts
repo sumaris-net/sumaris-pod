@@ -31,8 +31,8 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
   protected tripService: TripService;
   protected referentialRefService: ReferentialRefService;
 
-  @ViewChild('landingForm') landingForm: LandingForm;
-  @ViewChild('samplesTable') samplesTable: SamplesTable;
+  @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
+  @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
 
   get pmfms(): Observable<PmfmStrategy[]> {
     return this.landingForm.$pmfms.pipe(filter(isNotNil));

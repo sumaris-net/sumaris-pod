@@ -29,17 +29,17 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
   showGearTable = false;
   showOperationTable = false;
 
-  @ViewChild('tripForm') tripForm: TripForm;
+  @ViewChild('tripForm', { static: true }) tripForm: TripForm;
 
-  @ViewChild('saleForm') saleForm: SaleForm;
+  @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
 
-  @ViewChild('physicalGearTable') physicalGearTable: PhysicalGearTable;
+  @ViewChild('physicalGearTable', { static: true }) physicalGearTable: PhysicalGearTable;
 
-  @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
+  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
-  @ViewChild('operationTable') operationTable: OperationTable;
+  @ViewChild('operationTable', { static: true }) operationTable: OperationTable;
 
-  @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
+  @ViewChild('qualityForm', { static: true }) qualityForm: EntityQualityFormComponent;
 
   constructor(
     injector: Injector,

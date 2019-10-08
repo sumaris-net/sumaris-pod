@@ -50,7 +50,7 @@ export class SubBatchModal implements OnInit{
     this.data = value;
   }
 
-  @ViewChild('form') form: SubBatchForm;
+  @ViewChild('form', { static: true }) form: SubBatchForm;
 
   get dirty(): boolean {
     return this.form.dirty;

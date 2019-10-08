@@ -67,20 +67,20 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   mobile: boolean;
   idAttribute: string; // TODO remove when inherit from class EditorPage
 
-  @ViewChild('matTabGroup') matTabGroup: MatTabGroup;
-  @ViewChild('batchTabGroup') batchTabGroup: MatTabGroup;
-  @ViewChild('sampleTabGroup') sampleTabGroup: MatTabGroup;
-  @ViewChild('opeForm') opeForm: OperationForm;
-  @ViewChild('measurementsForm') measurementsForm: MeasurementsForm;
-  @ViewChild('catchBatchForm') catchBatchForm: CatchBatchForm;
+  @ViewChild('matTabGroup', { static: true }) matTabGroup: MatTabGroup;
+  @ViewChild('batchTabGroup', { static: true }) batchTabGroup: MatTabGroup;
+  @ViewChild('sampleTabGroup', { static: true }) sampleTabGroup: MatTabGroup;
+  @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
+  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
+  @ViewChild('catchBatchForm', { static: true }) catchBatchForm: CatchBatchForm;
 
   // Sample tables
-  @ViewChild('samplesTable') samplesTable: SamplesTable;
-  @ViewChild('individualMonitoringTable') individualMonitoringTable: IndividualMonitoringSubSamplesTable;
-  @ViewChild('individualReleaseTable') individualReleaseTable: SubSamplesTable;
+  @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
+  @ViewChild('individualMonitoringTable', { static: true }) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
+  @ViewChild('individualReleaseTable', { static: true }) individualReleaseTable: SubSamplesTable;
 
-  @ViewChild('batchGroupsTable') batchGroupsTable: BatchGroupsTable;
-  @ViewChild('subBatchesTable') subBatchesTable: SubBatchesTable;
+  @ViewChild('batchGroupsTable', { static: true }) batchGroupsTable: BatchGroupsTable;
+  @ViewChild('subBatchesTable', { static: true }) subBatchesTable: SubBatchesTable;
 
   constructor(
     route: ActivatedRoute,

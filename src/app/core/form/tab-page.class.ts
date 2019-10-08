@@ -30,8 +30,8 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     [key: string]: any
   };
 
-  @ViewChild(ToolbarComponent) appToolbar: ToolbarComponent;
-  @ViewChild(FormButtonsBarComponent) formButtonsBar: FormButtonsBarComponent;
+  @ViewChild(ToolbarComponent, { static: true }) appToolbar: ToolbarComponent;
+  @ViewChild(FormButtonsBarComponent, { static: true }) formButtonsBar: FormButtonsBarComponent;
 
   get isNewData(): boolean {
     return !this.data || this.data.id === undefined || this.data.id === null;

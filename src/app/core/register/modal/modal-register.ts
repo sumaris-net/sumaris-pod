@@ -11,7 +11,7 @@ export class RegisterModal {
 
   sending: boolean = false;
 
-  @ViewChild('form') private form: RegisterForm;
+  @ViewChild('form', { static: true }) private form: RegisterForm;
 
   constructor(private accountService: AccountService,
     public viewCtrl: ModalController) {

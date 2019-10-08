@@ -49,10 +49,10 @@ export class OutputExtractionPage extends OutputFilterForm<ExtractionType> imple
   showHelp = true;
   canAggregate = false;
 
-  @ViewChild(MatTable) table: MatSort;
-  @ViewChild(MatPaginator) paginator: MatPaginator;
-  @ViewChild(MatSort) sort: MatSort;
-  @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatTable, { static: true }) table: MatSort;
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     injector: Injector,

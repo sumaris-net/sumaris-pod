@@ -103,7 +103,7 @@ export class OutputMapPage extends OutputFilterForm<AggregationType> implements 
   $quickYears = new Subject<number[]>();
 
 
-  @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   get techStrata(): string {
     return this.form.get('strata').get('tech').value;

@@ -105,9 +105,9 @@ export class MatDateTime implements OnInit, ControlValueAccessor, InputElement {
 
   @Input() startDate: Date;
 
-  @ViewChild('datePicker1') datePicker1: MatDatepicker<Moment>;
-  @ViewChild('datePicker2') datePicker2: MatDatepicker<Moment>;
-  @ViewChild('timePicker') timePicker: NgxTimePicker;
+  @ViewChild('datePicker1', { static: false }) datePicker1: MatDatepicker<Moment>;
+  @ViewChild('datePicker2', { static: false }) datePicker2: MatDatepicker<Moment>;
+  @ViewChild('timePicker', { static: false }) timePicker: NgxTimePicker;
 
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 

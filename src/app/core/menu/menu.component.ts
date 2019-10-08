@@ -57,7 +57,7 @@ export class MenuComponent implements OnInit {
   @Input()
   items: Array<MenuItem>;
 
-  @ViewChild('splitPane') splitPane: IonSplitPane;
+  @ViewChild('splitPane', { static: true }) splitPane: IonSplitPane;
 
   constructor(
     protected accountService: AccountService,

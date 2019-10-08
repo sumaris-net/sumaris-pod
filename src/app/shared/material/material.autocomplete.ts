@@ -194,9 +194,9 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
 
   @Output('focus') onFocus = new EventEmitter<FocusEvent>();
 
-  @ViewChild('matInput') matInput: ElementRef;
+  @ViewChild('matInput', { static: true }) matInput: ElementRef;
 
-  @ViewChild('autoCombo') matAutocomplete: MatAutocomplete;
+  @ViewChild('autoCombo', { static: true }) matAutocomplete: MatAutocomplete;
 
   get value(): any {
     return this.formControl.value;

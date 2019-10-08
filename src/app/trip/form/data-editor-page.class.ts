@@ -21,7 +21,7 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
   programSubject = new Subject<string>();
   onProgramChanged = new Subject<Program>();
 
-  @ViewChild('qualityForm') qualityForm: EntityQualityFormComponent;
+  @ViewChild('qualityForm', { static: true }) qualityForm: EntityQualityFormComponent;
 
   protected constructor(
     injector: Injector,

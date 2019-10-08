@@ -40,8 +40,8 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   @Input()
   form: FormGroup;
 
-  @ViewChild('referentialForm') referentialForm: ReferentialForm;
-  @ViewChild('strategiesTable') strategiesTable: StrategiesTable;
+  @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
+  @ViewChild('strategiesTable', { static: true }) strategiesTable: StrategiesTable;
 
   get propertiesForm(): FormArray {
     return this.form.get('properties') as FormArray;

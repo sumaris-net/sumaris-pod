@@ -68,7 +68,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   @Output()
   valueChanges: EventEmitter<any> = new EventEmitter<any>();
 
-  @ViewChild('batchForm') batchForm: BatchForm;
+  @ViewChild('batchForm', { static: true }) batchForm: BatchForm;
   @ViewChildren('childForm') childrenForms !: QueryList<BatchForm>;
 
   get isOnFieldMode(): boolean {
