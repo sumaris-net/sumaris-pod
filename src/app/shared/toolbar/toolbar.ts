@@ -60,7 +60,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   showSearchBar: boolean;
 
-  @ViewChild("backButton") backButton: IonBackButton;
+  @ViewChild("backButton", { static: false }) backButton: IonBackButton;
 
   @ViewChild('searchbar') searchbar: IonSearchbar;
 

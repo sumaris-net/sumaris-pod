@@ -26,7 +26,7 @@ export class VesselModal implements OnInit {
     return this.formVessel.valid;
   }
 
-  @ViewChild('formVessel') formVessel: VesselForm;
+  @ViewChild('formVessel', { static: true }) formVessel: VesselForm;
 
   constructor(
     private vesselService: VesselService,

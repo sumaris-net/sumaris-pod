@@ -37,7 +37,7 @@ export class RegisterForm implements OnInit {
   showPwd = false;
   showConfirmPwd = false;
 
-  @ViewChild('stepper') private stepper: MatHorizontalStepper;
+  @ViewChild('stepper', { static: true }) private stepper: MatHorizontalStepper;
 
   @Output()
   onCancel: EventEmitter<any> = new EventEmitter<any>();

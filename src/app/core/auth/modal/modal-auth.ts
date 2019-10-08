@@ -13,7 +13,7 @@ export class AuthModal {
   loading: boolean = false;
   error: string;
 
-  @ViewChild('form') private form: AuthForm;
+  @ViewChild('form', { static: true }) private form: AuthForm;
 
   constructor(private accountService: AccountService,
     public viewCtrl: ModalController) {

@@ -51,7 +51,7 @@ export class BatchModal implements OnInit {
     this.data = value;
   }
 
-  @ViewChild('form') form: BatchForm;
+  @ViewChild('form', { static: true }) form: BatchForm;
 
   get dirty(): boolean {
     return this.form.dirty;

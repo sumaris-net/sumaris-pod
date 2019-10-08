@@ -26,7 +26,7 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
 
   acquisitionLevelSubject = new Subject<string>();
 
-  @ViewChild('form') batchGroupForm: BatchGroupForm;
+  @ViewChild('form', { static: true }) batchGroupForm: BatchGroupForm;
 
   constructor(
     injector: Injector,

@@ -44,7 +44,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     this.programSubject.next(value);
   }
 
-  @ViewChild("firstInput") firstInputField: InputElement;
+  @ViewChild("firstInput", { static: true }) firstInputField: InputElement;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,

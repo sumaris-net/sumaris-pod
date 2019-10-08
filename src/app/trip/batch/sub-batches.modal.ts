@@ -49,7 +49,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
   @Input()
   availableSubBatchesFn: () => Promise<Batch[]>;
 
-  @ViewChild('form') form: SubBatchForm;
+  @ViewChild('form', { static: true }) form: SubBatchForm;
 
   get dirty(): boolean {
     return this._dirty || this.form.dirty;

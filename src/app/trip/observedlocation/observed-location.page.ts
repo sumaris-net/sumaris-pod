@@ -25,9 +25,9 @@ export class ObservedLocationPage extends AppDataEditorPage<ObservedLocation, Ob
 
   landingEditor: LandingEditor;
 
-  @ViewChild('observedLocationForm') observedLocationForm: ObservedLocationForm;
+  @ViewChild('observedLocationForm', { static: true }) observedLocationForm: ObservedLocationForm;
 
-  @ViewChild('landingsTable') landingsTable: LandingsTable;
+  @ViewChild('landingsTable', { static: true }) landingsTable: LandingsTable;
 
   constructor(
     injector: Injector,

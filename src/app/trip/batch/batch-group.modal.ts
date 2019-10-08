@@ -59,7 +59,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() showSubBatchesCallback: (batch) => void;
 
-  @ViewChild('form') form: BatchGroupForm;
+  @ViewChild('form', { static: true }) form: BatchGroupForm;
 
   get dirty(): boolean {
     return this.form.dirty;

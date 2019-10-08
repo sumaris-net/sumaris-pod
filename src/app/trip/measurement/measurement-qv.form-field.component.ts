@@ -104,7 +104,7 @@ export class MeasurementQVFormField implements OnInit, OnDestroy, ControlValueAc
   @Output()
   onBlur: EventEmitter<FocusEvent> = new EventEmitter<FocusEvent>();
 
-  @ViewChild('matInput') matInput: ElementRef;
+  @ViewChild('matInput', { static: false }) matInput: ElementRef;
 
   constructor(
     private platform: PlatformService,

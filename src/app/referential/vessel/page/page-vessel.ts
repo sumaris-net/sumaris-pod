@@ -18,7 +18,7 @@ export class VesselPage implements OnInit {
   $title = new Subject<string>();
   canEdit = false;
 
-  @ViewChild('form') private form: VesselForm;
+  @ViewChild('form', { static: true }) private form: VesselForm;
 
   constructor(
     private route: ActivatedRoute,
