@@ -1,5 +1,5 @@
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
-import {isNil, nullIfUndefined, selectInputContent, toBoolean, filterNumberInput} from "../../shared/shared.module";
+import {isNil, nullIfUndefined, selectInputContent, toBoolean, filterNumberInput} from "../../shared/functions";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
 import {Entity} from "../services/model";

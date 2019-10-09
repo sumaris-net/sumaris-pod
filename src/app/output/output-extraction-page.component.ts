@@ -7,7 +7,7 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, EMPTY, Observable, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../shared/functions';
 import {TableDataSource} from "angular4-material-table";
 import {
@@ -19,13 +19,13 @@ import {
 } from "../trip/services/extraction.model";
 import {FormBuilder, Validators} from "@angular/forms";
 import {MatExpansionPanel, MatPaginator, MatSort, MatTable} from "@angular/material";
-import {merge} from "rxjs/observable/merge";
+import {merge} from "rxjs";
 import {TableSelectColumnsComponent} from "../core/table/table-select-columns.component";
 import {SETTINGS_DISPLAY_COLUMNS} from "../core/table/table.class";
 import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {OutputFilterForm} from "./output-filter.form";
-import {map, tap} from "rxjs/operators";
+import {first, map, tap} from "rxjs/operators";
 import {LocalSettingsService} from "../core/services/local-settings.service";
 
 export const DEFAULT_PAGE_SIZE = 20;
@@ -81,8 +81,8 @@ export class OutputExtractionPage extends OutputFilterForm<ExtractionType> imple
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
     merge(
-      this.sort && this.sort.sortChange || EventEmitter.empty(),
-      this.paginator && this.paginator.page || EventEmitter.empty(),
+      this.sort && this.sort.sortChange || EMPTY,
+      this.paginator && this.paginator.page || EMPTY,
       this.onRefresh
     )
       .subscribe(() => {
@@ -163,7 +163,7 @@ export class OutputExtractionPage extends OutputFilterForm<ExtractionType> imple
     // Update title
     await this.updateTitle();
 
-    this.dataSource.connect().first().subscribe(() => {
+    this.dataSource.connect().pipe(first()).subscribe(() => {
       this.loading = false;
       this.enable();
       this.markAsUntouched();

@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable, Subject} from "rxjs";
+import {Observable, of, Subject} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {EntityUtils, isNil, isNotNil, IWithProgramEntity, PmfmStrategy, Program, StatusIds} from "./model";
 import {
@@ -661,7 +661,7 @@ export class ProgramService extends BaseDataService
   listenChanges(id: number, options?: any): Observable<Program | undefined> {
     // TODO
     console.warn("TODO: implement listen changes on program");
-    return Observable.of();
+    return of();
   }
 
   canUserWrite(data: IWithProgramEntity<any>): boolean {
