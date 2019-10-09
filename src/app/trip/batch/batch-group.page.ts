@@ -84,6 +84,12 @@ export class BatchGroupPage extends AppEditorPage<Batch, any> implements OnInit 
     );
   }
 
+  /* -- protected method -- */
+
+  protected canUserWrite(data: Batch): boolean {
+    return true;
+  }
+
   protected get form(): FormGroup {
     return this.batchGroupForm.form;
   }

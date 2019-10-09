@@ -157,7 +157,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     return this.tripForm.form;
   }
 
-  protected canUserWrite(data: T): boolean {
+  protected canUserWrite(data: Trip): boolean {
     return isNil(data.validationDate) && this.dataService.canUserWrite(data);
   }
 

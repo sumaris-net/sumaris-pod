@@ -119,6 +119,10 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
 
   /* -- protected methods -- */
 
+  protected canUserWrite(data: Program): boolean {
+    return this.accountService.isAdmin();
+  }
+
   enable() {
     super.enable();
 

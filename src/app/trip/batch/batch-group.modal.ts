@@ -133,6 +133,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   }
 
   async close(event?: UIEvent): Promise<Batch | undefined> {
+    console.log("TODO saving modal...");
     if (this.loading) return; // avoid many call
 
     this.loading = true;
@@ -141,7 +142,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     if (this.pending) {
       await Observable.timer(100, 250)
         .pipe(
-          filter(() => this.pending),
+          filter(() => !this.pending),
           first()
         ).toPromise();
     }
