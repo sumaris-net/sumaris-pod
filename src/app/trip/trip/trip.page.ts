@@ -6,7 +6,7 @@ import {Trip} from '../services/trip.model';
 import {SaleForm} from '../sale/sale.form';
 import {OperationTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {NetworkService} from '../../core/core.module';
+import {environment, NetworkService} from '../../core/core.module';
 import {PhysicalGearTable} from '../physicalgear/physicalgears.table';
 import {EditorDataServiceLoadOptions, fadeInOutAnimation, isNil, isNotNil} from '../../shared/shared.module';
 import {EntityQualityFormComponent} from "../quality/entity-quality-form.component";
@@ -52,7 +52,7 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     this.defaultBackHref = "/trips";
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -119,43 +119,46 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     }
   }
 
-
-  enable() {
-    if (!this.data || isNotNil(this.data.validationDate)) return false;
-    const isNew = this.isNewData;
-    // If not a new data, check user can write
-    if (!isNew && !this.dataService.canUserWrite(this.data)) {
-      if (this.debug) console.warn("[trip] Leave form disable (User has NO write access)");
-      return;
-    }
-    if (this.debug) console.debug("[trip] Enabling form (User has write access)");
-
-    super.enable();
-
-    // Leave program disable once saved
-    if (!isNew) {
-      this.tripForm.form.controls['program'].disable();
-    }
+  onOpenOperation({id, row}) {
+    this.loading = true;
+    this.saveIfDirtyAndConfirm()
+      .then((savedOrContinue) => {
+        if (savedOrContinue) {
+          return this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
+        }
+      })
+      .then(() => this.loading = false);
   }
 
-  async onOpenOperation({id, row}) {
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      await this.router.navigateByUrl(`/trips/${this.data.id}/operations/${id}`);
-    }
-  }
+  onNewOperation(event?: any) {
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? this.save(event)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm();
 
-  async onNewOperation(event?: any) {
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      await this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
-    }
+    savePromise.then(savedOrContinue => {
+      if (savedOrContinue) {
+        this.loading = true;
+        this.markForCheck();
+        return this.router.navigateByUrl(`/trips/${this.data.id}/operations/new`);
+      }
+    })
+      .then(() => {
+        this.loading = false;
+        this.markForCheck();
+      })
+    ;
   }
 
   /* -- protected methods -- */
 
   protected get form(): FormGroup {
     return this.tripForm.form;
+  }
+
+  protected canUserWrite(data: T): boolean {
+    return isNil(data.validationDate) && this.dataService.canUserWrite(data);
   }
 
   /**
@@ -176,24 +179,16 @@ export class TripPage extends AppDataEditorPage<Trip, TripService> implements On
     }).toPromise();
   }
 
-  protected async getValue(): Promise<Trip> {
-    const data = await super.getValue();
-
-    // Update gears, from table
-    if (this.physicalGearTable.dirty) {
-      await this.physicalGearTable.save();
-    }
-    data.gears = this.physicalGearTable.value;
-
-    return data;
-  }
-
-
-  protected async getJsonForm(): Promise<any> {
-    const json = await super.getJsonForm();
+  protected async getJsonValueToSave(): Promise<any> {
+    const json = await super.getJsonValueToSave();
 
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
     json.measurements = this.measurementsForm.value;
+
+    if (this.physicalGearTable.dirty) {
+      await this.physicalGearTable.save();
+    }
+    json.gears = this.physicalGearTable.value;
 
     return json;
   }

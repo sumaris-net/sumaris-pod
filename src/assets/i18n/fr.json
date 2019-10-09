@@ -106,7 +106,6 @@
         "WARNING": "Thème > Couleur avertissement",
         "ACCENT": "Thème > Couleur mise en avant",
         "DANGER": "Thème > Couleur danger"
-
       }
     }
   },
@@ -212,6 +211,8 @@
     "PEER_URL": "Addresse du noeud réseau",
     "BTN_CHANGE_PEER": "Voir les noeuds disponibles",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
+    "BTN_CLEAR_CACHE": "Nettoyer les données en cache",
+    "OFFLINE_MODE": "Forcer le mode déconnecté ? (experimental)",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
     "USAGE_MODES":  {
@@ -247,6 +248,7 @@
     "FIRST_NAME": "Prénom",
     "LAST_NAME": "Nom",
     "DEPARTMENT": {
+      "TITLE": "Organisme",
       "LABEL": "Code organisme",
       "NAME": "Libellé organisme"
     },
@@ -316,6 +318,9 @@
       "VALIDATE_TRIP_ERROR": "Erreur lors de la validation de la marée",
       "UNVALIDATE_TRIP_ERROR": "Erreur lors de la dévalidation de la marée"
     },
+    "MEASUREMENT": {
+      "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}"
+    },
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
       "RANK_ORDER": "#",
@@ -326,8 +331,7 @@
         "TITLE": "Engin #{{rankOrder}}",
         "GEAR": "Code de l'engin",
         "RANK_ORDER": "Numéro de l'engin",
-        "FEATURES": "Caractéristiques physiques :",
-        "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}"
+        "FEATURES": "Caractéristiques physiques :"
       },
       "LIST": {
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",

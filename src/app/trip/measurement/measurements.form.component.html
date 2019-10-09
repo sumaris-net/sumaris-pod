@@ -10,7 +10,19 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
   </ion-item>
 
-  <ion-spinner *ngIf="loading"></ion-spinner>
+<!--  <ion-spinner *ngIf="loading"></ion-spinner>-->
+
+  <!-- loading -->
+  <ng-container *ngIf="$loadingControls|async">
+    <mat-form-field class="mat-form-field-disabled">
+      <input matInput type="text" disabled="true"
+             [placeholder]="'TRIP.MEASUREMENT.FEATURE_PLACEHOLDER'|translate:{rankOrder: 1}">
+    </mat-form-field>
+    <mat-form-field class="mat-form-field-disabled">
+      <input matInput type="text" disabled="true"
+             [placeholder]="'TRIP.MEASUREMENT.FEATURE_PLACEHOLDER'|translate:{rankOrder: 2}">
+    </mat-form-field>
+  </ng-container>
 
   <!-- pmfms -->
   <mat-form-field-measurement *ngFor="let pmfm of $pmfms | async; index as i;"

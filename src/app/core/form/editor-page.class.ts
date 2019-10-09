@@ -134,8 +134,13 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   /**
    * Enable or disable state
    */
-  updateViewState(data: T) {
-    this.enable();
+  updateViewState(data: T, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    if (this.canUserWrite(data)) {
+      this.enable(opts);
+    }
+    else {
+      this.disable(opts);
+    }
   }
 
   /**
@@ -242,6 +247,8 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
 
   protected abstract getFirstInvalidTabIndex(): number;
 
+  protected abstract canUserWrite(data: T): boolean;
+
 
   /* -- protected methods -- */
 
@@ -264,7 +271,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
   }
 
   protected async getValue(): Promise<T> {
-    const json = await this.getJsonForm();
+    const json = await this.getJsonValueToSave();
 
     const res = new this.dataType();
     res.fromObject(json);
@@ -272,7 +279,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     return res;
   }
 
-  protected getJsonForm(): Promise<any> {
+  protected getJsonValueToSave(): Promise<any> {
     return this.form.value;
   }
 

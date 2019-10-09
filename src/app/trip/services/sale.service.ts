@@ -27,11 +27,11 @@ export const SaleFragments = {
       ...VesselFeaturesFragment
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }    
   }
   ${Fragments.location}
-  ${Fragments.recorderDepartment}
+  ${Fragments.lightDepartment}
   ${DataFragments.vesselFeatures}
   `,
   sale: gql`fragment SaleFragment on SaleVO {
@@ -44,12 +44,6 @@ export const SaleFragments = {
     location {
       ...LocationFragment
     } 
-    recorderPerson {
-      ...RecorderPersonFragment
-    }
-    recorderDepartment {
-      ...RecorderDepartmentFragment
-    }
     measurements {
       ...MeasurementFragment
     }
@@ -59,12 +53,18 @@ export const SaleFragments = {
     vesselFeatures {
       ...VesselFeaturesFragment
     }
+    recorderPerson {
+        ...LightPersonFragment
+    }
+    recorderDepartment {
+        ...LightDepartmentFragment
+    }
     observers {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
   }
-  ${Fragments.recorderPerson}
-  ${Fragments.recorderDepartment}
+  ${Fragments.lightPerson}
+  ${Fragments.lightDepartment}
   ${Fragments.measurement}
   ${Fragments.location}
   ${DataFragments.sample} 
@@ -227,7 +227,7 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
 
     if (this._debug) console.debug(`[sale-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.subscribe<{ updateSale: Sale }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ updateSale: Sale }, { id: number, interval: number }>({
       query: UpdateSubscription,
       variables: {
         id: id,
@@ -312,29 +312,29 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
     const now = new Date();
     if (this._debug) console.debug("[sale-service] Saving sale...", json);
 
-    const res = await this.graphql.mutate<{ saveSales: Sale[] }>({
+    await this.graphql.mutate<{ saveSales: Sale[] }>({
       mutation: SaveSales,
       variables: {
         sales: [json]
       },
-      error: { code: ErrorCodes.SAVE_SALES_ERROR, message: "TRIP.SALE.ERROR.SAVE_SALE_ERROR" }
-    });
+      error: { code: ErrorCodes.SAVE_SALES_ERROR, message: "TRIP.SALE.ERROR.SAVE_SALE_ERROR" },
+      update: (proxy, {data}) => {
+        const savedEntity = data && data.saveSales && data.saveSales[0];
+        if (savedEntity && savedEntity !== entity) {
+          // Copy id and update Date
+          this.copyIdAndUpdateDate(savedEntity, entity);
+          if (this._debug) console.debug("[sale-service] Sale saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+        }
 
-    const savedSale = res && res.saveSales && res.saveSales[0];
-    if (savedSale) {
-      // Copy id and update Date
-      this.copyIdAndUpdateDate(savedSale, entity);
-
-      // Update the cache
-      if (isNew && this._lastVariables.loadAll) {
-        this.addToQueryCache({
-          query: LoadAllQuery,
-          variables: this._lastVariables.loadAll
-        }, 'sales', entity.asObject());
+        // Update the cache
+        if (isNew && this._lastVariables.loadAll) {
+          this.graphql.addToQueryCache(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'sales', entity.asObject());
+        }
       }
-    }
-
-    if (this._debug) console.debug("[sale-service] Sale saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
+    });
 
     return entity;
   }
@@ -349,25 +349,26 @@ export class SaleService extends BaseDataService implements TableDataService<Sal
       .map(t => t.id)
       .filter(id => (id > 0));
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[sale-service] Deleting sales... ids:", ids);
 
     await this.graphql.mutate<any>({
       mutation: DeleteSales,
       variables: {
         ids: ids
+      },
+      update: (proxy) => {
+        // Remove from cache
+        if (this._lastVariables.loadAll) {
+          this.graphql.removeToQueryCacheByIds(proxy,{
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'sales', ids);
+        }
+
+        if (this._debug) console.debug(`[sale-service] Sale deleted in ${Date.now() - now}ms`);
       }
     });
-
-    // Remove from cache
-    if (this._lastVariables.loadAll) {
-      this.removeToQueryCacheByIds({
-        query: LoadAllQuery,
-        variables: this._lastVariables.loadAll
-      }, 'sales', ids);
-    }
-
-    if (this._debug) console.debug("[sale-service] Sale deleted in " + (new Date().getTime() - now.getTime()) + "ms");
   }
 
   /* -- protected methods -- */

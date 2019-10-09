@@ -15,14 +15,14 @@ export const ReferentialFragments = {
     logo
     __typename
   }`,
-  recorderDepartment: gql`fragment RecorderDepartmentFragment on DepartmentVO {
+  lightDepartment: gql`fragment LightDepartmentFragment on DepartmentVO {
     id
     label
     name
     logo
     __typename
   }`,
-  recorderPerson: gql`fragment RecorderPersonFragment on PersonVO {
+  lightPerson: gql`fragment LightPersonFragment on PersonVO {
     id
     firstName
     lastName

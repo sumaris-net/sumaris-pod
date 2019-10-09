@@ -1,5 +1,5 @@
 import {defaultDataIdFromObject} from "apollo-cache-inmemory";
-import {ApolloLink} from "apollo-link";
+import {ApolloLink, FetchResult, NextLink, Operation} from "apollo-link";
 import * as uuidv4 from "uuid/v4";
 import {EventEmitter} from "@angular/core";
 import {debounceTime, filter, switchMap} from "rxjs/operators";
@@ -39,7 +39,7 @@ function dataIdFromObjectProduction(object: Object): string {
       case 'TaxonNameVO':
       case 'TaxonGroupVO':
       case 'MeasurementVO':
-        return object['entityName'] + ':' + object['id'];
+        return object['entityName'] + 'VO' + ':' + object['id'];
     }
   }
   return defaultDataIdFromObject(object);
@@ -56,13 +56,16 @@ function dataIdFromObjectDebug (object: Object): string {
     case 'TaxonNameVO':
     case 'MeasurementVO':
       if (!object['entityName']) {
-        console.warn("WARN: no entityName found on entity: cache can be corrupted !", object);
+        console.warn("[dataIdFromObject] no entityName found on entity: cache can be corrupted !", object);
       }
-      return (object['entityName'] || object['__typename']) + ':' + object['id'];
+      return ((object['entityName'] + 'VO') || object['__typename']) + ':' + object['id'];
 
     // Fallback to default cache key
     default:
-      return defaultDataIdFromObject(object);
+      const res = defaultDataIdFromObject(object);
+      if (object['__typename'] === 'TripVO') console.debug(`[dataIdFromObject] Computing Trip cache id: {${res}}`);
+      if (object['__typename'] === 'OperationVO') console.debug(`[dataIdFromObject] Computing Operation cache id: {${res}}`);
+      return res;
   }
 }
 
@@ -91,6 +94,7 @@ export function createTrackerLink(opts: {
   const networkStatusSubject = new BehaviorSubject<string>('none');
   opts.onNetworkStatusChange.subscribe(type => networkStatusSubject.next(type));
 
+  // Save pending and tracked queries in storage
   trackedQueriesUpdated.pipe(
     debounceTime(opts.debounce || 1000),
     switchMap(() => networkStatusSubject),
@@ -100,21 +104,20 @@ export function createTrackerLink(opts: {
       const trackedQueries = Object.getOwnPropertyNames(trackedQueriesById)
         .map(key => trackedQueriesById[key])
         .filter(value => value !== undefined);
-      if (opts.debug) console.debug("[graphql] Saving tracked queries to storage", trackedQueries);
+      if (opts.debug) console.debug("[apollo-tracker-link] Saving tracked queries to storage", trackedQueries);
       return opts.storage.setItem(TRACKED_QUERIES_STORAGE_KEY, trackedQueries);
     });
 
-  return new ApolloLink((operation, forward) => {
-    if (forward === undefined) {
-      return null;
-    }
+  return new ApolloLink((operation: Operation, forward: NextLink) => {
     const context = operation.getContext();
+
+    // Skip if not tracked
     if (!context || !context.tracked) return forward(operation);
 
-    const id = uuidv4();
+    const id = context.serializationKey || uuidv4();
     console.debug(`[apollo-tracker-link] Watching tracked query {${operation.operationName}#${id}}`);
     const trackedQuery: TrackedQuery = {
-      id: uuidv4(),
+      id,
       name: operation.operationName,
       queryJSON: JSON.stringify(operation.query),
       variablesJSON: JSON.stringify(operation.variables),
@@ -125,13 +128,28 @@ export function createTrackerLink(opts: {
     trackedQueriesById[id] = trackedQuery;
     trackedQueriesUpdated.emit();
 
-    return forward(operation).map(data => {
-      console.debug(`[apollo-tracker-link] Tracked query {${operation.operationName}#${id}} succeed!`, data);
-      delete trackedQueriesById[id];
-      trackedQueriesUpdated.emit(trackedQueriesById); // update
+    const nextOperation = forward(operation)
+      .map(data => {
+        console.debug(`[apollo-tracker-link] Query {${operation.operationName}#${id}} succeed!`, data);
+        delete trackedQueriesById[id];
+        trackedQueriesUpdated.emit(trackedQueriesById); // update
 
-      return data;
-    });
+        return data;
+      });
+
+    // If offline, return the optimistic response
+    if (networkStatusSubject.getValue() === 'none') {
+      if (context.optimisticResponse) {
+        console.debug(`[apollo-tracker-link] Query {${operation.operationName}#${id}} has optimistic response: `, context.optimisticResponse);
+        //const response: FetchResult<any> = {data: context.optimisticResponse};
+        //return Observable.of(response);
+      }
+      else {
+        console.warn(`[apollo-tracker-link] Query {${operation.operationName}#${id}} missing 'context.optimisticResponse': waiting network UP before to continue...`);
+      }
+    }
+
+    return nextOperation;
   });
 }
 

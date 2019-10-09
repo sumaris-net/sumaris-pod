@@ -1,15 +1,14 @@
-import {Observable, Subject} from "rxjs";
+import {Observable, Subject, Subscription} from "rxjs";
 import {Apollo} from "apollo-angular";
 import {ApolloClient, ApolloQueryResult, FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
-import {catchError, first, map} from "rxjs/operators";
+import {catchError, distinctUntilChanged, filter, first, map, mergeMap} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
-import {delay} from "q";
 import {Injectable} from "@angular/core";
 import {HttpLink, Options} from "apollo-angular-link-http";
-import {NetworkService} from "./network.service";
+import {ConnectionType, NetworkService} from "./network.service";
 import {WebSocketLink} from "apollo-link-ws";
 import {ApolloLink} from "apollo-link";
 import {InMemoryCache} from "apollo-cache-inmemory";
@@ -23,15 +22,20 @@ import SerializingLink from 'apollo-link-serialize';
 import loggerLink from 'apollo-link-logger';
 import {Platform} from "@ionic/angular";
 import {EntityUtils} from "./model";
-import {LocalEntitiesRepository} from "./local-entities-repository.service";
+import {EntityStorage} from "./local-entities-repository.service";
+import {DataProxy} from 'apollo-cache';
 
 @Injectable({providedIn: 'root'})
 export class GraphqlService {
 
   private _started = false;
+  private _subscription = new Subscription();
+  private _$networkStatusChanged: Observable<ConnectionType>;
+
   private httpParams: Options;
   private wsParams;
   private wsConnectionParams: { authToken?: string } = {};
+  private _defaultFetchPolicy: WatchQueryFetchPolicy;
 
   public onStart = new Subject<void>();
 
@@ -41,21 +45,42 @@ export class GraphqlService {
     return !this._started;
   }
 
-  public constructor(
+  get started(): boolean {
+    return this._started;
+  }
+
+  constructor(
     private platform: Platform,
     private apollo: Apollo,
     private httpLink: HttpLink,
-    private networkService: NetworkService,
+    private network: NetworkService,
     private storage: Storage,
-    private entities: LocalEntitiesRepository
+    private entities: EntityStorage
   ) {
 
+    this._defaultFetchPolicy = environment.apolloFetchPolicy;
+
     // Start
-    if (this.networkService.started) {
+    if (this.network.started) {
       this.start();
     }
 
-    this.networkService.onStart.subscribe(() => this.restart());
+    // Restart if network restart
+    this.network.onStart.subscribe(() => this.restart());
+
+    // Clear cache
+    this.network.onResetNetworkCache
+      .pipe(
+        mergeMap(() => this.ready())
+      )
+      .subscribe(() => this.clearCache());
+
+    // Listen network status
+    this._$networkStatusChanged = network.onNetworkStatusChanges
+      .pipe(
+        filter(type => type !== null && type !== undefined),
+        distinctUntilChanged()
+      );
   }
 
   setAuthToken(authToken: string) {
@@ -66,7 +91,7 @@ export class GraphqlService {
       console.debug("[graphql] Resetting authentication token");
       delete this.wsConnectionParams.authToken;
       // Clear cache
-      this.resetCache();
+      this.clearCache();
     }
   }
 
@@ -81,7 +106,7 @@ export class GraphqlService {
       res = await (await this.getApollo()).query<ApolloQueryResult<T>, V>({
         query: opts.query,
         variables: opts.variables,
-        fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy) || undefined
+        fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined
       }).toPromise();
     } catch (err) {
       res = this.toApolloError<T>(err);
@@ -106,7 +131,7 @@ export class GraphqlService {
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
       variables: opts.variables,
-      fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy) || undefined,
+      fetchPolicy: opts.fetchPolicy || (this._defaultFetchPolicy as FetchPolicy) || undefined,
       notifyOnNetworkStatusChange: true
     })
       .valueChanges
@@ -200,18 +225,19 @@ export class GraphqlService {
       );
   }
 
-  addToQueryCache<V = R>(opts: {
+  addToQueryCache<V = R>(proxy: DataProxy,
+                         opts: {
     query: any,
     variables: V
   }, propertyName: string, newValue: any) {
 
     try {
-      const values = this.apollo.getClient().readQuery(opts);
+      const values = proxy.readQuery(opts);
 
       if (values && values[propertyName]) {
         values[propertyName].push(newValue);
 
-        this.apollo.getClient().writeQuery({
+        proxy.writeQuery({
           query: opts.query,
           variables: opts.variables,
           data: values
@@ -225,7 +251,8 @@ export class GraphqlService {
     if (this._debug) console.debug("[data-service] Unable to add entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  addManyToQueryCache<V = R>(opts: {
+  addManyToQueryCache<V = R>(proxy: DataProxy,
+                             opts: {
     query: any,
     variables: V
   }, propertyName: string, newValues: any[]) {
@@ -233,7 +260,7 @@ export class GraphqlService {
     if (!newValues || !newValues.length) return; // nothing to process
 
     try {
-      const values = this.apollo.getClient().readQuery(opts);
+      const values = proxy.readQuery(opts);
 
       if (values && values[propertyName]) {
         // Keep only not existing values
@@ -243,7 +270,7 @@ export class GraphqlService {
 
         // Update the cache
         values[propertyName] = values[propertyName].concat(newValues);
-        this.apollo.getClient().writeQuery({
+        proxy.writeQuery({
           query: opts.query,
           variables: opts.variables,
           data: values
@@ -258,18 +285,19 @@ export class GraphqlService {
     if (this._debug) console.debug("[data-service] Unable to add entities to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  removeToQueryCacheById<V = R>(opts: {
+  removeToQueryCacheById<V = R>(proxy: DataProxy,
+                                opts: {
     query: any,
     variables: V
   }, propertyName: string, idToRemove: number) {
 
     try {
-      const values = this.apollo.getClient().readQuery(opts);
+      const values = proxy.readQuery(opts);
 
       if (values && values[propertyName]) {
 
         values[propertyName] = (values[propertyName] || []).filter(item => item['id'] !== idToRemove);
-        this.apollo.getClient().writeQuery({
+        proxy.writeQuery({
           query: opts.query,
           variables: opts.variables,
           data: values
@@ -284,20 +312,20 @@ export class GraphqlService {
     console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  removeToQueryCacheByIds<V = R>(opts: {
+  removeToQueryCacheByIds<V = R>(proxy: DataProxy, opts: {
     query: any,
     variables: V
   }, propertyName: string, idsToRemove: number[]) {
 
     try {
-      const values = this.apollo.getClient().readQuery(opts);
+      const values = proxy.readQuery(opts);
 
       if (values && values[propertyName]) {
 
         values[propertyName] = (values[propertyName] || []).reduce((result: any[], item: any) => {
           return idsToRemove.indexOf(item['id']) === -1 ? result.concat(item) : result;
         }, []);
-        this.apollo.getClient().writeQuery({
+        proxy.writeQuery({
           query: opts.query,
           variables: opts.variables,
           data: values
@@ -312,13 +340,14 @@ export class GraphqlService {
     console.warn("[data-service] Unable to remove id from cache. Please check {" + propertyName + "} exists in the result:", opts.query);
   }
 
-  updateToQueryCache<V = R>(opts: {
+  updateToQueryCache<V = R>(proxy: DataProxy,
+                            opts: {
     query: any,
     variables: V
   }, propertyName: string, newValue: any) {
 
     try {
-      const values = this.apollo.getClient().readQuery(opts);
+      const values = proxy.readQuery(opts);
 
       if (values && values[propertyName]) {
         const existingIndex = (values[propertyName] || []).findIndex(v => EntityUtils.equals(newValue, v));
@@ -329,7 +358,7 @@ export class GraphqlService {
           values[propertyName].push(newValue);
         }
 
-        this.apollo.getClient().writeQuery({
+        proxy.writeQuery({
           query: opts.query,
           variables: opts.variables,
           data: values
@@ -343,6 +372,11 @@ export class GraphqlService {
     if (this._debug) console.debug("[data-service] Unable to update entity to cache. Please check query has been cached, and {" + propertyName + "} exists in the result:", opts.query);
   }
 
+  async ready(): Promise<void> {
+    if (this._started) return;
+    await this.onStart.toPromise();
+  }
+
   async getTemporaryId(entityName: string): Promise<number> {
     return await this.entities.nextValue(entityName);
   }
@@ -351,11 +385,13 @@ export class GraphqlService {
 
 
   protected async start() {
+    if (this._started) return;
+
     console.info("[graphql] Starting graphql...");
 
     // Waiting for network service
-    await this.networkService.ready();
-    const peer = this.networkService.peer;
+    await this.network.ready();
+    const peer = this.network.peer;
     if (!peer) throw Error("[graphql] Missing peer. Unable to start graphql service");
 
     const uri = peer.url + '/graphql';
@@ -377,24 +413,41 @@ export class GraphqlService {
     };
     this.wsParams.uri = wsUri;
 
+    // Create a storage configuration
+    const storage = {
+      getItem: (key: string) => this.storage.get(key),
+      setItem: (key: string, data: any) => this.storage.set(key, data),
+      removeItem: (key: string) => this.storage.remove(key)
+    };
 
-    const client = this.apollo.getClient();
+    let client = this.apollo.getClient();
     if (!client) {
       console.debug("[apollo] Creating GraphQL client...");
 
       // Websocket link
       const wsLink = new WebSocketLink(this.wsParams);
 
+      // Creating a mutation queue
       const queueLink = new QueueLink();
+      this._subscription.add(this._$networkStatusChanged
+        .subscribe(type => {
+          // Network is offline: start buffering into queue
+          if (type === 'none') {
+            console.debug("[graphql] offline mode: enable mutations buffer");
+            queueLink.close();
+          }
+          // Network is online
+          else {
+            console.debug("[graphql] online mode: disable mutations buffer");
+            queueLink.open();
+          }
+        }));
+
       const serializingLink = new SerializingLink();
       const retryLink = new RetryLink();
       const trackerLink = createTrackerLink({
-        storage: {
-          getItem: (key: string) => this.storage.get(key),
-          setItem: (key: string, data: any) => this.storage.set(key, data),
-          removeItem: (key: string) => this.storage.remove(key)
-        },
-        onNetworkStatusChange: this.networkService.onNetworkStatusChanges.asObservable(),
+        storage,
+        onNetworkStatusChange: this._$networkStatusChanged,
         debounce: 1000,
         debug: true
       });
@@ -417,25 +470,19 @@ export class GraphqlService {
       const httpLink = this.httpLink.create(this.httpParams);
 
       const cache = new InMemoryCache({
-        dataIdFromObject: dataIdFromObject
+        dataIdFromObject
       });
 
-
       // Enable cache persistence
-      if (this.platform.is('mobile') && environment.persistCache) {
+      if ((environment.offline || this.platform.is('mobile')) && environment.persistCache) {
         console.debug("[apollo] Starting persistence cache...");
         await persistCache({
           cache,
-          storage: {
-            getItem: (key: string) => this.storage.get(key),
-            setItem: (key: string, data: any) => this.storage.set(key, data),
-            removeItem: (key: string) => this.storage.remove(key)
-          },
+          storage,
           trigger: this.platform.is("android") ? "background" : "write",
           debounce: 1000,
           debug: true
         });
-
       }
 
       // create Apollo
@@ -447,7 +494,7 @@ export class GraphqlService {
               return def.kind === 'OperationDefinition' && def.operation === 'mutation';
             },
 
-            // Handle mutations
+            // Handle mutations (with offline queue)
             ApolloLink.from([
               loggerLink,
               trackerLink,
@@ -480,17 +527,7 @@ export class GraphqlService {
         connectToDevTools: !environment.production
       }, 'default');
 
-      this.networkService.onNetworkStatusChanges.subscribe(() => {
-        if (this.networkService.online) {
-          console.debug("[graphql] Disabling mutations queue");
-          queueLink.open();
-          //queueLink.close();
-        } else {
-          console.debug("[graphql] Enabling mutations queue");
-          queueLink.close();
-        }
-      });
-
+      client = this.apollo.getClient();
     }
 
     this._started = true;
@@ -499,16 +536,12 @@ export class GraphqlService {
     this.onStart.next();
 
     // Enable tracked queries persistence
-    if (this.platform.is('mobile') && environment.persistCache) {
+    if ((environment.offline || this.platform.is('mobile')) && environment.persistCache) {
 
       try {
         await restoreTrackedQueries({
-          apolloClient: this.apollo.getClient(),
-          storage: {
-            getItem: (key: string) => this.storage.get(key),
-            setItem: (key: string, data: any) => this.storage.set(key, data),
-            removeItem: (key: string) => this.storage.remove(key)
-          },
+          apolloClient: client,
+          storage,
           debug: true
         });
       } catch(err) {
@@ -518,8 +551,10 @@ export class GraphqlService {
   }
 
   protected async stop() {
-    this._started = false;
+    this._subscription.unsubscribe();
+    this._subscription = new Subscription();
     await this.resetClient();
+    this._started = false;
   }
 
   protected async restart() {
@@ -532,11 +567,11 @@ export class GraphqlService {
     client = client || this.apollo.getClient();
     if (!client) return;
 
-    console.info("[apollo] Reset GraphQL client...");
+    console.info("[graphql] Resetting apollo client...");
     client.stop();
     await Promise.all([
       client.clearStore(),
-      client.cache.reset()
+      this.clearCache(client)
     ]);
   }
 
@@ -590,17 +625,17 @@ export class GraphqlService {
 
 
   private async getApollo(): Promise<Apollo> {
-    while (!this._started) {
+    if (!this._started) {
       console.debug("[graphql] Waiting apollo client... ");
-      await delay(500);
+      await this.onStart.toPromise();
     }
     return this.apollo;
   }
 
-  private async resetCache(client?: ApolloClient<any>) {
+  private async clearCache(client?: ApolloClient<any>) {
     client = client || this.apollo.getClient();
     if (client) {
-      console.debug("[graphql] Reset graphql cache... ");
+      console.debug("[graphql] Clear apollo client cache... ");
       await client.cache.reset();
     }
   }

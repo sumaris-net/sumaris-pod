@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {isNil, isNotNil, MeasurementUtils, PmfmStrategy} from "../services/trip.model";
+import {isNil, isNotNil, PmfmStrategy} from "../services/trip.model";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject, Observable} from 'rxjs';
@@ -7,7 +7,7 @@ import {AppForm, LocalSettingsService} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
-import {filter, first, mergeMap, takeWhile, throttleTime} from "rxjs/operators";
+import {filter, first, throttleTime} from "rxjs/operators";
 import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 
@@ -27,10 +27,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   loading = false; // Important, must be false
   loadingPmfms = true; // Important, must be true
-  loadingControls = true; // Important, must be true
+  $loadingControls = new BehaviorSubject<boolean>(true);
+  loadingValue = false;
 
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-  $loadingControls = new BehaviorSubject<boolean>(true);
 
   @Input() compact = false;
 
@@ -151,14 +151,13 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
   }
 
-  async onReady() {
+  async ready(): Promise<void> {
     // Wait pmfms load, and controls load
-    if (this.loadingControls !== false || this.loadingPmfms !== false) {
+    if (this.$loadingControls.getValue() !== false || this.loadingPmfms !== false) {
       if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
       await firstNotNilPromise(this.$loadingControls
         .pipe(
-          filter((loadingControls) => loadingControls === false && this.loadingPmfms === false),
-          //throttleTime(100), // groups event, if many updates in few duration
+          filter((loadingControls) => loadingControls === false && this.loadingPmfms === false)
         ));
     }
   }
@@ -171,13 +170,21 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    */
   protected async safeSetValue(data: T) {
     if (this.data === data) return; // skip if same
+
+    // Will avoid data to be set inside function updateControls()
+    this.loadingValue = true;
+
+    // This line is required by physical gear modal
     this.data = data;
     this._onValueChanged.emit(data);
 
     // Wait form controls ready
-    await this.onReady();
+    await this.ready();
 
     this.setValue(this.data, {emitEvent: true});
+
+    this.loadingValue = false;
+    this.loading = false;
   }
 
   protected getValue(): T {
@@ -249,7 +256,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       measFormGroup.disable({onlySelf: true, emitEvent: false});
     }
 
-    this.loadingControls = true;
     if (this.$loadingControls.getValue() !== true) this.$loadingControls.next(true);
     this.loading = true;
 
@@ -288,20 +294,21 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       }
     }
 
-    this.loading = false;
-    this.loadingControls = false;
+    this.loading = this.loadingValue; // Keep loading status if data not apply fully
     this.$loadingControls.next(false);
 
     if (this.debug) console.debug(`${this.logPrefix} Form controls updated`);
 
-    // If data has been set, apply it again
-    if (this.data && pmfms.length && this.form) {
-      this.setValue(this.data, {onlySelf: true, emitEvent: false});
-    }
-
-    else {
-      // Restore enable state (because form.setValue() can change it !)
-      this.restoreFormStatus({onlySelf: true, emitEvent: false});
+    // If data has already been set, apply it again
+    if (!this.loadingValue) {
+      if (this.data && pmfms.length && this.form) {
+        this.setValue(this.data, {onlySelf: true, emitEvent: false});
+      }
+      // No data defined yet
+      else {
+        // Restore enable state (because form.setValue() can change it !)
+        this.restoreFormStatus({onlySelf: true, emitEvent: false});
+      }
     }
 
     return true;

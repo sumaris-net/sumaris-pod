@@ -24,6 +24,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
   submitted = false;
   error: string;
   loading = true;
+  enabled = false;
   queryParams: {
     tab?: number;
     subtab?: number;
@@ -37,22 +38,21 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     return !this.data || this.data.id === undefined || this.data.id === null;
   }
 
-  public get dirty(): boolean {
+  get dirty(): boolean {
     return (this._forms && !!this._forms.find(form => form.dirty)) || (this._tables && !!this._tables.find(table => table.dirty));
   }
 
-  public get valid(): boolean {
+  get valid(): boolean {
     return (!this._forms || !this._forms.find(form => !form.valid)) && (!this._tables || !this._tables.find(table => !table.valid));
   }
 
-  public get invalid(): boolean {
+  get invalid(): boolean {
     return (this._forms && !!this._forms.find(form => form.invalid)) || (this._tables && !!this._tables.find(table => !table.invalid));
   }
 
-  public get pending(): boolean {
+  get pending(): boolean {
     return (this._forms && !!this._forms.find(form => form.pending)) || (this._tables && !!this._tables.find(table => table.pending));
   }
-
 
   protected get tables(): AppTable<any, any>[] {
     return this._tables;
@@ -100,66 +100,68 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
   abstract async save(event): Promise<any>;
 
-  public registerForm(form: AppForm<any>): AppTabPage<T, F> {
+  registerForm(form: AppForm<any>): AppTabPage<T, F> {
     if (!form) throw 'Trying to register an invalid form';
     this._forms = this._forms || [];
     this._forms.push(form);
     return this;
   }
 
-  public registerForms(forms: AppForm<any>[]): AppTabPage<T, F> {
+  registerForms(forms: AppForm<any>[]): AppTabPage<T, F> {
     forms.forEach(form => this.registerForm(form));
     return this;
   }
 
-  public registerTable(table: AppTable<any, any>): AppTabPage<T, F> {
+  registerTable(table: AppTable<any, any>): AppTabPage<T, F> {
     if (!table) throw new Error('Trying to register an invalid table');
     this._tables = this._tables || [];
     this._tables.push(table);
     return this;
   }
 
-  public registerTables(tables: AppTable<any, any>[]): AppTabPage<T, F> {
+  registerTables(tables: AppTable<any, any>[]): AppTabPage<T, F> {
     tables
       .filter(table => isNotNil(table)) // Skip not found tables
       .forEach(table => this.registerTable(table));
     return this;
   }
 
-  public disable() {
-    this._forms && this._forms.forEach(form => form.disable());
-    this._tables && this._tables.forEach(table => table.disable());
-    this.markForCheck();
+  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    this.enabled = false;
+    this._forms && this._forms.forEach(form => form.disable(opts));
+    this._tables && this._tables.forEach(table => table.disable(opts));
+    if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
-  public enable() {
-    this._forms && this._forms.forEach(form => form.enable());
-    this._tables && this._tables.forEach(table => table.enable());
-    this.markForCheck();
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    this.enabled = true;
+    this._forms && this._forms.forEach(form => form.enable(opts));
+    this._tables && this._tables.forEach(table => table.enable(opts));
+    if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
-  public markAsPristine() {
+  markAsPristine(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     this.error = null;
     this.submitted = false;
-    this._forms && this._forms.forEach(form => form.markAsPristine());
-    this._tables && this._tables.forEach(table => table.markAsPristine());
-    this.markForCheck();
+    this._forms && this._forms.forEach(form => form.markAsPristine(opts));
+    this._tables && this._tables.forEach(table => table.markAsPristine(opts));
+    if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
-  public markAsUntouched(opts?: {emitEvent?: boolean; }) {
+  markAsUntouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     this._forms && this._forms.forEach(form => form.markAsUntouched());
     this._tables && this._tables.forEach(table => table.markAsUntouched(opts));
-    this.markForCheck();
+    if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
-  public markAsTouched(opts?: {emitEvent?: boolean; }) {
+  markAsTouched(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     this._forms && this._forms.forEach(form => form.markAsTouched(opts));
     this._tables && this._tables.forEach(table => table.markAsTouched(opts));
-    this.markForCheck();
+    if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
   }
 
-  public onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
-    queryParamName = queryParamName || 'tab'
+  onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
+    queryParamName = queryParamName || 'tab';
     if (!this.queryParams || +this.queryParams[queryParamName] !== event.index) {
 
       this.queryParams = this.queryParams || {};
@@ -178,16 +180,16 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     return false;
   }
 
-  public onSubTabChange(event: MatTabChangeEvent) {
+  onSubTabChange(event: MatTabChangeEvent) {
     this.onTabChange(event, 'subtab');
   }
 
-  public async cancel() {
+  async cancel() {
     if (!this.dirty) return;
     await this.reload();
-  };
+  }
 
-  public onBackClick(event: Event) {
+  onBackClick(event: Event) {
     if (event.defaultPrevented) return;
 
     // Stop the go back event, to be able to override it
@@ -274,7 +276,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     }, 300);
   }
 
-  public async reload(confirm?: boolean) {
+  async reload(confirm?: boolean) {
     const needConfirm = this.dirty;
     // if not confirm yet: ask confirmation
     if (!confirm && needConfirm) {
@@ -310,7 +312,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     }
   }
 
-  public async doReload() {
+  async doReload() {
     this.loading = true;
     await this.load(this.data && this.data.id);
   }
@@ -319,7 +321,7 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
 
   protected async scrollToTop() {
     // TODO: FIXME (not working as the page is not the window)
-    let scrollToTop = window.setInterval(() => {
+    const scrollToTop = window.setInterval(() => {
       let pos = window.pageYOffset;
       if (pos > 0) {
         window.scrollTo(0, pos - 20); // how far to scroll on each step

@@ -14,14 +14,15 @@ import {
   VesselPosition
 } from "./trip.model";
 import {map} from "rxjs/operators";
-import {LoadResult, TableDataService} from "../../shared/shared.module";
-import {AccountService, BaseDataService, environment} from "../../core/core.module";
+import {LoadResult, TableDataService, toBoolean} from "../../shared/shared.module";
+import {AccountService, BaseDataService, environment, NetworkService} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {isNilOrBlank} from "../../shared/functions";
 import {AcquisitionLevelCodes, ReferentialFragments} from "../../referential/referential.module";
+import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -45,13 +46,13 @@ export const OperationFragments = {
       ...MetierFragment
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     positions {
       ...PositionFragment
     }
   }
-  ${ReferentialFragments.recorderDepartment}
+  ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
   ${ReferentialFragments.referential}
   ${Fragments.position}
@@ -72,7 +73,7 @@ export const OperationFragments = {
       ...MetierFragment
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     positions {
       ...PositionFragment
@@ -90,7 +91,7 @@ export const OperationFragments = {
       ...BatchFragment
     }
   }
-  ${ReferentialFragments.recorderDepartment}
+  ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
   ${Fragments.position}
   ${Fragments.measurement}
@@ -158,6 +159,7 @@ export class OperationService extends BaseDataService implements TableDataServic
 
   constructor(
     protected graphql: GraphqlService,
+    protected network: NetworkService,
     protected accountService: AccountService
   ) {
     super(graphql);
@@ -203,7 +205,7 @@ export class OperationService extends BaseDataService implements TableDataServic
       query: LoadAllQuery,
       variables: variables,
       error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
+      fetchPolicy: options && options.fetchPolicy || undefined
     })
       .pipe(
         map((res) => {
@@ -261,7 +263,7 @@ export class OperationService extends BaseDataService implements TableDataServic
 
     if (this._debug) console.debug(`[operation-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.subscribe<{ updateOperation: Operation }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ updateOperation: Operation }, { id: number, interval: number }>({
       query: UpdateSubscription,
       variables: {
         id: id,
@@ -340,11 +342,21 @@ export class OperationService extends BaseDataService implements TableDataServic
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, {});
 
-    // Transform into json
-    const json = this.asObject(entity);
+    // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
+    let optimisticResponse;
+    if (this.network.offline) {
+      if (isNew) {
+        entity.id = await this.graphql.getTemporaryId('Operation');
+        if (this._debug) console.debug(`[operation-service] New temporary id: {${entity.id}`);
+      }
+      optimisticResponse = this.network.offline ? {saveOperations: [entity]} : undefined;
+    }
 
-    const now = new Date();
+    // Transform into json
+    const json = this.asObject(entity, true);
+
+    const now = Date.now();
     if (this._debug) console.debug("[operation-service] Saving operation...", json);
 
     await this.graphql.mutate<{ saveOperations: Operation[] }>({
@@ -352,25 +364,40 @@ export class OperationService extends BaseDataService implements TableDataServic
       variables: {
         operations: [json]
       },
+      context: {
+        serializationKey: dataIdFromObject(entity),
+        tracked: true
+
+      },
+      optimisticResponse,
       error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: "TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR"},
-      update: (proxy, res) => {
-        const savedOperation = res && res.data && res.data.saveOperations && res.data.saveOperations[0];
-        if (savedOperation) {
+      update: (proxy, {data}) => {
+        const savedEntity = data && data.saveOperations && data.saveOperations[0];
+        if (savedEntity) {
+
           // Copy id and update Date
-          this.copyIdAndUpdateDate(savedOperation, entity);
+          if (savedEntity !== entity) {
+            this.copyIdAndUpdateDate(savedEntity, entity);
+            if (this._debug) console.debug(`[operation-service] Operation saved and updated in ${Date.now() - now}ms`, entity);
+          }
 
           // Update the cache
           if (isNew && this._lastVariables.loadAll) {
-            this.addToQueryCache({
+            this.graphql.addToQueryCache(proxy, {
               query: LoadAllQuery,
               variables: this._lastVariables.loadAll
-            }, 'operations', savedOperation);
+            }, 'operations', savedEntity);
+          }
+          else if (this._lastVariables.load) {
+            this.graphql.updateToQueryCache(proxy,{
+              query: LoadQuery,
+              variables: this._lastVariables.load
+            }, 'operation', savedEntity);
           }
         }
       }
     });
 
-    if (this._debug) console.debug("[operation-service] Operation saved and updated in " + (new Date().getTime() - now.getTime()) + "ms", entity);
 
     return entity;
   }
@@ -392,35 +419,39 @@ export class OperationService extends BaseDataService implements TableDataServic
       mutation: DeleteOperations,
       variables: {
         ids: ids
+      },
+      update: (proxy) => {
+        // Remove from cache
+        if (this._lastVariables.loadAll) {
+          this.graphql.removeToQueryCacheByIds(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'operations', ids);
+        }
+
+        if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
       }
     });
-
-    // Remove from cache
-    if (this._lastVariables.loadAll) {
-      this.removeToQueryCacheByIds({
-        query: LoadAllQuery,
-        variables: this._lastVariables.loadAll
-      }, 'operations', ids);
-    }
-
-    if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
   }
 
   /* -- protected methods -- */
 
-  protected asObject(entity: Operation): any {
-    const copy: any = entity.asObject(true/*minify*/);
-
+  protected asObject(entity: Operation, minify?: boolean): any {
+    const copy: any = entity.asObject(toBoolean(minify, true));
     return copy;
   }
 
   protected fillDefaultProperties(entity: Operation, options?: any) {
 
+    const department = this.accountService.department;
+
     // Fill Recorder department
-    this.fillRecorderPartment(entity);
-    this.fillRecorderPartment(entity.startPosition);
-    this.fillRecorderPartment(entity.endPosition);
-    entity.measurements && entity.measurements.forEach(m => this.fillRecorderPartment(m));
+    this.fillRecorderDepartment(entity, department);
+    this.fillRecorderDepartment(entity.startPosition, department);
+    this.fillRecorderDepartment(entity.endPosition, department);
+
+    // Measurements
+    (entity.measurements || []).forEach(m => this.fillRecorderDepartment(m, department));
 
     // Fill position date s
     entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
@@ -437,14 +468,14 @@ export class OperationService extends BaseDataService implements TableDataServic
     }
   }
 
-  fillRecorderPartment(entity: DataEntity<Operation | VesselPosition | Measurement>) {
+  fillRecorderDepartment(entity: DataEntity<Operation | VesselPosition | Measurement>, department?: Department) {
     if (!entity.recorderDepartment || !entity.recorderDepartment.id) {
 
-      const person: Person = this.accountService.account;
+      department = department || this.accountService.department;
 
       // Recorder department
-      if (person && person.department) {
-        entity.recorderDepartment = Department.fromObject({id: person.department.id});
+      if (department) {
+        entity.recorderDepartment = department;
       }
     }
   }

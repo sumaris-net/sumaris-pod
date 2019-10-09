@@ -23,6 +23,7 @@ export class OperationValidatorService implements ValidatorService {
     const isOnFieldMode = this.settings.isUsageMode('FIELD');
 
     return this.formBuilder.group({
+        __typename: ['OperationVO'],
         id: [''],
         updateDate: [''],
         rankOrderOnPeriod: [''],

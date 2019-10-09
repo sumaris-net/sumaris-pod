@@ -199,7 +199,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
 
     const json = entities.map(t => t.asObject());
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Saving all ${entityName}...`, json);
 
     const res = await this.graphql.mutate<{ saveReferentials: Referential[] }>({
@@ -207,28 +207,32 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       variables: {
         referentials: json
       },
-      error: { code: ErrorCodes.SAVE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIALS_ERROR" }
+      error: { code: ErrorCodes.SAVE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIALS_ERROR" },
+      update: (proxy, {data}) => {
+        if (data && data.saveReferentials) {
+          // Update entities (id and update date)
+          entities.forEach(entity => {
+            const savedEntity = data.saveReferentials.find(e => (e.id === entity.id || e.label === entity.label));
+            if (savedEntity !== entity) {
+              EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
+            }
+          });
+
+          // Update the cache
+          if (this._lastVariables.loadAll) {
+            if (this._debug) console.debug(`[referential-service] Updating cache with saved ${entityName}...`);
+            this.graphql.addManyToQueryCache(proxy, {
+              query: LoadAllQuery,
+              variables: this._lastVariables.loadAll
+            }, 'referentials', data.saveReferentials);
+          }
+        }
+
+        if (this._debug) console.debug(`[referential-service] ${entityName} saved in ${Date.now() - now}ms`, entities);
+
+      }
     });
 
-    if (res && res.saveReferentials) {
-      // Update entites (id and update date)
-      entities.forEach(entity => {
-        const data = res.saveReferentials.find(res => (res.id === entity.id || res.label === entity.label));
-        entity.id = data && data.id || entity.id;
-        entity.updateDate = data && data.updateDate || entity.updateDate;
-      });
-
-      // Update the cache
-      if (this._lastVariables.loadAll) {
-        if (this._debug) console.debug(`[referential-service] Updating cache with saved ${entityName}...`);
-        this.addManyToQueryCache({
-          query: LoadAllQuery,
-          variables: this._lastVariables.loadAll
-        }, 'referentials', res.saveReferentials);
-      }
-    }
-
-    if (this._debug) console.debug(`[referential-service] ${entityName} saved in ${new Date().getTime() - now.getTime()}ms`, entities);
 
     return entities;
   }
@@ -248,7 +252,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const json = entity.asObject();
     const isNew = !json.id;
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Saving ${entity.entityName}...`, json);
 
     const data = await this.graphql.mutate<{ saveReferentials: any }>({
@@ -256,23 +260,26 @@ export class ReferentialService extends BaseDataService implements TableDataServ
       variables: {
         referentials: [json]
       },
-      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" }
+      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" },
+      update: (proxy, {data}) => {
+        // Update entity
+        const savedEntity = data && data.saveReferentials && data.saveReferentials[0];
+        if (savedEntity === entity) {
+          if (this._debug) console.debug(`[referential-service] ${entity.entityName} saved in ${Date.now() - now}ms`, entity);
+          EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
+        }
+
+        // Update the cache
+        if (isNew && this._lastVariables.loadAll) {
+          if (this._debug) console.debug(`[referential-service] Updating cache with saved ${entity.entityName}...`);
+          this.graphql.addToQueryCache(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'referentials', entity.asObject());
+        }
+
+      }
     });
-
-    // Update entity
-    const savedEntity = data && data.saveReferentials && data.saveReferentials[0];
-    EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
-
-    // Update the cache
-    if (isNew && this._lastVariables.loadAll) {
-      if (this._debug) console.debug(`[referential-service] Updating cache with saved ${entity.entityName}...`);
-      this.addToQueryCache({
-        query: LoadAllQuery,
-        variables: this._lastVariables.loadAll
-      }, 'referentials', entity.asObject());
-    }
-
-    if (this._debug) console.debug(`[referential-service] ${entity.entityName} saved in ${new Date().getTime() - now.getTime()}ms`, entity);
 
     return entity;
   }
@@ -301,26 +308,25 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const now = new Date();
     if (this._debug) console.debug(`[referential-service] Deleting ${entityName}...`, ids);
 
-    const res = await this.graphql.mutate<any>({
+    await this.graphql.mutate<any>({
       mutation: DeleteAll,
       variables: {
         entityName: entityName,
         ids: ids
       },
-      error: { code: ErrorCodes.DELETE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIALS_ERROR" }
+      error: { code: ErrorCodes.DELETE_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIALS_ERROR" },
+      update: (proxy) => {
+        // Remove from cache
+        if (this._lastVariables.loadAll) {
+          this.graphql.removeToQueryCacheByIds(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'referentials', ids);
+        }
+
+        if (this._debug) console.debug(`[referential-service] ${entityName} deleted in ${new Date().getTime() - now.getTime()}ms`);
+      }
     });
-
-    // Remove from cache
-    if (this._lastVariables.loadAll) {
-      this.removeToQueryCacheByIds({
-        query: LoadAllQuery,
-        variables: this._lastVariables.loadAll
-      }, 'referentials', ids);
-    }
-
-    if (this._debug) console.debug(`[referential-service] ${entityName} deleted in ${new Date().getTime() - now.getTime()}ms`);
-
-    return res;
   }
 
   /**

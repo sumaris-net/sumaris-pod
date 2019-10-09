@@ -64,9 +64,7 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>> implem
       controlDate: [''],
       qualificationDate: [''],
       qualificationComments: [''],
-      // TODO: FIXME if required, should be set when creating the new entity
       recorderDepartment: ['', SharedValidators.entity]
-      //recorderDepartment: ['', Validators.compose([Validators.required, SharedValidators.entity])]
     };
   }
 

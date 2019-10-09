@@ -19,4 +19,7 @@ export class Environment {
 
   // Enable cache persistence ?
   persistCache?: boolean;
+
+  // Force offline mode ? For DEV only
+  offline?: boolean;
 }

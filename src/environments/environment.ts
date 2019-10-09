@@ -22,6 +22,9 @@ export const environment: Environment = {
   // FIXME: enable cache
   persistCache: false,
 
+  // TODO: make this works
+  //offline: true,
+
   // defaultPeer: {
   //   host: '192.168.0.28',
   //   port: 8080

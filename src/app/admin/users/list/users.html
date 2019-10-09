@@ -166,7 +166,6 @@
       <mat-cell *matCellDef="let row">
         <app-form-field floatLabel="never"
                         [definition]="definition"
-                        [placeholder]="definition.label|translate"
                         [formControl]="row.validator.controls[definition.key]"
                         [required]="definition.extra && definition.extra.account && definition.extra.account.required">
         </app-form-field>

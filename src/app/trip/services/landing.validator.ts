@@ -15,6 +15,7 @@ export class LandingValidatorService extends DataRootVesselEntityValidatorServic
   getFormConfig(data?: Landing): { [p: string]: any } {
 
     return Object.assign(super.getFormConfig(data), {
+      __typename: ['LandingVO'],
       location: ['', SharedValidators.entity],
       dateTime: [''],
       measurementValues: this.formBuilder.group({}),

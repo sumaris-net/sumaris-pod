@@ -16,6 +16,7 @@ export class BatchGroupValidatorService implements ValidatorService {
 
   getFormGroup(data?: any): FormGroup {
     return this.formBuilder.group({
+      __typename: ['BatchVO'],
       id: [''],
       updateDate: [''],
       rankOrder: ['1', Validators.required],

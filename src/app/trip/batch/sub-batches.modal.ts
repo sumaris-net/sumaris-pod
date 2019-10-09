@@ -95,7 +95,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
     super.ngOnInit();
 
 
-    await this.form.onReady();
+    await this.form.ready();
 
     const data = (this.availableSubBatchesFn && (await this.availableSubBatchesFn()) || [])
       .sort(EntityUtils.sortComparator('rankOrder', 'desc'));

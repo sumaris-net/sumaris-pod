@@ -197,7 +197,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
     // Mobile
     if (this.mobile) {
 
-      this.onReady().then(() => {
+      this.ready().then(() => {
         let currentParenLabel;
 
         // Compute taxon names when parent has changed
@@ -357,7 +357,7 @@ export class SubBatchForm extends MeasurementValuesForm<Batch>
 
   protected async ngInitExtension() {
 
-    await this.onReady();
+    await this.ready();
 
     const discardOrLandingControl = this.form.get(`measurementValues.${PmfmIds.DISCARD_OR_LANDING}`);
     const discardReasonControl = this.form.get(`measurementValues.${PmfmIds.DISCARD_REASON}`);

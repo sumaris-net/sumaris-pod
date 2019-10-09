@@ -18,15 +18,16 @@ export class SaleValidatorService implements ValidatorService {
   getFormGroup(data?: Sale): FormGroup {
 
     return this.formBuilder.group({
-      'id': [''],
-      'updateDate': [''],
-      'creationDate': [''],
-      'vesselFeatures': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'saleType': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'startDateTime': [''],
-      'endDateTime': [''],
-      'saleLocation': ['', SharedValidators.entity],
-      'comments': ['', Validators.maxLength(2000)]
+      __typename: ['SaleVO'],
+      id: [''],
+      updateDate: [''],
+      creationDate: [''],
+      vesselFeatures: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      saleType: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      startDateTime: [''],
+      endDateTime: [''],
+      saleLocation: ['', SharedValidators.entity],
+      comments: ['', Validators.maxLength(2000)]
     }, {
       validator: Validators.compose([
         SharedValidators.requiredIf('saleLocation', 'saleType'),

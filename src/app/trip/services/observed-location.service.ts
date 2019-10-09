@@ -27,7 +27,7 @@ export const ObservedLocationFragments = {
   lightObservedLocation: gql`fragment LightObservedLocationFragment on ObservedLocationVO {
     id
     program {
-      id 
+      id
       label
     }
     startDateTime
@@ -42,23 +42,23 @@ export const ObservedLocationFragments = {
       ...LocationFragment
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     recorderPerson {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
     observers {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
   }
-  ${Fragments.recorderDepartment}
-  ${Fragments.recorderPerson}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
   ${Fragments.location}
   `,
   observedLocation: gql`fragment ObservedLocationFragment on ObservedLocationVO {
     id
     program {
-      id 
+      id
       label
     }
     startDateTime
@@ -73,18 +73,17 @@ export const ObservedLocationFragments = {
       ...LocationFragment
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     recorderPerson {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
     observers {
       ...LightPersonFragment
     }
     measurementValues
   }
-  ${Fragments.recorderDepartment}
-  ${Fragments.recorderPerson}
+  ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${Fragments.location}
   `
@@ -217,7 +216,7 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
 
     if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.subscribe<{ updateObservedLocation: ObservedLocation }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ updateObservedLocation: ObservedLocation }, { id: number, interval: number }>({
       query: UpdateSubscription,
       variables: {
         id: id,
@@ -249,28 +248,34 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
     const now = Date.now();
     if (this._debug) console.debug("[observed-location-service] Saving observed location...", json);
 
+    // Reset the control date
+    entity.controlDate = undefined;
+    json.controlDate = undefined;
+
+
     const res = await this.graphql.mutate<{ saveObservedLocations: any }>({
       mutation: SaveAllQuery,
       variables: {
         observedLocations: [json]
       },
-      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"}
+      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"},
+      update: (proxy, {data}) => {
+        const savedEntity = data && data.saveObservedLocations && data.saveObservedLocations[0];
+        if (savedEntity !== entity) {
+          if (this._debug) console.debug(`[observed-location-service] Observed location saved in ${Date.now() - now}ms`, entity);
+          this.copyIdAndUpdateDate(savedEntity, entity);
+        }
+
+        // Add to cache
+        if (isNew && this._lastVariables.loadAll) {
+          this.graphql.addToQueryCache(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'observedLocations', savedEntity);
+        }
+      }
     });
 
-    const savedEntity = res && res.saveObservedLocations && res.saveObservedLocations[0];
-    if (savedEntity) {
-      this.copyIdAndUpdateDate(savedEntity, entity);
-
-      // Add to cache
-      if (isNew && this._lastVariables.loadAll) {
-        this.addToQueryCache({
-          query: LoadAllQuery,
-          variables: this._lastVariables.loadAll
-        }, 'observedLocations', savedEntity);
-      }
-    }
-
-    if (this._debug) console.debug(`[observed-location-service] Observed location saved in ${Date.now() - now}ms`, entity);
 
     return entity;
   }
@@ -317,24 +322,25 @@ export class ObservedLocationService extends RootDataService<ObservedLocation, O
     const now = Date.now();
     if (this._debug) console.debug("[observed-location-service] Deleting observed locations... ids:", ids);
 
-    const res = await this.graphql.mutate<any>({
+    await this.graphql.mutate<any>({
       mutation: DeleteByIdsMutation,
       variables: {
         ids: ids
+      },
+      update: (proxy) => {
+        // Update the cache
+        if (this._lastVariables.loadAll) {
+          this.graphql.removeToQueryCacheByIds(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'observedLocations', ids);
+        }
+
+        if (this._debug) console.debug(`[observed-location-service] Observed locations deleted in ${Date.now() - now}ms`);
+
       }
     });
 
-    // Update the cache
-    if (this._lastVariables.loadAll) {
-      this.removeToQueryCacheByIds({
-        query: LoadAllQuery,
-        variables: this._lastVariables.loadAll
-      }, 'observedLocations', ids);
-    }
-
-    if (this._debug) console.debug(`[observed-location-service] Observed locations deleted in ${Date.now() - now}ms`);
-
-    return res;
   }
 
   /* -- private -- */

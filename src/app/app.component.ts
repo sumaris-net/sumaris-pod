@@ -184,7 +184,7 @@ export class AppComponent {
     const attributes = this.settings.getFieldDisplayAttributes('department');
     const departmentDefinition = {
       key: 'department',
-      label: 'USER.DEPARTMENT',
+      label: 'USER.DEPARTMENT.TITLE',
       type: 'entity',
       autocomplete: {
         service: this.referentialRefService,

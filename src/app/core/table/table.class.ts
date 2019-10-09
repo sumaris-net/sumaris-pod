@@ -1,12 +1,12 @@
 import {AfterViewInit, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
-import {MatColumnDef, MatPaginator, MatSort, MatTable} from "@angular/material";
+import {MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
-import {Observable, of, Subject, Subscriber} from 'rxjs';
+import {EMPTY, Observable, of, Subject} from 'rxjs';
 import {catchError, filter, mergeMap, startWith, switchMap, takeUntil} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
-import {Entity, joinPropertiesPath} from "../services/model";
+import {Entity} from "../services/model";
 import {Subscription} from "rxjs-compat";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -19,11 +19,10 @@ import {LocalSettingsService} from "../services/local-settings.service";
 import {TranslateService} from "@ngx-translate/core";
 import {PlatformService} from "../services/platform.service";
 import {
-  DisplayFn,
-  MatAutocompleteFieldConfig,
-  MatAutocompleteFieldAddOptions, MatAutocompleteConfigHolder
+  MatAutocompleteConfigHolder,
+  MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig
 } from "../../shared/material/material.autocomplete";
-import {SuggestionDataService} from "../../shared/services/data-service.class";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -88,10 +87,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   @ViewChild(MatSort) sort: MatSort;
 
   @Output()
-  onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>(true);
+  onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
 
   @Output()
-  onNewRow: EventEmitter<void> = new EventEmitter<void>(true);
+  onNewRow: EventEmitter<void> = new EventEmitter<void>();
 
   get $loading(): Observable<boolean> {
     return this.dataSource.loadingSubject;
@@ -118,13 +117,13 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
 
-  disable() {
+  disable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     if (!this._initialized || !this.table) return;
     if (this.sort) this.sort.disabled = true;
     this._enable = false;
   }
 
-  enable() {
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     if (!this._initialized || !this.table) return;
     if (this.sort) this.sort.disabled = false;
     this._enable = true;
@@ -215,8 +214,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
           }),
           filter(res => res === true)
         )
-      || EventEmitter.empty(),
-      this.paginator && this.paginator.page || EventEmitter.empty(),
+      || EMPTY,
+      this.paginator && this.paginator.page || EMPTY,
       this.onRefresh
     )
       .pipe(
@@ -509,10 +508,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       }
 
       this.markAsLoading();
-      setTimeout(async () => {
-        await this.openRow(row.currentData.id, row);
-        this.markAsLoaded();
-      });
+      this.openRow(row.currentData.id, row)
+        .then(() => {
+          this.markAsLoaded();
+        });
 
       return true;
     }

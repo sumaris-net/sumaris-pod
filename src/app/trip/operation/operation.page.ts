@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit, ViewChild} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  NgZone,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
@@ -36,7 +44,7 @@ import {filterNotNil} from "../../shared/observables";
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {
+export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit, AfterViewInit {
 
   protected _enableListenChanges = (environment.listenRemoteChanges === true);
 
@@ -56,7 +64,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   usageMode: UsageMode;
   mobile: boolean;
-  idAttribute: string; // TODO remove if use EditorPage
+  idAttribute: string; // TODO remove when inherit from class EditorPage
 
   @ViewChild('matTabGroup') matTabGroup: MatTabGroup;
   @ViewChild('batchTabGroup') batchTabGroup: MatTabGroup;
@@ -182,19 +190,19 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.selectedSampleTabIndex = subTabIndex;
     if (this.batchTabGroup) this.batchTabGroup.realignInkBar();
     if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+  }
 
-    // Read route params
+  async ngAfterViewInit(): Promise<void> {
     const {tripId, operationId} = this.route.snapshot.params;
     if (isNil(tripId)) return; // skip
     if (isNil(operationId) || operationId === "new") {
-      this.load(undefined, {tripId: tripId});
+      await this.load(undefined, {tripId: tripId});
     } else {
-      this.load(+operationId, {tripId: tripId});
+      await this.load(+operationId, {tripId: tripId});
     }
   }
 
-
-  async load(id?: number, options?: { tripId: number }) {
+  async load(id?: number, options?: { tripId: number }): Promise<void> {
     this.error = null;
 
     // New operation
@@ -280,28 +288,22 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.data = data;
     this.opeForm.value = data;
 
+    const program = trip && trip.program && trip.program.label;
+    const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label || null;
+
     if (trip) {
       this.trip = trip;
       this.opeForm.trip = trip;
-
-      // Set program
-      const program = trip && trip.program && trip.program.label;
-      this.programSubject.next(program);
-      this.batchGroupsTable.program = program;
-      if (this.subBatchesTable) this.subBatchesTable.program = program;
-
     }
 
-    const gearLabel = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.label || null;
+    // Set measurements form
+    this.measurementsForm.gear = gearLabel;
+    this.measurementsForm.program = program;
+    this.measurementsForm.value = data && data.measurements || [];
 
     // Get all batches (and children), and samples
     const batches = (data && data.catchBatch && data.catchBatch.children) || [];
     const samples = (data && data.samples || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), []);
-
-    // Set measurements
-    console.log("Updating operation gear=" + gearLabel)
-    this.measurementsForm.gear = gearLabel;
-    this.measurementsForm.value = data && data.measurements || [];
 
     // Set catch batch
     this.catchBatchForm.gear = gearLabel;
@@ -330,6 +332,13 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       .subscribe((_) => {
         this.subBatchesTable.setValueFromParent(this.batchGroupsTable.value, this.batchGroupsTable.qvPmfm);
       });
+
+    // Applying program to tables (async)
+    if (program) {
+      setTimeout(() => {
+        this.programSubject.next(program);
+      }, 250);
+    }
 
     // Update title
     this.updateTitle();
@@ -478,7 +487,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
-      this.programSubject.asObservable()
+      this.programSubject
         .pipe(
           filter(isNotNilOrBlank),
           switchMap(label => this.programService.watchByLabel(label, true))
@@ -794,6 +803,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   }
 
   protected markForCheck() {
+    console.debug("[operation] markForCheck")
     this.cd.markForCheck();
   }
 }

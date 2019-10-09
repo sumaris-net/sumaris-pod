@@ -37,7 +37,7 @@ export class ObservedLocation extends DataRootEntity<ObservedLocation>
 
   clone(): ObservedLocation {
     const target = new ObservedLocation();
-    target.fromObject(this.asObject);
+    target.fromObject(this.asObject());
     return target;
   }
 

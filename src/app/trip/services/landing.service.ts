@@ -29,7 +29,7 @@ export const LandingFragments = {
   lightLanding: gql`fragment LightLandingFragment on LandingVO {
     id
     program {
-      id 
+      id
       label
     }
     dateTime
@@ -48,25 +48,24 @@ export const LandingFragments = {
       ...VesselFeaturesFragment
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     recorderPerson {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
     observers {
       ...LightPersonFragment
     }
   }
   ${Fragments.location}
-  ${Fragments.recorderDepartment}
-  ${Fragments.recorderPerson}
+  ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${DataFragments.vesselFeatures}
   `,
   landing: gql`fragment LandingFragment on LandingVO {
     id
     program {
-      id 
+      id
       label
     }
     dateTime
@@ -85,10 +84,10 @@ export const LandingFragments = {
       ...VesselFeaturesFragment
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     recorderPerson {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
     observers {
       ...LightPersonFragment
@@ -99,8 +98,7 @@ export const LandingFragments = {
     }
   }
   ${Fragments.location}
-  ${Fragments.recorderDepartment}
-  ${Fragments.recorderPerson}
+  ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
   ${DataFragments.vesselFeatures}
   ${DataFragments.sample}
@@ -270,26 +268,27 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     const now = Date.now();
     if (this._debug) console.debug("[landing-service] Saving landing...", json);
 
-    const res = await this.graphql.mutate<{ saveLandings: any }>({
+    await this.graphql.mutate<{ saveLandings: any }>({
       mutation: SaveAllQuery,
       variables: {
         landings: [json]
       },
-      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"}
-    });
+      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.SAVE_ERROR"},
+      update: (proxy, {data}) => {
+        const savedEntity = data && data.saveLandings && data.saveLandings[0];
+        if (savedEntity) {
+          this.copyIdAndUpdateDate(savedEntity, entity);
 
-    const savedEntity = res && res.saveLandings && res.saveLandings[0];
-    if (savedEntity) {
-      this.copyIdAndUpdateDate(savedEntity, entity);
-
-      // Add to cache
-      if (isNew && this._lastVariables.loadAll) {
-        this.addToQueryCache({
-          query: LoadAllQuery,
-          variables: this._lastVariables.loadAll
-        }, 'landings', savedEntity);
+          // Add to cache
+          if (isNew && this._lastVariables.loadAll) {
+            this.graphql.addToQueryCache(proxy, {
+              query: LoadAllQuery,
+              variables: this._lastVariables.loadAll
+            }, 'landings', savedEntity);
+          }
+        }
       }
-    }
+    });
 
     if (this._debug) console.debug(`[landing-service] Landing saved in ${Date.now() - now}ms`, entity);
 
@@ -308,24 +307,25 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
     const now = Date.now();
     if (this._debug) console.debug("[landing-service] Deleting landings... ids:", ids);
 
-    const res = await this.graphql.mutate<any>({
+    await this.graphql.mutate<any>({
       mutation: DeleteByIdsMutation,
       variables: {
         ids: ids
+      },
+      update: (proxy, {data}) => {
+
+        if (this._debug) console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
+
+        // Update the cache
+        if (this._lastVariables.loadAll) {
+          this.graphql.removeToQueryCacheByIds(proxy,{
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'landings', ids);
+        }
       }
     });
 
-    // Update the cache
-    if (this._lastVariables.loadAll) {
-      this.removeToQueryCacheByIds({
-        query: LoadAllQuery,
-        variables: this._lastVariables.loadAll
-      }, 'landings', ids);
-    }
-
-    if (this._debug) console.debug(`[landing-service] Landings deleted in ${Date.now() - now}ms`);
-
-    return res;
   }
 
 
@@ -334,7 +334,7 @@ export class LandingService extends RootDataService<Landing, LandingFilter>
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.subscribe<{ updateLanding: Landing }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ updateLanding: Landing }, { id: number, interval: number }>({
       query: UpdateSubscription,
       variables: {
         id: id,

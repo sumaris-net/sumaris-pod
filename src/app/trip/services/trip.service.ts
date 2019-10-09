@@ -2,7 +2,7 @@ import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
 import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
-import {EditorDataService, isNotNil, LoadResult, TableDataService} from "../../shared/shared.module";
+import {EditorDataService, isNotNil, LoadResult, TableDataService, toBoolean} from "../../shared/shared.module";
 import {environment, NetworkService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
@@ -14,6 +14,7 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {RootDataService} from "./root-data-service.class";
 import {DataRootEntityUtils} from "./model/base.model";
+import {reject} from "async";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
@@ -25,7 +26,7 @@ const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO
       ...ReferentialFragment
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     measurementValues
   }
@@ -36,7 +37,7 @@ export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
     id
     program {
-      id 
+      id
       label
     }
     departureDateTime
@@ -54,28 +55,28 @@ export const TripFragments = {
     returnLocation {
       ...LocationFragment
     }
+    vesselFeatures {
+        ...VesselFeaturesFragment
+    }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     recorderPerson {
-      ...RecorderPersonFragment
-    }
-    vesselFeatures {
-     ...VesselFeaturesFragment
+      ...LightPersonFragment
     }
     observers {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
   }
   ${Fragments.location}
-  ${Fragments.recorderDepartment}
-  ${Fragments.recorderPerson}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
   ${DataFragments.vesselFeatures}
   `,
   trip: gql`fragment TripFragment on TripVO {
     id
     program {
-      id 
+      id
       label
     }
     departureDateTime
@@ -92,12 +93,6 @@ export const TripFragments = {
     }
     returnLocation {
       ...LocationFragment
-    }
-    recorderDepartment {
-      ...RecorderDepartmentFragment
-    }
-    recorderPerson {
-      ...RecorderPersonFragment
     }
     vesselFeatures {
       ...VesselFeaturesFragment
@@ -120,13 +115,19 @@ export const TripFragments = {
     }
     measurements {
       ...MeasurementFragment
-    }    
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    recorderPerson {
+      ...LightPersonFragment
+    }
     observers {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
   }
-  ${Fragments.recorderDepartment}
-  ${Fragments.recorderPerson}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
   ${Fragments.measurement}
   ${Fragments.referential}
   ${Fragments.location}
@@ -139,7 +140,7 @@ export class TripFilter {
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   programLabel?: string;
-  vesselId?: number
+  vesselId?: number;
   recorderDepartmentId?: number;
   locationId?: number;
 }
@@ -291,7 +292,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
         id: id
       },
       error: { code: ErrorCodes.LOAD_TRIP_ERROR, message: "TRIP.ERROR.LOAD_TRIP_ERROR" },
-      fetchPolicy: options && options.fetchPolicy || 'cache-first'
+      fetchPolicy: options && options.fetchPolicy || undefined
     });
     const data = res && res.trip && Trip.fromObject(res.trip);
     if (data && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, data);
@@ -304,7 +305,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.subscribe<{ updateTrip: Trip }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ updateTrip: Trip }, { id: number, interval: number }>({
       query: UpdateSubscription,
       variables: {
         id: id,
@@ -341,21 +342,25 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving trips...", json);
 
-    const res = await this.graphql.mutate<{ saveTrips: Trip[] }>({
+    await this.graphql.mutate<{ saveTrips: Trip[] }>({
       mutation: SaveAllQuery,
       variables: {
         trips: json
       },
-      error: { code: ErrorCodes.SAVE_TRIPS_ERROR, message: "TRIP.ERROR.SAVE_TRIPS_ERROR" }
+      error: { code: ErrorCodes.SAVE_TRIPS_ERROR, message: "TRIP.ERROR.SAVE_TRIPS_ERROR" },
+      update: (proxy, {data}) => {
+
+        if (this._debug) console.debug(`[trip-service] Trips saved and updated in ${Date.now() - now}ms`, entities);
+
+        (data && data.saveTrips && entities || [])
+          .forEach(entity => {
+            const savedEntity = data.saveTrips.find(t => entity.equals(t));
+            if (savedEntity && savedEntity !== entity) {
+              this.copyIdAndUpdateDate(savedEntity, entity);
+            }
+          });
+      }
     });
-    (res && res.saveTrips && entities || [])
-      .forEach(entity => {
-        const savedTrip = res.saveTrips.find(res => entity.equals(res));
-        this.copyIdAndUpdateDate(savedTrip, entity);
-      });
-
-    if (this._debug) console.debug(`[trip-service] Trips saved and updated in ${Date.now() - now}ms`, entities);
-
 
     return entities;
   }
@@ -369,55 +374,64 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     // Prepare to save
     this.fillDefaultProperties(entity);
 
-    // Transform into json
-    const json = this.asObject(entity);
+    // Reset the control date
+    entity.controlDate = undefined;
+
+    // If new, create a temporary if (for offline mode)
     const isNew = isNil(entity.id);
+    let optimisticResponse;
+    if (this.network.offline) {
+      if (isNew) {
+        entity.id = await this.graphql.getTemporaryId('Trip');
+        if (this._debug) console.debug(`[trip-service] New temporary id: {${entity.id}`);
+      }
+      optimisticResponse = this.network.offline ? {saveTrips: [entity]} : undefined;
+    }
+
+    // Transform into json
+    const json = this.asObject(entity, true);
 
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Saving trip...", json);
 
-    if (isNew) {
-      console.log("TODO: generate new temp ID for TRIP")
-      entity.id = await this.graphql.getTemporaryId('Trip');
-    }
-    else {
-      json.controlDate = undefined; // reset control date
-    }
-
-    await this.graphql.mutate<{ saveTrips: any }>({
+   await this.graphql.mutate<{ saveTrips: any }>({
       mutation: SaveAllQuery,
       variables: {
         trips: [json]
       },
       context: {
-        serializationKey: dataIdFromObject(entity),
-        tracked: true,
-        optimisticResponse: {saveTrips: [entity]}
+        serializationKey: dataIdFromObject({id: entity.id, __typename: 'TripVO'}),
+        tracked: true
       },
+      optimisticResponse,
       error: { code: ErrorCodes.SAVE_TRIP_ERROR, message: "TRIP.ERROR.SAVE_TRIP_ERROR" },
       update: (proxy, {data}) => {
         const savedEntity = data && data.saveTrips && data.saveTrips[0];
-        if (savedEntity && savedEntity !== entity) {
-          this.copyIdAndUpdateDate(savedEntity, entity);
-          if (this._debug) console.debug(`[trip-service] Trip saved in ${Date.now() - now}ms`, entity);
-        }
 
-        // Add to cache
-        if (isNew && this._lastVariables.loadAll) {
-          this.addToQueryCache({
-            query: LoadAllQuery,
-            variables: this._lastVariables.loadAll
-          }, 'trips', savedEntity);
-        }
-        else if(this._lastVariables.load) {
-          this.updateToQueryCache({
-            query: LoadQuery,
-            variables: this._lastVariables.load
-          }, 'trip', savedEntity);
+        if (savedEntity) {
+
+          // Copy id and update Date
+          if (savedEntity !== entity) {
+            this.copyIdAndUpdateDate(savedEntity, entity);
+            if (this._debug) console.debug(`[trip-service] Trip saved in ${Date.now() - now}ms`, entity);
+          }
+
+          // Add to cache
+          if (isNew && this._lastVariables.loadAll) {
+            this.graphql.addToQueryCache(proxy,{
+              query: LoadAllQuery,
+              variables: this._lastVariables.loadAll
+            }, 'trips', savedEntity);
+          }
+          else if (this._lastVariables.load) {
+            this.graphql.updateToQueryCache(proxy,{
+              query: LoadQuery,
+              variables: this._lastVariables.load
+            }, 'trip', savedEntity);
+          }
         }
       }
     });
-
 
     return entity;
   }
@@ -512,7 +526,7 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
   async unvalidateTrip(entity: Trip) {
 
     if (isNil(entity.validationDate)) {
-      throw "Entity is not validated yet !";
+      throw new Error("Entity is not validated yet !");
     }
 
     // Prepare to save
@@ -524,22 +538,31 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Unvalidate trip...", json);
 
-    const res = await this.graphql.mutate<{ unvalidateTrip: any }>({
+    await this.graphql.mutate<{ unvalidateTrip: any }>({
       mutation: UnvalidateMutation,
       variables: {
         trip: json
       },
-      error: { code: ErrorCodes.UNVALIDATE_TRIP_ERROR, message: "TRIP.ERROR.UNVALIDATE_TRIP_ERROR" }
+      context: {
+        // RODO serializationKey:
+        tracked: true
+      },
+      error: { code: ErrorCodes.UNVALIDATE_TRIP_ERROR, message: "TRIP.ERROR.UNVALIDATE_TRIP_ERROR" },
+      update: (proxy, {data}) => {
+        const savedEntity = data && data.unvalidateTrip;
+        if (savedEntity) {
+          if (savedEntity !== entity) {
+            this.copyIdAndUpdateDate(savedEntity, entity);
+          }
+
+          entity.controlDate = savedEntity.controlDate || entity.controlDate;
+          entity.validationDate = savedEntity.validationDate; // should be null
+
+          if (this._debug) console.debug(`[trip-service] Trip unvalidated in ${Date.now() - now}ms`, entity);
+        }
+
+      }
     });
-
-    let savedEntity = res && res.unvalidateTrip;
-    if (savedEntity) {
-      this.copyIdAndUpdateDate(savedEntity, entity);
-      entity.controlDate = savedEntity.controlDate || entity.controlDate;
-      entity.validationDate = savedEntity.validationDate; // should be null
-    }
-
-    if (this._debug) console.debug(`[trip-service] Trip unvalidated in ${Date.now() - now}ms`, entity);
 
     return entity;
   }
@@ -560,24 +583,23 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     const now = Date.now();
     if (this._debug) console.debug("[trip-service] Deleting trips... ids:", ids);
 
-    const res = await this.graphql.mutate<any>({
+    await this.graphql.mutate<any>({
       mutation: DeleteByIdsMutation,
       variables: {
         ids: ids
+      },
+      update: (proxy) => {
+        // Update the cache
+        if (this._lastVariables.loadAll) {
+          this.graphql.removeToQueryCacheByIds(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'trips', ids);
+        }
+
+        if (this._debug) console.debug(`[trip-service] Trips deleted in ${Date.now() - now}ms`);
       }
     });
-
-    // Update the cache
-    if (this._lastVariables.loadAll) {
-      this.removeToQueryCacheByIds({
-        query: LoadAllQuery,
-        variables: this._lastVariables.loadAll
-      }, 'trips', ids);
-    }
-
-    if (this._debug) console.debug(`[trip-service] Trips deleted in ${Date.now() - now}ms`);
-
-    return res;
   }
 
   canUserWrite(trip: Trip): boolean {
@@ -595,8 +617,8 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
   /* -- protected methods -- */
 
-  protected asObject(entity: Trip): any {
-    const copy: any = entity.asObject(true/*minify*/);
+  protected asObject(entity: Trip, minify?: boolean): any {
+    const copy: any = entity.asObject(toBoolean(minify, true));
 
     // Fill return date using departure date
     copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
@@ -621,18 +643,16 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
     // If new trip
     if (!entity.id || entity.id < 0) {
 
-      const person: Person = this.accountService.account;
+      const person = this.accountService.person;
 
       // Recorder department
       if (person && person.department && !entity.recorderDepartment) {
         entity.recorderDepartment = person.department;
-        //entity.recorderDepartment = Department.fromObject({id: person.department.id, __typename: 'DepartmentVO'});
       }
 
       // Recorder person
       if (person && person.id && !entity.recorderPerson) {
         entity.recorderPerson = person;
-        //entity.recorderPerson = Person.fromObject({id: person.id, __typename: 'PersonVO'});
       }
     }
 
@@ -645,10 +665,9 @@ export class TripService extends RootDataService<Trip, TripFilter> implements Ta
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip) {
     if (!source) return;
-    super.copyIdAndUpdateDate(source, target);
 
-    // Update (id and updateDate)
-    EntityUtils.copyIdAndUpdateDate(source, target);
+    // Update (id and updateDate), and control validation
+    super.copyIdAndUpdateDate(source, target);
 
     // Update sale
     if (target.sale && source.sale) {

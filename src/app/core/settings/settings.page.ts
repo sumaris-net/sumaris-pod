@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {AccountService} from '../services/account.service';
-import {EntityUtils, LocalSettings, Peer, referentialToString, UsageMode, Locales} from '../services/model';
+import {EntityUtils, Locales, LocalSettings, Peer, referentialToString, UsageMode} from '../services/model';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AppForm} from '../form/form.class';
 import {Moment} from 'moment/moment';
@@ -57,7 +57,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     protected platform: PlatformService,
     protected validatorService: LocalSettingsValidatorService,
     protected translate: TranslateService,
-    protected networkService: NetworkService,
+    protected network: NetworkService,
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
@@ -137,8 +137,8 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
     // Set peer
     if (isNilOrBlank(data.peerUrl)) {
-      await this.networkService.ready();
-      const peer = this.networkService.peer;
+      await this.network.ready();
+      const peer = this.network.peer;
       data.peerUrl = peer && peer.url;
     }
 
@@ -198,7 +198,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
 
       // Update the network peer
       if (peerChanged) {
-        this.networkService.peer = Peer.parseUrl(json.peerUrl);
+        this.network.peer = Peer.parseUrl(json.peerUrl);
       }
 
     } catch (err) {
@@ -260,7 +260,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     allowSelectDownPeer?: boolean,
     canCancel?: boolean
   }) {
-    const peer = await this.networkService.showSelectPeerModal(opts);
+    const peer = await this.network.showSelectPeerModal(opts);
     if (peer && peer.url) {
       const control = this.form.get('peerUrl') as FormControl;
       control.setValue(peer.url, {emitEvent: true, onlySelf: false});
@@ -273,6 +273,9 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     await this.load();
   }
 
+  async clearCache(event?: UIEvent) {
+    await this.network.clearCache();
+  }
 
   referentialToString = referentialToString;
 

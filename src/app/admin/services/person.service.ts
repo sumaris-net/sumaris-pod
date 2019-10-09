@@ -199,28 +199,28 @@ export class PersonService extends BaseDataService implements TableDataService<P
       .map(t => t.id)
       .filter(id => (id > 0));
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[person-service] Deleting persons... ids:", ids);
 
-    const res = await this.graphql.mutate<any>({
+    await this.graphql.mutate<any>({
       mutation: DeletePersons,
       variables: {
         ids: ids
       },
-      error: {code: ErrorCodes.DELETE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.DELETE_PERSONS_ERROR"}
+      error: {code: ErrorCodes.DELETE_PERSONS_ERROR, message: "REFERENTIAL.ERROR.DELETE_PERSONS_ERROR"},
+      update: (proxy) => {
+        if (this._debug) console.debug(`[person-service] Trips deleted in ${Date.now() - now}ms`);
+        // Update the cache
+        if (this._lastVariables.loadAll) {
+          this.graphql.removeToQueryCacheByIds(proxy, {
+            query: LoadAllQuery,
+            variables: this._lastVariables.loadAll
+          }, 'persons', ids);
+        }
+
+      }
     });
 
-    // Update the cache
-    if (this._lastVariables.loadAll) {
-      this.removeToQueryCacheByIds({
-        query: LoadAllQuery,
-        variables: this._lastVariables.loadAll
-      }, 'persons', ids);
-    }
-
-    if (this._debug) console.debug("[person-service] Trips deleted in " + (new Date().getTime() - now.getTime()) + "ms");
-
-    return res;
   }
 
   /* -- protected methods -- */

@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import {base58, CryptoService, KeyPair} from "./crypto.service";
 import {
-  Account,
+  Account, Department,
   EntityUtils,
   getMainProfile,
-  hasUpperOrEqualsProfile,
+  hasUpperOrEqualsProfile, Person,
   Referential,
   StatusIds,
   UsageMode,
@@ -31,6 +31,8 @@ export declare interface AccountHolder {
   authToken: string;
   pubkey: string;
   account: Account;
+  person: Person;
+  department: Department;
   // TODO : use this ?
   mainProfile: String;
 }
@@ -174,7 +176,9 @@ export class AccountService extends BaseDataService {
     authToken: null,
     pubkey: null,
     mainProfile: null,
-    account: null
+    account: null,
+    person: null,
+    department: null
   };
 
   private _startPromise: Promise<any>;
@@ -185,8 +189,22 @@ export class AccountService extends BaseDataService {
   public onLogout = new Subject<any>();
   public onAuthTokenChange = new Subject<string | undefined>();
 
-  public get account(): Account {
+  get account(): Account {
     return this.data.loaded ? this.data.account : undefined;
+  }
+
+  get person(): Person {
+    if (this.data.loaded && !this.data.person) {
+      this.data.person = this.data.loaded ? this.data.account.asPerson() : undefined;
+    }
+    return this.data.person;
+  }
+
+  get department(): Department {
+    if (this.data.loaded && !this.data.department) {
+      this.data.department = this.data.loaded ? this.data.account.asPerson().department : undefined;
+    }
+    return this.data.department;
   }
 
   constructor(
@@ -222,6 +240,8 @@ export class AccountService extends BaseDataService {
     this.data.pubkey = null;
     this.data.mainProfile = null;
     this.data.account = new Account();
+    this.data.person = null;
+    this.data.department = null;
   }
 
   async start() {
@@ -373,7 +393,7 @@ export class AccountService extends BaseDataService {
       console.error(error && error.message || error);
       this.resetData();
       throw error;
-    };
+    }
   }
 
   async login(data: AuthData): Promise<Account> {
@@ -792,7 +812,7 @@ export class AccountService extends BaseDataService {
 
     console.debug('[account] [WS] Listening changes on {/subscriptions/websocket}...');
 
-    const subscription = this.subscribe<{updateAccount: any}>({
+    const subscription = this.graphql.subscribe<{updateAccount: any}>({
       query: UpdateSubscription,
       variables: {
         pubkey: this.data.pubkey,

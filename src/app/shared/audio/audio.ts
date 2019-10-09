@@ -3,9 +3,8 @@ import {NativeAudio} from "@ionic-native/native-audio/ngx";
 import {Vibration} from "@ionic-native/vibration/ngx";
 import {Platform} from "@ionic/angular";
 import {AudioManagement} from '@ionic-native/audio-management/ngx';
-import {Observable, Subject, Subscription} from "rxjs";
+import {Subject} from "rxjs";
 import {isNil, toBoolean} from "../functions";
-import {filter, mergeMap, tap} from "rxjs/operators";
 
 export type AudioType = 'html5' | 'native';
 export interface Sound {
@@ -38,7 +37,7 @@ export class AudioProvider {
     private platform: Platform,
     @Optional() private nativeAudio: NativeAudio,
     @Optional() private vibration: Vibration,
-    @Optional() private audioman: AudioManagement
+    @Optional() private audioManagement: AudioManagement
   ) {
 
     this.start();
@@ -176,7 +175,7 @@ export class AudioProvider {
         console.info(`[audio] Starting audio provider {${this._audioType}}...`);
 
         // Listen audio mode changed
-        if (cordova && this.audioman) {
+        if (cordova && this.audioManagement) {
           await this.readAudioMode();
         }
       })
@@ -210,7 +209,7 @@ export class AudioProvider {
   }
 
   protected async readAudioMode() {
-    const value = await this.audioman.getAudioMode();
+    const value = await this.audioManagement.getAudioMode();
     this._audioMode = value && value.audioMode || AudioManagement.AudioMode.NORMAL;
     console.debug(`[audio] Detected device audio mode {${value.label}} (${this._audioMode})`);
   }

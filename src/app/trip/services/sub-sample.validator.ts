@@ -15,12 +15,13 @@ export class SubSampleValidatorService implements ValidatorService {
 
   getFormGroup(data?: any): FormGroup {
     return this.formBuilder.group({
-      'id': [''],
-      'updateDate': [''],
-      'rankOrder': ['', Validators.required],
-      'label': ['', Validators.required],
-      'parent': ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      'comments': ['']
+      __typename: ['SampleVO'],
+      id: [''],
+      updateDate: [''],
+      rankOrder: ['', Validators.required],
+      label: ['', Validators.required],
+      parent: ['', Validators.compose([Validators.required, SharedValidators.entity])],
+      comments: ['']
     });
   }
 }

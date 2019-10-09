@@ -1,6 +1,18 @@
 <app-toolbar [title]="'SETTINGS.TITLE'|translate" color="primary" [hasValidate]="form.dirty && !saving"
              (onValidate)="save($event)">
+
+  <!-- DEV -->
+  <ion-button slot="end" [matMenuTriggerFor]="matmenu">
+    <ion-icon slot="icon-only" name="more"></ion-icon>
+  </ion-button>
 </app-toolbar>
+
+<!-- Options menu -->
+<mat-menu #matmenu="matMenu">
+  <button mat-menu-item (click)="network.clearCache()">
+    <ion-label translate>SETTINGS.BTN_CLEAR_CACHE</ion-label>
+  </button>
+</mat-menu>
 
 <ion-content>
 
@@ -23,28 +35,38 @@
 
           <p [innerHTML]="'SETTINGS.DESCRIPTION'|translate"></p>
 
-          <!-- account inheritance -->
-          <mat-form-field [hidden]="!isLogin">
+          <!-- account inheritance (desktop) -->
+          <mat-form-field [hidden]="!isLogin" *ngIf="!mobile; else accountInheritanceMobile">
             <input matInput hidden formControlName="accountInheritance" type="text">
 
             <!-- check box (if desktop) -->
             <mat-checkbox
-              *ngIf="!mobile"
+              *ngIf="!mobile; else accountInheritanceMobile"
               (change)="setAccountInheritance($event.checked)"
               [checked]="accountInheritance">
-              <span translate>SETTINGS.INHERIT_FROM_ACCOUNT</span></mat-checkbox>
+              <span translate>SETTINGS.INHERIT_FROM_ACCOUNT</span>
+            </mat-checkbox>
 
-            <!-- slide toggle (if mobile) -->
-            <ion-text *ngIf="mobile" translate>SETTINGS.INHERIT_FROM_ACCOUNT</ion-text>
-            <mat-slide-toggle matSuffix
-                              *ngIf="mobile"
-                              (change)="setAccountInheritance($event.checked)"
-                              [checked]="accountInheritance">
-
-            </mat-slide-toggle>
             <mat-error *ngIf="form.controls.accountInheritance.hasError('required')" translate>ERROR.FIELD_REQUIRED
             </mat-error>
           </mat-form-field>
+
+          <!-- account inheritance (if mobile) -->
+          <ng-template #accountInheritanceMobile>
+            <mat-form-field [hidden]="!isLogin">
+              <input matInput hidden formControlName="accountInheritance" type="text">
+
+              <!-- slide toggle  -->
+              <ion-text translate>SETTINGS.INHERIT_FROM_ACCOUNT</ion-text>
+              <mat-slide-toggle matSuffix
+                                (change)="setAccountInheritance($event.checked)"
+                                [checked]="accountInheritance">
+
+              </mat-slide-toggle>
+              <mat-error *ngIf="form.controls.accountInheritance.hasError('required')" translate>ERROR.FIELD_REQUIRED
+              </mat-error>
+            </mat-form-field>
+          </ng-template>
 
           <!-- locale -->
           <mat-form-field>
@@ -77,6 +99,19 @@
             <mat-error *ngIf="form.controls.peerUrl.hasError('peerAlive')"
                        translate>SETTINGS.ERROR.PEER_NOT_REACHABLE
             </mat-error>
+          </mat-form-field>
+
+          <!-- Offline mode (if mobile) -->
+          <mat-form-field *ngIf="mobile">
+            <input matInput hidden formControlName="accountInheritance" type="text">
+
+            <!-- slide toggle  -->
+            <ion-text translate>SETTINGS.OFFLINE_MODE</ion-text>
+            <mat-slide-toggle matSuffix
+                              (change)="network.setConnectionType($event.checked ? 'none' : 'unknown')"
+                              [checked]="network.offline">
+
+            </mat-slide-toggle>
           </mat-form-field>
 
           <!-- Data entry -->

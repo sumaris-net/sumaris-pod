@@ -1,14 +1,6 @@
-<app-toolbar [title]="title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
-  [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+<app-toolbar [title]="title | async" color="primary" [hasValidate]="!loading && enabled" (onValidate)="save($event)"
+  [defaultBackHref]="defaultBackHref" [canGoBack]="true" >
   <ion-spinner *ngIf="loading"></ion-spinner>
-
-  <!-- DEV -->
-  <ion-button slot="end" (click)="network.setConnectionType('ethernet')" *ngIf="debug && network.offline">
-    <ion-icon slot="icon-only" name="wifi" color="tertiary" ></ion-icon>
-  </ion-button>
-  <ion-button slot="end" (click)="network.setConnectionType('none')" *ngIf="debug && network.online">
-    <ion-icon slot="icon-only" name="wifi" color="secondary" ></ion-icon>
-  </ion-button>
 </app-toolbar>
 
 <ion-content>
@@ -45,7 +37,7 @@
                          [tabindex]="10">
               </form-sale>
 
-              <!-- Measurements -->
+              <!-- Other features (Measurements) -->
               <ion-grid no-padding padding-top>
                 <ion-row>
                   <ion-col size="12" size-md="2" size-lg="3">
@@ -55,7 +47,9 @@
                     <form-measurements #measurementsForm acquisitionLevel="TRIP"
                                        [debug]="debug"
                                        [program]="programSubject|async"
-                                       [tabindex]="30"></form-measurements>
+                                       [tabindex]="30"
+                                       entityName="VesselUseMeasurement">
+                    </form-measurements>
                   </ion-col>
                 </ion-row>
               </ion-grid>
@@ -142,7 +136,7 @@
 <ion-fab vertical="bottom" horizontal="end"
          *ngIf="operationTable.enabled && selectedTabIndex==2" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="save($event) && operationTable.addRow($event)">
+  <ion-fab-button color="tertiary" (click)="!saving && operationTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>

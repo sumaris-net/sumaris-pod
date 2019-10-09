@@ -62,7 +62,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
-    protected physicalGearValidatorService: OperationValidatorService,
+    protected validatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
@@ -70,7 +70,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected platform: PlatformService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, physicalGearValidatorService.getFormGroup(), settings);
+    super(dateAdapter, validatorService.getFormGroup(), settings);
   }
 
   ngOnInit() {

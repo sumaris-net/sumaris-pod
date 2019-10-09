@@ -61,31 +61,27 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
     }
   }
 
-
-  updateViewState(data: T) {
+  updateViewState(data: T, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     // Quality metadata
     if (this.qualityForm) {
       this.qualityForm.value = data;
     }
 
-    if (isNotNil(data.validationDate)) {
-      this.disable();
-    } else {
-      this.enable();
-    }
+    super.updateViewState(data, opts);
   }
 
-  enable() {
+
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     if (!this.data || isNotNil(this.data.validationDate)) return false;
 
-    // If not a new data, check user can write
-    if (isNotNil(this.data.id) && !this.programService.canUserWrite(this.data)) {
-      if (this.debug) console.warn("[root-data-editor] Leave form disable (User has NO write access)");
-      return;
+    super.enable(opts);
+
+    // Leave program disable once saved
+    if (!this.isNewData) {
+      this.form.controls['program'].disable(opts);
     }
 
-    if (this.debug) console.debug("[root-data-editor] Enabling form (User has write access)");
-    super.enable();
+    this.markForCheck();
   }
 
   async onControl(event: Event) {
@@ -112,6 +108,9 @@ export abstract class AppDataEditorPage<T extends DataRootEntity<T>, S extends E
 
   /* -- protected methods -- */
 
+  protected canUserWrite(data: T): boolean {
+    return isNil(data.validationDate) && this.programService.canUserWrite(data);
+  }
 
   protected startListenProgramChanges() {
 

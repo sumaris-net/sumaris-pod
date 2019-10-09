@@ -7,7 +7,7 @@ import {
   AccountService,
   BaseDataService,
   environment, IReferentialRef,
-  LoadResult,
+  LoadResult, NetworkService,
   ReferentialRef,
   TableDataService
 } from "../../core/core.module";
@@ -279,11 +279,18 @@ export class ProgramService extends BaseDataService
 
   constructor(
     protected graphql: GraphqlService,
+    protected network: NetworkService,
     protected accountService: AccountService,
     protected referentialRefService: ReferentialRefService,
     protected cache: CacheService
   ) {
     super(graphql);
+
+    // Clear cache
+    network.onResetNetworkCache.subscribe(async () => {
+      console.info("[program-service] Clearing program cache...");
+      await this.cache.clearGroup(ProgramCacheKeys.CACHE_GROUP);
+    });
 
     // -- For DEV only
     this._debug = !environment.production;

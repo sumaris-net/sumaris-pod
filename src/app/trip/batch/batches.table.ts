@@ -22,7 +22,7 @@ import {UsageMode} from "../../core/services/model";
 import {SubBatchesModal} from "./sub-batches.modal";
 import {measurementValueToString} from "../services/model/measurement.model";
 import {BatchModal} from "./batch.modal";
-import {LocalEntitiesRepository} from "../../core/services/local-entities-repository.service";
+import {EntityStorage} from "../../core/services/local-entities-repository.service";
 import {MatDialog} from '@angular/material/dialog';
 import {TaxonNameRef} from "../../referential/services/model/taxon.model";
 
@@ -55,7 +55,7 @@ export class BatchesTable extends AppMeasurementsTable<Batch, BatchFilter>
   protected _initialPmfms: PmfmStrategy[];
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected localEntitiesService: LocalEntitiesRepository;
+  protected localEntitiesService: EntityStorage;
 
   qvPmfm: PmfmStrategy;
   defaultWeightPmfm: PmfmStrategy;

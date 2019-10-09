@@ -40,6 +40,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
   constructor() {
     super();
+    this.__typename = 'TripVO';
     this.departureLocation = null;
     this.returnLocation = null;
     this.measurements = [];
@@ -48,7 +49,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
   clone(): Trip {
     const target = new Trip();
-    target.fromObject(this.asObject);
+    target.fromObject(this.asObject());
     return target;
   }
 
@@ -120,6 +121,7 @@ export class PhysicalGear extends DataRootEntity<PhysicalGear> implements IEntit
 
   constructor() {
     super();
+    this.__typename = 'PhysicalGearVO';
     this.gear = new ReferentialRef();
     this.rankOrder = null;
     this.measurements = [];
@@ -194,6 +196,7 @@ export class Operation extends DataEntity<Operation> {
 
   constructor() {
     super();
+    this.__typename = 'OperationVO';
     this.metier = null;
     this.startPosition = new VesselPosition();
     this.endPosition = new VesselPosition();
@@ -311,7 +314,7 @@ export class Operation extends DataEntity<Operation> {
   }
 }
 
-export class VesselPosition extends DataEntity<Operation> {
+export class VesselPosition extends DataEntity<VesselPosition> {
 
   static fromObject(source: any): VesselPosition {
     const res = new VesselPosition();
@@ -326,10 +329,11 @@ export class VesselPosition extends DataEntity<Operation> {
 
   constructor() {
     super();
+    this.__typename = 'VesselPositionVO';
   }
 
-  clone(): Operation {
-    const target = new Operation();
+  clone(): VesselPosition {
+    const target = new VesselPosition();
     target.fromObject(this.asObject());
     return target;
   }

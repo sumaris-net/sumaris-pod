@@ -24,6 +24,12 @@ export declare interface IEntityWithMeasurement<T> extends Entity<T> {
   comments?: string;
 }
 
+export declare type MeasurementType = 'ObservedLocationMeasurement' | 'SaleMeasurement' | 'LandingMeasurement'
+    | 'VesselUseMeasurement'| 'VesselPhysicalMeasurement'
+    | 'GearUseMeasurement' | 'PhysicalGearUseMeasurement'
+    | 'BatchQuantificationMeasurement' | 'BatchSortingMeasurement'
+    | 'ProduceQuantificationMeasurement' | 'ProduceSortingMeasurement';
+
 export class Measurement extends DataEntity<Measurement> {
   pmfmId: number;
   alphanumericalValue: string;
@@ -31,6 +37,7 @@ export class Measurement extends DataEntity<Measurement> {
   qualitativeValue: ReferentialRef;
   digitCount: number;
   rankOrder: number;
+  entityName: MeasurementType;
 
   static fromObject(source: any): Measurement {
     const res = new Measurement();
@@ -40,6 +47,7 @@ export class Measurement extends DataEntity<Measurement> {
 
   constructor() {
     super();
+    this.__typename = 'MeasurementVO';
     this.rankOrder = null;
   }
 
@@ -67,6 +75,7 @@ export class Measurement extends DataEntity<Measurement> {
     this.digitCount = source.digitCount;
     this.rankOrder = source.rankOrder;
     this.qualitativeValue = source.qualitativeValue && ReferentialRef.fromObject(source.qualitativeValue);
+    this.entityName = source.entityName as MeasurementType;
 
     return this;
   }
@@ -83,13 +92,17 @@ export class Measurement extends DataEntity<Measurement> {
 
 export class MeasurementUtils {
 
-  static initAllMeasurements(source: Measurement[], pmfms: PmfmStrategy[]): Measurement[] {
+  static initAllMeasurements(source: Measurement[], pmfms: PmfmStrategy[], entityName: MeasurementType): Measurement[] {
     // Work on a copy, to be able to reduce the array
     let rankOrder = 1;
     return (pmfms || []).map(pmfm => {
       const m = (source || []).find(m => m.pmfmId === pmfm.pmfmId) || new Measurement();
       m.pmfmId = pmfm.pmfmId; // apply the pmfm (need for new object)
       m.rankOrder = rankOrder++;
+
+      // Need by GraphQL cache
+      m.entityName = m.entityName || entityName;
+      m.__typename = m.__typename || 'MeasurementVO';
       return m;
     });
   }

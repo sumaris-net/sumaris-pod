@@ -4,8 +4,7 @@ import {ReferentialFragments} from "../../referential/referential.module";
 export const Fragments = {
   referential: ReferentialFragments.referential,
   department: ReferentialFragments.department,
-  recorderDepartment: ReferentialFragments.recorderDepartment,
-  recorderPerson: ReferentialFragments.recorderPerson,
+  lightDepartment: ReferentialFragments.lightDepartment,
   location: ReferentialFragments.location,
   metier: ReferentialFragments.metier,
   lightPerson: gql`fragment LightPersonFragment on PersonVO {

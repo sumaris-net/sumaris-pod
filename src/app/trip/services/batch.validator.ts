@@ -32,6 +32,7 @@ export class BatchValidatorService implements ValidatorService {
 
   protected getFormGroupConfig(data?: Batch): { [key: string]: any } {
     return {
+      __typename: ['BatchVO'],
       id: [''],
       updateDate: [''],
       rankOrder: ['1', Validators.required],

@@ -150,7 +150,7 @@ export abstract class DataRootVesselEntity<T> extends DataRootEntity<T> implemen
   }
 
   asObject(minify?: boolean): any {
-    const target = super.asObject();
+    const target = super.asObject(minify);
     target.vesselFeatures = this.vesselFeatures && this.vesselFeatures.asObject(minify) || undefined;
     return target;
   }

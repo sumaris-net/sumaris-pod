@@ -49,6 +49,7 @@ export class Sample extends DataRootEntity<Sample> implements IEntityWithMeasure
 
   constructor() {
     super();
+    this.__typename = 'SampleVO';
     this.label = null;
     this.rankOrder = null;
     this.taxonGroup = null;

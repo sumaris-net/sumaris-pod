@@ -39,10 +39,10 @@ export const ExtractionFragments = {
     isSpatial
     statusId
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
   }
-  ${Fragments.recorderDepartment}
+  ${Fragments.lightDepartment}
   `,
   aggregationType: gql`fragment AggregationTypeFragment on AggregationTypeVO {
     id
@@ -60,14 +60,14 @@ export const ExtractionFragments = {
       tech
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     recorderPerson {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
   }
-  ${Fragments.recorderDepartment}
-  ${Fragments.recorderPerson}
+  ${Fragments.lightDepartment}
+  ${Fragments.lightPerson}
   `
 }
 
@@ -495,48 +495,53 @@ export class ExtractionService extends BaseDataService {
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Saving aggregation...", json);
 
-    const res = await this.graphql.mutate<{ saveAggregation: any }>({
+    await this.graphql.mutate<{ saveAggregation: any }>({
       mutation: SaveAggregation,
       variables: {
         type: json,
         filter: filter
       },
-      error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"}
-    });
+      error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"},
+      update: (proxy, {data}) => {
+        const savedEntity = data && AggregationType.fromObject(data.saveAggregation);
+        if (savedEntity) {
+          if (savedEntity !== entity) {
+            EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
+          }
 
-    const savedEntity = res && AggregationType.fromObject(res.saveAggregation);
-    if (savedEntity) {
-      // Always force category, as sourceType could be a live extraction
-      savedEntity.category = 'product';
+          // Always force category, as sourceType could NOT be a live extraction
+          savedEntity.category = 'product';
 
-      if (isNew) {
-        // Add to cache (extraction types)
-        let addToCache = this._lastVariables.loadTypes &&
-          // Check if cache on the same statusId
-          (isNil(this._lastVariables.loadTypes.statusIds) || this._lastVariables.loadTypes.statusIds.findIndex(s => s === entity.statusId) !== -1);
-        if (addToCache) {
-          this.addToQueryCache({
-            query: LoadTypes,
-            variables: this._lastVariables.loadTypes
-          }, 'extractionTypes', savedEntity);
-        }
+          if (isNew) {
+            // Add to cache (extraction types)
+            let addToCache = this._lastVariables.loadTypes &&
+              // Check if cache on the same statusId
+              (isNil(this._lastVariables.loadTypes.statusIds) || this._lastVariables.loadTypes.statusIds.findIndex(s => s === entity.statusId) !== -1);
+            if (addToCache) {
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadTypes,
+                variables: this._lastVariables.loadTypes
+              }, 'extractionTypes', savedEntity);
+            }
 
-        // Add to cache (aggregation types)
-        addToCache = this._lastVariables.loadAggregationTypes &&
-          // Check if cache on the same statusId
-          (this._lastVariables.loadAggregationTypes.statusIds || []).findIndex(s => s === entity.statusId) !== -1;
-        if (addToCache) {
-          this.addToQueryCache({
-            query: LoadAggregationTypes,
-            variables: this._lastVariables.loadAggregationTypes
-          }, 'aggregationTypes', savedEntity);
+            // Add to cache (aggregation types)
+            addToCache = this._lastVariables.loadAggregationTypes &&
+              // Check if cache on the same statusId
+              (this._lastVariables.loadAggregationTypes.statusIds || []).findIndex(s => s === entity.statusId) !== -1;
+            if (addToCache) {
+              this.graphql.addToQueryCache(proxy, {
+                query: LoadAggregationTypes,
+                variables: this._lastVariables.loadAggregationTypes
+              }, 'aggregationTypes', savedEntity);
+            }
+          }
+
+          if (this._debug) console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
         }
       }
-    }
+    });
 
-    if (this._debug) console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
-
-    return savedEntity;
+    return entity;
   }
 
   async deleteAggregations(entities: AggregationType[]): Promise<any> {
@@ -551,26 +556,28 @@ export class ExtractionService extends BaseDataService {
       mutation: DeleteAggregations,
       variables: {
         ids: ids
+      },
+      update: (proxy) => {
+
+        // Remove from cache (extraction types)
+        if (this._lastVariables.loadTypes) {
+          this.graphql.removeToQueryCacheByIds(proxy,{
+            query: LoadTypes,
+            variables: this._lastVariables.loadTypes
+          }, 'extractionTypes', ids);
+        }
+
+        // Remove from cache (aggregation types)
+        if (this._lastVariables.loadAggregationTypes) {
+          this.graphql.removeToQueryCacheByIds(proxy,{
+            query: LoadAggregationTypes,
+            variables: this._lastVariables.loadAggregationTypes
+          }, 'aggregationTypes', ids);
+        }
+
+        if (this._debug) console.debug(`[extraction-service] Aggregations deleted in ${Date.now() - now}ms`);
       }
     });
-
-    // Remove from cache (extraction types)
-    if (this._lastVariables.loadTypes) {
-      this.removeToQueryCacheByIds({
-        query: LoadTypes,
-        variables: this._lastVariables.loadTypes
-      }, 'extractionTypes', ids);
-    }
-
-    // Remove from cache (aggregation types)
-    if (this._lastVariables.loadAggregationTypes) {
-      this.removeToQueryCacheByIds({
-        query: LoadAggregationTypes,
-        variables: this._lastVariables.loadAggregationTypes
-      }, 'aggregationTypes', ids);
-    }
-
-    if (this._debug) console.debug(`[extraction-service] Aggregations deleted in ${Date.now() - now}ms`);
   }
 
   /* -- protected methods  -- */

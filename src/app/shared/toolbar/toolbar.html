@@ -10,7 +10,7 @@
       </ion-back-button> -->
 
       <ion-menu-toggle [hidden]="canGoBack">
-        <ion-button >
+        <ion-button>
           <ion-icon slot="icon-only" name="menu"></ion-icon>
         </ion-button>
       </ion-menu-toggle>
@@ -24,9 +24,23 @@
 
       <ng-content></ng-content>
 
-      <ion-button (click)="enableSearchBar()" *ngIf="hasSearch">
+      <!-- search bar -->
+      <ion-searchbar #searchbar animated
+                     type="search"
+                     *ngIf="hasSearch"
+                     [hidden]="!showSearchBar"
+                     show-cancel-button="always"
+                     (ionChange)="onSearch.emit($event)"
+                     (ionCancel)="toggleSearchBar()">
+      </ion-searchbar>
+
+      <!-- search button -->
+      <ion-button (click)="toggleSearchBar()"
+                  *ngIf="hasSearch && !showSearchBar">
         <ion-icon slot="icon-only" name="search"></ion-icon>
       </ion-button>
+
+      <!-- validate button -->
       <ion-button (click)="onValidate.emit($event)" visible-xs visible-sm visible-mobile *ngIf="hasValidate">
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>

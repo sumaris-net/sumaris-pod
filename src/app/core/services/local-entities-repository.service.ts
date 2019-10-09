@@ -1,18 +1,23 @@
-import {Subject} from "rxjs";
+import {merge, Observable, Subject, Subscription} from "rxjs";
 import {Injectable} from "@angular/core";
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
 import {environment} from "../../../environments/environment";
+import {filter, throttleTime} from "rxjs/operators";
 
 
 export const SEQUENCE_STORAGE_KEY = "sequence";
 
 @Injectable({providedIn: 'root'})
-export class LocalEntitiesRepository {
+export class EntityStorage {
 
   private _started = false;
   private _startPromise: Promise<void>;
+  private _subscription = new Subscription();
+
   private _sequences: { [key: string]: number } = {};
+  private _$save = new Subject();
+  private _dirty = false;
 
   public onStart = new Subject<void>();
 
@@ -35,6 +40,9 @@ export class LocalEntitiesRepository {
 
     const nextValue = (this._sequences[entityName] || 0) - 1;
     this._sequences[entityName] = nextValue;
+
+    this._dirty = true;
+
     return nextValue;
   }
 
@@ -61,6 +69,16 @@ export class LocalEntitiesRepository {
     // Restore sequences
     this._startPromise = this.restoreSequences()
       .then(() => {
+
+        this._subscription.add(
+          merge(
+            this._$save,
+            Observable.timer(2000, 10000)
+          )
+          .pipe(throttleTime(10000))
+          .subscribe(() => this.save())
+        );
+
         this._started = true;
         this._startPromise = undefined;
         // Emit event
@@ -71,10 +89,13 @@ export class LocalEntitiesRepository {
   }
 
   protected async stop() {
-
     this._started = false;
+    this._subscription.unsubscribe();
+    this._subscription = new Subscription();
 
-    await this.restoreSequences();
+    if (this._dirty) {
+      this.save();
+    }
   }
 
   protected async restart() {
@@ -87,10 +108,17 @@ export class LocalEntitiesRepository {
     const sequences = await this.storage.get(SEQUENCE_STORAGE_KEY);
     if (this._debug) console.debug("[local-entities] Restored sequences: ", sequences);
 
-    this._sequences = sequences as any;
+    this._sequences = (sequences as any) || {};
   }
 
-  protected async storeSequences() {
+  protected async save() {
+    if (this._dirty) {
+      await this.storeSequences();
+      this._dirty = false;
+    }
+  }
+
+  protected async storeSequences(): Promise<void> {
     if (this._debug) console.debug("[local-entities] Saving sequences in storage...");
     await this.storage.set(SEQUENCE_STORAGE_KEY, this._sequences);
   }

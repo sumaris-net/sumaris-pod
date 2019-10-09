@@ -82,6 +82,7 @@ export class Batch extends DataEntity<Batch> implements IEntityWithMeasurement<B
 
   constructor() {
     super();
+    this.__typename = 'BatchVO';
     this.label = null;
     this.rankOrder = null;
     this.exhaustiveInventory = null;

@@ -4,13 +4,7 @@ import {APP_BASE_HREF} from "@angular/common";
 import {BrowserModule} from "@angular/platform-browser";
 import {NgModule} from "@angular/core";
 import {IonicModule} from "@ionic/angular";
-import {
-  DateAdapter,
-  MAT_AUTOCOMPLETE_DEFAULT_OPTIONS,
-  MAT_AUTOCOMPLETE_SCROLL_STRATEGY,
-  MAT_DATE_FORMATS,
-  MAT_DATE_LOCALE
-} from "@angular/material";
+import {DateAdapter, MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material";
 import {DATE_ISO_PATTERN} from "./core/constants";
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
@@ -18,7 +12,6 @@ import {StatusBar} from '@ionic-native/status-bar/ngx';
 import {Keyboard} from '@ionic-native/keyboard/ngx';
 import {NativeAudio} from "@ionic-native/native-audio/ngx";
 import {Vibration} from '@ionic-native/vibration/ngx';
-
 // App modules
 import {AppComponent} from "./app.component";
 import {AppRoutingModule} from "./app-routing.module";
@@ -34,11 +27,9 @@ import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {Camera} from "@ionic-native/camera/ngx";
 import {CacheModule} from "ionic-cache";
 import {Network} from "@ionic-native/network/ngx";
-import {CloseScrollStrategy, Overlay} from "@angular/cdk/overlay";
 import {AudioManagement} from "@ionic-native/audio-management/ngx";
 import {APP_LOCAL_SETTINGS_OPTIONS} from "./core/services/local-settings.service";
 import {LocalSettings} from "./core/services/model";
-
 
 
 @NgModule({

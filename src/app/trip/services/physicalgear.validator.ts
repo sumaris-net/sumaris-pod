@@ -16,6 +16,7 @@ export class PhysicalGearValidatorService implements ValidatorService {
 
   getFormGroup(data?: PhysicalGear): FormGroup {
     return this.formBuilder.group({
+      __typename: ['PhysicalGearVO'],
       id: [''],
       updateDate: [''],
       rankOrder: ['', Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],

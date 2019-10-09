@@ -23,6 +23,7 @@ import {
 import {FormFieldDefinition} from "./field.model";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {DisplayFn} from "../material/material.autocomplete";
+import {TranslateService} from "@ngx-translate/core";
 
 const noop = () => {
 };
@@ -85,6 +86,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
   @ViewChild('matInput') matInput: ElementRef;
 
   constructor(
+    protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
@@ -99,14 +101,10 @@ export class AppFormField implements OnInit, ControlValueAccessor {
 
     this.checkAndResolveFormControl();
 
-    this.placeholder = this.placeholder || this._definition.label;
+    this.placeholder = this.placeholder || (this._definition.label && this.translate.instant(this._definition.label));
 
     this.updateTabIndex();
 
-    // Set value, if any
-    if (this.formControl.value) {
-
-    }
   }
 
   writeValue(obj: any): void {

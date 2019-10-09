@@ -15,6 +15,7 @@ export class SampleValidatorService implements ValidatorService {
 
   getFormGroup(data?: any): FormGroup {
     return this.formBuilder.group({
+      __typename: ['SampleVO'],
       id: [''],
       updateDate: [''],
       creationDate: [''],

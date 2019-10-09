@@ -79,7 +79,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   }
 
   set value(data: Batch) {
-    this.batchForm.onReady().then(() => {
+    this.batchForm.ready().then(() => {
       this.setValue(data);
     });
   }
@@ -89,7 +89,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   }
 
   get valid(): boolean {
-    return this.batchForm.valid && (!this.childrenForms || !this.childrenForms.find(child => child.invalid));
+    return this.batchForm.valid && (!this.childrenForms || !this.childrenForms.find(child => child.invalid)) && true;
   }
 
   get pending(): boolean {

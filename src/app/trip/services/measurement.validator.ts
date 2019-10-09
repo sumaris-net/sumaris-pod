@@ -113,5 +113,4 @@ export class MeasurementsValidatorService implements ValidatorService {
     return validatorFns.length > 1 ? Validators.compose(validatorFns) : (validatorFns.length === 1 ? validatorFns[0] : undefined);
   }
 
-  protected
 }

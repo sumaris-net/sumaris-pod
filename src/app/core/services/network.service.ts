@@ -11,9 +11,10 @@ import {LocalSettingsService, SETTINGS_STORAGE_KEY} from "./local-settings.servi
 import {SplashScreen} from "@ionic-native/splash-screen/ngx";
 import {HttpClient} from "@angular/common/http";
 import {toBoolean} from "../../shared/shared.module";
-import { Network } from '@ionic-native/network/ngx';
+import {Connection, Network} from '@ionic-native/network/ngx';
 import {DOCUMENT} from "@angular/common";
-import {timeout} from "async";
+import {ReferentialRefService} from "../../referential/services/referential-ref.service";
+import {CacheService} from "ionic-cache";
 
 export interface NodeInfo {
   softwareName: string;
@@ -22,19 +23,42 @@ export interface NodeInfo {
   nodeName?: string;
 }
 
+
+export type ConnectionType = 'none' | 'wifi' | 'ethernet' | 'cell' | 'unknown' ;
+
+export function getConnectionType(type: number) {
+  switch (type) {
+    case Connection.NONE:
+      return 'none';
+    case Connection.WIFI:
+      return 'wifi';
+    case Connection.CELL:
+    case Connection.CELL_2G:
+    case Connection.CELL_3G:
+    case Connection.CELL_4G:
+      return 'cell';
+    case Connection.ETHERNET:
+      return 'ethernet';
+    case Connection.UNKNOWN:
+      return 'unknown';
+    default:
+      return 'ethernet';
+  }
+}
+
 @Injectable({providedIn: 'root'})
 export class NetworkService {
 
+  private _started = false;
+  private _startPromise: Promise<any>;
+  private _subscription = new Subscription();
   private _debug = false;
   private _peer: Peer;
-  private _startPromise: Promise<any>;
-  private _started = false;
-  private _subscription = new Subscription();
-  private _connectionType: string;
+  private _connectionType: ConnectionType;
 
   onStart = new Subject<Peer>();
-
-  onNetworkStatusChanges = new BehaviorSubject<string>(null);
+  onNetworkStatusChanges = new BehaviorSubject<ConnectionType>(null);
+  onResetNetworkCache = new Subject();
 
   get online(): boolean {
     return this._started && this._connectionType !== 'none';
@@ -71,6 +95,7 @@ export class NetworkService {
     private splashScreen: SplashScreen,
     private settings: LocalSettingsService,
     private network: Network,
+    private cache: CacheService
   ) {
     this.resetData();
 
@@ -187,36 +212,17 @@ export class NetworkService {
     return this.get(peerUrl + '/api/node/info');
   }
 
-  /* -- Protected methods -- */
-
-  protected resetData() {
-    this._peer = null;
-  }
-
-  protected async get<T>(uri: string): Promise<T> {
-    try {
-      return (await this.http.get(uri).toPromise()) as T;
-    } catch (err) {
-      if (err && err.message) {
-        console.error("[network] " + err.message);
-      }
-      else {
-        console.error(`[network] Error on get request ${uri}: ${err.status}`);
-      }
-      throw {code: err.status, message: "ERROR.UNKNOWN_NETWORK_ERROR"};
+  setConnectionType(connectionType?: string) {
+    connectionType = (connectionType || 'unknown').toLowerCase();
+    if (connectionType.startsWith('cell')) connectionType = 'cell';
+    if (connectionType !== this._connectionType) {
+      this._connectionType = connectionType as ConnectionType;
+      console.info(`[network] Connection {${this._connectionType}}`);
+      this.onNetworkStatusChanges.next(this._connectionType);
     }
   }
 
-  public setConnectionType(connectionType?: string) {
-    connectionType = (connectionType || 'ethernet').toLowerCase();
-    if (connectionType != this._connectionType) {
-      this._connectionType = connectionType;
-      console.info(`[network] Connection {${connectionType}}`);
-      this.onNetworkStatusChanges.next(connectionType);
-    }
-  }
-
-  public async showSelectPeerModal(opts?: {allowSelectDownPeer?: boolean; canCancel?: boolean}): Promise<Peer | undefined> {
+  async showSelectPeerModal(opts?: {allowSelectDownPeer?: boolean; canCancel?: boolean}): Promise<Peer | undefined> {
 
     opts = opts || {};
 
@@ -241,6 +247,34 @@ export class NetworkService {
       .then((res) => {
         return res && res.data && (res.data as Peer) || undefined;
       });
+  }
+
+  async clearCache() {
+    console.info("[network] Clearing cache...");
+
+    await this.cache.clearAll();
+
+    this.onResetNetworkCache.next();
+  }
+
+  /* -- Protected methods -- */
+
+  protected resetData() {
+    this._peer = null;
+  }
+
+  protected async get<T>(uri: string): Promise<T> {
+    try {
+      return (await this.http.get(uri).toPromise()) as T;
+    } catch (err) {
+      if (err && err.message) {
+        console.error("[network] " + err.message);
+      }
+      else {
+        console.error(`[network] Error on get request ${uri}: ${err.status}`);
+      }
+      throw {code: err.status, message: "ERROR.UNKNOWN_NETWORK_ERROR"};
+    }
   }
 
   /**

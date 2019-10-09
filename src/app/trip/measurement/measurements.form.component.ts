@@ -11,13 +11,13 @@ import {Measurement, MeasurementUtils, PmfmStrategy} from "../services/trip.mode
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject} from 'rxjs';
-import {filter, first, throttleTime} from "rxjs/operators";
+import {filter, throttleTime} from "rxjs/operators";
 import {AppForm, LocalSettingsService} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {isNil, isNotNil} from '../../shared/shared.module';
-import {MeasurementValuesUtils} from "../services/model/measurement.model";
+import {MeasurementType, MeasurementValuesUtils} from "../services/model/measurement.model";
 import {filterNotNil, firstNotNilPromise} from "../../shared/observables";
 
 @Component({
@@ -36,10 +36,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   loading = false; // Important, must be false
   loadingPmfms = true; // Important, must be true
-  loadingControls = true; // Important, must be true
+  $loadingControls = new BehaviorSubject<boolean>(true);
+  loadingValue = false;
 
   $pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-  $loadingControls = new BehaviorSubject<boolean>(true);
 
   @Input() showError = false;
 
@@ -48,6 +48,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   @Input() floatLabel: FloatLabelType = "auto";
 
   @Input() requiredGear = false;
+
+  @Input() entityName: MeasurementType;
 
   @Output()
   valueChanges: EventEmitter<any> = new EventEmitter<any>();
@@ -89,11 +91,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   @Input()
-  set value(value: any) {
+  set value(value: Measurement[]) {
     this.safeSetValue(value);
   }
 
-  get value(): any {
+  get value(): Measurement[] {
     return this.getValue();
   }
 
@@ -140,27 +142,26 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
 
     const pmfms = this.$pmfms.getValue();
-    this.data = MeasurementUtils.initAllMeasurements(data, pmfms);
+    this.data = MeasurementUtils.initAllMeasurements(data, pmfms, this.entityName);
 
     const json = MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(this.data), pmfms);
 
     this.form.patchValue(json, opts);
 
-    this.markAsUntouched();
-    this.markAsPristine();
+    this.markAsUntouched(opts);
+    this.markAsPristine(opts);
 
     // Restore form status
-    this.restoreFormStatus({onlySelf: true, emitEvent: false});
+    this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
   }
 
-  async onReady() {
+  async ready(): Promise<void> {
     // Wait pmfms load, and controls load
     if (this.$loadingControls.getValue() !== false || this.loadingPmfms !== false) {
       if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
       await firstNotNilPromise(this.$loadingControls
         .pipe(
-          filter((_) => this.loadingControls === false && this.loadingPmfms === false)
-          //throttleTime(100), // groups event, if many updates in few duration
+          filter((loadingControls) => loadingControls === false && this.loadingPmfms === false)
         ));
     }
   }
@@ -174,10 +175,17 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   protected async safeSetValue(data: Measurement[]) {
     if (this.data === data) return; // skip if same
 
-    // Wait form controls ready
-    await this.onReady();
+    // Will avoid data to be set inside function updateControls()
+    this.loadingValue = true;
+    this.data = data;
 
-    this.setValue(data, {emitEvent: true});
+    // Wait form controls ready
+    await this.ready();
+
+    this.setValue(this.data, {emitEvent: true});
+
+    this.loadingValue = false;
+    this.loading = false;
   }
 
   protected getValue(): Measurement[] {
@@ -189,10 +197,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     if (dirtyPmfms.length) {
 
       // Update measurements value
-      //if (this.debug) console.debug(`${this.logPrefix} Updating form measurements...`);
       const json = this.form.value;
       MeasurementUtils.setValuesByFormValues(this.data, json, dirtyPmfms);
-      //if (this.debug) console.debug(`${this.logPrefix} Updating form measurements [OK]`, this.data);
     }
 
     return this.data;
@@ -251,7 +257,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
       );
     }
 
-    this.loadingControls = true;
     if (this.$loadingControls.getValue() !== true) this.$loadingControls.next(true);
     this.loading = true;
 
@@ -262,28 +267,32 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
       // Reset form
       this.measurementValidatorService.updateFormGroup(this.form, []);
       this.form.reset({}, {onlySelf: true, emitEvent: false});
-      this.loading = false;
+      this.loading = this.loadingValue;
       return true;
     }
 
-    const now = Date.now();
-    if (this.debug) console.debug(`${this.logPrefix} Updating form, using pmfms:`, pmfms);
+    else {
+      if (this.debug) console.debug(`${this.logPrefix} Updating form controls, using pmfms:`, pmfms);
 
-    this.measurementValidatorService.updateFormGroup(this.form, pmfms);
+      // Update the existing form
+      this.measurementValidatorService.updateFormGroup(this.form, pmfms);
+    }
 
-    this.loading = false;
-    this.loadingControls = false;
+    this.loading = this.loadingValue; // Keep loading status if data not apply fully
     this.$loadingControls.next(false);
 
-    if (this.debug) console.debug(`${this.logPrefix} Form controls updated in ${Date.now() - now}ms`);
+    if (this.debug) console.debug(`${this.logPrefix} Form controls updated`);
 
-    // If data has been set, apply it again
-    if (this.data && pmfms.length && this.form) {
-      this.setValue(this.data, {emitEvent: false});
-    }
-    // No data defined yet: just restore the form status
-    else {
-      this.restoreFormStatus({onlySelf: true, emitEvent: false});
+    // If data has already been set, apply it again
+    if (!this.loadingValue) {
+      if (this.data && pmfms.length && this.form) {
+        this.setValue(this.data, {onlySelf: true, emitEvent: false});
+      }
+      // No data defined yet
+      else {
+        // Restore enable state (because form.setValue() can change it !)
+        this.restoreFormStatus({onlySelf: true, emitEvent: false});
+      }
     }
 
     return true;

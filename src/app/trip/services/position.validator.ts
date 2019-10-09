@@ -15,6 +15,7 @@ export class PositionValidatorService implements ValidatorService {
 
   getFormGroup(data?: {dateTime: Date|Moment; latitude: number; longitude: number; }, opts?: {required: boolean;}): FormGroup {
     return this.formBuilder.group({
+      __typename: ['VesselPositionVO'],
       id: [''],
       updateDate: [''],
       dateTime: [''],

@@ -85,22 +85,26 @@ export class ConfigService extends BaseDataService {
 
   constructor(
     protected graphql: GraphqlService,
-    protected storage: Storage,
-    protected networkService: NetworkService
+    protected storage: Storage
   ) {
     super(graphql);
 
-    networkService.onStart.subscribe(() => {
-      if (this.started) this.stop();
+    // Start
+    if (this.graphql.started) {
       this.start();
-    });
+    }
+
+    // Restart if graphql service restart
+    this.graphql.onStart.subscribe(() => this.restart());
   }
 
-  start(): Promise<any> {
+  async start(): Promise<void> {
     if (this._startPromise) return this._startPromise;
     if (this._started) return;
 
     console.info("[config] Starting configuration...");
+
+    await this.graphql.ready();
 
     this._startPromise = this.loadOrRestoreLocally()
       .then(() => {
@@ -118,6 +122,11 @@ export class ConfigService extends BaseDataService {
   stop() {
     this._started = false;
     this._startPromise = undefined;
+  }
+
+  restart() {
+    if (this.started) this.stop();
+    this.start();
   }
 
   async load(options?: {

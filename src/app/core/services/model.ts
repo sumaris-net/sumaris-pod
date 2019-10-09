@@ -507,6 +507,7 @@ export class Person extends Entity<Person> implements Cloneable<Person> {
     if (!source || source instanceof Person) return source;
     const result = new Person();
     result.fromObject(source);
+    result.__typename = 'PersonVO';
     return result;
   }
 
@@ -685,6 +686,14 @@ export class Account extends Person {
     source.settings && this.settings.fromObject(source.settings);
     return this;
   }
+
+  /**
+   * Convert into a Person. This will fill __typename with a right value, for data cache
+   */
+  asPerson(): Person {
+    return Person.fromObject(this.asObject(false));
+  }
+
 }
 
 /* -- Network -- */

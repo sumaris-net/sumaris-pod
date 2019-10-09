@@ -294,8 +294,8 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   }
 
   // Wait form controls ready
-  async onReady(): Promise<void> {
-    await super.onReady();
+  async ready(): Promise<void> {
+    await super.ready();
 
     // Wait pmfms to be loaded
     if (isNil(this.$allPmfms.getValue())) {

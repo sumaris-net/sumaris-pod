@@ -39,7 +39,7 @@ export const VesselFragments = {
       ...ReferentialFragment
     }
     recorderDepartment {
-     ...RecorderDepartmentFragment
+     ...LightDepartmentFragment
     }
   }`,
   vessel: gql`fragment VesselFragment on VesselFeaturesVO {
@@ -61,10 +61,10 @@ export const VesselFragments = {
       ...ReferentialFragment
     }
     recorderDepartment {
-      ...RecorderDepartmentFragment
+      ...LightDepartmentFragment
     }
     recorderPerson {
-      ...RecorderPersonFragment
+      ...LightPersonFragment
     }
   }`,
 };
@@ -77,7 +77,7 @@ const LoadAllQuery: any = gql`
   }
   ${VesselFragments.lightVessel}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.recorderDepartment}
+  ${ReferentialFragments.lightDepartment}
 `;
 const LoadQuery: any = gql`
   query Vessel($vesselId: Int, $vesselFeaturesId: Int) {
@@ -87,8 +87,8 @@ const LoadQuery: any = gql`
   }
   ${VesselFragments.vessel}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.recorderDepartment}
-  ${ReferentialFragments.recorderPerson}
+  ${ReferentialFragments.lightDepartment}
+  ${ReferentialFragments.lightPerson}
 `;
 
 const SaveVessels: any = gql`
@@ -99,8 +99,8 @@ const SaveVessels: any = gql`
   }
   ${VesselFragments.vessel}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.recorderDepartment}
-  ${ReferentialFragments.recorderPerson}
+  ${ReferentialFragments.lightDepartment}
+  ${ReferentialFragments.lightPerson}
 `;
 
 const DeleteVessels: any = gql`
