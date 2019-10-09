@@ -7,9 +7,9 @@
   </ion-item>
 
   <!-- parent combo -->
-  <ion-grid no-padding *ngIf="showParent">
-    <ion-row no-padding>
-      <ion-col no-padding>
+  <ion-grid class="ion-no-padding" *ngIf="showParent">
+    <ion-row class="ion-no-padding">
+      <ion-col class="ion-no-padding">
         <!-- parent, if desktop -->
         <mat-autocomplete-field #matInput *ngIf="!mobile; else parentMobile"
                                 formControlName="parent"
@@ -34,7 +34,7 @@
           </mat-form-field>
         </ng-template>
       </ion-col>
-      <ion-col size="auto" no-padding *ngIf="onNewParentClick">
+      <ion-col size="auto" class="ion-no-padding" *ngIf="onNewParentClick">
         <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate"
                 (click)="doNewParentClick($event)"
                 type="button">
@@ -75,8 +75,8 @@
                [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                required>
 
-        <ion-grid no-padding *ngIf="taxonNames.length > 1; else defaultTaxonName">
-          <ion-row no-padding>
+        <ion-grid class="ion-no-padding" *ngIf="taxonNames.length > 1; else defaultTaxonName">
+          <ion-row class="ion-no-padding">
             <ion-col *ngFor="let item of taxonNames; index as i;">
               <ion-button #matInput
                           style="width: 100%;"
@@ -132,9 +132,9 @@
   </div>
 
 
-  <ion-grid no-padding>
-    <ion-row no-padding>
-      <ion-col no-padding>
+  <ion-grid class="ion-no-padding">
+    <ion-row class="ion-no-padding">
+      <ion-col class="ion-no-padding">
         <!-- Individual count -->
         <mat-form-field *ngIf="showIndividualCount">
           <input matInput #matInput
@@ -168,9 +168,9 @@
           </mat-checkbox>
         </mat-form-field>
       </ion-col>
-      <ion-col no-padding *ngIf="showSubmitButton">
+      <ion-col class="ion-no-padding" *ngIf="showSubmitButton">
 
-        <ion-button color="tertiary" float-end
+        <ion-button color="tertiary" class="ion-float-end"
                     [fill]="invalid ? 'clear' : 'solid'"
                     [disabled]="loading || invalid"
                     (click)="doSubmit($event)"

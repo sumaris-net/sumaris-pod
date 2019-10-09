@@ -3,7 +3,7 @@
              [canGoBack]="false">
 </app-toolbar>
 
-<ion-content no-padding>
+<ion-content class="ion-no-padding">
 
   <mat-toolbar>
     <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
@@ -34,7 +34,7 @@
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel color="primary">
-    <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" padding>
+    <form class="form-container ion-padding" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
 
       <!-- date -->
       <mat-date-time formControlName="date" [placeholder]="'VESSEL.LIST.FILTER.DATE'|translate" [displayTime]="false">
@@ -169,11 +169,11 @@
   </mat-table>
 
   <!-- Bottom buttons -->
-  <ion-row no-padding>
+  <ion-row class="ion-no-padding">
 
     <ion-col></ion-col>
 
-    <ion-col no-padding size="auto">
+    <ion-col class="ion-no-padding" size="auto">
       <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
@@ -187,7 +187,7 @@
 </ion-footer>
 
 <!-- Add Button  -->
-<ion-fab vertical="bottom" horizontal="end"
+<ion-fab slot="fixed" vertical="bottom" horizontal="end"
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="light" (click)="addRow()">
     <ion-icon name="add"></ion-icon>

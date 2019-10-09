@@ -6,13 +6,13 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
   </ion-item>
 
-  <ion-grid no-padding>
+  <ion-grid class="ion-no-padding">
 
     <!-- on deck  -->
     <ng-container *ngIf="$onDeckPmfms | async as pmfms"> <!-- loading -->
-      <ion-row *ngIf="pmfms.length" no-padding>
-        <ion-col size="12" size-md="3" align-self-end>
-          <ion-label float-end translate>TRIP.CATCH.FORM.ON_DECK</ion-label>
+      <ion-row *ngIf="pmfms.length" class="ion-no-padding">
+        <ion-col size="12" size-md="3" class="ion-align-self-end">
+          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.ON_DECK</ion-label>
         </ion-col>
 
         <ion-col size="6" size-md="auto" *ngFor="let pmfm of pmfms; index as i;">
@@ -26,9 +26,9 @@
 
     <!-- Sorting -->
     <ng-container *ngIf="$sortingPmfms | async as pmfms">
-      <ion-row *ngIf="pmfms.length" no-padding>
-        <ion-col size="12" size-md="3" align-self-end>
-          <ion-label float-end translate>TRIP.CATCH.FORM.SORTING</ion-label>
+      <ion-row *ngIf="pmfms.length" class="ion-no-padding">
+        <ion-col size="12" size-md="3" class="ion-align-self-end">
+          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SORTING</ion-label>
         </ion-col>
 
         <ion-col size="12" size-md="3" *ngFor="let pmfm of pmfms; index as i;">
@@ -43,9 +43,9 @@
 
     <!-- Landing weight -->
     <ng-container *ngIf="$weightAndOtherPmfms | async as pmfms; else loadingSpinner">
-      <ion-row *ngIf="pmfms.length" no-padding>
-        <ion-col size="12" size-md="3" align-self-end>
-          <ion-label float-end translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
+      <ion-row *ngIf="pmfms.length" class="ion-no-padding">
+        <ion-col size="12" size-md="3" class="ion-align-self-end">
+          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
         </ion-col>
 
         <ion-col size="12" size-md="3" *ngFor="let pmfm of pmfms">
@@ -59,9 +59,9 @@
     </ng-container>
 
     <ng-template #loadingSpinner>
-      <ion-row no-padding>
-        <ion-col size="12" size-md="3" align-self-end>
-          <ion-label float-end translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
+      <ion-row class="ion-no-padding">
+        <ion-col size="12" size-md="3" class="ion-align-self-end">
+          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
         </ion-col>
         <ion-col size="6" size-md="auto">
           <ion-label>

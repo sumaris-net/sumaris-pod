@@ -23,9 +23,9 @@
         <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
       </ion-item>
 
-      <ion-grid no-padding>
-        <ion-row no-padding>
-          <ion-col no-padding padding-top>
+      <ion-grid class="ion-no-padding">
+        <ion-row class="ion-no-padding">
+          <ion-col class="ion-no-padding ion-padding-top">
 
             <!-- landing form-->
             <app-landing-form #landingForm
@@ -34,7 +34,7 @@
                               (onSubmit)="save($event)">
             </app-landing-form>
           </ion-col>
-          <ion-col no-padding size="12" size-xl="3">
+          <ion-col class="ion-no-padding" size="12" size-xl="3">
             <entity-metadata [value]="data">
               <entity-quality-form #qualityForm (onChange)="updateView(data)" (onControl)="onControl($event)">
               </entity-quality-form>
@@ -54,7 +54,7 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
-      <div no-padding>
+      <div class="ion-no-padding">
 
         <!-- error -->
         <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">

@@ -62,7 +62,7 @@
         <ion-card-subtitle [innerHTML]="description">
         </ion-card-subtitle>
       </ion-card-header>
-      <ion-card-content no-padding>
+      <ion-card-content class="ion-no-padding">
         <ion-text color="primary">
           <img class="logo" src="{{ logo }}"/>
         </ion-text>
@@ -100,27 +100,27 @@
     </ion-card>
 
   <ion-grid *ngIf="!loading && pageHistory.length; else bottomBanner"
-            class="history-container" align-self-center>
+            class="history-container ion-align-self-center">
     <ion-row>
       <ion-col size="12" size-xl="" *ngFor="let page of pageHistory; trackBy: getPagePath"
                class="ion-text-center">
-        <ion-card text-start align-self-start @fadeInAnimation>
-          <ion-card-header no-padding>
+        <ion-card class="ion-align-self-start ion-text-start" @fadeInAnimation>
+          <ion-card-header class="ion-no-padding">
             <!-- top bar -->
             <ion-card-subtitle>
               <button type="button" tabindex="-1"
                       (click)="settings.removeHistory(page.path)"
-                      mat-icon-button float-start no-margin>
+                      mat-icon-button class="ion-float-start ion-no-margin">
                 <mat-icon>close</mat-icon>
               </button>
               <ion-label [innerHTML]="page.subtitle"></ion-label>
-              <ion-label float-end [title]="page.time|dateFormat:{time: true}">
+              <ion-label class="ion-float-end" [title]="page.time|dateFormat:{time: true}">
                 <ion-icon name="time"></ion-icon> {{ page.time|dateFromNow }}
               </ion-label>
             </ion-card-subtitle>
 
             <!-- main page -->
-            <ion-card-title no-margin>
+            <ion-card-title class="ion-no-margin">
               <ion-item  detail="true"
                          tappable class="text-1x"
                          [routerLink]="page.path"
@@ -135,8 +135,8 @@
           </ion-card-header>
 
           <!-- children pages -->
-          <ion-card-content no-padding padding-start *ngIf="page.children?.length">
-            <ion-list no-padding>
+          <ion-card-content class="ion-no-padding ion-padding-start" *ngIf="page.children?.length">
+            <ion-list class="ion-no-padding">
               <ion-item  detail="true"
                          *ngFor="let childPage of page.children"
                          tappable class="text-1x"

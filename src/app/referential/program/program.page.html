@@ -17,18 +17,17 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && referentialForm.invalid"></ion-icon>
       </ng-template>
 
-      <div padding>
+      <div class="ion-padding">
         <!-- error -->
         <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="(referentialForm.error || error) | translate"></ion-label>
         </ion-item>
 
-        <ion-grid no-padding>
-<!--          TODO -->
+        <ion-grid class="ion-no-padding">
 
-          <ion-row no-padding>
-            <ion-col no-padding padding-top>
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
               <app-referential-form #referentialForm
                                     [form]="form"
@@ -43,9 +42,9 @@
 
                 <!-- Properties -->
                 <form [formGroup]="form" class="form-container">
-                  <ion-grid formArrayName="properties" no-padding>
-                    <ion-row no-padding>
-                      <ion-col no-padding size="12" align-self-end>
+                  <ion-grid formArrayName="properties" class="ion-no-padding">
+                    <ion-row class="ion-no-padding">
+                      <ion-col class="ion-no-padding ion-align-self-end" size="12">
                         <span class="toolbar-spacer"></span>
 
                         <!-- Show more options -->
@@ -59,10 +58,10 @@
                     </ion-row>
 
                     <ng-container *ngFor="let propertyForm of propertiesForm?.controls; let i=index">
-                      <ion-row no-padding [formGroupName]="i">
+                      <ion-row class="ion-no-padding" [formGroupName]="i">
 
                         <!-- property key -->
-                        <ion-col size="6" no-padding>
+                        <ion-col size="6" class="ion-no-padding">
                           <mat-form-field floatLabel="never">
                             <mat-select [formControl]="propertyForm.controls.key"
                                         [placeholder]="'PROGRAM.PROPERTY_KEY'|translate"
@@ -80,7 +79,7 @@
                         </ion-col>
 
                         <!-- property value -->
-                        <ion-col no-padding padding-left>
+                        <ion-col class="ion-no-padding" padding-left>
                           <app-form-field *ngIf="getPropertyDefinition(i); let definition"
                                            [definition]="definition"
                                            [formControl]="propertyForm.controls.value"
@@ -90,7 +89,7 @@
                           </app-form-field>
                         </ion-col>
 
-                        <ion-col size="auto" no-padding>
+                        <ion-col size="auto" class="ion-no-padding">
                           <button type="button" mat-icon-button color="light"
                                   [disabled]="loading"
                                   [title]="'COMMON.BTN_DELETE'|translate"
@@ -115,7 +114,7 @@
               </app-referential-form>
             </ion-col>
 
-            <ion-col no-padding size="12" size-xl="3">
+            <ion-col class="ion-no-padding" size="12" size-xl="3">
               <entity-metadata [value]="data"></entity-metadata>
             </ion-col>
           </ion-row>
@@ -134,7 +133,7 @@
         <ion-icon slot="end" name="alert" color="danger" *ngIf="strategiesTable.invalid"></ion-icon>
       </ng-template>
 
-      <div no-padding>
+      <div class="ion-no-padding">
 
         <!-- error -->
         <ion-item *ngIf="strategiesTable.error" visible-xs visible-sm visible-mobile lines="none">
@@ -158,7 +157,7 @@
         <!--        <ion-icon slot="end" name="alert" color="danger" *ngIf="samplesTable.invalid"></ion-icon>-->
       </ng-template>
 
-      <div padding>
+      <div class="ion-padding">
 
         <h2>Coming soon !</h2>
       </div>
@@ -183,7 +182,7 @@
 </ion-footer>
 
 <!-- FAB Button: add strategy -->
-<ion-fab vertical="bottom" horizontal="end"
+<ion-fab slot="fixed" vertical="bottom" horizontal="end"
          *ngIf="strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="strategiesTable.addRow()">

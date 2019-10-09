@@ -13,12 +13,12 @@
         <ion-label translate>VESSEL.TAB_GENERAL</ion-label>
       </ng-template>
 
-      <ion-row no-padding>
-        <ion-col padding>
+      <ion-row class="ion-no-padding">
+        <ion-col class="ion-padding">
           <form-vessel (onSubmit)="save($event)" #form>
           </form-vessel>
         </ion-col>
-        <ion-col size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3" no-padding>
+        <ion-col size="12" size-sm="9" size-md="6" size-lg="4" size-xl="3" class="ion-no-padding">
           <entity-metadata [value]="data"></entity-metadata>
         </ion-col>
       </ion-row>

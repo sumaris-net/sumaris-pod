@@ -7,11 +7,11 @@
   </ion-item>
 
 
-  <ion-grid no-padding>
-    <ion-row no-padding>
+  <ion-grid class="ion-no-padding">
+    <ion-row class="ion-no-padding">
 
       <!-- Taxon group -->
-      <ion-col no-padding
+      <ion-col class="ion-no-padding"
                size="12" size-md=""
                [hidden]="!showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
@@ -24,7 +24,7 @@
       </ion-col>
 
       <!-- Taxon name (scientific species) -->
-      <ion-col no-padding padding-left no-padding-xs no-padding-sm
+      <ion-col class="ion-no-padding" padding-left no-padding-xs no-padding-sm
                size="12" size-md=""
                *ngIf="showTaxonName">
         <mat-autocomplete-field formControlName="taxonName"
@@ -40,9 +40,9 @@
     <ion-spinner float-center *ngIf="loading"></ion-spinner>
 
     <!-- Measurements -->
-    <ion-row no-padding>
+    <ion-row class="ion-no-padding">
       <ion-col *ngFor="let pmfm of $pmfms | async; index as i;"
-               size="12" no-padding>
+               size="12" class="ion-no-padding">
 
         <!-- qualitative value (force 'button' style, on mobile)-->
         <ng-container *ngIf="pmfm.isQualitative; else otherField">
@@ -72,7 +72,7 @@
 
     <!-- Weight -->
     <ion-row *ngIf="defaultWeightPmfm">
-      <ion-col no-padding>
+      <ion-col class="ion-no-padding">
         <mat-form-field-measurement #matInput
                                     [pmfm]="defaultWeightPmfm"
                                     [formControl]="form.controls.weight.controls.value"
@@ -85,7 +85,7 @@
       </ion-col>
 
       <!-- is estimated weight ?-->
-      <ion-col size="6" no-padding padding-left *ngIf="showEstimatedWeight">
+      <ion-col size="6" class="ion-no-padding" padding-left *ngIf="showEstimatedWeight">
 
         <mat-form-field floatLabel="never">
           <!-- fake input -->
@@ -106,8 +106,8 @@
     </ion-row>
 
     <!-- Total NB individual  -->
-    <ion-row no-padding *ngIf="showTotalIndividualCount">
-      <ion-col no-padding>
+    <ion-row class="ion-no-padding" *ngIf="showTotalIndividualCount">
+      <ion-col class="ion-no-padding">
         <mat-form-field>
           <input matInput
                  formControlName="individualCount"
@@ -130,8 +130,8 @@
 
     <!-- Sample batch -->
     <div [hidden]="!showSampleBatch" formArrayName="children">
-      <ion-row no-padding>
-        <ion-col no-padding>
+      <ion-row class="ion-no-padding">
+        <ion-col class="ion-no-padding">
             <!-- checkbox, when compact -->
             <mat-checkbox [checked]="isSampling"
                           [disabled]="disabled"
@@ -143,12 +143,12 @@
         </ion-col>
       </ion-row>
 
-      <ion-row no-padding
+      <ion-row class="ion-no-padding"
         *ngFor="let samplingBatchForm of form.get('children')?.controls; let i=index"
         [formGroupName]="i">
 
         <!-- Sampling ratio -->
-        <ion-col size="4" no-padding>
+        <ion-col size="4" class="ion-no-padding">
           <mat-form-field>
             <input matInput
                    formControlName="samplingRatio"
@@ -171,7 +171,7 @@
         </ion-col>
 
         <!-- Sampling weight -->
-        <ion-col no-padding *ngIf="defaultWeightPmfm">
+        <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm">
 
           <mat-form-field-measurement #matInput
                                       [class.computed]="samplingBatchForm.controls.weight.controls.calculated.value"
@@ -185,7 +185,7 @@
         </ion-col>
 
         <!-- Sampling individual count -->
-        <ion-col size="4" no-padding *ngIf="showIndividualCount">
+        <ion-col size="4" class="ion-no-padding" *ngIf="showIndividualCount">
           <mat-form-field>
             <input matInput
                    formControlName="individualCount"

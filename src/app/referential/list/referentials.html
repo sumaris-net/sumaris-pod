@@ -10,7 +10,7 @@
   </button>
 </mat-menu>
 
-<ion-content no-padding>
+<ion-content class="ion-no-padding">
 
   <mat-toolbar>
     <mat-toolbar-row>
@@ -228,9 +228,9 @@
   </mat-table>
 
   <!-- Paginator  -->
-  <ion-row no-padding>
+  <ion-row class="ion-no-padding">
     <ion-col></ion-col>
-    <ion-col no-padding size="auto">
+    <ion-col class="ion-no-padding" size="auto">
       <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[10, 50, 100, 200]" showFirstLastButtons>
       </mat-paginator>
     </ion-col>
@@ -243,7 +243,7 @@
 </ion-footer>
 
 
-<ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile
+<ion-fab slot="fixed" vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile
          *ngIf="canEdit">
   <ion-fab-button color="secondary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>

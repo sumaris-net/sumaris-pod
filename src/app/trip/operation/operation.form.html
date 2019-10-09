@@ -6,11 +6,11 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <ion-grid no-padding>
+  <ion-grid class="ion-no-padding">
 
-    <ion-row no-padding>
+    <ion-row class="ion-no-padding">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES</ion-label>
+        <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES</ion-label>
       </ion-col>
 
       <!-- Physical gear -->
@@ -36,13 +36,13 @@
     </ion-row>
 
     <!-- Start -->
-    <ion-row no-padding>
+    <ion-row class="ion-no-padding">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>TRIP.OPERATION.EDIT.START</ion-label>
+        <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.START</ion-label>
       </ion-col>
-      <ion-col no-padding>
-        <ion-grid no-padding>
-          <ion-row no-padding>
+      <ion-col class="ion-no-padding">
+        <ion-grid class="ion-no-padding">
+          <ion-row class="ion-no-padding">
 
             <ion-col size="12" size-lg="4">
               <mat-date-time [placeholder]="'COMMON.DATE'|translate"
@@ -86,13 +86,13 @@
     </ion-row>
 
     <!-- End -->
-    <ion-row no-padding>
+    <ion-row class="ion-no-padding">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>TRIP.OPERATION.EDIT.END</ion-label>
+        <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END</ion-label>
       </ion-col>
-      <ion-col no-padding>
-        <ion-grid no-padding>
-          <ion-row no-padding>
+      <ion-col class="ion-no-padding">
+        <ion-grid class="ion-no-padding">
+          <ion-row class="ion-no-padding">
             <ion-col size="12" size-lg="4">
               <mat-date-time formControlName="endDateTime"
                              [placeholder]="'COMMON.DATE'|translate"
@@ -136,7 +136,7 @@
     <ng-content></ng-content>
 
     <!-- Comments -->
-    <ion-row no-padding *ngIf="showComment">
+    <ion-row class="ion-no-padding" *ngIf="showComment">
       <ion-col>
         <mat-form-field appearance="outline">
           <textarea matInput #comments

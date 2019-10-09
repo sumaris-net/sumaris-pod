@@ -58,7 +58,7 @@
                      [class.odd]="pmfm.id % 2 !== 0"
                      [class.hidden-mobile]="pmfm.pmfmId % 5 !== 0"
                      [class.show]="pmfm.pmfmId % 5 === 0">
-      <mat-label float-center text-wrap *ngIf="pmfm.pmfmId % 5 === 0">
+      <mat-label float-center class="ion-text-wrap" *ngIf="pmfm.pmfmId % 5 === 0">
         <span>{{qvPmfm.qualitativeValues[pmfm.id].name}}</span><br/>
         <mat-checkbox *ngIf="weightMethodForm"
                       [formControl]="weightMethodForm.controls[pmfm.id]"

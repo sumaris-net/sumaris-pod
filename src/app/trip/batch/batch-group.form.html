@@ -5,9 +5,9 @@
   </ion-item>
 
   <!-- Species batch  -->
-  <ion-grid no-padding>
-    <ion-row no-padding>
-      <ion-col no-padding>
+  <ion-grid class="ion-no-padding">
+    <ion-row class="ion-no-padding">
+      <ion-col class="ion-no-padding">
         <app-batch-form #batchForm [acquisitionLevel]="acquisitionLevel"
                         [tabindex]="tabindex"
                         [program]="program"
@@ -22,8 +22,8 @@
     </ion-row>
 
     <!-- QV children -->
-    <ion-row no-padding *ngIf="qvPmfm" >
-      <ion-col size="12" size-md="" *ngFor="let qv of qvPmfm.qualitativeValues; index as i;" no-padding>
+    <ion-row class="ion-no-padding" *ngIf="qvPmfm" >
+      <ion-col size="12" size-md="" *ngFor="let qv of qvPmfm.qualitativeValues; index as i;" class="ion-no-padding">
 
         <ion-card class="qv" [class.even]="i % 2 === 0" [class.odd]="i % 2 !== 0">
 
