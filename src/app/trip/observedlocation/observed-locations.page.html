@@ -39,7 +39,7 @@
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel>
-    <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" padding class="no-padding-xs">
+    <form [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" class="form-container ion-padding no-padding-xs">
 
       <!-- Program -->
       <mat-form-field style="min-width: 150px;">

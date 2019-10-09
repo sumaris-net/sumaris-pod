@@ -3,7 +3,7 @@
   <!-- Step 1: Username -->
   <mat-step [stepControl]="forms[0]" *ngIf="forms[0].controls; let controls">
 
-    <form [formGroup]="forms[0]" class="form-container" padding (keyup.enter)="slideNext()">
+    <form [formGroup]="forms[0]" class="form-container ion-padding" (keyup.enter)="slideNext()">
       <ng-template matStepLabel>{{'REGISTER.STEP_EMAIL'|translate}}</ng-template>
 
       <!-- Email -->
@@ -35,7 +35,7 @@
   <!-- Step 2: Password -->
   <mat-step [stepControl]="forms[1]" *ngIf="forms[1].controls; let controls">
 
-    <form [formGroup]="forms[1]" class="form-container" padding (keyup.enter)="slideNext()">
+    <form [formGroup]="forms[1]" class="form-container ion-padding" (keyup.enter)="slideNext()">
 
       <ng-template matStepLabel>{{'REGISTER.STEP_PASSWORD'|translate}}</ng-template>
 
@@ -77,7 +77,7 @@
   <!-- Step 3: user details -->
   <mat-step [stepControl]="forms[2]" *ngIf="forms[2].controls; let controls">
 
-    <form [formGroup]="forms[2]" (ngSubmit)="doSubmit($event)" class="form-container" padding (keyup.enter)="doSubmit()">
+    <form [formGroup]="forms[2]" (ngSubmit)="doSubmit($event)" class="form-container ion-padding" (keyup.enter)="doSubmit()">
 
       <ng-template matStepLabel>{{'REGISTER.STEP_USER_DETAILS'|translate}}</ng-template>
 

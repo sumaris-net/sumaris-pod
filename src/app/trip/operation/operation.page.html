@@ -69,7 +69,7 @@
       </ng-template>
 
       <!-- catch batch form -->
-      <div padding [hidden]="!catchBatchForm.hasPmfms">
+      <div [hidden]="!catchBatchForm.hasPmfms" class="ion-padding">
         <form-catch-batch #catchBatchForm
                           (onSubmit)="save($event)" [showError]="false" [debug]="debug"
                           acquisitionLevel="CATCH_BATCH"

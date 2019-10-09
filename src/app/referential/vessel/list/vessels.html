@@ -50,7 +50,7 @@
   </mat-expansion-panel>
 
   <!-- error -->
-  <mat-error padding ion-text color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
+  <mat-error class="ion-padding ion-text" color="danger" *ngIf="error" [innerHTML]="error|translate"></mat-error>
 
   <mat-table #table [dataSource]="dataSource" class="trips-table " matSort matSortActive="exteriorMarking"
     matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">

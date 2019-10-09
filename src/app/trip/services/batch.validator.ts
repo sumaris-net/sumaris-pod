@@ -6,7 +6,7 @@ import {Batch, BatchUtils, BatchWeight} from "./model/batch.model";
 import {map, takeUntil, tap} from "rxjs/operators";
 import {isNil, isNotNilOrNaN} from "../../shared/functions";
 import {MethodIds} from "../../referential/services/model";
-import {Observable, Subject} from "rxjs";
+import {EMPTY, Observable, Subject, timer} from "rxjs";
 
 @Injectable()
 export class BatchValidatorService implements ValidatorService {
@@ -80,11 +80,11 @@ export class BatchValidatorService implements ValidatorService {
    * @param form
    */
   computeSamplingWeight(form: AbstractControl): Observable<ValidationErrors | null> {
-    if (!form.dirty) return Observable.empty();
+    if (!form.dirty) return EMPTY;
 
     const $stop = new Subject();
 
-    return Observable.timer(500)
+    return timer(500)
       .pipe(
         takeUntil($stop),
         map(() => {

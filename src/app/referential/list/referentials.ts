@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, Observable, of} from "rxjs";
 import {filter, first, map} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {AppTable, AppTableDataSource, isNil, isNotNil} from "../../core/core.module";
@@ -248,7 +248,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       fetchPolicy: 'network-only'
     });
 
-    this.levels = Observable.of(res);
+    this.levels = of(res);
     this.showLevelColumn = res && res.length > 0;
 
     return res;

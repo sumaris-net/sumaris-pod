@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
-import {Observable} from "rxjs";
+import {EMPTY, Observable} from "rxjs";
 import {
   Batch,
   DataEntity,
@@ -188,7 +188,7 @@ export class OperationService extends BaseDataService implements TableDataServic
 
     if (!filter || isNil(filter.tripId)) {
       console.warn("[operation-service] Trying to load operations without 'filter.tripId'. Skipping.");
-      return Observable.empty();
+      return EMPTY;
     }
 
     const variables: any = {

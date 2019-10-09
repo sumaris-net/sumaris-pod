@@ -55,9 +55,9 @@
     </div>
 
     <!-- Welcome card -->
-    <ion-card @fadeInAnimation *ngIf="!loading" align-self-center text-center padding class="welcome">
+    <ion-card @fadeInAnimation *ngIf="!loading" class="welcome ion-padding ion-text-center ion-align-self-center">
       <ion-card-header>
-        <ion-card-title [innerHTML]="'HOME.WELCOME'|translate: {appName: appName}" text-center>
+        <ion-card-title [innerHTML]="'HOME.WELCOME'|translate: {appName: appName}" class="ion-text-center">
         </ion-card-title>
         <ion-card-subtitle [innerHTML]="description">
         </ion-card-subtitle>
@@ -72,7 +72,7 @@
         </ion-text>
       </ion-card-content>
 
-      <ion-footer padding-top>
+      <ion-footer class="ion-padding-top">
 
         <ion-button expand="block" color="primary" *ngIf="!isLogin" (click)="register()">
           <span translate>HOME.BTN_REGISTER</span>
@@ -103,7 +103,7 @@
             class="history-container" align-self-center>
     <ion-row>
       <ion-col size="12" size-xl="" *ngFor="let page of pageHistory; trackBy: getPagePath"
-               text-center>
+               class="ion-text-center">
         <ion-card text-start align-self-start @fadeInAnimation>
           <ion-card-header no-padding>
             <!-- top bar -->
@@ -157,8 +157,7 @@
 
   <!-- Display configured Departments logos -->
   <ng-template #bottomBanner>
-    <div class="bottom-banner" *ngIf="!loadingBanner" @fadeInAnimation
-      text-center padding>
+    <div class="bottom-banner ion-text-center ion-padding" *ngIf="!loadingBanner" @fadeInAnimation>
       <a href="{{ item.siteUrl }}" *ngFor="let item of partners | async ">
         <img class="logo" src="{{ item.logo }}" alt="{{item.label}}"  [title]="item.label" />
       </a>

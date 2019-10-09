@@ -1,9 +1,9 @@
-<ion-split-pane #splitPane>
+<ion-split-pane #splitPane content-id="menu">
 
-  <ion-menu menuId="left">
+  <ion-menu id="menu" menuId="left">
     <ion-header>
 
-      <mat-toolbar padding @fadeInAnimation *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
+      <mat-toolbar class="ion-padding" @fadeInAnimation *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
         <img *ngIf="logo" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="150px;"/>
         <span *ngIf="!logo" width="150px;">{{appName}}</span>
       </mat-toolbar>

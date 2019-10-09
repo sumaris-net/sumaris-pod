@@ -11,7 +11,7 @@ import {
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {ModalController} from "@ionic/angular";
-import {BehaviorSubject, Observable, Subscription} from "rxjs";
+import {BehaviorSubject, Observable, Subscription, timer} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
 import {BatchGroupForm} from "./batch-group.form";
@@ -140,7 +140,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
     // Wait end of async validation
     if (this.pending) {
-      await Observable.timer(100, 250)
+      await timer(100, 250)
         .pipe(
           filter(() => !this.pending),
           first()
