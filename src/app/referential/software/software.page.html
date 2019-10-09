@@ -35,12 +35,12 @@
     </h3>
 
     <!-- Properties -->
-    <ion-grid formArrayName="properties" no-padding>
+    <ion-grid formArrayName="properties" class="ion-no-padding">
       <ng-container *ngFor="let propertyForm of propertiesForm?.controls; let i=index">
-        <ion-row no-padding [formGroupName]="i">
+        <ion-row class="ion-no-padding" [formGroupName]="i">
 
           <!-- property key -->
-          <ion-col no-padding>
+          <ion-col class="ion-no-padding">
             <mat-form-field floatLabel="never">
               <mat-select formControlName="key"
                           [placeholder]="'CONFIGURATION.PROPERTY_KEY'|translate"
@@ -51,7 +51,7 @@
           </ion-col>
 
           <!-- property value -->
-          <ion-col no-padding padding-left>
+          <ion-col class="ion-no-padding" padding-left>
             <app-form-field *ngIf="getPropertyDefinition(i); let definition"
                              floatLabel="never"
                              [definition]="definition"
@@ -61,7 +61,7 @@
             </app-form-field>
           </ion-col>
 
-          <ion-col size="2" no-padding>
+          <ion-col size="2" class="ion-no-padding">
             <button type="button" mat-icon-button color="light"
                     [disabled]="loading"
                     [title]="'COMMON.BTN_DELETE'|translate"

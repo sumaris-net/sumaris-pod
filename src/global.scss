@@ -21,16 +21,16 @@ body {
 
 // Page Container Structure
 // --------------------------------------------------
-.ion-page {
-  @include position(0, 0, 0, 0);
-  display: flex;
-  position: absolute;
-  flex-direction: column;
-  justify-content: space-between;
-  contain: layout size style;
-  overflow: hidden;
-  z-index: $z-index-page-container;
-}
+//.ion-page {
+//  @include position(0, 0, 0, 0);
+//  display: flex;
+//  position: absolute;
+//  flex-direction: column;
+//  justify-content: space-between;
+//  contain: layout size style;
+//  overflow: hidden;
+//  z-index: 0;
+//}
 
 ion-route,
 ion-route-redirect,
@@ -709,7 +709,7 @@ ion-item {
 // --------------------------------------------------
 // Inject theme colors (as CSS variables)
 // --------------------------------------------------
-:root {
-
-  @include css-variables-to-root();
-}
+//:root {
+//
+//  @include css-variables-to-root();
+//}

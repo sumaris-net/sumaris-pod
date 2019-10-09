@@ -21,7 +21,7 @@
   </button>
 </mat-menu>
 
-<ion-content no-padding>
+<ion-content class="ion-no-padding">
 
   <mat-toolbar>
     <mat-toolbar-row>
@@ -107,7 +107,7 @@
   </ng-container>
 
   <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel color="primary" no-padding>
+  <mat-expansion-panel #filterExpansionPanel color="primary" class="ion-no-padding">
     <mat-expansion-panel-header>
       <mat-panel-title hidden-xs hidden-sm hidden-mobile>
         <ion-label>
@@ -135,7 +135,7 @@
           *ngIf="form.get('sheets').get(sheetName) && true">
       <div [formArrayName]="sheetName">
         <ng-container *ngFor="let criterionForm of criteriaForm?.controls; let i=index">
-          <ion-row no-padding [formGroupName]="i">
+          <ion-row class="ion-no-padding" [formGroupName]="i">
             <!-- column name -->
             <mat-form-field>
               <mat-select formControlName="name" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_NAME'|translate">
@@ -183,9 +183,9 @@
       </div>
     </form>
 
-    <mat-action-row no-padding>
+    <mat-action-row class="ion-no-padding">
       <ion-grid>
-        <ion-row no-padding style="width: 100%">
+        <ion-row class="ion-no-padding" style="width: 100%">
           <ion-col>
             <!-- Loading spinner -->
             <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
@@ -194,9 +194,9 @@
               numberFormat)} }}
             </ion-text>
           </ion-col>
-          <ion-col no-padding size="auto">
+          <ion-col class="ion-no-padding" size="auto">
             <!-- Search button -->
-            <button mat-button [color]="dirty ? 'primary' : undefined" padding
+            <button mat-button [color]="dirty ? 'primary' : undefined" class="ion-padding"
                     (click)="onRefresh.emit(true)"
                     [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}
             </button>
@@ -224,11 +224,13 @@
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="column.type=='date'"
                 [class.mat-cell-numeric]="column.type=='integer'">
-        <a ion-text (click)="onCellValueClick($event, column, row.currentData[column.index])"
-           color="dark"
-           [title]="row.currentData[column.index]">
-          {{row.currentData[column.index]}}
-        </a>
+        <ion-text>
+          <a (click)="onCellValueClick($event, column, row.currentData[column.index])"
+             color="dark"
+             [title]="row.currentData[column.index]">
+            {{row.currentData[column.index]}}
+          </a>
+        </ion-text>
       </mat-cell>
     </ng-container>
 
@@ -238,9 +240,9 @@
   </mat-table>
 
   <!-- Paginator  -->
-  <ion-row no-padding [hidden]="!data?.total">
+  <ion-row class="ion-no-padding" [hidden]="!data?.total">
     <ion-col></ion-col>
-    <ion-col no-padding size="auto">
+    <ion-col class="ion-no-padding" size="auto">
       <mat-paginator [length]="data?.total" [pageSize]="20" [pageSizeOptions]="[20, 50, 100, 200, 500]"
                      showFirstLastButtons>
       </mat-paginator>

@@ -28,10 +28,10 @@
 
   <!-- -->
   <ion-card color="light" class="bottom-left filter">
-    <ion-card-content no-padding>
+    <ion-card-content class="ion-no-padding">
 
-      <mat-expansion-panel #filterExpansionPanel color="transparent" no-padding>
-        <mat-expansion-panel-header no-padding color="transparent">
+      <mat-expansion-panel #filterExpansionPanel color="transparent" class="ion-no-padding">
+        <mat-expansion-panel-header class="ion-no-padding" color="transparent">
           <mat-panel-title>
             <ion-label>
               <ion-card-title>
@@ -87,9 +87,9 @@
             </a>
           </nav>
 
-          <form [formGroup]="form" padding>
+          <form [formGroup]="form" class="ion-padding">
 
-            <ion-row no-padding>
+            <ion-row class="ion-no-padding">
               <!-- year -->
               <mat-form-field>
                 <mat-select formControlName="year" [placeholder]=" 'EXTRACTION.MAP.YEAR'|translate">
@@ -121,7 +121,7 @@
                   *ngIf="form.get('sheets').get(sheetName) && true">
               <div [formArrayName]="sheetName">
                 <ng-container *ngFor="let criterionForm of criteriaForm?.controls; let i=index">
-                  <ion-row no-padding [formGroupName]="i">
+                  <ion-row class="ion-no-padding" [formGroupName]="i">
                     <!-- column name -->
                     <mat-form-field>
                       <mat-select formControlName="name" [placeholder]=" 'EXTRACTION.FILTER.CRITERION_NAME'|translate">
@@ -173,7 +173,7 @@
           </form>
         </div>
 
-        <mat-action-row no-padding>
+        <mat-action-row class="ion-no-padding">
           <button mat-button
                   (click)="onRefresh.emit($event)"><span translate>COMMON.BTN_APPLY</span></button>
         </mat-action-row>
@@ -188,7 +188,7 @@
     <ion-row>
       <ion-col></ion-col>
 
-      <ion-col align-self-end>
+      <ion-col class="ion-align-self-end">
 
         <!-- Details card -->
         <ion-card color="light" class="details ng-hide" *ngIf="$details | async as details" [@fadeInOutAnimation]>
@@ -214,7 +214,7 @@
           <ion-card-header>
             <ion-card-subtitle><span translate>EXTRACTION.MAP.STATS</span></ion-card-subtitle>
           </ion-card-header>
-          <ion-card-content no-padding>
+          <ion-card-content class="ion-no-padding">
             <p>
               <ng-container *ngFor="let item of stats.properties">
                 <ion-text color="primary100">{{getI18nColumnName(item.name)}}</ion-text>
@@ -228,7 +228,7 @@
 
       </ion-col>
 
-      <ion-col size="auto" no-padding align-self-end >
+      <ion-col size="auto" class="ion-no-padding ion-align-self-end">
 
         <!-- Legend card -->
         <ion-card color="light" class="legend" *ngIf="data.total && techStrata" @fadeInAnimation>
@@ -245,7 +245,7 @@
           <ion-card-content>
 
             <ion-row *ngFor="let item of $legendItems | async">
-              <ion-col no-padding style="max-width: 10px !important;"
+              <ion-col class="ion-no-padding" style="max-width: 10px !important;"
                        [ngStyle]="{'background-color': item.color}">
               </ion-col>
               <ion-col size="auto">
@@ -269,14 +269,14 @@
             </ion-card-subtitle>
           </ion-card-header>
 
-          <ion-card-content no-padding>
+          <ion-card-content class="ion-no-padding">
             <form [formGroup]="legendForm" class="form-container">
               <ion-grid>
 
                 <!-- Min -->
                 <ion-row>
                   <ion-col size="4">
-                    <ion-label float-end translate>EXTRACTION.MAP.LEGEND_FORM.MIN</ion-label>
+                    <ion-label class="ion-float-end" translate>EXTRACTION.MAP.LEGEND_FORM.MIN</ion-label>
                   </ion-col>
                   <ion-col class="rgb">
                     <mat-form-field>
@@ -319,7 +319,7 @@
                 <!-- max -->
                 <ion-row>
                   <ion-col size="4">
-                    <ion-label float-end translate>EXTRACTION.MAP.LEGEND_FORM.MAX</ion-label>
+                    <ion-label class="ion-float-end" translate>EXTRACTION.MAP.LEGEND_FORM.MAX</ion-label>
                   </ion-col>
                   <ion-col class="rgb">
                     <mat-form-field>
@@ -355,7 +355,7 @@
                 </ion-row>
               </ion-grid>
 
-              <mat-action-row no-padding>
+              <mat-action-row class="ion-no-padding">
                 <button mat-button (click)="cancelLegendForm($event)"><span translate>COMMON.BTN_CANCEL</span></button>
                 <button mat-button (click)="applyLegendForm($event)"><span translate>COMMON.BTN_APPLY</span></button>
               </mat-action-row>

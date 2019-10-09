@@ -3,13 +3,13 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {BehaviorSubject} from 'rxjs';
 import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
 import {ConfigOptions, Configuration, Department, EntityUtils, StatusIds} from '../../core/services/model';
-import {ConfigService} from "src/app/core/services/config.service";
-import {AppForm, AppFormUtils, ConfigValidatorService, isNil} from "src/app/core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
-import {FormArrayHelper} from "../../core/form/form.utils";
+import {AppFormUtils, FormArrayHelper} from "../../core/form/form.utils";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
 import {PlatformService} from "../../core/services/platform.service";
+import {AppForm, ConfigValidatorService, isNil} from "../../core/core.module";
+import {ConfigService} from "../../core/services/config.service";
 
 
 @Component({

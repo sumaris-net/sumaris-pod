@@ -46,9 +46,9 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<ion-grid no-padding>
-  <ion-row no-padding>
-    <ion-col size="12" size-md="" no-padding class="table-container">
+<ion-grid class="ion-no-padding">
+  <ion-row class="ion-no-padding">
+    <ion-col size="12" size-md="" class="table-container ion-no-padding">
 
       <mat-table [dataSource]="dataSource" class="table-sub-batches" matSort matSortActive="rankOrder"
                  matSortDirection="asc"
@@ -217,7 +217,7 @@
 
     <!-- form -->
     <ion-col size="12" size-md="3" [hidden]="!showForm" cdkTrapFocus class="ion-padding">
-      <ion-label color="primary" padding-bottom>
+      <ion-label color="primary" class="ion-padding-bottom">
         <span translate>TRIP.BATCH.EDIT.INDIVIDUAL.BURST_FORM_TITLE</span>
       </ion-label>
 
@@ -235,7 +235,7 @@
                           [tabindex]="tabindex">
 
         <!-- Close form button -->
-        <ion-button endButton float-end
+        <ion-button endButton class="ion-float-end"
                     fill="clear" color="dark"
                     (click)="toggleForm()"
                     tabindex="-1">{{'COMMON.BTN_CLOSE'|translate}}

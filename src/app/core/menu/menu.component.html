@@ -1,6 +1,6 @@
-<ion-split-pane #splitPane content-id="menu">
+<ion-split-pane #splitPane contentId="menu-content">
 
-  <ion-menu id="menu" menuId="left">
+  <ion-menu id="menu" menuId="left" contentId="menu-content">
     <ion-header>
 
       <mat-toolbar class="ion-padding" @fadeInAnimation *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
@@ -25,14 +25,14 @@
               <span *ngIf="!logo" width="108px;">{{appName}}</span>
             </ion-col>
           </ion-row>
-          <ion-row no-padding>
+          <ion-row class="ion-no-padding">
 
             <button mat-button menuClose
                         [routerLink]="['/account']"
                         routerDirection="root"
                         routerLinkActive="ion-color-primary"
                         (click)="menu.close()">
-              <ion-label color="primary" text-wrap>
+              <ion-label color="primary" class="ion-text-wrap">
                 <h3 full class="no-margin username">
                   <b>{{account?.firstName}} {{account?.lastName}}</b>
                 </h3>

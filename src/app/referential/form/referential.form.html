@@ -6,11 +6,11 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <ion-grid no-padding>
-    <ion-row no-padding>
+  <ion-grid class="ion-no-padding">
+    <ion-row class="ion-no-padding">
 
       <!-- Label -->
-      <ion-col no-padding>
+      <ion-col class="ion-no-padding">
         <mat-form-field>
           <input matInput [placeholder]="'REFERENTIAL.LABEL'|translate" formControlName="label"
                  autocomplete="off" required>
@@ -20,7 +20,7 @@
       </ion-col>
 
       <!-- Status-->
-      <ion-col no-padding padding-left>
+      <ion-col class="ion-no-padding" padding-left>
         <mat-form-field>
           <mat-select [formControl]="form.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
             <mat-select-trigger>
@@ -38,7 +38,7 @@
     </ion-row>
 
     <!-- Name -->
-    <ion-row no-padding>
+    <ion-row class="ion-no-padding">
       <mat-form-field>
         <input matInput [placeholder]="'REFERENTIAL.NAME'|translate" formControlName="name"
                autocomplete="off" required>
@@ -46,10 +46,10 @@
       </mat-form-field>
     </ion-row>
 
-    <ion-row no-padding>
+    <ion-row class="ion-no-padding">
 
       <!-- Description -->
-      <ion-col no-padding>
+      <ion-col class="ion-no-padding">
         <mat-form-field>
           <textarea matInput #description
                     matTextareaAutosize="true"
@@ -65,7 +65,7 @@
       </ion-col>
 
       <!-- Comments -->
-      <ion-col no-padding padding-left>
+      <ion-col class="ion-no-padding" padding-left>
         <mat-form-field appearance="outline">
           <textarea matInput #comments
                     matTextareaAutosize="true"

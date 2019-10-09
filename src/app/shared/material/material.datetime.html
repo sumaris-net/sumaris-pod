@@ -6,11 +6,11 @@
 
 <!-- writable + time -->
 <ng-template #writable >
-  <ion-grid *ngIf="displayTime else writableNoTime" no-padding>
-    <ion-row no-padding [formGroup]="form" nowrap>
+  <ion-grid *ngIf="displayTime else writableNoTime" class="ion-no-padding">
+    <ion-row class="ion-no-padding" [formGroup]="form" nowrap>
 
       <!-- day -->
-      <ion-col no-padding class="day">
+      <ion-col class="day ion-no-padding">
         <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-invalid]="formControl.touched && formControl.invalid">
 
           <mat-label>{{placeholder}}</mat-label>
@@ -68,7 +68,7 @@
       </ion-col>
 
       <!-- hour -->
-      <ion-col no-padding class="hour">
+      <ion-col class="hour ion-no-padding">
         <mat-form-field [floatLabel]="floatLabel" [class.mat-form-field-invalid]="formControl.touched && form.controls.hour.invalid">
           <mat-label *ngIf="placeholder && floatLabel != 'never'" translate>COMMON.TIME</mat-label>
           <input matInput #matInput type="text"
@@ -98,7 +98,7 @@
 
           <ngx-material-timepicker #timePicker
                                    [disableAnimation]="true"
-                                   ngxMaterialTimepickerTheme="darkTheme"
+                                   theme="darkTheme"
                                    (timeSet)="onTimePickerChange($event)"
                                    [ESC]="false"
                                    defaultTime="00:00"

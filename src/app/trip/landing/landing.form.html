@@ -6,10 +6,10 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <ion-grid no-padding>
+  <ion-grid class="ion-no-padding">
 
     <!-- PROGRAM -->
-    <ion-row no-padding *ngIf="showProgram">
+    <ion-row class="ion-no-padding" *ngIf="showProgram">
       <ion-col>
         <mat-form-field>
           <ion-icon margin-right name="contract" matPrefix></ion-icon>
@@ -34,7 +34,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let item of $programs | async" [value]="item" no-padding>
+          <mat-option *ngFor="let item of $programs | async" [value]="item" class="ion-no-padding">
             <ion-row>
               <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls.program.value }"></ion-col>
               <ion-col [innerHTML]="item.name | highlight: {search: form.controls.program.value }"
@@ -47,7 +47,7 @@
     </ion-row>
 
     <!-- VESSEL -->
-    <ion-row no-padding *ngIf="showVessel">
+    <ion-row class="ion-no-padding" *ngIf="showVessel">
       <ion-col>
         <mat-form-field>
           <ion-icon margin-right name="boat" matPrefix></ion-icon>
@@ -77,7 +77,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let vessel of $vessels | async" [value]="vessel" no-padding>
+          <mat-option *ngFor="let vessel of $vessels | async" [value]="vessel" class="ion-no-padding">
             <ion-row>
               <ion-col size="3"
                        [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
@@ -97,9 +97,9 @@
     </ion-row>
 
     <!-- LOCATION + date/time-->
-    <ion-row no-padding *ngIf="showLocation || showDateTime">
+    <ion-row class="ion-no-padding" *ngIf="showLocation || showDateTime">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>LANDING.LANDING</ion-label>
+        <ion-label class="ion-float-end" translate>LANDING.LANDING</ion-label>
       </ion-col>
       <ion-col *ngIf="showLocation">
         <mat-form-field>
@@ -134,7 +134,7 @@
         </ion-col>
       </ion-row>
 
-      <mat-option *ngFor="let location of $locations | async" [value]="location" no-padding>
+      <mat-option *ngFor="let location of $locations | async" [value]="location" class="ion-no-padding">
         <ion-row>
           <ion-col size="3"
                    [innerHTML]="location.label | highlight: {search: form.controls.location.value }"></ion-col>
@@ -149,8 +149,8 @@
     <div formArrayName="observers" *ngIf="showObservers">
       <ng-container *ngFor="let observerControl of form.get('observers')?.controls; let i=index">
         <ion-row>
-          <ion-col size="12" size-md="2" size-lg="3" align-self-end>
-            <ion-label float-end *ngIf="!i" translate>LANDING.OBSERVERS</ion-label>
+          <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+            <ion-label class="ion-float-end" *ngIf="!i" translate>LANDING.OBSERVERS</ion-label>
           </ion-col>
           <ion-col>
             <mat-form-field>
@@ -167,7 +167,7 @@
               <mat-error *ngIf="observerControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
             </mat-form-field>
           </ion-col>
-          <ion-col size="auto" align-self-center>
+          <ion-col size="auto" class="ion-align-self-center">
             <button type="button" mat-icon-button [tabindex]="10+i*3+1" [disabled]="disabled"
                     [title]="'COMMON.BTN_ADD'|translate"
                     (click)="addObserver()">
@@ -197,7 +197,7 @@
         </ion-col>
       </ion-row>
 
-      <mat-option *ngFor="let item of $observers | async" [value]="item" no-padding>
+      <mat-option *ngFor="let item of $observers | async" [value]="item" class="ion-no-padding">
         <ion-row>
           <ion-col size="3"
                    [innerHTML]="item.lastName | highlight: {search: $observerFilterValue.getValue() }"></ion-col>
@@ -220,7 +220,7 @@
     <!-- Measurements -->
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>LANDING.EDIT.OTHER_FEATURES</ion-label>
+        <ion-label class="ion-float-end" translate>LANDING.EDIT.OTHER_FEATURES</ion-label>
       </ion-col>
       <ion-col>
 

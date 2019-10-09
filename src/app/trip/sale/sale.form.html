@@ -6,7 +6,7 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
   </ion-item>
 
-  <ion-grid no-padding>
+  <ion-grid class="ion-no-padding">
 
     <!-- VESSEL -->
     <ion-row *ngIf="showVessel">
@@ -33,7 +33,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel" no-padding>
+          <mat-option *ngFor="let vessel of vessels | async" [value]="vessel" class="ion-no-padding">
             <ion-row>
               <ion-col size="3" [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
               <ion-col [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
@@ -47,7 +47,7 @@
     <!-- Sale type -->
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>SALE.SALE_FIELD</ion-label>
+        <ion-label class="ion-float-end" translate>SALE.SALE_FIELD</ion-label>
       </ion-col>
       <ion-col>
         <mat-form-field>
@@ -88,7 +88,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let location of locations | async" [value]="location" no-padding>
+          <mat-option *ngFor="let location of locations | async" [value]="location" class="ion-no-padding">
             <ion-row>
               <ion-col size="3" [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
@@ -124,7 +124,7 @@
             </ion-col>
           </ion-row>
 
-          <mat-option *ngFor="let location of locations | async" [value]="location" no-padding>
+          <mat-option *ngFor="let location of locations | async" [value]="location" class="ion-no-padding">
             <ion-row>
               <ion-col size="3" [innerHTML]="location.label | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
               <ion-col [innerHTML]="location.name | highlight: {search: form.controls['saleLocation'].value }"></ion-col>
@@ -137,7 +137,7 @@
     <!-- Date time (start+end) -->
     <ion-row *ngIf="showEndDateTime">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>SALE.START</ion-label>
+        <ion-label class="ion-float-end" translate>SALE.START</ion-label>
       </ion-col>
       <ion-col *ngIf="showEndDateTime">
         <mat-date-time [placeholder]="'SALE.START_DATE'|translate" formControlName="startDateTime" [displayTime]="true">
@@ -145,7 +145,7 @@
       </ion-col>
 
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label float-end translate>SALE.END</ion-label>
+        <ion-label class="ion-float-end" translate>SALE.END</ion-label>
       </ion-col>
 
       <ion-col size="auto" *ngIf="showEndDateTime">
