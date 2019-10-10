@@ -78,7 +78,7 @@
           <span translate>HOME.BTN_REGISTER</span>
         </ion-button>
 
-        <ion-button expand="block" color="light" [routerLink]="['/account']" *ngIf="!isLogin">
+        <ion-button expand="block" color="light" [routerLink]="['/']" *ngIf="!isLogin" (click)="login()">
           <span translate>AUTH.BTN_LOGIN</span>
         </ion-button>
 
