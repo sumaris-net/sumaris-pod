@@ -179,7 +179,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     await AppFormUtils.waitWhilePending(this);
 
     // Not valid
-    if (this.invalid) {
+    if (!this.valid) {
       this.markAsTouched({emitEvent: true});
       this.logFormErrors();
       this.openFirstInvalidTab();
