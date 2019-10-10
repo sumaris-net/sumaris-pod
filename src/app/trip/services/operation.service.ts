@@ -378,6 +378,12 @@ export class OperationService extends BaseDataService implements TableDataServic
           // Copy id and update Date
           if (savedEntity !== entity) {
             this.copyIdAndUpdateDate(savedEntity, entity);
+
+            // Copy gear
+            if (savedEntity.metier) {
+              savedEntity.metier.gear = savedEntity.metier.gear || (entity.physicalGear && entity.physicalGear.gear && entity.physicalGear.gear.asObject(false));
+            }
+
             if (this._debug) console.debug(`[operation-service] Operation saved and updated in ${Date.now() - now}ms`, entity);
           }
 

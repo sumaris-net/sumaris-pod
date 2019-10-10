@@ -4,12 +4,11 @@ import {MatTabChangeEvent} from "@angular/material";
 import {Entity} from '../services/model';
 import {AlertController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
-import {Observable, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {isNotNil, ToolbarComponent} from '../../shared/shared.module';
 import {AppTable} from '../table/table.class';
 import {AppForm} from './form.class';
 import {FormButtonsBarComponent} from './form-buttons-bar.component';
-import {filter, first} from "rxjs/operators";
 import {AppFormUtils} from "./form.utils";
 
 export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit, OnDestroy {
@@ -42,12 +41,16 @@ export abstract class AppTabPage<T extends Entity<T>, F = any> implements OnInit
     return (this._forms && !!this._forms.find(form => form.dirty)) || (this._tables && !!this._tables.find(table => table.dirty));
   }
 
+  /**
+   *
+   */
   get valid(): boolean {
+    // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
     return (!this._forms || !this._forms.find(form => !form.valid)) && (!this._tables || !this._tables.find(table => !table.valid));
   }
 
   get invalid(): boolean {
-    return (this._forms && !!this._forms.find(form => form.invalid)) || (this._tables && !!this._tables.find(table => !table.invalid));
+    return (this._forms && this._forms.find(form => form.invalid) && true) || (this._tables && this._tables.find(table => table.invalid) && true);
   }
 
   get pending(): boolean {

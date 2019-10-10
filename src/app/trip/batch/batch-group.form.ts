@@ -89,7 +89,8 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   }
 
   get valid(): boolean {
-    return this.batchForm.valid && !(this.childrenForms || []).find(child => child.invalid) && true || false;
+    // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
+    return this.batchForm.valid && (!this.childrenForms || !this.childrenForms.find(child => !child.valid)) || false;
   }
 
   get pending(): boolean {
