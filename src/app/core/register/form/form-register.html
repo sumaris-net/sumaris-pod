@@ -82,7 +82,7 @@
       <ng-template matStepLabel>{{'REGISTER.STEP_USER_DETAILS'|translate}}</ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="error && !sending">
+      <ion-item *ngIf="error && !sending" lines="none">
         <ion-icon color="danger" slot="start" name="alert"></ion-icon>
         <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
       </ion-item>

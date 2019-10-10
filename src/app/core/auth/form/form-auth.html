@@ -2,7 +2,7 @@
   padding>
 
   <!-- error -->
-  <ion-item *ngIf="error && !loading">
+  <ion-item *ngIf="error && !loading" lines="none">
     <ion-icon color="danger" slot="start" name="alert"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>

@@ -18,6 +18,7 @@ import {filter, first} from "rxjs/operators";
 import {Entity, HistoryPageReference, UsageMode} from "../services/model";
 import {FormGroup} from "@angular/forms";
 import {AppTabPage} from "./tab-page.class";
+import {AppFormUtils} from "./form.utils";
 
 export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTabPage<T, F> implements OnInit {
 
@@ -174,6 +175,8 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     console.debug("[root-data-editor] Asking to save...");
     if (this.loading || this.saving || !this.dirty) return false;
 
+    // Wait end of async validation
+    await AppFormUtils.waitWhilePending(this);
 
     // Not valid
     if (!this.valid) {

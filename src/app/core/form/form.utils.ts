@@ -3,6 +3,9 @@ import {isNil, nullIfUndefined, selectInputContent, toBoolean, filterNumberInput
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
 import {Entity} from "../services/model";
+import {Observable} from "rxjs";
+import {filter, first} from "rxjs/operators";
+import {AppForm} from "./form.class";
 
 export {selectInputContent};
 
@@ -17,6 +20,7 @@ export class AppFormUtils {
   static selectInputContent = selectInputContent;
   static markAsTouched = markAsTouched;
   static markAsPristine = markAsPristine;
+  static waitWhilePending = waitWhilePending;
 
   // ArrayForm
   static addValueInArray = addValueInArray;
@@ -311,6 +315,21 @@ export function markAsPristine(form: FormGroup, opts?: {onlySelf?: boolean; emit
         control.updateValueAndValidity(opts || {onlySelf: true, emitEvent: false});
       }
     });
+}
+
+/**
+ * Wait end of async validation
+ */
+export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?: {
+  dueTime?: number;
+  checkPeriod?: number;
+}): Promise<any> {
+  // Will retry while form is no more in pending state
+  return Observable.timer(opts && opts.dueTime || 0, opts && opts.checkPeriod || 300)
+    .pipe(
+      filter(() => !form.pending),
+      first()
+    ).toPromise();
 }
 
 export class FormArrayHelper<T = Entity<T>> {

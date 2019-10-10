@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {PlatformService} from "../../core/core.module";
+import {AppFormUtils, PlatformService} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
@@ -133,22 +133,15 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   }
 
   async close(event?: UIEvent): Promise<Batch | undefined> {
-    console.log("TODO saving modal...");
     if (this.loading) return; // avoid many call
 
     this.loading = true;
 
-    // Wait end of async validation
-    if (this.pending) {
-      await Observable.timer(100, 250)
-        .pipe(
-          filter(() => !this.pending),
-          first()
-        ).toPromise();
-    }
-
     // Force enable form, before use value
     if (!this.enabled) this.form.enable({emitEvent: false});
+
+    // Wait end of async validation
+    await AppFormUtils.waitWhilePending(this);
 
     if (!this.valid) { // invalid OR pending
       if (this.debug) this.form.logErrors("[batch-group-modal] ");
@@ -179,10 +172,6 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   /* -- protected methods -- */
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
   protected async computeTitle(data?: Batch) {
     data = data || this.data;
     if (this.isNew || !data) {
@@ -192,5 +181,9 @@ export class BatchGroupModal implements OnInit, OnDestroy {
       const label = BatchUtils.parentToString(data);
       this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
     }
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

@@ -173,7 +173,7 @@
                     [disabledCancel]="!dirty || loading">
 
     <!-- error -->
-    <ion-item *ngIf="error">
+    <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert"></ion-icon>
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>
