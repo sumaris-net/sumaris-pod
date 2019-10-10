@@ -15,7 +15,7 @@ import {
 } from "./trip.model";
 import {map} from "rxjs/operators";
 import {LoadResult, TableDataService, toBoolean} from "../../shared/shared.module";
-import {AccountService, BaseDataService, environment, NetworkService} from "../../core/core.module";
+import {BaseDataService, environment} from "../../core/core.module";
 import {ErrorCodes} from "./trip.errors";
 import {DataFragments, Fragments} from "./trip.queries";
 import {FetchPolicy, WatchQueryFetchPolicy} from "apollo-client";
@@ -23,6 +23,8 @@ import {GraphqlService} from "../../core/services/graphql.service";
 import {isNilOrBlank} from "../../shared/functions";
 import {AcquisitionLevelCodes, ReferentialFragments} from "../../referential/referential.module";
 import {dataIdFromObject} from "../../core/graphql/graphql.utils";
+import {NetworkService} from "../../core/services/network.service";
+import {AccountService} from "../../core/services/account.service";
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {

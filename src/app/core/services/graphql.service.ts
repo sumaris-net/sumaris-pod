@@ -1,4 +1,4 @@
-import {Observable, Subject, Subscription} from "rxjs";
+import {Observable, of, Subject, Subscription} from "rxjs";
 import {Apollo} from "apollo-angular";
 import {ApolloClient, ApolloQueryResult, FetchPolicy, MutationUpdaterFn, WatchQueryFetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
@@ -576,7 +576,7 @@ export class GraphqlService {
   }
 
   private onApolloError<T>(err: any): Observable<ApolloQueryResult<T>> {
-    return Observable.of(this.toApolloError(err));
+    return of(this.toApolloError(err));
   }
 
   private toApolloError<T>(err: any): ApolloQueryResult<T> {

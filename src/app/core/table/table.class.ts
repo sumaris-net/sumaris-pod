@@ -1,13 +1,12 @@
 import {AfterViewInit, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatPaginator, MatSort, MatTable} from "@angular/material";
-import {merge} from "rxjs/observable/merge";
-import {EMPTY, Observable, of, Subject} from 'rxjs';
+import {EMPTY, merge, Observable, of, Subject} from 'rxjs';
 import {catchError, filter, mergeMap, startWith, switchMap, takeUntil} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
 import {Entity} from "../services/model";
-import {Subscription} from "rxjs-compat";
+import {Subscription} from "rxjs";
 import {AlertController, ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TableSelectColumnsComponent} from './table-select-columns.component';
@@ -83,8 +82,8 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   @ViewChild(MatTable, {static: true}) table: MatTable<T>;
-  @ViewChild(MatPaginator) paginator: MatPaginator;
-  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+  @ViewChild(MatSort, {static: true}) sort: MatSort;
 
   @Output()
   onOpenRow = new EventEmitter<{ id?: number; row: TableElement<T> }>();
@@ -226,11 +225,11 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
             this.selection.clear();
             this.editedRow = undefined;
             if (any === 'skip' || !this.dataSource) {
-              return Observable.of(undefined);
+              return of(undefined);
             }
             if (!this.dataSource) {
               if (this.debug) console.debug("[table] Skipping data load: no dataSource defined");
-              return Observable.of(undefined);
+              return of(undefined);
             }
             if (this.debug) console.debug("[table] Calling dataSource.watchAll()...");
             return this.dataSource.watchAll(
