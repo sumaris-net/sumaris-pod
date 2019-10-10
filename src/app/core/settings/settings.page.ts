@@ -57,11 +57,11 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     protected platform: PlatformService,
     protected validatorService: LocalSettingsValidatorService,
     protected translate: TranslateService,
-    protected network: NetworkService,
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
+    protected cd: ChangeDetectorRef,
+    public network: NetworkService
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
 

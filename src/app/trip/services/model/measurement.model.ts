@@ -295,13 +295,21 @@ export class MeasurementValuesUtils {
     }
   }
 
+  /**
+   *
+   * @param source
+   * @param pmfms
+   * @param opts
+   *  - keepSourceObject: keep existing map (useful to keep extra pmfms)
+   *  - onlyExistingPmfms: Will not init all pmfms, but only those that exists in the source map
+   */
   static normalizeValuesToForm(source: MeasurementModelValues, pmfms: PmfmStrategy[], opts?: {
     keepSourceObject?: boolean;
     onlyExistingPmfms?: boolean; // default to false
   }): MeasurementFormValues {
     opts = opts || {};
 
-    // Normalize only existing pfmm, so reduce list to existing pmfms
+    // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {
       pmfms = Object.getOwnPropertyNames(source).reduce((res, pmfmId) => {
         const pmfm = pmfms.find(p => p.pmfmId == +pmfmId);
@@ -309,7 +317,10 @@ export class MeasurementValuesUtils {
       }, []);
     }
 
-    const target: MeasurementFormValues = opts.keepSourceObject ? source : {};
+    const target: MeasurementFormValues =
+      // Keep existing object (useful to keep extra pmfms)
+      opts.keepSourceObject ? source
+      : {};
 
     // Normalize all pmfms from the list
     (pmfms || []).forEach(pmfm => {
@@ -323,6 +334,7 @@ export class MeasurementValuesUtils {
                                pmfms: PmfmStrategy[],
                                form?: FormGroup,
                                opts?: {
+                                 keepOtherExistingPmfms?: boolean;
                                  onlyExistingPmfms?: boolean;
                                }) {
     if (!data) return; // skip
@@ -336,7 +348,7 @@ export class MeasurementValuesUtils {
         const measurementValues = AppFormUtils.getFormValueFromEntity(data.measurementValues || {}, measFormGroup);
         // This will adapt to form (e.g. transform a QV_ID into a an object)
         data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(measurementValues, pmfms, {
-          keepSourceObject: false,
+          keepSourceObject: opts && opts.keepOtherExistingPmfms || false,
           onlyExistingPmfms: opts && opts.onlyExistingPmfms
         });
       } else {

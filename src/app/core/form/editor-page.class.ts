@@ -179,16 +179,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
     await AppFormUtils.waitWhilePending(this);
 
     // Not valid
-    if (!this.valid) {
-
-      // Pending
-      if (this.pending) {
-        console.debug("[root-data-editor] Form is pending. Waiting end...");
-        return new Promise<boolean>((resolve) => {
-          setTimeout(() => resolve(this.save(event)), 100);
-        });
-      }
-
+    if (this.invalid) {
       this.markAsTouched({emitEvent: true});
       this.logFormErrors();
       this.openFirstInvalidTab();

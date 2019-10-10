@@ -13,7 +13,7 @@ import {ProgressBarService} from '../services/progress-bar.service';
 import {Router} from "@angular/router";
 import {IonBackButton, IonRouterOutlet, IonSearchbar, Platform} from "@ionic/angular";
 import {isNotNil, toBoolean} from "../functions";
-import {distinctUntilChanged} from "rxjs/operators";
+import {distinctUntilChanged, throttleTime} from "rxjs/operators";
 import {Subscription} from "rxjs";
 
 @Component({
@@ -82,12 +82,14 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     // Listen progress bar service mode
     this._subscription.add(this.progressBarService.onProgressChanged
       .pipe(
-        distinctUntilChanged()
+        distinctUntilChanged(),
+        throttleTime(100)
       )
       .subscribe((mode) => {
         if (this.progressBarMode !== mode) {
-          console.log("TODO: changing progress mode: " + mode);
-          this.progressBarMode = 'query'; //mode;
+          //console.log("TODO: changing progress mode: " + mode);
+          //this.progressBarMode = 'query'; //mode;
+          this.progressBarMode = mode;
           this.cd.detectChanges();
         }
       }));

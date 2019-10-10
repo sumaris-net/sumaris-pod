@@ -29,6 +29,7 @@ import {AppFormUtils, FormArrayHelper, PlatformService} from "../../core/core.mo
 import {MeasurementValuesUtils} from "../services/model/measurement.model";
 import {isNilOrBlank, isNotNilOrBlank, isNotNilOrNaN, toBoolean} from "../../shared/functions";
 import {BatchValidatorService} from "../services/batch.validator";
+import {firstNotNilPromise} from "../../shared/observables";
 
 @Component({
   selector: 'app-batch-form',
@@ -135,7 +136,7 @@ export class BatchForm extends MeasurementValuesForm<Batch>
 
   }
 
-  public setValue(data: Batch) {
+  setValue(data: Batch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
 
     // Fill weight
     if (this.defaultWeightPmfm) {
@@ -158,7 +159,11 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     }
 
     // Adapt measurement values to form
-    MeasurementValuesUtils.normalizeEntityToForm(data, this.$allPmfms.getValue(), this.form);
+    if (!opts || opts.normalizeEntityToForm !== false) {
+      // IMPORTANT: applying normalisation of measurement values on ALL pmfms (not only displayed pmfms)
+      // This is required by the batch-group-form component, to keep the value of hidden PMFM, such as Landing/Discard Pmfm
+      MeasurementValuesUtils.normalizeEntityToForm(data, this.$allPmfms.getValue(), this.form);
+    }
 
     if (this.showSampleBatch) {
 
@@ -187,14 +192,17 @@ export class BatchForm extends MeasurementValuesForm<Batch>
         samplingBatch.samplingRatio = samplingBatch.samplingRatio * 100;
       }
 
-      this.validatorService.setAsyncValidators(this.form, {withSampleBatch: true});
-      this.form.statusChanges.subscribe(() => this.markForCheck());
+      this.registerSubscription(
+        this.validatorService.addSamplingFormValidators(this.form));
     }
     else {
       this.childrenFormHelper.resize((data.children || []).length);
     }
 
-    super.setValue(data);
+    super.setValue(data, {
+      // Always skip normalization (already done)
+      normalizeEntityToForm: false
+    });
   }
 
   protected getValue(): Batch {
@@ -297,12 +305,9 @@ export class BatchForm extends MeasurementValuesForm<Batch>
   async ready(): Promise<void> {
     await super.ready();
 
-    // Wait pmfms to be loaded
+    // Wait all pmfms to be loaded
     if (isNil(this.$allPmfms.getValue())) {
-      await this.$allPmfms.pipe(
-        filter(isNotNil),
-        first()
-      ).toPromise();
+      await firstNotNilPromise(this.$allPmfms);
     }
   }
 
@@ -369,23 +374,10 @@ export class BatchForm extends MeasurementValuesForm<Batch>
       const samplingForm = childrenFormHelper.at(0) as FormGroup;
 
       // Reset measurementValues (if exists)
-      let samplingMeasFormGroup = samplingForm.get('measurementValues');
+      const samplingMeasFormGroup = samplingForm.get('measurementValues');
       if (samplingMeasFormGroup) {
         this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, []);
       }
-
-      // Reset weight.calculated when value change
-      // const weightForm = samplingForm.get('weight');
-      // const weightValueControl = weightForm.get('value');
-      // const weightCalculatedControl = weightForm.get('calculated');
-      // weightValueControl.valueChanges
-      //   .pipe(
-      //     throttleTime(300),
-      //     filter((_) => weightCalculatedControl.value == true)
-      //   )
-      //   .subscribe(() => {
-      //     weightCalculatedControl.patchValue(false, {emitEvent: false})
-      //   });
 
       // Adapt exists sampling child, if any
       if (this.data) {

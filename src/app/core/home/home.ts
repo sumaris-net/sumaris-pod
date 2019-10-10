@@ -54,11 +54,7 @@ export class HomePage implements OnDestroy {
   ) {
 
     this.showSpinner = !this.platform.started;
-    console.log("TODO start home page")
-    this.platform.ready().then(() => {
-      console.log("TODO checkis ready !")
-      this.start()
-    });
+    this.platform.ready().then(() => this.start());
   }
 
   ngOnDestroy() {

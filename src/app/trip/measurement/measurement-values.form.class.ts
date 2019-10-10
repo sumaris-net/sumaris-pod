@@ -134,13 +134,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean}) {
     if (this.$loadingControls.getValue()) {
       throw Error("Form not ready yet. Please use safeSetValue() instead!");
     }
 
-    // Adapt measurement values to form
-    MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
+    // Adapt measurement values to form (if not skip)
+    if (!opts || opts.normalizeEntityToForm !== false) {
+      MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
+    }
 
     super.setValue(data, opts);
 

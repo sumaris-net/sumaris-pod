@@ -40,7 +40,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   loading = true;
 
   $childrenPmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-  mapPmfmsFn:  (pmfms: PmfmStrategy[]) => PmfmStrategy[];
+  mapPmfmsFn: (pmfms: PmfmStrategy[]) => PmfmStrategy[];
 
   @Input() debug = false;
 
@@ -85,11 +85,11 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
   }
 
   get invalid(): boolean {
-    return this.batchForm.invalid || (this.childrenForms && this.childrenForms.find(child => child.invalid) && true) || false;
+    return this.batchForm.invalid || ((this.childrenForms || []).find(child => child.invalid) && true) || false;
   }
 
   get valid(): boolean {
-    return this.batchForm.valid && (!this.childrenForms || !this.childrenForms.find(child => child.invalid)) && true;
+    return this.batchForm.valid && !(this.childrenForms || []).find(child => child.invalid) && true || false;
   }
 
   get pending(): boolean {
@@ -220,7 +220,7 @@ export class BatchGroupForm extends AppForm<Batch> implements OnInit, OnDestroy 
     }
   }
 
-  logErrors(logPrefix: string) {
+  logFormErrors(logPrefix: string) {
     AppFormUtils.logFormErrors(this.batchForm.form, logPrefix);
     this.childrenForms.forEach((childForm, index) => {
       AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);

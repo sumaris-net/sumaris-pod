@@ -85,5 +85,9 @@ $candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-
 }
 
 .mat-progress-bar-buffer {
-  background-color: var(--ion-color-primary-tint, mix(#fff, $primary, 10%));
+  background-color: var(--ion-color-primary-tint, mix(#fff, $primary, 40%));
+}
+
+.mat-progress-bar-buffer {
+  //background-color: rgba(255, 255, 255, 0.1) !important;
 }

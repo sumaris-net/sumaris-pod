@@ -1,12 +1,32 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/forms";
+import {
+  AbstractControl,
+  AsyncValidatorFn,
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ValidationErrors,
+  Validators
+} from "@angular/forms";
 import {SharedValidators} from "../../shared/validator/validators";
 import {Batch, BatchUtils, BatchWeight} from "./model/batch.model";
-import {map, takeUntil, tap} from "rxjs/operators";
+import {
+  debounceTime,
+  delay,
+  filter,
+  first,
+  map,
+  mergeMap,
+  skip,
+  startWith,
+  takeUntil,
+  takeWhile,
+  tap
+} from "rxjs/operators";
 import {isNil, isNotNilOrNaN} from "../../shared/functions";
 import {MethodIds} from "../../referential/services/model";
-import {Observable, Subject} from "rxjs";
+import {BehaviorSubject, combineLatest, merge, Observable, Subject, Subscription} from "rxjs";
 
 @Injectable()
 export class BatchValidatorService implements ValidatorService {
@@ -58,171 +78,148 @@ export class BatchValidatorService implements ValidatorService {
     });
   }
 
-  setAsyncValidators(form: FormGroup, opts?: {
-    withSampleBatch: boolean
-  }) {
+  addSamplingFormValidators(form: FormGroup): Subscription {
 
-    if (opts && opts.withSampleBatch) {
-      // Sampling ratio: should be a percentage
-      form.get("samplingRatio").setValidators(
-        Validators.compose([Validators.min(0), Validators.max(100), SharedValidators.double({maxDecimals: 2})])
-      );
+    // Sampling ratio: should be a percentage
+    form.get("samplingRatio").setValidators(
+      Validators.compose([Validators.min(0), Validators.max(100), SharedValidators.double({maxDecimals: 2})])
+    );
 
-      form.setAsyncValidators([
-        this.computeSamplingWeight
-      ]);
+    const $errors = new Subject<ValidationErrors | null>();
+    form.setAsyncValidators((control) => $errors);
 
-    }
+    let computing = false;
+    const subscription = form.valueChanges
+      .pipe(
+        filter(() => !computing),
+        // Protected against loop
+        tap(() => computing = true),
+        debounceTime(250),
+        map(() => BatchValidatorService.computeSamplingWeight(form, {emitEvent: false, onlySelf: false}))
+      ).subscribe((errors) => {
+        computing = false;
+        $errors.next(errors);
+      });
+
+    // When unscribe, remove async validator
+    subscription.add(() => {
+      $errors.next(null);
+      $errors.complete();
+      form.clearAsyncValidators();
+    });
+
+    return subscription;
   }
 
   /**
    * Computing weight, samplingWeight or sampling ratio
-   * @param form
+   * @param control
    */
-  computeSamplingWeight(form: AbstractControl): Observable<ValidationErrors | null> {
-    if (!form.dirty) return Observable.empty();
+  static computeSamplingWeight(form: FormGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }): ValidationErrors | null {
+    const sampleForm = form.get('children.0');
 
-    const $stop = new Subject();
+    const batch = form.value;
+    if (!batch.weight) return null;
 
-    return Observable.timer(500)
-      .pipe(
-        takeUntil($stop),
-        map(() => {
-          const batch = form.value;
-          if (!batch.weight) return null;
+    const sampleBatch = BatchUtils.getSamplingChild(batch);
+    if (!sampleBatch) return null;
 
-          const sampleBatch = BatchUtils.getSamplingChild(batch);
-          if (!sampleBatch) return null;
+    const totalWeight = batch.weight.value;
+    const samplingWeight = sampleBatch.weight.value;
+    const samplingRatioPct = sampleBatch.samplingRatio;
+    console.table("[batch-validator]  Start computing: ", totalWeight, samplingRatioPct, samplingWeight);
 
-          $stop.next(true);
-          console.debug('[batch-validator] Computing calculated fields...');
+    const samplingWeightValueControl = sampleForm.get('weight.value');
+    const samplingRatioControl = sampleForm.get('samplingRatio');
 
-          //const errorControls = [];
-          const sampleForm = (form.get('children') as FormArray).at(0) as FormGroup;
-          const totalWeight = batch.weight.value;
-          const samplingWeight = sampleBatch.weight.value;
-          const samplingRatioPct = sampleBatch.samplingRatio;
+    // Compute samplingRatio, using weights
+    if (!totalWeight.calculated && isNotNilOrNaN(totalWeight) && totalWeight > 0
+      && !sampleBatch.weight.calculated && isNotNilOrNaN(samplingWeight) && samplingWeight > 0) {
 
-          // Compute samplingRatio, using weights
-          if (!batch.weight.calculated && isNotNilOrNaN(totalWeight) && totalWeight > 0
-            && !sampleBatch.weight.calculated && isNotNilOrNaN(samplingWeight) && samplingWeight > 0) {
+      // Sampling weight must be under total weight
+      if (samplingWeight >= totalWeight) {
+        if (!samplingWeightValueControl.hasError('max') || samplingWeightValueControl.errors['max'] !== totalWeight) {
+          samplingWeightValueControl.markAsPending({onlySelf: true, emitEvent: true}); //{onlySelf: true, emitEvent: false});
+          samplingWeightValueControl.markAsTouched({onlySelf: true});
+          samplingWeightValueControl.setErrors(
+            Object.assign(samplingWeightValueControl.errors || {}, {max: totalWeight}), opts);
+        }
+        return {max: totalWeight} as ValidationErrors;
+      }
 
-            // Sampling weight must be under total weight
-            if (samplingWeight >= totalWeight) {
-              const samplingWeightControl = sampleForm.get('weight.value');
-              if (!samplingWeightControl.hasError('max') || samplingWeightControl.errors['max'] !== totalWeight) {
-                samplingWeightControl.markAsPending({onlySelf: true, emitEvent: true}); //{onlySelf: true, emitEvent: false});
-                samplingWeightControl.markAsTouched({onlySelf: true});
-                samplingWeightControl.setErrors(
-                  Object.assign(samplingWeightControl.errors || {}, { max: totalWeight }));
-              }
-              return { max: totalWeight } as ValidationErrors;
+      // Update sampling ratio
+      const calculatedSamplingRatioPct = Math.round(100 * samplingWeight / totalWeight);
+      if (samplingRatioPct !== calculatedSamplingRatioPct) {
+        sampleForm.patchValue({
+          samplingRatio: calculatedSamplingRatioPct,
+          samplingRatioText: `${totalWeight}/${samplingWeight}`
+        }, opts);
+      }
+
+      // Disable ratio control
+      samplingRatioControl.disable(opts);
+      return;
+    }
+
+    // Compute sample weight using ratio and total weight
+    else if (isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
+      && !batch.weight.calculated && isNotNilOrNaN(totalWeight) && totalWeight >= 0) {
+
+      if (sampleBatch.weight.calculated || isNil(samplingWeight)) {
+        const calculatedSamplingWeight = Math.round(totalWeight * samplingRatioPct) / 100;
+        if (samplingWeight !== calculatedSamplingWeight) {
+          sampleForm.patchValue({
+            samplingRatioText: `${samplingRatioPct}%`,
+            weight: {
+              calculated: true,
+              estimated: false,
+              value: calculatedSamplingWeight,
+              methodId: MethodIds.CALCULATED
             }
+          }, opts);
+        }
 
-            // Update sampling ratio
-            const calculatedSamplingRatioPct = Math.round(100 * samplingWeight / totalWeight);
-            if (samplingRatioPct !== calculatedSamplingRatioPct) {
-              sampleForm.patchValue({
-                samplingRatio: calculatedSamplingRatioPct,
-                samplingRatioText: `${totalWeight}/${samplingWeight}`
-              }, {emitEvent: true});
-            }
+        // Disable sampling weight control
+        samplingWeightValueControl.disable(opts);
+        return;
+      }
+    }
 
-            // Disable ratio control
-            const samplingRatioControl = sampleForm.get('samplingRatio');
-            if (samplingRatioControl.enabled) samplingRatioControl.disable({onlySelf: true, emitEvent: true});
-            return;
+    // Compute total weight using ratio and sample weight
+    else if (isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
+      && !sampleBatch.weight.calculated && isNotNilOrNaN(samplingWeight) && samplingWeight >= 0) {
+      if (batch.weight.calculated || isNil(totalWeight)) {
+        form.patchValue({
+          weight: {
+            calculated: true,
+            estimated: false,
+            value: Math.round(samplingWeight / samplingRatioPct) * 100,
+            methodId: MethodIds.CALCULATED
           }
+        }, opts);
 
-          // Compute sample weight using ratio and total weight
-          else if (isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
-            && !batch.weight.calculated && isNotNilOrNaN(totalWeight) && totalWeight >= 0) {
-
-            if (sampleBatch.weight.calculated || isNil(samplingWeight)) {
-              const calculatedSamplingWeight = Math.round(totalWeight * samplingRatioPct) / 100;
-              if (samplingWeight !== calculatedSamplingWeight) {
-                sampleForm.patchValue({
-                  samplingRatioText: `${samplingRatioPct}%`,
-                  weight: {
-                    calculated: true,
-                    estimated: false,
-                    value: calculatedSamplingWeight,
-                    methodId: MethodIds.CALCULATED
-                  }
-                });
-              }
-
-              // Disable sampling weight control
-              const samplingWeightControl = sampleForm.get('weight.value');
-              if (samplingWeightControl.enabled) samplingWeightControl.disable({onlySelf: true, emitEvent: true});
-              return;
-            }
-          }
-
-          // Compute total weight using ratio and sample weight
-          else if (isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
-            && !sampleBatch.weight.calculated && isNotNilOrNaN(samplingWeight) && samplingWeight >= 0) {
-            if (batch.weight.calculated || isNil(totalWeight)) {
-              form.patchValue({
-                weight: {
-                  calculated: true,
-                  estimated: false,
-                  value: Math.round(samplingWeight / samplingRatioPct) * 100,
-                  methodId: MethodIds.CALCULATED
-                }
-              }, {emitEvent: true});
-
-              // Disable total weight control
-              const totalWeightControl = form.get('weight.value');
-              totalWeightControl.disable({onlySelf: true, emitEvent: true});
-              return;
-            }
-          }
-
-          else if (isNotNilOrNaN(samplingWeight)) {
-            const samplingRatioControl = sampleForm.get('samplingRatio');
-            if (samplingRatioControl.disabled && sampleForm.enabled) {
-              samplingRatioControl.enable({onlySelf: true, emitEvent: true});
-            }
-          }
-
-          else {
-            const samplingRatioControl = sampleForm.get('samplingRatio');
-            const samplingWeightControl = sampleForm.get('weight.value');
-            if (sampleForm.enabled) {
-              if (samplingRatioControl.disabled) {
-                samplingRatioControl.enable({onlySelf: true, emitEvent: true});
-              }
-              if (samplingWeightControl.disabled) {
-                samplingWeightControl.patchValue({
-                  calculated: false,
-                  estimated: false
-                });
-                samplingWeightControl.setErrors(null, {emitEvent: true});
-                samplingWeightControl.enable({onlySelf: true, emitEvent: true});
-              }
-            }
-            else {
-              if (samplingRatioControl.enabled) {
-                samplingRatioControl.disable({onlySelf: false});
-              }
-              if (samplingWeightControl.enabled) {
-                samplingWeightControl.disable({onlySelf: false});
-              }
-            }
-          }
-        }),
-        tap((errors: any) => {
-
-          if (errors) {
-            //setTimeout(() => {
-              //form.updateValueAndValidity();
-             // AppFormUtils.markAsTouched(form);
-            //});
-          }
-          return errors;
-        })
-      );
-
+        // Disable total weight control
+        form.get('weight.value').disable(opts);
+        return;
+      }
+    } else if (isNotNilOrNaN(samplingWeight)) {
+      if (samplingRatioControl.disabled && sampleForm.enabled) {
+        samplingRatioControl.enable(opts);
+      }
+    } else {
+      if (sampleForm.enabled) {
+        samplingRatioControl.enable(opts);
+        sampleForm.get('weight').patchValue({
+          value: null,
+          calculated: false,
+          estimated: false
+        }, opts);
+        samplingWeightValueControl.setErrors(null, opts);
+        samplingWeightValueControl.enable(opts);
+      } else {
+        samplingRatioControl.disable(opts);
+        samplingWeightValueControl.disable(opts);
+      }
+    }
   }
 }

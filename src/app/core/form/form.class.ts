@@ -146,13 +146,18 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     // Convert object to json
     if (this.debug) console.debug("[form] Updating form (using entity)", data);
 
-    opts = opts || {};
-    if (opts.emitEvent === undefined) opts.emitEvent = false; // default opts value
+    // Change 'emitEvent' default value to 'false' (Reactive Form use 'true' as default value)
+    if (!opts || opts.emitEvent === undefined) {
+      // If need, create a new object (to keep the original object unchanged)
+      opts = Object.assign({}, opts || {}, {emitEvent: false});
+    }
 
     // Apply to form
     AppFormUtils.copyEntity2Form(data, this.form, opts);
 
-    this.markForCheck();
+    if (opts.emitEvent !== false) {
+      this.markForCheck();
+    }
   }
 
   markAsPristine(opts?: {onlySelf?: boolean}) {
