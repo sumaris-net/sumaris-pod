@@ -62,7 +62,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   @ViewChild("backButton", { static: false }) backButton: IonBackButton;
 
-  @ViewChild('searchbar') searchbar: IonSearchbar;
+  @ViewChild('searchbar', {static: true}) searchbar: IonSearchbar;
 
   constructor(
     private progressBarService: ProgressBarService,

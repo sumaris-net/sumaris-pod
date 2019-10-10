@@ -1,4 +1,4 @@
-import {merge, Observable, Subject, Subscription} from "rxjs";
+import {merge, Observable, Subject, Subscription, timer} from "rxjs";
 import {Injectable} from "@angular/core";
 import {Storage} from "@ionic/storage";
 import {Platform} from "@ionic/angular";
@@ -73,7 +73,7 @@ export class EntityStorage {
         this._subscription.add(
           merge(
             this._$save,
-            Observable.timer(2000, 10000)
+            timer(2000, 10000)
           )
           .pipe(throttleTime(10000))
           .subscribe(() => this.save())

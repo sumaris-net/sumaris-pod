@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {EditorDataService, isNotNil, LoadResult, TableDataService, toBoolean} from "../../shared/shared.module";
-import {environment, NetworkService} from "../../core/core.module";
+import {environment} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
 import {ErrorCodes} from "./trip.errors";
@@ -15,6 +15,7 @@ import {dataIdFromObject} from "../../core/graphql/graphql.utils";
 import {RootDataService} from "./root-data-service.class";
 import {DataRootEntityUtils} from "./model/base.model";
 import {reject} from "async";
+import {NetworkService} from "../../core/services/network.service";
 
 const physicalGearFragment = gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id

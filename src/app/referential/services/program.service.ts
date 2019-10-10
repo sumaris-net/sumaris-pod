@@ -6,7 +6,7 @@ import {EntityUtils, isNil, isNotNil, IWithProgramEntity, PmfmStrategy, Program,
 import {
   BaseDataService,
   environment, IReferentialRef,
-  LoadResult, NetworkService,
+  LoadResult,
   ReferentialRef,
   TableDataService
 } from "../../core/core.module";
@@ -20,6 +20,7 @@ import {CacheService} from "ionic-cache";
 import {ReferentialRefService} from "./referential-ref.service";
 import {firstNotNilPromise} from "../../shared/observables";
 import {AccountService} from "../../core/services/account.service";
+import {NetworkService} from "../../core/services/network.service";
 
 export declare class ProgramFilter {
   searchText?: string;
