@@ -245,7 +245,7 @@
 
 <ion-fab vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile
          *ngIf="canEdit">
-  <ion-fab-button color="secondary" (click)="addRow()">
+  <ion-fab-button color="secondary" (click)="addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>

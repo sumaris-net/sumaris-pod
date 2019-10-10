@@ -232,9 +232,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.setEntityName(entityName);
   }
 
-  addRow(): boolean {
+  addRow(event?: any): boolean {
     // Create new row
-    const result = super.addRow();
+    const result = super.addRow(event);
     if (!result) return result;
 
     const row = this.dataSource.getRow(-1);

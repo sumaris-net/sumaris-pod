@@ -136,7 +136,7 @@ export abstract class AppEditorPage<T extends Entity<T>, F = any> extends AppTab
    * Enable or disable state
    */
   updateViewState(data: T, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    if (this.canUserWrite(data)) {
+    if (this.isNewData || this.canUserWrite(data)) {
       this.enable(opts);
     }
     else {
