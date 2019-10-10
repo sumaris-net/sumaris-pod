@@ -10,6 +10,7 @@ import {fadeInAnimation} from "../../shared/shared.module";
 import {PlatformService} from "../services/platform.service";
 import {LocalSettingsService} from "../services/local-settings.service";
 import {debounceTime} from "rxjs/operators";
+import {AuthModal} from "../auth/modal/modal-auth";
 
 export function getRandomImage(files: String[]) {
   const imgIndex = Math.floor(Math.random() * files.length);
@@ -63,6 +64,11 @@ export class HomePage implements OnDestroy {
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+  }
+
+  async login() {
+    const modal = await this.modalCtrl.create({component: AuthModal});
+    return modal.present();
   }
 
   async register() {

@@ -57,7 +57,7 @@ export class SettingsPage extends AppForm<LocalSettings> implements OnInit, OnDe
     protected platform: PlatformService,
     protected validatorService: LocalSettingsValidatorService,
     protected translate: TranslateService,
-    protected network: NetworkService,
+    public network: NetworkService,
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,

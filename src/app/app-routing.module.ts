@@ -56,6 +56,7 @@ const routes: Routes = [
   // Admin
   {
     path: 'admin',
+    canActivate: [AuthGuardService],
     loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) // Angular 8 syntax
   },
 
@@ -262,6 +263,7 @@ const routes: Routes = [
 
   {
     path: 'output',
+    canActivate: [AuthGuardService],
     loadChildren: () => import('./output/output.module').then(m => m.OutputModule)
   },
 

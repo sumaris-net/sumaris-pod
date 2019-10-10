@@ -43,6 +43,10 @@ export const environment: Environment = {
       port: 8080
     },
     {
+      host: '192.168.0.24',
+      port: 8080
+    },
+    {
       host: 'adap.pecheursdebretagne.eu',
       port: 443
     },
