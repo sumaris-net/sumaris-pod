@@ -43,14 +43,15 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
       formPath?: string;
     }
   } = {};
-  protected autocompleteHelper: MatAutocompleteConfigHolder;
-  protected autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
 
   protected _enable = true;
   protected _dirty = false;
   protected allowRowDetail = true;
   protected pageSize: number;
   protected _onDestroy = new Subject();
+  protected _autocompleteHelper: MatAutocompleteConfigHolder;
+  protected translate: TranslateService;
+  protected alertCtrl: AlertController;
 
   excludesColumns = new Array<String>();
   inlineEdition: boolean;
@@ -68,9 +69,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   settingsId: string;
   mobile: boolean;
   confirmBeforeDelete = false;
-
-  protected translate: TranslateService;
-  protected alertCtrl: AlertController;
+  autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
 
   @Input()
   debug = false;
@@ -184,10 +183,10 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     this.inlineEdition = false;
     this.translate = injector && injector.get(TranslateService);
     this.alertCtrl = injector && injector.get(AlertController);
-    this.autocompleteHelper = new MatAutocompleteConfigHolder({
+    this._autocompleteHelper = new MatAutocompleteConfigHolder({
       getUserAttributes: (a,b) => settings.getFieldDisplayAttributes(a, b)
     });
-    this.autocompleteFields = this.autocompleteHelper.fields;
+    this.autocompleteFields = this._autocompleteHelper.fields;
   }
 
   ngOnInit() {
@@ -619,7 +618,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
   }
 
   protected registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions): MatAutocompleteFieldConfig {
-    return this.autocompleteHelper.add(fieldName, options);
+    return this._autocompleteHelper.add(fieldName, options);
   }
 
   protected getI18nColumnName(columnName: string) {
