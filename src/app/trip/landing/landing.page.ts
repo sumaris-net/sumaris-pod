@@ -141,7 +141,7 @@ export class LandingPage extends AppDataEditorPage<Landing, LandingService> impl
     }
   }
 
-  protected async loadParent(data: Landing): Trip | ObservedLocation {
+  protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
 
     // Load parent observed location
     if (isNotNil(data.observedLocationId)) {
