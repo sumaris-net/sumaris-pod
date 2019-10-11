@@ -20,7 +20,7 @@ import {
   changeCaseToUnderscore,
   focusInput,
   getPropertyByPath,
-  isNilOrBlank,
+  isNilOrBlank, isNotNilOrBlank,
   joinPropertiesPath,
   selectInputContent,
   suggestFromArray,
@@ -309,16 +309,20 @@ export class MatAutocompleteField implements OnInit, InputElement, OnDestroy, Co
          takeUntil(this._onDestroy)
        )
        .subscribe( (_) => {
-        // When leave component without object, use implicit value if stored
-        const existingValue = this.formControl.value;
-        if (this._implicitValue && (isNilOrBlank(existingValue) || typeof this.formControl.value !== "object")) {
-          this.writeValue(this._implicitValue);
-          this.formControl.markAsPending({emitEvent: false, onlySelf: true});
-          this.formControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
-        }
-        this._implicitValue = null; // reset the implicit value
-        this.checkIfTouched();
-      });
+          // When leave component without object, use implicit value if :
+          // - an explicit value
+          // - field is not empty (user fill something)
+          // - OR field empty but is required
+          const existingValue = this.formControl.value;
+          if (this._implicitValue
+            && ((this.required && isNilOrBlank(existingValue)) || (isNotNilOrBlank(existingValue) && typeof existingValue !== "object"))) {
+            this.writeValue(this._implicitValue);
+            this.formControl.markAsPending({emitEvent: false, onlySelf: true});
+            this.formControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
+          }
+          this._implicitValue = null; // reset the implicit value
+          this.checkIfTouched();
+        });
   }
 
   ngOnDestroy(): void {

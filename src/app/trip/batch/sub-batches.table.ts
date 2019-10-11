@@ -491,7 +491,7 @@ export class SubBatchesTable extends AppMeasurementsTable<Batch, SubBatchFilter>
     // Already exists: increment individual count
     if (row) {
       if (row.validator) {
-        const control = row.validator.get('individualCount');
+        const control = row.validator.controls.individualCount;
         control.setValue((control.value || 0) + newBatch.individualCount);
         control.markAsDirty();
       } else {

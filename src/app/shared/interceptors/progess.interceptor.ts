@@ -13,11 +13,10 @@ export class ProgressInterceptor implements HttpInterceptor {
           .pipe(
             tap(event => {
                 if (event instanceof HttpResponse) {
-                    this.progressBarService.decrease();
+                  this.progressBarService.decrease();
                 }
             }),
             catchError((err, event) => {
-              console.error("ProgressInterceptor cacht an error:", err);
               this.progressBarService.decrease();
               throw err;
             }));
