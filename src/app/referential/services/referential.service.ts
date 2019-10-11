@@ -255,7 +255,7 @@ export class ReferentialService extends BaseDataService implements TableDataServ
     const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Saving ${entity.entityName}...`, json);
 
-    const data = await this.graphql.mutate<{ saveReferentials: any }>({
+    await this.graphql.mutate<{ saveReferentials: any }>({
       mutation: SaveAllQuery,
       variables: {
         referentials: [json]
@@ -376,7 +376,6 @@ export class ReferentialService extends BaseDataService implements TableDataServ
 
 
   protected fillDefaultProperties(entity: Referential) {
-
     entity.statusId = isNotNil(entity.statusId) ? entity.statusId : StatusIds.ENABLE;
   }
 }

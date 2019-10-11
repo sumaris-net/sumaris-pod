@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy,
 import {ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource,
+  AppTableDataSource, environment,
   isNotNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
@@ -69,7 +69,7 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
         // DataSource options
         {
           prependNewElements: false,
-          suppressErrors: false,
+          suppressErrors: environment.production,
           serviceOptions: {
             readOnly: true
           }

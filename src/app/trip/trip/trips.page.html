@@ -1,27 +1,35 @@
 <app-toolbar [title]="'TRIP.TABLE.TITLE'|translate" color="primary" (onValidate)="save()"
-             [hasValidate]="!loading && dirty"
+             [hasValidate]="($loading|async) && dirty"
              [canGoBack]="false">
 </app-toolbar>
 
 <ion-content no-padding>
 
   <mat-toolbar>
-    <button mat-icon-button
-            hidden-xs hidden-sm hidden-mobile
-            *ngIf="canEdit && !selection.hasValue()"
-            [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
-      <mat-icon>add</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
-      <mat-icon>refresh</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="!selection.hasValue()" [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
-      <mat-icon>filter_list</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="canDelete && selection.hasValue()" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
-      class="hidden-xs hidden-sm">
-      <mat-icon>delete</mat-icon>
-    </button>
+    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+      <button mat-icon-button
+              hidden-xs hidden-sm hidden-mobile
+              *ngIf="canEdit"
+              [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-icon-button [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button mat-button color="{{filterIsEmpty ? '' : 'primary'}}"
+              [title]="'COMMON.BTN_FILTER'|translate"
+              (click)="filterExpansionPanel.toggle()">
+        <mat-icon>filter_list</mat-icon>
+        <ion-text *ngIf="!filterIsEmpty">
+          <span [innerHTML]="'COMMON.TABLE.FILTERED_PARENTHESIS'|translate"></span></ion-text>
+      </button>
+    </ng-container>
+    <ng-template #hasSelection>
+      <button mat-icon-button *ngIf="canDelete" [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection()"
+        class="hidden-xs hidden-sm">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </ng-template>
 
     <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
       <ion-icon color="danger" slot="start" name="alert"></ion-icon>
@@ -37,61 +45,80 @@
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel>
-    <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" padding class="no-padding-xs">
+    <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()" padding-top>
 
-      <!-- Program -->
-      <mat-form-field style="min-width: 150px;">
-        <input matInput [placeholder]="'TRIP.TABLE.FILTER.PROGRAM'|translate" [matAutocomplete]="autoFilterProgram" formControlName="program">
-      </mat-form-field>
-
-      <!-- Program combo -->
-      <mat-autocomplete autoActiveFirstOption #autoFilterProgram="matAutocomplete" [displayWith]="programToString">
-        <ion-row class="mat-autocomplete-header">
-          <ion-col size="4" translate>REFERENTIAL.LABEL</ion-col>
-          <ion-col translate>REFERENTIAL.NAME</ion-col>
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <!-- Program -->
+            <mat-autocomplete-field
+              [placeholder]="'TRIP.TABLE.FILTER.PROGRAM'|translate"
+              formControlName="program"
+              [config]="autocompleteFields.program">
+              <ion-icon matPrefix name="contract"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
         </ion-row>
 
-        <mat-option *ngFor="let item of programs | async" [value]="item" no-padding>
-          <ion-row>
-            <ion-col size="4" [innerHTML]="item.label | highlight: {search: filterForm.controls.program.value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: filterForm.controls.program.value }" [title]="item.name"></ion-col>
-          </ion-row>
-        </mat-option>
-      </mat-autocomplete>
+        <ion-row>
+          <ion-col size="12" size-lg="6">
+            <!-- Vessel -->
+            <mat-autocomplete-field
+              [placeholder]="'TRIP.TABLE.FILTER.VESSEL'|translate"
+              formControlName="vesselFeatures"
+              [config]="autocompleteFields.vesselFeatures"
+              [displayWith]="vesselFeaturesToString">
+              <ion-icon matPrefix name="boat"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
 
-      <!-- Start date -->
-      <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate" [formControl]="filterForm.controls.startDate"
-        [displayTime]="false">
-      </mat-date-time>
-
-      <!-- End date -->
-      <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate" [formControl]="filterForm.controls.endDate"
-        [displayTime]="false">
-      </mat-date-time>
-
-      <!-- Location -->
-      <mat-form-field style="min-width: 300px;">
-        <input matInput [placeholder]="'TRIP.TABLE.FILTER.LOCATION'|translate" [matAutocomplete]="autoFilterLocation"
-          formControlName="location">
-      </mat-form-field>
-
-      <!-- Location combo -->
-      <mat-autocomplete autoActiveFirstOption #autoFilterLocation="matAutocomplete" [displayWith]="referentialToString">
-        <ion-row class="mat-autocomplete-header">
-          <ion-col size="3" translate>REFERENTIAL.LABEL</ion-col>
-          <ion-col translate>REFERENTIAL.NAME</ion-col>
+          <ion-col size="12" size-lg="6">
+            <!-- Location -->
+            <mat-autocomplete-field
+              [placeholder]="'TRIP.TABLE.FILTER.LOCATION'|translate"
+              formControlName="location"
+              [config]="autocompleteFields.location">
+              <ion-icon matPrefix name="pin"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
         </ion-row>
 
-        <mat-option *ngFor="let item of locations | async" [value]="item" no-padding>
-          <ion-row>
-            <ion-col size="3" [innerHTML]="item.label | highlight: {search: filterForm.controls.location.value }"></ion-col>
-            <ion-col [innerHTML]="item.name | highlight: {search: filterForm.controls.location.value }"></ion-col>
-          </ion-row>
-        </mat-option>
-      </mat-autocomplete>
+        <ion-row>
+          <ion-col>
+            <!-- Start date -->
+            <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.START_DATE'|translate"
+                           [formControl]="filterForm.controls.startDate"
+                           [displayTime]="false">
+              <ion-icon matPrefix name="calendar"></ion-icon>
+            </mat-date-time>
+          </ion-col>
 
-      <button mat-raised-button [color]="filterForm.dirty ? 'primary' : undefined" type="submit">{{'COMMON.BTN_SEARCH'|translate}}</button>
+          <ion-col>
+            <!-- End date -->
+            <mat-date-time [placeholder]="'TRIP.TABLE.FILTER.END_DATE'|translate"
+                           [formControl]="filterForm.controls.endDate"
+                           [displayTime]="false">
+            </mat-date-time>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [hidden]="($loading|async) || filterForm.dirty" [color]="resultsLength === 0 && 'danger'">
+        {{ (resultsLength ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (resultsLength |
+              numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- Search button -->
+      <button mat-button [color]="filterForm.dirty ? 'primary' : undefined" padding
+              (click)="onRefresh.emit()"
+              [disabled]="$loading|async">{{'COMMON.BTN_SEARCH'|translate}}
+      </button>
+    </mat-action-row>
   </mat-expansion-panel>
 
   <!-- error -->
@@ -118,8 +145,7 @@
     <!-- Id Column -->
     <ng-container matColumnDef="id">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.hidden]="!isAdmin">
-        <span *ngIf="!loading">#</span>
-        <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+        <span *ngIf="!($loading|async); else loadingSpinner">#</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row" [class.hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
     </ng-container>
@@ -239,3 +265,7 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #loadingSpinner>
+  <ion-spinner [ngClass]="{'center':true}" ></ion-spinner>
+</ng-template>

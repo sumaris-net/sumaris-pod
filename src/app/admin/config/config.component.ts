@@ -117,7 +117,7 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
     json.properties = EntityUtils.getObjectAsArray(data.properties || {});
     this.propertiesFormHelper.resize(Math.max(json.properties.length, 1));
 
-    this.form.patchValue(json, {emitEvent: false});
+    this.setValue(json, {emitEvent: false});
     this.markAsPristine();
 
     this.partners.next(json.partners);

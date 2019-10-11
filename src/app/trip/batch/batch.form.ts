@@ -125,11 +125,11 @@ export class BatchForm extends MeasurementValuesForm<Batch>
     this.$initialized.next(true);
 
     // Taxon group combo
-    this.registerAutocompleteConfig('taxonGroup', {
+    this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
     });
     // Taxon name combo
-    this.registerAutocompleteConfig('taxonName', {
+    this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options)
     });
 

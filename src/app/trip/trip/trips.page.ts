@@ -1,10 +1,11 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from "@angular/core";
-import {Observable} from 'rxjs';
 import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
   AppTable,
   AppTableDataSource,
+  environment,
+  isNil,
   LocalSettingsService,
   personsToString,
   PlatformService,
@@ -13,8 +14,8 @@ import {
 } from "../../core/core.module";
 import {TripValidatorService} from "../services/trip.validator";
 import {TripFilter, TripService} from "../services/trip.service";
-import {LocationLevelIds, ReferentialRef, Trip, VesselFeatures} from "../services/trip.model";
-import {AlertController, ModalController} from "@ionic/angular";
+import {LocationLevelIds, ReferentialRef, Trip} from "../services/trip.model";
+import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
@@ -22,18 +23,20 @@ import {
   qualityFlagToColor,
   ReferentialRefService,
   referentialToString,
-  vesselFeaturesToString
+  vesselFeaturesToString,
+  VesselService
 } from "../../referential/referential.module";
-import {debounceTime, startWith, switchMap} from "rxjs/operators";
+import {debounceTime, filter, tap} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
+import {SharedValidators} from "../../shared/validator/validators";
 
 @Component({
   selector: 'app-trips-page',
   templateUrl: 'trips.page.html',
+  styleUrls: ['./trips.page.scss'],
   providers: [
     {provide: ValidatorService, useExisting: TripValidatorService}
   ],
-  styleUrls: ['./trips.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnDestroy {
@@ -42,9 +45,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   canDelete: boolean;
   isAdmin: boolean;
   filterForm: FormGroup;
-  programs: Observable<ReferentialRef[]>;
-  locations: Observable<ReferentialRef[]>;
-  vessels: Observable<VesselFeatures[]>;
+  filterIsEmpty = true;
 
   constructor(
     protected route: ActivatedRoute,
@@ -54,11 +55,10 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected accountService: AccountService,
-    protected validatorService: ValidatorService,
     protected dataService: TripService,
     protected referentialRefService: ReferentialRefService,
+    protected vesselService: VesselService,
     protected formBuilder: FormBuilder,
-    protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
@@ -77,7 +77,7 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<Trip, TripFilter>(Trip, dataService, null, {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }
@@ -85,13 +85,15 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({
-      'program': [null],
-      'startDate': [null],
-      'endDate': [null],
-      'location': [null]
+      'program': [null, SharedValidators.entity],
+      'vesselFeatures': [null, SharedValidators.entity],
+      'location': [null, SharedValidators.entity],
+      'startDate': [null, SharedValidators.validDate],
+      'endDate': [null, SharedValidators.validDate]
     });
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.autoLoad = false;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -106,41 +108,54 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     if (this.debug) console.debug("[trips-page] Can user edit table ? " + this.canEdit);
 
     // Programs combo (filter)
-    this.programs = this.filterForm.controls['program']
-      .valueChanges
-      .pipe(
-        startWith('*'),
-        debounceTime(250),
-        switchMap(value => this.referentialRefService.suggest(value, {entityName: 'Program'}))
-      );
+    this.registerAutocompleteField('program', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Program'
+      }
+    });
 
     // Locations combo (filter)
-    this.locations = this.filterForm.controls['location']
-      .valueChanges
-      .pipe(
-        debounceTime(250),
-        switchMap(value => this.referentialRefService.suggest(value, {
-          entityName: 'Location',
-          levelId: LocationLevelIds.PORT
-        }))
-      );
+    this.registerAutocompleteField('location', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.PORT
+      }
+    });
+
+    // Combo: vessels
+    this.registerAutocompleteField('vesselFeatures', {
+      service: this.vesselService,
+      attributes: ['exteriorMarking', 'name'].concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
+    });
 
     // Update filter when changes
-    this.filterForm.valueChanges.subscribe(() => {
-      const filter = this.filterForm.value;
-      this.filter = {
-        programLabel: filter.program && typeof filter.program == "object" && filter.program.label || undefined,
-        startDate: filter.startDate,
-        endDate: filter.endDate,
-        locationId: filter.location && typeof filter.location == "object" && filter.location.id || undefined
-      };
-    });
+    this.filterForm.valueChanges
+      .pipe(
+        debounceTime(250),
+        filter(() => this.filterForm.valid),
+        // Applying the filter
+        tap(json => this.setFilter({
+            programLabel: json.program && typeof json.program === "object" && json.program.label || undefined,
+            startDate: json.startDate,
+            endDate: json.endDate,
+            locationId: json.location && typeof json.location === "object" && json.location.id || undefined,
+            vesselId:  json.vesselFeatures && typeof json.vesselFeatures === "object" && json.vesselFeatures.vesselId || undefined,
+          })),
+        debounceTime(1000)
+      )
+      // Save filter in settings
+      .subscribe((json) => this.settings.savePageSetting(this.settingsId, json, 'filter'));
 
     this.onRefresh.subscribe(() => {
       this.filterForm.markAsUntouched();
       this.filterForm.markAsPristine();
       this.markForCheck();
     });
+
+    // Restore filter from settings, or load all trips
+    this.restoreFilterOrLoad();
   }
 
   vesselFeaturesToString = vesselFeaturesToString;
@@ -151,6 +166,28 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
   programToString(item: ReferentialRef) {
     return item && item.label || undefined;
   }
+
+  /* -- protected methods -- */
+
+  protected async restoreFilterOrLoad() {
+    const json = this.settings.getPageSettings(this.settingsId, 'filter');
+
+    // No default filter: load all trips
+    if (isNil(json) || typeof json !== 'object') {
+      this.onRefresh.emit();
+    }
+    // Restore the filter (will apply it)
+    else {
+      this.filterForm.patchValue(json);
+    }
+  }
+
+  setFilter(json: TripFilter, opts?: { emitEvent: boolean }) {
+    super.setFilter(json, opts);
+
+    this.filterIsEmpty = TripFilter.isEmpty(json);
+  }
+
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -2,7 +2,14 @@ import {Injectable, Injector} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs-compat";
 import {EntityUtils, fillRankOrder, isNil, Person, Trip} from "./trip.model";
-import {EditorDataService, isNotNil, LoadResult, TableDataService, toBoolean} from "../../shared/shared.module";
+import {
+  EditorDataService,
+  isNilOrBlank,
+  isNotNil,
+  LoadResult,
+  TableDataService,
+  toBoolean
+} from "../../shared/shared.module";
 import {environment, NetworkService} from "../../core/core.module";
 import {map} from "rxjs/operators";
 import {Moment} from "moment";
@@ -137,12 +144,20 @@ export const TripFragments = {
 };
 
 export class TripFilter {
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
+
+  static isEmpty(filter: TripFilter|any): boolean {
+    return !filter || (isNilOrBlank(filter.programLabel) && isNilOrBlank(filter.vesselId) && isNilOrBlank(filter.locationId)
+      && !filter.startDate && !filter.endDate
+      && isNil(filter.recorderDepartmentId));
+  }
+
   programLabel?: string;
   vesselId?: number;
-  recorderDepartmentId?: number;
   locationId?: number;
+  startDate?: Date | Moment;
+  endDate?: Date | Moment;
+  recorderDepartmentId?: number;
+
 }
 const LoadAllQuery: any = gql`
   query Trips($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TripFilterVOInput){

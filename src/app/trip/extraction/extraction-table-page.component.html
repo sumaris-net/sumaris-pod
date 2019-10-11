@@ -107,7 +107,7 @@
   </ng-container>
 
   <!-- search -->
-  <mat-expansion-panel #filterExpansionPanel color="primary" no-padding>
+  <mat-expansion-panel #filterExpansionPanel >
     <mat-expansion-panel-header>
       <mat-panel-title hidden-xs hidden-sm hidden-mobile>
         <ion-label>
@@ -183,26 +183,22 @@
       </div>
     </form>
 
-    <mat-action-row no-padding>
-      <ion-grid>
-        <ion-row no-padding style="width: 100%">
-          <ion-col>
-            <!-- Loading spinner -->
-            <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
-            <ion-text [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
-              {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total |
+    <mat-action-row>
+      <!-- Loading spinner -->
+      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      <!-- Counter  -->
+      <ion-label [hidden]="loading || dirty" [color]="data?.total === 0 && 'danger'">
+        {{ (data?.total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (data?.total |
               numberFormat)} }}
-            </ion-text>
-          </ion-col>
-          <ion-col no-padding size="auto">
-            <!-- Search button -->
-            <button mat-button [color]="dirty ? 'primary' : undefined" padding
-                    (click)="onRefresh.emit(true)"
-                    [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}
-            </button>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- Search button -->
+      <button mat-button [color]="dirty ? 'primary' : undefined"
+              (click)="onRefresh.emit(true)"
+              [disabled]="loading">{{'COMMON.BTN_SEARCH'|translate}}
+      </button>
     </mat-action-row>
   </mat-expansion-panel>
 

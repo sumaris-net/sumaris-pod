@@ -15,15 +15,16 @@ import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR
 import {FloatLabelType} from "@angular/material";
 import {
   filterNumberInput,
-  fromDateISOString,
-  isNotNil,
+  fromDateISOString, isNilOrBlank,
+  isNotNil, isNotNilOrBlank,
   joinPropertiesPath,
-  selectInputContent
+  selectInputContent, toDateISOString
 } from "../../shared/functions";
 import {FormFieldDefinition} from "./field.model";
 import {AppFormUtils} from "../../core/form/form.utils";
 import {DisplayFn} from "../material/material.autocomplete";
 import {TranslateService} from "@ngx-translate/core";
+import {getColorContrast} from "../graph/colors.utils";
 
 const noop = () => {
 };
@@ -116,7 +117,7 @@ export class AppFormField implements OnInit, ControlValueAccessor {
       obj = (obj !== "false");
     }
     else if (this.type === 'date') {
-      obj = fromDateISOString(obj);
+      obj = toDateISOString(obj);
     }
     if (obj !== this.formControl.value) {
       //console.debug("Set config value ", this.formControl.value, obj);
@@ -177,6 +178,10 @@ export class AppFormField implements OnInit, ControlValueAccessor {
     }
     const attributes = definition.autocomplete && definition.autocomplete.attributes || ['label', 'name'];
     return (value: any) => joinPropertiesPath(value, attributes);
+  }
+
+  getColorContrast(color: string): string | undefined {
+    return isNotNilOrBlank(color) ? getColorContrast(color, true) : undefined;
   }
 
   /* -- protected method -- */

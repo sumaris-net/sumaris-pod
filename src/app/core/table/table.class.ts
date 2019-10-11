@@ -23,6 +23,7 @@ import {
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig
 } from "../../shared/material/material.autocomplete";
+import {TripFilter} from "../../trip/services/trip.service";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const DEFAULT_PAGE_SIZE = 20;
@@ -309,7 +310,7 @@ export abstract class AppTable<T extends Entity<T>, F = any> implements OnInit, 
     }
 
     this._dataSourceSubscription = new Subscription();
-    this._dataSourceSubscription.add(dataSource.loadingSubject.subscribe(loading => {
+    this._dataSourceSubscription.add(this.$loading.subscribe(loading => {
       this.loading = loading;
       this.markForCheck();
     }));

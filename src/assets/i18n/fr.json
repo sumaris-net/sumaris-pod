@@ -77,6 +77,9 @@
       "NEXT_PAGE":"Page suivante",
       "PREVIOUS_PAGE":"Page précédente",
       "OF": "sur"
+    },
+    "TABLE": {
+      "FILTERED_PARENTHESIS": "(filtré)"
     }
   },
   "CONFIGURATION": {
@@ -305,7 +308,8 @@
         "PROGRAM": "Programme de collecte",
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période",
-        "LOCATION": "Port (départ ou retour)"
+        "LOCATION": "Port (départ ou retour)",
+        "VESSEL": "Navire"
       }
     },
     "ERROR": {

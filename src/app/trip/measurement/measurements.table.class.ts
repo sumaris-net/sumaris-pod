@@ -3,7 +3,7 @@ import {BehaviorSubject, Observable} from 'rxjs';
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AppTable,
-  AppTableDataSource,
+  AppTableDataSource, environment,
   isNil,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
@@ -130,13 +130,13 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
     // Default options
-    this.options = this.options || {prependNewElements: false, suppressErrors: true};
+    this.options = this.options || {prependNewElements: false, suppressErrors: environment.production};
     if (!this.options.onRowCreated) {
       this.options.onRowCreated = (row) => this.onRowCreated(row);
     }
 
     const encapsulatedValidator = this.validatorService ? this : null;
-    this.setDatasource(new AppTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, this.options));
+    this.setDatasource(new AppTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, options));
 
     // For DEV only
     //this.debug = !environment.production;

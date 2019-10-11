@@ -19,10 +19,15 @@
 .mat-expansion-panel {
   margin-bottom: 5px;
 
-  mat-action-row[no-padding] {
-    padding:0;
-  }
+  mat-action-row {
+    height: 46px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 
+    ion-label {
+      line-height: 36px;
+    }
+  }
 }
 
 mat-table  {

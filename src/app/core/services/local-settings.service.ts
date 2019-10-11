@@ -6,7 +6,7 @@ import {Storage} from '@ionic/storage';
 import {isNotNil, toBoolean} from "../../shared/shared.module";
 import {environment} from "../../../environments/environment";
 import {Subject} from "rxjs";
-import {isNotNilOrBlank} from "../../shared/functions";
+import {getPropertyByPath, isNotNilOrBlank} from "../../shared/functions";
 import {Platform} from "@ionic/angular";
 import {FormFieldDefinition} from "../../shared/form/field.model";
 import * as moment from "moment";
@@ -181,10 +181,13 @@ export class LocalSettingsService {
     await this.apply(changes);
   }
 
-  getPageSettings(pageId: string, propertyName?: string): string[] {
+  getPageSettings<T = any>(pageId: string, propertyName?: string): T {
+    if (!this.data || !this.data.pages) return undefined;
     const key = pageId.replace(/[/]/g, '__');
-    return this.data && this.data.pages
-      && this.data.pages[key] && (propertyName && this.data.pages[key][propertyName] || this.data.pages[key]);
+    if (isNotNilOrBlank(propertyName)) {
+      return getPropertyByPath(this.data.pages, key + '.' + propertyName);
+    }
+    return this.data.pages[key];
   }
 
   async savePageSetting(pageId: string, value: any, propertyName?: string) {

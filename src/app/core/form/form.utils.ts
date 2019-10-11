@@ -1,5 +1,12 @@
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from "@angular/forms";
-import {isNil, nullIfUndefined, selectInputContent, toBoolean, filterNumberInput} from "../../shared/shared.module";
+import {
+  isNil,
+  nullIfUndefined,
+  selectInputContent,
+  toBoolean,
+  filterNumberInput,
+  toDateISOString
+} from "../../shared/shared.module";
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
 import {Entity} from "../services/model";
@@ -103,7 +110,7 @@ export function getFormValueFromEntity(source: any, form: FormGroup): { [key: st
     }
     // Date
     else if (isMoment(source[key])) {
-      value[key] = source[key].format(DATE_ISO_PATTERN);
+      value[key] = toDateISOString(source[key]);
     }
     // Any other control: replace undefined by null value
     else {

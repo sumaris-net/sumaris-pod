@@ -50,8 +50,7 @@
   <!-- id -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label *ngIf="!loading">#</ion-label>
-      <ion-spinner [ngClass]="{'center':true}" *ngIf="loading"></ion-spinner>
+      <ion-label *ngIf="!($loading|async); else loadingSpinner">#</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{row.currentData.rankOrderOnPeriod}}</ion-text>
@@ -157,12 +156,6 @@
 </ion-row>
 -->
 
-<!-- Add Button
-<ion-fab vertical="bottom" horizontal="end"
-         *ngIf="enabled"
-         class="visible-xs visible-sm">
-  <ion-fab-button color="tertiary" (click)="addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>-->
-
+<ng-template #loadingSpinner>
+  <ion-spinner [ngClass]="{'center':true}" ></ion-spinner>
+</ng-template>

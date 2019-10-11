@@ -1,6 +1,6 @@
 import * as moment from "moment";
 import {Moment} from "moment";
-import {asInputElement, isInputElement} from "./material/focusable";
+import {asInputElement, FocusableElement, isInputElement} from "./material/focusable";
 import {ElementRef} from "@angular/core";
 
 export const DATE_ISO_PATTERN = 'YYYY-MM-DDTHH:mm:ss.SSSZ';
@@ -26,6 +26,10 @@ export function isNotEmptyArray<T>(obj: T[] | null | undefined): boolean {
 export function isEmptyArray<T>(obj: T[] | null | undefined): boolean {
   return obj === undefined || obj === null || !obj.length;
 }
+export function isNotNilString(obj: any | null | undefined): obj is string {
+  return obj !== undefined && obj !== null && typeof obj === 'string';
+}
+
 export function nullIfUndefined<T>(obj: T | null | undefined): T | null {
   return obj === undefined ? null : obj;
 }
@@ -44,7 +48,7 @@ export function toInt(obj: string | null | undefined): number | null {
 }
 export const toDateISOString = function (value): string | undefined {
   if (!value) return undefined;
-  if (typeof value == "string") {
+  if (typeof value === "string") {
     if (value.indexOf('+')) {
       value = fromDateISOString(value);
     }
@@ -52,7 +56,7 @@ export const toDateISOString = function (value): string | undefined {
       return value;
     }
   }
-  if (typeof value == "object" && value.toISOString) {
+  if (typeof value === "object" && value.toISOString) {
     return value.toISOString();
   }
   return moment(value).format(DATE_ISO_PATTERN) || undefined;

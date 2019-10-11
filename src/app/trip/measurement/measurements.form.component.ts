@@ -148,9 +148,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
     this.form.patchValue(json, opts);
 
-    this.markAsUntouched(opts);
-    this.markAsPristine(opts);
-
     // Restore form status
     this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
   }

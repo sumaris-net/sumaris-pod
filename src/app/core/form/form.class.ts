@@ -129,7 +129,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
   doSubmit(event: any) {
-    if (!this.form && this.form.invalid) {
+    if (!this.form || !this.form.valid) {
       this.markAsTouched({emitEvent: true});
       return;
     }
@@ -141,21 +141,19 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
   }
 
   setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
-    if (!data) return;
-
-    // Convert object to json
-    if (this.debug) console.debug("[form] Updating form (using entity)", data);
-
-    // Change 'emitEvent' default value to 'false' (Reactive Form use 'true' as default value)
-    if (!opts || opts.emitEvent === undefined) {
-      // If need, create a new object (to keep the original object unchanged)
-      opts = Object.assign({}, opts || {}, {emitEvent: false});
+    if (!data) {
+      console.warn("[form] Trying to set an empty value to form. Skipping");
+      return;
     }
 
-    // Apply to form
-    AppFormUtils.copyEntity2Form(data, this.form, opts);
+    if (this.debug) console.debug("[form] Updating form (using entity)", data);
 
-    if (opts.emitEvent !== false) {
+    // Convert object to json, then apply it to form (e.g. convert 'undefined' into 'null')
+    AppFormUtils.copyEntity2Form(data, this.form, {emitEvent: false, onlySelf: true});
+
+    // Only mark for check if 'emitEvent' is set to true.
+    // Please note that Reactive Form use 'emitEvent=true' as default value
+    if (opts && opts.emitEvent === true) {
       this.markForCheck();
     }
   }
@@ -208,7 +206,7 @@ export abstract class AppForm<T> implements OnInit, OnDestroy {
     this._subscription.add(sub);
   }
 
-  protected registerAutocompleteConfig(fieldName: string, options?: MatAutocompleteFieldAddOptions) {
+  protected registerAutocompleteField(fieldName: string, options?: MatAutocompleteFieldAddOptions) {
     return this.autocompleteHelper.add(fieldName, options);
   }
 

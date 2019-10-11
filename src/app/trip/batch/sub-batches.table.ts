@@ -12,7 +12,7 @@ import {
 } from "@angular/core";
 import {Observable, Subscription} from 'rxjs';
 import {TableElement, ValidatorService} from "angular4-material-table";
-import {AppFormUtils, EntityUtils, IReferentialRef} from "../../core/core.module";
+import {AppFormUtils, EntityUtils, environment, IReferentialRef} from "../../core/core.module";
 import {Batch, PmfmStrategy, referentialToString} from "../services/trip.model";
 import {
   AcquisitionLevelCodes,
@@ -54,7 +54,7 @@ export interface SubBatchFilter {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useValue: {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
         reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
       }

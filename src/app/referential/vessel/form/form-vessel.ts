@@ -34,7 +34,7 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
     super.ngOnInit();
 
     // Combo location
-    this.registerAutocompleteConfig('location', {
+    this.registerAutocompleteField('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',

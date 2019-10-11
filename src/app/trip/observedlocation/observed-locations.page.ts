@@ -1,6 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {AppTable, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/core.module";
+import {
+  AppTable,
+  environment,
+  LocalSettingsService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS
+} from "../../core/core.module";
 import {
   LocationLevelIds,
   ObservedLocation,
@@ -70,7 +76,7 @@ export class ObservedLocationsPage extends AppTable<ObservedLocation, ObservedLo
         .concat(RESERVED_END_COLUMNS),
       new AppTableDataSource<ObservedLocation, ObservedLocationFilter>(ObservedLocation, dataService, null, {
         prependNewElements: false,
-        suppressErrors: false,
+        suppressErrors: environment.production,
         serviceOptions: {
           saveOnlyDirtyRows: true
         }

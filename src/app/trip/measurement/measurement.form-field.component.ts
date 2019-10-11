@@ -123,15 +123,7 @@ export class MeasurementFormField implements OnInit, ControlValueAccessor, Input
   }
 
   writeValue(obj: any): void {
-    if (this.pmfm.isNumeric && Number.isNaN(obj)) {
-      //console.log("WARN: trying to set NaN value, in a measurement field ! " + this.constructor.name);
-      obj = null;
-    }
-    if (obj !== this.formControl.value) {
-      //console.debug("Settings meas value ", this.formControl.value, obj);
-      this.formControl.patchValue(obj, {emitEvent: false});
-      this._onChangeCallback(obj);
-    }
+
   }
 
   registerOnChange(fn: any): void {

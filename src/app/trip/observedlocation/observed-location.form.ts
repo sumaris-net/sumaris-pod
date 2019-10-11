@@ -104,7 +104,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     }
 
     // Combo: programs
-    this.registerAutocompleteConfig('program', {
+    this.registerAutocompleteField('program', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Program'
@@ -123,7 +123,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       .subscribe(programLabel => this.program = programLabel));
 
     // Combo location
-    this.registerAutocompleteConfig('location', {
+    this.registerAutocompleteField('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
@@ -133,7 +133,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
     // Combo: observers
     const profileLabels: UserProfileLabel[] = ['SUPERVISOR', 'USER', 'GUEST'];
-    this.registerAutocompleteConfig('person', {
+    this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
