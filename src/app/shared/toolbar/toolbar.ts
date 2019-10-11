@@ -4,17 +4,16 @@ import {
   Component,
   EventEmitter,
   Input,
-  OnDestroy,
   OnInit,
   Output,
   ViewChild
 } from '@angular/core';
 import {ProgressBarService, ProgressMode} from '../services/progress-bar.service';
 import {Router} from "@angular/router";
-import {IonBackButton, IonRouterOutlet, IonSearchbar, Platform} from "@ionic/angular";
+import {IonBackButton, IonRouterOutlet, IonSearchbar} from "@ionic/angular";
 import {isNotNil, toBoolean} from "../functions";
-import {debounceTime, distinctUntilChanged, map, startWith, tap, throttleTime} from "rxjs/operators";
-import {Observable, Subscription} from "rxjs";
+import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-toolbar',
@@ -22,9 +21,7 @@ import {Observable, Subscription} from "rxjs";
   styleUrls: ['./toolbar.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ToolbarComponent implements OnInit, OnDestroy {
-
-  private _subscription = new Subscription();
+export class ToolbarComponent implements OnInit {
 
   @Input()
   title = '';
@@ -58,7 +55,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   $progressBarMode: Observable<ProgressMode>;
 
-  showSearchBar: boolean;
+  showSearchBar = false;
 
   @ViewChild("backButton") backButton: IonBackButton;
 
@@ -83,13 +80,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.hasValidate = toBoolean(this.hasValidate, this.onValidate.observers.length > 0);
     this.canGoBack = toBoolean(this.canGoBack, this.routerOutlet.canGoBack() || isNotNil(this.defaultBackHref));
-
     this.hasSearch = toBoolean(this.hasSearch, this.onSearch.observers.length > 0);
-    this.showSearchBar = false;
-  }
-
-  ngOnDestroy(): void {
-    this._subscription.unsubscribe();
   }
 
   async toggleSearchBar() {
