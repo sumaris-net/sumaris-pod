@@ -146,6 +146,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
         ParameterExpression<Date> endDateParam = builder.parameter(Date.class);
         ParameterExpression<Integer> locationIdParam = builder.parameter(Integer.class);
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+        ParameterExpression<Integer> vesselIdParam = builder.parameter(Integer.class);
 
         query.select(root)
                 .where(builder.and(
@@ -169,6 +170,11 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
                                 builder.isNull(locationIdParam),
                                 builder.equal(root.get(Trip.PROPERTY_DEPARTURE_LOCATION).get(Location.PROPERTY_ID), locationIdParam),
                                 builder.equal(root.get(Trip.PROPERTY_RETURN_LOCATION).get(Location.PROPERTY_ID), locationIdParam)
+                        ),
+                        // Filter: vessel
+                        builder.or(
+                                builder.isNull(vesselIdParam),
+                                builder.equal(root.get(Trip.PROPERTY_VESSEL).get(Location.PROPERTY_ID), vesselIdParam)
                         )
                 ));
 
@@ -186,6 +192,7 @@ public class TripDaoImpl extends BaseDataDaoImpl implements TripDao {
                 .setParameter(startDateParam, filter.getStartDate())
                 .setParameter(endDateParam, filter.getEndDate())
                 .setParameter(locationIdParam, filter.getLocationId())
+                .setParameter(vesselIdParam, filter.getVesselId())
                 .setFirstResult(offset)
                 .setMaxResults(size);
         return toTripVOs(q.getResultList(), fieldOptions);

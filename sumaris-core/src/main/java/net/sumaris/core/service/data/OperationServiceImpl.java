@@ -193,7 +193,6 @@ public class OperationServiceImpl implements OperationService {
 	public void delete(int id) {
 		operationDao.delete(id);
 	}
-
 	@Override
 	public void delete(List<Integer> ids) {
 		Preconditions.checkNotNull(ids);
