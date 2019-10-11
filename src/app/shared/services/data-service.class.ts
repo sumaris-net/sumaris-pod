@@ -6,7 +6,7 @@ export declare interface LoadResult<T> {
   total?: number;
 }
 export declare interface SuggestionDataService<T, F = any> {
-  suggest(value: any, options?: F): Promise<T[]>;
+  suggest(value: any, filter?: F): Promise<T[]>;
 }
 export declare interface DataService<T, F> {
 

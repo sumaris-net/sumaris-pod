@@ -83,19 +83,20 @@ export class MatAutocompleteConfigHolder {
     }
     options = options || {};
     const service: SuggestionDataService<T> = options.service || (options.suggestFn && {
-      suggest: (value: any, filterData?: any) => options.suggestFn(value, filterData)
+      suggest: (value: any, searchFilter?: any) => options.suggestFn(value, searchFilter)
     }) || undefined;
     const attributes = this.getUserAttributes(fieldName, options.attributes) || ['label', 'name'];
-    const attributesOrFn = attributes.map((a, index) => a === "function" && options.attributes[index] || a);
-    const filterData = Object.assign({
-      searchAttribute: attributes.length === 1 ? attributes[0] : undefined
+    const attributesOrFn = attributes.map((a, index) => typeof a === "function" && options.attributes[index] || a);
+    const searchFilter = Object.assign({
+      searchAttribute: attributes.length === 1 ? attributes[0] : undefined,
+      searchAttributes: attributes.length > 1 ? attributes : undefined
     }, options.filter || {});
     const displayWith = options.displayWith || ((obj) => obj && joinPropertiesPath(obj, attributesOrFn));
 
     const config: MatAutocompleteFieldConfig = {
       attributes: attributesOrFn,
       service,
-      filter: filterData,
+      filter: searchFilter,
       displayWith,
       showAllOnFocus: options.showAllOnFocus,
       showPanelOnFocus: options.showPanelOnFocus

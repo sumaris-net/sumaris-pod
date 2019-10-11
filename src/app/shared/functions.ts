@@ -100,11 +100,11 @@ export function suggestFromArray<T=any>(items: T[], value: any, options?: {
   // If wildcard, search using regexp
   if ((value as string).indexOf('*') !== -1) {
     value = (value as string).replace('*', '.*');
-    return items.filter(v => keys.findIndex(key => matchUpperCase(v[key], value)) !== -1);
+    return items.filter(v => keys.findIndex(key => matchUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
   }
 
   // If wildcard, search using startsWith
-  return items.filter(v => keys.findIndex(key => startsWithUpperCase(v[key], value)) !== -1);
+  return items.filter(v => keys.findIndex(key => startsWithUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
 }
 
 export function joinPropertiesPath<T = any>(obj: T, properties: string[], separator?: string): string | undefined {
@@ -208,6 +208,11 @@ export function getPropertyByPath(obj: any, path: string): any {
 export function getProperty<T = any, K extends keyof T = any>(obj: T, key: K): T[K] {
   if (isNil(obj)) return undefined;
   return obj[key]; // Inferred type is T[K]
+}
+
+export function getPropertyByPathAsString(obj: any, path: string): string | undefined {
+  const res = getPropertyByPath(obj, path);
+  return res && (typeof res === 'string' ? res : ('' + res));
 }
 
 export function focusInput(element: ElementRef) {

@@ -2,26 +2,17 @@ import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {isNil, isNotNil, LoadResult, startsWithUpperCase} from "../../shared/shared.module";
-import {
-  BaseDataService,
-  Entity,
-  EntityUtils,
-  IReferentialRef,
-  LocationLevelIds,
-  StatusIds
-} from "../../core/core.module";
-import {Apollo} from "apollo-angular";
+import {isNotNil, LoadResult} from "../../shared/shared.module";
+import {BaseDataService, EntityUtils, StatusIds} from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialRef} from "../../core/services/model";
 
 import {FetchPolicy} from "apollo-client";
 import {ReferentialFilter, TaxonNameFilter} from "./referential.service";
-import {DataService, SuggestionDataService} from "../../shared/services/data-service.class";
+import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {TaxonomicLevelIds} from "./model";
-import {isNilOrBlank} from "../../shared/functions";
 import {TaxonNameRef} from "./model/taxon.model";
 
 const LoadAllQuery: any = gql`
