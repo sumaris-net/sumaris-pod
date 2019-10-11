@@ -1,28 +1,35 @@
 import { EventEmitter, Injectable } from '@angular/core';
 
+export declare type ProgressMode = 'determinate' | 'indeterminate' | 'buffer' | 'query' | 'none';
+
 @Injectable({providedIn: 'root'})
 export class ProgressBarService {
-    public onProgressChanged: EventEmitter<string> =  new EventEmitter();
+    public onProgressChanged: EventEmitter<ProgressMode> =  new EventEmitter();
 
     private requestsRunning = 0;
 
-    public list(): number {
+    list(): number {
         return this.requestsRunning;
     }
 
-    public increase(): void {
-        this.requestsRunning++;
-        if (this.requestsRunning === 1) {
-            this.onProgressChanged.emit('query');
-        }
+    increase(): void {
+      this.requestsRunning++;
+      console.log("TODO query running: "  + this.requestsRunning);
+      if (this.requestsRunning === 1) {
+        console.log("TODO service mode - query");
+          this.onProgressChanged.emit('query');
+      }
+
     }
 
-    public decrease(): void {
-        if (this.requestsRunning > 0) {
-            this.requestsRunning--;
-            if (this.requestsRunning === 0) {
-                this.onProgressChanged.emit('none');
-            }
-        }
+    decrease(): void {
+      if (this.requestsRunning > 0) {
+          this.requestsRunning--;
+      }
+      console.log("TODO query running: "  + this.requestsRunning);
+      if (this.requestsRunning === 0) {
+        console.log("TODO service mode - none");
+        this.onProgressChanged.emit('none');
+      }
     }
 }
