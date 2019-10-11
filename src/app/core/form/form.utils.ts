@@ -3,7 +3,7 @@ import {isNil, nullIfUndefined, selectInputContent, toBoolean, filterNumberInput
 import {DATE_ISO_PATTERN} from "../../shared/constants";
 import {isMoment} from "moment";
 import {Entity} from "../services/model";
-import {Observable} from "rxjs";
+import {Observable, timer} from "rxjs";
 import {filter, first, tap} from "rxjs/operators";
 import {AppForm} from "./form.class";
 
@@ -325,7 +325,7 @@ export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?:
 }): Promise<any> {
   const period = opts && opts.checkPeriod || 300;
   if (!form.pending) return;
-  return Observable.timer(period, period)
+  return timer(period, period)
     .pipe(
       // For DEBUG :
       //  tap(() => console.log("Waiting async validator...", form)),
@@ -334,7 +334,7 @@ export function waitWhilePending<T extends {pending: boolean; }>(form: T, opts?:
     ).toPromise();
 }
 
-export class FormArrayHelper<T = Entity<T>> {
+export class FormArrayHelper<T = Entity<any>> {
 
   private readonly arrayControl: FormArray;
   private allowEmptyArray: boolean;

@@ -113,14 +113,14 @@
             },
             "dev": {
               "optimization": true,
+              "buildOptimizer": true,
+              "aot": true,
               "outputHashing": "all",
               "sourceMap": false,
               "extractCss": true,
               "namedChunks": true,
-              "aot": false,
               "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": false
+              "vendorChunk": false
             },
             "ci": {
               "progress": false

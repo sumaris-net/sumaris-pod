@@ -12,12 +12,12 @@ import {Batch, BatchUtils} from "../services/model/batch.model";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {AppFormUtils} from "../../core/core.module";
 import {ModalController} from "@ionic/angular";
-import {BehaviorSubject, Observable, Subscription, timer} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes, PmfmStrategy} from "../../referential/services/model";
 import {BatchGroupForm} from "./batch-group.form";
 import {toBoolean} from "../../shared/functions";
-import {filter, first, throttleTime} from "rxjs/operators";
+import {throttleTime} from "rxjs/operators";
 import {PlatformService} from "../../core/services/platform.service";
 
 @Component({

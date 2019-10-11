@@ -1,32 +1,12 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "angular4-material-table";
-import {
-  AbstractControl,
-  AsyncValidatorFn,
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  ValidationErrors,
-  Validators
-} from "@angular/forms";
+import {FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {SharedValidators} from "../../shared/validator/validators";
 import {Batch, BatchUtils, BatchWeight} from "./model/batch.model";
-import {
-  debounceTime,
-  delay,
-  filter,
-  first,
-  map,
-  mergeMap,
-  skip,
-  startWith,
-  takeUntil,
-  takeWhile,
-  tap
-} from "rxjs/operators";
+import {debounceTime, filter, map, tap} from "rxjs/operators";
 import {isNil, isNotNilOrNaN} from "../../shared/functions";
 import {MethodIds} from "../../referential/services/model";
-import {BehaviorSubject, combineLatest, merge, Observable, Subject, Subscription} from "rxjs";
+import {Subject, Subscription} from "rxjs";
 
 @Injectable()
 export class BatchValidatorService implements ValidatorService {
