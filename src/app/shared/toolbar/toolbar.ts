@@ -14,6 +14,7 @@ import {IonBackButton, IonRouterOutlet, IonSearchbar} from "@ionic/angular";
 import {isNotNil, toBoolean} from "../functions";
 import {debounceTime, distinctUntilChanged, startWith} from "rxjs/operators";
 import {Observable} from "rxjs";
+import {ConnectionType} from "../../core/services/network.service";
 
 @Component({
   selector: 'app-toolbar',
@@ -70,7 +71,7 @@ export class ToolbarComponent implements OnInit {
     // Listen progress bar service mode
     this.$progressBarMode = this.progressBarService.onProgressChanged
       .pipe(
-        startWith('none'),
+        startWith('none' as ProgressMode),
         debounceTime(100), // wait 100ms, to group changes
         distinctUntilChanged((mode1, mode2) => mode1 == mode2)
       );

@@ -6,7 +6,7 @@ export declare type ProgressMode = 'determinate' | 'indeterminate' | 'buffer' | 
 export class ProgressBarService {
   private _requestsRunning = 0;
 
-  onProgressChanged: EventEmitter<ProgressMode> =  new EventEmitter();
+  onProgressChanged = new EventEmitter<ProgressMode>();
 
   list(): number {
       return this._requestsRunning;
