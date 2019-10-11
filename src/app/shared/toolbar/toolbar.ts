@@ -64,8 +64,7 @@ export class ToolbarComponent implements OnInit {
   constructor(
     private progressBarService: ProgressBarService,
     private router: Router,
-    private routerOutlet: IonRouterOutlet,
-    private cd: ChangeDetectorRef
+    private routerOutlet: IonRouterOutlet
   ) {
 
     // Listen progress bar service mode

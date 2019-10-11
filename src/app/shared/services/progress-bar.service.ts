@@ -4,32 +4,27 @@ export declare type ProgressMode = 'determinate' | 'indeterminate' | 'buffer' | 
 
 @Injectable({providedIn: 'root'})
 export class ProgressBarService {
-    public onProgressChanged: EventEmitter<ProgressMode> =  new EventEmitter();
+  private _requestsRunning = 0;
 
-    private requestsRunning = 0;
+  onProgressChanged: EventEmitter<ProgressMode> =  new EventEmitter();
 
-    list(): number {
-        return this.requestsRunning;
+  list(): number {
+      return this._requestsRunning;
+  }
+
+  increase(): void {
+    this._requestsRunning++;
+    if (this._requestsRunning === 1) {
+        this.onProgressChanged.emit('query');
     }
+  }
 
-    increase(): void {
-      this.requestsRunning++;
-      console.log("TODO query running: "  + this.requestsRunning);
-      if (this.requestsRunning === 1) {
-        console.log("TODO service mode - query");
-          this.onProgressChanged.emit('query');
-      }
-
+  decrease(): void {
+    if (this._requestsRunning > 0) {
+        this._requestsRunning--;
     }
-
-    decrease(): void {
-      if (this.requestsRunning > 0) {
-          this.requestsRunning--;
-      }
-      console.log("TODO query running: "  + this.requestsRunning);
-      if (this.requestsRunning === 0) {
-        console.log("TODO service mode - none");
-        this.onProgressChanged.emit('none');
-      }
+    if (this._requestsRunning === 0) {
+      this.onProgressChanged.emit('none');
     }
+  }
 }
