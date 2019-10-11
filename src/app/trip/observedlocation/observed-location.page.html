@@ -29,6 +29,7 @@
 
             <!-- observed location -->
             <form-observed-location #observedLocationForm
+                                    [program]="programSubject|async"
                                     [showError]="false"
                                     [showEndDateTime]="false"
                                     (onSubmit)="save($event)"

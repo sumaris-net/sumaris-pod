@@ -10,85 +10,36 @@
 
     <!-- PROGRAM -->
     <ion-row no-padding *ngIf="showProgram">
-      <ion-col>
-        <mat-form-field>
-          <ion-icon margin-right name="contract" matPrefix></ion-icon>
-          <input matInput [placeholder]="'LANDING.PROGRAM'|translate"
-                 formControlName="program"
-                 [matAutocomplete]="autoProgram"
-                 (blur)="applyImplicitValue('program')"
-                 required>
-          <mat-error *ngIf="form.controls.program.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls.program.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-        </mat-form-field>
-
-        <!-- Program combo -->
-        <mat-autocomplete autoActiveFirstOption #autoProgram="matAutocomplete" [displayWith]="programToString">
-
-          <ion-row class="mat-autocomplete-header">
-            <ion-col size="3">
-              <ion-text translate>REFERENTIAL.LABEL</ion-text>
-            </ion-col>
-            <ion-col>
-              <ion-text translate>REFERENTIAL.NAME</ion-text>
-            </ion-col>
-          </ion-row>
-
-          <mat-option *ngFor="let item of $programs | async" [value]="item" no-padding>
-            <ion-row>
-              <ion-col size="3" [innerHTML]="item.label | highlight: {search: form.controls.program.value }"></ion-col>
-              <ion-col [innerHTML]="item.name | highlight: {search: form.controls.program.value }"
-                       [title]="item.name"></ion-col>
-            </ion-row>
-          </mat-option>
-        </mat-autocomplete>
+      <ion-col size="0" size-md="2" size-lg="3">
+        <ion-label>&nbsp;</ion-label>
       </ion-col>
-
+      <ion-col>
+        <mat-autocomplete-field formControlName="program"
+                                [placeholder]="'LANDING.PROGRAM'|translate"
+                                [config]="autocompleteFields.program"
+                                [tabindex]="tabindex"
+                                required>
+          <ion-icon matPrefix name="contract"></ion-icon>
+        </mat-autocomplete-field>
+      </ion-col>
     </ion-row>
 
     <!-- VESSEL -->
     <ion-row no-padding *ngIf="showVessel">
-      <ion-col>
-        <mat-form-field>
-          <ion-icon margin-right name="boat" matPrefix></ion-icon>
-          <input matInput [placeholder]="'LANDING.VESSEL'|translate"
-                 formControlName="vesselFeatures"
-                 [matAutocomplete]="autoVessel"
-                 (blur)="applyImplicitValue('vesselFeatures')"
-                 required>
-          <mat-error *ngIf="form.controls.vesselFeatures.hasError('required')" translate>ERROR.FIELD_REQUIRED
-          </mat-error>
-          <mat-error *ngIf="form.controls.vesselFeatures.hasError('entity')" translate>ERROR.FIELD_INVALID
-          </mat-error>
-        </mat-form-field>
-
-        <!-- Vessel combo -->
-        <mat-autocomplete autoActiveFirstOption #autoVessel="matAutocomplete" [displayWith]="vesselFeaturesToString">
-
-          <ion-row class="mat-autocomplete-header">
-            <ion-col size="3">
-              <ion-text translate>VESSEL.EXTERIOR_MARKING</ion-text>
-            </ion-col>
-            <ion-col>
-              <ion-text translate>VESSEL.NAME</ion-text>
-            </ion-col>
-            <ion-col>
-              <ion-text translate>VESSEL.BASE_PORT_LOCATION</ion-text>
-            </ion-col>
-          </ion-row>
-
-          <mat-option *ngFor="let vessel of $vessels | async" [value]="vessel" no-padding>
-            <ion-row>
-              <ion-col size="3"
-                       [innerHTML]="vessel.exteriorMarking | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
-              <ion-col
-                [innerHTML]="vessel.name | highlight: {search: form.controls['vesselFeatures'].value }"></ion-col>
-              <ion-col>{{vessel.basePortLocation.label}} - {{vessel.basePortLocation.name}}</ion-col>
-            </ion-row>
-          </mat-option>
-        </mat-autocomplete>
+      <ion-col size="0" size-md="2" size-lg="3" >
+        <ion-label>&nbsp;</ion-label>
       </ion-col>
-      <ion-col size="auto">
+      <ion-col>
+        <mat-autocomplete-field
+          [placeholder]="'TRIP.VESSEL'|translate"
+          formControlName="vesselFeatures"
+          [config]="autocompleteFields.vesselFeatures"
+          [displayWith]="vesselFeaturesToString"
+          required>
+          <ion-icon matPrefix name="boat"></ion-icon>
+        </mat-autocomplete-field>
+      </ion-col>
+      <ion-col size="auto" align-self-center>
         <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate" (click)="addVesselModal()"
                 type="button">
           <mat-icon>add</mat-icon>
@@ -101,20 +52,15 @@
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label float-end translate>LANDING.LANDING</ion-label>
       </ion-col>
+      <!-- location -->
       <ion-col *ngIf="showLocation">
-        <mat-form-field>
+        <mat-autocomplete-field formControlName="location"
+                                [placeholder]="'OBSERVED_LOCATION.LOCATION'|translate"
+                                [config]="autocompleteFields.location"
+                                [tabindex]="tabindex+1"
+                                required>
           <ion-icon matPrefix name="pin"></ion-icon>
-          <input matInput [placeholder]="'LANDING.LOCATION'|translate"
-                 formControlName="location"
-                 [matAutocomplete]="autoLocation"
-                 (blur)="applyImplicitValue('location')"
-                 required>
-          <mat-error *ngIf="form.controls.location.hasError('required')" translate>ERROR.FIELD_REQUIRED
-          </mat-error>
-          <mat-error *ngIf="form.controls.location.hasError('entity')" translate>ERROR.FIELD_INVALID
-          </mat-error>
-        </mat-form-field>
-
+        </mat-autocomplete-field>
       </ion-col>
       <ion-col size="12" size-sm="auto" *ngIf="showDateTime">
         <mat-date-time [placeholder]="'LANDING.DATE_TIME'|translate" formControlName="dateTime"
@@ -123,99 +69,35 @@
       </ion-col>
     </ion-row>
 
-    <!-- Location combo -->
-    <mat-autocomplete autoActiveFirstOption #autoLocation="matAutocomplete" [displayWith]="referentialToString">
-      <ion-row class="mat-autocomplete-header">
-        <ion-col size="3">
-          <ion-text translate>REFERENTIAL.LABEL</ion-text>
-        </ion-col>
-        <ion-col>
-          <ion-text translate>REFERENTIAL.NAME</ion-text>
-        </ion-col>
-      </ion-row>
-
-      <mat-option *ngFor="let location of $locations | async" [value]="location" no-padding>
-        <ion-row>
-          <ion-col size="3"
-                   [innerHTML]="location.label | highlight: {search: form.controls.location.value }"></ion-col>
-          <ion-col>
-            <span [innerHTML]="location.name | highlight: {search: form.controls.location.value }"></span>
-          </ion-col>
-        </ion-row>
-      </mat-option>
-    </mat-autocomplete>
-
     <!-- Observers -->
-    <div formArrayName="observers" *ngIf="showObservers">
-      <ng-container *ngFor="let observerControl of form.get('observers')?.controls; let i=index">
-        <ion-row>
-          <ion-col size="12" size-md="2" size-lg="3" align-self-end>
-            <ion-label float-end *ngIf="!i" translate>LANDING.OBSERVERS</ion-label>
-          </ion-col>
-          <ion-col>
-            <mat-form-field>
-              <ion-icon margin-right name="person" matPrefix></ion-icon>
-              <input matInput [placeholder]="('LANDING.OBSERVER_PLACEHOLDER'|translate) + (i+1)"
-                     [matAutocomplete]="autoObserver"
-                     [appAutofocus]="observerFocusIndex === i"
-                     [formControlName]="i"
-                     [tabindex]="10+i*3"
-                     (focus)="$observerFilterValue.next(observerControl.value)"
-                     (blur)="applyImplicitValue('observer')"
-                     required>
-              <mat-error *ngIf="observerControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-              <mat-error *ngIf="observerControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
-            </mat-form-field>
-          </ion-col>
-          <ion-col size="auto" align-self-center>
-            <button type="button" mat-icon-button [tabindex]="10+i*3+1" [disabled]="disabled"
-                    [title]="'COMMON.BTN_ADD'|translate"
-                    (click)="addObserver()">
-              <mat-icon>add</mat-icon>
-            </button>
-            <button type="button" mat-icon-button [tabindex]="10+i*3+2" [disabled]="disabled"
-                    [title]="'COMMON.BTN_DELETE'|translate"
-                    (click)="removeObserver($event, i)">
-              <mat-icon>close</mat-icon>
-            </button>
-          </ion-col>
-        </ion-row>
-      </ng-container>
-    </div>
-
-    <!-- observer combo -->
-    <mat-autocomplete autoActiveFirstOption #autoObserver="matAutocomplete" [displayWith]="personToString">
-      <ion-row class="mat-autocomplete-header">
-        <ion-col size="3">
-          <ion-text translate>USER.LAST_NAME</ion-text>
-        </ion-col>
-        <ion-col size="3">
-          <ion-text translate>USER.FIRST_NAME</ion-text>
-        </ion-col>
-        <ion-col>
-          <ion-text translate>USER.DEPARTMENT</ion-text>
-        </ion-col>
-      </ion-row>
-
-      <mat-option *ngFor="let item of $observers | async" [value]="item" no-padding>
-        <ion-row>
-          <ion-col size="3"
-                   [innerHTML]="item.lastName | highlight: {search: $observerFilterValue.getValue() }"></ion-col>
-          <ion-col size="3">
-            <span [innerHTML]="item.firstName | highlight: {search: $observerFilterValue.getValue() }"></span>
-            <i *ngIf="item.statusId !== 1">(
-              <span *ngIf="item.statusId === 0" translate>REFERENTIAL.STATUS_DISABLE</span>
-              <span *ngIf="item.statusId === 2" translate>REFERENTIAL.STATUS_TEMPORARY</span>
-              <span *ngIf="item.statusId === 3" translate>REFERENTIAL.STATUS_DELETED</span>
-              )
-            </i>
-          </ion-col>
-          <ion-col>
-            <ion-label [title]="item.department?.name">{{item.department?.label}}</ion-label>
-          </ion-col>
-        </ion-row>
-      </mat-option>
-    </mat-autocomplete>
+    <ion-row *ngFor="let observerForm of observersForm?.controls; let i=index">
+      <ion-col size="12" size-md="2" size-lg="3" align-self-end>
+        <ion-label float-end *ngIf="!i" translate>OBSERVED_LOCATION.OBSERVERS</ion-label>
+      </ion-col>
+      <ion-col >
+        <mat-autocomplete-field [formControl]="observersHelper.at(i)"
+                                [placeholder]="('OBSERVED_LOCATION.OBSERVER_PLACEHOLDER'|translate) + (i+1)"
+                                [appAutofocus]="observerFocusIndex === i"
+                                [config]="autocompleteFields.person"
+                                [tabindex]="tabindex+10+i*3"
+                                [i18nPrefix]="'USER.'"
+                                [required]="i === 0">
+          <ion-icon matPrefix name="person"></ion-icon>
+        </mat-autocomplete-field>
+      </ion-col>
+      <ion-col size="auto" align-self-center>
+        <button type="button" mat-icon-button [tabindex]="tabindex+10++i*3+1" [disabled]="disabled"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="addObserver()">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button type="button" mat-icon-button [tabindex]="tabindex+10++i*3+2" [disabled]="disabled"
+                [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="observersHelper.removeAt(i)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </ion-col>
+    </ion-row>
 
     <!-- Measurements -->
     <ion-row>

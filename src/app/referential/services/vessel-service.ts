@@ -12,6 +12,7 @@ import {AccountService} from "../../core/services/account.service";
 import {SuggestionDataService} from "../../shared/services/data-service.class";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {ReferentialFragments} from "./referential.queries";
+import {FetchPolicy} from "apollo-client";
 
 export declare class VesselFilter {
   date?: Date | Moment;
@@ -219,7 +220,9 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
   //     .pipe(first()).toPromise();
   // }
 
-  async load(id: number): Promise<VesselFeatures | null> {
+  async load(id: number, opts? : {
+    fetchPolicy?: FetchPolicy
+  }): Promise<VesselFeatures | null> {
     console.debug("[vessel-service] Loading vessel " + id);
 
     const data = await this.graphql.query<{ vessels: any }>({
@@ -227,7 +230,8 @@ export class VesselService extends BaseDataService implements SuggestionDataServ
       variables: {
         vesselId: id,
         vesselFeaturesId: null
-      }
+      },
+      fetchPolicy: opts && opts.fetchPolicy || undefined
     });
 
     if (data && data.vessels && data.vessels.length) {

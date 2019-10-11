@@ -120,7 +120,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
           pluck('label'),
           distinctUntilChanged()
         )
-      .subscribe(programLabel => this.program = programLabel));
+        .subscribe(programLabel => this.program = programLabel));
 
     // Combo location
     this.registerAutocompleteField('location', {
@@ -162,6 +162,13 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.setValue(value);
   }
 
+  addObserver() {
+    this.observersHelper.add();
+    if (!this.mobile) {
+      this.observerFocusIndex = this.observersHelper.size() - 1;
+    }
+  }
+
   enable(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
@@ -175,12 +182,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     }
   }
 
-  addObserver() {
-    this.observersHelper.add();
-    if (!this.mobile) {
-      this.observerFocusIndex = this.observersHelper.size() - 1;
-    }
-  }
 
   entityToString = entityToString;
   referentialToString = referentialToString;
