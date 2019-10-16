@@ -1,9 +1,0 @@
-query Trips {
-  trips(filter: {programLabel: "SUMARiS" }) {
-    id
-    returnLocation {
-      label
-      name
-    }
-  }
-}
