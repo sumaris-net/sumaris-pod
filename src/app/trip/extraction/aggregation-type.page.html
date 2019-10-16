@@ -1,0 +1,80 @@
+<app-toolbar [title]="title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+  <ion-spinner *ngIf="loading"></ion-spinner>
+
+  <button mat-icon-button [matMenuTriggerFor]="actionMenu"
+          [title]=" 'COMMON.BTN_OPTIONS'|translate">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+</app-toolbar>
+
+<!-- Type = live sub menu -->
+<mat-menu #actionMenu="matMenu" xPosition="after">
+  <button mat-menu-item
+          (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>COMMON.BTN_DELETE</span>
+    </ion-label>
+  </button>
+</mat-menu>
+
+<ion-content padding>
+
+  <!-- error -->
+  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <ion-grid no-padding>
+    <ion-row no-padding padding-top>
+      <ion-col>
+        <!-- base form -->
+        <app-referential-form #referentialForm
+                              [form]="form"
+                              [showError]="false"
+                              [debug]="debug"
+                              (onSubmit)="save($event)">
+          <ion-row>
+            <ion-col>
+              <mat-form-field floatLabel="never">
+                <!-- fake input -->
+                <input matInput hidden>
+                <ion-label>&nbsp;</ion-label>
+
+                <!-- checkbox, when compact -->
+                <mat-checkbox matPrefix
+                              [formControl]="form.controls.isSpatial"
+                              labelPosition="after">
+                  <ion-text translate>EXTRACTION.AGGREGATION.EDIT.IS_SPATIAL</ion-text>
+                </mat-checkbox>
+              </mat-form-field>
+            </ion-col>
+
+            <ion-col>
+
+            </ion-col>
+          </ion-row>
+        </app-referential-form>
+      </ion-col>
+
+      <ion-col no-padding size="12" size-xl="3">
+        <entity-metadata [value]="data"></entity-metadata>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+  <form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
+                    [disabledCancel]="!dirty || loading">
+
+    <!-- error -->
+    <ion-item *ngIf="error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </form-buttons-bar>
+</ion-footer>

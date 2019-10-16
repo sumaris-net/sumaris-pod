@@ -16,7 +16,7 @@ import {ReferentialForm} from "../form/referential.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
 import {StrategiesTable} from "./strategies.table";
 import {FormFieldDefinition, FormFieldDefinitionMap, FormFieldValue} from "../../shared/form/field.model";
-import {fadeInOutAnimation} from "../../shared/shared.module";
+import {EditorDataServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
 import {MatTabChangeEvent} from "@angular/material";
 
 @Component({
@@ -36,8 +36,6 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   propertiesFormHelper: FormArrayHelper<{ key: string; value: string }>;
 
   canEdit: boolean;
-
-  @Input()
   form: FormGroup;
 
   @ViewChild('referentialForm') referentialForm: ReferentialForm;
@@ -56,7 +54,7 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
     super(injector,
       Program,
       programService);
-    this.form = validatorService.getRowValidator();
+    this.form = validatorService.getFormGroup();
     this.propertiesFormHelper = new FormArrayHelper<FormFieldValue>(
       injector.get(FormBuilder),
       this.form,
@@ -68,8 +66,10 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
         allowEmptyArray: true
       }
     );
+
+    // default values
     this.defaultBackHref = "/referential/list?entity=Program";
-    this.canEdit = this.accountService.isSupervisor();
+    this.canEdit = this.accountService.isAdmin();
 
     // Fill options map
     this.propertyDefinitionsByKey = {};
@@ -120,7 +120,10 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   /* -- protected methods -- */
 
   protected canUserWrite(data: Program): boolean {
-    return this.accountService.isAdmin();
+    // TODO : check user is in porgram managers
+    return (this.isNewData && this.accountService.isAdmin())
+      || (EntityUtils.isNotEmpty(data) && this.accountService.isSupervisor());
+
   }
 
   enable() {
@@ -178,6 +181,12 @@ export class ProgramPage extends AppEditorPage<Program> implements OnInit {
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     return 0;
+  }
+
+  protected async onEntityLoaded(data: Program, options?: EditorDataServiceLoadOptions): Promise<void> {
+    super.onEntityLoaded(data, options);
+
+    this.canEdit = this.canUserWrite(data);
   }
 
   referentialToString = referentialToString;

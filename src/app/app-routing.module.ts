@@ -10,18 +10,19 @@ import {VesselPage} from './referential/vessel/page/page-vessel';
 import {ReferentialsPage} from './referential/list/referentials';
 import {TripPage, TripsPage} from './trip/trip.module';
 import {OperationPage} from './trip/operation/operation.page';
-import {ExtractionTablePage} from "./trip/extraction/extraction-table-page.component";
+import {ExtractionDataPage} from "./trip/extraction/extraction-data.page";
 import {RemoteConfigPage} from './admin/config/config.component';
 import {ObservedLocationPage} from "./trip/observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./trip/observedlocation/observed-locations.page";
 import {SettingsPage} from "./core/settings/settings.page";
-import {ExtractionMapPage} from "./trip/extraction/extraction-map-page.component";
+import {ExtractionMapPage} from "./trip/extraction/extraction-map.page";
 import {LandingPage} from "./trip/landing/landing.page";
 import {AuctionControlLandingPage} from "./trip/landing/auctioncontrol/auction-control-landing.page";
 import {SubBatchesModal} from "./trip/batch/sub-batches.modal";
 import {IonicRouteStrategy} from "@ionic/angular";
 import {ProgramPage} from "./referential/program/program.page";
 import {BatchGroupPage} from "./trip/batch/batch-group.page";
+import {AggregationTypePage} from "./trip/extraction/aggregation-type.page";
 
 const routeOptions: ExtraOptions = {
   enableTracing: false,
@@ -284,10 +285,19 @@ const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        component: ExtractionTablePage,
+        component: ExtractionDataPage,
         runGuardsAndResolvers: 'pathParamsChange',
         data: {
           profile: 'SUPERVISOR'
+        }
+      },
+      {
+        path: 'aggregation/:aggregationTypeId',
+        component: AggregationTypePage,
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'SUPERVISOR',
+          pathIdParam: 'aggregationTypeId'
         }
       }
     ]

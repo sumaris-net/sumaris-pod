@@ -754,7 +754,19 @@
     "BTN_UNPUBLISH": "Rendre privé",
     "TYPE": "Type d'extraction",
     "AGGREGATION": {
-      "NEW_NAME": "Nouvelle aggregation / {{name}}"
+      "NEW_NAME": "Nouvelle aggregation / {{name}}",
+      "NEW": {
+        "TITLE": "Nouvelle aggregation"
+      },
+      "EDIT": {
+        "TITLE": "Aggregation {{name}}",
+        "IS_SPATIAL": "Aggregation spatiale ?",
+        "STATUS_ENUM": {
+          "PUBLIC": "Visibilité: publique",
+          "PRIVATE": "Visibilité: privé",
+          "DISABLE": "Obsolète"
+        }
+      }
     },
     "COMMON": {
       "VESSEL_FLAG_COUNTRY": "Pavillon",

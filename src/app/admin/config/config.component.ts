@@ -159,12 +159,12 @@ export class RemoteConfigPage extends AppForm<Configuration> implements OnInit {
   }
 
   getPropertyDefinition(index: number): FormFieldDefinition {
-    let option = this.propertyDefinitionsByIndex[index];
-    if (!option) {
-      option = this.updatePropertyDefinition(index);
-      this.propertyDefinitionsByIndex[index] = option;
+    let definition = this.propertyDefinitionsByIndex[index];
+    if (!definition) {
+      definition = this.updatePropertyDefinition(index);
+      this.propertyDefinitionsByIndex[index] = definition;
     }
-    return option;
+    return definition;
   }
 
   updatePropertyDefinition(index: number): FormFieldDefinition {

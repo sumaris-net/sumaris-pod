@@ -54,7 +54,8 @@
             <mat-autocomplete-field
               [placeholder]="'TRIP.TABLE.FILTER.PROGRAM'|translate"
               formControlName="program"
-              [config]="autocompleteFields.program">
+              [config]="autocompleteFields.program"
+              clearable="true">
               <ion-icon matPrefix name="contract"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>
@@ -67,7 +68,8 @@
               [placeholder]="'TRIP.TABLE.FILTER.VESSEL'|translate"
               formControlName="vesselFeatures"
               [config]="autocompleteFields.vesselFeatures"
-              [displayWith]="vesselFeaturesToString">
+              [displayWith]="vesselFeaturesToString"
+              clearable="true">
               <ion-icon matPrefix name="boat"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>
@@ -77,7 +79,8 @@
             <mat-autocomplete-field
               [placeholder]="'TRIP.TABLE.FILTER.LOCATION'|translate"
               formControlName="location"
-              [config]="autocompleteFields.location">
+              [config]="autocompleteFields.location"
+              clearable="true">
               <ion-icon matPrefix name="pin"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>

@@ -38,7 +38,7 @@ import {
   SubSampleValidatorService,
   TripValidatorService
 } from './services/trip.validators';
-import {ExtractionTablePage} from "./extraction/extraction-table-page.component";
+import {ExtractionDataPage} from "./extraction/extraction-data.page";
 import {ObservedLocationForm} from "./observedlocation/observed-location.form";
 import {ObservedLocationPage} from "./observedlocation/observed-location.page";
 import {ObservedLocationsPage} from "./observedlocation/observed-locations.page";
@@ -46,13 +46,13 @@ import {ObservedLocationService} from "./services/observed-location.service";
 import {ObservedLocationValidatorService} from "./services/observed-location.validator";
 import {LandingsTable} from "./landing/landings.table";
 import {SaleService} from "./services/sale.service";
-import {ExtractionMapPage} from "./extraction/extraction-map-page.component";
+import {ExtractionMapPage} from "./extraction/extraction-map.page";
 import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {LandingValidatorService} from "./services/landing.validator";
 import {LandingPage} from "./landing/landing.page";
 import {LandingForm} from "./landing/landing.form";
 import {LandingsTablesModal} from "./landing/landings-table.modal";
-import {ExtractionSelectTypeModal} from "./extraction/extraction-list-modal.component";
+import {AggregationTypeSelectModal} from "./extraction/aggregation-type-select.modal";
 import {AuctionControlSamplesTable} from "./sample/auctioncontrol/auction-control-samples.table";
 import {AuctionControlLandingPage} from "./landing/auctioncontrol/auction-control-landing.page";
 import {SubBatchesModal} from "./batch/sub-batches.modal";
@@ -66,15 +66,19 @@ import {BatchGroupForm} from "./batch/batch-group.form";
 import {BatchGroupModal} from "./batch/batch-group.modal";
 import {SubBatchModal} from "./batch/sub-batch.modal";
 import {FullscreenOverlayContainer, OverlayContainer} from "@angular/cdk/overlay";
+import {ExtractionTypeValidatorService} from "./services/validator/extraction-type.validator";
+import {AggregationTypePage} from "./extraction/aggregation-type.page";
+import {ReferentialModule} from "../referential/referential.module";
 
 export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
 @NgModule({
-    imports: [
-      CommonModule,
-      CoreModule,
-      LeafletModule
-    ],
+  imports: [
+    CommonModule,
+    CoreModule,
+    LeafletModule,
+    ReferentialModule
+  ],
     declarations: [
       TripsPage,
       TripPage,
@@ -114,9 +118,10 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       AuctionControlLandingPage,
       AuctionControlSamplesTable,
       EntityQualityFormComponent,
-      ExtractionTablePage,
+      ExtractionDataPage,
       ExtractionMapPage,
-      ExtractionSelectTypeModal
+      AggregationTypeSelectModal,
+      AggregationTypePage
     ],
     exports: [
       TripsPage,
@@ -131,7 +136,7 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       OperationTable,
       MeasurementsForm,
       MeasurementQVFormField,
-      ExtractionTablePage,
+      ExtractionDataPage,
       ExtractionMapPage,
       EntityQualityFormComponent,
       LandingsTable,
@@ -142,7 +147,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       BatchForm,
       BatchGroupPage,
       SubBatchForm,
-      SubBatchModal
+      SubBatchModal,
+      AggregationTypePage
     ],
     entryComponents: [
       TripsPage,
@@ -156,14 +162,15 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       LandingPage,
       LandingsTablesModal,
       AuctionControlLandingPage,
-      ExtractionTablePage,
+      ExtractionDataPage,
       ExtractionMapPage,
-      ExtractionSelectTypeModal,
+      AggregationTypeSelectModal,
       SubBatchesModal,
       BatchModal,
       BatchGroupModal,
       BatchGroupPage,
-      SubBatchModal
+      SubBatchModal,
+      AggregationTypePage
     ],
     providers: [
       TripService,
@@ -186,7 +193,8 @@ export { TripsPage, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
       SampleValidatorService,
       SubSampleValidatorService,
       ExtractionService,
-      {provide: OverlayContainer, useClass: FullscreenOverlayContainer}
+      {provide: OverlayContainer, useClass: FullscreenOverlayContainer},
+      ExtractionTypeValidatorService
     ]
 })
 export class TripModule {

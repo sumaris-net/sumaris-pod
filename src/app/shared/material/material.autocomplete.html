@@ -24,7 +24,7 @@
   <button mat-button matSuffix mat-icon-button tabindex="-1"
           type="button"
           *ngIf="clearable"
-          (click)="clear()"
+          (click)="writeValue(null)"
           [hidden]="formControl.disabled || !formControl.value">
     <mat-icon>close</mat-icon>
   </button>

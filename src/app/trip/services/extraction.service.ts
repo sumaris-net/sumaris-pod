@@ -23,7 +23,7 @@ import {
   ExtractionType
 } from "./extraction.model";
 import {FetchPolicy} from "apollo-client";
-import {trimEmptyToNull} from "../../shared/functions";
+import {isNotNilOrBlank, trimEmptyToNull} from "../../shared/functions";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {FeatureCollection} from "geojson";
 import {Fragments} from "./trip.queries";
@@ -52,6 +52,7 @@ export const ExtractionFragments = {
     sheetNames
     description
     updateDate
+    comments
     isSpatial
     statusId
     strata {
@@ -106,7 +107,7 @@ const LoadRowsQuery: any = gql`
       }
       rows
       total
-    }    
+    }
   }
 `;
 
@@ -120,7 +121,7 @@ const LoadAggregationColumnsQuery: any = gql`
       description
       rankOrder
       values
-    }    
+    }
   }
 `;
 
@@ -131,6 +132,15 @@ const GetFileQuery: any = gql`
   }
 `;
 
+
+const LoadAggregationType = gql`
+  query AggregationType($id: Int) {
+    aggregationType(id: $id) {
+      ...AggregationTypeFragment
+    }
+  }
+  ${ExtractionFragments.aggregationType}
+`;
 
 const LoadAggregationTypes = gql`
   query AggregationTypes($filter: AggregationTypeFilterVOInput) {
@@ -148,7 +158,7 @@ const LoadAggregationGeoJsonQuery = gql`
     $strata: AggregationStrataVOInput,
     $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
       aggregationGeoJson(
-        type: $type, filter: $filter, strata: $strata, 
+        type: $type, filter: $filter, strata: $strata,
         offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection
       )
   }`;
@@ -212,7 +222,9 @@ export class ExtractionService extends BaseDataService {
     let now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading extraction types...");
 
-    const variables = {};
+    const variables = {
+
+    };
 
     this._lastVariables.loadTypes = variables;
 
@@ -390,6 +402,21 @@ export class ExtractionService extends BaseDataService {
       );
   }
 
+  async loadAggregationType(id: number,  options?: {
+    fetchPolicy?: FetchPolicy
+  }): Promise<AggregationType> {
+    const data = await this.graphql.query<{ aggregationType: AggregationType }>({
+      query: LoadAggregationType,
+      variables: {
+        id
+      },
+      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPE_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || 'network-only'
+    });
+
+    return (data && data.aggregationType && AggregationType.fromObject(data.aggregationType));
+  }
+
   /**
    * Load aggregation as GeoJson
    */
@@ -434,9 +461,9 @@ export class ExtractionService extends BaseDataService {
     };
 
     target.criteria = (source.criteria || [])
-      .filter(criterion => isNotNil(criterion.name) && isNotNil(trimEmptyToNull(criterion.value)))
+      .filter(criterion => isNotNil(criterion.name) && isNotNilOrBlank(criterion.value))
       .map(criterion => {
-        const isMulti = isNotNil(criterion.value) && criterion.value.indexOf(',') != -1;
+        const isMulti = (typeof criterion.value === 'string' && criterion.value.indexOf(',') !== -1);
         switch (criterion.operator) {
           case '=':
             if (isMulti) {
@@ -488,7 +515,9 @@ export class ExtractionService extends BaseDataService {
 
     this.fillDefaultProperties(entity);
 
-    const json = entity.asObject(true/*minify*/);
+    const json = entity.asObject(false/*minify*/);
+
+    console.log(json)
 
     const isNew = isNil(sourceType.id);
 
@@ -507,10 +536,13 @@ export class ExtractionService extends BaseDataService {
         if (savedEntity) {
           if (savedEntity !== entity) {
             EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
+
+            if (this._debug) console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
           }
 
           // Always force category, as sourceType could NOT be a live extraction
           savedEntity.category = 'product';
+          savedEntity.isSpatial = entity.isSpatial;
 
           if (isNew) {
             // Add to cache (extraction types)
@@ -536,7 +568,7 @@ export class ExtractionService extends BaseDataService {
             }
           }
 
-          if (this._debug) console.debug(`[extraction-service] Aggregation saved in ${Date.now() - now}ms`, savedEntity);
+
         }
       }
     });
@@ -590,17 +622,11 @@ export class ExtractionService extends BaseDataService {
       // Compute label
       entity.label = `${entity.label}-${Date.now()}`;
 
-      const person: Person = this.accountService.account;
-
       // Recorder department
-      if (person && person.department && !entity.recorderDepartment) {
-        entity.recorderDepartment = Department.fromObject({id: person.department.id});
-      }
+      entity.recorderDepartment = EntityUtils.isNotEmpty(entity.recorderDepartment) ? entity.recorderDepartment : this.accountService.department;
 
       // Recorder person
-      if (person && person.id && !entity.recorderPerson) {
-        entity.recorderPerson = Person.fromObject({id: person.id});
-      }
+      entity.recorderPerson = entity.recorderPerson || this.accountService.person;
     }
 
     entity.name = entity.name || `Aggregation on ${entity.label}`;

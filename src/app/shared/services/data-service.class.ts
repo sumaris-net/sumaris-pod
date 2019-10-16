@@ -5,8 +5,10 @@ export declare interface LoadResult<T> {
   data: T[];
   total?: number;
 }
+export declare type SuggestFn<T, F = any> = (value: any, filter?: F) => Promise<T[]>;
+
 export declare interface SuggestionDataService<T, F = any> {
-  suggest(value: any, filter?: F): Promise<T[]>;
+  suggest: SuggestFn<T, F>;
 }
 export declare interface DataService<T, F> {
 

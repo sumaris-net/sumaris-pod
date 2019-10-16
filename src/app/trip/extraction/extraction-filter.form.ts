@@ -1,16 +1,17 @@
 import {EventEmitter, Injector, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
-import {Observable} from 'rxjs';
-import {DateFormatPipe, isNil, isNotNil} from '../../shared/shared.module';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {DateFormatPipe, isNil, isNotNil, isNotNilOrBlank} from '../../shared/shared.module';
 import {AggregationType, ExtractionType} from "../services/extraction.model";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {trimEmptyToNull} from "../../shared/functions";
-import {first, map} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, first, map, mergeMap} from "rxjs/operators";
 import {AccountService, AppForm, LocalSettingsService} from "../../core/core.module";
 import {DateAdapter} from "@angular/material";
 import {Moment} from "moment";
+import {filterNotNil, firstNotNil, firstNotNilPromise} from "../../shared/observables";
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -46,15 +47,15 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
   ];
   onRefresh = new EventEmitter<any>();
 
-  $types: Observable<T[]>;
+  $types = new BehaviorSubject<T[]>(undefined);
   $sheetNames: Observable<string[]>;
 
   get sheetName(): string {
-    return this.form.get('sheetName').value;
+    return this.form.controls.sheetName.value;
   }
 
-  get criteriaForm(): FormArray {
-    return this.form.get('sheets').get(this.sheetName) as FormArray;
+  get sheetCriteriaForm(): FormArray {
+    return this.form.get('sheets.' + this.sheetName) as FormArray;
   }
 
   protected constructor(
@@ -79,16 +80,21 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
       }));
 
     // Load types
-    this.$types = this.loadTypes();
+    this.registerSubscription(
+      this.watchTypes()
+        .subscribe(types => this.$types.next(types))
+    );
 
     // Listen route parameters
     this.registerSubscription(
       this.route.queryParams
-        .pipe(first()) // Do not refresh after the first page load (e.g. when location query path changed)
-        .subscribe(async ({category, label, sheet}) => {
+        .pipe(
+          // Convert query params into a valid type
+          mergeMap(async ({category, label, sheet}) => {
           const paramType = this.fromObject({category, label});
 
-          const types = await this.$types.pipe(first()).toPromise();
+          // Read type
+          const types = await firstNotNilPromise(this.$types);
           let selectedType;
 
           // If not type found in params, redirect to first one
@@ -102,10 +108,14 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
           }
 
           const selectedSheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
-          if (selectedSheetName && selectedType  && !selectedType.sheetNames) {
+          if (selectedSheetName && selectedType && !selectedType.sheetNames) {
             selectedType.sheetNames = [selectedSheetName];
           }
 
+          return {selectedType, selectedSheetName};
+        }))
+
+        .subscribe(async ({selectedType, selectedSheetName}) => {
           // Set the type
           await this.setType(selectedType, {
             sheetName: selectedSheetName,
@@ -115,6 +125,7 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
 
           // Execute the first load
           await this.load(this.type);
+
         }));
 
     this.$sheetNames = this.form.get('type').valueChanges
@@ -127,17 +138,11 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
         })
       );
 
-    // this.form.get('type').valueChanges
-    //   .pipe(
-    //     distinct()
-    //   )
-    //   .subscribe(() => this.onTypeChange());
-
   }
 
   protected async abstract load(type?: T);
 
-  protected abstract loadTypes(): Observable<T[]>;
+  protected abstract watchTypes(): Observable<T[]>;
 
   protected abstract fromObject(type?: any): T;
 
@@ -157,7 +162,7 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
     // If empty or same: skip
     if (!type || ExtractionType.equals(type, this.type)) return;
 
-    const types = await this.$types.pipe(first()).toPromise();
+    const types = await firstNotNilPromise(this.$types);
     const selectType = types.find(t => ExtractionType.equals(t, type));
 
     if (!selectType) {
@@ -170,8 +175,7 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
     this.form.get('type').patchValue(type, opts);
 
     // Check if user can edit (admin or supervisor in the rec department)
-    this.canEdit = selectType.isSpatial && (this.accountService.isAdmin()
-      || this.accountService.canUserWriteDataForDepartment(selectType.recorderDepartment));
+    this.canEdit = this.canUserWrite(selectType);
 
     // Select the given sheet, or the first one
     const sheetName = opts.sheetName || (selectType.sheetNames && selectType.sheetNames[0]);
@@ -291,7 +295,7 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
       }
     }
 
-    // Replace the existing criterion
+    // Replace the existing criterion value
     if (index >= 0) {
       if (criterion && criterion.name) {
         const criterionForm = arrayControl.at(index) as FormGroup;
@@ -313,15 +317,32 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
       }
     }
 
-    // Add a new criterion
+    // Add a new criterion (formGroup + value)
     else {
-      arrayControl.push(this.formBuilder.group({
+      const criterionForm = this.formBuilder.group({
         name: [criterion && criterion.name || null],
         operator: [criterion && criterion.operator || '=', Validators.required],
         value: [criterion && criterion.value || null],
         endValue: [criterion && criterion.endValue || null],
         sheetName: [criterion && criterion.sheetName || this.sheetName]
-      }));
+      });
+      const criterionValueControl = criterionForm.controls.value;
+      criterionForm.controls.name.valueChanges
+        .pipe(
+          debounceTime(250),
+          distinctUntilChanged()
+        )
+        .subscribe(value => {
+          if (isNotNilOrBlank(value)) {
+            if (criterionValueControl.disabled) {
+              criterionValueControl.enable();
+            }
+          }
+          else if (criterionValueControl.enabled) {
+            criterionValueControl.disable();
+          }
+        });
+      arrayControl.push(criterionForm);
       hasChanged = true;
     }
 
@@ -335,17 +356,17 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
 
   public hasFilterCriteria(sheetName?: string): boolean {
     if (isNil(sheetName)) {
-      const arrayControl = this.form.get('sheets').get(this.sheetName) as FormArray;
+      const arrayControl = this.sheetCriteriaForm;
       if (arrayControl && arrayControl.length === 1) {
         const criterion = arrayControl.at(0).value as ExtractionFilterCriterion;
-        return trimEmptyToNull(criterion.value) && true;
+        return isNotNilOrBlank(criterion.value);
       }
       return arrayControl && arrayControl.length > 1;
     } else {
-      const control = this.form.get('sheets').get(sheetName) as FormArray;
+      const control = this.form.get('sheets.' + sheetName) as FormArray;
       return control && control.controls
         .map(c => c.value)
-        .findIndex(criterion => trimEmptyToNull(criterion.value) && true) >= 0;
+        .findIndex(criterion => criterion && isNotNilOrBlank(criterion.value)) !== -1;
     }
   }
 
@@ -510,4 +531,9 @@ export abstract class ExtractionForm<T extends ExtractionType | AggregationType>
     return params;
   }
 
+  protected canUserWrite(type: ExtractionType): boolean {
+    return type.category === "product" && (
+      this.accountService.isAdmin()
+      || (this.accountService.isSupervisor() && this.accountService.canUserWriteDataForDepartment(type.recorderDepartment)))
+  }
 }

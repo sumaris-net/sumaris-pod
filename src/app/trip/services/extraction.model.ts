@@ -16,7 +16,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
     return res;
   }
 
-  category: string;
+  category: 'product' | 'live';
   label: string;
   name?: string;
   sheetNames?: string[];
@@ -27,7 +27,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
 
   constructor() {
     super();
-    this.recorderDepartment = new Department();
+    this.recorderDepartment = null;
   }
 
   clone(): T {
@@ -47,7 +47,7 @@ export class ExtractionType<T extends ExtractionType<any> = ExtractionType<any>>
     this.sheetNames = source.sheetNames;
     this.statusId = source.statusId;
     this.isSpatial = source.isSpatial;
-    source.recorderDepartment && this.recorderDepartment.fromObject(source.recorderDepartment);
+    this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
     return this;
   }
 

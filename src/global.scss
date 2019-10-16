@@ -135,8 +135,13 @@ form.form-container {
     color: rgba(0, 0, 0, 0.55) !important;
   }
 
-  mat-form-field {
+  mat-form-field,
+  mat-autocomplete-field,
+  app-form-field {
     width: 100%;
+  }
+
+  mat-form-field {
     font-size: 16px !important;
 
     ion-icon[matPrefix],

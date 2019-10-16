@@ -10,7 +10,14 @@ import {
 import {PlatformService} from "../../core/services/platform.service";
 import {AggregationTypeFilter, ExtractionFilter} from "../services/extraction.service";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {isNil, isNotNil, isNotNilOrBlank} from "../../shared/functions";
+import {
+  isNil,
+  isNilOrBlank, isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  suggestFromArray,
+  suggestFromStringArray
+} from "../../shared/functions";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {AggregationStrata, AggregationType, ExtractionColumn, ExtractionType} from "../services/extraction.model";
 import {Location} from "@angular/common";
@@ -23,8 +30,9 @@ import {CRS, LayerGroup} from 'leaflet';
 import {Feature} from "geojson";
 import {map, throttleTime} from "rxjs/operators";
 import {ModalController} from "@ionic/angular";
-import {ExtractionSelectTypeModal} from "./extraction-list-modal.component";
+import {AggregationTypeSelectModal} from "./aggregation-type-select.modal";
 import {AccountService} from "../../core/services/account.service";
+import {FormFieldDefinition, FormFieldType} from "../../shared/form/field.model";
 
 
 const SPACE_STRATA_COLUMNS: string[] = ['area', 'rect', 'statistical_rectangle', 'square'];
@@ -32,8 +40,8 @@ const TIME_STRATA_COLUMNS: string[] = ['year', 'quarter', 'month'];
 
 @Component({
   selector: 'app-extraction-map-page',
-  templateUrl: './extraction-map-page.component.html',
-  styleUrls: ['./extraction-map-page.component.scss'],
+  templateUrl: './extraction-map.page.html',
+  styleUrls: ['./extraction-map.page.scss'],
   animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -97,10 +105,14 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
   $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
 
+  $columnValueDefinitions = new BehaviorSubject<FormFieldDefinition[]>(undefined);
+  $columnValueDefinitionsByIndex: { [index: number]: BehaviorSubject<FormFieldDefinition> } = {};
+
   $details = new Subject<{ title: string; properties: { name: string; value: string }[]; }>();
   $stats = new Subject<{ title: string; properties: { name: string; value: string }[] }>();
   $years = new BehaviorSubject<number[]>(undefined);
   $quickYears = new Subject<number[]>();
+
 
 
   @ViewChild(MatExpansionPanel) filterExpansionPanel: MatExpansionPanel;
@@ -218,7 +230,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     });
   }
 
-  protected loadTypes(): Observable<AggregationType[]> {
+  protected watchTypes(): Observable<AggregationType[]> {
     return this.service.loadAggregationTypes(this.typesFilter)
       .pipe(
         map(types => {
@@ -265,10 +277,11 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       return res;
     }, {});
 
-    const techColumns = columns.filter(c => c.type && c.type !== 'string'
-      || c.columnName.endsWith('_count')
-      || c.columnName.endsWith('_time')
-      || c.columnName.endsWith('_weight'));
+    const techColumns = columns.filter(c =>
+      (!c.type || c.type === 'integer' || c.type === 'double')
+      && (c.columnName.endsWith('_count')
+          || c.columnName.endsWith('_time')
+          || c.columnName.endsWith('_weight')));
     this.$techColumns.next(techColumns);
 
     const spaceColumns = columns.filter(c => SPACE_STRATA_COLUMNS.includes(c.columnName));
@@ -278,7 +291,10 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     this.$timeColumns.next(timeColumns);
 
     const excludedFilterColumns = spaceColumns.concat(timeColumns);
-    this.$columns.next(columns.filter(c => !excludedFilterColumns.includes(c)));
+    const filterColumns = columns.filter(c => !excludedFilterColumns.includes(c));
+    this.$columns.next(filterColumns);
+
+    this.$columnValueDefinitions.next(filterColumns.map(c => this.getColumnDefinition(c)));
 
     const yearColumn = (columns || []).find(c => c.columnName === 'year');
     const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
@@ -517,7 +533,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       isSpatial: true
     };
     const modal = await this.modalCtrl.create({
-      component: ExtractionSelectTypeModal,
+      component: AggregationTypeSelectModal,
       componentProps: {
         filter: filter
       }, keyboardClose: true
@@ -543,6 +559,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
       }
     }
   }
+
 
   /* -- protected methods -- */
 
@@ -622,7 +639,7 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     return filter;
   }
 
-  public resetFilterCriteria() {
+  resetFilterCriteria() {
 
     // Close the filter panel
     if (this.filterExpansionPanel && this.filterExpansionPanel.expanded) {
@@ -630,6 +647,59 @@ export class ExtractionMapPage extends ExtractionForm<AggregationType> implement
     }
 
     super.resetFilterCriteria();
+  }
+
+  getCriterionValueDefinition(index: number): Observable<FormFieldDefinition> {
+    return this.$columnValueDefinitionsByIndex[index] || this.updateCriterionValueDefinition(index);
+  }
+
+  updateCriterionValueDefinition(index: number, columnName?: string, resetValue?: boolean): Observable<FormFieldDefinition> {
+    const criterionForm = this.sheetCriteriaForm.at(index) as FormGroup;
+    columnName = columnName || (criterionForm && criterionForm.controls.name.value);
+    const definition = columnName && this.$columnValueDefinitions.getValue().find(d => d.key === columnName) || null;
+
+    // Reset the criterion value, is ask by caller
+    if (resetValue) criterionForm.patchValue({value: null});
+
+    let subject = this.$columnValueDefinitionsByIndex[index];
+    if (!subject) {
+      subject = new BehaviorSubject(definition);
+      this.$columnValueDefinitionsByIndex[index] = subject;
+    }
+    else {
+      const existingDefinition = subject.getValue();
+      if (existingDefinition) {
+        subject.next(definition);
+      }
+      else {
+        subject.next(definition);
+      }
+      this.markForCheck();
+    }
+    return subject;
+  }
+
+  protected getColumnDefinition(column: ExtractionColumn): FormFieldDefinition {
+    if (isNotEmptyArray(column.values)) {
+      return {
+        key: column.columnName,
+        label: column.name,
+        type: 'entity',
+        autocomplete: {
+          items: column.values,
+          attributes: [undefined],
+          columnNames: ['EXTRACTION.FILTER.CRITERION_VALUE'],
+          displayWith: (value) => value
+        }
+      };
+    }
+    else {
+      return  {
+        key: column.columnName,
+        label: column.name,
+        type: column.type as FormFieldType
+      };
+    }
   }
 
   protected markForCheck() {

@@ -26,18 +26,19 @@ import {ModalController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {ExtractionForm} from "./extraction-filter.form";
 import {LocalSettingsService} from "../../core/core.module";
-import {map, tap} from "rxjs/operators";
+import {delay, filter, map} from "rxjs/operators";
+import {firstNotNilPromise} from "../../shared/observables";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
-  selector: 'app-extraction-table',
-  templateUrl: './extraction-table-page.component.html',
-  styleUrls: ['./extraction-table-page.component.scss'],
+  selector: 'app-extraction-rows',
+  templateUrl: './extraction-data.page.html',
+  styleUrls: ['./extraction-data.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionTablePage extends ExtractionForm<ExtractionType> implements OnInit {
+export class ExtractionDataPage extends ExtractionForm<ExtractionType> implements OnInit {
 
   data: ExtractionResult;
   $title = new Subject<string>();
@@ -48,6 +49,9 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
   settingsId: string;
   showHelp = true;
   canAggregate = false;
+  isAdmin = false;
+
+  $typesMap: { [category: string]: Observable<ExtractionType[]>};
 
   @ViewChild(MatTable) table: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -71,11 +75,18 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
+    this.isAdmin = this.accountService.isAdmin();
   }
 
   ngOnInit() {
 
     super.ngOnInit();
+
+    // Create a map by category (use for type sub menu)
+    this.$typesMap =  ['live', 'product'].reduce((res, category) => {
+      res[category] = this.$types.pipe(map( types => types.filter(t => t.category === category)));
+      return res;
+    }, {});
 
     // If the user changes the sort order, reset back to the first page.
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
@@ -91,7 +102,7 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
       });
   }
 
-  protected loadTypes(): Observable<ExtractionType[]> {
+  protected watchTypes(): Observable<ExtractionType[]> {
     return this.service.watchTypes()
       .pipe(
         map(types => {
@@ -258,7 +269,7 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
     this.error = null;
     this.markForCheck();
 
-    const filter = this.getFilterValue();
+    const extractionFilter = this.getFilterValue();
     this.disable();
 
     try {
@@ -272,18 +283,20 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
       });
 
       // Save aggregation
-      const savedAggType = await this.service.saveAggregation(aggType, filter);
+      const savedAggType = await this.service.saveAggregation(aggType, extractionFilter);
 
       // Wait for types cache updates
-      await setTimeout(() => {
-
-        this.loading = false;
+      await setTimeout(async() => {
 
         // Open the new aggregation
-        return this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
+        await this.openAggregationType(savedAggType);
 
-      }, 500);
+        await this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
 
+        this.loading = false;
+        this.markForCheck();
+
+      }, 1000);
 
     } catch (err) {
       console.error(err);
@@ -299,8 +312,8 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
   async deleteAggregation() {
     if (!this.type || isNil(this.type.id)) return;
 
-    if (!this.type.isSpatial) {
-      console.warn("[extraction-table] Only spatial extraction can be deleted !");
+    if (this.type.category !== 'product') {
+      console.warn("[extraction-table] Only product extraction can be deleted !");
       return;
     }
 
@@ -308,14 +321,24 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
 
     try {
       await this.service.deleteAggregations([this.type as AggregationType]);
+
+      // Wait propagation to types
+      await delay(2000);
+
+      // Choose another type
+      const types = await firstNotNilPromise(this.$types);
+      if (types && types.length) {
+        await this.setType(types[0], {emitEvent: true});
+      }
+      else {
+        this.loading = false;
+        this.markForCheck();
+      }
     }
     catch(err) {
       console.error(err);
       this.error = err && err.message || err;
       this.markAsDirty();
-    }
-    finally {
-      this.loading = false;
     }
 
   }
@@ -327,6 +350,18 @@ export class ExtractionTablePage extends ExtractionForm<ExtractionType> implemen
     await this.router.navigateByUrl('/map', {
       queryParams:  this.getFilterAsQueryParams()
     });
+  }
+
+  async openAggregationType(type?: ExtractionType) {
+    type = type || this.type;
+
+    if (!type) return; // skip if not a aggregation type
+
+    console.debug(`[extraction-table] Opening aggregation type {${type.label}`);
+
+    // open the aggregation type
+    await this.router.navigateByUrl(`/extraction/aggregation/${type.id}`);
+
   }
 
   /* -- private method -- */

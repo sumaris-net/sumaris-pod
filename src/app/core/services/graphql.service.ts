@@ -24,6 +24,7 @@ import {Platform} from "@ionic/angular";
 import {EntityUtils} from "./model";
 import {EntityStorage} from "./local-entities-repository.service";
 import {DataProxy} from 'apollo-cache';
+import {isNotNil} from "../../shared/functions";
 
 @Injectable({providedIn: 'root'})
 export class GraphqlService {
@@ -78,7 +79,7 @@ export class GraphqlService {
     // Listen network status
     this._$networkStatusChanged = network.onNetworkStatusChanges
       .pipe(
-        filter(type => type !== null && type !== undefined),
+        filter(type => isNotNil(type)),
         distinctUntilChanged()
       );
   }

@@ -111,6 +111,23 @@ export function suggestFromArray<T=any>(items: T[], value: any, options?: {
   return items.filter(v => keys.findIndex(key => startsWithUpperCase(getPropertyByPathAsString(v, key), value)) !== -1);
 }
 
+export function suggestFromStringArray(values: string[], value: any, options?: {
+  searchAttribute?: string
+  searchAttributes?: string[]
+}): string[] {
+  value = (typeof value === "string" && value !== '*') && value.toUpperCase() || undefined;
+  if (isNilOrBlank(value)) return values;
+
+  // If wildcard, search using regexp
+  if ((value as string).indexOf('*') !== -1) {
+    value = (value as string).replace('*', '.*');
+    return values.filter(v => matchUpperCase(v, value));
+  }
+
+  // If wildcard, search using startsWith
+  return values.filter(v => startsWithUpperCase(v, value));
+}
+
 export function joinPropertiesPath<T = any>(obj: T, properties: string[], separator?: string): string | undefined {
   if (!obj) throw new Error("Could not display an undefined entity.");
   return properties
@@ -197,6 +214,7 @@ export function filterNumberInput(event: KeyboardEvent, allowDecimals: boolean) 
 
 export function getPropertyByPath(obj: any, path: string): any {
   if (isNil(obj)) return undefined;
+  if (isNilOrBlank(path)) return obj;
   const i = path.indexOf('.');
   if (i === -1) {
     return obj[path];
