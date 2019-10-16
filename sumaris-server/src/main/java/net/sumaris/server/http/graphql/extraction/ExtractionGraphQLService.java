@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
+import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.server.http.rest.DownloadController;
 import net.sumaris.server.http.security.IsUser;
@@ -54,8 +55,8 @@ public class ExtractionGraphQLService {
 
     @GraphQLQuery(name = "extractionTypes", description = "Get all available extraction types")
     @Transactional(readOnly = true)
-    public List<ExtractionTypeVO> getAllExtractionTypes() {
-        return extractionService.getAllExtractionTypes();
+    public List<ExtractionTypeVO> getAllExtractionTypes(@GraphQLArgument(name = "filter") ExtractionTypeFilterVO filter) {
+        return extractionService.findByFilter(filter);
     }
 
     @GraphQLQuery(name = "extractionRows", description = "Preview some extraction rows")

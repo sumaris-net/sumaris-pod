@@ -19,11 +19,10 @@ import java.util.List;
 public interface AggregationService {
 
     @Transactional(readOnly = true)
-    List<AggregationTypeVO> findAllTypes(AggregationTypeFilterVO filter, ProductFetchOptions fetchOptions);
-
+    List<AggregationTypeVO> findByFilter(@Nullable AggregationTypeFilterVO filter, ProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    List<AggregationTypeVO> getAllAggregationTypes(ProductFetchOptions fetchOptions);
+    AggregationTypeVO get(int id, ProductFetchOptions fetchOptions);
 
     /**
      * Do an aggregate

@@ -40,9 +40,9 @@ public interface CacheNames {
     String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";
     String TAXON_NAMES_BY_TAXON_GROUP_ID= "net.sumaris.core.dao.referential.taxonNamesByTaxonGroupId";
 
-    String PRODUCTS = "net.sumaris.core.dao.technical.product.productsCache";
     String PRODUCT_BY_LABEL = "net.sumaris.core.dao.technical.product.productByLabelCache";
-    String PRODUCTS_BY_STATUS = "net.sumaris.core.dao.technical.product.productsByStatusCache";
+    String PRODUCTS = "net.sumaris.core.dao.technical.product.productsCache";
+    String PRODUCTS_BY_FILTER = "net.sumaris.core.dao.technical.product.productByFilterCache";
 
     // Technical caches
     String TABLE_META_BY_NAME = "net.sumaris.core.dao.technical.schema.tableMetaByName";

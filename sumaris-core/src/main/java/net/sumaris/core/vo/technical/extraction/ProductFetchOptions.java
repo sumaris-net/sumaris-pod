@@ -36,6 +36,13 @@ public class ProductFetchOptions {
             .withColumns(false)
             .withColumnValues(false)
             .build();
+    public static ProductFetchOptions FOR_UPDATE = builder()
+            .withRecorderDepartment(true)
+            .withRecorderPerson(true)
+            .withTables(true)
+            .withColumns(false)
+            .withColumnValues(false)
+            .build();
     public static ProductFetchOptions MINIMAL_WITH_TABLES = builder()
             .withRecorderDepartment(false)
             .withRecorderPerson(false)

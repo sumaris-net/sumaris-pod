@@ -35,6 +35,7 @@ public class ExtractionBeans {
             case Types.VARCHAR:
             case Types.LONGVARCHAR:
             case Types.NVARCHAR:
+            case Types.CHAR:
                 type = "string";
                 break;
             default:

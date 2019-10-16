@@ -140,7 +140,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     public ExtractionResultVO getTableGroupByRows(String tableName,
                                                   ExtractionFilterVO filter,
                                                   Set<String> groupByColumnNames,
-                                                  Map<String, SQLAggregatedFunction> otherColumnNames,
+                                                  final Map<String, SQLAggregatedFunction> otherColumnNames,
                                                   int offset, int size, String sort, SortDirection direction) {
         Preconditions.checkNotNull(tableName);
 
@@ -161,15 +161,13 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
             whereBuilder.append(SumarisTableMetadatas.getSqlWhereClause(table, filter));
         } else {
-            // TODO
-//                List<ExtractionColumnMetadataVO> columns = toProductColumnVOs(columnNames);
-//                result.setColumns(columns);
+            log.warn("Unable to find metadata for table " + tableName);
         }
 
-        String tableAlias = table != null ? table.getAlias() : null;
+        final String tableAlias = table != null ? table.getAlias() : null;
 
         if (whereBuilder.length() == 0) {
-            whereBuilder.append("1=1");
+            whereBuilder.append("WHERE 1=1");
         }
 
         List<String> columnNamesWithFunction = columnNames.stream()
@@ -203,13 +201,6 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         int columnCount = columnNamesWithFunction.size();
         List<String[]> rows = query(sql, r -> this.toTableRowVO(r, columnCount), offset, size);
         result.setRows(rows);
-
-        // Count rows
-        //Number total = getRowCount(table, whereClause);
-        //result.setTotal(total);
-
-        //if (size > 0 && total.longValue() > 0) {
-        //}
 
         return result;
     }

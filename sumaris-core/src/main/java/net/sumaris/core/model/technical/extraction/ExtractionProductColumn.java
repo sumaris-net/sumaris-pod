@@ -59,6 +59,9 @@ public class ExtractionProductColumn implements IEntity<Integer> {
     @Column(name="rank_order", length = 10)
     private Integer rankOrder;
 
+    @Column(name="type", length = 30)
+    private String type;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_table_fk", nullable = false)
     private ExtractionProductTable table;

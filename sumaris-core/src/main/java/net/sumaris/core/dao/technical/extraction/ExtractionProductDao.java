@@ -1,7 +1,7 @@
 package net.sumaris.core.dao.technical.extraction;
 
 import net.sumaris.core.dao.cache.CacheNames;
-import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
 import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,18 +20,11 @@ import java.util.Optional;
 public interface ExtractionProductDao {
 
 
-    @Cacheable(cacheNames = CacheNames.PRODUCTS_BY_STATUS)
-    List<ExtractionProductVO> findAllByStatus(List<Integer> statusId, ProductFetchOptions fetchOptions);
+    @Cacheable(cacheNames = CacheNames.PRODUCTS_BY_FILTER)
+    List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ProductFetchOptions fetchOptions);
 
-    default List<ExtractionProductVO> findAllByStatus(List<Integer> statusId) {
-        return findAllByStatus(statusId, null);
-    }
-
-    @Cacheable(cacheNames = CacheNames.PRODUCTS)
-    List<ExtractionProductVO> getAll(ProductFetchOptions fetchOptions);
-
-    default List<ExtractionProductVO> getAll() {
-        return getAll(null);
+    default List<ExtractionProductVO> findByFilter() {
+        return findByFilter(null, null);
     }
 
     @Cacheable(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#label")
@@ -53,7 +47,7 @@ public interface ExtractionProductDao {
         evict = {
             @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, key = "#source.label", condition = "#source != null && #source.id != null"),
             @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_STATUS, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_FILTER, allEntries = true),
         },
         put = {
             @CachePut(cacheNames= CacheNames.PRODUCT_BY_LABEL, key="#source.label", condition = "#source != null && #source.label != null")
@@ -64,7 +58,7 @@ public interface ExtractionProductDao {
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheNames.PRODUCT_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheNames.PRODUCTS, allEntries = true),
-            @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_STATUS, allEntries = true)
+            @CacheEvict(cacheNames = CacheNames.PRODUCTS_BY_FILTER, allEntries = true)
     })
     void delete(int id);
 

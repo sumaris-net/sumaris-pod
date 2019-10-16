@@ -7,8 +7,6 @@ import net.sumaris.core.dao.administration.user.DepartmentDao;
 import net.sumaris.core.dao.administration.user.PersonDao;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
-import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
@@ -16,26 +14,23 @@ import net.sumaris.core.model.technical.extraction.ExtractionProductColumn;
 import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
 import net.sumaris.core.model.technical.extraction.ExtractionProductValue;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.ExtractionBeans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,23 +55,26 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
     @Autowired
     private PersonDao personDao;
 
-    @Autowired
-    private SumarisDatabaseMetadata databaseMetaData;
-
     @Override
-    public List<ExtractionProductVO> findAllByStatus(List<Integer> statusIds, ProductFetchOptions fetchOptions) {
-        Preconditions.checkNotNull(statusIds);
-        Preconditions.checkArgument(statusIds.size() > 0);
-        return getEntityManager().createQuery("from ExtractionProduct p where p.status.id IN (:statusIds)", ExtractionProduct.class)
-                .setParameter("statusIds", statusIds)
-                .getResultStream()
-                .map(p -> toProductVO(p, fetchOptions))
-                .collect(Collectors.toList());
-    }
+    public List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ProductFetchOptions fetchOptions) {
+        Preconditions.checkNotNull(filter);
+        Preconditions.checkArgument(ArrayUtils.isNotEmpty(filter.getStatusIds()));
 
-    @Override
-    public List<ExtractionProductVO> getAll(ProductFetchOptions fetchOptions) {
-        return getEntityManager().createQuery("from ExtractionProduct p where p.status.id!=0", ExtractionProduct.class)
+        StringBuilder hqlQuery = new StringBuilder();
+        hqlQuery.append("from ExtractionProduct p where p.status.id IN (:statusIds)");
+
+        if (filter.getDepartmentId() != null) {
+            hqlQuery.append(" and p.recorderDepartment.id = :departmentId");
+        }
+
+        TypedQuery<ExtractionProduct> query = getEntityManager().createQuery(hqlQuery.toString(), ExtractionProduct.class)
+                .setParameter("statusIds", ImmutableList.copyOf(filter.getStatusIds()));
+
+        if (filter.getDepartmentId() != null) {
+            query.setParameter("departmentId", filter.getDepartmentId());
+        }
+
+        return query
                 .getResultStream()
                 .map(p -> toProductVO(p, fetchOptions))
                 .collect(Collectors.toList());
@@ -129,7 +127,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
                 .setParameter(productIdParam, id)
                 .setParameter(tableLabelParam, tableLabel)
                 .getResultStream()
-                .map(c -> toColumnVO(c, null))
+                .map(c -> toColumnVO(c, null /*with values*/))
                 .collect(Collectors.toList());
     }
 
@@ -152,7 +150,7 @@ public class ExtractionProductDaoImpl extends HibernateDaoSupport implements Ext
         }
 
         // VO -> Entity
-        productVOToEntity(source, entity, true);
+        productVOToEntity(source, entity, true/*IMPORTANT: recorder person/department can be null*/);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();

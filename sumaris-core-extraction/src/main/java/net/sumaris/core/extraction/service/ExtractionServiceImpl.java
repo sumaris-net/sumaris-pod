@@ -21,6 +21,7 @@ import net.sumaris.core.extraction.dao.trip.rdb.ExtractionRdbTripDao;
 import net.sumaris.core.extraction.dao.trip.survivalTest.ExtractionSurvivalTestDao;
 import net.sumaris.core.extraction.utils.ExtractionBeans;
 import net.sumaris.core.extraction.vo.*;
+import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
@@ -28,7 +29,6 @@ import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
@@ -36,6 +36,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
@@ -110,11 +111,21 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public List<ExtractionTypeVO> getAllExtractionTypes() {
-        return ImmutableList.<ExtractionTypeVO>builder()
-                .addAll(getProductExtractionTypes())
-                .addAll(getLiveExtractionTypes())
-                .build();
+    public List<ExtractionTypeVO> findByFilter(ExtractionTypeFilterVO filter) {
+        ImmutableList.Builder<ExtractionTypeVO> builder = ImmutableList.builder();
+        filter = filter != null ? filter : new ExtractionTypeFilterVO();
+
+        // Add live extraction types
+        if (filter.getCategory() == null || filter.getCategory().equalsIgnoreCase(ExtractionCategoryEnum.LIVE.name())) {
+            builder.addAll(getLiveExtractionTypes());
+        }
+
+        // Add products
+        if (filter.getCategory() == null || filter.getCategory().equalsIgnoreCase(ExtractionCategoryEnum.PRODUCT.name())) {
+            builder.addAll(getProductExtractionTypes(filter));
+        }
+
+        return builder.build();
     }
 
     @Override
@@ -320,9 +331,20 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     /* -- protected -- */
 
-    protected List<ExtractionTypeVO> getProductExtractionTypes() {
+    protected List<ExtractionTypeVO> getAllExtractionTypes() {
+        return findByFilter(new ExtractionTypeFilterVO());
+    }
+
+    protected List<ExtractionTypeVO> getProductExtractionTypes(ExtractionTypeFilterVO filter) {
+        Preconditions.checkNotNull(filter);
+
+        // Exclude types with a DISABLE status, by default
+        if (ArrayUtils.isEmpty(filter.getStatusIds())) {
+            filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
+        }
+
         return ListUtils.emptyIfNull(
-                extractionProductDao.getAll(ProductFetchOptions.builder()
+                extractionProductDao.findByFilter(filter, ProductFetchOptions.builder()
                         .withRecorderDepartment(true)
                         .withTables(true)
                         .build()))

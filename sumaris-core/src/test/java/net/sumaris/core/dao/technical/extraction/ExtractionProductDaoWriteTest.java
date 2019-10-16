@@ -27,9 +27,6 @@ import com.google.common.collect.Lists;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionProductColumn;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductTableVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -63,7 +60,7 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
 
     @Test
     public void getAll() {
-        List<ExtractionProductVO> products = dao.getAll();
+        List<ExtractionProductVO> products = dao.findByFilter();
         Assert.assertNotNull(products);
         Assert.assertTrue(products.size() > 0);
     }

@@ -34,10 +34,8 @@ import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
 import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductColumnVO;
 import net.sumaris.core.vo.technical.extraction.ProductFetchOptions;
 import net.sumaris.server.http.geojson.extraction.GeoJsonExtractions;
@@ -59,13 +57,16 @@ public class AggregationGraphQLService {
 
     /* -- aggregation service -- */
 
+    @GraphQLQuery(name = "aggregationType", description = "Get one aggregation type")
+    public AggregationTypeVO getAllAggregationTypes(@GraphQLArgument(name = "id") int id,
+                                                    @GraphQLEnvironment() Set<String> fields) {
+        return aggregationService.get(id, getFetchOptions(fields));
+    }
+
     @GraphQLQuery(name = "aggregationTypes", description = "Get all available aggregation types")
     public List<AggregationTypeVO> getAllAggregationTypes(@GraphQLArgument(name = "filter") AggregationTypeFilterVO filter,
                                                           @GraphQLEnvironment() Set<String> fields) {
-        if (filter != null) {
-            return aggregationService.findAllTypes(filter, getFetchOptions(fields));
-        }
-        return aggregationService.getAllAggregationTypes(getFetchOptions(fields));
+        return aggregationService.findByFilter(filter, getFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "aggregationRows", description = "Read an aggregation")
@@ -152,6 +153,8 @@ public class AggregationGraphQLService {
                 .withTables(fields.contains(AggregationTypeVO.PROPERTY_SHEET_NAMES))
                 // Columns not need
                 .withColumns(false)
+                // TODO Strata
+
                 .build();
     }
 

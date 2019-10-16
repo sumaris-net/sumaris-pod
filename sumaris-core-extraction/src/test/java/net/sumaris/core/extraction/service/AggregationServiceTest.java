@@ -50,7 +50,8 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Preconditions.checkArgument(result.getRows().size() > 0);
 
         // FIXME
-        //Preconditions.checkNotNull(result.getTotal() > 0);
+        Preconditions.checkNotNull(result.getTotal());
+        Preconditions.checkArgument(result.getTotal().intValue() > 0);
 
     }
 

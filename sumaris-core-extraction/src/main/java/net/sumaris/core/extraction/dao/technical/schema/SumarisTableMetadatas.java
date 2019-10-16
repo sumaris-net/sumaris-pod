@@ -30,7 +30,7 @@ public class SumarisTableMetadatas {
         String whereContent = getSqlWhereClauseContent(table, filter);
 
         // Prepend with WHERE keyword
-        if (StringUtils.isBlank(whereContent)) return "";
+        if (StringUtils.isBlank(whereContent) || "1=1".equals(whereContent)) return "";
         return " WHERE " + whereContent;
     }
 
@@ -186,7 +186,12 @@ public class SumarisTableMetadatas {
 
         // Where clause
         if (StringUtils.isNotBlank(whereClause)) {
-            sb.append(" ").append(whereClause);
+            if (!whereClause.trim().startsWith("WHERE")) {
+                sb.append(" WHERE ").append(whereClause.trim());
+            }
+            else {
+                sb.append(" ").append(whereClause.trim());
+            }
         }
 
         // Group by clause

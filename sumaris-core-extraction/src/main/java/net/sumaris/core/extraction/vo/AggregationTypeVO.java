@@ -28,6 +28,7 @@ public class AggregationTypeVO extends ExtractionTypeVO implements
     }
 
     String description;
+    String comments;
     Date updateDate;
 
     PersonVO recorderPerson;
